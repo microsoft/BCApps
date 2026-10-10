@@ -2653,6 +2653,593 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.IsTrue(AllResolvedQltyInspectionIds.Contains(FirstCreatedQltyInspectionHeader."No."), 'The all-resolved list must include the reused inspection.');
     end;
 
+    [Test]
+    procedure CreateInspectionFromRuleEngine_MatchingRule_CreatesNewInspection()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnusedVariant: Variant;
+        HasInspection: Boolean;
+        IsNewlyCreated: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] The public rule engine facade creates a new inspection for a record that matches an automatic generation rule and returns it
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, an automatic generation rule on Purchase Line, and a purchase order line for an untracked item
+        LibraryInventory.CreateItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionFromRuleEngine is called for the purchase line without rule filters
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionHeader, IsNewlyCreated);
+
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] One inspection is created from the purchase line with the rule's template and it is reported as newly created
+        LibraryAssert.IsTrue(HasInspection, 'The facade should report that an inspection was created.');
+        LibraryAssert.IsTrue(IsNewlyCreated, 'A newly inserted inspection must be reported as newly created.');
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Exactly one inspection should have been created.');
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, CreatedQltyInspectionHeader."Template Code", 'The inspection should use the template of the matching generation rule.');
+        LibraryAssert.AreEqual(PurchaseHeader."No.", CreatedQltyInspectionHeader."Source Document No.", 'The inspection should reference the purchase order.');
+        LibraryAssert.AreEqual(Item."No.", CreatedQltyInspectionHeader."Source Item No.", 'The inspection should reference the purchased item.');
+        LibraryAssert.AreEqual(Database::"Purchase Line", CreatedQltyInspectionHeader."Source Record Table No.", 'The inspection should be sourced from the purchase line.');
+    end;
+
+    [Test]
+    procedure CreateInspectionFromRuleEngine_ReuseConfigured_ReturnsExistingInspection()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        FirstQltyInspectionHeader: Record "Qlty. Inspection Header";
+        SecondQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnusedVariant: Variant;
+        PreviousQltyInspectCreationOption: Enum "Qlty. Inspect. Creation Option";
+        HasInspection: Boolean;
+        IsNewlyCreated: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] With "Use existing open inspection if available" configured, the facade returns the existing inspection and reports it as not newly created
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, an automatic generation rule on Purchase Line, and a purchase order line for an untracked item
+        LibraryInventory.CreateItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+
+        // [GIVEN] An open inspection already created for the purchase line through the facade
+        QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, FirstQltyInspectionHeader, IsNewlyCreated);
+
+        // [GIVEN] The Inspection Creation Option is set to "Use existing open inspection if available"
+        QltyManagementSetup.Get();
+        PreviousQltyInspectCreationOption := QltyManagementSetup."Inspection Creation Option";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Use existing open inspection if available";
+        QltyManagementSetup.Modify();
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionFromRuleEngine is called again for the same purchase line
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, SecondQltyInspectionHeader, IsNewlyCreated);
+
+        QltyManagementSetup."Inspection Creation Option" := PreviousQltyInspectCreationOption;
+        QltyManagementSetup.Modify();
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] The existing inspection is returned, nothing new is inserted, and the call is reported as a reuse
+        LibraryAssert.IsTrue(HasInspection, 'The facade should report that an inspection was resolved.');
+        LibraryAssert.IsFalse(IsNewlyCreated, 'A reused inspection must not be reported as newly created.');
+        LibraryAssert.AreEqual(FirstQltyInspectionHeader."No.", SecondQltyInspectionHeader."No.", 'The existing inspection should have been returned.');
+        LibraryAssert.AreEqual(BeforeCount, QltyInspectionHeader.Count(), 'No new inspection should have been inserted when reusing.');
+    end;
+
+    [Test]
+    procedure CreateInspectionFromRuleEngine_NoMatchingRule_ReturnsFalseWithoutError()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnusedVariant: Variant;
+        HasInspection: Boolean;
+        IsNewlyCreated: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] When no generation rule matches, the facade returns false without raising an error and without opening any page
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A purchase order line for an untracked item, and no enabled generation rule for it
+        LibraryInventory.CreateItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+        QltyInspectionGenRule.Delete();
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionFromRuleEngine is called for the purchase line
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionHeader, IsNewlyCreated);
+
+        // [THEN] The facade returns false, no inspection is returned, and nothing was inserted
+        LibraryAssert.IsFalse(HasInspection, 'The facade should report that no inspection was resolved.');
+        LibraryAssert.IsFalse(IsNewlyCreated, 'Nothing should be reported as newly created when no rule matches.');
+        LibraryAssert.IsTrue(CreatedQltyInspectionHeader."No." = '', 'No inspection should be returned when no rule matches.');
+        LibraryAssert.AreEqual(BeforeCount, QltyInspectionHeader.Count(), 'No inspection should have been inserted when no rule matches.');
+    end;
+
+    [Test]
+    procedure CreateInspectionFromRuleEngine_ManualOnlyRule_NotSelected()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnusedVariant: Variant;
+        HasInspection: Boolean;
+        IsNewlyCreated: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] A generation rule with Activation Trigger "Manual only" is not selected by the facade, which uses automatic semantics
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, a generation rule on Purchase Line restricted to manual creation, and a purchase order line for an untracked item
+        LibraryInventory.CreateItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Manual only";
+        QltyInspectionGenRule.Modify();
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionFromRuleEngine is called for the purchase line
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionHeader, IsNewlyCreated);
+
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] The manual-only rule is ignored and no inspection is created
+        LibraryAssert.IsFalse(HasInspection, 'A manual-only generation rule must not be selected with automatic semantics.');
+        LibraryAssert.AreEqual(BeforeCount, QltyInspectionHeader.Count(), 'No inspection should have been inserted from a manual-only rule.');
+    end;
+
+    [Test]
+    procedure CreateInspectionFromRuleEngine_RelatedRecordPromotedAndMapped()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        UnusedVariant: Variant;
+        HasInspection: Boolean;
+        IsNewlyCreated: Boolean;
+    begin
+        // [SCENARIO] When the first record has no matching rule, the facade promotes the related record to primary and still maps the source fields of every supplied record
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, an automatic generation rule on Purchase Line, and a purchase order line for a lot-tracked item with one tracking line
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+        CollectPurchaseLineTracking(PurchaseLine, TempTrackingSpecification);
+        TempTrackingSpecification.FindFirst();
+
+        // [WHEN] CreateInspectionFromRuleEngine is called with the tracking line first and the purchase line as the related record
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(TempTrackingSpecification, PurchaseLine, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionHeader, IsNewlyCreated);
+
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] The inspection is created from the purchase line, and the lot from the tracking line is mapped onto it
+        LibraryAssert.IsTrue(HasInspection, 'The facade should resolve an inspection through the related purchase line.');
+        LibraryAssert.IsTrue(IsNewlyCreated, 'The inspection should be reported as newly created.');
+        LibraryAssert.AreEqual(Database::"Purchase Line", CreatedQltyInspectionHeader."Source Record Table No.", 'The related purchase line should have been promoted to the inspection source.');
+        LibraryAssert.AreEqual(PurchaseHeader."No.", CreatedQltyInspectionHeader."Source Document No.", 'The inspection should reference the purchase order.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", CreatedQltyInspectionHeader."Source Lot No.", 'The lot of the supplied tracking line should be mapped onto the inspection.');
+    end;
+
+    [Test]
+    procedure CreateInspectionFromRuleEngine_RuleFiltersRestrictMatchingRules()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        OnCreateQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        OnPostQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        OnCreateQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        OnPostQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        FilteredQltyInspectionHeader: Record "Qlty. Inspection Header";
+        UnfilteredQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        Location: Record Location;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        UnusedVariant: Variant;
+        PreviousQltyInspectCreationOption: Enum "Qlty. Inspect. Creation Option";
+        HasInspection: Boolean;
+        IsNewlyCreated: Boolean;
+    begin
+        // [SCENARIO] Filters on the supplied generation rule record restrict which rules the facade considers, so a caller can target the rules configured for its trigger moment
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] Two automatic generation rules on Purchase Line: the first in sort order targets warehouse receipt posting, the second targets warehouse receipt creation
+        QltyInspectionUtility.CreateTemplate(OnCreateQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(OnCreateQltyInspectionTemplateHdr, Database::"Purchase Line", OnCreateQltyInspectionGenRule);
+        OnCreateQltyInspectionGenRule."Warehouse Receipt Trigger" := OnCreateQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        OnCreateQltyInspectionGenRule.Modify();
+
+        QltyInspectionUtility.CreateTemplate(OnPostQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(OnPostQltyInspectionTemplateHdr, Database::"Purchase Line", OnPostQltyInspectionGenRule);
+        OnPostQltyInspectionGenRule."Warehouse Receipt Trigger" := OnPostQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost;
+        OnPostQltyInspectionGenRule.Modify();
+
+        OnCreateQltyInspectionGenRule.Find();
+        OnCreateQltyInspectionGenRule."Activation Trigger" := OnCreateQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
+        OnCreateQltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(OnPostQltyInspectionGenRule."Sort Order" < OnCreateQltyInspectionGenRule."Sort Order", 'Testing the test: the receipt-post rule must sort before the receipt-create rule.');
+
+        // [GIVEN] A purchase order line for an untracked item, and setup that always creates a new inspection
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
+        LibraryPurchase.CreateVendor(Vendor);
+        QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
+
+        QltyManagementSetup.Get();
+        PreviousQltyInspectCreationOption := QltyManagementSetup."Inspection Creation Option";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
+        QltyManagementSetup.Modify();
+
+        // [WHEN] CreateInspectionFromRuleEngine is called with the rule record filtered on Warehouse Receipt Trigger = OnWarehouseReceiptCreate
+#pragma warning disable AA0210
+        TempFiltersQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", TempFiltersQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
+#pragma warning restore AA0210
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, FilteredQltyInspectionHeader, IsNewlyCreated);
+
+        // [THEN] The receipt-create rule is selected although the receipt-post rule sorts first
+        LibraryAssert.IsTrue(HasInspection, 'The facade should resolve an inspection from the filtered rule.');
+        LibraryAssert.AreEqual(OnCreateQltyInspectionTemplateHdr.Code, FilteredQltyInspectionHeader."Template Code", 'The rule filter should select the receipt-create rule over the receipt-post rule that sorts first.');
+
+        // [WHEN] CreateInspectionFromRuleEngine is called again without rule filters
+        TempFiltersQltyInspectionGenRule.Reset();
+        HasInspection := QltyInspectionCreate.CreateInspectionFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, UnusedVariant, TempFiltersQltyInspectionGenRule, UnfilteredQltyInspectionHeader, IsNewlyCreated);
+
+        QltyManagementSetup."Inspection Creation Option" := PreviousQltyInspectCreationOption;
+        QltyManagementSetup.Modify();
+        OnCreateQltyInspectionGenRule.Delete();
+        OnPostQltyInspectionGenRule.Delete();
+
+        // [THEN] The first rule in sort order is selected, which proves the earlier selection came from the filter
+        LibraryAssert.IsTrue(HasInspection, 'The facade should resolve an inspection without rule filters.');
+        LibraryAssert.AreEqual(OnPostQltyInspectionTemplateHdr.Code, UnfilteredQltyInspectionHeader."Template Code", 'Without rule filters the first rule in sort order should be selected.');
+    end;
+
+    [Test]
+    procedure CreateInspectionsFromRuleEngine_TrackingBuffer_CreatesOnePerTrackingLine()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        UnusedVariant: Variant;
+        PreviousQltyInspectCreationOption: Enum "Qlty. Inspect. Creation Option";
+        NewlyCreatedQltyInspectionIds: List of [Code[20]];
+        AllResolvedQltyInspectionIds: List of [Code[20]];
+        HasInspection: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] The tracked facade issues one creation call per tracking line and returns every created inspection
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, an automatic generation rule on Purchase Line, and a purchase order line for a serial-tracked item with two serial numbers
+        QltyInspectionUtility.CreateSerialTrackedItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 2);
+        CollectPurchaseLineTracking(PurchaseLine, TempTrackingSpecification);
+        LibraryAssert.AreEqual(2, TempTrackingSpecification.Count(), 'Testing the test: the purchase line should carry two tracking lines.');
+
+        // [GIVEN] Setup that always creates a new inspection
+        QltyManagementSetup.Get();
+        PreviousQltyInspectCreationOption := QltyManagementSetup."Inspection Creation Option";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
+        QltyManagementSetup.Modify();
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionsFromRuleEngine is called with the purchase line and the tracking buffer
+        HasInspection := QltyInspectionCreate.CreateInspectionsFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, TempTrackingSpecification, TempFiltersQltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+
+        QltyManagementSetup."Inspection Creation Option" := PreviousQltyInspectCreationOption;
+        QltyManagementSetup.Modify();
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] Two inspections are created, one per serial number, and both are returned as newly created
+        LibraryAssert.IsTrue(HasInspection, 'The facade should report that inspections were created.');
+        LibraryAssert.AreEqual(2, NewlyCreatedQltyInspectionIds.Count(), 'One inspection should have been created per tracking line.');
+        LibraryAssert.AreEqual(2, AllResolvedQltyInspectionIds.Count(), 'Every created inspection should be reported as resolved.');
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Exactly two inspections should have been inserted.');
+        TempTrackingSpecification.FindSet();
+        repeat
+            QltyInspectionHeader.Reset();
+            QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+            QltyInspectionHeader.SetRange("Source Serial No.", TempTrackingSpecification."Serial No.");
+            LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'Each tracking line should have produced an inspection carrying its serial number.');
+            QltyInspectionHeader.FindFirst();
+            LibraryAssert.IsTrue(NewlyCreatedQltyInspectionIds.Contains(QltyInspectionHeader."No."), 'The inspection for each tracking line should be returned as newly created.');
+        until TempTrackingSpecification.Next() = 0;
+    end;
+
+    [Test]
+    procedure CreateInspectionsFromRuleEngine_EmptyTrackingBuffer_CreatesSingleInspection()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnusedVariant: Variant;
+        NewlyCreatedQltyInspectionIds: List of [Code[20]];
+        AllResolvedQltyInspectionIds: List of [Code[20]];
+        HasInspection: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] With an empty tracking buffer, the tracked facade falls back to a single creation call without tracking information
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, an automatic generation rule on Purchase Line, and a purchase order line for an untracked item
+        LibraryInventory.CreateItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionsFromRuleEngine is called with an empty tracking buffer
+        HasInspection := QltyInspectionCreate.CreateInspectionsFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, TempTrackingSpecification, TempFiltersQltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] One inspection is created for the purchase line and returned as newly created
+        LibraryAssert.IsTrue(HasInspection, 'The facade should report that an inspection was created.');
+        LibraryAssert.AreEqual(1, NewlyCreatedQltyInspectionIds.Count(), 'One inspection should have been created without tracking.');
+        LibraryAssert.AreEqual(1, AllResolvedQltyInspectionIds.Count(), 'The created inspection should be reported as resolved.');
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Exactly one inspection should have been inserted.');
+        QltyInspectionHeader.SetRange("No.", NewlyCreatedQltyInspectionIds.Get(1));
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(PurchaseHeader."No.", QltyInspectionHeader."Source Document No.", 'The inspection should reference the purchase order.');
+    end;
+
+    [Test]
+    procedure CreateInspectionsFromRuleEngine_ReusedInspection_ReportedAsResolvedNotCreated()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnusedVariant: Variant;
+        PreviousQltyInspectCreationOption: Enum "Qlty. Inspect. Creation Option";
+        FirstNewlyCreatedQltyInspectionIds: List of [Code[20]];
+        FirstAllResolvedQltyInspectionIds: List of [Code[20]];
+        NewlyCreatedQltyInspectionIds: List of [Code[20]];
+        AllResolvedQltyInspectionIds: List of [Code[20]];
+        HasInspection: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] A reused inspection is reported by the tracked facade in the all-resolved list but not in the newly-created list
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template, an automatic generation rule on Purchase Line, and a purchase order line for an untracked item
+        LibraryInventory.CreateItem(Item);
+        SetupRuleEngineFacadePurchaseOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, PurchaseHeader, PurchaseLine, ReservationEntry, 10);
+
+        // [GIVEN] An open inspection already created for the purchase line through the facade
+        QltyInspectionCreate.CreateInspectionsFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, TempTrackingSpecification, TempFiltersQltyInspectionGenRule, FirstNewlyCreatedQltyInspectionIds, FirstAllResolvedQltyInspectionIds);
+        LibraryAssert.AreEqual(1, FirstNewlyCreatedQltyInspectionIds.Count(), 'Testing the test: the first call should have created one inspection.');
+
+        // [GIVEN] The Inspection Creation Option is set to "Use existing open inspection if available"
+        QltyManagementSetup.Get();
+        PreviousQltyInspectCreationOption := QltyManagementSetup."Inspection Creation Option";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Use existing open inspection if available";
+        QltyManagementSetup.Modify();
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionsFromRuleEngine is called again for the same purchase line
+        HasInspection := QltyInspectionCreate.CreateInspectionsFromRuleEngine(PurchaseLine, UnusedVariant, UnusedVariant, TempTrackingSpecification, TempFiltersQltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+
+        QltyManagementSetup."Inspection Creation Option" := PreviousQltyInspectCreationOption;
+        QltyManagementSetup.Modify();
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] The existing inspection is reported as resolved, nothing is reported as newly created, and nothing was inserted
+        LibraryAssert.IsTrue(HasInspection, 'The facade should report that an inspection was resolved.');
+        LibraryAssert.AreEqual(0, NewlyCreatedQltyInspectionIds.Count(), 'A reused inspection must not be reported as newly created.');
+        LibraryAssert.AreEqual(1, AllResolvedQltyInspectionIds.Count(), 'The reused inspection should be reported as resolved.');
+        LibraryAssert.AreEqual(FirstNewlyCreatedQltyInspectionIds.Get(1), AllResolvedQltyInspectionIds.Get(1), 'The inspection created by the first call should have been reused.');
+        LibraryAssert.AreEqual(BeforeCount, QltyInspectionHeader.Count(), 'No new inspection should have been inserted when reusing.');
+    end;
+
+    [Test]
+    procedure CreateInspectionsFromRuleEngine_SourceWithoutCollector_UsesSuppliedTracking()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryUtility: Codeunit "Library - Utility";
+        UnusedVariant: Variant;
+        NewlyCreatedQltyInspectionIds: List of [Code[20]];
+        AllResolvedQltyInspectionIds: List of [Code[20]];
+        LotNo: Code[50];
+        HasInspection: Boolean;
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] The tracked facade serves a source the app has no tracking collector for, because the caller supplies the tracking lines
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template and an automatic generation rule on Item Journal Line, a table the app's own tracking collector does not handle
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Item Journal Line", QltyInspectionGenRule);
+
+        // [GIVEN] A positive adjustment journal line for a lot-tracked item with one lot assigned, and a tracking buffer built from that lot
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Item, ItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 5);
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, 5);
+        ItemJournalLine.SetReservEntrySourceFilters(ReservationEntry, false);
+        CollectReservationEntryTracking(ReservationEntry, TempTrackingSpecification);
+        LibraryAssert.AreEqual(1, TempTrackingSpecification.Count(), 'Testing the test: the journal line should carry one tracking line.');
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspectionsFromRuleEngine is called with the journal line and the caller-built tracking buffer
+        HasInspection := QltyInspectionCreate.CreateInspectionsFromRuleEngine(ItemJournalLine, UnusedVariant, UnusedVariant, TempTrackingSpecification, TempFiltersQltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] One inspection is created from the journal line and carries the item and lot from the supplied tracking line
+        LibraryAssert.IsTrue(HasInspection, 'The facade should create an inspection for a source without an internal tracking collector.');
+        LibraryAssert.AreEqual(1, NewlyCreatedQltyInspectionIds.Count(), 'One inspection should have been created from the supplied tracking line.');
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Exactly one inspection should have been inserted.');
+        QltyInspectionHeader.SetRange("No.", NewlyCreatedQltyInspectionIds.Get(1));
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(Database::"Item Journal Line", QltyInspectionHeader."Source Record Table No.", 'The inspection should be sourced from the item journal line.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'The item from the supplied tracking line should be mapped onto the inspection.');
+        LibraryAssert.AreEqual(LotNo, QltyInspectionHeader."Source Lot No.", 'The lot from the supplied tracking line should be mapped onto the inspection.');
+    end;
+
+    local procedure SetupRuleEngineFacadePurchaseOrder(var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var Item: Record Item; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+    begin
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
+        LibraryPurchase.CreateVendor(Vendor);
+        QltyPurOrderGenerator.CreatePurchaseOrder(Quantity, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
+    end;
+
+    local procedure CollectPurchaseLineTracking(PurchaseLine: Record "Purchase Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        PurchaseLine.SetReservationFilters(ReservationEntry);
+        CollectReservationEntryTracking(ReservationEntry, TempTrackingSpecification);
+    end;
+
+    local procedure CollectReservationEntryTracking(var ReservationEntry: Record "Reservation Entry"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    var
+        EntryNo: Integer;
+    begin
+        if ReservationEntry.FindSet() then
+            repeat
+                EntryNo += 1;
+                TempTrackingSpecification.Init();
+                TempTrackingSpecification."Entry No." := EntryNo;
+                TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
+                TempTrackingSpecification."Item No." := ReservationEntry."Item No.";
+                TempTrackingSpecification."Variant Code" := ReservationEntry."Variant Code";
+                TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
+                TempTrackingSpecification.Insert();
+            until ReservationEntry.Next() = 0;
+    end;
+
     local procedure CreateInspectionWithTracking(var PurOrdPurchaseLine: Record "Purchase Line"; var TempSpecTrackingSpecification: Record "Tracking Specification" temporary; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         PurchaseLineRecordRef: RecordRef;
