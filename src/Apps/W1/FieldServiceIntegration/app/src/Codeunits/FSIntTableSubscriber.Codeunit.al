@@ -1067,6 +1067,9 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         FSWorkOrderIncident.Reset();
         FSWorkOrderIncident.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
+        CRMSalesorderdetailRecordRef.GetTable(FSWorkOrderIncident);
+        ApplyIntegrationTableFilter(CRMSalesorderdetailRecordRef, Database::"Service Item Line");
+        CRMSalesorderdetailRecordRef.SetTable(FSWorkOrderIncident);
         if FSWorkOrderIncident.FindSet() then begin
             repeat
                 if not SkipReimport(FSWorkOrderIncident.WorkOrderIncidentId, FSWorkOrderIncident.ModifiedOn) then
@@ -1135,6 +1138,9 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         FSWorkOrderProduct.Reset();
         FSWorkOrderProduct.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
+        FSWorkOrderProductRecordRef.GetTable(FSWorkOrderProduct);
+        ApplyIntegrationTableFilter(FSWorkOrderProductRecordRef, Database::"Service Line");
+        FSWorkOrderProductRecordRef.SetTable(FSWorkOrderProduct);
         if FSWorkOrderProduct.FindSet() then begin
             repeat
                 if not SkipReimport(FSWorkOrderProduct.WorkOrderProductId, FSWorkOrderProduct.ModifiedOn) then
@@ -1192,6 +1198,9 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         FSWorkOrderService.Reset();
         FSWorkOrderService.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
+        FSWorkOrderServiceRecordRef.GetTable(FSWorkOrderService);
+        ApplyIntegrationTableFilter(FSWorkOrderServiceRecordRef, Database::"Service Line");
+        FSWorkOrderServiceRecordRef.SetTable(FSWorkOrderService);
         if FSWorkOrderService.FindSet() then begin
             repeat
                 if not SkipReimport(FSWorkOrderService.WorkOrderServiceId, FSWorkOrderService.ModifiedOn) then
@@ -1252,6 +1261,9 @@ codeunit 6610 "FS Int. Table Subscriber"
         FSBookableResourceBooking.Reset();
         FSBookableResourceBooking.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
         FSBookableResourceBooking.SetRange(BookingStatus, FSIntegrationMgt.GetBookingStatusCompleted());
+        FSBookableResourceBookingRecordRef.GetTable(FSBookableResourceBooking);
+        ApplyIntegrationTableFilter(FSBookableResourceBookingRecordRef, Database::"Service Line");
+        FSBookableResourceBookingRecordRef.SetTable(FSBookableResourceBooking);
         if FSBookableResourceBooking.FindSet() then begin
             repeat
                 if not SkipReimport(FSBookableResourceBooking.BookableResourceBookingId, FSBookableResourceBooking.ModifiedOn) then
@@ -1262,10 +1274,54 @@ codeunit 6610 "FS Int. Table Subscriber"
                 FSBookableResourceBookingIdFilter += FSBookableResourceBookingId + '|';
             FSBookableResourceBookingIdFilter := FSBookableResourceBookingIdFilter.TrimEnd('|');
 
-            FSBookableResourceBooking2.SetFilter(BookableResourceBookingId, FSBookableResourceBookingIdFilter);
-            FSBookableResourceBookingRecordRef.GetTable(FSBookableResourceBooking2);
-            CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSBookableResourceBookingRecordRef, Database::"Service Line", false, false);
+            if FSBookableResourceBookingIdFilter <> '' then begin
+                FSBookableResourceBooking2.SetFilter(BookableResourceBookingId, FSBookableResourceBookingIdFilter);
+                FSBookableResourceBookingRecordRef.GetTable(FSBookableResourceBooking2);
+                CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSBookableResourceBookingRecordRef, Database::"Service Line", false, false);
+            end;
         end;
+    end;
+
+    local procedure ApplyIntegrationTableFilter(var IntegrationRecordRef: RecordRef; TableNo: Integer)
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        NoMappingErr: Label 'There is no integration table mapping for %1.', Comment = '%1 = table name';
+    begin
+        if not IntegrationTableMapping.FindMapping(TableNo, IntegrationRecordRef.Number()) then
+            Error(NoMappingErr, IntegrationRecordRef.Name());
+
+#pragma warning disable AA0214
+        ApplyMappingFilter(IntegrationRecordRef, IntegrationTableMapping.GetIntegrationTableFilter());
+#pragma warning restore AA0214
+    end;
+
+    local procedure ApplyMappingFilter(var RecordsToSynchRecordRef: RecordRef; MappingFilter: Text)
+    var
+        MappingRecordRef: RecordRef;
+        MappingFieldRef: FieldRef;
+        CandidateFieldRef: FieldRef;
+        PreviousFilterGroup: Integer;
+        FieldIndex: Integer;
+        FieldFilter: Text;
+        CombinedFilterTok: Label '(%1)&(%2)', Locked = true, Comment = '%1 = existing candidate filter, %2 = integration mapping filter';
+    begin
+        // Keep mapping filters separate so they cannot replace the parent or candidate scope.
+        MappingRecordRef.Open(RecordsToSynchRecordRef.Number());
+        MappingRecordRef.SetView(MappingFilter);
+        PreviousFilterGroup := RecordsToSynchRecordRef.FilterGroup();
+        RecordsToSynchRecordRef.FilterGroup(2);
+        for FieldIndex := 1 to MappingRecordRef.FieldCount() do begin
+            MappingFieldRef := MappingRecordRef.FieldIndex(FieldIndex);
+            FieldFilter := MappingFieldRef.GetFilter();
+            if FieldFilter <> '' then begin
+                CandidateFieldRef := RecordsToSynchRecordRef.Field(MappingFieldRef.Number());
+                if CandidateFieldRef.GetFilter() <> '' then
+                    FieldFilter := StrSubstNo(CombinedFilterTok, CandidateFieldRef.GetFilter(), FieldFilter);
+                CandidateFieldRef.SetFilter(FieldFilter);
+            end;
+        end;
+        RecordsToSynchRecordRef.FilterGroup(PreviousFilterGroup);
+        MappingRecordRef.Close();
     end;
 
     local procedure SkipReimport(CRMId: Guid; CurrentModifyTimeStamp: DateTime): Boolean
@@ -1290,6 +1346,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceHeader: Record "Service Header";
         FSWorkOrder: Record "FS Work Order";
         ServiceItemLine: Record "Service Item Line";
+        IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         ServiceItemLineRecordRef: RecordRef;
     begin
@@ -1301,7 +1358,12 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceItemLine.SetRange("FS Bookings", false);
         if not ServiceItemLine.IsEmpty() then begin
             ServiceItemLineRecordRef.GetTable(ServiceItemLine);
-            CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceItemLineRecordRef, false, false);
+            if IntegrationTableMapping.FindMappingForTable(Database::"Service Item Line") then
+#pragma warning disable AA0214
+                ApplyMappingFilter(ServiceItemLineRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
+            if not ServiceItemLineRecordRef.IsEmpty() then
+                CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceItemLineRecordRef, false, false);
         end;
     end;
 
@@ -1322,7 +1384,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetFilter("Item Type", '%1|%2', ServiceLine."Item Type"::Inventory, ServiceLine."Item Type"::"Non-Inventory");
         if not ServiceLine.IsEmpty() then begin
             ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
+            SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
         end;
     end;
 
@@ -1343,11 +1405,21 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetRange("Item Type", ServiceLine."Item Type"::Service);
         if not ServiceLine.IsEmpty() then begin
             ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
+            SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
         end;
     end;
 
-    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean) JobID: Guid
+    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    begin
+        exit(SynchRecordsToIntegrationTableImpl(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords, false));
+    end;
+
+    internal procedure SynchFilteredRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    begin
+        exit(SynchRecordsToIntegrationTableImpl(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords, true));
+    end;
+
+    local procedure SynchRecordsToIntegrationTableImpl(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean; ApplyTableFilter: Boolean) JobID: Guid
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
         IntegrationTableSynch: Codeunit "Integration Table Synch.";
@@ -1360,9 +1432,16 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not IntegrationTableMapping.FindFirst() then
             Error(SynchronizeEmptySetErr);
 
+#pragma warning disable AA0214
+        if ApplyTableFilter then
+            ApplyMappingFilter(RecordsToSynchRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
         RecordsToSynchRecordRef.Ascending(false);
-        if not RecordsToSynchRecordRef.FindSet() then
+        if not RecordsToSynchRecordRef.FindSet() then begin
+            if ApplyTableFilter then
+                exit;
             Error(SynchronizeEmptySetErr);
+        end;
 
         JobID :=
           IntegrationTableSynch.BeginIntegrationSynchJob(
@@ -2096,7 +2175,11 @@ codeunit 6610 "FS Int. Table Subscriber"
             ServiceHeaderToSync.SetRange("Document Type", ServiceHeaderToSync."Document Type"::Order);
             ServiceHeaderToSync.SetRange("No.", ServiceOrderNo);
             ServiceOrderRecordRef.GetTable(ServiceHeaderToSync);
-            CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceOrderRecordRef, false, false);
+#pragma warning disable AA0214
+            ApplyMappingFilter(ServiceOrderRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
+            if not ServiceOrderRecordRef.IsEmpty() then
+                CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceOrderRecordRef, false, false);
         end;
     end;
 
