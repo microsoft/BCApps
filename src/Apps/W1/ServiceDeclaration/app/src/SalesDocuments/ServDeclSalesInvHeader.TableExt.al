@@ -11,6 +11,7 @@ tableextension 5027 "Serv. Decl. Sales Inv. Header" extends "Sales Invoice Heade
         field(5010; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
+            DataClassification = CustomerContent;
             Editable = false;
         }
     }

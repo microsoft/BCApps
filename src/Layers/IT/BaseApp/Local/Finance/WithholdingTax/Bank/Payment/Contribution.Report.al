@@ -9,7 +9,7 @@ using Microsoft.Purchases.Vendor;
 report 12102 Contribution
 {
     DefaultLayout = RDLC;
-    RDLCLayout = './Local/Bank/Payment/Contribution.rdlc';
+    RDLCLayout = './Local/Finance/WithholdingTax/Bank/Payment/Contribution.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Contribution';
     UsageCategory = ReportsAndAnalysis;
@@ -46,16 +46,16 @@ report 12102 Contribution
             column(Vend__No_____________Vend_Name; Vend."No." + ' - ' + Vend.Name)
             {
             }
-            column(ContributionType; ContributionType)
+            column(ContributionType; SelectedContributionType)
             {
             }
-            column(ParamYear; ParamYear)
+            column(ParamYear; SelectedYear)
             {
             }
-            column(ParamMonth; ParamMonth)
+            column(ParamMonth; SelectedMonth)
             {
             }
-            column(FinalPrinting; FinalPrinting)
+            column(FinalPrinting; SelectedFinalPrinting)
             {
             }
             column(INPS_INPS__Vendor_No__; "Vendor No.")
@@ -64,7 +64,7 @@ report 12102 Contribution
             column(INPS_INPS__Social_Security_Code_; "Social Security Code")
             {
             }
-            column(PrintDetails; PrintDetails)
+            column(PrintDetails; SelectedPrintDetails)
             {
             }
             column(INPS__Gross_Amount_; "Gross Amount")
@@ -220,11 +220,11 @@ report 12102 Contribution
 
             trigger OnAfterGetRecord()
             begin
-                if ContributionType = ContributionType::INAIL then
+                if SelectedContributionType = SelectedContributionType::INAIL then
                     CurrReport.Skip();
 
                 Vend.Get("Vendor No.");
-                if FinalPrinting and
+                if SelectedFinalPrinting and
                    not CurrReport.Preview
                 then begin
                     "INPS Paid" := true;
@@ -232,7 +232,7 @@ report 12102 Contribution
                 end;
 
                 if (PrevSocialSecurCode <> "Social Security Code") and
-                   FinalPrinting and
+                   SelectedFinalPrinting and
                    not CurrReport.Preview
                 then begin
                     Payment.LockTable();
@@ -265,38 +265,38 @@ report 12102 Contribution
             trigger OnPreDataItem()
             begin
                 SetFilter("Social Security Code", '<>%1', '');
-                SetRange(Month, ParamMonth);
-                SetRange(Year, ParamYear);
+                SetRange(Month, SelectedMonth);
+                SetRange(Year, SelectedYear);
 
-                if FinalPrinting and
+                if SelectedFinalPrinting and
                    not CurrReport.Preview
                 then begin
                     Payment.SetCurrentKey("Contribution Type", Year, Month);
-                    Payment.SetFilter("Contribution Type", '%1', ContributionType);
-                    Payment.SetRange(Year, ParamYear);
-                    Payment.SetRange(Month, ParamMonth);
+                    Payment.SetFilter("Contribution Type", '%1', SelectedContributionType);
+                    Payment.SetRange(Year, SelectedYear);
+                    Payment.SetRange(Month, SelectedMonth);
 
                     if Payment.FindFirst() then begin
-                        if not Confirm(Text1033, false, ParamMonth, ParamYear) then
+                        if not Confirm(PeriodAlreadyPrintedQst, false, SelectedMonth, SelectedYear) then
                             CurrReport.Quit();
                         Payment.DeleteAll();
-                        case ContributionType of
-                            ContributionType::INPS:
+                        case SelectedContributionType of
+                            SelectedContributionType::INPS:
                                 ModifyAll("INPS Paid", false);
-                            ContributionType::INAIL:
+                            SelectedContributionType::INAIL:
                                 ModifyAll("INAIL Paid", false);
                         end;
                     end;
                 end;
 
-                if ParamMonth = 0 then
-                    Error(Text1034);
+                if SelectedMonth = 0 then
+                    Error(MissingMonthErr);
 
                 Clear(Payment);
 
                 PrevSocialSecurCode := '';
-                if (ParamMonth > 0) and (ParamMonth < 13) then
-                    MonthDescr := Format(DMY2Date(1, ParamMonth, 1998), 0, '<Month Text>');
+                if (SelectedMonth > 0) and (SelectedMonth < 13) then
+                    MonthDescr := Format(DMY2Date(1, SelectedMonth, 1998), 0, '<Month Text>');
             end;
         }
         dataitem(INAIL; Contributions)
@@ -332,16 +332,16 @@ report 12102 Contribution
             column(INAIL_INAIL__INAIL_Code_; "INAIL Code")
             {
             }
-            column(ContributionType_Control1130044; ContributionType)
+            column(ContributionType_Control1130044; SelectedContributionType)
             {
             }
             column(INAIL_INAIL__Vendor_No__; "Vendor No.")
             {
             }
-            column(PrintDetails_Control1130042; PrintDetails)
+            column(PrintDetails_Control1130042; SelectedPrintDetails)
             {
             }
-            column(FinalPrinting_Control1130043; FinalPrinting)
+            column(FinalPrinting_Control1130043; SelectedFinalPrinting)
             {
             }
             column(Imp__Lordo_Sogg__a_Contr_INAIL; "INAIL Gross Amount")
@@ -494,11 +494,11 @@ report 12102 Contribution
 
             trigger OnAfterGetRecord()
             begin
-                if ContributionType = ContributionType::INPS then
+                if SelectedContributionType = SelectedContributionType::INPS then
                     CurrReport.Skip();
 
                 Vend.Get("Vendor No.");
-                if FinalPrinting and
+                if SelectedFinalPrinting and
                    not CurrReport.Preview
                 then begin
                     "INAIL Paid" := true;
@@ -506,7 +506,7 @@ report 12102 Contribution
                 end;
 
                 if (PrevINAILCode <> "INAIL Code") and
-                   FinalPrinting and
+                   SelectedFinalPrinting and
                    not CurrReport.Preview
                 then begin
                     Payment.LockTable();
@@ -520,7 +520,7 @@ report 12102 Contribution
                     Payment.Init();
                     Payment."Entry No." := NoEnt;
 
-                    Payment."Contribution Type" := Payment."Contribution Type"::INAIL;
+                    Payment."Contribution Type" := SelectedContributionType::INAIL;
 
                     Payment.Month := Month;
                     Payment.Year := Year;
@@ -539,12 +539,12 @@ report 12102 Contribution
             trigger OnPreDataItem()
             begin
                 SetFilter("INAIL Code", '<>%1', '');
-                SetRange(Year, ParamYear);
-                SetRange(Month, ParamMonth);
+                SetRange(Year, SelectedYear);
+                SetRange(Month, SelectedMonth);
 
                 PrevINAILCode := '';
-                if (ParamMonth > 0) and (ParamMonth < 13) then
-                    MonthDescr := Format(DMY2Date(1, ParamMonth, 1998), 0, '<Month Text>');
+                if (SelectedMonth > 0) and (SelectedMonth < 13) then
+                    MonthDescr := Format(DMY2Date(1, SelectedMonth, 1998), 0, '<Month Text>');
             end;
         }
     }
@@ -559,31 +559,32 @@ report 12102 Contribution
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(ContributionType; ContributionType)
+                    field(ContributionType; SelectedContributionType)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contribution Type';
+                        OptionCaption = 'INPS,INAIL';
                         ToolTip = 'Specifies the contribution type.';
                     }
-                    field(ParamMonth; ParamMonth)
+                    field(ParamMonth; SelectedMonth)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Referring Month';
                         ToolTip = 'Specifies the referring month.';
                     }
-                    field(ParamYear; ParamYear)
+                    field(ParamYear; SelectedYear)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Referring Year';
                         ToolTip = 'Specifies the referring year.';
                     }
-                    field(PrintDetails; PrintDetails)
+                    field(PrintDetails; SelectedPrintDetails)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Print Details';
                         ToolTip = 'Specifies if you want to print the details section.';
                     }
-                    field(FinalPrinting; FinalPrinting)
+                    field(FinalPrinting; SelectedFinalPrinting)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Final Printing';
@@ -599,9 +600,9 @@ report 12102 Contribution
 
         trigger OnOpenPage()
         begin
-            ParamMonth := Date2DMY(WorkDate(), 2);
-            ParamYear := Date2DMY(WorkDate(), 3);
-            PrintDetails := true;
+            SelectedMonth := Date2DMY(WorkDate(), 2);
+            SelectedYear := Date2DMY(WorkDate(), 3);
+            SelectedPrintDetails := true;
         end;
     }
 
@@ -612,24 +613,25 @@ report 12102 Contribution
     trigger OnPreReport()
     begin
         MonthDescr := '';
-        if (ParamMonth > 0) and (ParamMonth < 13) then
-            MonthDescr := Format(DMY2Date(1, ParamMonth, 9999), 0, '<Month Text>');
+        if (SelectedMonth > 0) and (SelectedMonth < 13) then
+            MonthDescr := Format(DMY2Date(1, SelectedMonth, 9999), 0, '<Month Text>');
     end;
 
     var
-        Text1033: Label 'Period %1/%2 has already been printed. Do you want to print it again?';
-        Text1034: Label 'Please enter a month.';
         Vend: Record Vendor;
         Payment: Record "Contribution Payment";
         NoEnt: Integer;
-        ParamMonth: Integer;
-        ParamYear: Integer;
-        FinalPrinting: Boolean;
-        PrintDetails: Boolean;
-        ContributionType: Option INPS,INAIL;
+        SelectedMonth: Integer;
+        SelectedYear: Integer;
+        SelectedFinalPrinting: Boolean;
+        SelectedPrintDetails: Boolean;
+        SelectedContributionType: Option INPS,INAIL;
         MonthDescr: Text[30];
         PrevSocialSecurCode: Code[20];
         PrevINAILCode: Code[20];
+
+        PeriodAlreadyPrintedQst: Label 'Period %1/%2 has already been printed. Do you want to print it again?', Comment = '%1 - Month, %2 - Year';
+        MissingMonthErr: Label 'Please enter a month.';
         INPS_PaymentCaptionLbl: Label 'INPS Payment';
         MonthDescrCaptionLbl: Label 'Referring Period';
         CurrReport_PAGENOCaptionLbl: Label 'Page';

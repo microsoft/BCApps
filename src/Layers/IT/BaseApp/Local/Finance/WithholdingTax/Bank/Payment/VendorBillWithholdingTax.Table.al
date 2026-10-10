@@ -159,7 +159,7 @@ table 12185 "Vendor Bill Withholding Tax"
                 Validate("Free-Lance Amount", Round("Total Social Security Amount" * "Free-Lance %" / 100, Currency."Amount Rounding Precision"));
 
                 if "Contribution Base" < 0 then
-                    Error(Text12100, FieldCaption("Contribution Base"));
+                    Error(MustBeGreaterErr, FieldCaption("Contribution Base"));
             end;
         }
         field(54; "Contribution Base"; Decimal)
@@ -272,9 +272,9 @@ table 12185 "Vendor Bill Withholding Tax"
     }
 
     var
-        Text12100: Label '%1 must be greater than 0.';
-        Text12101: Label '%1 %2 does not exist in table %3.';
         Currency: Record Currency;
+        MustBeGreaterErr: Label '%1 must be greater than 0.', Comment = '%1 - field caption';
+        DoesNotExistErr: Label '%1 %2 does not exist in table %3.', Comment = '%1 - field caption, %2 - field value, %3 - table caption';
 
     [Scope('OnPrem')]
     procedure CalculateWithholdingTax()
@@ -285,7 +285,7 @@ table 12185 "Vendor Bill Withholding Tax"
         TotalAmount: Decimal;
     begin
         if not WithholdCode.Get("Withholding Tax Code") then
-            Error(Text12101, WithholdCode.FieldCaption(Code), "Withholding Tax Code", WithholdCode.TableCaption());
+            Error(DoesNotExistErr, WithholdCode.FieldCaption(Code), "Withholding Tax Code", WithholdCode.TableCaption());
         WithholdingSocSec.WithholdLineFilter(WithholdCodeLine, "Withholding Tax Code", "Payment Date");
         "Withholding Account" := WithholdCode."Withholding Taxes Payable Acc.";
         "Withholding Tax %" := WithholdCodeLine."Withholding Tax %";
@@ -303,7 +303,7 @@ table 12185 "Vendor Bill Withholding Tax"
         "Withholding Tax Amount" := Round("Taxable Base" * "Withholding Tax %" / 100, Currency."Amount Rounding Precision");
         OnCalculateWithholdingTaxOnAfterAssignWithholdingTaxAmount(Rec);
         if "Taxable Base" < 0 then
-            Error(Text12100, FieldCaption("Taxable Base"));
+            Error(MustBeGreaterErr, FieldCaption("Taxable Base"));
     end;
 
     [Scope('OnPrem')]
@@ -318,7 +318,7 @@ table 12185 "Vendor Bill Withholding Tax"
         Difference: Decimal;
     begin
         if not SocialSecurityCode.Get("Social Security Code", SocSecBracketLine."Contribution Type"::INPS) then
-            Error(Text12101, SocialSecurityCode.FieldCaption(Code), "Social Security Code", SocialSecurityCode.TableCaption());
+            Error(DoesNotExistErr, SocialSecurityCode.FieldCaption(Code), "Social Security Code", SocialSecurityCode.TableCaption());
         "Social Security Acc." := SocialSecurityCode."Social Security Payable Acc.";
         "Social Security Charges Acc." := SocialSecurityCode."Social Security Charges Acc.";
         WithholdingSocSec.SetSocSecLineFilters(

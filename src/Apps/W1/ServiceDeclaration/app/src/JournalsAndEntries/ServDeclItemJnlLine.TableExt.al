@@ -13,11 +13,13 @@ tableextension 5014 "Serv. Decl. Item Jnl. Line" extends "Item Journal Line"
         field(5010; "Service Transaction Type Code"; Code[20])
         {
             Caption = 'Service Transaction Type Code';
+            DataClassification = CustomerContent;
             TableRelation = "Service Transaction Type";
         }
         field(5011; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
+            DataClassification = CustomerContent;
         }
     }
 }
