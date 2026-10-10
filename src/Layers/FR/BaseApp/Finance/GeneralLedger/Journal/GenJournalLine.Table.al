@@ -2469,7 +2469,6 @@ table 81 "Gen. Journal Line"
             Editable = false;
         }
         /// <summary>
-        /// <summary>
         /// Specifies the spend request that this journal line relates to.
         /// </summary>
         field(146; "Spend Request No."; Code[20])
