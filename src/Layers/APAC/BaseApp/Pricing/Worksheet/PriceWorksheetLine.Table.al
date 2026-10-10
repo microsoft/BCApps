@@ -160,6 +160,9 @@ table 7022 "Price Worksheet Line"
                 TestStatusDraft();
                 if not FieldLookedUp then begin
                     CopyRecTo(PriceAsset);
+                    // Only validated units are carried forward when resolving the product.
+                    if ("Unit of Measure Code" <> "Unit of Measure Code Lookup") or ("Work Type Code" <> '') then
+                        PriceAsset."Unit of Measure Code" := '';
                     PriceAsset.Validate("Asset No.", "Asset No.");
                 end;
                 CopyFrom(PriceAsset);
@@ -283,6 +286,8 @@ table 7022 "Price Worksheet Line"
             trigger OnValidate()
             begin
                 TestStatusDraft();
+                if ("Asset No." = '') and ("Unit of Measure Code" <> '') then
+                    "Work Type Code" := '';
                 if not FieldLookedUp then begin
                     CopyRecTo(PriceAsset);
                     PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
