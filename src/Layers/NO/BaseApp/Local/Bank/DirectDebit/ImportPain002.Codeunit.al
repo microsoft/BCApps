@@ -6,9 +6,10 @@ namespace Microsoft.Bank.DirectDebit;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Payables;
+#if not CLEAN30
 using System;
+#endif
 using System.IO;
-using System.Xml;
 
 codeunit 10636 "Import Pain002"
 {
@@ -22,10 +23,9 @@ codeunit 10636 "Import Pain002"
         CurrentGenJournalLine: Record "Gen. Journal Line";
         LatestRemittanceAccount: Record "Remittance Account";
         LatestRemittanceAgreement: Record "Remittance Agreement";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ImportSEPACommon: Codeunit "Import SEPA Common";
-        XmlDocumentPain002: DotNet XmlDocument;
-        XmlNamespaceManagerPain002: DotNet XmlNamespaceManager;
+        XmlDocumentPain002: XmlDocument;
+        XmlNamespaceManagerPain002: XmlNamespaceManager;
         NumberApproved: Integer;
         NumberRejected: Integer;
         NumberSettled: Integer;
@@ -49,10 +49,9 @@ codeunit 10636 "Import Pain002"
         WaitingJournal: Record "Waiting Journal";
         RemittanceAccount: Record "Remittance Account";
         RemittanceAgreement: Record "Remittance Agreement";
-        XmlNodeListPayments: DotNet XmlNodeList;
-        NodeListEnumPayments: DotNet IEnumerator;
-        XmlNodeGroupHeader: DotNet XmlNode;
-        XmlNodePayment: DotNet XmlNode;
+        XmlNodeListPayments: XmlNodeList;
+        XmlNodeGroupHeader: XmlNode;
+        XmlNodePayment: XmlNode;
         OriginalMsgId: Text;
         TransactionStatus: Text;
         TransactionCauseCode: Text[20];
@@ -74,23 +73,17 @@ codeunit 10636 "Import Pain002"
         ImportSEPACommon.CreatePaymOrder(Note, RemittancePaymentOrder);
 
         ImportSEPACommon.FindFirstNode(
-          XmlDocumentPain002, XmlNamespaceManagerPain002, XmlNodeGroupHeader, '//n:CstmrPmtStsRpt/n:OrgnlGrpInfAndSts', true);
+          XmlDocumentPain002.AsXmlNode(), XmlNamespaceManagerPain002, XmlNodeGroupHeader, '//n:CstmrPmtStsRpt/n:OrgnlGrpInfAndSts', true);
 
         OriginalMsgId :=
           ImportSEPACommon.FindFirstNodeTxt(
             XmlNodeGroupHeader, XmlNamespaceManagerPain002, './n:OrgnlMsgId', true);
 
         // prepare to loop on payments
-        if XMLDOMManagement.FindNodesWithNamespaceManager(
-             XmlDocumentPain002, '//n:OrgnlPmtInfAndSts', XmlNamespaceManagerPain002, XmlNodeListPayments)
-        then begin
-            NodeListEnumPayments := XmlNodeListPayments.GetEnumerator();
-            NodeListEnumPayments.MoveNext();
-            repeat
-                XmlNodePayment := NodeListEnumPayments.Current;
-                HandlePayment(XmlNodePayment, OriginalMsgId);
-            until not NodeListEnumPayments.MoveNext();
-        end else begin
+        if FindNodes(XmlDocumentPain002.AsXmlNode(), '//n:OrgnlPmtInfAndSts', XmlNodeListPayments) then
+            foreach XmlNodePayment in XmlNodeListPayments do
+                HandlePayment(XmlNodePayment, OriginalMsgId)
+        else begin
             // No payment info, search for the info at message level (higher level) and propagate to all linked payments and transactions
             TransactionStatus := ImportSEPACommon.FindFirstNodeTxt(XmlNodeGroupHeader, XmlNamespaceManagerPain002, './n:GrpSts', true);
             GetStatusInfo(XmlNodeGroupHeader, TransactionCauseCode, TransactionCauseInfo);
@@ -121,13 +114,21 @@ codeunit 10636 "Import Pain002"
         ImportSEPACommon.ConfirmImportDialog(FileName, NumberApproved, NumberRejected, NumberSettled);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use the HandlePayment overload with a native XmlNode parameter instead.', '30.0')]
     procedure HandlePayment(XmlNodePayment: DotNet XmlNode; OriginalMsgId: Text)
+    begin
+        HandlePayment(ConvertToXmlNode(XmlNodePayment), OriginalMsgId);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure HandlePayment(XmlNodePayment: XmlNode; OriginalMsgId: Text)
     var
         WaitingJournal: Record "Waiting Journal";
-        XmlNodeListTransactions: DotNet XmlNodeList;
-        NodeListEnumTransactions: DotNet IEnumerator;
-        XmlNodeTransaction: DotNet XmlNode;
+        XmlNodeListTransactions: XmlNodeList;
+        XmlNodeTransaction: XmlNode;
         OriginalPmtInfId: Text;
         TransactionStatus: Text;
         TransactionCauseCode: Text[20];
@@ -139,16 +140,10 @@ codeunit 10636 "Import Pain002"
         WaitingJournal.SetFilter("SEPA Payment Inf ID", OriginalPmtInfId);
 
         // prepare to loop on transactions
-        if XMLDOMManagement.FindNodesWithNamespaceManager(
-             XmlNodePayment, './n:TxInfAndSts', XmlNamespaceManagerPain002, XmlNodeListTransactions)
-        then begin
-            NodeListEnumTransactions := XmlNodeListTransactions.GetEnumerator();
-            NodeListEnumTransactions.MoveNext();
-            repeat
-                XmlNodeTransaction := NodeListEnumTransactions.Current;
-                HandleTransaction(XmlNodeTransaction, WaitingJournal);
-            until not NodeListEnumTransactions.MoveNext();
-        end else begin
+        if FindNodes(XmlNodePayment, './n:TxInfAndSts', XmlNodeListTransactions) then
+            foreach XmlNodeTransaction in XmlNodeListTransactions do
+                HandleTransaction(XmlNodeTransaction, WaitingJournal)
+        else begin
             // No transaction info, search for the info at payment level (higher level) and propagate to all linked transactions
             TransactionStatus := ImportSEPACommon.FindFirstNodeTxt(XmlNodePayment, XmlNamespaceManagerPain002, './n:PmtInfSts', true);
             GetStatusInfo(XmlNodePayment, TransactionCauseCode, TransactionCauseInfo);
@@ -165,8 +160,27 @@ codeunit 10636 "Import Pain002"
         end;
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use the HandleTransaction overload with a native XmlNode parameter instead.', '30.0')]
     procedure HandleTransaction(XmlNodeTransaction: DotNet XmlNode; var WaitingJournal: Record "Waiting Journal")
+    begin
+        HandleTransaction(ConvertToXmlNode(XmlNodeTransaction), WaitingJournal);
+    end;
+
+    local procedure ConvertToXmlNode(DotNetXmlNode: DotNet XmlNode): XmlNode
+    var
+        ConvertedXmlDocument: XmlDocument;
+        ConvertedXmlElement: XmlElement;
+    begin
+        XmlDocument.ReadFrom(DotNetXmlNode.OuterXml, ConvertedXmlDocument);
+        ConvertedXmlDocument.GetRoot(ConvertedXmlElement);
+        exit(ConvertedXmlElement.AsXmlNode());
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure HandleTransaction(XmlNodeTransaction: XmlNode; var WaitingJournal: Record "Waiting Journal")
     var
         OriginalEndToEndId: Text;
         TransactionStatus: Text;
@@ -191,28 +205,35 @@ codeunit 10636 "Import Pain002"
 
     local procedure OpenPain002Document()
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         FileManagement: Codeunit "File Management";
         ServerFile: Text;
     begin
         ServerFile := FileManagement.UploadFile(ChooseFileTitleMsg, '');
 
-        XMLDOMManagement.LoadXMLDocumentFromFile(ServerFile, XmlDocumentPain002);
-        XMLDOMManagement.AddNamespaces(XmlNamespaceManagerPain002, XmlDocumentPain002);
+        ImportSEPACommon.LoadXmlDocumentFromServerFile(ServerFile, XmlDocumentPain002);
+        Clear(XmlNamespaceManagerPain002);
+        XmlNamespaceManagerPain002.NameTable(XmlDocumentPain002.NameTable());
         XmlNamespaceManagerPain002.AddNamespace('n', Pain002NamespaceTxt);
     end;
 
-    local procedure GetStatusInfo(XmlNode: DotNet XmlNode; var CauseCode: Text; var CauseInfo: Text)
+    local procedure FindNodes(RootXmlNode: XmlNode; XPath: Text; var FoundXmlNodeList: XmlNodeList): Boolean
     begin
-        CauseCode := ImportSEPACommon.FindFirstNodeTxt(XmlNode, XmlNamespaceManagerPain002, './n:StsRsnInf/n:Rsn/n:Cd', false);
-        CauseInfo := ImportSEPACommon.FindFirstNodeTxt(XmlNode, XmlNamespaceManagerPain002, './n:StsRsnInf/n:AddtlInf', false);
+        if not RootXmlNode.SelectNodes(XPath, XmlNamespaceManagerPain002, FoundXmlNodeList) then
+            exit(false);
+        exit(FoundXmlNodeList.Count() > 0);
     end;
 
-    local procedure GetTransactionInfo(XmlNode: DotNet XmlNode; var OriginalEndToEndId: Text; var TransactionStatus: Text; var TransactionCauseCode: Text; var TransactionCauseInfo: Text)
+    local procedure GetStatusInfo(StatusXmlNode: XmlNode; var CauseCode: Text; var CauseInfo: Text)
     begin
-        OriginalEndToEndId := ImportSEPACommon.FindFirstNodeTxt(XmlNode, XmlNamespaceManagerPain002, './n:OrgnlEndToEndId', true);
-        TransactionStatus := ImportSEPACommon.FindFirstNodeTxt(XmlNode, XmlNamespaceManagerPain002, './n:TxSts', true);
-        GetStatusInfo(XmlNode, TransactionCauseCode, TransactionCauseInfo);
+        CauseCode := ImportSEPACommon.FindFirstNodeTxt(StatusXmlNode, XmlNamespaceManagerPain002, './n:StsRsnInf/n:Rsn/n:Cd', false);
+        CauseInfo := ImportSEPACommon.FindFirstNodeTxt(StatusXmlNode, XmlNamespaceManagerPain002, './n:StsRsnInf/n:AddtlInf', false);
+    end;
+
+    local procedure GetTransactionInfo(StatusXmlNode: XmlNode; var OriginalEndToEndId: Text; var TransactionStatus: Text; var TransactionCauseCode: Text; var TransactionCauseInfo: Text)
+    begin
+        OriginalEndToEndId := ImportSEPACommon.FindFirstNodeTxt(StatusXmlNode, XmlNamespaceManagerPain002, './n:OrgnlEndToEndId', true);
+        TransactionStatus := ImportSEPACommon.FindFirstNodeTxt(StatusXmlNode, XmlNamespaceManagerPain002, './n:TxSts', true);
+        GetStatusInfo(StatusXmlNode, TransactionCauseCode, TransactionCauseInfo);
     end;
 
     local procedure MapReceivedStatusToFinalStatus(ReceivedStatus: Text): Integer
@@ -257,7 +278,7 @@ codeunit 10636 "Import Pain002"
         ISODate: Text;
     begin
         ISODate :=
-          ImportSEPACommon.FindFirstNodeTxt(XmlDocumentPain002, XmlNamespaceManagerPain002, '//n:CstmrPmtStsRpt/n:GrpHdr/n:CreDtTm', true);
+          ImportSEPACommon.FindFirstNodeTxt(XmlDocumentPain002.AsXmlNode(), XmlNamespaceManagerPain002, '//n:CstmrPmtStsRpt/n:GrpHdr/n:CreDtTm', true);
         Evaluate(Day, CopyStr(ISODate, 9, 2));
         Evaluate(Month, CopyStr(ISODate, 6, 2));
         Evaluate(Year, CopyStr(ISODate, 1, 4));
