@@ -5869,11 +5869,11 @@ codeunit 139989 "Subc. Subcontracting Test"
     var
         ConfirmationQuestion: Text;
     begin
-        ConfirmationQuestion := LibraryVariableStorage.DequeueText();
-        if ConfirmationQuestion.Contains('Do you really want to change Inventory Account although value entries exist?') or
-           ConfirmationQuestion.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?')
-        then
+        repeat
             ConfirmationQuestion := LibraryVariableStorage.DequeueText();
+        until not (
+            ConfirmationQuestion.Contains('Do you really want to change Inventory Account although value entries exist?') or
+            ConfirmationQuestion.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'));
 
         Assert.AreEqual(
             'A purchase order was created.\\Do you want to view it?', ConfirmationQuestion,
