@@ -112,5 +112,14 @@ codeunit 6723 "Server Setting"
     begin
         exit(ServerSettingImpl.GetEnableMembershipEntitlement());
     end;
+
+    /// <summary>Returns whether the tenant's hosting Azure geography is within the Microsoft EU Data Boundary.</summary>
+    /// <returns>True if the tenant is in the EU Data Boundary; otherwise false.</returns>
+    /// <remarks>Backed by ServerUserSettings.AzureGeography on the BC platform. This is independent from the Copilot/CAPI-level EUDB check and may legitimately differ from it.</remarks>
+    [Scope('OnPrem')]
+    procedure GetIsTenantInEUDB(): Boolean
+    begin
+        exit(ServerSettingImpl.GetIsTenantInEUDB());
+    end;
 }
 
