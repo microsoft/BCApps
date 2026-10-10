@@ -24,11 +24,206 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         LibraryAssembly: Codeunit "Library - Assembly";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         isInitialized: Boolean;
         GLBShowLevelAs: Option "First BOM Level","BOM Leaves";
         GLBShowCostShareAs: Option "Single-level","Rolled-up";
         IncorrectValueErr: Label 'Incorrect value of %1.%2.';
         UnitCostMustMatchStdCostErr: Label 'Unit cost in bom cost shares must match item standard cost';
+        ExpectedCostSharesRowErr: Label 'Expected a %1 cost shares row for %2.', Comment = '%1 = BOM type, %2 = number';
+        ReplenishmentSystemMustBeBlankErr: Label '%1 replenishment system must be blank after navigating from an item.', Comment = '%1 = BOM type';
+        ReplenishmentSystemMustStayBlankErr: Label '%1 replenishment system must stay blank after revisiting the item.', Comment = '%1 = BOM type';
+
+    [Test]
+    procedure WorkCenterReplenishmentSystemIsBlank()
+    var
+        Item: Record Item;
+        RoutingLine: Record "Routing Line";
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] A work center has no replenishment system when navigating from and back to its parent item.
+        Initialize();
+
+        // [GIVEN] Item "I" with a certified production BOM and both work and machine center routing lines.
+        CreateItemWithBOMAndRouting(Item);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.FindFirst();
+
+        // [WHEN] Open the cost shares for "I".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+
+        // [THEN] The work center stays blank and the parent retains its replenishment system across navigation.
+        VerifyCapacityReplenishmentNavigation(BOMCostShares, Item, "BOM Type"::"Work Center", RoutingLine."No.");
+        BOMCostShares.Close();
+    end;
+
+    [Test]
+    procedure MachineCenterReplenishmentSystemIsBlank()
+    var
+        Item: Record Item;
+        RoutingLine: Record "Routing Line";
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] A machine center has no replenishment system when navigating from and back to its parent item.
+        Initialize();
+
+        // [GIVEN] Item "I" with a certified production BOM and both work and machine center routing lines.
+        CreateItemWithBOMAndRouting(Item);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Machine Center");
+        RoutingLine.FindFirst();
+
+        // [WHEN] Open the cost shares for "I".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+
+        // [THEN] The machine center stays blank and the parent retains its replenishment system across navigation.
+        VerifyCapacityReplenishmentNavigation(BOMCostShares, Item, "BOM Type"::"Machine Center", RoutingLine."No.");
+        BOMCostShares.Close();
+    end;
+
+    [Test]
+    procedure ResourceReplenishmentSystemIsBlank()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        Resource: Record Resource;
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] An assembly resource has no replenishment system across item and resource navigation.
+        Initialize();
+
+        // [GIVEN] Assembly item "I" with a purchase component and resource "R".
+        CreateAssemblyItemWithResource(Item, ComponentItem, Resource);
+
+        // [WHEN] Open the cost shares for "I".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+
+        // [THEN] The resource stays blank and the assembly item retains its replenishment system.
+        VerifyCapacityReplenishmentNavigation(BOMCostShares, Item, "BOM Type"::Resource, Resource."No.");
+        BOMCostShares.Close();
+    end;
+
+    [Test]
+    procedure PurchaseItemReplenishmentSystemIsShown()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        Resource: Record Resource;
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] A purchased component retains its localized replenishment system after visiting a resource.
+        Initialize();
+
+        // [GIVEN] Assembly item "I" with purchase component "C" and resource "R".
+        CreateAssemblyItemWithResource(Item, ComponentItem, Resource);
+
+        // [WHEN] Open the cost shares and navigate from "R" to "C".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Resource, Resource."No.");
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, ComponentItem."No.");
+
+        // [THEN] The purchase replenishment system is displayed.
+        BOMCostShares."Replenishment System".AssertEquals(Format(ComponentItem."Replenishment System"::Purchase));
+        BOMCostShares.Close();
+    end;
+
+    [Test]
+    procedure ProductionItemReplenishmentSystemIsShown()
+    var
+        Item: Record Item;
+        RoutingLine: Record "Routing Line";
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] A production item retains its localized replenishment system after visiting a work center.
+        Initialize();
+
+        // [GIVEN] Production item "I" with a certified BOM and routing.
+        CreateItemWithBOMAndRouting(Item);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.FindFirst();
+
+        // [WHEN] Navigate from the work center to "I".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::"Work Center", RoutingLine."No.");
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, Item."No.");
+
+        // [THEN] The production replenishment system is displayed.
+        BOMCostShares."Replenishment System".AssertEquals(Format(Item."Replenishment System"::"Prod. Order"));
+        BOMCostShares.Close();
+    end;
+
+    [Test]
+    procedure AssemblyItemReplenishmentSystemIsShown()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        Resource: Record Resource;
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] An assembly item retains its localized replenishment system after visiting a resource.
+        Initialize();
+
+        // [GIVEN] Assembly item "I" with a purchase component and resource "R".
+        CreateAssemblyItemWithResource(Item, ComponentItem, Resource);
+
+        // [WHEN] Navigate from "R" to "I".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Resource, Resource."No.");
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, Item."No.");
+
+        // [THEN] The assembly replenishment system is displayed.
+        BOMCostShares."Replenishment System".AssertEquals(Format(Item."Replenishment System"::Assembly));
+        BOMCostShares.Close();
+    end;
+
+    [Test]
+    procedure TransferSKUReplenishmentSystemIsShown()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        Location: Record Location;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        BOMCostShares: TestPage "BOM Cost Shares";
+    begin
+        // [FEATURE] [AI test 0.3] [BOM Cost Share] [UI]
+        // [SCENARIO] A location-filtered transfer SKU is displayed as Transfer rather than the item's Purchase.
+        Initialize();
+
+        // [GIVEN] Assembly item "I" with purchased component "C" replenished by transfer at location "L".
+        LibraryAssembly.CreateItem(Item, Item."Costing Method"::FIFO, Item."Replenishment System"::Assembly, '', '');
+        LibraryAssembly.CreateItem(ComponentItem, ComponentItem."Costing Method"::FIFO, ComponentItem."Replenishment System"::Purchase, '', '');
+        LibraryInventory.CreateBOMComponent(BOMComponent, Item."No.", BOMComponent.Type::Item, ComponentItem."No.", 1, ComponentItem."Base Unit of Measure");
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, ComponentItem."No.", '');
+        StockkeepingUnit.Validate("Replenishment System", StockkeepingUnit."Replenishment System"::Transfer);
+        StockkeepingUnit.Modify(true);
+        Item.SetRange("Location Filter", Location.Code);
+
+        // [WHEN] Open location-filtered cost shares and navigate from "I" to "C".
+        BOMCostShares.Trap();
+        RunBOMCostSharesPage(Item);
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, Item."No.");
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, ComponentItem."No.");
+
+        // [THEN] The SKU's transfer replenishment system is displayed.
+        BOMCostShares."Replenishment System".AssertEquals(Format(StockkeepingUnit."Replenishment System"::Transfer));
+        BOMCostShares.Close();
+    end;
 
     local procedure Initialize()
     begin
@@ -354,6 +549,51 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
           RoutingLine."Setup Time" + RoutingLine."Run Time" + RoutingLine."Wait Time" + RoutingLine."Move Time");
         BOMCostShares."Qty. per Top Item".AssertEquals(
           RoutingLine."Setup Time" + RoutingLine."Run Time" * QtyPer + RoutingLine."Wait Time" + RoutingLine."Move Time");
+    end;
+
+    local procedure CreateItemWithBOMAndRouting(var Item: Record Item)
+    begin
+        LibraryAssembly.CreateItem(Item, Item."Costing Method"::FIFO, Item."Replenishment System"::"Prod. Order", '', '');
+        LibraryManufacturing.CreateProductionRouting(Item, 2);
+        LibraryManufacturing.CreateProductionBOM(Item, 1);
+    end;
+
+    local procedure CreateAssemblyItemWithResource(var Item: Record Item; var ComponentItem: Record Item; var Resource: Record Resource)
+    var
+        BOMComponent: Record "BOM Component";
+    begin
+        LibraryAssembly.CreateItem(Item, Item."Costing Method"::FIFO, Item."Replenishment System"::Assembly, '', '');
+        LibraryAssembly.CreateItem(ComponentItem, ComponentItem."Costing Method"::FIFO, ComponentItem."Replenishment System"::Purchase, '', '');
+        LibraryAssembly.CreateResource(Resource, true, '');
+        LibraryInventory.CreateBOMComponent(BOMComponent, Item."No.", BOMComponent.Type::Item, ComponentItem."No.", 1, ComponentItem."Base Unit of Measure");
+        LibraryInventory.CreateBOMComponent(BOMComponent, Item."No.", BOMComponent.Type::Resource, Resource."No.", 1, Resource."Base Unit of Measure");
+    end;
+
+    local procedure SelectCostSharesRow(var BOMCostShares: TestPage "BOM Cost Shares"; BOMType: Enum "BOM Type"; No: Code[20])
+    begin
+        BOMCostShares.Expand(true);
+        BOMCostShares.FILTER.SetFilter(Type, Format(BOMType));
+        BOMCostShares.FILTER.SetFilter("No.", No);
+        Assert.IsTrue(BOMCostShares.First(), StrSubstNo(ExpectedCostSharesRowErr, BOMType, No));
+        BOMCostShares.Type.AssertEquals(Format(BOMType));
+        BOMCostShares."No.".AssertEquals(No);
+    end;
+
+    local procedure VerifyCapacityReplenishmentNavigation(var BOMCostShares: TestPage "BOM Cost Shares"; Item: Record Item; CapacityType: Enum "BOM Type"; CapacityNo: Code[20])
+    var
+        FirstCapacityReplenishment: Text;
+        SecondCapacityReplenishment: Text;
+    begin
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, Item."No.");
+        BOMCostShares."Replenishment System".AssertEquals(Format(Item."Replenishment System"));
+        SelectCostSharesRow(BOMCostShares, CapacityType, CapacityNo);
+        FirstCapacityReplenishment := BOMCostShares."Replenishment System".Value();
+        SelectCostSharesRow(BOMCostShares, "BOM Type"::Item, Item."No.");
+        BOMCostShares."Replenishment System".AssertEquals(Format(Item."Replenishment System"));
+        SelectCostSharesRow(BOMCostShares, CapacityType, CapacityNo);
+        SecondCapacityReplenishment := BOMCostShares."Replenishment System".Value();
+        Assert.AreEqual('', FirstCapacityReplenishment, StrSubstNo(ReplenishmentSystemMustBeBlankErr, CapacityType));
+        Assert.AreEqual('', SecondCapacityReplenishment, StrSubstNo(ReplenishmentSystemMustStayBlankErr, CapacityType));
     end;
 
     local procedure SetupItemWithRoutingWithCosts(var Item: Record Item)
@@ -1406,4 +1646,3 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         Choice := 2; // All levels
     end;
 }
-
