@@ -6,6 +6,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.IO;
+using System.Runtime;
 using System.Text;
 using System.Utilities;
 
@@ -533,20 +534,17 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     end;
 
     procedure DetermineFileType(MimeType: Text) FileExension: Text
+    var
+        MimeTypeUtility: Codeunit MimeTypeUtility;
     begin
         case MimeType of
-            'image/jpeg':
-                exit('jpeg');
-            'image/png':
-                exit('png');
-            'application/pdf':
-                exit('pdf');
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            // ODS attachments are stored under .xlsx by this importer (legacy normalization).
             'application/vnd.oasis.opendocument.spreadsheet':
                 exit('xlsx');
-            else
-                exit('');
+            'image/jpeg':
+                exit('jpeg');
         end;
+        exit(MimeTypeUtility.GetExtension(MimeType));
     end;
 
     local procedure GetNodeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
