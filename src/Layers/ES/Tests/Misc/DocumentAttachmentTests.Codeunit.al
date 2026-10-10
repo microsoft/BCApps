@@ -35,6 +35,8 @@ codeunit 134776 "Document Attachment Tests"
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
         AttachmentDeletedErr: Label 'Attachment must not be deleted';
+        DeleteCancelledErr: Label 'The delete operation must not be cancelled.';
+        DeleteNotCancelledErr: Label 'The delete operation must be cancelled with a silent error.';
         ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
         ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
@@ -3730,7 +3732,7 @@ codeunit 134776 "Document Attachment Tests"
         // [WHEN] The four attachments of "C1" and "C2" are selected in an attachment list without any filters and deleted, and the user confirms
         SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
         LibraryVariableStorage.Enqueue(true);
-        DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
 
         // [THEN] The confirmation is shown only once and the attachments of "C1" and "C2" are deleted
         LibraryVariableStorage.AssertEmpty();
@@ -3760,9 +3762,10 @@ codeunit 134776 "Document Attachment Tests"
         // [WHEN] The four attachments are selected in an attachment list without any filters and deleted, and the user declines
         SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
         LibraryVariableStorage.Enqueue(false);
-        DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
 
-        // [THEN] The confirmation is shown only once and none of the selected attachments are deleted
+        // [THEN] The confirmation is shown only once, the delete operation is cancelled with a silent error and none of the selected attachments are deleted
+        Assert.AreEqual('', GetLastErrorText(), DeleteNotCancelledErr);
         LibraryVariableStorage.AssertEmpty();
         Assert.AreEqual(4, SelectedDocumentAttachment.Count(), AttachmentDeletedErr);
     end;
@@ -3786,16 +3789,18 @@ codeunit 134776 "Document Attachment Tests"
 
         // [GIVEN] The selected attachments were deleted from an attachment list without any filters and the user declined
         LibraryVariableStorage.Enqueue(false);
-        DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
         Assert.AreEqual(4, SelectedDocumentAttachment.Count(), AttachmentDeletedErr);
 
-        // [WHEN] The same attachments are deleted again from the same attachment list and the user confirms
+        // [WHEN] Only the attachments of "C2", which were not the first records of the declined delete, are deleted from the same attachment list and the user confirms
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[2], Customer[2]);
         LibraryVariableStorage.Enqueue(true);
-        DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
 
-        // [THEN] The confirmation is shown again and the attachments are deleted
+        // [THEN] The confirmation is shown again, the attachments of "C2" are deleted and the attachments of "C1" are kept
         LibraryVariableStorage.AssertEmpty();
-        Assert.IsTrue(SelectedDocumentAttachment.IsEmpty(), AttachmentNotDeletedErr);
+        Assert.IsFalse(CustomerAttachmentExists(Customer[2]), AttachmentNotDeletedErr);
+        Assert.IsTrue(CustomerAttachmentExists(Customer[1]), AttachmentDeletedErr);
     end;
 
     [Test]
@@ -3821,7 +3826,7 @@ codeunit 134776 "Document Attachment Tests"
 
         // [WHEN] Both attachments of "C1" are selected and deleted from the attachment list
         SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
-        DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
 
         // [THEN] No confirmation is shown (no ConfirmHandler) and the attachments of "C1" are deleted
         Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
@@ -4997,13 +5002,15 @@ codeunit 134776 "Document Attachment Tests"
         SelectedDocumentAttachment.SetFilter("No.", '%1|%2', Customer1."No.", Customer2."No.");
     end;
 
-    local procedure DeleteSelectedAttachmentsFromFactbox(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment")
+    local procedure DeleteSelectedAttachmentsFromFactbox(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment"): Boolean
     var
         SelectedIds: List of [Guid];
         SelectedId: Guid;
     begin
         // A TestPage cannot delete records, so this calls the page's delete guard the way the platform runs
         // OnDeleteRecord of page "Doc. Attachment List Factbox": once per selected record, with the page's selection.
+        // An error in the guard cancels the remaining deletes, like it cancels the page's delete action. Returns false then.
+        ClearLastError();
         if SelectedDocumentAttachment.FindSet() then
             repeat
                 SelectedIds.Add(SelectedDocumentAttachment.SystemId);
@@ -5011,9 +5018,17 @@ codeunit 134776 "Document Attachment Tests"
 
         foreach SelectedId in SelectedIds do begin
             FactboxDocumentAttachment.GetBySystemId(SelectedId);
-            if DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList(FactboxDocumentAttachment, SelectedDocumentAttachment) then
-                FactboxDocumentAttachment.Delete(true);
+            if not TryConfirmDeleteFromUnfilteredList(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment) then
+                exit(false);
+            FactboxDocumentAttachment.Delete(true);
         end;
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure TryConfirmDeleteFromUnfilteredList(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList(FactboxDocumentAttachment, SelectedDocumentAttachment);
     end;
 
     [Scope('OnPrem')]
