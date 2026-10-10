@@ -1,6 +1,8 @@
 namespace System.Integration;
 
+#if not CLEAN30
 using System;
+#endif
 using System.Utilities;
 
 codeunit 1299 "Web Request Helper"
@@ -11,16 +13,19 @@ codeunit 1299 "Web Request Helper"
     end;
 
     var
-        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
         FileSchemeNotAllowedErr: Label 'The file scheme is not allowed.';
         InvalidEncodingErr: Label 'The text encoding is not specified or is not valid.';
         InvalidUriErr: Label 'The URI is not valid.';
         NonSecureUriErr: Label 'The URI is not secure.';
+        RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
+#if not CLEAN30
+        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
         ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
 #pragma warning disable AA0470
         ServiceURLTxt: Label '\\Service URL: %1.', Comment = 'Example: ServiceURL: http://www.contoso.com/';
 #pragma warning restore AA0470
         GlobalHttpWebResponseError: DotNet HttpWebResponse;
+#endif
 
     [TryFunction]
     procedure IsValidUri(Url: Text)
@@ -64,9 +69,11 @@ codeunit 1299 "Web Request Helper"
             Error(InvalidUriErr);
     end;
 
+#if not CLEAN30
     [TryFunction]
     [NonDebuggable]
     [Scope('OnPrem')]
+    [Obsolete('GetWebResponse relies on the .NET HttpWebRequest and HttpWebResponse types and is being phased out. Use the native HttpClient, HttpRequestMessage and HttpResponseMessage data types instead.', '30.0')]
     procedure GetWebResponse(var HttpWebRequest: DotNet HttpWebRequest; var HttpWebResponse: DotNet HttpWebResponse; var ResponseInStream: InStream; var HttpStatusCode: DotNet HttpStatusCode; var ResponseHeaders: DotNet NameValueCollection; ProgressDialogEnabled: Boolean)
     var
         ProcessingWindow: Dialog;
@@ -85,6 +92,7 @@ codeunit 1299 "Web Request Helper"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('GetWebResponseError relies on the .NET WebException and HttpWebResponse types and is being phased out. Use the native HttpClient and HttpResponseMessage data types and inspect HttpResponseMessage.HttpStatusCode and HttpResponseMessage.Content instead.', '30.0')]
     procedure GetWebResponseError(var WebException: DotNet WebException; var ServiceURL: Text): Text
     var
         DotNetExceptionHandler: Codeunit "DotNet Exception Handler";
@@ -116,6 +124,12 @@ codeunit 1299 "Web Request Helper"
 
         exit('');
     end;
+#endif
+
+    local procedure GetHttpStatusErrorMessage(HttpResponseMessage: HttpResponseMessage): Text
+    begin
+        exit(StrSubstNo(RemoteServerErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase()));
+    end;
 
     [TryFunction]
     [Scope('OnPrem')]
@@ -131,64 +145,75 @@ codeunit 1299 "Web Request Helper"
     local procedure GetResponseTextInternal(Method: Text; Url: Text; AccessToken: SecretText; var ResponseText: Text; IgnoreCharSet: Boolean)
     var
         TempBlob: Codeunit "Temp Blob";
-        HttpWebRequest: DotNet HttpWebRequest;
-        HttpWebResponse: DotNet HttpWebResponse;
-        Uri: DotNet Uri;
+        Uri: Codeunit Uri;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        RequestHeaders: HttpHeaders;
+        ResponseContentInStream: InStream;
         ResponseInputStream: InStream;
+        ResponseOutStream: OutStream;
         TextEncodingVar: TextEncoding;
         ChunkText: Text;
     begin
         IsValidUri(Url);
-        Uri := Uri.Uri(Url);
-        if Uri.Scheme = 'file' then
+        Uri.Init(Url);
+        if Uri.GetScheme() = 'file' then
             Error(FileSchemeNotAllowedErr);
 
-        HttpWebRequest := HttpWebRequest.Create(Url);
-        HttpWebRequest.Method := Method;
-        HttpWebRequest.ContentLength := 0;
+        HttpRequestMessage.Method(Method);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(RequestHeaders);
         // add the access token to the authorization bearer header
-        HttpWebRequest.Headers().Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken).Unwrap());
-        HttpWebResponse := HttpWebRequest.GetResponse();
+        RequestHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
+
+        HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            Error(GetHttpStatusErrorMessage(HttpResponseMessage));
+
+        HttpResponseMessage.Content().ReadAs(ResponseContentInStream);
+        TempBlob.CreateOutStream(ResponseOutStream);
+        CopyStream(ResponseOutStream, ResponseContentInStream);
 
         // We need to read using the right encoding, unless forced or unless no encoding can be determined
         if IgnoreCharSet then
             TempBlob.CreateInStream(ResponseInputStream)
         else
-            if TryGetTextEncodingFromResponse(HttpWebResponse, TextEncodingVar) then
+            if TryGetTextEncodingFromResponse(HttpResponseMessage, TextEncodingVar) then
                 TempBlob.CreateInStream(ResponseInputStream, TextEncodingVar)
             else
                 TempBlob.CreateInStream(ResponseInputStream); // Fallback to default encoding
-
-        HttpWebResponse.GetResponseStream().CopyTo(ResponseInputStream);
 
         // the READTEXT() function apparently only reads a single line, so we must loop through the stream to get the contents of every line.
         while not ResponseInputStream.EOS() do begin
             ResponseInputStream.ReadText(ChunkText);
             ResponseText += ChunkText;
         end;
-
-        HttpWebResponse.Close(); // close connection
-        HttpWebResponse.Dispose(); // cleanup of IDisposable
     end;
 
     [TryFunction]
-    local procedure TryGetTextEncodingFromResponse(HttpWebResponse: DotNet HttpWebResponse; var EncodingToUse: TextEncoding)
+    local procedure TryGetTextEncodingFromResponse(HttpResponseMessage: HttpResponseMessage; var EncodingToUse: TextEncoding)
     var
-        HttpContentTypeHeader: Text;
-        HttpContentType: DotNet HttpContentType;
+        ContentHeaders: HttpHeaders;
+        ContentTypeValues: List of [Text];
+        ContentTypeParameter: Text;
+        CharSet: Text;
     begin
-        // Both the header name and the content are case insensitive; returns empty string if the header does not exist
-        HttpContentTypeHeader := HttpWebResponse.GetResponseHeader('Content-Type').ToLowerInvariant();
-
-        HttpContentType := HttpContentType.ContentType(HttpContentTypeHeader);
-
-        if IsNull(HttpContentType.CharSet()) then
+        // Both the header name and the content are case insensitive
+        HttpResponseMessage.Content().GetHeaders(ContentHeaders);
+        if not ContentHeaders.GetValues('Content-Type', ContentTypeValues) then
             Error(InvalidEncodingErr);
 
-        if HttpContentType.CharSet() = '' then
+        if ContentTypeValues.Count() = 0 then
             Error(InvalidEncodingErr);
 
-        case HttpContentType.CharSet() of
+        foreach ContentTypeParameter in LowerCase(ContentTypeValues.Get(1)).Split(';') do begin
+            ContentTypeParameter := DelChr(ContentTypeParameter, '<>', ' ');
+            if ContentTypeParameter.StartsWith('charset=') then
+                CharSet := DelChr(CopyStr(ContentTypeParameter, StrLen('charset=') + 1), '<>', ' "');
+        end;
+
+        case CharSet of
             'utf-8':
                 EncodingToUse := TextEncoding::UTF8;
             else
