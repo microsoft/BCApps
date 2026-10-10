@@ -9,7 +9,6 @@ codeunit 13618 "Elec. VAT Decl. Xml"
     Access = Internal;
 
     var
-        XMLDomManagement: Codeunit "XML DOM Management";
         ReferenceList: List of [Text];
         BinarySecurityTokenId: Text;
         DeeplinkNotFoundErr: Label 'Deeplink for draft VAT Return not found in response';
@@ -80,26 +79,26 @@ codeunit 13618 "Elec. VAT Decl. Xml"
         ReferenceList.Add(TimeStampId);
 
         // Envelope
-        XMLDomManagement.AddRootElementWithPrefix(UnsignedRequestDocument, 'Envelope', 'soapenv', GetSoapNamespace(), Envelope);
+        AddRootElementWithPrefix(UnsignedRequestDocument, 'Envelope', 'soapenv', GetSoapNamespace(), Envelope);
 
         // Header
-        XMLDomManagement.AddElement(Envelope, 'Header', '', GetSoapNamespace(), Header);
+        AddElement(Envelope, 'Header', '', GetSoapNamespace(), Header);
 
         // Security
-        XMLDomManagement.AddElement(Header, 'Security', '', GetWsseNamespace(), Security);
-        XMLDomManagement.AddNamespaceDeclaration(Security, 'wsu', GetWsuNamespace());
+        AddElement(Header, 'Security', '', GetWsseNamespace(), Security);
+        AddNamespaceDeclaration(Security, 'wsu', GetWsuNamespace());
 
         // BinarySecurityToken
-        XMLDomManagement.AddElement(Security, 'BinarySecurityToken', ClientCertificateBase64, GetWsseNamespace(), BinarySecurityToken);
-        XMLDomManagement.AddAttribute(BinarySecurityToken, 'EncodingType', EncodingTypeTok);
-        XMLDomManagement.AddAttribute(BinarySecurityToken, 'ValueType', GetX509TokenType());
-        XMLDomManagement.AddAttribute(BinarySecurityToken, 'Id', BinarySecurityTokenId);
+        AddElement(Security, 'BinarySecurityToken', ClientCertificateBase64, GetWsseNamespace(), BinarySecurityToken);
+        AddAttribute(BinarySecurityToken, 'EncodingType', EncodingTypeTok);
+        AddAttribute(BinarySecurityToken, 'ValueType', GetX509TokenType());
+        AddAttribute(BinarySecurityToken, 'Id', BinarySecurityTokenId);
 
         // Timestamp
-        XMLDomManagement.AddElement(Security, 'Timestamp', '', GetWsuNamespace(), Timestamp);
-        XMLDomManagement.AddAttribute(Timestamp, 'Id', TimeStampId);
-        XMLDomManagement.AddElement(Timestamp, 'Created', GetTimeStamp(0), GetWsuNamespace(), TimestampCreated);
-        XMLDomManagement.AddElement(Timestamp, 'Expires', GetTimeStamp(1), GetWsuNamespace(), TimestampExpires);
+        AddElement(Security, 'Timestamp', '', GetWsuNamespace(), Timestamp);
+        AddAttribute(Timestamp, 'Id', TimeStampId);
+        AddElement(Timestamp, 'Created', GetTimeStamp(0), GetWsuNamespace(), TimestampCreated);
+        AddElement(Timestamp, 'Expires', GetTimeStamp(1), GetWsuNamespace(), TimestampExpires);
 
         // Body
         GetRequestBodyAndReferencesForType(ElecVATDeclRequestType, ElecVATDeclParameters, Body, BodyReferenceList, TransactionID);
@@ -115,44 +114,44 @@ codeunit 13618 "Elec. VAT Decl. Xml"
 
     procedure GetDeeplinkNodeFromResponseText(ResponseText: Text) DeeplinkNode: XmlNode
     begin
-        if not XMLDomManagement.FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(DeeplinkXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DeeplinkNode) then
+        if not FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(DeeplinkXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DeeplinkNode) then
             Error(DeeplinkNotFoundErr);
     end;
 
     procedure GetResponseTransactionNodeFromResponseText(ResponseText: Text) TransactionIDNode: XmlNode
     begin
-        if not XMLDomManagement.FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(ResponseTransactionIDXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), TransactionIDNode) then
+        if not FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(ResponseTransactionIDXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), TransactionIDNode) then
             Error(ResponseTransactionIDNotFoundErr);
     end;
 
     procedure GetVATReturnStatusNodeFromResponseText(ResponseText: Text) VATReturnStatusNode: XmlNode
     begin
-        XmlDOMManagement.FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(VATReturnStatusTok, PrefixTok), PrefixTok, GetSkatNamespace2(), VATReturnStatusNode);
+        FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(VATReturnStatusTok, PrefixTok), PrefixTok, GetSkatNamespace2(), VATReturnStatusNode);
     end;
 
     procedure TryGetDueDateNodesFromResponseText(ResponseText: Text) DueDateNodes: XmlNodeList
     begin
-        XmlDOMManagement.FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(DueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNodes);
+        FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(DueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNodes);
     end;
 
     procedure TryGetPeriodNodesFromResponseText(ResponseText: Text) PeriodNodes: XmlNodeList
     begin
-        XmlDOMManagement.FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(PeriodXPathTok, PrefixTok), PrefixTok, GetSkatNamespace1(), PeriodNodes);
+        FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(PeriodXPathTok, PrefixTok), PrefixTok, GetSkatNamespace1(), PeriodNodes);
     end;
 
     procedure TryGetDueDateNodeFromPeriodNode(PeriodNode: XmlNode; var DueDateNode: XmlNode): Boolean
     begin
-        exit(XmlDOMManagement.FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodDueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNode));
+        exit(FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodDueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNode));
     end;
 
     procedure TryGetFrequencyNodeFromPeriodNode(PeriodNode: XmlNode; var FrequencyNode: XmlNode): Boolean
     begin
-        exit(XmlDOMManagement.FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodFrequencyXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), FrequencyNode));
+        exit(FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodFrequencyXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), FrequencyNode));
     end;
 
     procedure TryGetErrorNodeFromResponseText(ResponseText: Text; var ErrorNode: XmlNode) NodeFound: Boolean
     begin
-        exit(XMLDomManagement.FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(Error200XPathTok, PrefixTok), PrefixTok, GetSkatNamespace2(), ErrorNode));
+        exit(FindNodeWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(Error200XPathTok, PrefixTok), PrefixTok, GetSkatNamespace2(), ErrorNode));
     end;
 
     local procedure TextToXmlNode(InputText: Text) OutputXmlNode: XmlNode
@@ -242,6 +241,64 @@ codeunit 13618 "Elec. VAT Decl. Xml"
     local procedure GetTimeStampId(): Text
     begin
         exit('TS-' + CreateXMLGuid());
+    end;
+
+    procedure AddElement(var ParentXmlNode: XmlNode; NodeName: Text; NodeText: Text; NameSpace: Text; var CreatedXmlNode: XmlNode): Boolean
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, NameSpace, NodeText).AsXmlNode();
+        exit(ParentXmlNode.AsXmlElement().Add(CreatedXmlNode));
+    end;
+
+    procedure AddRootElementWithPrefix(var RootXmlDocument: XmlDocument; NodeName: Text; Prefix: Text; NameSpace: Text; var CreatedXmlNode: XmlNode): Boolean
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, NameSpace).AsXmlNode();
+        CreatedXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, NameSpace));
+        exit(RootXmlDocument.Add(CreatedXmlNode));
+    end;
+
+    [TryFunction]
+    procedure AddAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text)
+    begin
+        ParentXmlNode.AsXmlElement().SetAttribute(Name, NodeValue);
+    end;
+
+    procedure AddNamespaceDeclaration(var ParentXmlNode: XmlNode; Prefix: Text; NameSpace: Text): Boolean
+    begin
+        exit(ParentXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, NameSpace)));
+    end;
+
+    procedure FindNodeWithNamespace(RootXmlNode: XmlNode; NodePath: Text; Prefix: Text; Namespace: Text; var FoundXmlNode: XmlNode): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+        RootXmlDocument: XmlDocument;
+    begin
+        if RootXmlNode.IsXmlDocument() then
+            XmlNamespaceManager.NameTable(RootXmlNode.AsXmlDocument().NameTable())
+        else begin
+            RootXmlNode.GetDocument(RootXmlDocument);
+            XmlNamespaceManager.NameTable(RootXmlDocument.NameTable());
+        end;
+        XmlNamespaceManager.AddNamespace(Prefix, Namespace);
+        exit(RootXmlNode.SelectSingleNode(NodePath, XmlNamespaceManager, FoundXmlNode));
+    end;
+
+    local procedure FindNodesWithNamespace(RootXmlNode: XmlNode; XPath: Text; Prefix: Text; Namespace: Text; var FoundXmlNodeList: XmlNodeList): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+        RootXmlDocument: XmlDocument;
+    begin
+        if RootXmlNode.IsXmlDocument() then
+            XmlNamespaceManager.NameTable(RootXmlNode.AsXmlDocument().NameTable())
+        else begin
+            RootXmlNode.GetDocument(RootXmlDocument);
+            XmlNamespaceManager.NameTable(RootXmlDocument.NameTable());
+        end;
+        XmlNamespaceManager.AddNamespace(Prefix, Namespace);
+        if not RootXmlNode.SelectNodes(XPath, XmlNamespaceManager, FoundXmlNodeList) then
+            exit(false);
+        if FoundXmlNodeList.Count() = 0 then
+            exit(false);
+        exit(true);
     end;
 
     local procedure CreateXMLGuid() Guid: Text
