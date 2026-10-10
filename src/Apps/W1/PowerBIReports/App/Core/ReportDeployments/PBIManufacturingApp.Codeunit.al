@@ -18,7 +18,7 @@ codeunit 36968 "PBI Manufacturing App" implements "Power BI Deployable Report", 
 
     procedure GetVersion(): Integer
     begin
-        exit(1);
+        exit(2);
     end;
 
     procedure GetDatasetParameters() Parameters: Dictionary of [Text, Text]
