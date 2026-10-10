@@ -24,7 +24,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Projects.Project.Planning;
-using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 
@@ -1460,30 +1459,25 @@ codeunit 22 "Item Jnl.-Post Line"
                     ReservEntry2.SetLoadFields("Source Type", "Source Ref. No.", "Item No.", "Quantity (Base)");
                     OnApplyItemLedgEntryOnAfterSetLoadFieldsOnReservEntry(ReservEntry2);
                     ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
-                    if (ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Transfer) and (ReservEntry2."Source Type" = DATABASE::"Purchase Line") and (ItemLedgEntry.Quantity < 0) then begin
-                        UseReservationApplication := false;
-                        StartApplication := true;
-                    end else begin
-                        if ReservEntry2."Source Type" <> DATABASE::"Item Ledger Entry" then
-                            if ItemLedgEntry.Quantity < 0 then
-                                Error(Text003, ReservEntry."Item No.");
-                        OldItemLedgEntry.Get(ReservEntry2."Source Ref. No.");
+                    if ReservEntry2."Source Type" <> DATABASE::"Item Ledger Entry" then
                         if ItemLedgEntry.Quantity < 0 then
-                            if OldItemLedgEntry."Remaining Quantity" < ReservEntry2."Quantity (Base)" then
-                                Error(Text003, ReservEntry2."Item No.");
+                            Error(Text003, ReservEntry."Item No.");
+                    OldItemLedgEntry.Get(ReservEntry2."Source Ref. No.");
+                    if ItemLedgEntry.Quantity < 0 then
+                        if OldItemLedgEntry."Remaining Quantity" < ReservEntry2."Quantity (Base)" then
+                            Error(Text003, ReservEntry2."Item No.");
 
-                        OldItemLedgEntry.TestField("Item No.", ItemJnlLine."Item No.");
-                        OldItemLedgEntry.TestField("Variant Code", ItemJnlLine."Variant Code");
-                        IsHandled := false;
-                        OnApplyItemLedgEntryOnBeforeTestOldItemLedgEntryLocationCode(OldItemLedgEntry, IsHandled);
-                        if not IsHandled then
-                            OldItemLedgEntry.TestField("Location Code", ItemJnlLine."Location Code");
-                        OnApplyItemLedgEntryOnBeforeCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
-                        ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
-                        OnApplyItemLedgEntryOnAfterCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
-                        OldItemLedgEntry.CalcReservedQuantity();
-                        AppliedQty := -Abs(ReservEntry."Quantity (Base)");
-                    end;
+                    OldItemLedgEntry.TestField("Item No.", ItemJnlLine."Item No.");
+                    OldItemLedgEntry.TestField("Variant Code", ItemJnlLine."Variant Code");
+                    IsHandled := false;
+                    OnApplyItemLedgEntryOnBeforeTestOldItemLedgEntryLocationCode(OldItemLedgEntry, IsHandled);
+                    if not IsHandled then
+                        OldItemLedgEntry.TestField("Location Code", ItemJnlLine."Location Code");
+                    OnApplyItemLedgEntryOnBeforeCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
+                    ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
+                    OnApplyItemLedgEntryOnAfterCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
+                    OldItemLedgEntry.CalcReservedQuantity();
+                    AppliedQty := -Abs(ReservEntry."Quantity (Base)");
                 end;
             end else
                 StartApplication := true;
