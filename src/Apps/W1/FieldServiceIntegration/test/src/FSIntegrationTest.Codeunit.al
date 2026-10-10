@@ -7,6 +7,7 @@ namespace Microsoft.Test.Integration.DynamicsFieldService;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
@@ -23,7 +24,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
-using Microsoft.Service.Item;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using Microsoft.TestLibraries.DynamicsFieldService;
@@ -1054,6 +1054,74 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
+    procedure UpdateWorkOrderServiceEstimated20MinDurationRaisesNoErrorWithRoundingPrecision()
+    var
+        WorkOrderService: Record "FS Work Order Service";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] 20 min duration (= 0.3333... hours) does not raise a precision error when Qty. Rounding Precision is set.
+        // Without the fix, ServiceLine.Validate(Quantity, 20/60) = Validate(Quantity, 0.3333...) would fail with:
+        // "The value 0.333333333333333 in field Quantity is of lower precision than expected..."
+        // [GIVEN] FS Connection Setup, where "Is Enabled" = Yes.
+        Initialize();
+        SetUpServiceManagement();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line where the Item UoM has rounding precision 0.00001.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceLine."Qty. Rounding Precision" := 0.00001;
+
+        // [GIVEN] Work order service with Estimated status and duration = 20 min (0.3333... hours).
+        WorkOrderService.LineStatus := WorkOrderService.LineStatus::Estimated;
+        WorkOrderService.EstimateDuration := 20;
+
+        // [WHEN] Update quantities - should not raise a precision error.
+        FSIntegrationTestLibrary.UpdateQuantities(WorkOrderService, ServiceLine, false);
+
+        // [THEN] Quantity is rounded to 0.33333 (Round(20/60, 0.00001)), not the raw 0.3333...
+        Assert.AreEqual(0.33333, ServiceLine.Quantity, 'Quantity should be 0.33333, not the raw repeating decimal 0.3333...');
+        Assert.AreEqual(0, ServiceLine."Qty. to Ship", 'Qty. to Ship should be 0');
+        Assert.AreEqual(0, ServiceLine."Qty. to Invoice", 'Qty. to Invoice should be 0');
+    end;
+
+    [Test]
+    procedure UpdateWorkOrderServiceEstimated20MinDurationRaisesNoErrorWithoutRoundingPrecision()
+    var
+        WorkOrderService: Record "FS Work Order Service";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] 20 min duration (= 0.3333... hours) does not cause base quantity balance error when Qty. Rounding Precision is not defined (= 0).
+        // Without the fix, ServiceLine.Validate(Quantity, 20/60) would fail with:
+        // "This will cause the quantity and base quantity fields to be out of balance."
+        // [GIVEN] FS Connection Setup, where "Is Enabled" = Yes.
+        Initialize();
+        SetUpServiceManagement();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line with no rounding precision defined (default 0).
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        // Qty. Rounding Precision = 0 means not defined - RoundQty will use the default AL rounding precision.
+
+        // [GIVEN] Work order service with Estimated status and duration = 20 min (0.3333... hours).
+        WorkOrderService.LineStatus := WorkOrderService.LineStatus::Estimated;
+        WorkOrderService.EstimateDuration := 20;
+
+        // [WHEN] Update quantities - should not raise a base quantity balance error.
+        FSIntegrationTestLibrary.UpdateQuantities(WorkOrderService, ServiceLine, false);
+
+        // [THEN] Quantity is set to 0.33333 without error. RoundQty with precision 0 uses default rounding (0.00001).
+        Assert.AreEqual(0.33333, ServiceLine.Quantity, 'Quantity should be 0.33333 - RoundQty with precision 0 uses default precision 0.00001');
+        Assert.AreEqual(0, ServiceLine."Qty. to Ship", 'Qty. to Ship should be 0');
+        Assert.AreEqual(0, ServiceLine."Qty. to Invoice", 'Qty. to Invoice should be 0');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateFSBookableResourceBookingDefault()
     var
@@ -1578,109 +1646,103 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    procedure IgnoreServiceItemWhenConvertToCustomerAssetIsFalse()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure InitialItemSynchronizationDisablesCustomerAssetConversion()
     var
-        Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
-        CRMProduct: Record "CRM Product";
         CRMIntegrationRecord: Record "CRM Integration Record";
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-        ProductId: Guid;
+        CRMProduct: Record "CRM Product";
+        CRMTransactioncurrency: Record "CRM Transactioncurrency";
+        CRMUom: Record "CRM Uom";
+        Currency: Record Currency;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        Item: Record Item;
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        JobID: Guid;
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item is skipped when linked CRM Product has Convert to Customer Asset = No.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] The first synchronization of an item disables native Field Service customer asset creation.
         Initialize();
-        InitSetup(true, '');
+        InitializeItemProductSynchronization();
 
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
+        // [GIVEN] An uncoupled item whose unit of measure and currency are coupled to Dataverse.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        CreateItemWithCoupledUnitOfMeasure(Item, CRMUom);
+        LibraryCRMIntegration.CreateCoupledCurrencyAndTransactionCurrency(Currency, CRMTransactioncurrency);
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
 
-        ProductId := CreateGuid();
-        CRMProduct.ProductId := ProductId;
-        CRMProduct.ConvertToCustomerAsset := false;
-        CRMProduct.Insert(false);
+        // [WHEN] The item is synchronized to a new Field Service product.
+        JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, true);
 
-        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
-
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsTrue(IgnoreRecord, 'Service Item should be ignored when Convert to Customer Asset is false.');
+        // [THEN] Native Field Service customer asset creation is disabled on the new product.
+        VerifySuccessfulIntegrationSynchJob(JobID, 1, 0);
+        Assert.IsTrue(CRMIntegrationRecord.FindByRecordID(Item.RecordId()), 'The item should be coupled to a product.');
+        CRMProduct.Get(CRMIntegrationRecord."CRM ID");
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
 
     [Test]
-    procedure DoNotIgnoreServiceItemWhenConvertToCustomerAssetIsTrue()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
         Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
         CRMProduct: Record "CRM Product";
-        CRMIntegrationRecord: Record "CRM Integration Record";
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-        ProductId: Guid;
+        CRMUom: Record "CRM Uom";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        JobID: Guid;
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item is not skipped when linked CRM Product has Convert to Customer Asset = Yes.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
-        InitSetup(true, '');
+        InitializeItemProductSynchronization();
 
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
-
-        ProductId := CreateGuid();
-        CRMProduct.ProductId := ProductId;
+        // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes and the existing mapping has no conversion rule.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        CreateItemWithCoupledUnitOfMeasure(Item, CRMUom);
+        LibraryCRMIntegration.CoupleItem(Item, CRMUom, CRMProduct);
         CRMProduct.ConvertToCustomerAsset := true;
-        CRMProduct.Insert(false);
+        CRMProduct.Modify();
 
-        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        IntegrationFieldMapping.DeleteAll();
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+        // [WHEN] The item is synchronized to the Field Service product.
+        JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
 
-        Assert.IsFalse(IgnoreRecord, 'Service Item should not be ignored when Convert to Customer Asset is true.');
+        // [THEN] Native Field Service customer asset creation is disabled.
+        VerifySuccessfulIntegrationSynchJob(JobID, 0, 1);
+        CRMProduct.Get(CRMProduct.ProductId);
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
 
     [Test]
-    procedure DoNotIgnoreServiceItemWhenItemNoIsBlank()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ItemProductMappingDisablesCustomerAssetConversion()
     var
-        TempServiceItem: Record "Service Item" temporary;
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
+        CRMProduct: Record "CRM Product";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item with blank Item No. is not skipped by this filter.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] The item-product mapping always disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
 
-        TempServiceItem."Item No." := '';
-        RecordRef.GetTable(TempServiceItem);
+        // [WHEN] The default item-product mapping is reset.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsFalse(IgnoreRecord, 'Service Item with blank Item No. should not be ignored by this filter.');
-    end;
-
-    [Test]
-    procedure DoNotIgnoreServiceItemWhenItemIsNotCoupled()
-    var
-        Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-    begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item with uncoupled Item is not skipped by this filter.
-        Initialize();
-        InitSetup(true, '');
-
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
-
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsFalse(IgnoreRecord, 'Service Item with uncoupled Item should not be ignored by this filter.');
+        // [THEN] Convert to Customer Asset is mapped to constant false in the outbound direction.
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        Assert.IsTrue(IntegrationFieldMapping.FindFirst(), 'The Convert to Customer Asset mapping should exist.');
+        Assert.AreEqual(0, IntegrationFieldMapping."Field No.", 'The mapping should use a constant value.');
+        Assert.AreEqual(IntegrationFieldMapping.Direction::ToIntegrationTable, IntegrationFieldMapping.Direction, 'The mapping should be outbound.');
+        Assert.AreEqual('false', IntegrationFieldMapping."Constant Value", 'The mapping should disable Convert to Customer Asset.');
     end;
 
     local procedure Initialize()
@@ -1710,6 +1772,78 @@ codeunit 139204 "FS Integration Test"
 
         IsInitialized := true;
         SetTenantLicenseStateToTrial();
+    end;
+
+    local procedure SetUpServiceManagement()
+    var
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        if not GenJournalTemplate.Get('DEFAULT') then begin
+            GenJournalTemplate.Init();
+            GenJournalTemplate.Name := 'DEFAULT';
+            GenJournalTemplate.Type := GenJournalTemplate.Type::Sales;
+            GenJournalTemplate.Insert();
+        end;
+
+        if GenJournalTemplate."Posting No. Series" = '' then begin
+            GenJournalTemplate.Validate("Posting No. Series", LibraryERM.CreateNoSeriesCode());
+            GenJournalTemplate.Modify();
+        end;
+
+        if not ServiceMgtSetup.Get() then begin
+            ServiceMgtSetup.Init();
+            ServiceMgtSetup.Insert();
+        end;
+
+        ServiceMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
+        ServiceMgtSetup.Modify();
+    end;
+
+    local procedure VerifySuccessfulIntegrationSynchJob(JobID: Guid; ExpectedInserted: Integer; ExpectedModified: Integer)
+    var
+        IntegrationSynchJob: Record "Integration Synch. Job";
+        IntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
+    begin
+        IntegrationSynchJob.Get(JobID);
+        IntegrationSynchJobErrors.SetRange("Integration Synch. Job ID", JobID);
+        if IntegrationSynchJobErrors.FindFirst() then
+            Assert.Fail('Unexpected synchronization error: ' + IntegrationSynchJobErrors.Message);
+        IntegrationSynchJob.TestField(Failed, 0);
+        IntegrationSynchJob.TestField(Inserted, ExpectedInserted);
+        IntegrationSynchJob.TestField(Modified, ExpectedModified);
+    end;
+
+    local procedure CreateItemWithCoupledUnitOfMeasure(var Item: Record Item; var CRMUom: Record "CRM Uom")
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        UnitGroup: Record "Unit Group";
+        CRMUomschedule: Record "CRM Uomschedule";
+    begin
+        LibraryCRMIntegration.CreateCoupledItemUnitGroupAndUomSchedule(UnitGroup, CRMUomschedule);
+        Item.GetBySystemId(UnitGroup."Source Id");
+        ItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        LibraryCRMIntegration.CoupleItemUnitOfMeasure(ItemUnitOfMeasure, CRMUomschedule, CRMUom);
+    end;
+
+    local procedure InitializeItemProductSynchronization()
+    var
+        CDSCompany: Record "CDS Company";
+        CDSConnectionSetup: Record "CDS Connection Setup";
+        CRMConnectionSetup: Record "CRM Connection Setup";
+    begin
+        InitSetup(true, '');
+        LibraryCRMIntegration.ConfigureCRM();
+        LibraryCRMIntegration.CreateCRMOrganization();
+        CRMConnectionSetup.Get();
+        CRMConnectionSetup.Validate("Is Enabled", false);
+        CRMConnectionSetup.Modify(true);
+        CRMConnectionSetup.Validate("Is Enabled", true);
+        CRMConnectionSetup.Modify(true);
+        CDSConnectionSetup.Get();
+        CDSConnectionSetup.SetBaseCurrencyData();
+        LibraryCRMIntegration.EnsureCDSCompany(CDSCompany);
     end;
 
     procedure ResetFSEnvironment()
@@ -2018,4 +2152,3 @@ codeunit 139204 "FS Integration Test"
         InventorySetup.Modify(true);
     end;
 }
-
