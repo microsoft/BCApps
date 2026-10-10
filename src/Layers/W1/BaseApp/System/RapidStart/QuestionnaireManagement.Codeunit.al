@@ -538,10 +538,34 @@ codeunit 8610 "Questionnaire Management"
         XMLFile: File;
         XMLOutStream: OutStream;
     begin
+        AddEndTagIndentationToEmptyValues(QuestionnaireXML);
         XMLFile.Create(FileName);
         XMLFile.CreateOutStream(XMLOutStream);
         QuestionnaireXML.WriteTo(XMLOutStream);
         XMLFile.Close();
+    end;
+    // DotNet XmlDocument.Save wrote an element with an empty value as an end tag on its own indented line. Add that formatting so the saved file stays identical.
+    local procedure AddEndTagIndentationToEmptyValues(var XMLDocToSave: XmlDocument)
+    var
+        EmptyNodes: XmlNodeList;
+        EmptyNode: XmlNode;
+        AncestorNodes: XmlNodeList;
+        CommentNodes: XmlNodeList;
+        CommentNode: XmlNode;
+        NewLine: Text[2];
+    begin
+        if not XMLDocToSave.SelectNodes('//*[not(*) and string-length(.) = 0]', EmptyNodes) then
+            exit;
+        NewLine[1] := 13;
+        NewLine[2] := 10;
+        foreach EmptyNode in EmptyNodes do
+            if not EmptyNode.AsXmlElement().IsEmpty() then begin
+                EmptyNode.SelectNodes('ancestor::*', AncestorNodes);
+                if EmptyNode.SelectNodes('comment()', CommentNodes) then
+                    foreach CommentNode in CommentNodes do
+                        CommentNode.AddBeforeSelf(XmlText.Create(NewLine + PadStr('', (AncestorNodes.Count() + 1) * 2, ' ')));
+                EmptyNode.AsXmlElement().Add(XmlText.Create(NewLine + PadStr('', AncestorNodes.Count() * 2, ' ')));
+            end;
     end;
 
     local procedure LoadXMLDocumentFromFile(FileName: Text; var LoadedXML: XmlDocument)

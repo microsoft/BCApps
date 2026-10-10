@@ -3016,10 +3016,10 @@ codeunit 136603 "ERM RS Package Operations"
         //  .. 
         // <ConfigMediaBuffer>
         // </ConfigMediaBufferList>
-        Assert.AreEqual(2, MediaBufferListNode.AsXmlElement().GetChildNodes().Count, ''); // 2 nodes TableID and ConfigMediaBuffer for Config. Package "2"
+        Assert.AreEqual(2, MediaBufferListNode.AsXmlElement().GetChildElements().Count, ''); // 2 nodes TableID and ConfigMediaBuffer for Config. Package "2"
         MediaBufferListNode.SelectSingleNode('TableID', TableIDNode);
         Assert.AreEqual(FORMAT(Database::"Config. Media Buffer"), TableIDNode.AsXmlElement().InnerText, '');
-        MediaBufferListNode.AsXmlElement().GetChildNodes().Get(2, MediaBufferNode);
+        MediaBufferListNode.AsXmlElement().GetChildElements().Get(2, MediaBufferNode);
         MediaBufferNode.SelectSingleNode('PackageCode', PackageCodeNode);
         Assert.AreEqual(ConfigPackage[2].Code, PackageCodeNode.AsXmlElement().InnerText, '');
     end;

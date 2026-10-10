@@ -1225,7 +1225,7 @@ codeunit 136610 "ERM RS Package Base Operations"
         XmlDocument.ReadFrom(PackageInStream, PackageXMLDoc);
         PackageFile.Close();
         PackageXMLDoc.GetRoot(RootElement);
-        RootElement.GetChildNodes().Get(1, TableListNode);
+        RootElement.GetChildElements().Get(1, TableListNode);
         TableListElement := TableListNode.AsXmlElement();
         CreateDummyCustPriceGroup(CustomerPriceGroup);
         RecordElement := XmlElement.Create(ConfigXMLExchange.GetElementName(CopyStr(CustomerPriceGroup.TableName, 1, 250)));
