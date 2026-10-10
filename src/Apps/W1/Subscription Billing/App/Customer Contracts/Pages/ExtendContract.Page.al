@@ -302,6 +302,10 @@ page 8002 "Extend Contract"
         ValidateSubscriptionEntryNo();
 
         CountTotalServiceCommitmentPackage();
+
+        if VariantCodeParam <> '' then
+            VariantCode := VariantCodeParam;
+
         CurrPage.Update();
     end;
 
@@ -607,6 +611,10 @@ page 8002 "Extend Contract"
         ExtendCustomerContract := ExtendCustomerContractParam;
         UsageDataSupplierNo := UsageDataSupplierNoParam;
         SubscriptionEntryNo := SubscriptionEntryNoParam;
+        ExtendVendorContract := ExtendVendorContractParam;
+        VendorContractNo := VendorContractNoParam;
+        ItemNo := ItemNoParam;
+        QuantityDecimal := QuantityParam;
     end;
 
     local procedure FillTempServiceCommitmentPackage()
@@ -667,6 +675,19 @@ page 8002 "Extend Contract"
         SubscriptionEntryNoParam := NewSubscriptionEntryNo;
     end;
 
+    procedure SetVendorContractParameters(NewExtendVendorContract: Boolean; NewVendorContractNo: Code[20])
+    begin
+        ExtendVendorContractParam := NewExtendVendorContract;
+        VendorContractNoParam := NewVendorContractNo;
+    end;
+
+    procedure SetItemParameters(NewItemNo: Code[20]; NewVariantCode: Code[10]; NewQuantity: Decimal)
+    begin
+        ItemNoParam := NewItemNo;
+        VariantCodeParam := NewVariantCode;
+        QuantityParam := NewQuantity;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeExtendContract()
     begin
@@ -691,11 +712,6 @@ page 8002 "Extend Contract"
         ContractItemMgt: Codeunit "Sub. Contracts Item Management";
         ExtendContractMgt: Codeunit "Extend Sub. Contract Mgt.";
         ImportAndProcessUsageData: Codeunit "Import And Process Usage Data";
-        CustomerContractNo: Code[20];
-        VendorContractNo: Code[20];
-        UnitPrice: Decimal;
-        UnitCostLCY: Decimal;
-        ProvisionStartDate: Date;
         ProvisionStartDateEmptyErr: Label 'Provision Start Date cannot be empty.';
         NoOfSelectedPackagesLbl: Label '%1 of %2', Comment = '%1 = No. of selected service commitment packages, %2 = Total service commitment packages';
         SelectedServiceCommitmentPackages: Integer;
@@ -705,9 +721,13 @@ page 8002 "Extend Contract"
         CustomerContractNoParam: Code[20];
         ProvisionStartDateParam: Date;
         ExtendCustomerContractParam: Boolean;
+        ExtendVendorContractParam: Boolean;
+        VendorContractNoParam: Code[20];
+        ItemNoParam: Code[20];
+        VariantCodeParam: Code[10];
+        QuantityParam: Decimal;
         UsageDataSupplierNo: Code[20];
         UsageDataSupplierNoParam: Code[20];
-        SubscriptionDescription: Text[100];
         SubscriptionEntryNo: Integer;
         SubscriptionEntryNoParam: Integer;
         SupplierReferenceEntryNo: Integer;
@@ -716,7 +736,6 @@ page 8002 "Extend Contract"
         ItemMissingServCommPackageTxt: Label 'No Subscription Package is available for this item.';
         AssignServCommPackageToItemTxt: Label 'In order to extend the contract properly, please make sure that at least one package is assigned.';
         ItemNoEmptyErr: Label 'Item No. must be specified.';
-        ItemDescription: Text[100];
 
     protected var
         ItemNo: Code[20];
@@ -725,4 +744,11 @@ page 8002 "Extend Contract"
         ExtendCustomerContract: Boolean;
         ExtendVendorContract: Boolean;
         SellToCustomerNo: Code[20];
+        CustomerContractNo: Code[20];
+        VendorContractNo: Code[20];
+        SubscriptionDescription: Text[100];
+        ItemDescription: Text[100];
+        UnitPrice: Decimal;
+        UnitCostLCY: Decimal;
+        ProvisionStartDate: Date;
 }
