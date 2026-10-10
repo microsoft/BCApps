@@ -30,6 +30,7 @@ codeunit 148354 EACorpCardSetupTests
         BankAccountPostingGroup: Record "Bank Account Posting Group";
         CorpCardProvider: Record "EA Corp Card Provider";
         ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
         ExpensePostingGroup: Record "Expense Posting Group";
         GLAccount: Record "G/L Account";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
@@ -46,6 +47,8 @@ codeunit 148354 EACorpCardSetupTests
         ExpenseCategory.Get(AirlineExpenseCategoryCodeTok);
         ExpenseCategory."Posting Group" := '';
         ExpenseCategory.Modify(true);
+        ExpensePaymentMethod.Get(CardPaymentMethodCodeTok);
+        ExpensePaymentMethod.Delete(false);
 
         CreateCorpCardSetup.CreateDefaults();
 
@@ -55,6 +58,11 @@ codeunit 148354 EACorpCardSetupTests
         Assert.AreEqual(ProviderCountBefore, ProviderCountAfter, 'CreateDefaults must be idempotent for provider records.');
         Assert.AreEqual(CardCountBefore, CardCountAfter, 'CreateDefaults must not duplicate provider card links.');
         Assert.AreEqual(8, CardCountAfter, 'CreateDefaults must create one corporate card for each of the first eight expense users.');
+
+        Assert.IsTrue(ExpensePaymentMethod.Get(CardPaymentMethodCodeTok), 'CreateDefaults must create the corporate card payment method.');
+        Assert.AreEqual(
+            ExpensePaymentMethod."Reimbursement Type"::"Credit Card", ExpensePaymentMethod."Reimbursement Type",
+            'The corporate card payment method must use the Credit Card reimbursement type.');
 
         ExpenseCategory.Get(AirlineExpenseCategoryCodeTok);
         Assert.AreNotEqual('', ExpenseCategory."Posting Group", 'CreateDefaults must assign the posting group on corporate card expense categories.');
@@ -176,5 +184,6 @@ codeunit 148354 EACorpCardSetupTests
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardCsvSampleSettlementFilterTok: Label 'CSV-SAMPLE-SETTLEMENT-*', Locked = true;
         CorpCardAccountTok: Label 'CORPCARD', Locked = true;
+        CardPaymentMethodCodeTok: Label 'CARD', Locked = true;
         AirlineExpenseCategoryCodeTok: Label 'AIRLINE', Locked = true;
 }
