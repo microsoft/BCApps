@@ -31,6 +31,11 @@
         "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
         "name": "Agent Test Library",
         "publisher": "Microsoft"
+      },
+      {
+        "id": "3466176f-5222-45d9-a1e0-4a19659356e9",
+        "name": "AI Eval Export Tests",
+        "publisher": "Microsoft"
       }
   ],
   "screenshots": [],
@@ -38,7 +43,7 @@
   "idRanges": [
     {
       "from": 149030,
-      "to": 149050
+      "to": 149051
     }
   ],
   "features": [
