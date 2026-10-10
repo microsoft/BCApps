@@ -724,8 +724,7 @@ codeunit 139199 "CDS Match Based Coupling"
         IntegrationTableMapping."Synch. After Bulk Coupling" := true;
         IntegrationTableMapping.Modify();
         IntegrationFieldMapping.SetRange("Integration Table Mapping Name", IntegrationTableMapping.Name);
-        IntegrationFieldMapping.ModifyAll("Use For Match-Based Coupling", false);
-        IntegrationFieldMapping.ModifyAll("Case-Sensitive Matching", false);
+        IntegrationFieldMapping.ModifyAll("Use For Match-Based Coupling", false, "Case-Sensitive Matching", false);
         IntegrationFieldMapping.SetRange("Field No.", Customer.FieldNo("Phone No."));
         IntegrationFieldMapping.FindFirst();
         IntegrationFieldMapping."Use For Match-Based Coupling" := true;

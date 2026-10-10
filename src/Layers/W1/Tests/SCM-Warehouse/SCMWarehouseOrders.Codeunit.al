@@ -4022,8 +4022,7 @@ codeunit 137161 "SCM Warehouse Orders"
         FindWarehouseActivityLine(
           WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Sales Order", SourceNo,
           WarehouseActivityLine."Activity Type"::Pick);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle", QuantityToHandle);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle (Base)", QuantityToHandle);
+        WarehouseActivityLine.ModifyAll("Qty. to Handle", QuantityToHandle, "Qty. to Handle (Base)", QuantityToHandle);
     end;
 
     local procedure UpdateReplenishmentSystemAsProdOrderOnItem(var Item: Record Item)

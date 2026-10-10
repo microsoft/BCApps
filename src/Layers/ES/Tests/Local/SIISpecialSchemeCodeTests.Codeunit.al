@@ -2133,8 +2133,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         VATPostingSetup: Record "VAT Posting Setup";
     begin
         LibrarySetupStorage.Restore();
-        VATPostingSetup.ModifyAll("Sales Special Scheme Code", VATPostingSetup."Sales Special Scheme Code"::" ");
-        VATPostingSetup.ModifyAll("Purch. Special Scheme Code", VATPostingSetup."Purch. Special Scheme Code"::" ");
+        VATPostingSetup.ModifyAll("Sales Special Scheme Code", VATPostingSetup."Sales Special Scheme Code"::" ", "Purch. Special Scheme Code", VATPostingSetup."Purch. Special Scheme Code"::" ");
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SII Special Scheme Code Tests");
         if IsInitialized then
             exit;

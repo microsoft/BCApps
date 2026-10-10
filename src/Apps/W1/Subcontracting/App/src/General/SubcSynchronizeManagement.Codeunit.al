@@ -165,13 +165,8 @@ codeunit 20511 "Subc. Synchronize Management"
                                 PurchaseLineModify.SetRange(Type, "Purchase Line Type"::Item);
                                 PurchaseLineModify.SetFilter("No.", '<>%1', '');
                                 PurchaseLineModify.SetRange("Prod. Order No.", ProductionOrder."No.");
-                                if not PurchaseLineModify.IsEmpty() then begin
-                                    PurchaseLineModify.ModifyAll("Prod. Order Line No.", 0);
-                                    PurchaseLineModify.ModifyAll("Operation No.", '');
-                                    PurchaseLineModify.ModifyAll("Routing No.", '');
-                                    PurchaseLineModify.ModifyAll("Routing Reference No.", 0);
-                                    PurchaseLineModify.ModifyAll("Prod. Order No.", '');
-                                end;
+                                if not PurchaseLineModify.IsEmpty() then
+                                    PurchaseLineModify.ModifyAll("Prod. Order Line No.", 0, "Operation No.", '', "Routing No.", '', "Routing Reference No.", 0, "Prod. Order No.", '');
 
                                 // Delete Subcontracting dependent Purchase Lines
                                 PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");

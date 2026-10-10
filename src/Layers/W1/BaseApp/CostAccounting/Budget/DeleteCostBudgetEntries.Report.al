@@ -29,8 +29,7 @@ report 1139 "Delete Cost Budget Entries"
 
                 if Source = Source::Allocation then begin
                     CostBudgetEntry.SetRange("Allocated with Journal No.", "No.");
-                    CostBudgetEntry.ModifyAll(Allocated, false);
-                    CostBudgetEntry.ModifyAll("Allocated with Journal No.", 0);
+                    CostBudgetEntry.ModifyAll(Allocated, false, "Allocated with Journal No.", 0);
                     CostBudgetEntry.SetRange("Allocated with Journal No.");
                 end;
 

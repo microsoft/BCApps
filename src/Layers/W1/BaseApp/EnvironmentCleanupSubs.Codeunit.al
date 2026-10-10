@@ -48,8 +48,7 @@ codeunit 8912 "Environment Cleanup Subs"
 #endif
         end;
 
-        OCRServiceSetup.ModifyAll("Password Key", nullGUID);
-        OCRServiceSetup.ModifyAll(Enabled, false);
+        OCRServiceSetup.ModifyAll("Password Key", nullGUID, Enabled, false);
 
         DocExchServiceSetup.ModifyAll(Enabled, false);
 

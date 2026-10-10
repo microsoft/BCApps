@@ -3894,8 +3894,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
         ConfigureVATPostingSetup();
 
-        GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
-        GenPostingSetup.ModifyAll("Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
+        GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo(), "Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
 
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"PEPPOL30 Management Tests");

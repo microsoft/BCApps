@@ -59,8 +59,7 @@ codeunit 104057 "Upgrade Custom Report Impl."
         ReportSelections.SetRange("Custom Report Layout Code");
 
         ReportSelections.SetRange("Email Body Layout Code", CustomReportLayoutCode);
-        ReportSelections.ModifyAll("Email Body Layout Name", CustomReportLayoutName);
-        ReportSelections.ModifyAll("Email Body Layout Code", '');
+        ReportSelections.ModifyAll("Email Body Layout Name", CustomReportLayoutName, "Email Body Layout Code", '');
     end;
 
     local procedure UpdateReportLayoutSelection(CustomReportLayoutCode: Code[20]; CustomReportLayoutName: Text[250])
@@ -97,13 +96,11 @@ codeunit 104057 "Upgrade Custom Report Impl."
             exit;
 
         CustomReportSelection.SetRange("Custom Report Layout Code", CustomReportLayoutCode);
-        CustomReportSelection.ModifyAll("Email Attachment Layout Name", CustomReportLayoutName);
-        CustomReportSelection.ModifyAll("Custom Report Layout Code", '');
+        CustomReportSelection.ModifyAll("Email Attachment Layout Name", CustomReportLayoutName, "Custom Report Layout Code", '');
         CustomReportSelection.SetRange("Custom Report Layout Code");
 
         CustomReportSelection.SetRange("Email Body Layout Code", CustomReportLayoutCode);
-        CustomReportSelection.ModifyAll("Email Body Layout Name", CustomReportLayoutName);
-        CustomReportSelection.ModifyAll("Email Body Layout Code", '');
+        CustomReportSelection.ModifyAll("Email Body Layout Name", CustomReportLayoutName, "Email Body Layout Code", '');
     end;
 
     local procedure GetCustomLayoutToName(CustomReportLayoutCode: Code[20]): Text[250]

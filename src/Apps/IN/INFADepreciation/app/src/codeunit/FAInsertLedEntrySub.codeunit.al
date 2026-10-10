@@ -61,11 +61,8 @@ codeunit 18636 "FA Insert Led. Entry Sub."
             exit;
 
         if (FALedgEntry."FA Posting Category" = FALedgEntry."FA Posting Category"::" ") and
-            (FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::"Acquisition Cost") then begin
-            FixedAssetShift.ModifyAll("Acquisition Date", FALedgEntry."FA Posting Date");
-            FixedAssetShift.ModifyAll("G/L Acquisition Date", FALedgEntry."FA Posting Date");
-            FixedAssetShift.ModifyAll("Last Acquisition Cost Date", FALedgEntry."FA Posting Date");
-        end;
+            (FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::"Acquisition Cost") then
+            FixedAssetShift.ModifyAll("Acquisition Date", FALedgEntry."FA Posting Date", "G/L Acquisition Date", FALedgEntry."FA Posting Date", "Last Acquisition Cost Date", FALedgEntry."FA Posting Date");
 
         if FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::"Proceeds on Disposal" then
             FixedAssetShift.ModifyAll("Disposal Date", FALedgEntry."FA Posting Date");

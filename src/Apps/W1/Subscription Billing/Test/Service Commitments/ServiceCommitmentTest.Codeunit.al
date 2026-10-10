@@ -340,8 +340,7 @@ codeunit 148156 "Service Commitment Test"
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
-        ServiceCommitment.ModifyAll("Subscription Line Start Date", CalcDate('<-1D>', WorkDate()), false);
-        ServiceCommitment.ModifyAll("Next Billing Date", CalcDate('<+1D>', WorkDate()), false);
+        ServiceCommitment.ModifyAll("Subscription Line Start Date", CalcDate('<-1D>', WorkDate()), "Next Billing Date", CalcDate('<+1D>', WorkDate()), false);
         asserterror ServiceCommitment.DeleteAll(true);
         Assert.ExpectedError(StrSubstNo(SubscriptionLineStartDateDifferentThanNextBillingDateErr,
             ServiceCommitment.FieldCaption("Subscription Line Start Date"),

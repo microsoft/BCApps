@@ -262,18 +262,14 @@ report 11604 "BAS-Update"
 
                     GLEntry.SetCurrentKey("BAS Doc. No.", "BAS Version");
                     GLEntry.SetRange("BAS Doc. No.", BASCalcSheet.A1);
-                    if GLEntry.FindFirst() then begin
-                        GLEntry.ModifyAll("BAS Doc. No.", '');
-                        GLEntry.ModifyAll("BAS Version", 0);
-                    end;
+                    if GLEntry.FindFirst() then
+                        GLEntry.ModifyAll("BAS Doc. No.", '', "BAS Version", 0);
                     GLEntry.Reset();
 
                     VATEntry.SetCurrentKey("BAS Doc. No.", "BAS Version");
                     VATEntry.SetRange("BAS Doc. No.", BASCalcSheet.A1);
-                    if VATEntry.FindFirst() then begin
-                        VATEntry.ModifyAll("BAS Doc. No.", '');
-                        VATEntry.ModifyAll("BAS Version", 0);
-                    end;
+                    if VATEntry.FindFirst() then
+                        VATEntry.ModifyAll("BAS Doc. No.", '', "BAS Version", 0);
                     VATEntry.Reset();
 
                     BASCalcSheet."1A" := 0;

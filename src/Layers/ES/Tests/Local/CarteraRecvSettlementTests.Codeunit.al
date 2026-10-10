@@ -1509,8 +1509,7 @@
         // No extra Line Discounts per sold items
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
 
         // Exercise
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -1542,8 +1541,7 @@
         // No extra Line Discounts per sold items
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
 
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
@@ -1574,8 +1572,7 @@
         // No extra Line Discounts per sold items
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
 
         // Exercise
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -1613,8 +1610,7 @@
         // No extra Line Discounts per sold items
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
 
         // Exercise
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
