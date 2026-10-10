@@ -23,6 +23,10 @@ codeunit 1652 "Add-in Manifest Management"
         OverridesExtensionPointXPathTxt: Label 'o10:VersionOverrides/o11:VersionOverrides/o11:Hosts/o11:Host[1]/o11:DesktopFormFactor/o11:ExtensionPoint', Locked = true;
         MissingNodeErr: Label 'Cannot find an XML node that matches %1.', Comment = '%1=XML node name';
         UnsupportedNodeTypeErr: Label 'You have specified a node of type %1. This type is not supported.', Comment = '%1 = The type of XML node.';
+        DesktopSourceLocXPathTxt: Label 'x:FormSettings/x:Form[@xsi:type="%1"]/x:DesktopSettings/x:SourceLocation', Locked = true, Comment = '%1 = form type';
+        PhoneSourceLocXPathTxt: Label 'x:FormSettings/x:Form[@xsi:type="%1"]/x:PhoneSettings/x:SourceLocation', Locked = true, Comment = '%1 = form type';
+        TabletSourceLocXPathTxt: Label 'x:FormSettings/x:Form[@xsi:type="%1"]/x:TabletSettings/x:SourceLocation', Locked = true, Comment = '%1 = form type';
+        PhoneUrlTxt: Label '%1&isphone=1', Locked = true, Comment = '%1 = source location URL';
         RuleXPathTxt: Label 'x:Rule[@xsi:type="RuleCollection" and @Mode="Or"]/x:Rule[@xsi:type="RuleCollection" and @Mode="And"]/x:Rule[@xsi:type="ItemHasRegularExpressionMatch"]', Locked = true;
         WebClientHttpsErr: Label 'Cannot set up the add-in because the %1 Server instance is not configured to use Secure Sockets Layer (SSL), or the Web Client Base URL is not defined in the server configuration.', Comment = '%1=product name';
         MicrosoftTxt: Label 'Microsoft';
@@ -327,15 +331,15 @@ codeunit 1652 "Add-in Manifest Management"
                 SetFirstNodeText(XMLRootElement, 'x:Version', XMLNamespaceMgr, Format(Node), Format(Value));
             NodeType::DesktopSourceLoc:
                 SetFirstNodeDefaultValue(
-                  XMLRootElement, StrSubstNo('x:FormSettings/x:Form[@xsi:type="%1"]/x:DesktopSettings/x:SourceLocation', FormType),
+                  XMLRootElement, StrSubstNo(DesktopSourceLocXPathTxt, FormType),
                   XMLNamespaceMgr, Format(Node), Format(Value));
             NodeType::PhoneSourceLoc:
                 SetFirstNodeDefaultValue(
-                  XMLRootElement, StrSubstNo('x:FormSettings/x:Form[@xsi:type="%1"]/x:PhoneSettings/x:SourceLocation', FormType),
-                  XMLNamespaceMgr, Format(Node), StrSubstNo('%1&isphone=1', Format(Value)));
+                  XMLRootElement, StrSubstNo(PhoneSourceLocXPathTxt, FormType),
+                  XMLNamespaceMgr, Format(Node), StrSubstNo(PhoneUrlTxt, Format(Value)));
             NodeType::TabletSourceLoc:
                 SetFirstNodeDefaultValue(
-                  XMLRootElement, StrSubstNo('x:FormSettings/x:Form[@xsi:type="%1"]/x:TabletSettings/x:SourceLocation', FormType),
+                  XMLRootElement, StrSubstNo(TabletSourceLocXPathTxt, FormType),
                   XMLNamespaceMgr, Format(Node), Format(Value));
             NodeType::AppDomain:
                 SetFirstNodeText(XMLRootElement, 'x:AppDomains/x:AppDomain', XMLNamespaceMgr, Format(Node), Format(Value));
