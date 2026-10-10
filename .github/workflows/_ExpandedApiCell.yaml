@@ -1,0 +1,74 @@
+name: 'Expanded API sequential lane containers'
+on:
+  workflow_call:
+    inputs:
+      country:
+        type: string
+        required: true
+      config:
+        type: string
+        required: true
+      lanes:
+        type: string
+        required: true
+      registryId:
+        type: string
+        required: true
+      registryDigest:
+        type: string
+        required: true
+jobs:
+  Default:
+    if: contains(fromJSON(inputs.lanes), 'Default')
+    uses: ./.github/workflows/_ExpandedApiLane.yaml
+    secrets: inherit
+    with:
+      country: ${{ inputs.country }}
+      config: ${{ inputs.config }}
+      lane: Default
+      registryId: ${{ inputs.registryId }}
+      registryDigest: ${{ inputs.registryDigest }}
+  Integration:
+    needs: Default
+    if: always() && contains(fromJSON(inputs.lanes), 'IntegrationTests')
+    uses: ./.github/workflows/_ExpandedApiLane.yaml
+    secrets: inherit
+    with:
+      country: ${{ inputs.country }}
+      config: ${{ inputs.config }}
+      lane: IntegrationTests
+      registryId: ${{ inputs.registryId }}
+      registryDigest: ${{ inputs.registryDigest }}
+  Uncategorized:
+    needs: Integration
+    if: always() && contains(fromJSON(inputs.lanes), 'UncategorizedTests')
+    uses: ./.github/workflows/_ExpandedApiLane.yaml
+    secrets: inherit
+    with:
+      country: ${{ inputs.country }}
+      config: ${{ inputs.config }}
+      lane: UncategorizedTests
+      registryId: ${{ inputs.registryId }}
+      registryDigest: ${{ inputs.registryDigest }}
+  Legacy1:
+    needs: Uncategorized
+    if: always() && contains(fromJSON(inputs.lanes), 'LegacyTestsBucket1')
+    uses: ./.github/workflows/_ExpandedApiLane.yaml
+    secrets: inherit
+    with:
+      country: ${{ inputs.country }}
+      config: ${{ inputs.config }}
+      lane: LegacyTestsBucket1
+      registryId: ${{ inputs.registryId }}
+      registryDigest: ${{ inputs.registryDigest }}
+  Legacy2:
+    needs: Legacy1
+    if: always() && contains(fromJSON(inputs.lanes), 'LegacyTestsBucket2')
+    uses: ./.github/workflows/_ExpandedApiLane.yaml
+    secrets: inherit
+    with:
+      country: ${{ inputs.country }}
+      config: ${{ inputs.config }}
+      lane: LegacyTestsBucket2
+      registryId: ${{ inputs.registryId }}
+      registryDigest: ${{ inputs.registryDigest }}
