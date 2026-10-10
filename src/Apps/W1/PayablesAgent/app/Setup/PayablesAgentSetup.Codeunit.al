@@ -652,11 +652,17 @@ codeunit 3307 "Payables Agent Setup"
     procedure ImportInvoiceFile(FileName: Text; InStream: InStream)
     var
         EDocument: Record "E-Document";
+    begin
+        ImportInvoiceFile(FileName, FileName, InStream, EDocument);
+    end;
+
+    internal procedure ImportInvoiceFile(FileName: Text; SourceDetails: Text; InStream: InStream; var EDocument: Record "E-Document")
+    var
         EDocImport: Codeunit "E-Doc. Import";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
     begin
         EDocImport.CreateFromType(EDocument, PayablesAgentSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileName, InStream);
-        EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
+        EDocument."Source Details" := CopyStr(SourceDetails, 1, MaxStrLen(EDocument."Source Details"));
         EDocument.Modify();
         EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
     end;

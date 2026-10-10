@@ -6,14 +6,21 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using System.Agents;
-using System.Agents.Internal;
-
-enumextension 3304 "PA Agent Metadata" extends "Agent Metadata Provider"
+enum 3308 "PA BC IQ Batch Status"
 {
-    value(3303; "Payables Agent")
+    Access = Internal;
+    Extensible = false;
+
+    value(0; Submitting)
     {
-        Caption = 'Payables Agent', Locked = true;
-        Implementation = IAgentFactory = "Payables Agent", IAgentMetadata = "Payables Agent", IAgentExperimental = "Payables Agent", IAgentTaskExecution = "PA Agent Task Execution", IAgentArchiving = "PA Agent Archiving";
+        Caption = 'Submitting';
+    }
+    value(1; Submitted)
+    {
+        Caption = 'Submitted';
+    }
+    value(2; Partial)
+    {
+        Caption = 'Partial';
     }
 }
