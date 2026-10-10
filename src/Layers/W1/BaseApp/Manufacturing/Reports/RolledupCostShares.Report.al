@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,10 +15,13 @@ using System.Utilities;
 report 99000754 "Rolled-up Cost Shares"
 {
     ApplicationArea = Manufacturing;
-    Caption = 'Rolled-up Cost Shares';
+    Caption = 'Rolled-up Cost Shares (Obsolete)';
     ToolTip = 'View the cost shares of all items in the parent item''s product structure, their quantity and their cost shares specified in material, capacity, overhead, and total cost. Material cost is calculated as the cost of all items in the parent item''s product structure. Capacity and subcontractor costs are calculated as the costs related to produce all of the items in the parent item''s product structure. Material cost is calculated as the cost of all items in the item''s product structure. Capacity and subcontractor costs are the cost related to the parent item only.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -299,8 +303,8 @@ report 99000754 "Rolled-up Cost Shares"
 
     requestpage
     {
-        AboutTitle = 'About Rolled-up Cost Shares';
-        AboutText = 'Get a comprehensive view of the costs associated with manufactured items, broken down into different cost components. For example, material, capacity, capacity overhead, subcontracting, and manufacturing overhead.';
+        AboutTitle = 'About Rolled-up Cost Shares (Obsolete)';
+        AboutText = 'Get a comprehensive view of the costs associated with manufactured items, broken down into different cost components. For example, material, capacity, capacity overhead, subcontracting, and manufacturing overhead. ** This report is obsolete and will be removed in a later release.** Please consult the report documentation for alternative ways to get to this data.';
 
         layout
         {
@@ -333,9 +337,13 @@ report 99000754 "Rolled-up Cost Shares"
     {
         layout(RDLCLayout)
         {
+            Caption = 'Rolled-up Cost Shares (Obsolete)';
             Type = RDLC;
             LayoutFile = './Manufacturing/Reports/RolledupCostShares.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
     }
 
@@ -427,3 +435,4 @@ report 99000754 "Rolled-up Cost Shares"
     end;
 }
 
+#endif
