@@ -192,28 +192,12 @@ page 1178 "Doc. Attachment List Factbox"
     local procedure ConfirmDeleteFromUnfilteredList(): Boolean
     var
         SelectedDocumentAttachment: Record "Document Attachment";
-        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
     begin
-        // OnDeleteRecord runs once per selected record and there is no trigger at the end of the delete operation.
-        // The answer given for the first record is reused for the remaining records of the same selection, so the user
-        // is asked only once. A record that is not pending means a new delete operation, so leftovers are discarded.
-        if PendingUnfilteredDeleteIds.Remove(Rec.SystemId) then
-            exit(UnfilteredDeleteConfirmed);
-        Clear(PendingUnfilteredDeleteIds);
-
         if not GuiAllowed then
             exit(true);
-        if not DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(Rec) then
-            exit(true);
-
-        UnfilteredDeleteConfirmed := DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList();
         CurrPage.SetSelectionFilter(SelectedDocumentAttachment);
-        if SelectedDocumentAttachment.FindSet() then
-            repeat
-                if SelectedDocumentAttachment.SystemId <> Rec.SystemId then
-                    PendingUnfilteredDeleteIds.Add(SelectedDocumentAttachment.SystemId);
-            until SelectedDocumentAttachment.Next() = 0;
-        exit(UnfilteredDeleteConfirmed);
+        // The page-level codeunit instance keeps the answer across the per-record OnDeleteRecord calls of one delete operation.
+        exit(DeleteGuardDocAttachmentMgmt.ConfirmDeleteFromUnfilteredList(Rec, SelectedDocumentAttachment));
     end;
 
     local procedure LoadAndRunDocumentAttachmentDetail()
@@ -285,6 +269,7 @@ page 1178 "Doc. Attachment List Factbox"
 
     var
         OfficeMgmt: Codeunit "Office Management";
+        DeleteGuardDocAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         ShareOptionsVisible: Boolean;
         ShareEditOptionVisible: Boolean;
         DownloadEnabled: Boolean;
@@ -292,8 +277,6 @@ page 1178 "Doc. Attachment List Factbox"
         IsMultiSelect: Boolean;
         IsOfficeAddIn: Boolean;
         EmailHasAttachments: Boolean;
-        UnfilteredDeleteConfirmed: Boolean;
-        PendingUnfilteredDeleteIds: List of [Guid];
         CannotDownloadOrViewFileWithEmptyNameErr: Label 'The file must have a name.';
 
     [IntegrationEvent(true, false)]
