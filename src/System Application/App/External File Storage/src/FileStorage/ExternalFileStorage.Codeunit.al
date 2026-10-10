@@ -5,6 +5,8 @@
 
 namespace System.ExternalFileStorage;
 
+using System.Security.Encryption;
+
 codeunit 9454 "External File Storage"
 {
     var
@@ -26,6 +28,37 @@ codeunit 9454 "External File Storage"
     procedure Initialize(TempFileAccount: Record "File Account" temporary)
     begin
         ExternalFileStorageImpl.Initialize(TempFileAccount);
+    end;
+
+    /// <summary>
+    /// Reads an optional secret-free destination fingerprint and persistent account change generation.
+    /// This is a configured namespace binding, not an immutable remote object or transport binding.
+    /// </summary>
+    /// <param name="TempFileAccount">The specific account. No scenario/default-account fallback is performed.</param>
+    /// <param name="LockAccount">Lock configuration only for a short local transaction, never around a transfer.</param>
+    /// <param name="DestinationFingerprint">SHA256 of the provider's versioned descriptor, not file content.</param>
+    /// <param name="ChangeGeneration">The persistent account change generation.</param>
+    [TryFunction]
+    procedure GetDestinationContext(TempFileAccount: Record "File Account" temporary; LockAccount: Boolean; var DestinationFingerprint: Text[64]; var ChangeGeneration: BigInteger)
+    var
+        CryptographyManagement: Codeunit "Cryptography Management";
+        Connector: Interface "External File Storage Connector";
+        ContextProvider: Interface "External File Storage Context";
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+        Descriptor: Text;
+        ContextUnavailableErr: Label 'The storage account does not provide an available destination binding. Internal content must be retained.';
+    begin
+        Clear(DestinationFingerprint);
+        Clear(ChangeGeneration);
+        Connector := TempFileAccount.Connector;
+        if not (Connector is "External File Storage Context") then
+            Error(ContextUnavailableErr);
+        ContextProvider := Connector as "External File Storage Context";
+        if not ContextProvider.GetDestinationContext(TempFileAccount."Account Id", LockAccount, Descriptor, ChangeGeneration) then
+            Error(ContextUnavailableErr);
+        if (Descriptor = '') or (ChangeGeneration <= 0) then
+            Error(ContextUnavailableErr);
+        DestinationFingerprint := CopyStr(CryptographyManagement.GenerateHash(Descriptor, HashAlgorithmType::SHA256), 1, MaxStrLen(DestinationFingerprint));
     end;
 
     /// <summary>

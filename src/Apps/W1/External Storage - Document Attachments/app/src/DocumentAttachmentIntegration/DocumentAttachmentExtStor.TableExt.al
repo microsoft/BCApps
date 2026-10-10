@@ -65,6 +65,8 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
     /// Clears all external storage related fields.
     /// </summary>
     internal procedure MarkAsNotUploadedToExternal()
+    var
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
         "Stored Externally" := false;
         "External Upload Date" := 0DT;
@@ -72,16 +74,17 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         "Source Environment Hash" := '';
         "Skip Delete On Copy" := false;
         Modify();
+        if not IsTemporary() then
+            CleanupManagement.InvalidateProvenance(SystemId, CurrentCompany());
     end;
 
     /// <summary>
-    /// Marks the document attachment as deleted from internal storage.
-    /// Clears the Document Reference ID and sets the stored internally flag to false.
+    /// Rejects internal media release until a supported globally owner-preserving operation is available.
     /// </summary>
     internal procedure MarkAsDeletedInternally()
+    var
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
-        Clear("Document Reference ID");
-        "Stored Internally" := false;
-        Modify();
+        Error(CleanupManagement.GetInternalReleaseBlockedReason());
     end;
 }

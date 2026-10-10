@@ -49,6 +49,18 @@ codeunit 9453 "File Scenario Impl."
             end;
     end;
 
+    procedure IsSpecificFileAccountAssigned(Scenario: Enum "File Scenario"; TempFileAccount: Record "File Account" temporary; LockAssignment: Boolean): Boolean
+    var
+        FileScenario: Record "File Scenario";
+    begin
+        if LockAssignment then
+            FileScenario.ReadIsolation(IsolationLevel::UpdLock);
+        if not FileScenario.Get(Scenario) then
+            exit(false);
+        exit((FileScenario."Account Id" = TempFileAccount."Account Id") and
+             (FileScenario.Connector = TempFileAccount.Connector));
+    end;
+
     procedure SetFileAccount(Scenario: Enum "File Scenario"; TempFileAccount: Record "File Account" temporary)
     var
         FileScenario: Record "File Scenario";

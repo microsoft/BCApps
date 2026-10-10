@@ -22,7 +22,7 @@ The External Storage extension provides seamless integration between Microsoft D
 ### **Standalone Scope**
 The filename, synchronization diagnostics, and remote-retention changes operate against the dependencies available on main. They do not require the proposed internal-release work in [#12438](https://github.com/microsoft/BCApps/pull/12438), which is optional future work and is not a remote-deletion or ownership foundation.
 
-Internal release remains the separate synchronous behavior described below; this change does not establish globally owner-safe internal-media release. Remote retention is intentional regardless of whether future internal-release work ships; no future physical remote deletion is promised.
+This branch adds the fail-closed internal-release behavior described below. Internal references and content remain even after successful upload or readback, with no storage reclamation. Remote retention is already main behavior and does not depend on this work.
 
 ### **Customizable Root Folder**
 - Configure a custom root folder path for all attachments
@@ -71,6 +71,34 @@ Internal release remains the separate synchronous behavior described below; this
 
 #### Upload and Delete Policy
 - **Delete from External Storage**: The saved legacy policy does not authorize remote deletion. External files are retained regardless of this value.
+- **Record Automatic Cleanup Requests**: Off by default, including after upgrade. When explicitly enabled, new automatic uploads record a blocked cleanup request and retain internal content. This does not enable media release or schedule a new cleanup job. Existing attachments are not backfilled.
+- **Cleanup Batch Size / Cleanup Run Budget**: Finite limits on records and elapsed work between files. These do not bound an individual connector's transfer duration or buffered response size.
+
+### Blocked Internal Cleanup and Content Retention
+
+**Internal cleanup is blocked. No internal reference is released and no database storage is reclaimed.** Runtime testing showed that clearing a Media field and modifying the attachment can delete physical media, including content referenced from another table. A successful remote readback does not make that release operation globally owner-preserving. The user-approved safety policy therefore retains the original internal references and bytes rather than clearing them, introducing a substitute owner/copy, or running global cleanup.
+
+Upload keeps both internal content and the external reference. **Move to External** can create an external copy, but its internal-cleanup step reports blocked, not completed, moved, deleted, or accepted for later release. **Delete from Internal (Blocked)** records the same explicit blocked outcome. Manual **Upload to External** and **Copy to External** never create cleanup intent.
+
+The **Internal Cleanup Requests** page shows the `Blocked` status, `InternalReleaseUnsupported` outcome, and the reason that internal content is retained with no reclamation. Rechecking a request does not enqueue a destructive operation, remove the safety gate, or adopt a different account/path. Cancellation retains both copies. Legacy rows without upload provenance remain blocked without invented historical bindings.
+
+Previously pending requests can still be independently validated through **Schedule Pending Validation**. The worker uses the recorded exact account/path, fully consumes nonempty content, and rechecks source media, attachment/configuration versions, scenario, ownership/company/environment, policy, cancellation, and lease before recording the blocked release outcome. Successful readback is diagnostic evidence only; even a matching finalizer cannot release media or write a completed-cleanup state. Retrieval failures retain existing bounded retry diagnostics. No additional download or commit is added to attachment insertion or posting.
+
+The optional metadata-only **External File Storage Context** binding is still required for independent validation. Account ID alone is insufficient: secret-free destination fingerprint and persistent account generation include API/base-path interpretation. Any account edit, including changing away and back or rotating credentials, invalidates the original binding. SharePoint descriptor version 2 includes the merged URL/Decoded Path setting. These checks cannot authorize unsupported internal release.
+
+Existing external-only attachments retain their existing retrieval behavior; this change cannot restore previously lost internal media. Retention is a deliberate behavior change from the earlier unvalidated detach-only plan, not a claim that the old failing media tests were harmless.
+
+Remote-source company/environment migration invalidates cleanup intent and cannot infer that the original internal source matches the migrated object. Both-storage migrated attachments remain blocked rather than silently adopting a new binding.
+
+Deliberately resetting an external reference cancels pending cleanup and invalidates the old upload provenance in the same local transaction. Reapplying old flags/path cannot reactivate that provenance. Ordinary Copy to Internal preserves both references while cancelling the pending cleanup request; it is not reference retirement.
+
+When integrating the separate retention-only guard, explicit **local** external-reference retirement is permitted only after a current permanent attachment is locked and both `Stored Internally = true` and actual nonempty internal media content are confirmed. Move to Internal restores first, then retires local external tracking while leaving remote bytes as safety copies; content-missing/external-only rows remain blocked. Retirement makes no remote request or deletion. That consumer owns the content guard; cleanup-provenance invalidation does not itself establish that retirement is safe.
+
+Use **Schedule Pending Validation** only for previously pending work. Existing On Hold/Error jobs are not silently restarted; a job queue administrator must resume them. New blocked requests do not schedule a worker. Finite batch and elapsed-work controls apply between files, not to an individual transfer's duration, buffering, or memory use.
+
+No attachment media field is cleared, no Tenant Media row is deleted, and no global media cleanup is invoked or scheduled by this internal-cleanup path. **There is no storage reclamation from this feature.** A future supported globally owner-preserving release operation would require separate proof and approval; there is no enablement switch or readback receipt that bypasses the current gate.
+
+Successful readback establishes point-in-time retrievability, not immutable-byte or semantic document integrity. SharePoint can transform Office/.msg bytes and length, so source SHA256/length equality is not required. This is not a backup policy or protection against later remote deletion, replacement, configuration loss or outages.
 
 
 ## Usage
@@ -129,19 +157,20 @@ From **Document Attachment - External** page:
 - **Download from External Storage**: Download file for viewing
 - **Download to Internal Storage**: Restore file to internal storage
 - **Retire External Reference**: Retire local metadata only after confirming nonempty internal content; retain the remote file
-- **Delete from Internal Storage**: Remove file from internal storage only
+- **Delete from Internal (Blocked)**: Record the reason why internal cleanup is unavailable while retaining internal references and actual content
 
 #### Bulk Operations
 From **External Storage Synchronize** report:
 - **To External Storage**: Upload multiple files to external storage
 - **From External Storage**: Download multiple files from external storage
+- **Move to External**: Copy externally when needed, then report the internal-cleanup step as blocked; retain both references and content
 - **Move to Internal Storage**: Restore bytes when needed, then retire verified local external references. Already-internal attachments can retire without contacting the provider. The summary distinguishes retained remote files, retired local references, and blocked retirements.
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
 - Document preview, download, and management work seamlessly
 - Files deleted internally are automatically retrieved from external storage when accessed
-- No change to end-user experience
+- Internal cleanup is blocked even after successful verification; internal storage is not reclaimed
 - Cross-environment and cross-company access is handled automatically
 
 ### Filename Migration and Synchronization Diagnostics

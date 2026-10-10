@@ -49,6 +49,8 @@ report 8752 "DA External Storage Sync"
 
                 ProcessedCount := 0;
                 FailedCount := 0;
+                InternalCleanupBlockedCount := 0;
+                ExternalCopyCount := 0;
                 RetainedCount := 0;
                 RetiredCount := 0;
                 RetirementBlockedCount := 0;
@@ -78,12 +80,17 @@ report 8752 "DA External Storage Sync"
                 case SyncDirection of
                     SyncDirection::"To External Storage":
                         begin
-                            SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Upload, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
+                            if (Operation = Operation::Move) and DocumentAttachment."Stored Externally" then
+                                SyncSuccess := true
+                            else
+                                SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Upload, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
+                            if SyncSuccess then
+                                ExternalCopyCount += 1;
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                DeleteSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::DeleteInternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
+                                DeleteSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::BlockInternalCleanup, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                                 if not DeleteSuccess then begin
                                     GetPersistedDocumentAttachment(DocumentAttachment, FailureDocumentAttachment);
-                                    LogFailure(FailureDocumentAttachment, StrSubstNo(SourceCleanupFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'DeleteInternal');
+                                    LogFailure(FailureDocumentAttachment, StrSubstNo(SourceCleanupFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'BlockInternalCleanup');
                                 end;
                             end;
                         end;
@@ -130,10 +137,13 @@ report 8752 "DA External Storage Sync"
                 if IsInteractive then begin
                     if TotalCount <> 0 then
                         Dialog.Close();
-                    if RetainedCount > 0 then
-                        Message(ProcessedWithRetentionMsg, ProcessedCount - FailedCount, FailedCount, RetainedCount, RetiredCount, RetirementBlockedCount)
+                    if InternalCleanupBlockedCount > 0 then
+                        Message(ProcessedWithBlockedInternalMsg, ProcessedCount - FailedCount - InternalCleanupBlockedCount, FailedCount, ExternalCopyCount, InternalCleanupBlockedCount)
                     else
-                        Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount);
+                        if RetainedCount > 0 then
+                            Message(ProcessedWithRetentionMsg, ProcessedCount - FailedCount, FailedCount, RetainedCount, RetiredCount, RetirementBlockedCount)
+                        else
+                            Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount);
                 end;
 
                 if TempErrorMessage.IsEmpty() then
@@ -170,7 +180,7 @@ report 8752 "DA External Storage Sync"
                         ApplicationArea = All;
                         Caption = 'Operation';
                         OptionCaption = 'Copy,Move';
-                        ToolTip = 'Specifies whether to copy or move files. Copy keeps both references. Move to internal storage restores content and retires local external references only after confirming internal bytes. Remote files are always retained.';
+                        ToolTip = 'Specifies whether to copy or move files. Move to External copies content but internal cleanup is blocked, retaining internal references and bytes with no database storage reclamation. Move to Internal restores content when needed and retires only verified local external references. Remote files are always retained.';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
@@ -197,19 +207,23 @@ report 8752 "DA External Storage Sync"
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;
         TotalCount: Integer;
+        InternalCleanupBlockedCount: Integer;
+        ExternalCopyCount: Integer;
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;
-        SyncWorkerStep: Option Upload,Download,DeleteInternal,RetireExternalReference;
-        ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
+        SyncWorkerStep: Option Upload,Download,BlockInternalCleanup,RetireExternalReference;
+        ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 = Successful operations, %2 = Failed operations';
+        ProcessedWithBlockedInternalMsg: Label 'Completed %1 operations. %2 failed. External copies are available for %3 attachments. Internal cleanup was blocked for %4 attachments; internal references and bytes are retained and no database storage is reclaimed.', Comment = '%1 = Completed operations excluding blocked moves, %2 = Failed copies, %3 = External copies available, %4 = Blocked internal cleanup';
         ProcessedWithRetentionMsg: Label 'Processed %1 attachments successfully. %2 failed. Remote files for %3 attachment(s) were retained. %4 external reference(s) were retired locally; %5 retirement(s) were blocked.', Comment = '%1 = Number of processed attachments, %2 = Number of failed copies, %3 = Number of remote files retained, %4 = Number of local references retired, %5 = Number of blocked retirements';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '#1 = Total Number of Attachments';
         AttachmentFailedErr: Label 'Attachment %1: %2', Comment = '%1 = Original attachment filename, %2 = Failure reason';
         CopyFailedErr: Label 'The attachment could not be copied. %1', Comment = '%1 = Failure reason';
-        SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage. %1', Comment = '%1 = Failure reason';
+        SourceCleanupFailedErr: Label 'The external copy is available, but internal cleanup is blocked and the source content is retained. %1', Comment = '%1 = Blocked reason';
         ReferenceRetirementBlockedErr: Label 'The attachment was restored internally, but its local external reference could not be retired. %1', Comment = '%1 = Retirement refusal reason';
         OrphanedFileRetainedErr: Label 'The external file at %1 was retained because the attachment update failed. Verify the storage account and file before recovering or removing it.', Comment = '%1 = Created external file path';
         FailuresRegisteredTxt: Label 'External Storage Synchronization: %1 of %2 attachments failed.', Comment = '%1 = Number of failed attachments, %2 = Number of processed attachments';
         BlockedRetirementsRegisteredTxt: Label 'External Storage Synchronization: %1 attachment(s) failed and %2 retirement(s) were blocked out of %3 attachments.', Comment = '%1 = Number of failed copies, %2 = Number of blocked retirements, %3 = Number of processed attachments';
+        BlockedInternalRegisteredTxt: Label 'External Storage Synchronization: %1 attachment(s) failed and %2 internal cleanup(s) were blocked out of %3 attachments.', Comment = '%1 = Failed copies, %2 = Blocked internal cleanup, %3 = Processed attachments';
         SyncStepFailedErr: Label 'The attachment synchronization step failed.';
         SyncStepFailedTelemetryErr: Label 'The attachment synchronization step failed.', Locked = true;
 
@@ -227,7 +241,7 @@ report 8752 "DA External Storage Sync"
         HideDialog := NewHideDialog;
     end;
 
-    local procedure RunSyncWorker(var TargetDocumentAttachment: Record "Document Attachment"; Step: Option Upload,Download,DeleteInternal,RetireExternalReference; var FailureReason: Text; var TelemetryErrorText: Text; var TelemetryErrorCallStack: Text; var CreatedExternalFilePath: Text[2048]): Boolean
+    local procedure RunSyncWorker(var TargetDocumentAttachment: Record "Document Attachment"; Step: Option Upload,Download,BlockInternalCleanup,RetireExternalReference; var FailureReason: Text; var TelemetryErrorText: Text; var TelemetryErrorCallStack: Text; var CreatedExternalFilePath: Text[2048]): Boolean
     var
         DAExtStorageSyncWorker: Codeunit "DA Ext. Storage Sync Worker";
     begin
@@ -284,7 +298,10 @@ report 8752 "DA External Storage Sync"
         if FailureOperation = 'RetireExternalReference' then
             RetirementBlockedCount += 1
         else
-            FailedCount += 1;
+            if FailureOperation = 'BlockInternalCleanup' then
+                InternalCleanupBlockedCount += 1
+            else
+                FailedCount += 1;
         TempErrorMessage.LogMessage(FailedDocumentAttachment, FailedDocumentAttachment.FieldNo("File Name"), TempErrorMessage."Message Type"::Error,
             StrSubstNo(AttachmentFailedErr, FailedDocumentAttachment."File Name" + '.' + FailedDocumentAttachment."File Extension", FailureMessage));
     end;
@@ -310,10 +327,13 @@ report 8752 "DA External Storage Sync"
         ErrorMessageRegister: Record "Error Message Register";
         RegisterID: Guid;
     begin
-        if RetirementBlockedCount > 0 then
-            RegisterID := ErrorMessageRegister.New(CopyStr(StrSubstNo(BlockedRetirementsRegisteredTxt, FailedCount, RetirementBlockedCount, ProcessedCount), 1, 250))
+        if InternalCleanupBlockedCount > 0 then
+            RegisterID := ErrorMessageRegister.New(CopyStr(StrSubstNo(BlockedInternalRegisteredTxt, FailedCount, InternalCleanupBlockedCount, ProcessedCount), 1, 250))
         else
-            RegisterID := ErrorMessageRegister.New(CopyStr(StrSubstNo(FailuresRegisteredTxt, FailedCount, ProcessedCount), 1, 250));
+            if RetirementBlockedCount > 0 then
+                RegisterID := ErrorMessageRegister.New(CopyStr(StrSubstNo(BlockedRetirementsRegisteredTxt, FailedCount, RetirementBlockedCount, ProcessedCount), 1, 250))
+            else
+                RegisterID := ErrorMessageRegister.New(CopyStr(StrSubstNo(FailuresRegisteredTxt, FailedCount, ProcessedCount), 1, 250));
         TempErrorMessage.Reset();
         if TempErrorMessage.FindSet() then
             repeat
@@ -329,7 +349,10 @@ report 8752 "DA External Storage Sync"
     begin
         case SyncDirection of
             SyncDirection::"To External Storage":
-                DocumentAttachment.SetRange("Stored Externally", false);
+                if Operation = Operation::Move then
+                    DocumentAttachment.SetRange("Stored Internally", true)
+                else
+                    DocumentAttachment.SetRange("Stored Externally", false);
             SyncDirection::"To Internal Storage":
                 DocumentAttachment.SetRange("Stored Externally", true);
         end;

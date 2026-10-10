@@ -10,7 +10,7 @@ using System.Integration.Graph.Authorization;
 using System.Integration.Sharepoint;
 using System.Text;
 
-codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage Connector"
+codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage Connector", "External File Storage Context"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -22,6 +22,32 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         GraphHelper: Codeunit "Ext. SharePoint Graph Helper";
         ConnectorDescriptionTxt: Label 'Use SharePoint to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
+
+    procedure GetDestinationContext(AccountId: Guid; LockAccount: Boolean; var DestinationDescriptor: Text; var ChangeGeneration: BigInteger): Boolean
+    var
+        Account: Record "Ext. SharePoint Account";
+        Descriptor: JsonObject;
+    begin
+        if LockAccount then
+            Account.ReadIsolation(IsolationLevel::UpdLock);
+        if not Account.Get(AccountId) then
+            exit(false);
+        if Account.Disabled then
+            exit(false);
+        Descriptor.Add('version', 2);
+        Descriptor.Add('service', 'SharePoint');
+        Descriptor.Add('site', Account."SharePoint Url");
+        Descriptor.Add('basePath', Account."Base Relative Folder Path");
+        Descriptor.Add('legacyRest', Account."Use legacy REST API");
+        Descriptor.Add('restBaseFolderPathFormat', Account."REST Base Folder Path Format".AsInteger());
+        Descriptor.Add('authenticationType', Account."Authentication Type".AsInteger());
+        Descriptor.Add('tenant', Format(Account."Tenant Id"));
+        Descriptor.Add('client', Format(Account."Client Id"));
+        Descriptor.Add('pathInterpretation', 'SharePointResourcePath-v2');
+        Descriptor.WriteTo(DestinationDescriptor);
+        ChangeGeneration := Account.SystemRowVersion;
+        exit(true);
+    end;
 
     #region File Operations
 
