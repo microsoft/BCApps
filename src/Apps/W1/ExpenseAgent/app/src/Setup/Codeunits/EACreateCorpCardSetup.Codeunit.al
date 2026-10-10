@@ -44,8 +44,10 @@ codeunit 7442 "EA Create Corp Card Setup"
     var
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardMCCMgt: Codeunit "EA Corp Card MCC Mgt";
+        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
         CreateExpenseCategories: Codeunit "Create Expense Categories";
     begin
+        CreateExpenseAgentSetup.CreateDefaultPaymentMethods();
         CreateExpenseCategories.InsertAccountingDefaults();
         EnsureCorpCardBankAccount();
         EnsureCorpCardProviders();
@@ -200,12 +202,13 @@ codeunit 7442 "EA Create Corp Card Setup"
             BankAccount.Validate("No.", CorpCardBankAccountTok);
             BankAccount.Validate(Name, CorpCardBankAccountNameLbl);
             BankAccount."Bank Account No." := CorpCardBankAccountNoTok;
-            BankAccount.Validate("Bank Acc. Posting Group", CorpCardBankAccountPostingGroupTok);
             if NoSeries.Get(PaymentReconciliationNoSeriesTok) then
                 BankAccount."Pmt. Rec. No. Series" := NoSeries.Code;
             if BankExportImportSetup.Get(SepaCamtImportFormatTok) then
                 BankAccount."Bank Statement Import Format" := BankExportImportSetup.Code;
             BankAccount.Insert(true);
+            BankAccount.Validate("Bank Acc. Posting Group", CorpCardBankAccountPostingGroupTok);
+            BankAccount.Modify(true);
             exit;
         end;
 
@@ -682,12 +685,13 @@ codeunit 7442 "EA Create Corp Card Setup"
             BankAccount.Validate(Name, BankAccountName);
             BankAccount."Bank Account No." := ExternalBankAccountNo;
             BankAccount.Validate("Currency Code", CurrencyCode);
-            BankAccount.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
             if NoSeries.Get(PaymentReconciliationNoSeriesTok) then
                 BankAccount."Pmt. Rec. No. Series" := NoSeries.Code;
             if BankExportImportSetup.Get(SepaCamtImportFormatTok) then
                 BankAccount."Bank Statement Import Format" := BankExportImportSetup.Code;
             BankAccount.Insert(true);
+            BankAccount.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
+            BankAccount.Modify(true);
             exit;
         end;
 
