@@ -73,14 +73,14 @@ codeunit 1200 "Import Bank Statement"
                 begin
                     CurrentXmlNode.GetParent(ParentXmlElement);
                     InsertColumn(ParentPath,
-                      CurrentLineNo, NodeId, CurrentXmlNode.AsXmlText().Value(), ParentXmlElement.Name(),
+                      CurrentLineNo, NodeId, CurrentXmlNode.AsXmlText().Value(), GetElementName(ParentXmlElement),
                       DataExchLineDef, EntryNo);
                 end;
             CurrentXmlNode.IsXmlCData():
                 begin
                     CurrentXmlNode.GetParent(ParentXmlElement);
                     InsertColumn(ParentPath,
-                      CurrentLineNo, NodeId, CurrentXmlNode.AsXmlCData().Value(), ParentXmlElement.Name(),
+                      CurrentLineNo, NodeId, CurrentXmlNode.AsXmlCData().Value(), GetElementName(ParentXmlElement),
                       DataExchLineDef, EntryNo);
                 end;
         end;
@@ -90,8 +90,8 @@ codeunit 1200 "Import Bank Statement"
 
         CurrentXmlElement := CurrentXmlNode.AsXmlElement();
         foreach CurrentXmlAttribute in CurrentXmlElement.Attributes() do
-            InsertColumn(ParentPath + '/' + NodeLocalName + '[@' + CurrentXmlAttribute.Name() + ']',
-              CurrentLineNo, NodeId, CurrentXmlAttribute.Value(), CurrentXmlAttribute.Name(),
+            InsertColumn(ParentPath + '/' + NodeLocalName + '[@' + GetAttributeName(CurrentXmlAttribute) + ']',
+              CurrentLineNo, NodeId, CurrentXmlAttribute.Value(), GetAttributeName(CurrentXmlAttribute),
               DataExchLineDef, EntryNo);
 
         // Whitespace-only text nodes are skipped (and not counted in the node ID), as the file is parsed without preserving whitespace.
@@ -102,6 +102,24 @@ codeunit 1200 "Import Bank Statement"
                 Parse(DataExchLineDef, EntryNo, ChildXmlNode, ParentPath + '/' + NodeLocalName,
                   NodeId + Format(i, 0, '<Integer,4><Filler Char,0>'), LastGivenLineNo, CurrentLineNo);
             end;
+    end;
+
+    local procedure GetElementName(CurrentXmlElement: XmlElement): Text
+    begin
+        // Name() returns ":LocalName" for an element in a default namespace; the qualified name has no prefix then
+        exit(RemoveEmptyPrefix(CurrentXmlElement.Name()));
+    end;
+
+    local procedure GetAttributeName(CurrentXmlAttribute: XmlAttribute): Text
+    begin
+        exit(RemoveEmptyPrefix(CurrentXmlAttribute.Name()));
+    end;
+
+    local procedure RemoveEmptyPrefix(QualifiedName: Text): Text
+    begin
+        if CopyStr(QualifiedName, 1, 1) = ':' then
+            exit(CopyStr(QualifiedName, 2));
+        exit(QualifiedName);
     end;
 
     local procedure IsWhitespaceTextNode(CurrentXmlNode: XmlNode): Boolean
