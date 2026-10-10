@@ -72,6 +72,7 @@ table 1518 "My Notifications"
     var
         ViewFilterDetailsTxt: Label '(View filter details)';
         DefineFiltersTxt: Label 'Define filters...';
+        DataItemTableNameTxt: Label 'Table%1', Comment = '%1 = table number', Locked = true;
 
     procedure Disable(NotificationId: Guid): Boolean
     begin
@@ -236,7 +237,7 @@ table 1518 "My Notifications"
         DataItemXmlElement := XmlElement.Create('DataItem');
         if View <> '' then
             DataItemXmlElement.Add(XmlText.Create(View));
-        DataItemXmlElement.SetAttribute('name', StrSubstNo('Table%1', TableID));
+        DataItemXmlElement.SetAttribute('name', StrSubstNo(DataItemTableNameTxt, TableID));
         DataItemsXmlElement.Add(DataItemXmlElement);
 
         UnformattedXmlWriteOptions.PreserveWhitespace := true;
