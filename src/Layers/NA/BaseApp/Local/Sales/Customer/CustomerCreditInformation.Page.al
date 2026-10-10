@@ -255,6 +255,8 @@ page 10007 "Customer Credit Information"
         else
             CustLedgerEntry[Index].SetRange("Due Date", PeriodBeginDate, PeriodEndDate);
 
+        OnCalculateAgingForPeriodOnAfterSetDueDateFilter(CustLedgerEntry, PeriodBeginDate, PeriodEndDate, Index);
+
         CustLedgerEntry2.Copy(CustLedgerEntry[Index]);
         CustLedgerEntry[Index]."Remaining Amt. (LCY)" := 0;
         if CustLedgerEntry2.Find('-') then
@@ -333,5 +335,9 @@ page 10007 "Customer Credit Information"
         GetLatestPayment();
         CalculateAging();
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnCalculateAgingForPeriodOnAfterSetDueDateFilter(var CustLedgerEntry: array[4] of Record "Cust. Ledger Entry"; PeriodBeginDate: Date; PeriodEndDate: Date; Index: Integer)
+    begin
+    end;
+}
