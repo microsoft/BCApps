@@ -232,7 +232,13 @@ codeunit 130500 "Any"
     /// </summary>
     /// <param name="NewSeed">New seed to be used.</param>
     procedure SetSeed(NewSeed: Integer)
+    var
+        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
     begin
+        // During a stability run with a configured seed, honor that seed even when a test reseeds in
+        // its own Initialize (which runs after the pre-test reset), so the seed variation takes effect.
+        if ConfiguredRandomSeed.IsStabilityMode() and ConfiguredRandomSeed.IsSet() then
+            NewSeed := ConfiguredRandomSeed.GetSeed();
         Seed := NewSeed;
         SeedSet := true;
         Randomize(Seed);
