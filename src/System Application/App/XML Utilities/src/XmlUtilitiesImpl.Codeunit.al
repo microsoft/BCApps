@@ -274,7 +274,6 @@ codeunit 3017 "XML Utilities Impl."
         DotNetXmlDocumentType: DotNet XmlDocumentType;
         XmlReaderSettings: DotNet XmlReaderSettings;
         DotNetXmlReader: DotNet XmlReader;
-        NoXmlResolver: DotNet XmlResolver;
         XmlReadOptions: XmlReadOptions;
         DocTypeName: Text;
         DocTypePublicId: Text;
@@ -287,13 +286,11 @@ codeunit 3017 "XML Utilities Impl."
 
         XmlReaderSettings := XmlReaderSettings.XmlReaderSettings();
         XmlReaderSettings.DtdProcessing := 2; // DtdProcessing.Parse, assigned as an integer because DtdProcessing.Parse conflicts with the Enum.Parse method.
-        // Never resolve external DTDs or entities, and limit entity expansion to protect against XXE and entity expansion attacks.
-        XmlReaderSettings.XmlResolver := NoXmlResolver;
-        XmlReaderSettings.MaxCharactersFromEntities := 10000000;
+        // The default XmlReaderSettings never resolve external DTDs or entities and limit entity expansion to 10,000,000 characters,
+        // which protects against XXE and entity expansion attacks. Do not set an XmlResolver.
 
         DotNetXmlReader := DotNetXmlReader.Create(InStream, XmlReaderSettings);
         DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
-        DotNetXmlDocument.XmlResolver := NoXmlResolver;
         DotNetXmlDocument.Load(DotNetXmlReader);
         DotNetXmlReader.Close();
 

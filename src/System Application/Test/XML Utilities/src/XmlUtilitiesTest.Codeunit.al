@@ -293,7 +293,8 @@ codeunit 130032 "XML Utilities Test"
     begin
         WriteText(TempBlob, '<?xml version="1.0"?><!DOCTYPE note [<!ELEMENT note (to)><!ELEMENT to (#PCDATA)><!ENTITY writer "Donald Duck">]><note><to>&writer;</to></note>');
 
-        Assert.IsTrue(XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument), 'Loading a document with a DTD must succeed.');
+        if not XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then
+            Assert.Fail('Loading a document with a DTD must succeed. Error: ' + GetLastErrorText());
 
         Assert.IsTrue(XmlDocument.SelectSingleNode('/note/to', XmlNode), 'The element must exist.');
         Assert.AreEqual('Donald Duck', XmlNode.AsXmlElement().InnerText(), 'The internal entity must be expanded.');
@@ -312,7 +313,8 @@ codeunit 130032 "XML Utilities Test"
     begin
         WriteText(TempBlob, '<?xml version="1.0"?><note><to>Daisy</to></note>');
 
-        Assert.IsTrue(XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument), 'Loading a document without a DTD must succeed.');
+        if not XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then
+            Assert.Fail('Loading a document without a DTD must succeed. Error: ' + GetLastErrorText());
 
         Assert.IsTrue(XmlDocument.SelectSingleNode('/note/to', XmlNode), 'The element must exist.');
         Assert.AreEqual('Daisy', XmlNode.AsXmlElement().InnerText(), 'Unexpected element text.');
@@ -328,10 +330,30 @@ codeunit 130032 "XML Utilities Test"
     begin
         WriteText(TempBlob, '<?xml version="1.0"?><!DOCTYPE note [<!ENTITY ext SYSTEM "file:///c:/windows/win.ini">]><note>&ext;</note>');
 
-        if XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then begin
-            Assert.IsTrue(XmlDocument.SelectSingleNode('/note', XmlNode), 'The element must exist.');
-            Assert.AreEqual('', XmlNode.AsXmlElement().InnerText(), 'External entities must not be resolved.');
-        end;
+        if not XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then
+            Assert.Fail('Loading a document with an external entity must succeed. Error: ' + GetLastErrorText());
+        Assert.IsTrue(XmlDocument.SelectSingleNode('/note', XmlNode), 'The element must exist.');
+        Assert.AreEqual('', XmlNode.AsXmlElement().InnerText(), 'External entities must not be resolved.');
+    end;
+
+    [Test]
+    procedure TryLoadXmlDocumentWithDtdLimitsEntityExpansion()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlDocument: XmlDocument;
+    begin
+        // An entity that expands to 100,000,000 characters exceeds the 10,000,000 character limit.
+        WriteText(TempBlob,
+          '<?xml version="1.0"?><!DOCTYPE lolz [<!ENTITY lol "lol">' +
+          '<!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">' +
+          '<!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">' +
+          '<!ENTITY lol4 "&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;">' +
+          '<!ENTITY lol5 "&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;">' +
+          '<!ENTITY lol6 "&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;">' +
+          '<!ENTITY lol7 "&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;">' +
+          '<!ENTITY lol8 "&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;">]><lolz>&lol8;</lolz>');
+
+        Assert.IsFalse(XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument), 'Loading a document whose entities expand beyond the limit must fail.');
     end;
 
     [Test]
