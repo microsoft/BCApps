@@ -140,6 +140,65 @@ codeunit 9500 "Sequence No. Mgt."
     end;
 
     /// <summary>
+    /// Returns the next NumberSequence value for a given table ID as a BigInteger.
+    /// Use for tables whose primary key number field is a BigInteger. If the sequence does not exist, it will be created.
+    /// </summary>
+    /// <param name="TableNo">The ID of the table being checked</param>
+    procedure GetNextSeqNoBigInt(TableNo: Integer): BigInteger
+    var
+        NewSeqNo: BigInteger;
+        PreviewMode: Boolean;
+    begin
+        PreviewMode := IsPreviewMode();  // Only call once to minimize sql calls during preview.
+        ValidateSeqNoBigInt(TableNo);
+        if TryGetNextNoBigInt(PreviewMode, TableNo, NewSeqNo) then
+            exit(NewSeqNo);
+        ClearLastError();
+        CreateNewTableSequence(PreviewMode, TableNo);
+        TryGetNextNoBigInt(PreviewMode, TableNo, NewSeqNo);
+        exit(NewSeqNo);
+    end;
+
+    /// <summary>
+    /// Returns the current NumberSequence value for a given table ID as a BigInteger.
+    /// if the sequence does not exist, it will be created.
+    /// </summary>
+    /// <param name="TableNo">The ID of the table being checked</param>
+    procedure GetCurrentSeqNoBigInt(TableNo: Integer): BigInteger
+    var
+        CurrSeqNo: BigInteger;
+        PreviewMode: Boolean;
+    begin
+        PreviewMode := IsPreviewMode();  // Only call once to minimize sql calls during preview.
+        if TryGetCurrentNoBigInt(PreviewMode, TableNo, CurrSeqNo) then
+            exit(CurrSeqNo);
+        ClearLastError();
+        CreateNewTableSequence(PreviewMode, TableNo);
+        TryGetCurrentNoBigInt(PreviewMode, TableNo, CurrSeqNo);
+        exit(CurrSeqNo);
+    end;
+
+    /// <summary>
+    /// BigInteger-safe variant of ValidateSeqNo. Ensures the NumberSequence is not behind the last entry in the table.
+    /// </summary>
+    /// <param name="TableNo">The ID of the table being checked</param>
+    procedure ValidateSeqNoBigInt(TableNo: Integer)
+    var
+        LastEntryNo: BigInteger;
+    begin
+        if IsPreviewMode() then
+            exit;
+        if LastSeqNoChecked.Contains(TableNo) then
+            exit;
+
+        LastEntryNo := GetLastEntryNoFromTable(TableNo, false);
+        if GetCurrentSeqNoBigInt(TableNo) < LastEntryNo then
+            RebaseSeqNo(TableNo);
+
+        LastSeqNoChecked.Add(TableNo);
+    end;
+
+    /// <summary>
     /// Ensures that the NumberSequence is not behind the last entry in the table.
     /// if the sequence does not exist, it will be created.
     /// The result will be cached for the current transaction. The cache can be cleared by calling ClearSequenceNoCheck.
@@ -183,6 +242,18 @@ codeunit 9500 "Sequence No. Mgt."
 
     [TryFunction]
     local procedure TryGetCurrentNo(PreviewMode: Boolean; TableNo: Integer; var CurrSeqNo: Integer)
+    begin
+        CurrSeqNo := NumberSequence.Current(GetTableSequenceName(PreviewMode, TableNo));
+    end;
+
+    [TryFunction]
+    local procedure TryGetNextNoBigInt(PreviewMode: Boolean; TableNo: Integer; var NewSeqNo: BigInteger)
+    begin
+        NewSeqNo := NumberSequence.Next(GetTableSequenceName(PreviewMode, TableNo));
+    end;
+
+    [TryFunction]
+    local procedure TryGetCurrentNoBigInt(PreviewMode: Boolean; TableNo: Integer; var CurrSeqNo: BigInteger)
     begin
         CurrSeqNo := NumberSequence.Current(GetTableSequenceName(PreviewMode, TableNo));
     end;
