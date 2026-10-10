@@ -12,11 +12,10 @@ report 1001 "Inventory Valuation"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Valuation';
-    ToolTip = 'View, print, or save a list of the values of the on-hand quantity of each inventory item.';
-    EnableHyperlinks = true;
-    UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;
+    EnableHyperlinks = true;
+    UsageCategory = ReportsAndAnalysis;
 
     dataset
     {
@@ -24,6 +23,12 @@ report 1001 "Inventory Valuation"
         {
             DataItemTableView = sorting("Inventory Posting Group") where(Type = const(Inventory));
             RequestFilterFields = "No.", "Inventory Posting Group", "Statistics Group";
+            column(ShowExpected; ShowExpected)
+            {
+            }
+            column(ItemFilter; ItemFilter)
+            {
+            }
             column(BoM_Text; BoM_TextLbl)
             {
             }
@@ -37,12 +42,6 @@ report 1001 "Inventory Valuation"
             {
             }
             column(STRSUBSTNO_Text005_FORMAT_EndDate__; StrSubstNo(Text005, Format(EndDate)))
-            {
-            }
-            column(ShowExpected; ShowExpected)
-            {
-            }
-            column(ItemFilter; ItemFilter)
             {
             }
             column(Inventory_ValuationCaption; Inventory_ValuationCaptionLbl)
@@ -110,6 +109,7 @@ report 1001 "Inventory Valuation"
             }
             column(Item_Inventory_Posting_Group; "Inventory Posting Group")
             {
+                IncludeCaption = true;
             }
             column(StartingInvoicedValue; StartingInvoicedValue)
             {
@@ -159,19 +159,51 @@ report 1001 "Inventory Valuation"
             {
                 DecimalPlaces = 0 : 5;
             }
-            column(EndingInvoicedValue; StartingInvoicedValue + IncreaseInvoicedValue - DecreaseInvoicedValue)
+            column(EndingInvoicedValue; EndingInvoicedValue)
             {
                 AutoFormatType = 1;
             }
-            column(EndingInvoicedQty; StartingInvoicedQty + IncreaseInvoicedQty - DecreaseInvoicedQty)
+            column(EndingInvoicedQty; EndingInvoicedQty)
             {
                 DecimalPlaces = 0 : 5;
             }
-            column(EndingExpectedValue; StartingExpectedValue + IncreaseExpectedValue - DecreaseExpectedValue)
+            column(EndingExpectedValue; EndingExpectedValue)
             {
                 AutoFormatType = 1;
             }
-            column(EndingExpectedQty; StartingExpectedQty + IncreaseExpectedQty - DecreaseExpectedQty)
+            column(EndingExpectedQty; EndingExpectedQty)
+            {
+                DecimalPlaces = 0 : 5;
+            }
+            column(StartingExpectedNotInvoicedValue; StartingExpectedNotInvoicedValue)
+            {
+                AutoFormatType = 1;
+            }
+            column(StartingExpectedNotInvoicedQty; StartingExpectedNotInvoicedQty)
+            {
+                DecimalPlaces = 0 : 5;
+            }
+            column(IncreaseExpectedNotInvoicedValue; IncreaseExpectedNotInvoicedValue)
+            {
+                AutoFormatType = 1;
+            }
+            column(IncreaseExpectedNotInvoicedQty; IncreaseExpectedNotInvoicedQty)
+            {
+                DecimalPlaces = 0 : 5;
+            }
+            column(DecreaseExpectedNotInvoicedValue; DecreaseExpectedNotInvoicedValue)
+            {
+                AutoFormatType = 1;
+            }
+            column(DecreaseExpectedNotInvoicedQty; DecreaseExpectedNotInvoicedQty)
+            {
+                DecimalPlaces = 0 : 5;
+            }
+            column(EndingExpectedNotInvoicedValue; EndingExpectedNotInvoicedValue)
+            {
+                AutoFormatType = 1;
+            }
+            column(EndingExpectedNotInvoicedQty; EndingExpectedNotInvoicedQty)
             {
                 DecimalPlaces = 0 : 5;
             }
@@ -184,6 +216,18 @@ report 1001 "Inventory Valuation"
                 AutoFormatType = 1;
             }
             column(ExpCostPostedToGL; ExpCostPostedToGL)
+            {
+                AutoFormatType = 1;
+            }
+            column(CostPostedToGLDifference; CostPostedToGLDifference)
+            {
+                AutoFormatType = 1;
+            }
+            column(InvCostPostedToGLDifference; InvCostPostedToGLDifference)
+            {
+                AutoFormatType = 1;
+            }
+            column(ExpCostPostedToGLDifference; ExpCostPostedToGLDifference)
             {
                 AutoFormatType = 1;
             }
@@ -233,6 +277,34 @@ report 1001 "Inventory Valuation"
                         Caption = 'Include Expected Cost';
                         ToolTip = 'Specifies if you want the report to also show entries that only have expected costs.';
                     }
+                    field(RequestSkipZeroLines; SkipZeroLines)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Skip Zero Lines';
+                        ToolTip = 'Specifies whether to skip lines where ending quantity and value and cost posted to G/L are all zero.';
+                    }
+                    // Used to set a report header across multiple languages
+                    field(RequestItemFilterHeading; ItemFilterHeading)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Item Filter';
+                        ToolTip = 'Specifies the item filters applied to this report.';
+                        Visible = false;
+                    }
+                    field(RequestStartDateText; StartDateText)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Start Date';
+                        ToolTip = 'Specifies the Start Date applied to this report as a text value for use in the Excel report header.';
+                        Visible = false;
+                    }
+                    field(RequestEndDateText; EndDateText)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'End Date';
+                        ToolTip = 'Specifies the End Date applied to this report as a text value for use in the Excel report header.';
+                        Visible = false;
+                    }
                 }
             }
         }
@@ -246,12 +318,25 @@ report 1001 "Inventory Valuation"
             if (StartDate = 0D) and (EndDate = 0D) then
                 EndDate := WorkDate();
         end;
+
+        trigger OnClosePage()
+        begin
+            UpdateRequestPageFilterValues();
+        end;
     }
 
     rendering
     {
+        layout(ExcelLayout)
+        {
+            Caption = 'Inventory Valuation Excel';
+            Type = Excel;
+            LayoutFile = './Inventory/Reports/InventoryValuation.xlsx';
+            Summary = 'Built in layout for the Inventory Valuation Excel report.';
+        }
         layout(RDLCLayout)
         {
+            Caption = 'Inventory Valuation RDLC';
             Type = RDLC;
             LayoutFile = './Inventory/Reports/InventoryValuation.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
@@ -260,21 +345,70 @@ report 1001 "Inventory Valuation"
 
     labels
     {
+        InvValInvoicedLbl = 'Inventory Valuation - Invoiced';
+        InvValExpectedLbl = 'Inventory Valuation - Expected';
+        InvValTotalLbl = 'Inventory Valuation - Total';
+        InvValInvoicedPrintLbl = 'Inv. Val. Invoiced (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        InvValExpectedPrintLbl = 'Inv. Val. Expected (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        InvValTotalPrintLbl = 'Inv. Val. Total (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        InventoryValuationAnalysisLbl = 'Inventory Valuation (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        DataRetrievedLbl = 'Data retrieved:';
         Inventory_Posting_Group_NameCaption = 'Inventory Posting Group Name';
         Expected_CostCaption = 'Expected Cost';
+        ItemNoLbl = 'Item No.';
+        ItemDescLbl = 'Item Description';
+        BaseUoMLbl = 'Base UoM';
+        AsOfLbl = 'As of';
+        IncreasesLbl = 'Increases (LCY)';
+        DecreasesLbl = 'Decreases (LCY)';
+        TotalCostPostedToGLLbl = 'Total Cost Posted to G/L';
+        InvCostPostedToGLLbl = 'Invoiced Cost Posted to G/L';
+        ExpCostPostedToGLLbl = 'Expected Cost Posted to G/L';
+        TotalDifferenceLbl = 'Total Difference';
+        InvDifferenceLbl = 'Invoiced Difference';
+        ExpDifferenceLbl = 'Expected Difference';
+        ReportIncludesExpectedCostsLbl = 'This report includes entries that have been posted with expected costs.';
+        ExpectedCostsNotCalculatedLbl = 'Expected costs have not been calculated.';
+        InvoicedLbl = 'Invoiced';
+        ExpectedLbl = 'Expected';
+        Quantity1Lbl = 'Quantity';
+        Quantity2Lbl = 'Quantity';
+        Quantity3Lbl = 'Quantity';
+        Quantity4Lbl = 'Quantity';
+        Quantity5Lbl = 'Quantity';
+        Quantity6Lbl = 'Quantity';
+        Quantity7Lbl = 'Quantity';
+        Quantity8Lbl = 'Quantity';
+        Quantity9Lbl = 'Quantity';
+        Quantity10Lbl = 'Quantity';
+        Quantity11Lbl = 'Quantity';
+        Quantity12Lbl = 'Quantity';
+        Value1Lbl = 'Value';
+        Value2Lbl = 'Value';
+        Value3Lbl = 'Value';
+        Value4Lbl = 'Value';
+        Value5Lbl = 'Value';
+        Value6Lbl = 'Value';
+        Value7Lbl = 'Value';
+        Value8Lbl = 'Value';
+        Value9Lbl = 'Value';
+        Value10Lbl = 'Value';
+        Value11Lbl = 'Value';
+        Value12Lbl = 'Value';
+        TotalLbl = 'Total';
+        // About the report labels
+        AboutTheReportLbl = 'About the report';
+        EnvironmentLbl = 'Environment';
+        CompanyLbl = 'Company';
+        UserLbl = 'User';
+        RunOnLbl = 'Run on';
+        ReportNameLbl = 'Report name';
+        DocumentationLbl = 'Documentation';
     }
 
     trigger OnPreReport()
     begin
-        if (StartDate = 0D) and (EndDate = 0D) then
-            EndDate := WorkDate();
-
-        if StartDate in [0D, 00000101D] then
-            StartDateText := ''
-        else
-            StartDateText := Format(StartDate - 1);
-
-        ItemFilter := Item.GetFilters();
+        UpdateRequestPageFilterValues();
     end;
 
     var
@@ -287,6 +421,7 @@ report 1001 "Inventory Valuation"
         Inventory_ValuationCaptionLbl: Label 'Inventory Valuation';
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         This_report_includes_entries_that_have_been_posted_with_expected_costs_CaptionLbl: Label 'This report includes entries that have been posted with expected costs.';
+        ThisReportIncludesExpectedCostsNotCalculatedLbl: Label 'Expected costs have not been calculated.';
         IncreaseInvoicedQtyCaptionLbl: Label 'Increases (LCY)';
         DecreaseInvoicedQtyCaptionLbl: Label 'Decreases (LCY)';
         QuantityCaptionLbl: Label 'Quantity';
@@ -299,14 +434,18 @@ report 1001 "Inventory Valuation"
         Expected_Cost_Included_TotalCaptionLbl: Label 'Expected Cost Included Total';
         Expected_Cost_TotalCaptionLbl: Label 'Expected Cost Total';
         Expected_Cost_IncludedCaptionLbl: Label 'Expected Cost Included';
+        ReportIncludesExpectedCostsTxt: Text;
 
     protected var
         ValueEntry: Record "Value Entry";
         StartDate: Date;
         EndDate: Date;
         ShowExpected: Boolean;
+        SkipZeroLines: Boolean;
         ItemFilter: Text;
+        ItemFilterHeading: Text;
         StartDateText: Text[10];
+        EndDateText: Text;
         StartingInvoicedValue: Decimal;
         StartingExpectedValue: Decimal;
         StartingInvoicedQty: Decimal;
@@ -319,10 +458,26 @@ report 1001 "Inventory Valuation"
         DecreaseExpectedValue: Decimal;
         DecreaseInvoicedQty: Decimal;
         DecreaseExpectedQty: Decimal;
+        EndingInvoicedQty: Decimal;
+        EndingInvoicedValue: Decimal;
+        EndingExpectedQty: Decimal;
+        EndingExpectedValue: Decimal;
         InvCostPostedToGL: Decimal;
         CostPostedToGL: Decimal;
         ExpCostPostedToGL: Decimal;
+        InvCostPostedToGLDifference: Decimal;
+        CostPostedToGLDifference: Decimal;
+        ExpCostPostedToGLDifference: Decimal;
         IsEmptyLine: Boolean;
+        // Expected Cost values are inclusive of invoiced values. These exclude invoiced values.
+        StartingExpectedNotInvoicedValue: Decimal;
+        StartingExpectedNotInvoicedQty: Decimal;
+        IncreaseExpectedNotInvoicedValue: Decimal;
+        IncreaseExpectedNotInvoicedQty: Decimal;
+        DecreaseExpectedNotInvoicedValue: Decimal;
+        DecreaseExpectedNotInvoicedQty: Decimal;
+        EndingExpectedNotInvoicedValue: Decimal;
+        EndingExpectedNotInvoicedQty: Decimal;
 
     procedure AssignAmounts(ValueEntry: Record "Value Entry"; var InvoicedValue: Decimal; var InvoicedQty: Decimal; var ExpectedValue: Decimal; var ExpectedQty: Decimal; Sign: Decimal)
     begin
@@ -334,13 +489,24 @@ report 1001 "Inventory Valuation"
 
     procedure CalculateItem(var Item: Record Item)
     var
+        ValueEntry2: Record "Value Entry";
         IsHandled: Boolean;
         HasEntriesWithinDateRange: Boolean;
+        IsZeroLine: Boolean;
     begin
-        Item.CalcFields("Assembly BOM");
-
         if EndDate = 0D then
             EndDate := DMY2Date(31, 12, 9999);
+
+        if StartDate > 00000101D then
+            Item.SetRange("Opening Bal. Date Filter", 0D, CalcDate('<-1D>', StartDate))
+        else
+            Item.SetRange("Opening Bal. Date Filter");
+        Item.SetRange("Inv. Val. Period Date Filter", StartDate, EndDate);
+        Item.SetRange("Closing Bal. Date Filter", 0D, EndDate);
+        OnCalculateItemOnAfterSetFlowFilters(Item);
+        Item.SetAutoCalcFields("Assembly BOM", "Opening Bal. ILE Qty.", "Opening Bal. Inv. Qty.", "Opening Bal. Cost Amt. Act.", "Opening Bal. Cost Amt. Exp.", "Increases ILE Qty.",
+            "Increases Inv. Qty.", "Increases Cost Amt. Act.", "Increases Cost Amt. Exp.", "Decreases ILE Qty.", "Decreases Inv. Qty.", "Decreases Cost Amt. Act.",
+            "Decreases Cost Amt. Exp.", "Cost Posted To G/L", "Exp. Cost Posted To G/L");
 
         StartingInvoicedValue := 0;
         StartingExpectedValue := 0;
@@ -359,12 +525,16 @@ report 1001 "Inventory Valuation"
         ExpCostPostedToGL := 0;
 
         ValueEntry.Reset();
+        ValueEntry.SetLoadFields("Valued Quantity", "Item Ledger Entry No.", "Cost Amount (Actual)", "Cost Amount (Expected)", "Invoiced Quantity",
+            "Item Ledger Entry Quantity", "Cost Posted to G/L", "Expected Cost Posted to G/L");
         ValueEntry.SetRange("Item No.", Item."No.");
         ValueEntry.SetFilter("Variant Code", Item.GetFilter("Variant Filter"));
         ValueEntry.SetFilter("Location Code", Item.GetFilter("Location Filter"));
         ValueEntry.SetFilter("Global Dimension 1 Code", Item.GetFilter("Global Dimension 1 Filter"));
         ValueEntry.SetFilter("Global Dimension 2 Code", Item.GetFilter("Global Dimension 2 Filter"));
         OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(ValueEntry, Item);
+        OnCalculateItemOnAfterSetValueEntryFiltersV2(ValueEntry, Item);
+        ValueEntry2.Copy(ValueEntry);
 
         ValueEntry.SetRange("Posting Date", 0D, EndDate);
         IsEmptyLine := ValueEntry.IsEmpty();
@@ -375,44 +545,35 @@ report 1001 "Inventory Valuation"
         ValueEntry.SetRange("Posting Date");
 
         if not IsEmptyLine then begin
+            Item.CalcFields("Opening Bal. ILE Qty.", "Opening Bal. Inv. Qty.", "Opening Bal. Cost Amt. Act.", "Opening Bal. Cost Amt. Exp.");
+            Item.CalcFields("Increases ILE Qty.", "Increases Inv. Qty.", "Increases Cost Amt. Act.", "Increases Cost Amt. Exp.");
+            Item.CalcFields("Cost Posted To G/L", "Exp. Cost Posted To G/L");
             IsEmptyLine := true;
-            if StartDate > 0D then begin
-                ValueEntry.SetRange("Posting Date", 0D, CalcDate('<-1D>', StartDate));
-                ValueEntry.CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)", "Cost Amount (Expected)", "Invoiced Quantity");
-                AssignAmounts(ValueEntry, StartingInvoicedValue, StartingInvoicedQty, StartingExpectedValue, StartingExpectedQty, 1);
+            if StartDate > 00000101D then begin
+                StartingInvoicedValue += Item."Opening Bal. Cost Amt. Act.";
+                StartingInvoicedQty += Item."Opening Bal. Inv. Qty.";
+                StartingExpectedValue += Item."Opening Bal. Cost Amt. Exp.";
+                StartingExpectedQty += Item."Opening Bal. ILE Qty.";
+
                 IsEmptyLine := IsEmptyLine and ((StartingInvoicedValue = 0) and (StartingInvoicedQty = 0));
                 if ShowExpected then
                     IsEmptyLine := IsEmptyLine and ((StartingExpectedValue = 0) and (StartingExpectedQty = 0));
             end;
 
             if HasEntriesWithinDateRange then begin
-                ValueEntry.SetRange("Posting Date", StartDate, EndDate);
-                ValueEntry.SetFilter(
-                    "Item Ledger Entry Type", '%1|%2|%3|%4',
-                    ValueEntry."Item Ledger Entry Type"::Purchase,
-                    ValueEntry."Item Ledger Entry Type"::"Positive Adjmt.",
-                    ValueEntry."Item Ledger Entry Type"::Output,
-                    ValueEntry."Item Ledger Entry Type"::"Assembly Output");
-                ValueEntry.CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)", "Cost Amount (Expected)", "Invoiced Quantity");
-                AssignAmounts(ValueEntry, IncreaseInvoicedValue, IncreaseInvoicedQty, IncreaseExpectedValue, IncreaseExpectedQty, 1);
-            end;
-
-            if HasEntriesWithinDateRange then begin
-                ValueEntry.SetRange("Posting Date", StartDate, EndDate);
-                ValueEntry.SetFilter(
-                    "Item Ledger Entry Type", '%1|%2|%3|%4',
-                    ValueEntry."Item Ledger Entry Type"::Sale,
-                    ValueEntry."Item Ledger Entry Type"::"Negative Adjmt.",
-                    ValueEntry."Item Ledger Entry Type"::Consumption,
-                    ValueEntry."Item Ledger Entry Type"::"Assembly Consumption");
+                IncreaseInvoicedValue += Item."Increases Cost Amt. Act.";
+                IncreaseInvoicedQty += Item."Increases Inv. Qty.";
+                IncreaseExpectedValue += Item."Increases Cost Amt. Exp.";
+                IncreaseExpectedQty += Item."Increases ILE Qty.";
 
                 OnCalculateItemOnBeforeAssignDecreaseAmounts(ValueEntry, Item);
-                ValueEntry.CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)", "Cost Amount (Expected)", "Invoiced Quantity");
-                AssignAmounts(ValueEntry, DecreaseInvoicedValue, DecreaseInvoicedQty, DecreaseExpectedValue, DecreaseExpectedQty, -1);
+                Item.CalcFields("Decreases ILE Qty.", "Decreases Inv. Qty.", "Decreases Cost Amt. Act.", "Decreases Cost Amt. Exp.");
+                DecreaseInvoicedValue += Item."Decreases Cost Amt. Act." * -1;
+                DecreaseInvoicedQty += Item."Decreases Inv. Qty." * -1;
+                DecreaseExpectedValue += Item."Decreases Cost Amt. Exp." * -1;
+                DecreaseExpectedQty += Item."Decreases ILE Qty." * -1;
                 OnCalculateItemOnAfterAssignDecreaseAmounts(ValueEntry, Item, DecreaseInvoicedValue, DecreaseInvoicedQty, DecreaseExpectedValue, DecreaseExpectedQty, IncreaseInvoicedValue, IncreaseInvoicedQty, IncreaseExpectedValue, IncreaseExpectedQty);
-            end;
 
-            if HasEntriesWithinDateRange then begin
                 ValueEntry.SetRange("Posting Date", StartDate, EndDate);
                 ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Transfer);
                 if ValueEntry.FindSet() then
@@ -430,16 +591,53 @@ report 1001 "Inventory Valuation"
                     IsEmptyLine := IsEmptyLine and ((DecreaseExpectedValue = 0) and (DecreaseExpectedQty = 0));
                 end;
             end;
-            ValueEntry.SetRange("Posting Date", 0D, EndDate);
-            ValueEntry.SetRange("Item Ledger Entry Type");
-            ValueEntry.CalcSums("Cost Posted to G/L", "Expected Cost Posted to G/L");
-            ExpCostPostedToGL += ValueEntry."Expected Cost Posted to G/L";
-            InvCostPostedToGL += ValueEntry."Cost Posted to G/L";
+
+            ExpCostPostedToGL += Item."Exp. Cost Posted To G/L";
+            InvCostPostedToGL += Item."Cost Posted To G/L";
 
             StartingExpectedValue += StartingInvoicedValue;
             IncreaseExpectedValue += IncreaseInvoicedValue;
             DecreaseExpectedValue += DecreaseInvoicedValue;
+
+            OnCalculateItemOnAfterCalculateAmountsV2(ValueEntry2, Item, HasEntriesWithinDateRange, IsEmptyLine, StartingInvoicedValue, StartingInvoicedQty, StartingExpectedValue, StartingExpectedQty, IncreaseInvoicedValue, IncreaseInvoicedQty, IncreaseExpectedValue, IncreaseExpectedQty, DecreaseInvoicedValue, DecreaseInvoicedQty, DecreaseExpectedValue, DecreaseExpectedQty, InvCostPostedToGL, ExpCostPostedToGL);
+
+            EndingInvoicedQty := StartingInvoicedQty + IncreaseInvoicedQty - DecreaseInvoicedQty;
+            EndingInvoicedValue := StartingInvoicedValue + IncreaseInvoicedValue - DecreaseInvoicedValue;
+            EndingExpectedQty := StartingExpectedQty + IncreaseExpectedQty - DecreaseExpectedQty;
+            EndingExpectedValue := StartingExpectedValue + IncreaseExpectedValue - DecreaseExpectedValue;
+
+            if ShowExpected then begin
+                StartingExpectedNotInvoicedValue := StartingExpectedValue - StartingInvoicedValue;
+                IncreaseExpectedNotInvoicedValue := IncreaseExpectedValue - IncreaseInvoicedValue;
+                DecreaseExpectedNotInvoicedValue := DecreaseExpectedValue - DecreaseInvoicedValue;
+                EndingExpectedNotInvoicedValue := EndingExpectedValue - EndingInvoicedValue;
+
+                StartingExpectedNotInvoicedQty := StartingExpectedQty - StartingInvoicedQty;
+                IncreaseExpectedNotInvoicedQty := IncreaseExpectedQty - IncreaseInvoicedQty;
+                DecreaseExpectedNotInvoicedQty := DecreaseExpectedQty - DecreaseInvoicedQty;
+                EndingExpectedNotInvoicedQty := EndingExpectedQty - EndingInvoicedQty;
+            end else begin
+                StartingExpectedNotInvoicedValue := 0;
+                IncreaseExpectedNotInvoicedValue := 0;
+                DecreaseExpectedNotInvoicedValue := 0;
+                EndingExpectedNotInvoicedValue := 0;
+                StartingExpectedNotInvoicedQty := 0;
+                IncreaseExpectedNotInvoicedQty := 0;
+                DecreaseExpectedNotInvoicedQty := 0;
+                EndingExpectedNotInvoicedQty := 0;
+            end;
+
             CostPostedToGL := ExpCostPostedToGL + InvCostPostedToGL;
+
+            InvCostPostedToGLDifference := InvCostPostedToGL - EndingInvoicedValue;
+            ExpCostPostedToGLDifference := ExpCostPostedToGL - EndingExpectedNotInvoicedValue;
+            CostPostedToGLDifference := CostPostedToGL - EndingExpectedValue;
+
+            if SkipZeroLines then begin
+                IsZeroLine := (EndingInvoicedValue = 0) and (EndingInvoicedQty = 0) and (InvCostPostedToGL = 0);
+                if ShowExpected then
+                    IsZeroLine := IsZeroLine and ((EndingExpectedValue = 0) and (EndingExpectedQty = 0) and (ExpCostPostedToGL = 0));
+            end;
         end; // if not IsEmptyLine
 
         IsHandled := false;
@@ -447,6 +645,9 @@ report 1001 "Inventory Valuation"
         if not IsHandled then
             if IsEmptyLine then
                 CurrReport.Skip();
+
+        if SkipZeroLines and IsZeroLine then
+            CurrReport.Skip();
     end;
 
     local procedure GetOutboundItemEntry(ItemLedgerEntryNo: Integer): Boolean
@@ -499,6 +700,31 @@ report 1001 "Inventory Valuation"
           StrSubstNo('&filter=Item.Field1:%1', ItemNumber));
     end;
 
+    // Ensures Layout Filter Headings are up to date
+    local procedure UpdateRequestPageFilterValues()
+    begin
+        if (StartDate = 0D) and (EndDate = 0D) then
+            EndDate := WorkDate();
+
+        if StartDate in [0D, 00000101D] then
+            StartDateText := ''
+        else
+            StartDateText := Format(StartDate - 1);
+
+        EndDateText := Format(EndDate);
+
+        ItemFilter := Item.GetFilters();
+        if ItemFilter <> '' then
+            ItemFilterHeading := Item.TableCaption + ': ' + ItemFilter
+        else
+            ItemFilterHeading := '';
+
+        if ShowExpected then
+            ReportIncludesExpectedCostsTxt := This_report_includes_entries_that_have_been_posted_with_expected_costs_CaptionLbl
+        else
+            ReportIncludesExpectedCostsTxt := ThisReportIncludesExpectedCostsNotCalculatedLbl;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnAfterItemGetRecord(var Item: Record Item; var SkipItem: Boolean)
     begin
@@ -510,12 +736,29 @@ report 1001 "Inventory Valuation"
     end;
 
     [IntegrationEvent(true, false)]
+    [Obsolete('Use OnCalculateItemOnAfterSetValueEntryFiltersV2 to customize entry filters and OnCalculateItemOnAfterCalculateAmountsV2 to customize calculated totals and line state.', '29.0')]
     local procedure OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
     begin
     end;
 
     [IntegrationEvent(true, false)]
+    [Obsolete('Use OnCalculateItemOnAfterCalculateAmountsV2 to customize calculated totals.', '29.0')]
     local procedure OnCalculateItemOnBeforeAssignDecreaseAmounts(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnCalculateItemOnAfterSetFlowFilters(var Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnCalculateItemOnAfterSetValueEntryFiltersV2(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnCalculateItemOnAfterCalculateAmountsV2(var ValueEntry: Record "Value Entry"; Item: Record Item; var HasEntriesWithinDateRange: Boolean; var IsEmptyLine: Boolean; var StartingInvoicedValue: Decimal; var StartingInvoicedQty: Decimal; var StartingExpectedValue: Decimal; var StartingExpectedQty: Decimal; var IncreaseInvoicedValue: Decimal; var IncreaseInvoicedQty: Decimal; var IncreaseExpectedValue: Decimal; var IncreaseExpectedQty: Decimal; var DecreaseInvoicedValue: Decimal; var DecreaseInvoicedQty: Decimal; var DecreaseExpectedValue: Decimal; var DecreaseExpectedQty: Decimal; var InvCostPostedToGL: Decimal; var ExpCostPostedToGL: Decimal)
     begin
     end;
 
@@ -529,4 +772,3 @@ report 1001 "Inventory Valuation"
     begin
     end;
 }
-
