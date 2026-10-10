@@ -1,6 +1,8 @@
 namespace System.Integration;
 
+#if not CLEAN30
 using System;
+#endif
 using System.Utilities;
 
 codeunit 1299 "Web Request Helper"
