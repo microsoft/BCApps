@@ -1561,6 +1561,136 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         until QltyInspectionHeader.Next() = 0;
     end;
 
+    [Test]
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_OnPurchPost_ClearsTrackingBufferFilters()
+    var
+        Location: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyReceivingBufferSubscr: Codeunit "Qlty. Receiving Buffer Subscr.";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 9979] Receiving a purchase order hands the posting tracking buffer back without the filter the receiving integration applied to it
+
+        // [GIVEN] A location, quality inspection template, and generation rule triggered on purchase order receive are set up
+        Initialize();
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] A purchase order for a lot-tracked item
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] The purchase order is received
+        BindSubscription(QltyReceivingBufferSubscr);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+        UnbindSubscription(QltyReceivingBufferSubscr);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] The receiving integration ran and created the inspection
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Should be one inspection created.');
+
+        // [THEN] Posting stores its item tracking with no "Quantity Handled (Base)" filter left on its buffer
+        LibraryAssert.IsTrue(QltyReceivingBufferSubscr.WasInsertTrackingSpecificationRaised(), 'Posting should store the item tracking of the received line.');
+        LibraryAssert.AreEqual('', QltyReceivingBufferSubscr.GetQtyHandledFilterOnInsertTrackingSpecification(), 'The receiving integration must not leave a filter on the posting tracking buffer.');
+    end;
+
+    [Test]
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_MultiLot_OnPurchPost_PassesSingleTrackingRecord()
+    var
+        Location: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryUtility: Codeunit "Library - Utility";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyReceivingBufferSubscr: Codeunit "Qlty. Receiving Buffer Subscr.";
+        AttemptTrackingBufferCount: Integer;
+        InspectedLotNos: List of [Code[50]];
+        FirstLotNo: Code[50];
+        SecondLotNo: Code[50];
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 9979] Receiving a purchase line with two lots hands each inspection attempt a buffer holding only its own lot
+
+        // [GIVEN] A location, quality inspection template, and generation rule triggered on purchase order receive are set up
+        Initialize();
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] A purchase order line for a lot-tracked item, tracked as two lots of 40 and 60
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurOrderPurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurOrdPurchaseLine, PurOrderPurchaseHeader, PurOrdPurchaseLine.Type::Item, Item."No.", 100);
+        FirstLotNo := LibraryUtility.GenerateRandomCode(ReservationEntry.FieldNo("Lot No."), Database::"Reservation Entry");
+        LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurOrdPurchaseLine, '', FirstLotNo, 40);
+        SecondLotNo := LibraryUtility.GenerateRandomCode(ReservationEntry.FieldNo("Lot No."), Database::"Reservation Entry");
+        LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurOrdPurchaseLine, '', SecondLotNo, 60);
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] The purchase order is received
+        BindSubscription(QltyReceivingBufferSubscr);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+        UnbindSubscription(QltyReceivingBufferSubscr);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One inspection attempt is made per lot, each handed a buffer that holds only that lot
+        LibraryAssert.AreEqual(2, QltyReceivingBufferSubscr.GetAttemptTrackingBufferCounts().Count(), 'Should be one inspection attempt per lot.');
+        foreach AttemptTrackingBufferCount in QltyReceivingBufferSubscr.GetAttemptTrackingBufferCounts() do
+            LibraryAssert.AreEqual(1, AttemptTrackingBufferCount, 'Each inspection attempt should receive a single tracking record.');
+        LibraryAssert.IsTrue(QltyReceivingBufferSubscr.GetAttemptLotNos().Contains(FirstLotNo), 'The first lot should be handed to an inspection attempt.');
+        LibraryAssert.IsTrue(QltyReceivingBufferSubscr.GetAttemptLotNos().Contains(SecondLotNo), 'The second lot should be handed to an inspection attempt.');
+
+        // [THEN] One inspection is created per lot with that lot's quantity
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Should be two inspections created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindSet();
+        repeat
+            InspectedLotNos.Add(QltyInspectionHeader."Source Lot No.");
+            case QltyInspectionHeader."Source Lot No." of
+                FirstLotNo:
+                    LibraryAssert.AreEqual(40, QltyInspectionHeader."Source Quantity (Base)", 'The first lot inspection quantity (base) should match its lot.');
+                SecondLotNo:
+                    LibraryAssert.AreEqual(60, QltyInspectionHeader."Source Quantity (Base)", 'The second lot inspection quantity (base) should match its lot.');
+                else
+                    LibraryAssert.Fail('Each inspection should be for one of the received lots.');
+            end;
+        until QltyInspectionHeader.Next() = 0;
+        LibraryAssert.IsTrue(InspectedLotNos.Contains(FirstLotNo) and InspectedLotNos.Contains(SecondLotNo), 'Each received lot should have its own inspection.');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
