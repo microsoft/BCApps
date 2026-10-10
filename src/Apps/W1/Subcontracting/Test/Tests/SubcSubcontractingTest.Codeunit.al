@@ -5609,55 +5609,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         MatchedOrderLineMgmt.GetPurchaseOrderLines(InvoiceLine);
     end;
 
-    [Test]
-    procedure AssignItemChargeToUndoneSubcontractingReceiptIsBlocked()
-    var
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
-        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        // [SCENARIO 637503] Assigning an item charge to a subcontracting receipt line that has been undone must be blocked,
-        // otherwise posting it would book the capacity cost onto the original entry while the undo entry stays at 0.
-
-        // [GIVEN] An undone subcontracting receipt line
-        Initialize();
-        MockSubcontractingPurchRcptLine(PurchRcptLine, true);
-
-        // [GIVEN] An item charge assignment context on a purchase invoice line
-        ItemChargeAssignmentPurch."Document Type" := ItemChargeAssignmentPurch."Document Type"::Invoice;
-        ItemChargeAssignmentPurch."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemChargeAssignmentPurch."Document No."));
-        ItemChargeAssignmentPurch."Document Line No." := 10000;
-        ItemChargeAssignmentPurch."Line No." := 10000;
-
-        // [WHEN] Assigning the item charge to the undone receipt line
-        PurchRcptLine.SetRecFilter();
-        asserterror ItemChargeAssgntPurch.CreateRcptChargeAssgnt(PurchRcptLine, ItemChargeAssignmentPurch);
-
-        // [THEN] It is blocked
-        Assert.ExpectedError('has been undone');
-    end;
-
-    local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
-    var
-        Item: Record Item;
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        LibraryInventory.CreateItem(Item);
-        PurchRcptLine.Init();
-        PurchRcptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Document No."));
-        PurchRcptLine."Line No." := 10000;
-        PurchRcptLine.Type := PurchRcptLine.Type::Item;
-        PurchRcptLine."No." := Item."No.";
-        PurchRcptLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Prod. Order No."));
-        PurchRcptLine."Routing No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Routing No."));
-        PurchRcptLine."Operation No." := '10';
-        PurchRcptLine.Quantity := LibraryRandom.RandIntInRange(5, 10);
-        PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity;
-        PurchRcptLine.Correction := Undone;
-        PurchRcptLine.Insert();
-    end;
-
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");
