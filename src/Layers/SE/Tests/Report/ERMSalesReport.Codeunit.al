@@ -2238,6 +2238,37 @@ codeunit 134976 "ERM Sales Report"
     end;
 
     [Test]
+    [HandlerFunctions('StdSalesInvoicePdfRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure StdSalesInvoiceForCustomerWithoutNameOrAddressRendersAsPdf()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        PostedSalesInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice] [RDLC]
+        // [SCENARIO 592271] Standard Sales Invoice renders for a customer without name or address information.
+        Initialize();
+
+        // [GIVEN] A posted sales invoice for a customer without name, address, or country information using the RDLC layout.
+        SetRDLCReportLayout(REPORT::"Standard Sales - Invoice");
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate(Name, '');
+        Customer.Modify(true);
+        CreateSalesInvoiceWithLine(SalesHeader, SalesLine, Customer."No.");
+        PostedSalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, false, false);
+
+        // [WHEN] Standard Sales Invoice is rendered as PDF with shipment information.
+        SalesInvoiceHeader.Get(PostedSalesInvoiceNo);
+        SalesInvoiceHeader.SetRecFilter();
+        REPORT.Run(REPORT::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+
+        // [THEN] The report renders without an invalid Hidden expression error.
+    end;
+
+    [Test]
     [HandlerFunctions('CustomerOrderSummaryRequestPageHandler')]
     [Scope('OnPrem')]
     procedure CustomerOrderSummaryForSalesLineWithDimension()
@@ -5548,6 +5579,14 @@ codeunit 134976 "ERM Sales Report"
         StandardSalesInvoice.DisplayShipmentInformation.SetValue(true);
         StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
         Sleep(200);
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure StdSalesInvoicePdfRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
+    begin
+        StandardSalesInvoice.DisplayShipmentInformation.SetValue(true);
+        StandardSalesInvoice.SaveAsPdf(Format(CreateGuid()));
     end;
 
     [RequestPageHandler]
