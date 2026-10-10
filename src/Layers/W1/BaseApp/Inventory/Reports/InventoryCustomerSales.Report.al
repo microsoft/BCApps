@@ -121,10 +121,8 @@ report 713 "Inventory - Customer Sales"
                         AddReportLine(ValueEntryBuf);
 
                     IncrLineAmounts(ValueEntryBuf, "Item Ledger Entry");
-
                     if IsLastEntry() then
                         AddReportLine(ValueEntryBuf);
-
                     if not ReportHasData then
                         ReportHasData := true;
                 end;
@@ -222,7 +220,6 @@ report 713 "Inventory - Customer Sales"
             begin
                 if not ReportHasData then
                     CurrReport.Break();
-
                 if TotalsSalesAmtActual <> 0 then
                     TotalsProfitPct := TotalsProfit / TotalsSalesAmtActual * 100;
             end;
@@ -296,12 +293,25 @@ report 713 "Inventory - Customer Sales"
             Type = Excel;
             Summary = 'Built in layout for the Inventory Customer Sales Excel report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory Customer Sales Word';
             LayoutFile = '.\Inventory\Reports\InventoryCustomerSales.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory Customer Sales Word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryCustomerSalesBody.docx';
+            Caption = 'Body-only: Inventory Customer Sales Word';
+            Summary = 'Portrait orientated. Shows invoiced quantity, sales amount, discount, profit, and profit percentage for each item and customer, with subtotals for each item and overall totals.';
         }
     }
 
@@ -319,6 +329,7 @@ report 713 "Inventory - Customer Sales"
         ProfitLbl = 'Profit';
         ProfitPctLbl = 'Profit %';
         PeriodLbl = 'Period';
+        TotalLbl = 'Total';
         // About the report labels
         AboutTheReportLbl = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
         EnvironmentLbl = 'Environment';
@@ -390,7 +401,6 @@ report 713 "Inventory - Customer Sales"
         CurrItemLedgerEntry.CalcFields("Sales Amount (Actual)", "Cost Amount (Actual)", "Cost Amount (Non-Invtbl.)");
         Profit := CurrItemLedgerEntry."Sales Amount (Actual)" + CurrItemLedgerEntry."Cost Amount (Actual)" + CurrItemLedgerEntry."Cost Amount (Non-Invtbl.)";
         DiscountAmount := CalcDiscountAmount(CurrItemLedgerEntry."Entry No.");
-
         if ValueEntryBuf2."Item No." = '' then begin
             ValueEntryBuf2.Init();
             ValueEntryBuf2."Item No." := CurrItemLedgerEntry."Item No.";
