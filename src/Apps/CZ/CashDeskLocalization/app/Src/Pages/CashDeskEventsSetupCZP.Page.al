@@ -86,6 +86,10 @@ page 31158 "Cash Desk Events Setup CZP"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that the value of Yes will automatically be filled when the row meets the conditions for a recorded sale.';
                 }
+                field("Amount Type"; Rec."Amount Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
         }
         area(factboxes)

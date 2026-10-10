@@ -7,7 +7,6 @@ namespace Microsoft.Upgrade;
 using Microsoft;
 using Microsoft.Bank.Setup;
 using Microsoft.CRM.Contact;
-using Microsoft.Finance;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -60,11 +59,6 @@ codeunit 31017 "Upgrade Application CZL"
                   tabledata "Subst. Cust. Posting Group CZL" = i,
                   tabledata "Subst. Vend. Posting Group CZL" = i,
                   tabledata "Certificate Code CZL" = im,
-                  tabledata "EET Service Setup CZL" = im,
-                  tabledata "EET Business Premises CZL" = im,
-                  tabledata "EET Cash Register CZL" = im,
-                  tabledata "EET Entry CZL" = im,
-                  tabledata "EET Entry Status Log CZL" = im,
                   tabledata "Constant Symbol CZL" = i,
                   tabledata "Specific Movement CZL" = im,
                   tabledata "Intrastat Delivery Group CZL" = im,
@@ -234,12 +228,10 @@ codeunit 31017 "Upgrade Application CZL"
         GLEntry.Reset();
         TotalRows := GLEntry.Count();
         ToNo := 0;
-
         while ToNo < TotalRows do begin
             // Batch size 5 million
             FromNo := ToNo + 1;
             ToNo := FromNo + 5000000;
-
             if ToNo > TotalRows then
                 ToNo := TotalRows;
 
@@ -354,7 +346,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetReplaceVATDateCZLServiceUpgradeTag()) then
             exit;
-
         if not (ServiceHeader.WritePermission() and ServiceInvoiceHeader.WritePermission() and ServiceCrMemoHeader.WritePermission()) then
             exit;
 
@@ -386,13 +377,11 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetReplaceVATDateCZLSetupUpgradeTag()) then
             exit;
-
         if GeneralLedgerSetup.Get() then begin
             if GeneralLedgerSetup."Use VAT Date CZL" then
                 GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::"Enabled (Prevent modification)"
             else
                 GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
-
             if PurchasesPayablesSetup.Get() then
                 case PurchasesPayablesSetup."Def. Orig. Doc. VAT Date CZL" of
                     PurchasesPayablesSetup."Def. Orig. Doc. VAT Date CZL"::Blank:
@@ -547,7 +536,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetStatutoryReportingSetupCityUpgradeTag()) then
             exit;
-
         if not CompanyInformation.Get() then
             exit;
         if not StatutoryReportingSetupCZL.Get() then
@@ -568,7 +556,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetSubstCustVendPostingGroupUpgradeTag()) then
             exit;
-
         if SubstCustPostingGroupCZL.FindSet() then
             repeat
                 if not AltCustomerPostingGroup.Get(SubstCustPostingGroupCZL."Parent Customer Posting Group", SubstCustPostingGroupCZL."Customer Posting Group") then begin
@@ -579,7 +566,6 @@ codeunit 31017 "Upgrade Application CZL"
                     AltCustomerPostingGroup.Insert(false, true);
                 end;
             until SubstCustPostingGroupCZL.Next() = 0;
-
         if SubstVendPostingGroupCZL.FindSet() then
             repeat
                 if not AltVendorPostingGroup.Get(SubstVendPostingGroupCZL."Parent Vendor Posting Group", SubstVendPostingGroupCZL."Vendor Posting Group") then begin
@@ -616,7 +602,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetAllowVATPostingUpgradeTag()) then
             exit;
-
         if GeneralLedgerSetup.Get() then begin
             if not VATSetup.Get() then begin
                 VATSetup.Init();
@@ -701,7 +686,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetVATReportUpgradeTag()) then
             exit;
-
         if not VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type"::"VAT Return", VATReportVersionTok) then begin
             VATReportsConfiguration.Init();
             VATReportsConfiguration.Validate("VAT Report Type", VATReportsConfiguration."VAT Report Type"::"VAT Return");
@@ -712,7 +696,6 @@ codeunit 31017 "Upgrade Application CZL"
             VATReportsConfiguration.Validate("Submission Codeunit ID", Codeunit::"VAT Report Submit CZL");
             if VATReportsConfiguration.Insert(true) then;
         end;
-
         if not VATReportSetup.Get() then begin
             VATReportSetup.Init();
             if VATReportSetup.Insert() then;
@@ -720,7 +703,6 @@ codeunit 31017 "Upgrade Application CZL"
 
         VATReportSetup."Report Version" := VATReportVersionTok;
         if VATReportSetup.Modify() then;
-
         if VATAttributeCodeCZL.FindSet() then
             repeat
                 IsModified := true;
@@ -735,7 +717,6 @@ codeunit 31017 "Upgrade Application CZL"
                     else
                         IsModified := false;
                 end;
-
                 if IsModified then
                     if VATAttributeCodeCZL.Modify() then;
             until VATAttributeCodeCZL.Next() = 0;
@@ -750,7 +731,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.SetEnableNonDeductibleVATCZUpgradeTag()) then
             exit;
-
         if not NonDeductibleVATSetupCZL.IsEmpty() then
             if VATSetup.Get() then
                 if VATSetup."Enable Non-Deductible VAT" then begin
@@ -858,11 +838,9 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag()) then
             exit;
-
         if GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then
             if not IsReportLayoutSelectionCustomized(Report::"Standard Sales - Draft Invoice") then
                 SetDefaultReportLayout(ReportLayoutList);
-
         if GetProformaReportLayoutCZ(ReportLayoutList) then
             if not IsReportLayoutSelectionCustomized(Report::"Standard Sales - Pro Forma Inv") then
                 SetDefaultReportLayout(ReportLayoutList);
@@ -950,7 +928,6 @@ codeunit 31017 "Upgrade Application CZL"
         TenantReportLayoutSelection."Layout Name" := ReportLayoutList."Name";
         TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
         TenantReportLayoutSelection."User ID" := EmptyGuid;
-
         if not TenantReportLayoutSelection.Insert(false) then
             TenantReportLayoutSelection.Modify(false);
     end;

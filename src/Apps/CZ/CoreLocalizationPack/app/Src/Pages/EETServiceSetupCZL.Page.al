@@ -10,7 +10,6 @@ using System.Utilities;
 #pragma implicitwith disable
 page 31142 "EET Service Setup CZL"
 {
-    ApplicationArea = Basic, Suite;
     Caption = 'EET Service Setup';
     DeleteAllowed = false;
     InsertAllowed = false;
@@ -18,6 +17,7 @@ page 31142 "EET Service Setup CZL"
     PageType = Card;
     ShowFilter = false;
     SourceTable = "EET Service Setup CZL";
+    ApplicationArea = Basic, Suite;
     UsageCategory = Administration;
 
     layout
@@ -29,35 +29,46 @@ page 31142 "EET Service Setup CZL"
                 Caption = 'General';
                 field("Service URL"; Rec."Service URL")
                 {
-                    ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the source address of the service.';
-                }
-                field("Sales Regime"; Rec."Sales Regime")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the settings for the simplified scheme sales.';
                 }
                 field("Limit Response Time"; Rec."Limit Response Time")
                 {
-                    ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
-                    ToolTip = 'Specifies the response time limit, after which goes into offline mode.';
+                }
+                field("Sales Regime"; Rec."Sales Regime")
+                {
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Appointing VAT Reg. No."; Rec."Appointing VAT Reg. No.")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                    Enabled = false;
+                }
+            }
+            group(Taxpayer)
+            {
+                Caption = 'Taxpayer';
+                field("Taxpayer ID"; Rec."Taxpayer ID")
+                {
                     Editable = EditableByNotEnabled;
-                    Importance = Additional;
-                    ToolTip = 'Specifies the responsible person who collects revenues.';
                 }
                 field("Certificate Code"; Rec."Certificate Code")
                 {
-                    ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the certificate needed to register sales.';
+                }
+            }
+            group(Authorization)
+            {
+                Caption = 'Authorization';
+                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
+                {
+                    Editable = EditableByNotEnabled;
+                }
+                field("Multiple Taxpayer Auth."; Rec."Multiple Taxpayer Auth.")
+                {
+                    Editable = EditableByNotEnabled;
                 }
             }
             group(Status)
@@ -65,9 +76,6 @@ page 31142 "EET Service Setup CZL"
                 Caption = 'Status';
                 field(Enabled; Rec.Enabled)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the service is enabled.';
-
                     trigger OnValidate()
                     begin
                         UpdateBasedOnEnable();
@@ -76,7 +84,6 @@ page 31142 "EET Service Setup CZL"
                 }
                 field(ShowEnableWarning; ShowEnableWarning)
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the display of a warning message.';
                     ShowCaption = false;
                     AssistEdit = false;
@@ -98,15 +105,13 @@ page 31142 "EET Service Setup CZL"
         {
             action("EET Business Premises")
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'EET Business Premises';
+                Caption = 'EET Registrating Units';
                 Image = ElectronicPayment;
                 RunObject = page "EET Business Premises CZL";
-                ToolTip = 'Displays a list of your premises.';
+                ToolTip = 'Displays a list of your registrating units.';
             }
             action("Certificate Codes")
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Certificate Codes';
                 Image = Certificate;
                 RunObject = page "Certificate Code List CZL";
@@ -117,7 +122,6 @@ page 31142 "EET Service Setup CZL"
         {
             action(SetURLToDefault)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Set URL to Default';
                 Enabled = not Rec.Enabled;
                 Image = Restore;
@@ -130,7 +134,6 @@ page 31142 "EET Service Setup CZL"
             }
             action(JobQueueEntry)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Job Queue Entry';
                 Enabled = Rec.Enabled;
                 Image = JobListSetup;
@@ -140,6 +143,14 @@ page 31142 "EET Service Setup CZL"
                 begin
                     Rec.ShowJobQueueEntry();
                 end;
+            }
+            action(SimpleRegistration)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Simple EET Registration';
+                Image = ReverseRegister;
+                RunObject = page "EET Simple Registration CZL";
+                ToolTip = 'Create simple EET entry.';
             }
         }
         area(Promoted)

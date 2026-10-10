@@ -10,7 +10,7 @@ using Microsoft.Finance.VAT.Ledger;
 
 codeunit 31090 "EET Management Handler CZZ"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", 'OnBeforeCheckLineWithAppliedDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", OnBeforeCheckLineWithAppliedDocument, '', false, false)]
     local procedure EETManagementOnBeforeCheckLineWithAppliedDocument(CashDocumentLineCZP: Record "Cash Document Line CZP"; var IsHandled: Boolean)
     var
         SalesAdvLetterEntryCZZ: Record "Sales Adv. Letter Entry CZZ";
@@ -22,7 +22,6 @@ codeunit 31090 "EET Management Handler CZZ"
             exit;
 
         IsHandled := true;
-
         if CashDocumentLineCZP.IsAdvancePaymentCZZ() then begin
             SalesAdvLetterHeaderCZZ.Get(CashDocumentLineCZP."Advance Letter No. CZZ");
             SalesAdvLetterHeaderCZZ.TestField("Bill-to Customer No.", CashDocumentLineCZP."Account No.");
@@ -40,7 +39,6 @@ codeunit 31090 "EET Management Handler CZZ"
             end else
                 if EntryCount > 1 then
                     exit;
-
             if EntryCount = 0 then begin
                 SalesAdvLetterEntryCZZ.Reset();
                 SalesAdvLetterEntryCZZ.SetRange("Document No.", CashDocumentLineCZP."Applies-To Doc. No.");
@@ -50,19 +48,18 @@ codeunit 31090 "EET Management Handler CZZ"
                 AppliedDocumentAmount := SalesAdvLetterEntryCZZ.Amount;
             end;
         end;
-
         if CashDocumentLineCZP."Amount Including VAT" > AppliedDocumentAmount then
             CashDocumentLineCZP.TestField("Amount Including VAT", AppliedDocumentAmount);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", 'OnGetAppliedDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", OnGetAppliedDocumentType, '', false, false)]
     local procedure SetAdvanceDocumentTypeOnGetAppliedDocumentType(CashDocumentLineCZP: Record "Cash Document Line CZP"; var EETAppliedDocumentTypeCZL: Enum "EET Applied Document Type CZL")
     begin
         if CashDocumentLineCZP.IsAdvancePaymentCZZ() then
             EETAppliedDocumentTypeCZL := EETAppliedDocumentTypeCZL::"Advance CZZ";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", 'OnGetAppliedDocumentNo', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", OnGetAppliedDocumentNo, '', false, false)]
     local procedure SetAdvanceLetterNoOnGetAppliedDocumentNo(CashDocumentLineCZP: Record "Cash Document Line CZP"; var AppliedDocumentNo: Code[20])
     begin
         if CashDocumentLineCZP.IsAdvancePaymentCZZ() then
@@ -70,8 +67,8 @@ codeunit 31090 "EET Management Handler CZZ"
         if CashDocumentLineCZP.IsAdvanceRefundCZZ() then
             AppliedDocumentNo := '';
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", 'OnAfterCollectVATEntries', '', false, false)]
+#if not CLEAN30
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EET Management CZP", OnAfterCollectVATEntries, '', false, false)]
     local procedure CollectVATEntriesOfAdvanceLetterOnAfterCollectVATEntries(EETEntryCZL: Record "EET Entry CZL"; CashDocumentLineCZP: Record "Cash Document Line CZP"; var TempVATEntry: Record "VAT Entry" temporary)
     var
         SalesAdvLetterEntryCZZClose: Record "Sales Adv. Letter Entry CZZ";
@@ -156,4 +153,5 @@ codeunit 31090 "EET Management Handler CZZ"
         TempVATEntry := VATEntry;
         exit(TempVATEntry.Insert());
     end;
+#endif
 }
