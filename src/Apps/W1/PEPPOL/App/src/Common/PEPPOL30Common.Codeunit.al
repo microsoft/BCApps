@@ -136,6 +136,7 @@ codeunit 37218 "PEPPOL30 Common"
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        IsHandled: Boolean;
     begin
         case PostedRecRef.Number() of
             Database::"Purch. Inv. Header":
@@ -150,8 +151,12 @@ codeunit 37218 "PEPPOL30 Common"
                     PurchaseHeader.TransferFields(PurchCrMemoHeader);
                     PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::"Credit Memo";
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnConvertPostedHeaderToPurchaseHeaderOnCaseElse(PostedRecRef, PurchaseHeader, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -165,6 +170,7 @@ codeunit 37218 "PEPPOL30 Common"
     var
         PurchInvLine: Record "Purch. Inv. Line";
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        IsHandled: Boolean;
     begin
         case PostedLineRecRef.Number() of
             Database::"Purch. Inv. Line":
@@ -179,68 +185,12 @@ codeunit 37218 "PEPPOL30 Common"
                     PurchaseLine.TransferFields(PurchCrMemoLine);
                     PurchaseLine."Document Type" := PurchaseLine."Document Type"::"Credit Memo";
                 end;
-            else
-                Error(UnsupportedDocumentErr);
-        end;
-    end;
-
-    /// <summary>
-    /// Converts a posted purchase document header RecordRef to a Purchase Header buffer.
-    /// Supports Purch. Inv. Header and Purch. Cr. Memo Hdr. — used to source self-billed
-    /// PEPPOL export from posted purchase documents via the existing purchase provider interfaces,
-    /// which are typed to the live Purchase Header/Line.
-    /// </summary>
-    /// <param name="PostedRecRef">The RecordRef pointing to the posted purchase document header.</param>
-    /// <param name="PurchaseHeader">Return value: The Purchase Header record populated with fields from the posted document.</param>
-    procedure ConvertPostedHeaderToPurchaseHeader(var PostedRecRef: RecordRef; var PurchaseHeader: Record "Purchase Header")
-    var
-        PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
-    begin
-        case PostedRecRef.Number() of
-            Database::"Purch. Inv. Header":
-                begin
-                    PostedRecRef.SetTable(PurchInvHeader);
-                    PurchaseHeader.TransferFields(PurchInvHeader);
-                    PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
-                end;
-            Database::"Purch. Cr. Memo Hdr.":
-                begin
-                    PostedRecRef.SetTable(PurchCrMemoHeader);
-                    PurchaseHeader.TransferFields(PurchCrMemoHeader);
-                    PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::"Credit Memo";
-                end;
-            else
-                Error(UnsupportedDocumentErr);
-        end;
-    end;
-
-    /// <summary>
-    /// Converts a posted purchase document line RecordRef to a Purchase Line buffer.
-    /// Supports Purch. Inv. Line and Purch. Cr. Memo Line.
-    /// </summary>
-    /// <param name="PostedLineRecRef">The RecordRef pointing to the posted purchase document line.</param>
-    /// <param name="PurchaseLine">Return value: The Purchase Line record populated with fields from the posted document line.</param>
-    procedure ConvertPostedLineToPurchaseLine(var PostedLineRecRef: RecordRef; var PurchaseLine: Record "Purchase Line")
-    var
-        PurchInvLine: Record "Purch. Inv. Line";
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
-    begin
-        case PostedLineRecRef.Number() of
-            Database::"Purch. Inv. Line":
-                begin
-                    PostedLineRecRef.SetTable(PurchInvLine);
-                    PurchaseLine.TransferFields(PurchInvLine);
-                    PurchaseLine."Document Type" := PurchaseLine."Document Type"::Invoice;
-                end;
-            Database::"Purch. Cr. Memo Line":
-                begin
-                    PostedLineRecRef.SetTable(PurchCrMemoLine);
-                    PurchaseLine.TransferFields(PurchCrMemoLine);
-                    PurchaseLine."Document Type" := PurchaseLine."Document Type"::"Credit Memo";
-                end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnConvertPostedLineToPurchaseLineOnCaseElse(PostedLineRecRef, PurchaseLine, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -726,6 +676,16 @@ codeunit 37218 "PEPPOL30 Common"
 
     [IntegrationEvent(false, false)]
     local procedure OnConvertPostedLineToSalesLineOnCaseElse(var PostedDocLineRecRef: RecordRef; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnConvertPostedHeaderToPurchaseHeaderOnCaseElse(var PostedRecRef: RecordRef; var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnConvertPostedLineToPurchaseLineOnCaseElse(var PostedDocLineRecRef: RecordRef; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
