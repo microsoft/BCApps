@@ -1289,6 +1289,7 @@ table 295 "Reminder Header"
 
         NextLineNo := NextLineNo + LineSpacing;
         ReminderLine.Init();
+        ReminderLine."Reminder No." := "No.";
         ReminderLine."Line No." := NextLineNo;
         ReminderLine."Line Type" := LineType;
         OnInsertBlankLineOnBeforeReminderLineInsert(ReminderLine);
