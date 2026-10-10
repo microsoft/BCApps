@@ -10,7 +10,6 @@ using System;
 using System.Integration;
 using System.Threading;
 using System.Utilities;
-using System.Xml;
 
 codeunit 10569 "GovTalk Message Management"
 {
@@ -21,7 +20,7 @@ codeunit 10569 "GovTalk Message Management"
     var
         GovTalkSetup: Record "Gov Talk Setup";
         CompanyInformation: Record "Company Information";
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        GovTalkXMLHelper: Codeunit "GovTalk XML Helper";
         GovTalkNameSpaceTxt: Label 'http://www.govtalk.gov.uk/CM/envelope', Locked = true;
         VATDeclarationMessageClassTxt: Label 'HMRC-VAT-DEC', Locked = true;
         ECSLDeclarationMessageClassTxt: Label 'HMCE-ECSL-ORG-V101', Locked = true;
@@ -36,34 +35,48 @@ codeunit 10569 "GovTalk Message Management"
         ErrorTxt: Label 'Line No. %1 failed with error: %2', Comment = '%1 = response node, %2 = status node';
 
 
+#if not CLEAN30
     [Scope('OnPrem')]
     [NonDebuggable]
+    [Obsolete('Use CreateBlankGovTalkXmlMessage with XmlElement parameters instead.', '30.0')]
     procedure CreateBlankGovTalkXmlMessage(var GovTalkMessageXMLNode: DotNet XmlNode; var BodyXMLNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header"; Qualifier: Text; Fn: Text; IncludeSenderDetails: Boolean): Boolean
+    var
+        GovTalkMessageXmlElement: XmlElement;
+        BodyXmlElement: XmlElement;
+    begin
+        if not CreateBlankGovTalkXmlMessage(GovTalkMessageXmlElement, BodyXmlElement, VATReportHeader, Qualifier, Fn, IncludeSenderDetails) then
+            exit(false);
+        ConvertToDotNetXmlNode(GovTalkMessageXmlElement, GovTalkMessageXMLNode);
+        BodyXMLNode := GovTalkMessageXMLNode.LastChild;
+        exit(true);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure CreateBlankGovTalkXmlMessage(var GovTalkMessageXmlElement: XmlElement; var BodyXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header"; Qualifier: Text; Fn: Text; IncludeSenderDetails: Boolean): Boolean
     var
         GovTalkMessage: Record "GovTalk Message";
         GovTalkVATReportValidate: Codeunit "GovTalk Validate VAT Report";
-        XmlDoc: DotNet XmlDocument;
-        HeaderXMLNode: DotNet XmlNode;
-        MessageDetailsXMLNode: DotNet XmlNode;
-        SenderDetailsXMLNode: DotNet XmlNode;
-        IDAuthenticationXMLNode: DotNet XmlNode;
-        AuthenticationXMLNode: DotNet XmlNode;
-        GovTalkDetailsXMLNode: DotNet XmlNode;
-        KeysXMLNode: DotNet XmlNode;
-        VATRegNoXMLNode: DotNet XmlNode;
-        BranchNoXMLNode: DotNet XmlNode;
-        PostCodeXMLNode: DotNet XmlNode;
-        ChannelRoutingXMLNode: DotNet XmlNode;
-        ChannelXMLNode: DotNet XmlNode;
-        DummyXMLNode: DotNet XmlNode;
+        HeaderXmlElement: XmlElement;
+        MessageDetailsXmlElement: XmlElement;
+        SenderDetailsXmlElement: XmlElement;
+        IDAuthenticationXmlElement: XmlElement;
+        AuthenticationXmlElement: XmlElement;
+        GovTalkDetailsXmlElement: XmlElement;
+        KeysXmlElement: XmlElement;
+        VATRegNoXmlElement: XmlElement;
+        BranchNoXmlElement: XmlElement;
+        PostCodeXmlElement: XmlElement;
+        ChannelRoutingXmlElement: XmlElement;
+        ChannelXmlElement: XmlElement;
+        DummyXmlElement: XmlElement;
     begin
         if not GovTalkVATReportValidate.ValidateGovTalkPrerequisites(VATReportHeader) then
             exit(false);
 
         GovTalkSetup.FindFirst();
         CompanyInformation.Get();
-
-        XmlDoc := XmlDoc.XmlDocument();
 
         if not GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.") then
             InitGovTalkMessage(GovTalkMessage, VATReportHeader);
@@ -91,81 +104,168 @@ codeunit 10569 "GovTalk Message Management"
         // ---Channel
         // ----URI (VendorID)
         // -Body
-        XMLDOMManagement.AddRootElementWithPrefix(XmlDoc, 'GovTalkMessage', '', GovTalkNameSpaceTxt, GovTalkMessageXMLNode);
-        XMLDOMManagement.AddElement(GovTalkMessageXMLNode, 'EnvelopeVersion', '2.0', GovTalkNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElement(GovTalkMessageXMLNode, 'Header', '', GovTalkNameSpaceTxt, HeaderXMLNode);
-        XMLDOMManagement.AddElement(GovTalkMessageXMLNode, 'GovTalkDetails', '', GovTalkNameSpaceTxt, GovTalkDetailsXMLNode);
-        XMLDOMManagement.AddElement(GovTalkMessageXMLNode, 'Body', '', GovTalkNameSpaceTxt, BodyXMLNode);
+        GovTalkXMLHelper.CreateDocumentWithRootElement('GovTalkMessage', GovTalkNameSpaceTxt, GovTalkMessageXmlElement);
+        GovTalkXMLHelper.AddElement(GovTalkMessageXmlElement, 'EnvelopeVersion', '2.0', GovTalkNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(GovTalkMessageXmlElement, 'Header', '', GovTalkNameSpaceTxt, HeaderXmlElement);
+        GovTalkXMLHelper.AddElement(GovTalkMessageXmlElement, 'GovTalkDetails', '', GovTalkNameSpaceTxt, GovTalkDetailsXmlElement);
+        GovTalkXMLHelper.AddElement(GovTalkMessageXmlElement, 'Body', '', GovTalkNameSpaceTxt, BodyXmlElement);
 
-        XMLDOMManagement.AddElement(HeaderXMLNode, 'MessageDetails', '', GovTalkNameSpaceTxt, MessageDetailsXMLNode);
+        GovTalkXMLHelper.AddElement(HeaderXmlElement, 'MessageDetails', '', GovTalkNameSpaceTxt, MessageDetailsXmlElement);
 
         if GovTalkSetup."Test Mode" then
-            XMLDOMManagement.AddElement(MessageDetailsXMLNode, 'Class',
-              StrSubstNo(MessageClassTxt, GovTalkMessage."Message Class"), GovTalkNameSpaceTxt, DummyXMLNode)
+            GovTalkXMLHelper.AddElement(MessageDetailsXmlElement, 'Class',
+              StrSubstNo(MessageClassTxt, GovTalkMessage."Message Class"), GovTalkNameSpaceTxt, DummyXmlElement)
         else
-            XMLDOMManagement.AddElement(MessageDetailsXMLNode, 'Class', GovTalkMessage."Message Class", GovTalkNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElement(MessageDetailsXMLNode, 'Qualifier', Qualifier, GovTalkNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElement(MessageDetailsXMLNode, 'Function', Fn, GovTalkNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElement(MessageDetailsXMLNode, 'CorrelationID', VATReportHeader."Message Id", GovTalkNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElement(MessageDetailsXMLNode, 'Transformation', 'XML', GovTalkNameSpaceTxt, DummyXMLNode);
+            GovTalkXMLHelper.AddElement(MessageDetailsXmlElement, 'Class', GovTalkMessage."Message Class", GovTalkNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(MessageDetailsXmlElement, 'Qualifier', Qualifier, GovTalkNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(MessageDetailsXmlElement, 'Function', Fn, GovTalkNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(MessageDetailsXmlElement, 'CorrelationID', VATReportHeader."Message Id", GovTalkNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(MessageDetailsXmlElement, 'Transformation', 'XML', GovTalkNameSpaceTxt, DummyXmlElement);
 
         if IncludeSenderDetails then begin
-            XMLDOMManagement.AddElement(HeaderXMLNode, 'SenderDetails', '', GovTalkNameSpaceTxt, SenderDetailsXMLNode);
-            XMLDOMManagement.AddElement(SenderDetailsXMLNode, 'IDAuthentication', '', GovTalkNameSpaceTxt, IDAuthenticationXMLNode);
-            XMLDOMManagement.AddElement(IDAuthenticationXMLNode, 'SenderID', GovTalkSetup.Username, GovTalkNameSpaceTxt, DummyXMLNode);
-            XMLDOMManagement.AddElement(IDAuthenticationXMLNode, 'Authentication', '', GovTalkNameSpaceTxt, AuthenticationXMLNode);
-            XMLDOMManagement.AddElement(AuthenticationXMLNode, 'Method', 'clear', GovTalkNameSpaceTxt, DummyXMLNode);
-            XMLDOMManagement.AddElement(AuthenticationXMLNode, 'Value', GovTalkSetup.GetPassword(), GovTalkNameSpaceTxt, DummyXMLNode);
+            GovTalkXMLHelper.AddElement(HeaderXmlElement, 'SenderDetails', '', GovTalkNameSpaceTxt, SenderDetailsXmlElement);
+            GovTalkXMLHelper.AddElement(SenderDetailsXmlElement, 'IDAuthentication', '', GovTalkNameSpaceTxt, IDAuthenticationXmlElement);
+            GovTalkXMLHelper.AddElement(IDAuthenticationXmlElement, 'SenderID', GovTalkSetup.Username, GovTalkNameSpaceTxt, DummyXmlElement);
+            GovTalkXMLHelper.AddElement(IDAuthenticationXmlElement, 'Authentication', '', GovTalkNameSpaceTxt, AuthenticationXmlElement);
+            GovTalkXMLHelper.AddElement(AuthenticationXmlElement, 'Method', 'clear', GovTalkNameSpaceTxt, DummyXmlElement);
+            GovTalkXMLHelper.AddElement(AuthenticationXmlElement, 'Value', GovTalkSetup.GetPassword(), GovTalkNameSpaceTxt, DummyXmlElement);
         end;
 
-        XMLDOMManagement.AddElement(GovTalkDetailsXMLNode, 'Keys', '', GovTalkNameSpaceTxt, KeysXMLNode);
+        GovTalkXMLHelper.AddElement(GovTalkDetailsXmlElement, 'Keys', '', GovTalkNameSpaceTxt, KeysXmlElement);
         if IncludeSenderDetails then begin
             // EC Sales List specifics
             if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"EC Sales List" then begin
-                XMLDOMManagement.AddElement(KeysXMLNode, 'Key', CompanyInformation."Branch Number GB", GovTalkNameSpaceTxt, BranchNoXMLNode);
-                XMLDOMManagement.AddAttribute(BranchNoXMLNode, 'Type', 'BranchNo');
-                XMLDOMManagement.AddElement(KeysXMLNode, 'Key', DelChr(CompanyInformation."Post Code", '=', '- '), GovTalkNameSpaceTxt, PostCodeXMLNode);
-                XMLDOMManagement.AddAttribute(PostCodeXMLNode, 'Type', 'Postcode');
+                GovTalkXMLHelper.AddElement(KeysXmlElement, 'Key', CompanyInformation."Branch Number GB", GovTalkNameSpaceTxt, BranchNoXmlElement);
+                BranchNoXmlElement.SetAttribute('Type', 'BranchNo');
+                GovTalkXMLHelper.AddElement(KeysXmlElement, 'Key', DelChr(CompanyInformation."Post Code", '=', '- '), GovTalkNameSpaceTxt, PostCodeXmlElement);
+                PostCodeXmlElement.SetAttribute('Type', 'Postcode');
             end;
-            XMLDOMManagement.AddElement(KeysXMLNode, 'Key',
+            GovTalkXMLHelper.AddElement(KeysXmlElement, 'Key',
               FormatVATRegNo(CompanyInformation."Country/Region Code", CompanyInformation."VAT Registration No."),
-              GovTalkNameSpaceTxt, VATRegNoXMLNode);
-            XMLDOMManagement.AddAttribute(VATRegNoXMLNode, 'Type', 'VATRegNo');
+              GovTalkNameSpaceTxt, VATRegNoXmlElement);
+            VATRegNoXmlElement.SetAttribute('Type', 'VATRegNo');
         end;
-        XMLDOMManagement.AddElement(GovTalkDetailsXMLNode, 'ChannelRouting', '', GovTalkNameSpaceTxt, ChannelRoutingXMLNode);
-        XMLDOMManagement.AddElement(ChannelRoutingXMLNode, 'Channel', '', GovTalkNameSpaceTxt, ChannelXMLNode);
-        XMLDOMManagement.AddElement(ChannelXMLNode, 'URI', GovTalkSetup.GetVendorID(), GovTalkNameSpaceTxt, DummyXMLNode);
+        GovTalkXMLHelper.AddElement(GovTalkDetailsXmlElement, 'ChannelRouting', '', GovTalkNameSpaceTxt, ChannelRoutingXmlElement);
+        GovTalkXMLHelper.AddElement(ChannelRoutingXmlElement, 'Channel', '', GovTalkNameSpaceTxt, ChannelXmlElement);
+        GovTalkXMLHelper.AddElement(ChannelXmlElement, 'URI', GovTalkSetup.GetVendorID(), GovTalkNameSpaceTxt, DummyXmlElement);
 
         exit(true);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use CreateGovTalkPollMessage with an XmlElement parameter instead.', '30.0')]
     procedure CreateGovTalkPollMessage(var GovTalkMessageXMLNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header")
     var
         DummyXMLNode: DotNet XmlNode;
     begin
         CreateBlankGovTalkXmlMessage(GovTalkMessageXMLNode, DummyXMLNode, VATReportHeader, 'poll', 'submit', false);
     end;
+#endif
 
     [Scope('OnPrem')]
+    procedure CreateGovTalkPollMessage(var GovTalkMessageXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header")
+    var
+        DummyXmlElement: XmlElement;
+    begin
+        CreateBlankGovTalkXmlMessage(GovTalkMessageXmlElement, DummyXmlElement, VATReportHeader, 'poll', 'submit', false);
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
     [NonDebuggable]
+    [Obsolete('Use CreateGovTalkDeleteMessage with an XmlElement parameter instead.', '30.0')]
     procedure CreateGovTalkDeleteMessage(var GovTalkMessageXMLNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header")
     var
         DummyXMLNode: DotNet XmlNode;
     begin
         CreateBlankGovTalkXmlMessage(GovTalkMessageXMLNode, DummyXMLNode, VATReportHeader, 'request', 'delete', false);
     end;
+#endif
 
     [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure CreateGovTalkDeleteMessage(var GovTalkMessageXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header")
+    var
+        DummyXmlElement: XmlElement;
+    begin
+        CreateBlankGovTalkXmlMessage(GovTalkMessageXmlElement, DummyXmlElement, VATReportHeader, 'request', 'delete', false);
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Use SendHttpRequest with XmlElement parameters instead.', '30.0')]
     procedure SendHttpRequest(var GovTalkMessageXMLNode: DotNet XmlNode; SubmitURL: Text; var SubmitResponseXMLNode: DotNet XmlNode): Boolean
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
         TempBlob: Codeunit "Temp Blob";
+        GovTalkMessageXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
         XmlDoc: DotNet XmlDocument;
+        ResponseInStream: InStream;
+    begin
+        ConvertFromDotNetXmlNode(GovTalkMessageXMLNode, GovTalkMessageXmlElement, PreserveWhitespace);
+        if not SendHttpRequest(GovTalkMessageXmlElement, PreserveWhitespace, SubmitURL, TempBlob) then
+            exit(false);
+        TempBlob.CreateInStream(ResponseInStream);
+        if TryLoadDotNetXmlDocument(ResponseInStream, XmlDoc) then
+            SubmitResponseXMLNode := XmlDoc.DocumentElement;
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure TryLoadDotNetXmlDocument(XmlInStream: InStream; var XmlDoc: DotNet XmlDocument)
+    begin
+        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc.Load(XmlInStream);
+    end;
+
+    local procedure ConvertToDotNetXmlNode(GovTalkMessageXmlElement: XmlElement; var GovTalkMessageXMLNode: DotNet XmlNode)
+    var
+        XmlDoc: DotNet XmlDocument;
+    begin
+        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc.LoadXml(GovTalkXMLHelper.GetXmlAsText(GovTalkMessageXmlElement));
+        GovTalkMessageXMLNode := XmlDoc.DocumentElement;
+    end;
+
+    local procedure ConvertFromDotNetXmlNode(GovTalkMessageXMLNode: DotNet XmlNode; var GovTalkMessageXmlElement: XmlElement; var PreserveWhitespace: Boolean)
+    var
+        GovTalkXmlDocument: XmlDocument;
+        XmlReadOptions: XmlReadOptions;
+    begin
+        PreserveWhitespace := GovTalkMessageXMLNode.OwnerDocument.PreserveWhitespace;
+        XmlReadOptions.PreserveWhitespace(true);
+        XmlDocument.ReadFrom(GovTalkMessageXMLNode.OwnerDocument.OuterXml, XmlReadOptions, GovTalkXmlDocument);
+        GovTalkXmlDocument.GetRoot(GovTalkMessageXmlElement);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure SendHttpRequest(GovTalkMessageXmlElement: XmlElement; SubmitURL: Text; var SubmitResponseXmlElement: XmlElement): Boolean
+    begin
+        exit(SendHttpRequest(GovTalkMessageXmlElement, false, SubmitURL, SubmitResponseXmlElement));
+    end;
+
+    local procedure SendHttpRequest(GovTalkMessageXmlElement: XmlElement; PreserveWhitespace: Boolean; SubmitURL: Text; var SubmitResponseXmlElement: XmlElement): Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ResponseInStream: InStream;
+    begin
+        if not SendHttpRequest(GovTalkMessageXmlElement, PreserveWhitespace, SubmitURL, TempBlob) then
+            exit(false);
+        TempBlob.CreateInStream(ResponseInStream);
+        GovTalkXMLHelper.LoadXmlFromInStream(ResponseInStream, SubmitResponseXmlElement);
+        exit(true);
+    end;
+
+    local procedure SendHttpRequest(GovTalkMessageXmlElement: XmlElement; PreserveWhitespace: Boolean; SubmitURL: Text; var ResponseTempBlob: Codeunit "Temp Blob"): Boolean
+    var
+        WebRequestHelper: Codeunit "Web Request Helper";
         HttpWebRequest: DotNet HttpWebRequest;
         HttpStatusCode: DotNet HttpStatusCode;
         ResponseHeaders: DotNet NameValueCollection;
         HttpWebResponse: DotNet HttpWebResponse;
+        RequestOutStream: OutStream;
         ResponseInStream: InStream;
     begin
         HttpWebRequest := HttpWebRequest.Create(SubmitURL);
@@ -174,53 +274,58 @@ codeunit 10569 "GovTalk Message Management"
         HttpWebRequest.ContentType := 'text/xml';
         HttpWebRequest.Headers.Add('Accept-Encoding', 'utf-8');
 
-        XmlDoc := GovTalkMessageXMLNode.ParentNode;
-
-        TempBlob.CreateInStream(ResponseInStream);
-        XmlDoc.Save(HttpWebRequest.GetRequestStream());
+        ResponseTempBlob.CreateInStream(ResponseInStream);
+        RequestOutStream := HttpWebRequest.GetRequestStream();
+        GovTalkXMLHelper.CopyXmlToOutStream(GovTalkMessageXmlElement, PreserveWhitespace, RequestOutStream);
         if WebRequestHelper.GetWebResponse(HttpWebRequest, HttpWebResponse, ResponseInStream,
              HttpStatusCode, ResponseHeaders, true)
-        then begin
-            if HttpStatusCode.Equals(HttpStatusCode.OK) then begin
-                XMLDOMManagement.LoadXMLNodeFromInStream(ResponseInStream, SubmitResponseXMLNode);
-                exit(true);
-            end;
-            exit(false);
-        end;
+        then
+            exit(HttpStatusCode.Equals(HttpStatusCode.OK));
         exit(false);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use ReadGatewayErrors with an XmlElement parameter instead.', '30.0')]
     procedure ReadGatewayErrors(var VATReportHeader: Record "VAT Report Header"; SubmitResponseXMLNode: DotNet XmlNode)
     var
+        SubmitResponseXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
+    begin
+        ConvertFromDotNetXmlNode(SubmitResponseXMLNode, SubmitResponseXmlElement, PreserveWhitespace);
+        ReadGatewayErrors(VATReportHeader, SubmitResponseXmlElement);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure ReadGatewayErrors(var VATReportHeader: Record "VAT Report Header"; SubmitResponseXmlElement: XmlElement)
+    var
         GovTalkMessageParts: Record "GovTalk Msg. Parts";
-        ErrorsXMLNode: DotNet XmlNode;
-        CorrelationXMLNode: DotNet XmlNode;
-        ChildNodes: DotNet XmlNodeList;
+        ErrorsXmlElement: XmlElement;
+        CorrelationXmlElement: XmlElement;
+        ChildXmlNode: XmlNode;
         BusinessErrorExists: Boolean;
-        i: Integer;
     begin
         if
-           XMLDOMManagement.FindNodeWithNamespace(SubmitResponseXMLNode, '//x:GovTalkErrors', 'x', GovTalkNameSpaceTxt, ErrorsXMLNode)
+           GovTalkXMLHelper.FindElement(SubmitResponseXmlElement, '//x:GovTalkErrors', 'x', GovTalkNameSpaceTxt, ErrorsXmlElement)
         then begin
-            ChildNodes := ErrorsXMLNode.ChildNodes;
-            for i := 0 to ChildNodes.Count - 1 do
+            foreach ChildXmlNode in ErrorsXmlElement.GetChildNodes() do
                 if LowerCase(
-                     XMLDOMManagement.FindNodeTextWithNamespace(ChildNodes.Item(i), 'x:RaisedBy', 'x', GovTalkNameSpaceTxt)) = 'department'
+                     GovTalkXMLHelper.FindNodeText(ChildXmlNode, 'x:RaisedBy', 'x', GovTalkNameSpaceTxt)) = 'department'
                 then
                     BusinessErrorExists := true
                 else
-                    LogErrorEntry(VATReportHeader, XMLDOMManagement.FindNodeTextWithNamespace(
-                        ChildNodes.Item(i), 'x:Text', 'x', GovTalkNameSpaceTxt));
+                    LogErrorEntry(VATReportHeader, GovTalkXMLHelper.FindNodeText(
+                        ChildXmlNode, 'x:Text', 'x', GovTalkNameSpaceTxt));
             if BusinessErrorExists then
-                ReadBusinessErrors(VATReportHeader, SubmitResponseXMLNode);
+                ReadBusinessErrors(VATReportHeader, SubmitResponseXmlElement);
 
             if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"EC Sales List" then begin
-                if not XMLDOMManagement.FindNodeWithNamespace(
-                     SubmitResponseXMLNode, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXMLNode)
+                if not GovTalkXMLHelper.FindElement(
+                     SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXmlElement)
                 then
                     Error('');
-                SetPartStatus(CorrelationXMLNode.InnerText, GovTalkMessageParts.Status::Rejected);
+                SetPartStatus(CorrelationXmlElement.InnerText(), GovTalkMessageParts.Status::Rejected);
                 UpdateVATReportStatus(VATReportHeader);
             end else begin
                 VATReportHeader.Validate(Status, VATReportHeader.Status::Rejected);
@@ -229,18 +334,18 @@ codeunit 10569 "GovTalk Message Management"
         end;
     end;
 
-    local procedure ReadBusinessErrors(VATReportHeader: Record "VAT Report Header"; SubmitResponseXMLNode: DotNet XmlNode)
+    local procedure ReadBusinessErrors(VATReportHeader: Record "VAT Report Header"; SubmitResponseXmlElement: XmlElement)
     var
-        ErrorsXMLNode: DotNet XmlNode;
-        ChildNodes: DotNet XmlNodeList;
-        i: Integer;
+        ErrorsXmlElement: XmlElement;
+        ChildXmlNodes: XmlNodeList;
+        ChildXmlNode: XmlNode;
     begin
-        if XMLDOMManagement.FindNodeWithNamespace(SubmitResponseXMLNode, '//x:ErrorResponse', 'x', ErrorResponseNameSpaceTxt, ErrorsXMLNode) then begin
-            XMLDOMManagement.FindNodesWithNamespace(ErrorsXMLNode, 'x:Error', 'x', ErrorResponseNameSpaceTxt, ChildNodes);
-            for i := 0 to ChildNodes.Count - 1 do
-                LogErrorEntry(VATReportHeader, XMLDOMManagement.FindNodeTextWithNamespace(
-                    ChildNodes.Item(i), 'x:Text', 'x', ErrorResponseNameSpaceTxt));
-            ReadECSLDeclarationResponse(VATReportHeader, ErrorsXMLNode);
+        if GovTalkXMLHelper.FindElement(SubmitResponseXmlElement, '//x:ErrorResponse', 'x', ErrorResponseNameSpaceTxt, ErrorsXmlElement) then begin
+            GovTalkXMLHelper.FindNodes(ErrorsXmlElement, 'x:Error', 'x', ErrorResponseNameSpaceTxt, ChildXmlNodes);
+            foreach ChildXmlNode in ChildXmlNodes do
+                LogErrorEntry(VATReportHeader, GovTalkXMLHelper.FindNodeText(
+                    ChildXmlNode, 'x:Text', 'x', ErrorResponseNameSpaceTxt));
+            ReadECSLDeclarationResponse(VATReportHeader, ErrorsXmlElement);
         end;
     end;
 
@@ -263,27 +368,40 @@ codeunit 10569 "GovTalk Message Management"
           VATReportHeader.FieldNo("No."), ErrorMessageLog."Message Type"::Information, NotificationText);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use ReadSuccessResponse with an XmlElement parameter instead.', '30.0')]
     procedure ReadSuccessResponse(var VATReportHeader: Record "VAT Report Header"; SubmitResponseXMLNode: DotNet XmlNode)
     var
-        VATReportsConfiguration: Record "VAT Reports Configuration";
-        SuccessResponseXMLNode: DotNet XmlNode;
-        CorrelationXMLNode: DotNet XmlNode;
+        SubmitResponseXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
     begin
-        if XMLDOMManagement.FindNodeWithNamespace(
-             SubmitResponseXMLNode, '//suc:SuccessResponse', 'suc', SuccessResponseNameSpaceTxt, SuccessResponseXMLNode)
+        ConvertFromDotNetXmlNode(SubmitResponseXMLNode, SubmitResponseXmlElement, PreserveWhitespace);
+        ReadSuccessResponse(VATReportHeader, SubmitResponseXmlElement);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure ReadSuccessResponse(var VATReportHeader: Record "VAT Report Header"; SubmitResponseXmlElement: XmlElement)
+    var
+        VATReportsConfiguration: Record "VAT Reports Configuration";
+        SuccessResponseXmlElement: XmlElement;
+        CorrelationXmlElement: XmlElement;
+    begin
+        if GovTalkXMLHelper.FindElement(
+             SubmitResponseXmlElement, '//suc:SuccessResponse', 'suc', SuccessResponseNameSpaceTxt, SuccessResponseXmlElement)
         then begin
-            ReadVATDeclarationResponse(VATReportHeader, SuccessResponseXMLNode);
-            ReadECSLDeclarationResponse(VATReportHeader, SuccessResponseXMLNode);
+            ReadVATDeclarationResponse(VATReportHeader, SuccessResponseXmlElement);
+            ReadECSLDeclarationResponse(VATReportHeader, SuccessResponseXmlElement);
             if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"VAT Return" then begin
                 VATReportHeader.Validate(Status, VATReportHeader.Status::Accepted);
                 VATReportHeader.Modify(true);
             end else begin
-                if not XMLDOMManagement.FindNodeWithNamespace(
-                     SuccessResponseXMLNode, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXMLNode)
+                if not GovTalkXMLHelper.FindElement(
+                     SuccessResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXmlElement)
                 then
                     Error('');
-                SetPartStatus(CorrelationXMLNode.InnerText, VATReportHeader.Status::Accepted.AsInteger());
+                SetPartStatus(CorrelationXmlElement.InnerText(), VATReportHeader.Status::Accepted.AsInteger());
                 UpdateVATReportStatus(VATReportHeader);
             end;
             if VATReportsConfiguration.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."VAT Report Version") then
@@ -292,58 +410,80 @@ codeunit 10569 "GovTalk Message Management"
         end;
     end;
 
-    local procedure ReadVATDeclarationResponse(VATReportHeader: Record "VAT Report Header"; SuccessResponseXMLNode: DotNet XmlNode)
+    local procedure ReadVATDeclarationResponse(VATReportHeader: Record "VAT Report Header"; SuccessResponseXmlElement: XmlElement)
     var
-        PaymentNotificationXMLNode: DotNet XmlNode;
-        InformationNotificationXMLNodes: DotNet XmlNodeList;
-        i: Integer;
+        PaymentNotificationXmlElement: XmlElement;
+        InformationNotificationXmlNodes: XmlNodeList;
+        InformationNotificationXmlNode: XmlNode;
     begin
-        if XMLDOMManagement.FindNodeWithNamespace(
-             SuccessResponseXMLNode, '//x:PaymentNotification', 'x', VATDeclarationNameSpaceTxt, PaymentNotificationXMLNode)
+        if GovTalkXMLHelper.FindElement(
+             SuccessResponseXmlElement, '//x:PaymentNotification', 'x', VATDeclarationNameSpaceTxt, PaymentNotificationXmlElement)
         then
-            LogNotificationEntry(VATReportHeader, XMLDOMManagement.FindNodeTextWithNamespace(
-                PaymentNotificationXMLNode, 'x:Narrative', 'x', VATDeclarationNameSpaceTxt));
-        XMLDOMManagement.FindNodesWithNamespace(SuccessResponseXMLNode,
-          '//x:InformationNotification', 'x', VATDeclarationNameSpaceTxt, InformationNotificationXMLNodes);
-        for i := 0 to InformationNotificationXMLNodes.Count - 1 do
-            LogNotificationEntry(VATReportHeader, XMLDOMManagement.FindNodeTextWithNamespace(
-                InformationNotificationXMLNodes.Item(i), 'x:Narrative', 'x', VATDeclarationNameSpaceTxt));
+            LogNotificationEntry(VATReportHeader, GovTalkXMLHelper.FindNodeText(
+                PaymentNotificationXmlElement, 'x:Narrative', 'x', VATDeclarationNameSpaceTxt));
+        GovTalkXMLHelper.FindNodes(SuccessResponseXmlElement,
+          '//x:InformationNotification', 'x', VATDeclarationNameSpaceTxt, InformationNotificationXmlNodes);
+        foreach InformationNotificationXmlNode in InformationNotificationXmlNodes do
+            LogNotificationEntry(VATReportHeader, GovTalkXMLHelper.FindNodeText(
+                InformationNotificationXmlNode, 'x:Narrative', 'x', VATDeclarationNameSpaceTxt));
     end;
 
-    local procedure ReadECSLDeclarationResponse(VATReportHeader: Record "VAT Report Header"; SuccessResponseXMLNode: DotNet XmlNode)
+    local procedure ReadECSLDeclarationResponse(VATReportHeader: Record "VAT Report Header"; SuccessResponseXmlElement: XmlElement)
     var
-        EuropeanSaleResponseXMLNodes: DotNet XmlNodeList;
-        LineResponseXMLNode: DotNet XmlNode;
-        LineStatusXMLNode: DotNet XmlNode;
-        DummyXMLNode: DotNet XmlNode;
-        i: Integer;
+        EuropeanSaleResponseXmlNodes: XmlNodeList;
+        EuropeanSaleResponseXmlNode: XmlNode;
+        LineResponseXmlElement: XmlElement;
+        LineStatusXmlElement: XmlElement;
+        DummyXmlElement: XmlElement;
     begin
-        if XMLDOMManagement.FindNodesWithNamespace(
-                 SuccessResponseXMLNode, '//ns:EuropeanSaleResponse', 'ns', ECSLDeclarationNameSpaceTxt, EuropeanSaleResponseXMLNodes)
+        if GovTalkXMLHelper.FindNodes(
+                 SuccessResponseXmlElement, '//ns:EuropeanSaleResponse', 'ns', ECSLDeclarationNameSpaceTxt, EuropeanSaleResponseXmlNodes)
             then
-            for i := 0 to EuropeanSaleResponseXMLNodes.Count - 1 do
-                if XMLDOMManagement.FindNodeWithNamespace(EuropeanSaleResponseXMLNodes.Item(i),
-                     'ns1:EuropeanSale', 'ns1', VATCoreNameSpaceTxt, LineResponseXMLNode) and
-                   XMLDOMManagement.FindNodeWithNamespace(EuropeanSaleResponseXMLNodes.Item(i), 'ns1:Status', 'ns1', VATCoreNameSpaceTxt, LineStatusXMLNode)
+            foreach EuropeanSaleResponseXmlNode in EuropeanSaleResponseXmlNodes do
+                if GovTalkXMLHelper.FindElement(EuropeanSaleResponseXmlNode.AsXmlElement(),
+                     'ns1:EuropeanSale', 'ns1', VATCoreNameSpaceTxt, LineResponseXmlElement) and
+                   GovTalkXMLHelper.FindElement(EuropeanSaleResponseXmlNode.AsXmlElement(), 'ns1:Status', 'ns1', VATCoreNameSpaceTxt, LineStatusXmlElement)
                 then
-                    if XMLDOMManagement.FindNodeWithNamespace(LineStatusXMLNode, 'ns1:Acknowledged', 'ns1', VATCoreNameSpaceTxt, DummyXMLNode) then
+                    if GovTalkXMLHelper.FindElement(LineStatusXmlElement, 'ns1:Acknowledged', 'ns1', VATCoreNameSpaceTxt, DummyXmlElement) then
                         LogNotificationEntry(VATReportHeader, StrSubstNo(
                             NotificationTxt,
-                            XMLDOMManagement.FindNodeTextWithNamespace(LineResponseXMLNode, 'ns1:SubmittersReference', 'ns1', VATCoreNameSpaceTxt)))
+                            GovTalkXMLHelper.FindNodeText(LineResponseXmlElement, 'ns1:SubmittersReference', 'ns1', VATCoreNameSpaceTxt)))
                     else
                         LogErrorEntry(VATReportHeader, StrSubstNo(ErrorTxt,
-                            XMLDOMManagement.FindNodeTextWithNamespace(LineResponseXMLNode, 'ns1:SubmittersReference', 'ns1', VATCoreNameSpaceTxt),
-                            XMLDOMManagement.FindNodeTextWithNamespace(LineStatusXMLNode, 'ns1:Error', 'ns1', VATCoreNameSpaceTxt)));
+                            GovTalkXMLHelper.FindNodeText(LineResponseXmlElement, 'ns1:SubmittersReference', 'ns1', VATCoreNameSpaceTxt),
+                            GovTalkXMLHelper.FindNodeText(LineStatusXmlElement, 'ns1:Error', 'ns1', VATCoreNameSpaceTxt)));
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use SubmitGovTalkRequest with an XmlElement parameter instead.', '30.0')]
     procedure SubmitGovTalkRequest(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXMLNode: DotNet XmlNode): Boolean
+    var
+        GovTalkMessageXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
+    begin
+        ConvertFromDotNetXmlNode(GovTalkMessageXMLNode, GovTalkMessageXmlElement, PreserveWhitespace);
+        exit(SubmitGovTalkRequest(VATReportHeader, GovTalkMessageXmlElement, PreserveWhitespace));
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure SubmitGovTalkRequest(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXmlElement: XmlElement): Boolean
+    begin
+        exit(SubmitGovTalkRequest(VATReportHeader, GovTalkMessageXmlElement, false));
+    end;
+
+    /// <summary>
+    /// Submits a GovTalk message. When PreserveWhitespace is true, the message is sent and archived without indentation,
+    /// which is required for messages that carry an IRmark.
+    /// </summary>
+    internal procedure SubmitGovTalkRequest(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXmlElement: XmlElement; PreserveWhitespace: Boolean): Boolean
     var
         DummyGuid: Guid;
     begin
         GovTalkSetup.FindFirst();
-        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXMLNode, 0, DummyGuid);
-        exit(ProcessGovTalkSubmission(VATReportHeader, GovTalkSetup.Endpoint, GovTalkMessageXMLNode, true, true, DummyGuid));
+        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXmlElement, PreserveWhitespace, 0, DummyGuid);
+        exit(ProcessGovTalkSubmission(VATReportHeader, GovTalkSetup.Endpoint, GovTalkMessageXmlElement, PreserveWhitespace, true, true, DummyGuid));
     end;
 
     [Scope('OnPrem')]
@@ -386,18 +526,18 @@ codeunit 10569 "GovTalk Message Management"
     procedure SubmitGovTalkDeleteRequest(var VATReportHeader: Record "VAT Report Header"; LogMessage: Boolean): Boolean
     var
         GovTalkMessage: Record "GovTalk Message";
-        GovTalkMessageXMLNode: DotNet XmlNode;
+        GovTalkMessageXmlElement: XmlElement;
         DummyGuid: Guid;
     begin
         if VATReportHeader."Message Id" = '' then
             exit(true);
-        CreateGovTalkDeleteMessage(GovTalkMessageXMLNode, VATReportHeader);
+        CreateGovTalkDeleteMessage(GovTalkMessageXmlElement, VATReportHeader);
         if GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.") then begin
             if GovTalkMessage.ResponseEndPoint = '' then
                 exit(false);
             if LogMessage then
-                ArchiveXMLMessage(VATReportHeader, GovTalkMessageXMLNode, 0, DummyGuid);
-            if ProcessGovTalkSubmission(VATReportHeader, GovTalkMessage.ResponseEndPoint, GovTalkMessageXMLNode, LogMessage, false, DummyGuid) then begin
+                ArchiveXMLMessage(VATReportHeader, GovTalkMessageXmlElement, 0, DummyGuid);
+            if ProcessGovTalkSubmission(VATReportHeader, GovTalkMessage.ResponseEndPoint, GovTalkMessageXmlElement, LogMessage, false, DummyGuid) then begin
                 VATReportHeader."Message Id" := '';
                 VATReportHeader.Modify(true);
                 exit(true);
@@ -406,21 +546,31 @@ codeunit 10569 "GovTalk Message Management"
         exit(false);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use ArchiveXMLMessage with an XmlElement parameter instead.', '30.0')]
     procedure ArchiveXMLMessage(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXMLNode: DotNet XmlNode; MessageType: Option Submission,Response; XMLPartID: Guid)
+    var
+        GovTalkMessageXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
+    begin
+        ConvertFromDotNetXmlNode(GovTalkMessageXMLNode, GovTalkMessageXmlElement, PreserveWhitespace);
+        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXmlElement, PreserveWhitespace, MessageType, XMLPartID);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure ArchiveXMLMessage(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXmlElement: XmlElement; MessageType: Option Submission,Response; XMLPartID: Guid)
+    begin
+        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXmlElement, false, MessageType, XMLPartID);
+    end;
+
+    local procedure ArchiveXMLMessage(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXmlElement: XmlElement; PreserveWhitespace: Boolean; MessageType: Option Submission,Response; XMLPartID: Guid)
     var
         VATReportArchive: Record "VAT Report Archive";
         TempBlob: Codeunit "Temp Blob";
-        XmlDoc: DotNet XmlDocument;
-        BlobOutStream: OutStream;
-        MemoryStream: DotNet MemoryStream;
     begin
-        XmlDoc := GovTalkMessageXMLNode.ParentNode;
-        MemoryStream := MemoryStream.MemoryStream();
-        XmlDoc.Save(MemoryStream);
-        TempBlob.CreateOutStream(BlobOutStream);
-        MemoryStream.WriteTo(BlobOutStream);
-        MemoryStream.Close();
+        GovTalkXMLHelper.WriteXmlToTempBlob(GovTalkMessageXmlElement, PreserveWhitespace, TempBlob);
 #if not CLEAN27
 #pragma warning disable AL0432
         if MessageType = MessageType::Submission then
@@ -442,59 +592,77 @@ codeunit 10569 "GovTalk Message Management"
 #endif
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use ProcessGovTalkSubmission with an XmlElement parameter instead.', '30.0')]
     procedure ProcessGovTalkSubmission(var VATReportHeader: Record "VAT Report Header"; SubmissionEndPoint: Text; GovTalkMessageXMLNode: DotNet XmlNode; LogResponse: Boolean; FlushGateway: Boolean; XMlPartId: Guid): Boolean
     var
+        GovTalkMessageXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
+    begin
+        ConvertFromDotNetXmlNode(GovTalkMessageXMLNode, GovTalkMessageXmlElement, PreserveWhitespace);
+        exit(ProcessGovTalkSubmission(VATReportHeader, SubmissionEndPoint, GovTalkMessageXmlElement, PreserveWhitespace, LogResponse, FlushGateway, XMlPartId));
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure ProcessGovTalkSubmission(var VATReportHeader: Record "VAT Report Header"; SubmissionEndPoint: Text; GovTalkMessageXmlElement: XmlElement; LogResponse: Boolean; FlushGateway: Boolean; XMlPartId: Guid): Boolean
+    begin
+        exit(ProcessGovTalkSubmission(VATReportHeader, SubmissionEndPoint, GovTalkMessageXmlElement, false, LogResponse, FlushGateway, XMlPartId));
+    end;
+
+    local procedure ProcessGovTalkSubmission(var VATReportHeader: Record "VAT Report Header"; SubmissionEndPoint: Text; GovTalkMessageXmlElement: XmlElement; PreserveWhitespace: Boolean; LogResponse: Boolean; FlushGateway: Boolean; XMlPartId: Guid): Boolean
+    var
         GovTalkMessage: Record "GovTalk Message";
-        SubmitResponseXMLNode: DotNet XmlNode;
-        ResponseQualifierXMLNode: DotNet XmlNode;
-        CorrelationIDXMLNode: DotNet XmlNode;
-        ResponseEndPointXMLNode: DotNet XmlNode;
-        PollIntervalAttribute: DotNet XmlAttribute;
-        CorrelationXMLNode: DotNet XmlNode;
+        SubmitResponseXmlElement: XmlElement;
+        ResponseQualifierXmlElement: XmlElement;
+        CorrelationIDXmlElement: XmlElement;
+        ResponseEndPointXmlElement: XmlElement;
+        PollIntervalXmlAttribute: XmlAttribute;
+        CorrelationXmlElement: XmlElement;
         PollInterval: Integer;
     begin
-        if SendHttpRequest(GovTalkMessageXMLNode, SubmissionEndPoint, SubmitResponseXMLNode) then begin
+        if SendHttpRequest(GovTalkMessageXmlElement, PreserveWhitespace, SubmissionEndPoint, SubmitResponseXmlElement) then begin
             if LogResponse then
-                ArchiveXMLMessage(VATReportHeader, SubmitResponseXMLNode, 1, XMlPartId);
-            if XMLDOMManagement.FindNodeWithNamespace(
-                 SubmitResponseXMLNode, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationIDXMLNode)
+                ArchiveXMLMessage(VATReportHeader, SubmitResponseXmlElement, false, 1, XMlPartId);
+            if GovTalkXMLHelper.FindElement(
+                 SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationIDXmlElement)
             then
-                PersistCorrelationID(VATReportHeader, XMlPartId, CorrelationIDXMLNode.InnerText);
+                PersistCorrelationID(VATReportHeader, XMlPartId, CopyStr(CorrelationIDXmlElement.InnerText(), 1, 250));
 
-            if XMLDOMManagement.FindNodeWithNamespace(
-                 SubmitResponseXMLNode, '//x:ResponseEndPoint', 'x', GovTalkNameSpaceTxt, ResponseEndPointXMLNode)
+            if GovTalkXMLHelper.FindElement(
+                 SubmitResponseXmlElement, '//x:ResponseEndPoint', 'x', GovTalkNameSpaceTxt, ResponseEndPointXmlElement)
             then begin
-                XMLDOMManagement.FindAttribute(ResponseEndPointXMLNode, PollIntervalAttribute, 'PollInterval');
-                Evaluate(PollInterval, PollIntervalAttribute.Value);
+                ResponseEndPointXmlElement.Attributes().Get('PollInterval', PollIntervalXmlAttribute);
+                Evaluate(PollInterval, PollIntervalXmlAttribute.Value());
                 if GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.") then begin
-                    GovTalkMessage.Validate(ResponseEndPoint, ResponseEndPointXMLNode.InnerText);
+                    GovTalkMessage.Validate(ResponseEndPoint, CopyStr(ResponseEndPointXmlElement.InnerText(), 1, MaxStrLen(GovTalkMessage.ResponseEndPoint)));
                     GovTalkMessage.Validate(PollInterval, PollInterval);
                     GovTalkMessage.Modify();
                 end;
             end;
-            if XMLDOMManagement.FindNodeWithNamespace(
-                 SubmitResponseXMLNode, '//x:Qualifier', 'x', GovTalkNameSpaceTxt, ResponseQualifierXMLNode)
+            if GovTalkXMLHelper.FindElement(
+                 SubmitResponseXmlElement, '//x:Qualifier', 'x', GovTalkNameSpaceTxt, ResponseQualifierXmlElement)
             then
-                if (ResponseQualifierXMLNode.InnerText = 'error') and
+                if (ResponseQualifierXmlElement.InnerText() = 'error') and
                    (FlushGateway = true)
                 then begin
-                    ReadGatewayErrors(VATReportHeader, SubmitResponseXMLNode);
+                    ReadGatewayErrors(VATReportHeader, SubmitResponseXmlElement);
                     SubmitGovTalkDeleteRequest(VATReportHeader, false);
                 end else
-                    if (ResponseQualifierXMLNode.InnerText = 'response') and
+                    if (ResponseQualifierXmlElement.InnerText() = 'response') and
                        (FlushGateway = true)
                     then begin
-                        ReadSuccessResponse(VATReportHeader, SubmitResponseXMLNode);
+                        ReadSuccessResponse(VATReportHeader, SubmitResponseXmlElement);
                         SubmitGovTalkDeleteRequest(VATReportHeader, false);
                     end else
-                        if ResponseQualifierXMLNode.InnerText = 'acknowledgement' then begin
+                        if ResponseQualifierXmlElement.InnerText() = 'acknowledgement' then begin
                             if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"EC Sales List" then begin
-                                if not XMLDOMManagement.FindNodeWithNamespace(
-                                     SubmitResponseXMLNode, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXMLNode)
+                                if not GovTalkXMLHelper.FindElement(
+                                     SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXmlElement)
                                 then
                                     Error('');
-                                SetPartStatus(CorrelationXMLNode.InnerText, VATReportHeader.Status::Submitted.AsInteger());
+                                SetPartStatus(CorrelationXmlElement.InnerText(), VATReportHeader.Status::Submitted.AsInteger());
                                 UpdateVATReportStatus(VATReportHeader);
                             end else begin
                                 VATReportHeader.Validate(Status, VATReportHeader.Status::Submitted);
@@ -536,12 +704,27 @@ codeunit 10569 "GovTalk Message Management"
         exit(VATRegNo);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use SubmitECSLGovTalkRequest with an XmlElement parameter instead.', '30.0')]
     procedure SubmitECSLGovTalkRequest(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXMLNode: DotNet XmlNode; XMLPartID: Guid)
+    var
+        GovTalkMessageXmlElement: XmlElement;
+        PreserveWhitespace: Boolean;
+    begin
+        ConvertFromDotNetXmlNode(GovTalkMessageXMLNode, GovTalkMessageXmlElement, PreserveWhitespace);
+        GovTalkSetup.FindFirst();
+        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXmlElement, PreserveWhitespace, 0, XMLPartID);
+        ProcessGovTalkSubmission(VATReportHeader, GovTalkSetup.Endpoint, GovTalkMessageXmlElement, PreserveWhitespace, true, true, XMLPartID)
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure SubmitECSLGovTalkRequest(var VATReportHeader: Record "VAT Report Header"; GovTalkMessageXmlElement: XmlElement; XMLPartID: Guid)
     begin
         GovTalkSetup.FindFirst();
-        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXMLNode, 0, XMLPartID);
-        ProcessGovTalkSubmission(VATReportHeader, GovTalkSetup.Endpoint, GovTalkMessageXMLNode, true, true, XMLPartID)
+        ArchiveXMLMessage(VATReportHeader, GovTalkMessageXmlElement, 0, XMLPartID);
+        ProcessGovTalkSubmission(VATReportHeader, GovTalkSetup.Endpoint, GovTalkMessageXmlElement, true, true, XMLPartID)
     end;
 
     local procedure PersistCorrelationID(var VATReportHeader: Record "VAT Report Header"; XmlPartID: Guid; CorrelationID: Text[250])

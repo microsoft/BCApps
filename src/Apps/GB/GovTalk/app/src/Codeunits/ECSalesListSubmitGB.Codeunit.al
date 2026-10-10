@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.VAT.GovTalk;
 
 using Microsoft.Finance.VAT.Reporting;
-using System;
 
 #pragma warning disable AA0247
 codeunit 10519 "EC Sales List Submit GB"
@@ -16,7 +15,7 @@ codeunit 10519 "EC Sales List Submit GB"
         GovTalkMessageParts: Record "GovTalk Msg. Parts";
         ECSalesListPopulateXML: Codeunit "EC Sales List XML";
         GovTalkMessageManagement: Codeunit "GovTalk Message Management";
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         DefaltPartMaxLines := 9999;
         SplitLines(Rec);
@@ -26,10 +25,10 @@ codeunit 10519 "EC Sales List Submit GB"
             exit;
 
         repeat
-            if not ECSalesListPopulateXML.GetECSLDeclarationRequestMessage(GovTalkRequestXMLNode, Rec, GovTalkMessageParts."Part Id") then
+            if not ECSalesListPopulateXML.GetECSLDeclarationRequestMessage(GovTalkRequestXmlElement, Rec, GovTalkMessageParts."Part Id") then
                 exit;
 
-            GovTalkMessageManagement.SubmitECSLGovTalkRequest(Rec, GovTalkRequestXMLNode, GovTalkMessageParts."Part Id");
+            GovTalkMessageManagement.SubmitECSLGovTalkRequest(Rec, GovTalkRequestXmlElement, GovTalkMessageParts."Part Id");
         until GovTalkMessageParts.Next() = 0;
 
         Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditECSLSubmittedTxt, Rec."No."), AuditCategory::CustomerFacing);

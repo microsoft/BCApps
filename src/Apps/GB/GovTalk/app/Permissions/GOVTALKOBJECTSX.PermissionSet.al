@@ -14,6 +14,7 @@ permissionset 10526 "GovTalk - Objects X"
                   codeunit "GovTalk Message Management" = X,
                   codeunit "Gov Talk Setup" = X,
                   codeunit "GovTalk Validate VAT Report" = X,
+                  codeunit "GovTalk XML Helper" = X,
                   codeunit "HMRC GovTalk Msg. Scheduler" = X,
                   codeunit "HMRC Submission Helpers" = X,
                   codeunit "Sandbox Cleanup" = X,
