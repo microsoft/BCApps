@@ -725,7 +725,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code", TempBillingLine."Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
         CustomerContract.SetLoadFields("External Document No.");
         if CustomerContract.Get(TempBillingLine."Subscription Contract No.") then
             if CustomerContract."External Document No." <> '' then
