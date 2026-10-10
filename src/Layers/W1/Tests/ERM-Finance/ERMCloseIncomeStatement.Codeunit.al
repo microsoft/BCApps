@@ -722,21 +722,41 @@ codeunit 134228 "ERM Close Income Statement"
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
     [Scope('OnPrem')]
     procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithAdditionalReportingCurrency()
+    begin
+        // [SCENARIO] A source-VAT-only group is posted when Additional Reporting Currency is enabled.
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithoutAdditionalReportingCurrency()
+    begin
+        // [SCENARIO] Posting the closing journal preserves source VAT when Additional Reporting Currency is disabled.
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(false);
+    end;
+
+    local procedure VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(UseAdditionalReportingCurrency: Boolean)
     var
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
         GLAccountNo: Code[20];
         SourceCurrencyCode: Code[10];
         DocumentNo: Code[20];
         PostingDate: Date;
     begin
-        // [SCENARIO] A source-VAT-only group is posted when Additional Reporting Currency is enabled.
         Initialize();
         LibraryFiscalYear.CloseFiscalYear();
         LibraryFiscalYear.CreateFiscalYear();
 
-        UpdateCurOnGeneralLedgerSetup(CreateCurrency());
+        if UseAdditionalReportingCurrency then
+            UpdateCurOnGeneralLedgerSetup(CreateCurrency())
+        else
+            UpdateCurOnGeneralLedgerSetup('');
+        if not VATPostingSetup.Get('', '') then
+            LibraryERM.CreateVATPostingSetup(VATPostingSetup, '', '');
         SourceCurrencyCode := CreateCurrency();
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
@@ -754,6 +774,9 @@ codeunit 134228 "ERM Close Income Statement"
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
             PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+
+        if not UseAdditionalReportingCurrency then
+            LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         GLEntry.SetRange("Document No.", DocumentNo);
         GLEntry.SetRange("G/L Account No.", GLAccountNo);

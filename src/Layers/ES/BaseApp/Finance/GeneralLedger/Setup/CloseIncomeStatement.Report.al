@@ -622,6 +622,7 @@ report 94 "Close Income Statement"
 
         GenJnlLine."Additional-Currency Posting" :=
           GenJnlLine."Additional-Currency Posting"::None;
+        GenJnlLine."System-Created Entry" := true;
         if GLSetup."Additional Reporting Currency" <> '' then begin
             if ZeroGenJnlAmount() then begin
                 GenJnlLine."Additional-Currency Posting" :=

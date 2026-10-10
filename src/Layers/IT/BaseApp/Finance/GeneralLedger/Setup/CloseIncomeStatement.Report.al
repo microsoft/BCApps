@@ -661,6 +661,7 @@ report 94 "Close Income Statement"
         GenJnlLine."Additional-Currency Posting" :=
           GenJnlLine."Additional-Currency Posting"::None;
         GenJnlLine."Bal. Account No." := BalancingAccount."No.";
+        GenJnlLine."System-Created Entry" := true;
         if GLSetup."Additional Reporting Currency" <> '' then begin
             if ZeroGenJnlAmount() then begin
                 GenJnlLine."Additional-Currency Posting" :=
@@ -669,7 +670,6 @@ report 94 "Close Income Statement"
                 GenJnlLine."Source Currency Amount" := 0;
             end;
             if (GenJnlLine.Amount <> 0) or (GenJnlLine."Source Curr. VAT Amount" <> 0) then begin
-                GenJnlLine."System-Created Entry" := true;
                 GenJnlPostLine.Run(GenJnlLine);
                 if DocNo = NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq) then
                     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
