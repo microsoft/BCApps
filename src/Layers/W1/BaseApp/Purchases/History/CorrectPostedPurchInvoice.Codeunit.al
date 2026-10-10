@@ -17,6 +17,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
@@ -122,6 +123,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         CreateCreditMemoLbl: Label 'Create credit memo anyway';
         ShowEntriesLbl: Label 'Show applied entries';
         CreateCreditMemoQst: Label 'The invoice was posted from an order. A Purchase Credit memo will be created which you complete and post manually. The quantities will be corrected in the existing Purchase Order.\ \Do you want to continue?';
+        TrackingCodeChangedCancelCorrectErr: Label 'You cannot cancel or correct posted purchase invoice %2 because the item tracking code for item %1 has changed since the item was posted. Create a corrective credit memo and assign the required item tracking before posting it.', Comment = '%1 = Item No., %2 = Posted Purchase Invoice No.';
 
     procedure CancelPostedInvoice(var PurchInvHeader: Record "Purch. Inv. Header"): Boolean
     begin
@@ -262,11 +264,38 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         TestVendorDimension(PurchInvHeader, PurchInvHeader."Pay-to Vendor No.");
         TestDimensionOnHeader(PurchInvHeader);
         TestPurchaseLines(PurchInvHeader);
+        TestNoApplicationAcrossTrackingPeriods(PurchInvHeader);
         TestIfAnyFreeNumberSeries(PurchInvHeader);
         TestExternalDocument(PurchInvHeader);
         TestInventoryPostingClosed(PurchInvHeader);
 
         OnAfterTestCorrectInvoiceIsAllowed(PurchInvHeader, Cancelling);
+    end;
+
+    local procedure TestNoApplicationAcrossTrackingPeriods(PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        PurchInvLine: Record "Purch. Inv. Line";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+    begin
+        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        PurchInvLine.SetRange(Type, PurchInvLine.Type::Item);
+        if PurchInvLine.FindSet() then
+            repeat
+                TempItemLedgerEntry.Reset();
+                TempItemLedgerEntry.DeleteAll();
+                PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+                if TempItemLedgerEntry.FindSet() then
+                    repeat
+                        if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                            PurchInvLine."No.", TempItemLedgerEntry."Entry No.")
+                        then
+                            Error(
+                                TrackingCodeChangedCancelCorrectErr,
+                                PurchInvLine."No.",
+                                PurchInvHeader."No.");
+                    until TempItemLedgerEntry.Next() = 0;
+            until PurchInvLine.Next() = 0;
     end;
 
     local procedure ShowInvoiceAppliedNotification(PurchInvHeader: Record "Purch. Inv. Header")

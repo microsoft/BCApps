@@ -307,6 +307,17 @@ codeunit 99000834 "Purch. Line-Reserve"
             ReservationEntry.ModifyAll("Planning Flexibility", PurchaseLine."Planning Flexibility");
     end;
 
+    procedure SynchronizeApplToItemEntry(PurchaseLine: Record "Purchase Line"; PreviousApplToItemEntry: Integer)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        PurchaseLine.SetReservationFilters(ReservationEntry);
+        ReservationEntry.SetRange(Positive, false);
+        ReservationEntry.SetFilter(
+            "Appl.-to Item Entry", '%1|%2', 0, PreviousApplToItemEntry);
+        ReservationEntry.ModifyAll("Appl.-to Item Entry", PurchaseLine."Appl.-to Item Entry");
+    end;
+
     procedure TransferPurchLineToItemJnlLine(var PurchaseLine: Record "Purchase Line"; var ItemJournalLine: Record "Item Journal Line"; TransferQty: Decimal; var CheckApplToItemEntry: Boolean) Result: Decimal
     var
         OldReservationEntry: Record "Reservation Entry";
@@ -1214,6 +1225,8 @@ codeunit 99000834 "Purch. Line-Reserve"
     end;
 
     procedure InitFromPurchLine(var TransactionSpecification: Record "Tracking Specification"; PurchLine: Record "Purchase Line")
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
     begin
         TransactionSpecification.Init();
         TransactionSpecification.SetItemData(
@@ -1221,6 +1234,10 @@ codeunit 99000834 "Purch. Line-Reserve"
           PurchLine."Qty. per Unit of Measure", PurchLine."Qty. Rounding Precision (Base)");
         TransactionSpecification.SetSource(
           Database::"Purchase Line", PurchLine."Document Type".AsInteger(), PurchLine."Document No.", PurchLine."Line No.", '', 0);
+        if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            PurchLine."No.", PurchLine."Appl.-to Item Entry")
+        then
+            TransactionSpecification."Appl.-to Item Entry" := PurchLine."Appl.-to Item Entry";
         if PurchLine.IsCreditDocType() then
             TransactionSpecification.SetQuantities(
               PurchLine."Quantity (Base)", PurchLine."Return Qty. to Ship", PurchLine."Return Qty. to Ship (Base)",
