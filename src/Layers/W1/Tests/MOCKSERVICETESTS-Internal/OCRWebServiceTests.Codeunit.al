@@ -18,6 +18,7 @@ codeunit 135095 "OCR Web Service Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         VendorNameErr: Label 'Vendor Name must have a value in Incoming Document';
+        UnexpectedNodeValueErr: Label 'Unexpected value of node: %1', Comment = '%1 = XPath of the node', Locked = true;
         ExternalDocumentReferenceLbl: Label '68f89f3f4eb7436daa20d960c311b01e';
         TestSupplierTxt: Label 'TestSupplier';
 
@@ -831,7 +832,7 @@ codeunit 135095 "OCR Web Service Tests"
         FoundXmlNode: XmlNode;
     begin
         CorrectedXMLRootNode.SelectSingleNode(XPath, FoundXmlNode);
-        Assert.AreEqual(ExpectedValue, FoundXmlNode.AsXmlElement().InnerText(), StrSubstNo('Unexpected value of node: %1', XPath));
+        Assert.AreEqual(ExpectedValue, FoundXmlNode.AsXmlElement().InnerText(), StrSubstNo(UnexpectedNodeValueErr, XPath));
     end;
 
     local procedure SetupTestForOCRCorrection(var IncomingDocument: Record "Incoming Document")
