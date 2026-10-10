@@ -17,7 +17,6 @@ codeunit 8610 "Questionnaire Management"
         KeyFieldMissingErr: Label 'The value of the key field %1 has not been filled in for questionnaire %2.';
 #pragma warning restore AA0470
         OpenXMLManagement: Codeunit "OpenXML Management";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         ConfigPackageMgt: Codeunit "Config. Package Management";
         ConfigProgressBar: Codeunit "Config. Progress Bar";
         ConfigValidateMgt: Codeunit "Config. Validate Management";
@@ -241,12 +240,12 @@ codeunit 8610 "Questionnaire Management"
     [Scope('OnPrem')]
     procedure ExportQuestionnaireAsXML(XMLDataFile: Text; var ConfigQuestionnaire: Record "Config. Questionnaire"): Boolean
     var
-        QuestionnaireXML: DotNet XmlDocument;
+        QuestionnaireXML: XmlDocument;
         ToFile: Text[1024];
         FileName: Text;
         Exported: Boolean;
     begin
-        QuestionnaireXML := QuestionnaireXML.XmlDocument();
+        QuestionnaireXML := XmlDocument.Create();
 
         GenerateQuestionnaireXMLDocument(QuestionnaireXML, ConfigQuestionnaire);
 
@@ -257,28 +256,53 @@ codeunit 8610 "Questionnaire Management"
 
             if not CalledFromCode then
                 FileName := FileMgt.ServerTempFileName('.xml');
-            QuestionnaireXML.Save(FileName);
+            SaveXMLDocumentToFile(QuestionnaireXML, FileName);
             if not CalledFromCode then
                 Exported := FileMgt.DownloadHandler(FileName, DownloadTxt, '', AllFilesTxt, ToFile);
         end else begin
             FileName := XMLDataFile;
-            QuestionnaireXML.Save(FileName);
+            SaveXMLDocumentToFile(QuestionnaireXML, FileName);
         end;
 
         exit(Exported);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use the GenerateQuestionnaireXMLDocument overload with a native XmlDocument parameter instead.', '30.0')]
     procedure GenerateQuestionnaireXMLDocument(QuestionnaireXML: DotNet XmlDocument; var ConfigQuestionnaire: Record "Config. Questionnaire")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        NativeQuestionnaireXML: XmlDocument;
+        QuestionnaireOutStream: OutStream;
+        QuestionnaireInStream: InStream;
+    begin
+        GenerateQuestionnaireXMLDocument(NativeQuestionnaireXML, ConfigQuestionnaire);
+        TempBlob.CreateOutStream(QuestionnaireOutStream);
+        NativeQuestionnaireXML.WriteTo(QuestionnaireOutStream);
+        TempBlob.CreateInStream(QuestionnaireInStream);
+        if IsNull(QuestionnaireXML) then
+            QuestionnaireXML := QuestionnaireXML.XmlDocument();
+        QuestionnaireXML.Load(QuestionnaireInStream);
+    end;
+#endif
+
+    /// <summary>
+    /// Builds the XML document for the provided questionnaire.
+    /// </summary>
+    /// <param name="QuestionnaireXML">The XML document that receives the questionnaire.</param>
+    /// <param name="ConfigQuestionnaire">The questionnaire to export.</param>
+    [Scope('OnPrem')]
+    procedure GenerateQuestionnaireXMLDocument(var QuestionnaireXML: XmlDocument; var ConfigQuestionnaire: Record "Config. Questionnaire")
     var
         ConfigQuestionArea: Record "Config. Question Area";
         RecRef: RecordRef;
-        DocumentNode: DotNet XmlNode;
+        DocumentNode: XmlElement;
     begin
-        XMLDOMMgt.LoadXMLDocumentFromText(
+        XmlDocument.ReadFrom(
           '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><Questionnaire></Questionnaire>', QuestionnaireXML);
 
-        DocumentNode := QuestionnaireXML.DocumentElement;
+        QuestionnaireXML.GetRoot(DocumentNode);
 
         RecRef.GetTable(ConfigQuestionnaire);
         CreateFieldSubtree(RecRef, DocumentNode);
@@ -309,46 +333,70 @@ codeunit 8610 "Questionnaire Management"
     [Scope('OnPrem')]
     procedure ImportQuestionnaireAsXML(XMLDataFile: Text): Boolean
     var
-        QuestionnaireXML: DotNet XmlDocument;
+        QuestionnaireXML: XmlDocument;
     begin
-        XMLDOMMgt.LoadXMLDocumentFromFile(XMLDataFile, QuestionnaireXML);
+        LoadXMLDocumentFromFile(XMLDataFile, QuestionnaireXML);
 
         exit(ImportQuestionnaireXMLDocument(QuestionnaireXML));
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use the ImportQuestionnaireXMLDocument overload with a native XmlDocument parameter instead.', '30.0')]
     procedure ImportQuestionnaireXMLDocument(QuestionnaireXML: DotNet XmlDocument): Boolean
+    var
+        NativeQuestionnaireXML: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(QuestionnaireXML.OuterXml(), NativeQuestionnaireXML);
+        exit(ImportQuestionnaireXMLDocument(NativeQuestionnaireXML));
+    end;
+#endif
+
+    /// <summary>
+    /// Imports a questionnaire from the provided XML document.
+    /// </summary>
+    /// <param name="QuestionnaireXML">The XML document that contains the questionnaire.</param>
+    /// <returns>True if the questionnaire was imported.</returns>
+    [Scope('OnPrem')]
+    procedure ImportQuestionnaireXMLDocument(QuestionnaireXML: XmlDocument): Boolean
     var
         ConfigQuestionnaire: Record "Config. Questionnaire";
         ConfigQuestionArea: Record "Config. Question Area";
         ConfigQuestion: Record "Config. Question";
-        QuestionAreaNodes: DotNet XmlNodeList;
-        QuestionAreaNode: DotNet XmlNode;
-        QuestionNodes: DotNet XmlNodeList;
-        QuestionnaireNode: DotNet XmlNode;
+        QuestionAreaNodes: XmlNodeList;
+        QuestionAreaXmlNode: XmlNode;
+        QuestionAreaNode: XmlElement;
+        QuestionNodes: XmlNodeList;
+        QuestionXmlNode: XmlNode;
+        QuestionnaireXmlNode: XmlNode;
+        QuestionnaireNode: XmlElement;
         AreaNodeCount: Integer;
         NodeCount: Integer;
     begin
-        QuestionnaireNode := QuestionnaireXML.SelectSingleNode('//Questionnaire');
+        RemoveWhitespaceTextNodes(QuestionnaireXML.AsXmlNode());
+        QuestionnaireXML.SelectSingleNode('//Questionnaire', QuestionnaireXmlNode);
+        QuestionnaireNode := QuestionnaireXmlNode.AsXmlElement();
 
         UpdateInsertQuestionnaireField(ConfigQuestionnaire, QuestionnaireNode);
-        QuestionAreaNodes := QuestionnaireNode.SelectNodes('child::*[position() >= 3]');
+        QuestionnaireNode.SelectNodes('child::*[position() >= 3]', QuestionAreaNodes);
 
         ConfigProgressBar.Init(QuestionAreaNodes.Count, 1, ImportingQuestionnaireTxt);
 
-        for AreaNodeCount := 0 to QuestionAreaNodes.Count - 1 do begin
-            QuestionAreaNode := QuestionAreaNodes.Item(AreaNodeCount);
+        for AreaNodeCount := 1 to QuestionAreaNodes.Count do begin
+            QuestionAreaNodes.Get(AreaNodeCount, QuestionAreaXmlNode);
+            QuestionAreaNode := QuestionAreaXmlNode.AsXmlElement();
             ConfigProgressBar.Update(GetNodeValue(QuestionAreaNode, 'Code'));
             ConfigQuestionArea."Questionnaire Code" := ConfigQuestionnaire.Code;
             UpdateInsertQuestionAreaFields(ConfigQuestionArea, QuestionAreaNode);
 
-            QuestionNodes := QuestionAreaNode.SelectNodes('ConfigQuestion');
-            for NodeCount := 0 to QuestionNodes.Count - 1 do begin
+            QuestionAreaNode.SelectNodes('ConfigQuestion', QuestionNodes);
+            for NodeCount := 1 to QuestionNodes.Count do begin
                 ConfigQuestion.Init();
                 ConfigQuestion."Questionnaire Code" := ConfigQuestionArea."Questionnaire Code";
                 ConfigQuestion."Question Area Code" := ConfigQuestionArea.Code;
                 ConfigQuestion."Table ID" := ConfigQuestionArea."Table ID";
-                UpdateInsertQuestionFields(ConfigQuestion, QuestionNodes.Item(NodeCount))
+                QuestionNodes.Get(NodeCount, QuestionXmlNode);
+                UpdateInsertQuestionFields(ConfigQuestion, QuestionXmlNode.AsXmlElement())
             end;
         end;
 
@@ -360,14 +408,16 @@ codeunit 8610 "Questionnaire Management"
     procedure ExportQuestionnaireToExcel(ExcelFile: Text; var ConfigQuestionnaire: Record "Config. Questionnaire"): Boolean
     var
         TempBlob: Codeunit "Temp Blob";
-        ColumnNodes: DotNet XmlNodeList;
-        MapXML: DotNet XmlDocument;
-        NamespaceMgr: DotNet XmlNamespaceManager;
-        QuestionnaireXML: DotNet XmlDocument;
-        QuestionAreaNodes: DotNet XmlNodeList;
-        QuestionAreaNode: DotNet XmlNode;
-        QuestionNodes: DotNet XmlNodeList;
-        QuestionnaireNode: DotNet XmlNode;
+        ColumnNodes: XmlNodeList;
+        MapXML: XmlDocument;
+        NamespaceMgr: XmlNamespaceManager;
+        QuestionnaireXML: XmlDocument;
+        QuestionAreaNodes: XmlNodeList;
+        QuestionAreaXmlNode: XmlNode;
+        QuestionAreaNode: XmlElement;
+        QuestionNodes: XmlNodeList;
+        QuestionnaireXmlNode: XmlNode;
+        QuestionnaireNode: XmlElement;
         "Table": DotNet Table;
         WorksheetWriter: DotNet WorksheetWriter;
         RootElementName: Text;
@@ -387,17 +437,18 @@ codeunit 8610 "Questionnaire Management"
         OpenXMLManagement.CreateTableStyles(WrkBkWriter.Workbook);
         ReadXSDSchema(TempSchemaFileName, MapXML, NamespaceMgr);
 
-        XMLDOMMgt.LoadXMLDocumentFromFile(TempConfigQuestionnaireFileName, QuestionnaireXML);
-        QuestionnaireNode := QuestionnaireXML.SelectSingleNode('//Questionnaire');
-        QuestionAreaNodes := QuestionnaireNode.SelectNodes('child::*[position() >= 3]');
+        LoadXMLDocumentFromFile(TempConfigQuestionnaireFileName, QuestionnaireXML);
+        QuestionnaireXML.SelectSingleNode('//Questionnaire', QuestionnaireXmlNode);
+        QuestionnaireNode := QuestionnaireXmlNode.AsXmlElement();
+        QuestionnaireNode.SelectNodes('child::*[position() >= 3]', QuestionAreaNodes);
         ConfigProgressBar.Init(QuestionAreaNodes.Count, 1, CreatingExcelWorksheetTxt);
 
-        foreach QuestionAreaNode in QuestionAreaNodes do begin
+        foreach QuestionAreaXmlNode in QuestionAreaNodes do begin
+            QuestionAreaNode := QuestionAreaXmlNode.AsXmlElement();
             ConfigProgressBar.Update(QuestionAreaNode.Name);
             FillQuestionAreaHeader(WorksheetWriter, QuestionAreaNode);
 
-            QuestionNodes := QuestionAreaNode.SelectNodes('ConfigQuestion');
-            if not IsNull(QuestionNodes) then begin
+            if QuestionAreaNode.SelectNodes('ConfigQuestion', QuestionNodes) then begin
                 GetColumnsFromSchema(MapXML, NamespaceMgr, QuestionAreaNode.Name, ColumnNodes);
                 OpenXMLManagement.AddTable(WorksheetWriter, 2, ColumnNodes.Count, QuestionNodes.Count, Table);
                 AddColumns(WorksheetWriter, Table, ColumnNodes, QuestionNodes);
@@ -424,18 +475,18 @@ codeunit 8610 "Questionnaire Management"
         exit(true);
     end;
 
-    local procedure CreateQuestionNodes(QuestionnaireXML: DotNet XmlDocument; ConfigQuestionArea: Record "Config. Question Area")
+    local procedure CreateQuestionNodes(var QuestionnaireXML: XmlDocument; ConfigQuestionArea: Record "Config. Question Area")
     var
         ConfigQuestion: Record "Config. Question";
-        DocumentElement: DotNet XmlElement;
-        QuestionAreaNode: DotNet XmlNode;
-        QuestionNode: DotNet XmlNode;
+        DocumentElement: XmlElement;
+        QuestionAreaNode: XmlElement;
+        QuestionNode: XmlElement;
         RecRef: RecordRef;
         QuestionRecRef: RecordRef;
     begin
-        DocumentElement := QuestionnaireXML.DocumentElement;
-        QuestionAreaNode := QuestionnaireXML.CreateElement(GetElementName(ConfigQuestionArea.Code + 'Questions'));
-        DocumentElement.AppendChild(QuestionAreaNode);
+        QuestionnaireXML.GetRoot(DocumentElement);
+        QuestionAreaNode := XmlElement.Create(GetElementName(ConfigQuestionArea.Code + 'Questions'));
+        DocumentElement.Add(QuestionAreaNode);
 
         RecRef.GetTable(ConfigQuestionArea);
         CreateFieldSubtree(RecRef, QuestionAreaNode);
@@ -444,8 +495,8 @@ codeunit 8610 "Questionnaire Management"
         ConfigQuestion.SetRange("Question Area Code", ConfigQuestionArea.Code);
         if ConfigQuestion.FindSet() then
             repeat
-                QuestionNode := QuestionnaireXML.CreateElement(GetElementName(ConfigQuestion.TableName));
-                QuestionAreaNode.AppendChild(QuestionNode);
+                QuestionNode := XmlElement.Create(GetElementName(ConfigQuestion.TableName));
+                QuestionAreaNode.Add(QuestionNode);
 
                 QuestionRecRef.GetTable(ConfigQuestion);
                 CreateFieldSubtree(QuestionRecRef, QuestionNode);
@@ -461,27 +512,93 @@ codeunit 8610 "Questionnaire Management"
         exit(NameIn);
     end;
 
-    local procedure CreateFieldSubtree(var RecRef: RecordRef; var Node: DotNet XmlElement)
+    local procedure CreateFieldSubtree(var RecRef: RecordRef; var Node: XmlElement)
     var
         FieldRef: FieldRef;
-        FieldNode: DotNet XmlNode;
-        XmlDom: DotNet XmlDocument;
+        FieldNode: XmlElement;
         i: Integer;
     begin
-        XmlDom := Node.OwnerDocument;
         for i := 1 to RecRef.FieldCount do begin
             FieldRef := RecRef.FieldIndex(i);
             if not FieldException(RecRef.Number, FieldRef.Number) then begin
-                FieldNode := XmlDom.CreateElement(GetElementName(FieldRef.Name));
+                FieldNode := XmlElement.Create(GetElementName(FieldRef.Name));
 
                 if FieldRef.Class = FieldClass::FlowField then
                     FieldRef.CalcField();
-                FieldNode.InnerText := Format(FieldRef.Value);
+                FieldNode.Add(XmlText.Create(Format(FieldRef.Value)));
 
-                XMLDOMMgt.AddAttribute(FieldNode, 'fieldlength', Format(FieldRef.Length));
-                Node.AppendChild(FieldNode);
+                FieldNode.SetAttribute('fieldlength', Format(FieldRef.Length));
+                Node.Add(FieldNode);
             end;
         end;
+    end;
+
+    local procedure SaveXMLDocumentToFile(var QuestionnaireXML: XmlDocument; FileName: Text)
+    var
+        XMLFile: File;
+        XMLOutStream: OutStream;
+    begin
+        AddEndTagIndentationToEmptyValues(QuestionnaireXML);
+        XMLFile.Create(FileName);
+        XMLFile.CreateOutStream(XMLOutStream);
+        QuestionnaireXML.WriteTo(XMLOutStream);
+        XMLFile.Close();
+    end;
+    // DotNet XmlDocument.Save wrote an element with an empty value as an end tag on its own indented line. Add that formatting so the saved file stays identical.
+    local procedure AddEndTagIndentationToEmptyValues(var XMLDocToSave: XmlDocument)
+    var
+        EmptyNodes: XmlNodeList;
+        EmptyNode: XmlNode;
+        AncestorNodes: XmlNodeList;
+        CommentNodes: XmlNodeList;
+        CommentNode: XmlNode;
+        NewLine: Text[2];
+    begin
+        if not XMLDocToSave.SelectNodes('//*[not(*) and string-length(.) = 0]', EmptyNodes) then
+            exit;
+        NewLine[1] := 13;
+        NewLine[2] := 10;
+        foreach EmptyNode in EmptyNodes do
+            if not EmptyNode.AsXmlElement().IsEmpty() then begin
+                EmptyNode.SelectNodes('ancestor::*', AncestorNodes);
+                if EmptyNode.SelectNodes('comment()', CommentNodes) then
+                    foreach CommentNode in CommentNodes do
+                        CommentNode.AddBeforeSelf(XmlText.Create(NewLine + PadStr('', (AncestorNodes.Count() + 1) * 2, ' ')));
+                EmptyNode.AsXmlElement().Add(XmlText.Create(NewLine + PadStr('', AncestorNodes.Count() * 2, ' ')));
+            end;
+    end;
+
+    local procedure LoadXMLDocumentFromFile(FileName: Text; var LoadedXML: XmlDocument)
+    var
+        XMLFile: File;
+        XMLInStream: InStream;
+    begin
+        FileMgt.IsAllowedPath(FileName, false);
+        XMLFile.Open(FileName);
+        XMLFile.CreateInStream(XMLInStream);
+        XmlDocument.ReadFrom(XMLInStream, LoadedXML);
+        XMLFile.Close();
+        RemoveWhitespaceTextNodes(LoadedXML.AsXmlNode());
+    end;
+
+    // XmlDocument.ReadFrom keeps whitespace-only text nodes, which the DotNet XmlDocument dropped when loading.
+    local procedure RemoveWhitespaceTextNodes(RootNode: XmlNode)
+    var
+        TextNodes: XmlNodeList;
+        TextNode: XmlNode;
+        Tab: Char;
+        LineFeed: Char;
+        CarriageReturn: Char;
+    begin
+        if not RootNode.SelectNodes('descendant::text()', TextNodes) then
+            exit;
+        Tab := 9;
+        LineFeed := 10;
+        CarriageReturn := 13;
+        foreach TextNode in TextNodes do
+            if TextNode.IsXmlText() then
+                if DelChr(TextNode.AsXmlText().Value(), '=', ' ' + Format(Tab) + Format(LineFeed) + Format(CarriageReturn)) = '' then
+                    TextNode.Remove();
     end;
 
     local procedure CreateFieldNameCaptionList(TableID: Integer)
@@ -510,23 +627,27 @@ codeunit 8610 "Questionnaire Management"
         Caption := CopyStr(Caption, 1, StrPos(Caption, ';') - 1);
     end;
 
-    local procedure FindNode(var ParentNode: DotNet XmlNode; ChildNodeName: Text; var ChildNode: DotNet XmlNode): Boolean
+    local procedure FindNode(var ParentNode: XmlElement; ChildNodeName: Text; var ChildNode: XmlElement): Boolean
+    var
+        FoundNode: XmlNode;
     begin
-        ChildNode := ParentNode.SelectSingleNode(ChildNodeName);
-        exit(not IsNull(ChildNode));
+        if not ParentNode.SelectSingleNode(ChildNodeName, FoundNode) then
+            exit(false);
+        ChildNode := FoundNode.AsXmlElement();
+        exit(true);
     end;
 
-    local procedure GetNodeValue(var RecordNode: DotNet XmlNode; FieldNodeName: Text): Text
+    local procedure GetNodeValue(var RecordNode: XmlElement; FieldNodeName: Text): Text
     var
-        FieldNode: DotNet XmlNode;
+        FieldNode: XmlNode;
     begin
-        FieldNode := RecordNode.SelectSingleNode(FieldNodeName);
-        exit(FieldNode.InnerText);
+        RecordNode.SelectSingleNode(FieldNodeName, FieldNode);
+        exit(FieldNode.AsXmlElement().InnerText);
     end;
 
-    local procedure GetXMLNodeValue(var RecordNode: DotNet XmlNode; NodeName: Text; var xPath: Text): Text
+    local procedure GetXMLNodeValue(var RecordNode: XmlElement; NodeName: Text; var xPath: Text): Text
     var
-        FieldNode: DotNet XmlNode;
+        FieldNode: XmlElement;
     begin
         if FindNode(RecordNode, GetElementName(NodeName), FieldNode) then begin
             xPath := GetXPath(FieldNode);
@@ -534,17 +655,19 @@ codeunit 8610 "Questionnaire Management"
         end;
     end;
 
-    local procedure GetXPath(var XMLNode: DotNet XmlNode): Text
+    local procedure GetXPath(var Node: XmlElement): Text
     var
-        ParentXMLNode: DotNet XmlNode;
+        ParentNode: XmlElement;
+        OwnerDocument: XmlDocument;
     begin
-        if IsNull(XMLNode.ParentNode) then
-            exit('');
-        ParentXMLNode := XMLNode.ParentNode;
-        exit(GetXPath(ParentXMLNode) + '/' + XMLNode.Name);
+        if Node.GetParent(ParentNode) then
+            exit(GetXPath(ParentNode) + '/' + Node.Name);
+        if Node.GetDocument(OwnerDocument) then
+            exit('/' + Node.Name);
+        exit('');
     end;
 
-    local procedure UpdateInsertQuestionnaireField(var ConfigQuestionnaire: Record "Config. Questionnaire"; RecordNode: DotNet XmlNode)
+    local procedure UpdateInsertQuestionnaireField(var ConfigQuestionnaire: Record "Config. Questionnaire"; RecordNode: XmlElement)
     var
         RecRef: RecordRef;
     begin
@@ -555,7 +678,7 @@ codeunit 8610 "Questionnaire Management"
         RecRef.SetTable(ConfigQuestionnaire);
     end;
 
-    local procedure UpdateInsertQuestionAreaFields(var ConfigQuestionArea: Record "Config. Question Area"; RecordNode: DotNet XmlNode)
+    local procedure UpdateInsertQuestionAreaFields(var ConfigQuestionArea: Record "Config. Question Area"; RecordNode: XmlElement)
     var
         RecRef: RecordRef;
     begin
@@ -566,7 +689,7 @@ codeunit 8610 "Questionnaire Management"
         RecRef.SetTable(ConfigQuestionArea);
     end;
 
-    local procedure UpdateInsertQuestionFields(var ConfigQuestion: Record "Config. Question"; RecordNode: DotNet XmlNode)
+    local procedure UpdateInsertQuestionFields(var ConfigQuestion: Record "Config. Question"; RecordNode: XmlElement)
     var
         "Field": Record "Field";
         RecRef: RecordRef;
@@ -581,13 +704,11 @@ codeunit 8610 "Questionnaire Management"
             ModifyConfigQuestionAnswer(ConfigQuestion, Field);
     end;
 
-    local procedure FieldNodeExists(var RecordNode: DotNet XmlNode; FieldNodeName: Text): Boolean
+    local procedure FieldNodeExists(var RecordNode: XmlElement; FieldNodeName: Text): Boolean
     var
-        FieldNode: DotNet XmlNode;
+        FieldNode: XmlNode;
     begin
-        FieldNode := RecordNode.SelectSingleNode(FieldNodeName);
-        if not IsNull(FieldNode) then
-            exit(true);
+        exit(RecordNode.SelectSingleNode(FieldNodeName, FieldNode));
     end;
 
     local procedure GetXLColumnID(ColumnNo: Integer): Text[10]
@@ -622,7 +743,7 @@ codeunit 8610 "Questionnaire Management"
         CalledFromCode := true;
     end;
 
-    local procedure ValidateKeyFields(RecRef: RecordRef; RecordNode: DotNet XmlNode)
+    local procedure ValidateKeyFields(RecRef: RecordRef; RecordNode: XmlElement)
     var
         KeyRef: KeyRef;
         FieldRef: FieldRef;
@@ -637,7 +758,7 @@ codeunit 8610 "Questionnaire Management"
         end;
     end;
 
-    local procedure ValidateFields(RecRef: RecordRef; RecordNode: DotNet XmlNode)
+    local procedure ValidateFields(RecRef: RecordRef; RecordNode: XmlElement)
     var
         "Field": Record "Field";
         FieldRef: FieldRef;
@@ -652,7 +773,7 @@ codeunit 8610 "Questionnaire Management"
             until Field.Next() = 0;
     end;
 
-    local procedure ValidateRecordFields(RecRef: RecordRef; RecordNode: DotNet XmlNode)
+    local procedure ValidateRecordFields(RecRef: RecordRef; RecordNode: XmlElement)
     var
         RecRef1: RecordRef;
     begin
@@ -739,16 +860,18 @@ codeunit 8610 "Questionnaire Management"
         WrkBkWriter.DeleteWorksheet(WrkBkWriter.FirstWorksheet.Name);
     end;
 
-    local procedure WriteData(var WorksheetWriter: DotNet WorksheetWriter; ColumnNodes: DotNet XmlNodeList; QuestionNodes: DotNet XmlNodeList)
+    local procedure WriteData(var WorksheetWriter: DotNet WorksheetWriter; ColumnNodes: XmlNodeList; QuestionNodes: XmlNodeList)
     var
-        ColumnNode: DotNet XmlNode;
-        QuestionNode: DotNet XmlNode;
+        ColumnNode: XmlNode;
+        QuestionXmlNode: XmlNode;
+        QuestionNode: XmlElement;
         ColumnNo: Integer;
         RowNo: Integer;
         Value: Text;
     begin
         RowNo := 2; // to put the first data row to the 3rd row
-        foreach QuestionNode in QuestionNodes do begin
+        foreach QuestionXmlNode in QuestionNodes do begin
+            QuestionNode := QuestionXmlNode.AsXmlElement();
             RowNo += 1;
             ColumnNo := 0;
             foreach ColumnNode in ColumnNodes do begin
@@ -759,17 +882,19 @@ codeunit 8610 "Questionnaire Management"
         end;
     end;
 
-    local procedure AddColumns(var WorksheetWriter: DotNet WorksheetWriter; "Table": DotNet Table; ColumnNodes: DotNet XmlNodeList; QuestionNodes: DotNet XmlNodeList)
+    local procedure AddColumns(var WorksheetWriter: DotNet WorksheetWriter; "Table": DotNet Table; ColumnNodes: XmlNodeList; QuestionNodes: XmlNodeList)
     var
-        FieldNode: DotNet XmlNode;
-        QuestionNode: DotNet XmlNode;
+        FieldNode: XmlNode;
+        QuestionXmlNode: XmlNode;
+        QuestionNode: XmlElement;
         ColumnName: Text;
         xPathPrefix: Text;
         FieldName: Text;
         FieldType: Text;
         ColumnId: Integer;
     begin
-        QuestionNode := QuestionNodes.Item(0);
+        QuestionNodes.Get(1, QuestionXmlNode);
+        QuestionNode := QuestionXmlNode.AsXmlElement();
         xPathPrefix := GetXPath(QuestionNode) + '/';
         ColumnId := 0;
         foreach FieldNode in ColumnNodes do begin
@@ -783,7 +908,7 @@ codeunit 8610 "Questionnaire Management"
         end;
     end;
 
-    local procedure FillQuestionnaireHeader(var WorksheetWriter: DotNet WorksheetWriter; QuestionnaireNode: DotNet XmlNode)
+    local procedure FillQuestionnaireHeader(var WorksheetWriter: DotNet WorksheetWriter; QuestionnaireNode: XmlElement)
     var
         ConfigQuestionnaire: Record "Config. Questionnaire";
         SingleXMLCells: DotNet SingleXmlCells;
@@ -802,7 +927,7 @@ codeunit 8610 "Questionnaire Management"
         end;
     end;
 
-    local procedure FillQuestionAreaHeader(var WorksheetWriter: DotNet WorksheetWriter; QuestionAreaNode: DotNet XmlNode)
+    local procedure FillQuestionAreaHeader(var WorksheetWriter: DotNet WorksheetWriter; QuestionAreaNode: XmlElement)
     var
         ConfigQuestionArea: Record "Config. Question Area";
         SingleXMLCells: DotNet SingleXmlCells;
@@ -830,62 +955,59 @@ codeunit 8610 "Questionnaire Management"
         WrkShtWriter.Worksheet.WorksheetPart.SingleCellTablePart.SingleXmlCells := SingleXMLCells;
     end;
 
-    local procedure GetAttribute(AttributeName: Text; XMLNode: DotNet XmlNode): Text[1024]
+    local procedure GetAttribute(AttributeName: Text; Node: XmlNode): Text[1024]
     var
-        XMLAttributeNode: DotNet XmlNode;
+        FoundAttribute: XmlAttribute;
     begin
-        XMLAttributeNode := XMLNode.Attributes.GetNamedItem(AttributeName);
-        if IsNull(XMLAttributeNode) then
+        if not Node.AsXmlElement().Attributes().Get(AttributeName, FoundAttribute) then
             exit('');
 
-        exit(Format(XMLAttributeNode.InnerText));
+        exit(Format(FoundAttribute.Value()));
     end;
 
-    local procedure ReadXSDSchema(FileName: Text; var MapXML: DotNet XmlDocument; var NamespaceMgr: DotNet XmlNamespaceManager)
+    local procedure ReadXSDSchema(FileName: Text; var MapXML: XmlDocument; var NamespaceMgr: XmlNamespaceManager)
     begin
-        XMLDOMMgt.LoadXMLDocumentFromFile(FileName, MapXML);
+        LoadXMLDocumentFromFile(FileName, MapXML);
         CreateNameSpaceManager(MapXML, NamespaceMgr);
     end;
 
-    local procedure CreateNameSpaceManager(XmlDocument: DotNet XmlDocument; var NamespaceMgr: DotNet XmlNamespaceManager)
+    local procedure CreateNameSpaceManager(SchemaXML: XmlDocument; var NamespaceMgr: XmlNamespaceManager)
+    var
+        RootElement: XmlElement;
     begin
-        if not IsNull(NamespaceMgr) then
-            Clear(NamespaceMgr);
+        Clear(NamespaceMgr);
 
-        NamespaceMgr := NamespaceMgr.XmlNamespaceManager(XmlDocument.NameTable);
-        PopulateNamespaceManager(XmlDocument.DocumentElement, NamespaceMgr);
+        NamespaceMgr.NameTable(SchemaXML.NameTable());
+        if SchemaXML.GetRoot(RootElement) then
+            PopulateNamespaceManager(RootElement, NamespaceMgr);
     end;
 
-    local procedure PopulateNamespaceManager(XmlNode: DotNet XmlNode; var NamespaceMgr: DotNet XmlNamespaceManager)
+    local procedure PopulateNamespaceManager(RootElement: XmlElement; var NamespaceMgr: XmlNamespaceManager)
     var
-        Attribute: DotNet XmlAttribute;
-        Attributes: DotNet XmlAttributeCollection;
-        i: Integer;
+        NodeAttribute: XmlAttribute;
         Prefix: Text;
     begin
-        if not IsNull(XmlNode) then begin
-            Attributes := XmlNode.Attributes;
-            for i := 0 to Attributes.Count - 1 do begin
-                Attribute := Attributes.Item(i);
-                if StrPos(Attribute.Name, 'xmlns') = 1 then
-                    if StrPos(Attribute.Name, ':') > 0 then begin
-                        Prefix := CopyStr(Attribute.Name, StrPos(Attribute.Name, ':') + 1);
-                        NamespaceMgr.AddNamespace(Prefix, Attribute.Value);
-                    end;
-            end;
-        end;
+        foreach NodeAttribute in RootElement.Attributes() do
+            if StrPos(NodeAttribute.Name, 'xmlns') = 1 then
+                if StrPos(NodeAttribute.Name, ':') > 0 then begin
+                    Prefix := CopyStr(NodeAttribute.Name, StrPos(NodeAttribute.Name, ':') + 1);
+                    NamespaceMgr.AddNamespace(Prefix, NodeAttribute.Value);
+                end;
     end;
 
-    local procedure GetColumnsFromSchema(MapXML: DotNet XmlDocument; NamespaceMgr: DotNet XmlNamespaceManager; QuestionAreaName: Text; var ColumnNodes: DotNet XmlNodeList)
+    local procedure GetColumnsFromSchema(MapXML: XmlDocument; NamespaceMgr: XmlNamespaceManager; QuestionAreaName: Text; var ColumnNodes: XmlNodeList)
     var
-        Node: DotNet XmlNode;
+        RootElement: XmlElement;
+        Node: XmlNode;
         SchemaPath: Text;
+        SchemaAreaPathTok: Label 'xsd:element/%2[@name=''%1'']', Locked = true;
+        SchemaQuestionColumnsPathTok: Label '%1[@name=''ConfigQuestion'']/%1', Locked = true;
     begin
         SchemaPath := 'xsd:complexType/xsd:sequence/xsd:element';
-        Node :=
-          MapXML.DocumentElement.SelectSingleNode(
-            StrSubstNo('xsd:element/%2[@name=''%1'']', QuestionAreaName, SchemaPath), NamespaceMgr);
-        ColumnNodes := Node.SelectNodes(StrSubstNo('%1[@name=''ConfigQuestion'']/%1', SchemaPath), NamespaceMgr);
+        MapXML.GetRoot(RootElement);
+        RootElement.SelectSingleNode(
+          StrSubstNo(SchemaAreaPathTok, QuestionAreaName, SchemaPath), NamespaceMgr, Node);
+        Node.SelectNodes(StrSubstNo(SchemaQuestionColumnsPathTok, SchemaPath), NamespaceMgr, ColumnNodes);
     end;
 }
 

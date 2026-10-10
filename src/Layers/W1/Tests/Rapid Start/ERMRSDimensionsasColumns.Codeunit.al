@@ -454,9 +454,8 @@ codeunit 136611 "ERM RS Dimensions as Columns"
     var
         Customer: Record Customer;
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        PackageXML: DotNet XmlDocument;
+        PackageXML: XmlDocument;
     begin
-        PackageXML := PackageXML.XmlDocument();
         ConfigXMLExchange.SetExcelMode(true);
         ConfigXMLExchange.ExportPackageXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
 
@@ -468,12 +467,15 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
     end;
 
-    local procedure SetXMLNodeValue(var PackageXML: DotNet XmlDocument; NodeName: Text[250]; NodeValue: Code[20])
+    local procedure SetXMLNodeValue(var PackageXML: XmlDocument; NodeName: Text[250]; NodeValue: Code[20])
     var
-        XMLNode: DotNet XmlNode;
+        XMLNode: XmlNode;
+        ValueElement: XmlElement;
     begin
-        XMLNode := PackageXML.SelectSingleNode('//' + NodeName);
-        XMLNode.InnerText := NodeValue;
+        PackageXML.SelectSingleNode('//' + NodeName, XMLNode);
+        ValueElement := XMLNode.AsXmlElement();
+        ValueElement.RemoveNodes();
+        ValueElement.Add(XmlText.Create(NodeValue));
     end;
 
     local procedure FindDimensionWithValue(var DimVal: Record "Dimension Value")

@@ -15,8 +15,8 @@ codeunit 139191 "RS Table Info Telemetry Test"
     procedure PaymentTerms_TwoRecords_TenFields()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        TableNode: DotNet XmlNode;
         SampleTableRecordRef: RecordRef;
+        TableNode: XmlElement;
         CurrTableName: Text;
         CurrRecordCount: Integer;
         TotalTableFields: Integer;
@@ -42,8 +42,8 @@ codeunit 139191 "RS Table Info Telemetry Test"
     procedure Currency_ZeroRecords_ZeroFields()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        TableNode: DotNet XmlNode;
         SampleTableRecordRef: RecordRef;
+        TableNode: XmlElement;
         CurrTableName: Text;
         CurrRecordCount: Integer;
         TotalTableFields: Integer;
@@ -69,8 +69,8 @@ codeunit 139191 "RS Table Info Telemetry Test"
     procedure FinanceChargeTerms_OneRecord_FifteenFields()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        TableNode: DotNet XmlNode;
         SampleTableRecordRef: RecordRef;
+        TableNode: XmlElement;
         CurrTableName: Text;
         CurrRecordCount: Integer;
         TotalTableFields: Integer;
@@ -92,19 +92,21 @@ codeunit 139191 "RS Table Info Telemetry Test"
         SampleTableRecordRef.Close();
     end;
 
-    local procedure GetSamplRSXmlNode(NodeName: Text; var Node: DotNet XmlNode)
+    local procedure GetSamplRSXmlNode(NodeName: Text; var Node: XmlElement)
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        XMLDoc: DotNet XmlDocument;
-        DocXmlNode: DotNet XmlNode;
+        XMLDoc: XmlDocument;
+        DocXmlElement: XmlElement;
+        ChildNode: XmlNode;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDoc.LoadXml(GetSampleRapidStartXML());
-        DocXmlNode := XMLDoc.DocumentElement();
+        XmlDocument.ReadFrom(GetSampleRapidStartXML(), XMLDoc);
+        XMLDoc.GetRoot(DocXmlElement);
 
-        foreach Node in DocXmlNode.ChildNodes() do
+        foreach ChildNode in DocXmlElement.GetChildElements() do begin
+            Node := ChildNode.AsXmlElement();
             if Node.Name.Contains(ConfigXMLExchange.GetElementName(NodeName)) then
                 break;
+        end;
     end;
 
     local procedure GetSampleRapidStartXML(): Text

@@ -492,9 +492,9 @@ codeunit 136603 "ERM RS Package Operations"
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
-        PackageXML: DotNet XmlDocument;
-        XMLNode: DotNet XmlNode;
-        XMLAttributes: DotNet XmlNodeList;
+        PackageXML: XmlDocument;
+        XMLNode: XmlNode;
+        XMLAttributes: XmlNodeList;
     begin
         // [FEATURE] [XML]
         // [SCENARIO] localization attributes are exported to XML
@@ -509,15 +509,15 @@ codeunit 136603 "ERM RS Package Operations"
         SetLocalizeFields(ConfigPackage.Code, ConfigPackageTable."Table ID");
 
         // [WHEN] Export Package to XML
-        PackageXML := PackageXML.XmlDocument();
+        PackageXML := XmlDocument.Create();
         ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
         ConfigXMLExchange.ExportPackageXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, true);
 
         // [THEN] '_locDefinition' node and '_loc' attributes have been generated in XML document
-        XMLNode := PackageXML.SelectSingleNode('//_locDefinition');
-        XMLAttributes := PackageXML.SelectNodes('//@_loc');
+        PackageXML.SelectSingleNode('//_locDefinition', XMLNode);
+        PackageXML.SelectNodes('//@_loc', XMLAttributes);
 
-        Assert.IsTrue((XMLNode.InnerXml <> '') and (XMLAttributes.Count <> 0), XMLGeneratedIncorrectlyErr);
+        Assert.IsTrue(XMLNode.AsXmlElement().HasElements() and (XMLAttributes.Count <> 0), XMLGeneratedIncorrectlyErr);
     end;
 
     [Test]
@@ -993,17 +993,16 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackageError: Record "Config. Package Error";
         Customer: Record Customer;
         ConfigPackageField: Record "Config. Package Field";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        XMLDocument: DotNet XmlDocument;
-        DocumentElement: DotNet XmlNode;
+        PackageXMLDoc: XmlDocument;
+        DocumentElement: XmlElement;
     begin
         // [SCENARIO] the new Package can be validated with function Validate Table Relation.
         Initialize();
         // [GIVEN] XML file contains Customer data
-        XMLDOMManagement.LoadXMLNodeFromText(
-          '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList></DataList>', DocumentElement);
-        XMLDocument := DocumentElement.OwnerDocument;
+        XmlDocument.ReadFrom(
+          '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList></DataList>', PackageXMLDoc);
+        PackageXMLDoc.GetRoot(DocumentElement);
 
         CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
         ConfigPackageMgt.SelectAllPackageFields(ConfigPackageField, false);
@@ -1011,9 +1010,9 @@ codeunit 136603 "ERM RS Package Operations"
 
         LibrarySales.CreateCustomer(Customer);
         RecRef.GetTable(Customer);
-        AddConfigPackageTableToXML(XMLDocument, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
         // [GIVEN] PAckage is imported from XML
-        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, '');
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXMLDoc, '');
 
         // [WHEN] Validate table relation
         LibraryRapidStart.ValidatePackage(ConfigPackage, false);
@@ -2292,9 +2291,7 @@ codeunit 136603 "ERM RS Package Operations"
     procedure ImportPackageWithNonExistingTable()
     var
         ConfigPackageError: Record "Config. Package Error";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDocument: DotNet XmlDocument;
-        DocumentElement: DotNet XmlNode;
+        PackageXMLDoc: XmlDocument;
         TableID: Integer;
         TextXMLPackage: Text;
         PackageCode: Code[20];
@@ -2312,12 +2309,11 @@ codeunit 136603 "ERM RS Package Operations"
             '<ApprovalSetupList><TableID>%2</TableID></ApprovalSetupList></DataList>',
             PackageCode,
             TableID);
-        XMLDOMManagement.LoadXMLNodeFromText(TextXMLPackage, DocumentElement);
-        XMLDocument := DocumentElement.OwnerDocument;
+        XmlDocument.ReadFrom(TextXMLPackage, PackageXMLDoc);
 
         // [WHEN] Importing "PACK01"
         // [THEN] Package imported
-        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, '');
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXMLDoc, '');
 
         // [THEN] A config. package error is created for "PACK01" informing that table "-452" does not exists
         ConfigPackageError.SetRange("Package Code", PackageCode);
@@ -2971,9 +2967,12 @@ codeunit 136603 "ERM RS Package Operations"
     var
         ConfigPackage: Array[2] of Record "Config. Package";
         ConfigPackageTable: Array[2] of Record "Config. Package Table";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNodeList: DotNet XmlNodeList;
-        XMLDocument: DotNet XmlDocument;
+        MediaBufferListNodes: XmlNodeList;
+        MediaBufferListNode: XmlNode;
+        TableIDNode: XmlNode;
+        MediaBufferNode: XmlNode;
+        PackageCodeNode: XmlNode;
+        PackageXMLDoc: XmlDocument;
         ItemFilter: Text[250];
         FilePath: Text;
     begin
@@ -3006,8 +3005,9 @@ codeunit 136603 "ERM RS Package Operations"
         ExportToXML(ConfigPackage[2].Code, ConfigPackageTable[2], FilePath);
 
         // [THEN] Package contains Config. Media Buffer records only for Config. Package "2"
-        XMLDOMManagement.LoadXMLDocumentFromFile(FilePath, XMLDocument);
-        XMLDOMManagement.FindNodes(XmlDocument.DocumentElement, '/DataList/ConfigMediaBufferList', XmlNodeList);
+        LoadXMLDocumentFromFile(FilePath, PackageXMLDoc);
+        PackageXMLDoc.SelectNodes('/DataList/ConfigMediaBufferList', MediaBufferListNodes);
+        MediaBufferListNodes.Get(1, MediaBufferListNode);
 
         // <ConfigMediaBufferList>
         // <TableID>8630</TableID>
@@ -3016,9 +3016,12 @@ codeunit 136603 "ERM RS Package Operations"
         //  .. 
         // <ConfigMediaBuffer>
         // </ConfigMediaBufferList>
-        Assert.AreEqual(2, XmlNodeList.Item(0).ChildNodes.Count, ''); // 2 nodes TableID and ConfigMediaBuffer for Config. Package "2"
-        Assert.AreEqual(FORMAT(Database::"Config. Media Buffer"), XmlNodeList.ItemOf(0).SelectSingleNode('TableID').InnerText, '');
-        Assert.AreEqual(ConfigPackage[2].Code, XmlNodeList.Item(0).ChildNodes.Item(1).SelectSingleNode('PackageCode').InnerText, '');
+        Assert.AreEqual(2, MediaBufferListNode.AsXmlElement().GetChildElements().Count, ''); // 2 nodes TableID and ConfigMediaBuffer for Config. Package "2"
+        MediaBufferListNode.SelectSingleNode('TableID', TableIDNode);
+        Assert.AreEqual(FORMAT(Database::"Config. Media Buffer"), TableIDNode.AsXmlElement().InnerText, '');
+        MediaBufferListNode.AsXmlElement().GetChildElements().Get(2, MediaBufferNode);
+        MediaBufferNode.SelectSingleNode('PackageCode', PackageCodeNode);
+        Assert.AreEqual(ConfigPackage[2].Code, PackageCodeNode.AsXmlElement().InnerText, '');
     end;
 
     [Test]
@@ -3212,10 +3215,9 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackageTable: Record "Config. Package Table";
         Country: Record "Country/Region";
         Location: Record Location;
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        XMLDocument: DotNet XmlDocument;
-        DocumentElement: DotNet XmlNode;
+        PackageXMLDoc: XmlDocument;
+        DocumentElement: XmlElement;
     begin
         LibraryERM.CreateCountryRegion(Country);
         CountryCode := Country.Code;
@@ -3226,39 +3228,49 @@ codeunit 136603 "ERM RS Package Operations"
         LocationCode := Location.Code;
 
         CreateConfigPackage(ConfigPackage);
-        XMLDOMManagement.LoadXMLNodeFromText(
+        XmlDocument.ReadFrom(
           '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList Code="' + ConfigPackage.Code + '"></DataList>',
-          DocumentElement);
-        XMLDocument := DocumentElement.OwnerDocument;
+          PackageXMLDoc);
+        PackageXMLDoc.GetRoot(DocumentElement);
 
         // Add CountryRegionList
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Country/Region");
         IncludeField(ConfigPackageTable, 0, false);
         IncludeField(ConfigPackageTable, Country.FieldNo(Code), true);
         RecRef.GetTable(Country);
-        AddConfigPackageTableToXML(XMLDocument, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
         // Add LocationList
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::Location);
         IncludeField(ConfigPackageTable, 0, false);
         IncludeField(ConfigPackageTable, Location.FieldNo(Code), true);
         IncludeField(ConfigPackageTable, Location.FieldNo("Country/Region Code"), true);
         RecRef.GetTable(Location);
-        AddConfigPackageTableToXML(XMLDocument, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         Country.Delete();
         Location.Delete();
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
 
-        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, '');
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXMLDoc, '');
     end;
 
     local procedure ImportPackageXML(PackageCode: Code[20]; XMLDataFile: text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDocument: DotNet XmlDocument;
+        PackageXMLDoc: XmlDocument;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(XMLDataFile, XMLDocument);
-        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, PackageCode);
+        LoadXMLDocumentFromFile(XMLDataFile, PackageXMLDoc);
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXMLDoc, PackageCode);
+    end;
+
+    local procedure LoadXMLDocumentFromFile(FilePath: Text; var PackageXMLDoc: XmlDocument)
+    var
+        XMLFile: File;
+        XMLInStream: InStream;
+    begin
+        XMLFile.Open(FilePath);
+        XMLFile.CreateInStream(XMLInStream);
+        XmlDocument.ReadFrom(XMLInStream, PackageXMLDoc);
+        XMLFile.Close();
     end;
 
     local procedure ImportFromXMLKey(var ConfigPackage: Record "Config. Package"; var GenProductPostingGroupCode: Code[20]; var GenBusPostingGroupCode: Code[20])
@@ -3267,10 +3279,9 @@ codeunit 136603 "ERM RS Package Operations"
         GeneralPostingSetup: Record "General Posting Setup";
         GenBusPostingGroup: Record "Gen. Business Posting Group";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        XMLDocument: DotNet XmlDocument;
-        DocumentElement: DotNet XmlNode;
+        PackageXMLDoc: XmlDocument;
+        DocumentElement: XmlElement;
     begin
         LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
         GenProductPostingGroupCode := GenProductPostingGroup.Code;
@@ -3279,58 +3290,58 @@ codeunit 136603 "ERM RS Package Operations"
         LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup.Code, GenProductPostingGroup.Code);
 
         CreateConfigPackage(ConfigPackage);
-        XMLDOMManagement.LoadXMLNodeFromText(
+        XmlDocument.ReadFrom(
           '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList Code="' + ConfigPackage.Code + '"></DataList>',
-          DocumentElement);
-        XMLDocument := DocumentElement.OwnerDocument;
+          PackageXMLDoc);
+        PackageXMLDoc.GetRoot(DocumentElement);
 
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"General Posting Setup");
         RecRef.GetTable(GeneralPostingSetup);
-        AddConfigPackageTableToXML(XMLDocument, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Business Posting Group");
         RecRef.GetTable(GenBusPostingGroup);
-        AddConfigPackageTableToXML(XMLDocument, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Product Posting Group");
         RecRef.GetTable(GenProductPostingGroup);
-        AddConfigPackageTableToXML(XMLDocument, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         GenProductPostingGroup.Delete();
         GenBusPostingGroup.Delete();
         GeneralPostingSetup.Delete();
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
 
-        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, '');
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXMLDoc, '');
     end;
 
-    local procedure AddXMLNode(var XMLDocument: DotNet XmlDocument; ParentNode: DotNet XmlNode; Node: DotNet XmlNode; FieldName: Text[250]; FieldText: Text[250])
+    local procedure AddXMLNode(var ParentNode: XmlElement; var Node: XmlElement; FieldName: Text[250]; FieldText: Text[250])
     begin
-        Node := XMLDocument.CreateElement(ConfigXMLExchange.GetElementName(FieldName));
-        Node.InnerText := Format(FieldText);
-        ParentNode.AppendChild(Node);
+        Node := XmlElement.Create(ConfigXMLExchange.GetElementName(FieldName));
+        Node.Add(XmlText.Create(Format(FieldText)));
+        ParentNode.Add(Node);
     end;
 
-    local procedure AddConfigPackageTableToXML(var XMLDocument: DotNet XmlDocument; DocumentElement: DotNet XmlNode; ConfigPackageTable: Record "Config. Package Table"; RecRef: RecordRef)
+    local procedure AddConfigPackageTableToXML(DocumentElement: XmlElement; ConfigPackageTable: Record "Config. Package Table"; RecRef: RecordRef)
     var
         ConfigPackageField: Record "Config. Package Field";
         FieldRef: FieldRef;
-        TableNode: DotNet XmlNode;
-        TableIDNode: DotNet XmlNode;
-        FormIDNode: DotNet XmlNode;
-        RecordNode: DotNet XmlNode;
-        FieldNode: DotNet XmlNode;
+        TableNode: XmlElement;
+        TableIDNode: XmlElement;
+        FormIDNode: XmlElement;
+        RecordNode: XmlElement;
+        FieldNode: XmlElement;
     begin
         ConfigPackageTable.CalcFields("Table Name");
-        TableNode := XMLDocument.CreateElement(ConfigXMLExchange.GetElementName(CopyStr(ConfigPackageTable."Table Name" + 'List', 1, 250)));
-        DocumentElement.AppendChild(TableNode);
+        TableNode := XmlElement.Create(ConfigXMLExchange.GetElementName(CopyStr(ConfigPackageTable."Table Name" + 'List', 1, 250)));
+        DocumentElement.Add(TableNode);
 
-        AddXMLNode(XMLDocument, TableNode, TableIDNode, CopyStr(ConfigPackageTable.FieldName("Table ID"), 1, 250), Format(ConfigPackageTable."Table ID"));
-        AddXMLNode(XMLDocument, TableNode, FormIDNode, CopyStr(ConfigPackageTable.FieldName("Page ID"), 1, 250), Format(ConfigPackageTable."Page ID"));
+        AddXMLNode(TableNode, TableIDNode, CopyStr(ConfigPackageTable.FieldName("Table ID"), 1, 250), Format(ConfigPackageTable."Table ID"));
+        AddXMLNode(TableNode, FormIDNode, CopyStr(ConfigPackageTable.FieldName("Page ID"), 1, 250), Format(ConfigPackageTable."Page ID"));
         AddXMLNode(
-          XMLDocument, TableNode, FormIDNode, CopyStr(ConfigPackageTable.FieldName("Processing Order"), 1, 250),
+          TableNode, FormIDNode, CopyStr(ConfigPackageTable.FieldName("Processing Order"), 1, 250),
           Format(ConfigPackageTable."Processing Order"));
-        AddXMLNode(XMLDocument, TableNode, RecordNode, ConfigPackageTable."Table Name", '');
+        AddXMLNode(TableNode, RecordNode, ConfigPackageTable."Table Name", '');
 
         ConfigPackageField.Reset();
         ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
@@ -3339,7 +3350,7 @@ codeunit 136603 "ERM RS Package Operations"
         if ConfigPackageField.FindSet() then
             repeat
                 FieldRef := RecRef.Field(ConfigPackageField."Field ID");
-                AddXMLNode(XMLDocument, RecordNode, FieldNode, CopyStr(FieldRef.Name(), 1, 250), Format(FieldRef.Value()));
+                AddXMLNode(RecordNode, FieldNode, CopyStr(FieldRef.Name(), 1, 250), Format(FieldRef.Value()));
             until ConfigPackageField.Next() = 0;
     end;
 
