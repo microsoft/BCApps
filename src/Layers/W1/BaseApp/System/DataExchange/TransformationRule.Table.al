@@ -286,31 +286,31 @@ table 1237 "Transformation Rule"
     end;
 
     var
-        UNIXTIMESTAMPTxt: Label 'UNIXTIMESTAMP', Comment = 'Assigned to Transformation.Code field for Unix Timestamp';
+        UNIXTIMESTAMPTxt: Label 'UNIXTIMESTAMP', Locked = true, Comment = 'Assigned to Transformation.Code field for Unix Timestamp';
         UNIXTimeStampDescTxt: Label 'Transforming UNIX timestamp to text format.';
-        UPPERCASETxt: Label 'UPPERCASE', Comment = 'Assigned to Transformation.Code field for Upper case';
+        UPPERCASETxt: Label 'UPPERCASE', Locked = true, Comment = 'Assigned to Transformation.Code field for Upper case';
         UpperCaseDescTxt: Label 'Upper Case Text';
-        LOWERCASETxt: Label 'LOWERCASE', Comment = 'Assigned to Transformation.Code field for Lower case';
+        LOWERCASETxt: Label 'LOWERCASE', Locked = true, Comment = 'Assigned to Transformation.Code field for Lower case';
         LowerCaseDescTxt: Label 'Lower Case Text';
-        TITLECASETxt: Label 'TITLECASE', Comment = 'Assigned to Transformation.Code field for Title case';
+        TITLECASETxt: Label 'TITLECASE', Locked = true, Comment = 'Assigned to Transformation.Code field for Title case';
         TitleCaseDescTxt: Label 'Title Case Text';
-        TRIMTxt: Label 'TRIM', Comment = 'Assigned to Transformation.Code field for Trim';
+        TRIMTxt: Label 'TRIM', Locked = true, Comment = 'Assigned to Transformation.Code field for Trim';
         TrimDescTxt: Label 'Trim Text';
-        FOURTH_TO_SIXTH_CHARTxt: Label 'FOURTH_TO_SIXTH_CHAR', Comment = 'Assigned to Transformation.Code field for getting the 4th to 6th characters in a string';
+        FOURTH_TO_SIXTH_CHARTxt: Label 'FOURTH_TO_SIXTH_CHAR', Locked = true, Comment = 'Assigned to Transformation.Code field for getting the 4th to 6th characters in a string';
         FourthToSixthCharactersDescTxt: Label 'Fourth to Sixth Characters Text';
-        YYYYMMDDDateTxt: Label 'YYYYMMDD_DATE', Comment = 'Assigned to Transformation.Code field for converting dates from yyyyMMdd format';
+        YYYYMMDDDateTxt: Label 'YYYYMMDD_DATE', Locked = true, Comment = 'Assigned to Transformation.Code field for converting dates from yyyyMMdd format';
         YYYYMMDDDateDescTxt: Label 'yyyyMMdd Date Text';
-        YYYYMMDDHHMMSSTxt: Label 'YYYYMMDDHHMMSS_FMT', Comment = 'Assigned to Transformation.Code field for converting dates from yyyyMMdd format';
+        YYYYMMDDHHMMSSTxt: Label 'YYYYMMDDHHMMSS_FMT', Locked = true, Comment = 'Assigned to Transformation.Code field for converting dates from yyyyMMdd format';
         YYYYMMDDHHMMSSDescTxt: Label 'yyyyMMddHHmmss Date/Time Format';
-        ALPHANUMERIC_ONLYTxt: Label 'ALPHANUMERIC_ONLY', Comment = 'Assigned to Transformation.Code field for getting only the Alphanumeric characters in a string';
+        ALPHANUMERIC_ONLYTxt: Label 'ALPHANUMERIC_ONLY', Locked = true, Comment = 'Assigned to Transformation.Code field for getting only the Alphanumeric characters in a string';
         AlphaNumericDescTxt: Label 'Alphanumeric Text Only';
-        DKNUMBERFORMATTxt: Label 'DK_DECIMAL_FORMAT', Comment = 'Assigned to Transformation.Code field for getting decimal formatting rule for Danish numbers';
+        DKNUMBERFORMATTxt: Label 'DK_DECIMAL_FORMAT', Locked = true, Comment = 'Assigned to Transformation.Code field for getting decimal formatting rule for Danish numbers';
         DKNUMBERFORMATDescTxt: Label 'Danish Decimal Format';
-        USDATEFORMATTxt: Label 'US_DATE_FORMAT', Comment = 'Assigned to Transformation.Code field for getting date formatting rule from U.S. dates';
+        USDATEFORMATTxt: Label 'US_DATE_FORMAT', Locked = true, Comment = 'Assigned to Transformation.Code field for getting date formatting rule from U.S. dates';
         USDATEFORMATDescTxt: Label 'U.S. Date Format';
-        USDATETIMEFORMATTxt: Label 'US_DATETIME_FORMAT', Comment = 'Assigned to Transformation.Code field for getting date formatting rule from U.S. dates';
+        USDATETIMEFORMATTxt: Label 'US_DATETIME_FORMAT', Locked = true, Comment = 'Assigned to Transformation.Code field for getting date formatting rule from U.S. dates';
         USDATETIMEFORMATDescTxt: Label 'U.S. Date/Time Format';
-        DeleteNOTPROVIDEDTxt: Label 'DELETE_NOTPROVIDED', Comment = 'NOTPROVIDED should stay in english because it is a constant value. DELETE should be translated.';
+        DeleteNOTPROVIDEDTxt: Label 'DELETE_NOTPROVIDED', Locked = true, Comment = 'NOTPROVIDED should stay in english because it is a constant value. DELETE should be translated.';
         DeleteNOTPROVIDEDDescriptionTxt: Label 'Delete NOTPROVIDED value', Comment = 'NOTPROVIDED should stay in english because it is a constant value. ''Delete'' and ''value'' should be translated.';
 #if not CLEAN28
         AppendSpaceTxt: Label 'ADDSPCEND', Locked = true;
