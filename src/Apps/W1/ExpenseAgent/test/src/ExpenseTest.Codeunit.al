@@ -351,8 +351,8 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense.
         CreateExpense(Expense, true, CurrencyCode, LibraryRandom.RandInt(100));
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(20));
-        Expense.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(20));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
+        Expense.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [GIVEN] Release Expense.
         ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
@@ -3011,7 +3011,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense with Expense Category.
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', Amount);
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(10));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
         Expense.Modify();
 
         // [WHEN] Open Expense Page.
@@ -3534,7 +3534,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Get Company Information.
         CompanyInformation.Get();
-        CompanyInformation.Validate(Name, LibraryRandom.RandText(10));
+        CompanyInformation.Validate(Name, CopyStr(LibraryRandom.RandText(10), 1, 100));
         CompanyInformation.Modify();
 
         // [GIVEN] Find "Post Code".
@@ -3994,13 +3994,13 @@ codeunit 148305 "Expense Test"
         Commit();
 
         // [WHEN] Update Participant Name.
-        asserterror ExpenseParticipant.validate("Participant Name", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Organization.
-        asserterror ExpenseParticipant.validate("Participant Organization", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Organization", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
@@ -4012,13 +4012,13 @@ codeunit 148305 "Expense Test"
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Title.
-        asserterror ExpenseParticipant.validate("Participant Title", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Title", CopyStr(LibraryRandom.RandText(10), 1, 30));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Email.
-        asserterror ExpenseParticipant.validate("Participant Email", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Email", CopyStr(LibraryRandom.RandText(10), 1, 80));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
@@ -4872,7 +4872,7 @@ codeunit 148305 "Expense Test"
         Expense.PerformManualRelease();
 
         // [WHEN] Validate Description in Expense Itemization.
-        asserterror ExpenseItemization[1].Validate(Description, LibraryRandom.RandText(10));
+        asserterror ExpenseItemization[1].Validate(Description, CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that the Status is Open if Itemization is updated.
         Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
@@ -5710,7 +5710,6 @@ codeunit 148305 "Expense Test"
         ExpensePerDiem.FindFirst();
 
         CalculatedPerDiemAmount := ExpensePerDiem."Original Per Diem Amount";
-
         if (ExpensePerDiem.Breakfast) and (ExpensePerDiem."Breakfast Reduction Percent" <> 0) then
             TotalReductionPercent += ExpensePerDiem."Breakfast Reduction Percent";
         if (ExpensePerDiem.Lunch) and (ExpensePerDiem."Lunch Reduction Percent" <> 0) then

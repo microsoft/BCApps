@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Transactions>
+  <Transaction>
+    <ProviderTransId>L3TXN0001</ProviderTransId>
+    <CardId>CRDL3-0001</CardId>
+    <TransDate>2026-06-14</TransDate>
+    <PostingDate>2026-06-15</PostingDate>
+    <Amount>245.00</Amount>
+    <CurrencyCode>EUR</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>DE</Country>
+    <Level3>
+      <TaxLine>
+        <Description>Room charge</Description>
+        <Quantity>1</Quantity>
+        <UnitCost>200.00</UnitCost>
+        <VATAmount>24.00</VATAmount>
+        <TaxAmount>24.00</TaxAmount>
+        <TaxCode>VAT12</TaxCode>
+      </TaxLine>
+      <TaxLine>
+        <Description>Breakfast</Description>
+        <Quantity>1</Quantity>
+        <UnitCost>20.00</UnitCost>
+        <VATAmount>1.00</VATAmount>
+        <TaxAmount>1.00</TaxAmount>
+        <TaxCode>VAT5</TaxCode>
+      </TaxLine>
+    </Level3>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>L3TXN0002</ProviderTransId>
+    <CardId>CRDL3-0002</CardId>
+    <TransDate>2026-06-16</TransDate>
+    <PostingDate>2026-06-17</PostingDate>
+    <Amount>112.00</Amount>
+    <CurrencyCode>EUR</CurrencyCode>
+    <MerchantRaw>Contoso Restaurant</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>DE</Country>
+    <Level3>
+      <TaxLine>
+        <Description>Meal</Description>
+        <Quantity>1</Quantity>
+        <UnitCost>100.00</UnitCost>
+        <VATAmount>12.00</VATAmount>
+        <TaxAmount>12.00</TaxAmount>
+        <TaxCode>VAT12</TaxCode>
+      </TaxLine>
+    </Level3>
+  </Transaction>
+</Transactions>
