@@ -1,10 +1,8 @@
-﻿namespace System.Environment.Configuration;
+namespace System.Environment.Configuration;
 
-using System;
 using System.Automation;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 table 1518 "My Notifications"
 {
@@ -74,6 +72,7 @@ table 1518 "My Notifications"
     var
         ViewFilterDetailsTxt: Label '(View filter details)';
         DefineFiltersTxt: Label 'Define filters...';
+        DataItemTableNameTxt: Label 'Table%1', Comment = '%1 = table number', Locked = true;
 
     procedure Disable(NotificationId: Guid): Boolean
     begin
@@ -221,22 +220,29 @@ table 1518 "My Notifications"
 
     procedure GetXmlFromTableView(TableID: Integer; View: Text): Text
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        DataItemXmlNode: DotNet XmlNode;
-        DataItemsXmlNode: DotNet XmlNode;
-        XmlDoc: DotNet XmlDocument;
-        ReportParametersXmlNode: DotNet XmlNode;
+        XmlDoc: XmlDocument;
+        ReportParametersXmlElement: XmlElement;
+        DataItemsXmlElement: XmlElement;
+        DataItemXmlElement: XmlElement;
+        UnformattedXmlWriteOptions: XmlWriteOptions;
+        ParametersXml: Text;
     begin
-        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc := XmlDocument.Create();
+        XmlDoc.SetDeclaration(XmlDeclaration.Create('1.0', 'utf-8', 'yes'));
+        ReportParametersXmlElement := XmlElement.Create('ReportParameters');
+        XmlDoc.Add(ReportParametersXmlElement);
 
-        XMLDOMMgt.AddRootElement(XmlDoc, 'ReportParameters', ReportParametersXmlNode);
-        XMLDOMMgt.AddDeclaration(XmlDoc, '1.0', 'utf-8', 'yes');
+        DataItemsXmlElement := XmlElement.Create('DataItems');
+        ReportParametersXmlElement.Add(DataItemsXmlElement);
+        DataItemXmlElement := XmlElement.Create('DataItem');
+        if View <> '' then
+            DataItemXmlElement.Add(XmlText.Create(View));
+        DataItemXmlElement.SetAttribute('name', StrSubstNo(DataItemTableNameTxt, TableID));
+        DataItemsXmlElement.Add(DataItemXmlElement);
 
-        XMLDOMMgt.AddElement(ReportParametersXmlNode, 'DataItems', '', '', DataItemsXmlNode);
-        XMLDOMMgt.AddElement(DataItemsXmlNode, 'DataItem', View, '', DataItemXmlNode);
-        XMLDOMMgt.AddAttribute(DataItemXmlNode, 'name', StrSubstNo('Table%1', TableID));
-
-        exit(XmlDoc.InnerXml);
+        UnformattedXmlWriteOptions.PreserveWhitespace := true;
+        XmlDoc.WriteTo(UnformattedXmlWriteOptions, ParametersXml);
+        exit(ParametersXml);
     end;
 
     procedure OpenFilterSettings() Changed: Boolean

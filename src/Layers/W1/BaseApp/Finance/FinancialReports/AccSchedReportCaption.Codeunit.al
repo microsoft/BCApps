@@ -4,9 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
-using System;
 using System.Threading;
-using System.Xml;
 
 /// <summary>
 /// Provides custom report captions for account schedule reports in the report scheduling system.
@@ -27,19 +25,23 @@ codeunit 583 "Acc. Sched. Report Caption"
     local procedure OnGetReportDescription(var ReportDescription: Text[250]; RequestPageXml: Text; ReportId: Integer; var IsHandled: Boolean)
     var
         AccScheduleName: Record "Acc. Schedule Name";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDocument: DotNet XmlDocument;
-        XMLNode: DotNet XmlNode;
+        RequestPageXmlDocument: XmlDocument;
+        AccSchedNameXmlNode: XmlNode;
+        ByteOrderMark: Char;
     begin
         if not IsHandled then
-            if ReportId in [REPORT::"Account Schedule"] then
-                if XMLDOMManagement.LoadXMLDocumentFromText(RequestPageXml, XMLDocument) then begin
-                    XMLNode := XMLDocument.SelectSingleNode('//Field[@name="AccSchedName"]');
-                    if AccScheduleName.Get(CopyStr(XMLNode.InnerText, 1, MaxStrLen(AccScheduleName.Name))) then begin
-                        ReportDescription := AccScheduleName.Description;
-                        IsHandled := true;
-                    end;
-                end;
+            if ReportId in [REPORT::"Account Schedule"] then begin
+                ByteOrderMark := 65279;
+                if RequestPageXml <> '' then
+                    if RequestPageXml[1] = ByteOrderMark then
+                        RequestPageXml := CopyStr(RequestPageXml, 2);
+                if XmlDocument.ReadFrom(RequestPageXml, RequestPageXmlDocument) then
+                    if RequestPageXmlDocument.SelectSingleNode('//Field[@name="AccSchedName"]', AccSchedNameXmlNode) then
+                        if AccScheduleName.Get(CopyStr(AccSchedNameXmlNode.AsXmlElement().InnerText(), 1, MaxStrLen(AccScheduleName.Name))) then begin
+                            ReportDescription := AccScheduleName.Description;
+                            IsHandled := true;
+                        end;
+            end;
     end;
 }
 

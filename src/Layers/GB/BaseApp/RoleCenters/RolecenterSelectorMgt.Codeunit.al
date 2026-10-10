@@ -16,7 +16,6 @@ using System.Security.AccessControl;
 #endif
 using System.Security.User;
 using System.Text;
-using System.Xml;
 
 
 codeunit 1485 "Rolecenter Selector Mgt."
@@ -58,12 +57,10 @@ codeunit 1485 "Rolecenter Selector Mgt."
         AllObj: Record AllObj;
         ApplicationObjectMetadata: Record "Application Object Metadata";
         JSONManagement: Codeunit "JSON Management";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        ReturnXmlDocument: DotNet XmlDocument;
-        ReturnedXMLNodeList: DotNet XmlNodeList;
-        ActivityButtonsXmlNode: DotNet XmlNode;
-        BucketXmlNode: DotNet XmlNode;
-        FeatureXmlNode: DotNet XmlNode;
+        ReturnXmlDocument: XmlDocument;
+        ActivityButtonsXmlElement: XmlElement;
+        BucketXmlNode: XmlNode;
+        FeatureXmlNode: XmlNode;
         FeatureBucketsJArray: DotNet JArray;
         FeatureBucketJObject: DotNet JObject;
         FeatureJArray: DotNet JArray;
@@ -80,13 +77,12 @@ codeunit 1485 "Rolecenter Selector Mgt."
         ApplicationObjectMetadata.CalcFields(Metadata);
         ApplicationObjectMetadata.Metadata.CreateInStream(Instream);
 
-        XMLDOMManagement.LoadXMLDocumentFromInStream(Instream, ReturnXmlDocument);
-        ReturnedXMLNodeList := ReturnXmlDocument.GetElementsByTagName(ActionContainerXmlElementLbl);
+        XmlDocument.ReadFrom(Instream, ReturnXmlDocument);
 
-        if not GetActivityButtonsActionContainerXmlNode(ActivityButtonsXmlNode, ReturnedXMLNodeList) then
+        if not GetActivityButtonsActionContainerXmlElement(ActivityButtonsXmlElement, ReturnXmlDocument) then
             exit(FeatureBucketsJArray.ToString());
 
-        foreach BucketXmlNode in ActivityButtonsXmlNode.ChildNodes do begin
+        foreach BucketXmlNode in ActivityButtonsXmlElement.GetChildElements() do begin
             JSONManagement.InitializeEmptyObject();
             JSONManagement.GetJSONObject(FeatureBucketJObject);
             GetLanguageSpecificCaptionAndTooltip(BucketXmlNode, Caption, Tooltip);
@@ -94,7 +90,7 @@ codeunit 1485 "Rolecenter Selector Mgt."
             JSONManagement.AddJPropertyToJObject(FeatureBucketJObject, JsonTooltipLbl, Tooltip);
 
             FeatureJArray := FeatureJArray.JArray();
-            foreach FeatureXmlNode in BucketXmlNode.ChildNodes do
+            foreach FeatureXmlNode in BucketXmlNode.AsXmlElement().GetChildElements() do
                 if IsNodePromoted(FeatureXmlNode) then begin
                     FeatureJObject := FeatureJObject.JObject();
                     GetLanguageSpecificCaptionAndTooltip(FeatureXmlNode, Caption, Tooltip);
@@ -209,38 +205,42 @@ codeunit 1485 "Rolecenter Selector Mgt."
         exit(false);
     end;
 
-    local procedure GetActivityButtonsActionContainerXmlNode(var ActivityButtonsXmlNode: DotNet XmlNode; ActionContainerXmlNodeList: DotNet XmlNodeList): Boolean
+    local procedure GetActivityButtonsActionContainerXmlElement(var ActivityButtonsXmlElement: XmlElement; MetadataXmlDocument: XmlDocument): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        ActionContainerXmlNode: XmlNode;
     begin
-        if IsNull(ActionContainerXmlNodeList) then
-            exit(false);
-
-        foreach ActivityButtonsXmlNode in ActionContainerXmlNodeList do
-            if XMLDOMManagement.GetAttributeValue(ActivityButtonsXmlNode, ActionContainerTypeAttrLbl) = ActivityButtonsLbl then
-                exit(true);
+        foreach ActionContainerXmlNode in MetadataXmlDocument.GetDescendantElements() do begin
+            ActivityButtonsXmlElement := ActionContainerXmlNode.AsXmlElement();
+            if ActivityButtonsXmlElement.Name() = ActionContainerXmlElementLbl then
+                if GetAttributeValue(ActionContainerXmlNode, ActionContainerTypeAttrLbl) = ActivityButtonsLbl then
+                    exit(true);
+        end;
 
         exit(false);
     end;
 
-    local procedure IsNodePromoted(FeatureXmlNode: DotNet XmlNode): Boolean
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+    local procedure IsNodePromoted(FeatureXmlNode: XmlNode): Boolean
     begin
-        exit(XMLDOMManagement.GetAttributeValue(FeatureXmlNode, PromotedAttrLbl) = '1');
+        exit(GetAttributeValue(FeatureXmlNode, PromotedAttrLbl) = '1');
     end;
 
-    local procedure GetLanguageSpecificCaptionAndTooltip(XmlNode: DotNet XmlNode; var Caption: Text; var Tooltip: Text)
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+    local procedure GetLanguageSpecificCaptionAndTooltip(XmlNode: XmlNode; var Caption: Text; var Tooltip: Text)
     begin
         Caption := '';
         Tooltip := '';
 
-        Caption := GetLanguageSpecificText(GlobalLanguage, XMLDOMManagement.GetAttributeValue(XmlNode, CaptionAttrLbl));
-        Tooltip := GetLanguageSpecificText(GlobalLanguage, XMLDOMManagement.GetAttributeValue(XmlNode, TooltipAttrLbl));
+        Caption := GetLanguageSpecificText(GlobalLanguage, GetAttributeValue(XmlNode, CaptionAttrLbl));
+        Tooltip := GetLanguageSpecificText(GlobalLanguage, GetAttributeValue(XmlNode, TooltipAttrLbl));
         if Tooltip = '' then
             Tooltip := Caption;
+    end;
+
+    local procedure GetAttributeValue(ParentXmlNode: XmlNode; AttributeName: Text): Text
+    var
+        FoundXmlAttribute: XmlAttribute;
+    begin
+        if ParentXmlNode.AsXmlElement().Attributes().Get(AttributeName, FoundXmlAttribute) then
+            exit(FoundXmlAttribute.Value());
     end;
 
     local procedure GetLanguageSpecificText(LanguageID: Integer; InputMLText: Text) ReturnText: Text
