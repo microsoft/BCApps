@@ -6,9 +6,7 @@ namespace Microsoft.Finance.VAT.GovTalk;
 
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
-using System;
 using System.Utilities;
-using System.Xml;
 
 codeunit 144030 "GovTalkMessage Management Test"
 {
@@ -29,7 +27,7 @@ codeunit 144030 "GovTalkMessage Management Test"
         GovTalkMessageManagement: Codeunit "GovTalk Message Management";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryUtility: Codeunit "Library - Utility";
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        GovTalkXMLHelper: Codeunit "GovTalk XML Helper";
         Assert: Codeunit Assert;
         Initialized: Boolean;
         VATDeclarationMessageClassTxt: Label 'HMRC-VAT-DEC', Locked = true;
@@ -52,8 +50,8 @@ codeunit 144030 "GovTalkMessage Management Test"
         VATReportHeader: Record "VAT Report Header";
         ErrorMessage: Record "Error Message";
         GovTalkVATReportValidate: Codeunit "GovTalk Validate VAT Report";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         Initialize();
         // [GIVEN] GovTalk Setup parameters missing
@@ -87,7 +85,7 @@ codeunit 144030 "GovTalkMessage Management Test"
 
         // [THEN] Attempting to create a GovTalk Message header fails
         Assert.IsFalse(GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(
-            GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true), '');
+            GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true), '');
     end;
 
     [Test]
@@ -97,8 +95,8 @@ codeunit 144030 "GovTalkMessage Management Test"
         VATReportHeader: Record "VAT Report Header";
         ErrorMessage: Record "Error Message";
         GovTalkVATReportValidate: Codeunit "GovTalk Validate VAT Report";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         Initialize();
         // [GIVEN] GovTalk Setup parameters missing
@@ -137,7 +135,7 @@ codeunit 144030 "GovTalkMessage Management Test"
 
         // [THEN] Attempting to create a GovTalk Message header fails
         Assert.IsFalse(GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(
-            GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true), '');
+            GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true), '');
     end;
 
     [Test]
@@ -145,8 +143,8 @@ codeunit 144030 "GovTalkMessage Management Test"
     procedure TestCreateBlankRequestXML()
     var
         VATReportHeader: Record "VAT Report Header";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         // [SCENARIO 356154] Request XML includes "Authentication" node with "Method" = "clear", "Value" = <clear password>
         Initialize();
@@ -155,24 +153,24 @@ codeunit 144030 "GovTalkMessage Management Test"
         LibraryLowerPermissions.SetO365Setup();
 
         // [WHEN] GovTalk Blank Message is created
-        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true);
 
         // [THEN] Generated XML Node contains correct submission information and user details.
         Assert.AreEqual(GovTalkMessage."Message Class",
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Class', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Class', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual('request',
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Qualifier', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Qualifier', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual('submit',
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Function', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Function', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual(GovTalkSetup.Username,
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:SenderID', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:SenderID', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual('clear',
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Method', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Method', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual(GovTalkSetup.GetPassword(),
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Value', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Value', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual(
           GovTalkMessageManagement.FormatVATRegNo(CompanyInformation."Country/Region Code", CompanyInformation."VAT Registration No."),
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Key', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Key', 'x', GovTalkNameSpaceTxt), '');
     end;
 
     [Test]
@@ -180,7 +178,7 @@ codeunit 144030 "GovTalkMessage Management Test"
     procedure TestCreatePollRequestXML()
     var
         VATReportHeader: Record "VAT Report Header";
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         Initialize();
         // [GIVEN] VAT Report Header is created and has a correlation ID.
@@ -190,17 +188,17 @@ codeunit 144030 "GovTalkMessage Management Test"
         LibraryLowerPermissions.SetO365Setup();
 
         // [WHEN] GovTalk Poll Message is created
-        GovTalkMessageManagement.CreateGovTalkPollMessage(GovTalkRequestXMLNode, VATReportHeader);
+        GovTalkMessageManagement.CreateGovTalkPollMessage(GovTalkRequestXmlElement, VATReportHeader);
 
         // [THEN] Generated XML Node contains correct submission information and Correlation ID.
         Assert.AreEqual(GovTalkMessage."Message Class",
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Class', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Class', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual('poll',
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Qualifier', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Qualifier', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual('submit',
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:Function', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:Function', 'x', GovTalkNameSpaceTxt), '');
         Assert.AreEqual(VATReportHeader."Message Id",
-          XMLDOMManagement.FindNodeTextWithNamespace(GovTalkRequestXMLNode, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt), '');
+          GovTalkXMLHelper.FindNodeText(GovTalkRequestXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt), '');
     end;
 
     [Test]
@@ -211,9 +209,9 @@ codeunit 144030 "GovTalkMessage Management Test"
         VATReportArchive: Record "VAT Report Archive";
         ErrorMessage: Record "Error Message";
         InStream: InStream;
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
-        BlobLoadedXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
+        BlobLoadedXmlElement: XmlElement;
         SubmissionMessageText: Text;
     begin
         Initialize();
@@ -221,11 +219,11 @@ codeunit 144030 "GovTalkMessage Management Test"
         GovTalkSetup.Modify();
         // [GIVEN] GovTalk Parameters setup, a VAT Report Header is created and an XML message is formed
         CreateVATReportHeaderForVATReturn(VATReportHeader);
-        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true);
         LibraryLowerPermissions.SetO365Setup();
 
         // [WHEN] GovTalk Message is submitted
-        GovTalkMessageManagement.SubmitGovTalkRequest(VATReportHeader, GovTalkRequestXMLNode);
+        GovTalkMessageManagement.SubmitGovTalkRequest(VATReportHeader, GovTalkRequestXmlElement);
 
         // [THEN] VAT Report Header Status is changed to Accepted
         Assert.AreEqual(VATReportHeader.Status::Accepted, VATReportHeader.Status, '');
@@ -239,8 +237,8 @@ codeunit 144030 "GovTalkMessage Management Test"
         Assert.IsTrue(VATReportArchive."Response Message BLOB".HasValue, '');
         VATReportArchive."Submission Message BLOB".CreateInStream(InStream);
         InStream.Read(SubmissionMessageText);
-        XMLDOMManagement.LoadXMLNodeFromText(SubmissionMessageText, BlobLoadedXMLNode);
-        Assert.AreEqual(GovTalkRequestXMLNode.OuterXml, BlobLoadedXMLNode.OuterXml, '');
+        GovTalkXMLHelper.LoadXmlFromText(SubmissionMessageText, BlobLoadedXmlElement);
+        Assert.AreEqual(GovTalkXMLHelper.GetXmlAsText(GovTalkRequestXmlElement), GovTalkXMLHelper.GetXmlAsText(BlobLoadedXmlElement), '');
 
         // [THEN] An information message is logged
         ErrorMessage.SetContext(VATReportHeader);
@@ -257,19 +255,19 @@ codeunit 144030 "GovTalkMessage Management Test"
         VATReportHeader: Record "VAT Report Header";
         VATReportArchive: Record "VAT Report Archive";
         ErrorMessage: Record "Error Message";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         Initialize();
         GovTalkSetup.Endpoint := ErrorResponseURLTxt;
         GovTalkSetup.Modify();
         // [GIVEN] GovTalk Parameters setup, a VAT Report Header is created and an XML message is formed
         CreateVATReportHeaderForVATReturn(VATReportHeader);
-        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true);
         LibraryLowerPermissions.SetO365Setup();
 
         // [WHEN] GovTalk Message is submitted
-        GovTalkMessageManagement.SubmitGovTalkRequest(VATReportHeader, GovTalkRequestXMLNode);
+        GovTalkMessageManagement.SubmitGovTalkRequest(VATReportHeader, GovTalkRequestXmlElement);
 
         // [THEN] VAT Report Header Status is changed to Rejected
         Assert.AreEqual(VATReportHeader.Status::Rejected, VATReportHeader.Status, '');
@@ -297,8 +295,8 @@ codeunit 144030 "GovTalkMessage Management Test"
         VATReportHeader: Record "VAT Report Header";
         VATReportArchive: Record "VAT Report Archive";
         ErrorMessage: Record "Error Message";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         Initialize();
         GovTalkSetup.Endpoint := ECSLServiceResponseURLTxt;
@@ -306,7 +304,7 @@ codeunit 144030 "GovTalkMessage Management Test"
         // [GIVEN] GovTalk Parameters setup, a VAT Report Header is created and an XML message is formed
         CreateVATReportHeaderForECSales(VATReportHeader);
         CreateECSLLine(VATReportHeader);
-        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true);
         LibraryLowerPermissions.SetO365Setup();
 
         // [WHEN] GovTalk Message is submitted
@@ -347,8 +345,8 @@ codeunit 144030 "GovTalkMessage Management Test"
         VATReportHeader: Record "VAT Report Header";
         VATReportArchive: Record "VAT Report Archive";
         ErrorMessage: Record "Error Message";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
     begin
         Initialize();
         GovTalkSetup.Endpoint := ECSLErrorResponseURLTxt;
@@ -356,7 +354,7 @@ codeunit 144030 "GovTalkMessage Management Test"
         // [GIVEN] GovTalk Parameters setup, a VAT Report Header is created and an XML message is formed
         CreateVATReportHeaderForECSales(VATReportHeader);
         CreateECSLLine(VATReportHeader);
-        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true);
         LibraryLowerPermissions.SetO365Setup();
 
         // [WHEN] GovTalk Message is submitted

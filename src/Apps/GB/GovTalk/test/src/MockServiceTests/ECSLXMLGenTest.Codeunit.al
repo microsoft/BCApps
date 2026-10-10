@@ -8,9 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
-using System;
 using System.TestLibraries.Environment;
-using System.Xml;
 
 codeunit 144029 "ECSL XML Gen. Test"
 {
@@ -37,7 +35,7 @@ codeunit 144029 "ECSL XML Gen. Test"
         VATReportHeader: Record "VAT Report Header";
         ECSalesListPopulateXML: Codeunit "EC Sales List XML";
         ECSalesListSuggestLines: Codeunit "EC Sales List Suggest Lines";
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        GovTalkRequestXmlElement: XmlElement;
         StartDate: Date;
         EndDate: Date;
         VATRegNo: Text[20];
@@ -68,10 +66,10 @@ codeunit 144029 "ECSL XML Gen. Test"
 
         // [When] Generate the XML
         ECSalesListSuggestLines.Run(VATReportHeader);
-        ECSalesListPopulateXML.GetECSLDeclarationRequestMessage(GovTalkRequestXMLNode, VATReportHeader, DummyGuid);
+        ECSalesListPopulateXML.GetECSLDeclarationRequestMessage(GovTalkRequestXmlElement, VATReportHeader, DummyGuid);
 
         // [THEN] XML has all the expected values and elements
-        AssertXML(VATReportHeader, GovTalkRequestXMLNode);
+        AssertXML(VATReportHeader, GovTalkRequestXmlElement);
 
         // Teardown
         ECSLVATReportLine.DeleteAll();
@@ -88,7 +86,7 @@ codeunit 144029 "ECSL XML Gen. Test"
         VATReportHeader: Record "VAT Report Header";
         ECSalesListPopulateXML: Codeunit "EC Sales List XML";
         ECSalesListSuggestLines: Codeunit "EC Sales List Suggest Lines";
-        GovTalkRequestXMLNode: DotNet XmlNode;
+        GovTalkRequestXmlElement: XmlElement;
         StartDate: Date;
         EndDate: Date;
         VATRegNo: Text[20];
@@ -117,10 +115,10 @@ codeunit 144029 "ECSL XML Gen. Test"
 
         // [When] Generate the XML
         ECSalesListSuggestLines.Run(VATReportHeader);
-        ECSalesListPopulateXML.GetECSLDeclarationRequestMessage(GovTalkRequestXMLNode, VATReportHeader, DummyGuid);
+        ECSalesListPopulateXML.GetECSLDeclarationRequestMessage(GovTalkRequestXmlElement, VATReportHeader, DummyGuid);
 
         // [Given] 1 B2B Goods, 1 B2B Services and 1 EU 3-Party Trade  Vat Entry
-        AssertXML(VATReportHeader, GovTalkRequestXMLNode);
+        AssertXML(VATReportHeader, GovTalkRequestXmlElement);
 
         // Teardown
         ECSLVATReportLine.DeleteAll();
@@ -162,57 +160,63 @@ codeunit 144029 "ECSL XML Gen. Test"
         VATEntry.Insert();
     end;
 
-    local procedure AssertXML(VATReportHeader: Record "VAT Report Header"; GovTalkRequestXMLNode: DotNet XmlNode)
+    local procedure AssertXML(VATReportHeader: Record "VAT Report Header"; GovTalkRequestXmlElement: XmlElement)
     var
         CompanyInformation: Record "Company Information";
         ECSLVATReportLine: Record "ECSL VAT Report Line";
         GeneralLedgerSetup: Record "General Ledger Setup";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        DummyXMLNodeList: DotNet XmlNodeList;
-        XPathNavigator: DotNet XPathNavigator;
-        XPathExpression: DotNet XPathExpression;
-        TotalStr: Text;
+        TotalValueOfSuppliesXmlNodes: XmlNodeList;
+        TotalValueOfSuppliesXmlNode: XmlNode;
+        LineValue: Integer;
         TotalInt: Integer;
     begin
         CompanyInformation.Get();
-        Assert.AreEqual(CompanyInformation."Contact Person", XMLDOMManagement.FindNodeText(
-            GovTalkRequestXMLNode, GetSalesReqHeaderXpath('[name()=''VATCore:SubmittersContactName'']')), '');
+        Assert.AreEqual(CompanyInformation."Contact Person", FindNodeText(
+            GovTalkRequestXmlElement, GetSalesReqHeaderXpath('[name()=''VATCore:SubmittersContactName'']')), '');
 
         GeneralLedgerSetup.Get();
-        Assert.AreEqual(GeneralLedgerSetup."LCY Code", XMLDOMManagement.FindNodeText(GovTalkRequestXMLNode,
+        Assert.AreEqual(GeneralLedgerSetup."LCY Code", FindNodeText(GovTalkRequestXmlElement,
             GetSalesReqHeaderXpath('[name()=''VATCore:CurrencyCode'']')), '');
-        Assert.AreEqual('true', XMLDOMManagement.FindNodeText(GovTalkRequestXMLNode,
+        Assert.AreEqual('true', FindNodeText(GovTalkRequestXmlElement,
             GetSalesReqHeaderXpath('[name()=''VATCore:ApplyStrictEuropeanSaleValidation'']')), '');
 
         if VATReportHeader."Period Type" = VATReportHeader."Period Type"::Month then begin
-            Assert.AreEqual(GetMonthCode(VATReportHeader."Period No."), XMLDOMManagement.FindNodeText(GovTalkRequestXMLNode,
+            Assert.AreEqual(GetMonthCode(VATReportHeader."Period No."), FindNodeText(GovTalkRequestXmlElement,
                 GetSalesReqHeaderXpath('[name()=''VATCore:TaxMonthlyPeriod'']/*[name()=''VATCore:TaxMonth'']')),
               'Expected that the Month value are the same');
 
-            Assert.AreEqual(Format(VATReportHeader."Period Year"), XMLDOMManagement.FindNodeText(GovTalkRequestXMLNode,
+            Assert.AreEqual(Format(VATReportHeader."Period Year"), FindNodeText(GovTalkRequestXmlElement,
                 GetSalesReqHeaderXpath('[name()=''VATCore:TaxMonthlyPeriod'']/*[name()=''VATCore:TaxMonthPeriodYear'']')),
               'Expected that the Years are the same');
         end else begin
-            Assert.AreEqual(Format(VATReportHeader."Period No."), XMLDOMManagement.FindNodeText(GovTalkRequestXMLNode,
+            Assert.AreEqual(Format(VATReportHeader."Period No."), FindNodeText(GovTalkRequestXmlElement,
                 GetSalesReqHeaderXpath('[name()=''VATCore:TaxQuarter'']/*[name()=''VATCore:TaxQuarterNumber'']')),
               'Expected that the Quarter value are the same');
-            Assert.AreEqual(Format(VATReportHeader."Period Year"), XMLDOMManagement.FindNodeText(
-                GovTalkRequestXMLNode, GetSalesReqHeaderXpath('[name()=''VATCore:TaxQuarter'']/*[name()=''VATCore:TaxQuarterYear'']')),
+            Assert.AreEqual(Format(VATReportHeader."Period Year"), FindNodeText(
+                GovTalkRequestXmlElement, GetSalesReqHeaderXpath('[name()=''VATCore:TaxQuarter'']/*[name()=''VATCore:TaxQuarterYear'']')),
               'Expected that the Years are the same');
         end;
 
         ECSLVATReportLine.SetFilter("Report No.", VATReportHeader."No.");
-        Assert.IsTrue(XMLDOMManagement.FindNodes(GovTalkRequestXMLNode,
+        Assert.IsTrue(GovTalkRequestXmlElement.SelectNodes(
             GetSalesReqBodyXpath('[name()=''EuropeanSale'']/*[name()=''VATCore:TotalValueOfSupplies'']'),
-            DummyXMLNodeList), 'Expected to get nodes back');
-        Assert.AreEqual(ECSLVATReportLine.Count, DummyXMLNodeList.Count, 'Expected to have a node per record');
+            TotalValueOfSuppliesXmlNodes), 'Expected to get nodes back');
+        Assert.AreEqual(ECSLVATReportLine.Count, TotalValueOfSuppliesXmlNodes.Count, 'Expected to have a node per record');
 
-        XPathNavigator := GovTalkRequestXMLNode.CreateNavigator();
-        XPathExpression := XPathNavigator.Compile(
-            'sum(' + GetSalesReqBodyXpath('[name()=''EuropeanSale'']/*[name()=''VATCore:TotalValueOfSupplies'']') + ')');
-        TotalStr := Format(XPathNavigator.Evaluate(XPathExpression));
-        Evaluate(TotalInt, TotalStr);
+        foreach TotalValueOfSuppliesXmlNode in TotalValueOfSuppliesXmlNodes do begin
+            Evaluate(LineValue, TotalValueOfSuppliesXmlNode.AsXmlElement().InnerText());
+            TotalInt += LineValue;
+        end;
         Assert.AreEqual(GetReportTotalValue(VATReportHeader), TotalInt, '');
+    end;
+
+    local procedure FindNodeText(RootXmlElement: XmlElement; XPath: Text): Text
+    var
+        FoundXmlNode: XmlNode;
+    begin
+        if not RootXmlElement.SelectSingleNode(XPath, FoundXmlNode) then
+            exit('');
+        exit(FoundXmlNode.AsXmlElement().InnerText());
     end;
 
     local procedure GetReportTotalValue(VATReportHeader: Record "VAT Report Header"): Integer
