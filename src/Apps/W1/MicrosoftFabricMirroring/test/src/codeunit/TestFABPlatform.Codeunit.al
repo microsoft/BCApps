@@ -22,6 +22,9 @@ codeunit 140012 "Test FAB Platform"
         DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
+        TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
+        TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
+        UnexpectedEndWatermarkErr: Label 'Unexpected End Watermark for company %1, table %2.', Comment = '%1 = company name, %2 = table id';
 
     local procedure Initialize()
     var
@@ -31,6 +34,7 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricCompanies: Record "Tenant Fabric Companies";
         FabricTableClaim: Record "Fabric Table Claim";
         TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+        TenantFabricExportDetails: Record "Tenant Fabric Export Details";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
@@ -40,6 +44,7 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricCompanies.DeleteAll(false);
         FabricTableClaim.DeleteAll(false);
         TenantFabricExportSummary.DeleteAll(false);
+        TenantFabricExportDetails.DeleteAll(false);
         PlatformTestSub.Reset();
         LookupState.ClearFabricApiToken();
         // Isolated Storage is not rolled back between tests, unlike table data.
@@ -1368,6 +1373,269 @@ codeunit 140012 "Test FAB Platform"
         Assert.ExpectedError(ExpectedError);
         Assert.IsTrue(TenantFabricTableFields.Get(TableId, OriginalFieldId), 'Expected the original field to remain selected.');
         Assert.IsFalse(TenantFabricTableFields.Get(TableId, RejectedFieldId), 'Expected the unsupported field not to be selected.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableClearsEndWatermarkOfLatestSuccessfulRun()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        OlderRunId: Guid;
+        LatestRunId: Guid;
+    begin
+        //[SCENARIO] Resetting a table clears the End Watermark of its latest successful run only
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Two successful runs of the same table in one company
+        OlderRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 7200000, '100');
+        LatestRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '200');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected reset notification
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The latest successful run has an empty End Watermark and the older run is unchanged
+        VerifyEndWatermark(LatestRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyEndWatermark(OlderRunId, 'CRONUS', Database::"Tenant Fabric Setup", '100');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableClearsLatestSuccessfulRunPerCompany()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FirstCompanyOlderRunId: Guid;
+        FirstCompanyLatestRunId: Guid;
+        SecondCompanyRunId: Guid;
+    begin
+        //[SCENARIO] Resetting a table clears the latest successful run of every company
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A table with an older and a latest successful run in one company
+        FirstCompanyOlderRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 7200000, '100');
+        FirstCompanyLatestRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '200');
+        //[GIVEN] A successful run of the same table in a second company
+        SecondCompanyRunId := CreateExportDetail('FABRIKAM', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 1800000, '300');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected reset notification
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The latest run of each company is cleared and the older run of the first company is unchanged
+        VerifyEndWatermark(FirstCompanyLatestRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyEndWatermark(SecondCompanyRunId, 'FABRIKAM', Database::"Tenant Fabric Setup", '');
+        VerifyEndWatermark(FirstCompanyOlderRunId, 'CRONUS', Database::"Tenant Fabric Setup", '100');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableIgnoresFailedRunsAndOtherTables()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        SucceededRunId: Guid;
+        FailedRunId: Guid;
+        OtherTableRunId: Guid;
+    begin
+        //[SCENARIO] Resetting a table leaves failed runs and other tables untouched
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A successful run followed by a newer failed run of the table
+        SucceededRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 7200000, '100');
+        FailedRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Failed, CurrentDateTime() - 3600000, '200');
+        //[GIVEN] A successful run of another table
+        OtherTableRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Tables", "Fabric Setup State"::Succeeded, CurrentDateTime() - 1800000, '300');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected reset notification
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] Only the latest successful run of the table is cleared
+        VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyEndWatermark(FailedRunId, 'CRONUS', Database::"Tenant Fabric Setup", '200');
+        VerifyEndWatermark(OtherTableRunId, 'CRONUS', Database::"Tenant Fabric Tables", '300');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableShowsMessageWhenNoSuccessfulRunExists()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FailedRunId: Guid;
+    begin
+        //[SCENARIO] Resetting a table without a successful run only informs the user
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A table whose only run failed
+        FailedRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Failed, CurrentDateTime() - 3600000, '200');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected nothing-to-reset notification
+        ExpectedMessages.Add(StrSubstNo(TableNothingToResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The failed run is unchanged and the notification was shown
+        VerifyEndWatermark(FailedRunId, 'CRONUS', Database::"Tenant Fabric Setup", '200');
+        VerifyNoPendingMessages();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableTwiceKeepsWatermarkEmptyAndShowsResetMessage()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        SucceededRunId: Guid;
+    begin
+        //[SCENARIO] Resetting an already reset table still reports the reset instead of nothing to reset
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A successful run of the table
+        SucceededRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '100');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] The table was already reset once
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+        //[GIVEN] Expected reset notification for the repeated reset
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset again
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The End Watermark is still empty and the reset notification was shown
+        VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyNoPendingMessages();
+    end;
+
+    [Test]
+    procedure ResetTableFailsWhenSyncIsRunning()
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        SucceededRunId: Guid;
+    begin
+        //[SCENARIO] Resetting a table is rejected while a synchronization run is in progress
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A successful run of the table
+        SucceededRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '100');
+        //[GIVEN] An unfinished export run exists
+        TenantFabricExportSummary.Init();
+        TenantFabricExportSummary."Run ID" := CreateGuid();
+        TenantFabricExportSummary.Type := TenantFabricExportSummary.Type::Export;
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Running;
+        TenantFabricExportSummary."Start Time" := CurrentDateTime();
+        TenantFabricExportSummary.Insert(false);
+        //[GIVEN] The data is committed so it survives the asserterror rollback
+        Commit();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is reset
+        asserterror FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The request is rejected and the End Watermark is unchanged
+        Assert.ExpectedError('in progress');
+        VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '100');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableSucceedsAfterRunningSyncFinished()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        SucceededRunId: Guid;
+        RunningSummaryRunId: Guid;
+    begin
+        //[SCENARIO] A reset that would have been blocked by a running synchronization succeeds once that run has finished
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A successful run of the table
+        SucceededRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '100');
+        //[GIVEN] An export run that was in progress has since finished
+        RunningSummaryRunId := CreateRunningExportSummary();
+        FinishExportSummary(RunningSummaryRunId);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected reset notification
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The End Watermark is cleared and the reset notification was shown
+        VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyNoPendingMessages();
+    end;
+
+    local procedure CreateRunningExportSummary() RunId: Guid
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+    begin
+        RunId := CreateGuid();
+        TenantFabricExportSummary.Init();
+        TenantFabricExportSummary."Run ID" := RunId;
+        TenantFabricExportSummary.Type := TenantFabricExportSummary.Type::Export;
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Running;
+        TenantFabricExportSummary."Start Time" := CurrentDateTime();
+        TenantFabricExportSummary.Insert(false);
+    end;
+
+    local procedure FinishExportSummary(RunId: Guid)
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+    begin
+        TenantFabricExportSummary.Get(RunId);
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Succeeded;
+        TenantFabricExportSummary.Modify(false);
+    end;
+
+    local procedure CreateExportDetail(CompanyName: Text[30]; TableId: Integer; RunState: Enum "Fabric Setup State"; StartTime: DateTime; EndWatermark: Text[30]) RunId: Guid
+    var
+        TenantFabricExportDetails: Record "Tenant Fabric Export Details";
+    begin
+        RunId := CreateGuid();
+        TenantFabricExportDetails.Init();
+        TenantFabricExportDetails."Run ID" := RunId;
+        TenantFabricExportDetails."Company Name" := CompanyName;
+        TenantFabricExportDetails."Table ID" := TableId;
+        TenantFabricExportDetails."Table Name" := 'Test Table';
+        TenantFabricExportDetails.State := RunState;
+        TenantFabricExportDetails."Start Time" := StartTime;
+        TenantFabricExportDetails."End Watermark" := EndWatermark;
+        TenantFabricExportDetails.Insert(false);
+    end;
+
+    local procedure VerifyEndWatermark(RunId: Guid; CompanyName: Text[30]; TableId: Integer; ExpectedWatermark: Text[30])
+    var
+        TenantFabricExportDetails: Record "Tenant Fabric Export Details";
+    begin
+        TenantFabricExportDetails.Get(RunId, CompanyName, TableId);
+        Assert.AreEqual(
+            ExpectedWatermark, TenantFabricExportDetails."End Watermark",
+            StrSubstNo(UnexpectedEndWatermarkErr, CompanyName, TableId));
+    end;
+
+    local procedure VerifyNoPendingMessages()
+    begin
+        Assert.AreEqual(0, ExpectedMessages.Count(), 'Expected every expected message to have been shown.');
     end;
 
     #region Handlers
