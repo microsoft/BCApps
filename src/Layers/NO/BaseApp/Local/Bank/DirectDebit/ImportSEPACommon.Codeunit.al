@@ -7,10 +7,11 @@ namespace Microsoft.Bank.DirectDebit;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Payables;
+#if not CLEAN30
 using System;
+#endif
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 codeunit 10635 "Import SEPA Common"
 {
@@ -20,7 +21,6 @@ codeunit 10635 "Import SEPA Common"
     end;
 
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RemittanceTools: Codeunit "Remittance Tools";
         MustBeSpecifiedErr: Label 'must be specified';
         CannotBeWhenSettlingErr: Label 'cannot be %1 when settling', Comment = '%1 is the value of the remittance status';
@@ -37,12 +37,21 @@ codeunit 10635 "Import SEPA Common"
         ImportCancelledErr: Label 'Import is cancelled.';
         TransactionStatusOption: Option Approved,Settled,Rejected,Pending;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use the FindFirstNode overload with native XmlNode and XmlNamespaceManager parameters instead.', '30.0')]
     procedure FindFirstNode(RootNode: DotNet XmlNode; XmlNamespaceManager: DotNet XmlNamespaceManager; var XmlNode: DotNet XmlNode; XPathToSearch: Text; ThrowError: Boolean): Boolean
     var
         XmlNodeList: DotNet XmlNodeList;
     begin
-        if not XMLDOMManagement.FindNodesWithNamespaceManager(RootNode, XPathToSearch, XmlNamespaceManager, XmlNodeList) then begin
+        if not IsNull(RootNode) then
+            XmlNodeList := RootNode.SelectNodes(XPathToSearch, XmlNamespaceManager);
+        if IsNull(XmlNodeList) then begin
+            if ThrowError then
+                Error(XpathNotFoundErr, XPathToSearch);
+            exit(false);
+        end;
+        if XmlNodeList.Count = 0 then begin
             if ThrowError then
                 Error(XpathNotFoundErr, XPathToSearch);
             exit(false);
@@ -53,6 +62,7 @@ codeunit 10635 "Import SEPA Common"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Use the FindFirstNodeTxt overload with native XmlNode and XmlNamespaceManager parameters instead.', '30.0')]
     procedure FindFirstNodeTxt(RootNode: DotNet XmlNode; XmlNamespaceManager: DotNet XmlNamespaceManager; XPathToSearch: Text[250]; ThrowError: Boolean): Text
     var
         XmlNode: DotNet XmlNode;
@@ -63,10 +73,65 @@ codeunit 10635 "Import SEPA Common"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Use the FindFirstNodeDecimal overload with native XmlNode and XmlNamespaceManager parameters instead.', '30.0')]
     procedure FindFirstNodeDecimal(var DecimalValue: Decimal; RootNode: DotNet XmlNode; XmlNamespaceManager: DotNet XmlNamespaceManager; XPathToSearch: Text[250]; ThrowError: Boolean): Boolean
     begin
         DecimalValue := 0;
         exit(Evaluate(DecimalValue, FindFirstNodeTxt(RootNode, XmlNamespaceManager, XPathToSearch, ThrowError), 9));
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure FindFirstNode(RootNode: XmlNode; XmlNamespaceManager: XmlNamespaceManager; var FoundXmlNode: XmlNode; XPathToSearch: Text; ThrowError: Boolean): Boolean
+    begin
+        if not RootNode.SelectSingleNode(XPathToSearch, XmlNamespaceManager, FoundXmlNode) then begin
+            if ThrowError then
+                Error(XpathNotFoundErr, XPathToSearch);
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    [Scope('OnPrem')]
+    procedure FindFirstNodeTxt(RootNode: XmlNode; XmlNamespaceManager: XmlNamespaceManager; XPathToSearch: Text[250]; ThrowError: Boolean): Text
+    var
+        FoundXmlNode: XmlNode;
+    begin
+        if not FindFirstNode(RootNode, XmlNamespaceManager, FoundXmlNode, XPathToSearch, ThrowError) then
+            exit('');
+        exit(GetNodeInnerText(FoundXmlNode));
+    end;
+
+    [Scope('OnPrem')]
+    procedure FindFirstNodeDecimal(var DecimalValue: Decimal; RootNode: XmlNode; XmlNamespaceManager: XmlNamespaceManager; XPathToSearch: Text[250]; ThrowError: Boolean): Boolean
+    begin
+        DecimalValue := 0;
+        exit(Evaluate(DecimalValue, FindFirstNodeTxt(RootNode, XmlNamespaceManager, XPathToSearch, ThrowError), 9));
+    end;
+
+    internal procedure LoadXmlDocumentFromServerFile(FileName: Text; var XmlDoc: XmlDocument)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        InStream: InStream;
+    begin
+        FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
+        TempBlob.CreateInStream(InStream);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+    end;
+
+    local procedure GetNodeInnerText(FoundXmlNode: XmlNode): Text
+    begin
+        case true of
+            FoundXmlNode.IsXmlElement():
+                exit(FoundXmlNode.AsXmlElement().InnerText());
+            FoundXmlNode.IsXmlAttribute():
+                exit(FoundXmlNode.AsXmlAttribute().Value());
+            FoundXmlNode.IsXmlText():
+                exit(FoundXmlNode.AsXmlText().Value());
+        end;
+        exit('');
     end;
 
     [Scope('OnPrem')]
