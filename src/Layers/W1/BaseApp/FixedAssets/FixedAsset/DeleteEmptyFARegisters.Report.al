@@ -10,6 +10,7 @@ using System.Utilities;
 report 5693 "Delete Empty FA Registers"
 {
     Caption = 'Delete Empty FA Registers';
+    ToolTip = 'Find and delete empty FA registers.';
     Permissions = TableData "FA Register" = rimd;
     ProcessingOnly = true;
 

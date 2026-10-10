@@ -13,6 +13,7 @@ using Microsoft.FixedAssets.Setup;
 report 5687 "Copy Depreciation Book"
 {
     Caption = 'Copy Depreciation Book';
+    ToolTip = 'Copy specified entries from one depreciation book to another. The entries are not posted to the new depreciation book - they are either inserted as lines in a general ledger fixed asset journal or in a fixed asset journal, depending on whether the new depreciation book has activated general ledger integration.';
     ProcessingOnly = true;
 
     dataset

@@ -382,7 +382,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Fixed Assets List';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - List";
-                ToolTip = 'View the list of fixed assets that exist in the system .';
             }
             action("Acquisition List")
             {
@@ -390,7 +389,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Acquisition List';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Acquisition List";
-                ToolTip = 'View the related acquisitions.';
             }
 #if not CLEAN28
             action(Details)
@@ -411,7 +409,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Book Value 01';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 01";
-                ToolTip = 'View detailed information about acquisition cost, depreciation and book value for both individual assets and groups of assets. For each of these three amount types, amounts are calculated at the beginning and at the end of a specified period as well as for the period itself.';
             }
             action("Book Value 02")
             {
@@ -419,7 +416,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Book Value 02';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 02";
-                ToolTip = 'View detailed information about acquisition cost, depreciation, appreciation, write-down and book value for both individual assets and groups of assets. For each of these categories, amounts are calculated at the beginning and at the end of a specified period, as well as for the period itself.';
             }
 #if not CLEAN28
             action(Analysis)
@@ -451,7 +447,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'G/L Analysis';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - G/L Analysis";
-                ToolTip = 'View an analysis of your fixed assets (FA) with various types of data for individual assets and/or groups of assets. On the Fixed Assets FastTab, you can set filters if you want the report to include only certain fixed assets. On the Options FastTab, you can choose among a number of options to tailor the report to meet your specific needs.';
             }
             action(Register)
             {
@@ -459,7 +454,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Register';
                 Image = Confirm;
                 RunObject = Report "Fixed Asset Register";
-                ToolTip = 'View registers containing all the fixed asset entries that are created. Every register shows the first and last entry number of its entries.';
             }
             action("FA Inventory Card FA-6")
             {
@@ -483,7 +477,6 @@ page 5601 "Fixed Asset List"
                 Ellipsis = true;
                 Image = CalculateDepreciation;
                 RunObject = Report "Calculate Depreciation";
-                ToolTip = 'Calculate depreciation according to conditions that you specify. If the related depreciation book is set up to integrate with the general ledger, then the calculated entries are transferred to the fixed asset general ledger journal. Otherwise, the calculated entries are transferred to the fixed asset journal. You can then review the entries and post the journal.';
             }
             separator(Action1210000)
             {

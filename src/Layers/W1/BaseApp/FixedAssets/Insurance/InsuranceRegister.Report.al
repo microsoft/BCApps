@@ -10,6 +10,7 @@ report 5623 "Insurance Register"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Insurance Register';
+    ToolTip = 'View registers containing all the fixed asset entries that are created. Every register shows the first and last entry number of its entries.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

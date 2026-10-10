@@ -10,6 +10,7 @@ report 5635 "Maintenance - Next Service"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Maintenance Next Service';
+    ToolTip = 'Run the Maintenance Next Service report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
