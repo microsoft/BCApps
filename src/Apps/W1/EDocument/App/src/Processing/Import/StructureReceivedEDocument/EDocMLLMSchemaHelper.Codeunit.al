@@ -237,37 +237,52 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
     procedure NormalizeCreditNoteSigns(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary)
     var
-        DocumentIsNegative: Boolean;
+        CreditedIsNegative: Boolean;
         LineIsNegative: Boolean;
         LineAmount: Decimal;
+        LinesNet: Decimal;
     begin
-        DocumentIsNegative := (TempHeader.Total < 0) or ((TempHeader.Total = 0) and (TempHeader."Sub Total" < 0));
-        if DocumentIsNegative then begin
-            TempHeader."Sub Total" := Abs(TempHeader."Sub Total");
-            TempHeader."Total Discount" := Abs(TempHeader."Total Discount");
-            TempHeader."Total VAT" := Abs(TempHeader."Total VAT");
-            TempHeader.Total := Abs(TempHeader.Total);
-            TempHeader."Amount Due" := Abs(TempHeader."Amount Due");
-        end;
+        // Credit memo amounts are positive. Which printed sign means "credited" comes from the lines when they have amounts:
+        // many credit notes print negative lines under a total without a minus sign. Lines with the other sign (a restocking
+        // fee, for example) reduce the credit.
+        if TempLine.FindSet() then
+            repeat
+                LinesNet += LineAmountOf(TempLine);
+            until TempLine.Next() = 0;
+        if LinesNet <> 0 then
+            CreditedIsNegative := LinesNet < 0
+        else
+            CreditedIsNegative := (TempHeader.Total < 0) or ((TempHeader.Total = 0) and (TempHeader."Sub Total" < 0));
+
+        TempHeader."Sub Total" := Abs(TempHeader."Sub Total");
+        TempHeader."Total Discount" := Abs(TempHeader."Total Discount");
+        TempHeader."Total VAT" := Abs(TempHeader."Total VAT");
+        TempHeader.Total := Abs(TempHeader.Total);
+        TempHeader."Amount Due" := Abs(TempHeader."Amount Due");
 
         if not TempLine.FindSet() then
             exit;
         repeat
-            LineAmount := TempLine."Sub Total";
-            if LineAmount = 0 then
-                LineAmount := TempLine.Quantity * TempLine."Unit Price";
+            LineAmount := LineAmountOf(TempLine);
             LineIsNegative := LineAmount < 0;
 
             TempLine.Quantity := Abs(TempLine.Quantity);
             TempLine."Unit Price" := Abs(TempLine."Unit Price");
             TempLine."Total Discount" := Abs(TempLine."Total Discount");
             TempLine."Sub Total" := Abs(TempLine."Sub Total");
-            if (LineAmount <> 0) and (LineIsNegative <> DocumentIsNegative) then begin
+            if (LineAmount <> 0) and (LineIsNegative <> CreditedIsNegative) then begin
                 TempLine.Quantity := -TempLine.Quantity;
                 TempLine."Sub Total" := -TempLine."Sub Total";
             end;
             TempLine.Modify();
         until TempLine.Next() = 0;
+    end;
+
+    local procedure LineAmountOf(TempLine: Record "E-Document Purchase Line" temporary): Decimal
+    begin
+        if TempLine."Sub Total" <> 0 then
+            exit(TempLine."Sub Total");
+        exit(TempLine.Quantity * TempLine."Unit Price");
     end;
 
     local procedure GetString(JsonObj: JsonObject; PropertyName: Text; MaxLen: Integer; var FieldValue: Text)

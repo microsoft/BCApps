@@ -116,6 +116,29 @@ codeunit 135649 "EDoc Credit Note Tests"
     end;
 
     [Test]
+    procedure NegativeLinesUnderUnsignedTotalBecomePositive()
+    var
+        TempHeader: Record "E-Document Purchase Header" temporary;
+        TempLine: Record "E-Document Purchase Line" temporary;
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+    begin
+        // [SCENARIO] A credit note prints negative lines under a total without a minus sign; the lines still become positive
+        TempHeader."Sub Total" := 190;
+        TempHeader.Total := 237.5;
+        InsertLine(TempLine, 10000, -2, 100, -200);
+        InsertLine(TempLine, 20000, 1, 10, 10);
+
+        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempHeader, TempLine);
+
+        Assert.AreEqual(237.5, TempHeader.Total, 'Total');
+        TempLine.Get(0, 10000);
+        Assert.AreEqual(2, TempLine.Quantity, 'Credited line quantity must be positive.');
+        Assert.AreEqual(200, TempLine."Sub Total", 'Credited line amount must be positive.');
+        TempLine.Get(0, 20000);
+        Assert.AreEqual(-1, TempLine.Quantity, 'A fee with the opposite sign must reduce the credit.');
+    end;
+
+    [Test]
     procedure PositiveCreditNoteIsUnchanged()
     var
         TempHeader: Record "E-Document Purchase Header" temporary;
