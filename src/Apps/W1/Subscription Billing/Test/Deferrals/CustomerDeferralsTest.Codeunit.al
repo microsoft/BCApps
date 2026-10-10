@@ -1240,6 +1240,51 @@ codeunit 139912 "Customer Deferrals Test"
         Assert.AreNotEqual(0, GLEntry.Amount, ReleasedAmountNotPostedToLineGLAccountErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler,ExchangeRateSelectionModalPageHandler')]
+    procedure TestReleasingCustomerContractDeferralsKeepsSourceCurrency()
+    var
+        Currency: Record Currency;
+        GLEntry: Record "G/L Entry";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        ExpectedSourceCurrencyAmount: Decimal;
+        TotalSourceCurrencyAmount: Decimal;
+    begin
+        // [SCENARIO 653146] Customer contract deferral release entries retain the source currency of the originating invoice.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] A foreign-currency customer contract invoice with contract deferrals.
+        CreateCustomerContractWithDeferrals('<2M-CM>', false);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        Currency.Get(SalesInvoiceHeader."Currency Code");
+
+        // [WHEN] The first customer contract deferral is released.
+        PostingDate := CustomerContractDeferral."Posting Date";
+        Commit();
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+
+        // [THEN] Both release entries contain balanced source amounts based on the invoice currency factor.
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.SetRange("Subscription Contract No.", CustomerContractDeferral."Subscription Contract No.");
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.FindSet();
+        repeat
+            GLEntry.TestField("Source Currency Code", SalesInvoiceHeader."Currency Code");
+            ExpectedSourceCurrencyAmount :=
+                Round(
+                    CurrExchRate.ExchangeAmtLCYToFCY(
+                        SalesInvoiceHeader."Posting Date", SalesInvoiceHeader."Currency Code", GLEntry.Amount, SalesInvoiceHeader."Currency Factor"),
+                    Currency."Amount Rounding Precision");
+            Assert.AreEqual(ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'The source currency amount must use the originating invoice currency factor.');
+            TotalSourceCurrencyAmount += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(0, TotalSourceCurrencyAmount, 'The released source currency amounts must balance.');
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1250,7 +1295,6 @@ codeunit 139912 "Customer Deferrals Test"
         ClearAll();
         GLSetup.Get();
         ContractTestLibrary.InitContractsApp();
-
         if IsInitialized then
             exit;
 
