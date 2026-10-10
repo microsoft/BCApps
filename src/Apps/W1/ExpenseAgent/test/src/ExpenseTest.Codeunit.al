@@ -17,7 +17,9 @@ using System;
 using System.Automation;
 using System.Security.AccessControl;
 using System.Security.User;
+#if not CLEAN30
 using System.TestLibraries.Environment;
+#endif
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
@@ -4086,6 +4088,7 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseTeam.FieldCaption("Number Of Team Members"), 2, ExpenseTeam.TableCaption()));
     end;
 
+#if not CLEAN30
     // [Test] // Disabled - will be re-enabled in work item 629484
     procedure EntraIdMustBeRequiredInExpenseUserWhenExpenseApprovalSetupIsCreated()
     var
@@ -4176,6 +4179,7 @@ codeunit 148305 "Expense Test"
 
         // [THEN] Verify that the Approver ID of Team Manager must be automatically flow in Expense Approval Setup Through Handler.
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ExpectedConfirmHandler')]
@@ -5829,12 +5833,14 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Refundable Amount (LCY)"), ExpectedRefundableAmountLCY, Expense.TableCaption()));
     end;
 
+#if not CLEAN30
     local procedure EnableSaaS(IsSaaS: Boolean)
     var
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(IsSaaS);
     end;
+#endif
 
     local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])
     var
@@ -5883,12 +5889,14 @@ codeunit 148305 "Expense Test"
         NoSeriesList.OK().Invoke();
     end;
 
+#if not CLEAN30
     [ModalPageHandler]
     procedure ExpenseApprovalSetupPageHandler(var ExpenseApprovalSetup: TestPage "Expense Approval Setup")
     begin
         ExpenseApprovalSetup."Approver No.".AssertEquals(LibraryVariableStorage.DequeueText());
         ExpenseApprovalSetup.OK().Invoke();
     end;
+#endif
 
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
