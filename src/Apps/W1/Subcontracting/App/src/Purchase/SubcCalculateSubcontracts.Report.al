@@ -35,6 +35,11 @@ report 20505 "Subc. Calculate Subcontracts"
 
                 trigger OnAfterGetRecord()
                 begin
+                    if OnlyReadyOperations and (GetQuantityReadyToStart("Prod. Order Routing Line") = 0) then begin
+                        Session.LogMessage('QRTS-0003', 'Subc. Calculate Subcontracts run with Only Ready Operations filter enabled', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'ProdOrderNo', "Prod. Order No.", 'RoutingLinesExcludedCount', '1');
+                        CurrReport.Skip();
+                    end;
+
                     TempProdOrderRoutingLine.Init();
                     TempProdOrderRoutingLine := "Prod. Order Routing Line";
                     TempProdOrderRoutingLine.Insert();
@@ -69,6 +74,15 @@ report 20505 "Subc. Calculate Subcontracts"
 
         layout
         {
+            area(Content)
+            {
+                field(OnlyReadyOperations; OnlyReadyOperations)
+                {
+                    ApplicationArea = Subcontracting;
+                    Caption = 'Only Ready Operations';
+                    ToolTip = 'Specifies whether only production routing lines with a non-zero Quantity Ready to Start are included.';
+                }
+            }
         }
 
         actions
@@ -130,6 +144,7 @@ report 20505 "Subc. Calculate Subcontracts"
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
+        OnlyReadyOperations: Boolean;
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
@@ -288,6 +303,23 @@ report 20505 "Subc. Calculate Subcontracts"
         OnAfterSetVendorItemNo(ReqLine, ItemVendor, Item);
     end;
 
+    procedure SetOnlyReadyOperations(NewOnlyReadyOperations: Boolean)
+    begin
+        OnlyReadyOperations := NewOnlyReadyOperations;
+    end;
+
+    local procedure GetQuantityReadyToStart(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    var
+        RecordRef: RecordRef;
+        FieldRef: FieldRef;
+    begin
+        RecordRef.GetTable(ProdOrderRoutingLine);
+        if not RecordRef.FieldExist(7308) then
+            exit(0);
+        FieldRef := RecordRef.Field(7308);
+        exit(FieldRef.Value);
+    end;
+
     local procedure CalculateSubContractRequirements()
     begin
         OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(TempProdOrderRoutingLine);
@@ -369,3 +401,4 @@ report 20505 "Subc. Calculate Subcontracts"
     begin
     end;
 }
+

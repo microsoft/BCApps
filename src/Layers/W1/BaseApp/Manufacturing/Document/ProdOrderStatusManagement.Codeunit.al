@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -2045,6 +2045,12 @@ codeunit 5407 "Prod. Order Status Management"
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferRelatedTablesToReleasedProdOrder(ProductionOrder: Record "Production Order")
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnTransferReopenProdOrderRtngLineOnAfterInsert', '', false, false)]
+    local procedure RecalculateQuantityReadyToStartOnTransferReopenProdOrderRtngLine(FromProdOrderRoutingLine: Record "Prod. Order Routing Line"; ToProdOrderRoutingLine: Record "Prod. Order Routing Line"; FromProductionOrder: Record "Production Order")
+    begin
+        ToProdOrderRoutingLine.RecalculateQuantityReadyToStartForRouting();
     end;
 
     [IntegrationEvent(false, false)]

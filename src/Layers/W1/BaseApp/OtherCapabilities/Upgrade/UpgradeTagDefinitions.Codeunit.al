@@ -1222,6 +1222,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-356273-ManufacturingFlushingMethodActivateManualWithoutPickUpgradeTag-20250401');
     end;
 
+    internal procedure GetQuantityReadyToStartUpgradeTag(): Code[250]
+    begin
+        exit('QRTS-QuantityReadyToStartUpgradeTag-20261010');
+    end;
+
     internal procedure GetInventoryPlanningSetupUpgradeTag(): Code[250]
     begin
         exit('MS-556824-InventoryPlanningSetupUpgradeTag-20250401');

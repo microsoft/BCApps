@@ -790,6 +790,14 @@ table 5409 "Prod. Order Routing Line"
                                                                          "Routing Reference No." = field("Routing Reference No.")));
             Editable = false;
         }
+        field(7308; "Quantity Ready to Start"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Quantity Ready to Start';
+            DecimalPlaces = 0 : 5;
+            InitValue = 0;
+            ToolTip = 'Specifies the quantity that is ready to start on the operation based on posted output on the immediate previous operations.';
+        }
     }
 
     keys
@@ -868,6 +876,7 @@ table 5409 "Prod. Order Routing Line"
         DeleteRelations();
 
         UpdateComponentsBin(2); // from trigger = delete
+        RecalculateQuantityReadyToStartOnPendingChange(2); // delete
     end;
 
     trigger OnInsert()
@@ -880,6 +889,7 @@ table 5409 "Prod. Order Routing Line"
             SetNextOperations(Rec);
 
         UpdateComponentsBin(0); // from trigger = insert
+        RecalculateQuantityReadyToStartOnPendingChange(0); // insert
     end;
 
     trigger OnModify()
@@ -888,6 +898,7 @@ table 5409 "Prod. Order Routing Line"
             Error(Text006, Status, TableCaption);
 
         UpdateComponentsBin(1); // from trigger = modify
+        RecalculateQuantityReadyToStartOnPendingChange(1); // modify
     end;
 
     trigger OnRename()
@@ -1870,6 +1881,144 @@ table 5409 "Prod. Order Routing Line"
                 TempAffectedRoutingLine."Previous Operation No." := PrevOperNo;
                 TempAffectedRoutingLine.Modify();
             end;
+    end;
+
+    internal procedure RecalculateQuantityReadyToStartForRouting()
+    var
+        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
+        PostedOutputByOperation: Dictionary of [Code[10], Decimal];
+    begin
+        LoadRoutingSnapshot(TempProdOrderRoutingLine, PostedOutputByOperation);
+        ApplyQuantityReadyToStartFromSnapshot(TempProdOrderRoutingLine, PostedOutputByOperation, false);
+    end;
+
+    local procedure RecalculateQuantityReadyToStartOnPendingChange(ChangeAction: Option Insert,Modify,Delete)
+    var
+        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
+        PostedOutputByOperation: Dictionary of [Code[10], Decimal];
+        CurrentPostedOutput: Decimal;
+    begin
+        LoadRoutingSnapshot(TempProdOrderRoutingLine, PostedOutputByOperation);
+
+        case ChangeAction of
+            ChangeAction::Insert:
+                begin
+                    TempProdOrderRoutingLine := Rec;
+                    TempProdOrderRoutingLine.Insert();
+                    SetPostedOutput(PostedOutputByOperation, Rec."Operation No.", 0);
+                end;
+            ChangeAction::Modify:
+                begin
+                    if TempProdOrderRoutingLine.Get(xRec.Status, xRec."Prod. Order No.", xRec."Routing Reference No.", xRec."Routing No.", xRec."Operation No.") then
+                        TempProdOrderRoutingLine.Delete();
+                    if PostedOutputByOperation.Get(xRec."Operation No.", CurrentPostedOutput) then begin
+                        PostedOutputByOperation.Remove(xRec."Operation No.");
+                        SetPostedOutput(PostedOutputByOperation, Rec."Operation No.", CurrentPostedOutput);
+                    end else
+                        SetPostedOutput(PostedOutputByOperation, Rec."Operation No.", 0);
+                    TempProdOrderRoutingLine := Rec;
+                    TempProdOrderRoutingLine.Insert();
+                end;
+            ChangeAction::Delete:
+                begin
+                    if TempProdOrderRoutingLine.Get(Status, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.") then
+                        TempProdOrderRoutingLine.Delete();
+                    PostedOutputByOperation.Remove("Operation No.");
+                end;
+        end;
+
+        ApplyQuantityReadyToStartFromSnapshot(TempProdOrderRoutingLine, PostedOutputByOperation, ChangeAction <> ChangeAction::Delete);
+    end;
+
+    local procedure LoadRoutingSnapshot(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; var PostedOutputByOperation: Dictionary of [Code[10], Decimal])
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        TempProdOrderRoutingLine.Reset();
+        TempProdOrderRoutingLine.DeleteAll();
+        Clear(PostedOutputByOperation);
+
+        ProdOrderRoutingLine.SetRange(Status, Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", "Prod. Order No.");
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", "Routing Reference No.");
+        ProdOrderRoutingLine.SetRange("Routing No.", "Routing No.");
+        if ProdOrderRoutingLine.FindSet() then
+            repeat
+                ProdOrderRoutingLine.CalcFields("Posted Output Quantity");
+                TempProdOrderRoutingLine := ProdOrderRoutingLine;
+                TempProdOrderRoutingLine.Insert();
+                SetPostedOutput(PostedOutputByOperation, ProdOrderRoutingLine."Operation No.", ProdOrderRoutingLine."Posted Output Quantity");
+            until ProdOrderRoutingLine.Next() = 0;
+    end;
+
+    local procedure ApplyQuantityReadyToStartFromSnapshot(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; var PostedOutputByOperation: Dictionary of [Code[10], Decimal]; IncludeCurrentRec: Boolean)
+    var
+        ActualProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        LookupProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
+        NewQuantityReadyToStart: Decimal;
+    begin
+        if TempProdOrderRoutingLine.FindSet() then
+            repeat
+                LookupProdOrderRoutingLine.Copy(TempProdOrderRoutingLine, true);
+                NewQuantityReadyToStart := CalculateQuantityReadyToStartFromSnapshot(TempProdOrderRoutingLine, LookupProdOrderRoutingLine, PostedOutputByOperation);
+                if IncludeCurrentRec and
+                   (TempProdOrderRoutingLine.Status = Rec.Status) and
+                   (TempProdOrderRoutingLine."Prod. Order No." = Rec."Prod. Order No.") and
+                   (TempProdOrderRoutingLine."Routing Reference No." = Rec."Routing Reference No.") and
+                   (TempProdOrderRoutingLine."Routing No." = Rec."Routing No.") and
+                   (TempProdOrderRoutingLine."Operation No." = Rec."Operation No.")
+                then
+                    Rec."Quantity Ready to Start" := NewQuantityReadyToStart
+                else
+                    if ActualProdOrderRoutingLine.Get(
+                         TempProdOrderRoutingLine.Status,
+                         TempProdOrderRoutingLine."Prod. Order No.",
+                         TempProdOrderRoutingLine."Routing Reference No.",
+                         TempProdOrderRoutingLine."Routing No.",
+                         TempProdOrderRoutingLine."Operation No.")
+                    then
+                        if ActualProdOrderRoutingLine."Quantity Ready to Start" <> NewQuantityReadyToStart then begin
+                            ActualProdOrderRoutingLine."Quantity Ready to Start" := NewQuantityReadyToStart;
+                            ActualProdOrderRoutingLine.Modify(false);
+                        end;
+            until TempProdOrderRoutingLine.Next() = 0;
+    end;
+
+    local procedure CalculateQuantityReadyToStartFromSnapshot(CurrentProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; var LookupProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; var PostedOutputByOperation: Dictionary of [Code[10], Decimal]): Decimal
+    var
+        PostedOutputQuantity: Decimal;
+        RequiredOutputQuantity: Decimal;
+        QuantityReadyToStart: Decimal;
+    begin
+        LookupProdOrderRoutingLine.SetRange(Status, CurrentProdOrderRoutingLine.Status);
+        LookupProdOrderRoutingLine.SetRange("Prod. Order No.", CurrentProdOrderRoutingLine."Prod. Order No.");
+        LookupProdOrderRoutingLine.SetRange("Routing Reference No.", CurrentProdOrderRoutingLine."Routing Reference No.");
+        LookupProdOrderRoutingLine.SetRange("Routing No.", CurrentProdOrderRoutingLine."Routing No.");
+        LookupProdOrderRoutingLine.SetRange("Next Operation No.", CurrentProdOrderRoutingLine."Operation No.");
+        if not LookupProdOrderRoutingLine.FindSet() then
+            exit(CurrentProdOrderRoutingLine."Input Quantity");
+
+        repeat
+            if not PostedOutputByOperation.Get(LookupProdOrderRoutingLine."Operation No.", PostedOutputQuantity) then
+                PostedOutputQuantity := 0;
+            RequiredOutputQuantity := LookupProdOrderRoutingLine."Send-Ahead Quantity";
+            if RequiredOutputQuantity = 0 then
+                RequiredOutputQuantity := LookupProdOrderRoutingLine."Input Quantity";
+            if PostedOutputQuantity < RequiredOutputQuantity then
+                exit(0);
+            if (QuantityReadyToStart = 0) or (PostedOutputQuantity < QuantityReadyToStart) then
+                QuantityReadyToStart := PostedOutputQuantity;
+        until LookupProdOrderRoutingLine.Next() = 0;
+
+        exit(QuantityReadyToStart);
+    end;
+
+    local procedure SetPostedOutput(var PostedOutputByOperation: Dictionary of [Code[10], Decimal]; OperationNo: Code[10]; PostedOutputQuantity: Decimal)
+    begin
+        if PostedOutputByOperation.ContainsKey(OperationNo) then
+            PostedOutputByOperation.Set(OperationNo, PostedOutputQuantity)
+        else
+            PostedOutputByOperation.Add(OperationNo, PostedOutputQuantity);
     end;
 
     [IntegrationEvent(false, false)]

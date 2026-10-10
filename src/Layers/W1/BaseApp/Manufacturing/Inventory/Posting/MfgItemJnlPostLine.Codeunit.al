@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -642,6 +642,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     local procedure PostOutputUpdateProdOrderRtngLine(var ItemJnlLine: Record "Item Journal Line"; ProdOrderLine: Record "Prod. Order Line"; var LastOperation: Boolean)
     var
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        CustomDimensions: Dictionary of [Text, Text];
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -657,6 +658,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         LastOperation := (not NextOperationExist(ProdOrderRtngLine));
         OnPostOutputOnBeforeProdOrderRtngLineModify(ProdOrderRtngLine, ProdOrderLine, ItemJnlLine, LastOperation);
         ProdOrderRtngLine.Modify();
+        ProdOrderRtngLine.RecalculateQuantityReadyToStartForRouting();
+        ProdOrderRtngLine.Get(ProdOrderRtngLine.Status, ProdOrderRtngLine."Prod. Order No.", ProdOrderRtngLine."Routing Reference No.", ProdOrderRtngLine."Routing No.", ProdOrderRtngLine."Operation No.");
+        CustomDimensions.Add('ProdOrderNo', ProdOrderRtngLine."Prod. Order No.");
+        CustomDimensions.Add('RoutingLineOperationNo', ProdOrderRtngLine."Operation No.");
+        CustomDimensions.Add('QuantityReadyToStart', Format(ProdOrderRtngLine."Quantity Ready to Start"));
+        Session.LogMessage('QRTS-0001', 'Quantity Ready to Start calculated on output posting', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure NextOperationExist(var ProdOrderRtngLine: Record "Prod. Order Routing Line"): Boolean
