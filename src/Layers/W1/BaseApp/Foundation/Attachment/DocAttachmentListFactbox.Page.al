@@ -180,10 +180,22 @@ page 1178 "Doc. Attachment List Factbox"
 
     trigger OnDeleteRecord(): Boolean
     begin
+        if GuiAllowed then
+            ConfirmDeleteFromUnfilteredList();
+
         // When adding this factbox to a main page, the UpadtePropagation property is set to "Both" to ensure the main page is updated when a record is deleted.
         // This is necessary to call `CurrPage.Update()` to have the property take effect.
         if GuiAllowed then
             CurrPage.Update();
+    end;
+
+    local procedure ConfirmDeleteFromUnfilteredList()
+    var
+        SelectedDocumentAttachment: Record "Document Attachment";
+    begin
+        CurrPage.SetSelectionFilter(SelectedDocumentAttachment);
+        // The page-level codeunit instance remembers the confirmed records across the per-record OnDeleteRecord calls of one delete operation.
+        DeleteGuardDocAttachmentMgmt.ConfirmDeleteFromUnfilteredList(Rec, SelectedDocumentAttachment);
     end;
 
     local procedure LoadAndRunDocumentAttachmentDetail()
@@ -255,6 +267,7 @@ page 1178 "Doc. Attachment List Factbox"
 
     var
         OfficeMgmt: Codeunit "Office Management";
+        DeleteGuardDocAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         ShareOptionsVisible: Boolean;
         ShareEditOptionVisible: Boolean;
         DownloadEnabled: Boolean;
