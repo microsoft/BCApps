@@ -39,7 +39,6 @@ codeunit 10560 "Install GovTalk"
             exit;
 
         GovTalkHelperProcedures.TransferFields(Database::"Company Information", 10507, 10509); // 10507 - the existing field "Branch Number", 10509 - the new field "Branch Number GB"; 
-        GovTalkHelperProcedures.TransferFields(Database::"ECSL VAT Report Line", 10500, 10502); // 10500 - the existing field "Line Status", 10502 - the new field "Line Status GB"; 
         GovTalkHelperProcedures.TransferFields(Database::"ECSL VAT Report Line", 10501, 10503); // 10501 - the existing field "XML Part Id", 10503 - the new field "XML Part Id GB"; 
         GovTalkHelperProcedures.TransferFields(Database::"VAT Reports Configuration", 10500, 10501); // 10500 - the existing field "Content Max Lines", 10501 - the new field "Content Max Lines GB"; 
         GovTalkMessageTableId := 10520;
