@@ -20,6 +20,87 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         CurrentSaveValuesId: Integer;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsCopiesNonEmptyGuid()
+    var
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+        SourceRecRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        PartId: Guid;
+    begin
+        ECSLVATReportLine.DeleteAll();
+        ECSLVATReportLine."Report No." := 'GOVTALK-MIGRATION';
+        ECSLVATReportLine."Line No." := 1;
+        ECSLVATReportLine.Insert();
+        PartId := CreateGuid();
+        SourceRecRef.GetTable(ECSLVATReportLine);
+        SourceFieldRef := SourceRecRef.Field(10501);
+        SourceFieldRef.Value := PartId;
+        SourceRecRef.Modify();
+        SourceRecRef.Close();
+
+        GovTalkHelperProcedures.TransferFields(Database::"ECSL VAT Report Line", 10501, ECSLVATReportLine.FieldNo("XML Part Id GB"));
+
+        ECSLVATReportLine.FindFirst();
+        Assert.AreEqual(PartId, ECSLVATReportLine."XML Part Id GB", 'The legacy XML part ID must be migrated.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsSkipsEmptyGuid()
+    var
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+        PartId: Guid;
+    begin
+        ECSLVATReportLine.DeleteAll();
+        PartId := CreateGuid();
+        ECSLVATReportLine."Report No." := 'GOVTALK-MIGRATION';
+        ECSLVATReportLine."Line No." := 1;
+        ECSLVATReportLine."XML Part Id GB" := PartId;
+        ECSLVATReportLine.Insert();
+
+        GovTalkHelperProcedures.TransferFields(Database::"ECSL VAT Report Line", 10501, ECSLVATReportLine.FieldNo("XML Part Id GB"));
+
+        ECSLVATReportLine.FindFirst();
+        Assert.AreEqual(PartId, ECSLVATReportLine."XML Part Id GB", 'An empty legacy XML part ID must not overwrite the target.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsCopiesNonZeroIntegerAndSkipsZero()
+    var
+        VATReportsConfiguration: Record "VAT Reports Configuration";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+        SourceRecRef: RecordRef;
+        SourceFieldRef: FieldRef;
+    begin
+        VATReportsConfiguration.DeleteAll();
+        VATReportsConfiguration."VAT Report Version" := 'NONZERO';
+        VATReportsConfiguration.Insert();
+        SourceRecRef.GetTable(VATReportsConfiguration);
+        SourceFieldRef := SourceRecRef.Field(10500);
+        SourceFieldRef.Value := 100;
+        SourceRecRef.Modify();
+        SourceRecRef.Close();
+        VATReportsConfiguration.Init();
+        VATReportsConfiguration."VAT Report Version" := 'ZERO';
+        VATReportsConfiguration."Content Max Lines GB" := 200;
+        VATReportsConfiguration.Insert();
+
+        GovTalkHelperProcedures.TransferFields(Database::"VAT Reports Configuration", 10500, VATReportsConfiguration.FieldNo("Content Max Lines GB"));
+
+        VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type", 'NONZERO');
+        Assert.AreEqual(100, VATReportsConfiguration."Content Max Lines GB", 'The legacy content maximum lines must be migrated.');
+        VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type", 'ZERO');
+        Assert.AreEqual(200, VATReportsConfiguration."Content Max Lines GB", 'A zero legacy value must not overwrite the target.');
+    end;
+
+    [Test]
     [HandlerFunctions('ECSalesListReportRPH')]
     [Scope('OnPrem')]
     procedure ECSalesListRequestPageFieldsBasicApplicationArea()
