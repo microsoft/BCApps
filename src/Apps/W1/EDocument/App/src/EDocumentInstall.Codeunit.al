@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.IO;
 
+using Microsoft.eServices.EDocument;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 #endif
