@@ -1062,8 +1062,8 @@ codeunit 133625 "End-to-End Tests"
         NoSeries.SetRange("Date Order", true);
         if NoSeries.FindSet() then
             repeat
-                OriginalNoSeries := NoSeries;
-                OriginalNoSeries.Insert();
+                TempNoSeries := NoSeries;
+                TempNoSeries.Insert();
             until NoSeries.Next() = 0;
         NoSeries.ModifyAll("Date Order", false);
     end;
@@ -1088,14 +1088,14 @@ codeunit 133625 "End-to-End Tests"
     var
         NoSeries: Record "No. Series";
     begin
-        if OriginalNoSeries.FindSet() then
+        if TempNoSeries.FindSet() then
             repeat
-                if NoSeries.Get(OriginalNoSeries.Code) then begin
-                    NoSeries."Date Order" := OriginalNoSeries."Date Order";
+                if NoSeries.Get(TempNoSeries.Code) then begin
+                    NoSeries."Date Order" := TempNoSeries."Date Order";
                     NoSeries.Modify();
                 end;
-            until OriginalNoSeries.Next() = 0;
-        OriginalNoSeries.DeleteAll();
+            until TempNoSeries.Next() = 0;
+        TempNoSeries.DeleteAll();
     end;
 
     local procedure SetCompanyIdInConnectionSetup(Id: Text[100]; Name: Text[100])
@@ -1330,7 +1330,7 @@ codeunit 133625 "End-to-End Tests"
     end;
 
     var
-        OriginalNoSeries: Record "No. Series" temporary;
+        TempNoSeries: Record "No. Series" temporary;
         Customer: Record Customer;
         EDocumentService: Record "E-Document Service";
         Vendor: Record Vendor;
