@@ -30,7 +30,8 @@ using System.Utilities;
 /// </summary>
 codeunit 133625 "End-to-End Tests"
 {
-    Permissions = tabledata "Activation Header" = rimd,
+    Permissions = tabledata "No. Series" = m,
+                  tabledata "Activation Header" = rimd,
                   tabledata "Activation Mandate" = rimd,
                   tabledata "Connection Setup" = rimd,
                   tabledata "E-Document" = r;
@@ -881,6 +882,7 @@ codeunit 133625 "End-to-End Tests"
         GeneralLedgerSetup.Modify();
 
         EnsureSetupNumberSeries();
+        DisableNoSeriesDateOrder();
 
         // Clean up token between runs
         if ConnectionSetup.Get() then
@@ -1051,6 +1053,20 @@ codeunit 133625 "End-to-End Tests"
         PurchasesPayablesSetup.Modify(true);
     end;
 
+    local procedure DisableNoSeriesDateOrder()
+    var
+        NoSeries: Record "No. Series";
+    begin
+        RestoreNoSeriesDateOrder();
+        NoSeries.SetRange("Date Order", true);
+        if NoSeries.FindSet() then
+            repeat
+                OriginalNoSeries := NoSeries;
+                OriginalNoSeries.Insert();
+            until NoSeries.Next() = 0;
+        NoSeries.ModifyAll("Date Order", false);
+    end;
+
     local procedure TearDown()
     var
         CompanyInformation: Record "Company Information";
@@ -1063,6 +1079,22 @@ codeunit 133625 "End-to-End Tests"
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."VAT Reporting Date Usage" := PrevVATReportingDateValue;
         GeneralLedgerSetup.Modify();
+
+        RestoreNoSeriesDateOrder();
+    end;
+
+    local procedure RestoreNoSeriesDateOrder()
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if OriginalNoSeries.FindSet() then
+            repeat
+                if NoSeries.Get(OriginalNoSeries.Code) then begin
+                    NoSeries."Date Order" := OriginalNoSeries."Date Order";
+                    NoSeries.Modify();
+                end;
+            until OriginalNoSeries.Next() = 0;
+        OriginalNoSeries.DeleteAll();
     end;
 
     local procedure SetCompanyIdInConnectionSetup(Id: Text[100]; Name: Text[100])
@@ -1297,6 +1329,7 @@ codeunit 133625 "End-to-End Tests"
     end;
 
     var
+        OriginalNoSeries: Record "No. Series" temporary;
         Customer: Record Customer;
         EDocumentService: Record "E-Document Service";
         Vendor: Record Vendor;
