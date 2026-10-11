@@ -791,25 +791,23 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
+        RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
         RunCloseIncomeStatement(
-            GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
+            GenJournalLine, PostingDate, RetainedEarningsAccountNo,
             RetainedEarningsPosting, false, false, DocumentNo);
 
         if not UseAdditionalReportingCurrency then begin
             if ClosingAmount <> 0 then begin
                 GenJournalLine.SetRange("Document No.", DocumentNo);
                 if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
-                    GenJournalLine.SetFilter("Account No.", '<>%1', GLAccountNo);
-                    GenJournalLine.SetRange(Amount, ClosingAmount);
+                    GenJournalLine.SetRange("Account No.", RetainedEarningsAccountNo);
                 end else
                     GenJournalLine.SetRange("Account No.", GLAccountNo);
                 Assert.RecordCount(GenJournalLine, 1);
                 GenJournalLine.FindFirst();
                 if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
-                    RetainedEarningsAccountNo := GenJournalLine."Account No.";
                     Assert.AreEqual(0, GenJournalLine."Source Curr. VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
-                end else
-                    RetainedEarningsAccountNo := GenJournalLine."Bal. Account No.";
+                end;
                 GenJournalLine.Reset();
             end;
             LibraryERM.PostGeneralJnlLine(GenJournalLine);
@@ -824,9 +822,12 @@ codeunit 134228 "ERM Close Income Statement"
 
         if RetainedEarningsAccountNo <> '' then begin
             GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
+            if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
+                GLEntry.SetRange("Bal. Account No.", GLAccountNo);
             Assert.RecordCount(GLEntry, 1);
             GLEntry.FindFirst();
-            Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
+            if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
+                Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
             Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
         end;
     end;

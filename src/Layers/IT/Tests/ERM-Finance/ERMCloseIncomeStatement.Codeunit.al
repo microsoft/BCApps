@@ -602,6 +602,8 @@ codeunit 134228 "ERM Close Income Statement"
         VATPostingSetup: Record "VAT Posting Setup";
         GLAccountNo: Code[20];
         RetainedEarningsAccountNo: Code[20];
+        NetProfitAccountNo: Code[20];
+        NetLossAccountNo: Code[20];
         SourceCurrencyCode: Code[10];
         DocumentNo: Code[20];
         PostingDate: Date;
@@ -631,15 +633,15 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
-        RunCloseIncomeStatement(
-            GenJournalLine, PostingDate, RetainedEarningsPosting, false, false, DocumentNo);
+        RunCloseIncomeStatementForSourceVAT(
+            GenJournalLine, PostingDate, RetainedEarningsPosting, false, false, DocumentNo,
+            NetProfitAccountNo, NetLossAccountNo);
 
         if not UseAdditionalReportingCurrency then begin
             if ClosingAmount <> 0 then begin
                 GenJournalLine.SetRange("Document No.", DocumentNo);
                 if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
-                    GenJournalLine.SetFilter("Account No.", '<>%1', GLAccountNo);
-                    GenJournalLine.SetRange(Amount, ClosingAmount);
+                    GenJournalLine.SetFilter("Account No.", '%1|%2', NetProfitAccountNo, NetLossAccountNo);
                 end else
                     GenJournalLine.SetRange("Account No.", GLAccountNo);
                 Assert.RecordCount(GenJournalLine, 1);
@@ -663,9 +665,12 @@ codeunit 134228 "ERM Close Income Statement"
 
         if RetainedEarningsAccountNo <> '' then begin
             GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
+            if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
+                GLEntry.SetRange("Bal. Account No.", GLAccountNo);
             Assert.RecordCount(GLEntry, 1);
             GLEntry.FindFirst();
-            Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
+            if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
+                Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
             Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
         end;
     end;
@@ -932,6 +937,28 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
         LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
         LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
+        LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc);
+        LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
+        LibraryVariableStorage.Enqueue(UseDimensions);
+
+        Commit();  // commit requires to run report.
+        REPORT.Run(REPORT::"Close Income Statement");
+    end;
+
+    local procedure RunCloseIncomeStatementForSourceVAT(
+        GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; PostToRetainedEarningsAcc: Option;
+        ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20];
+        var NetProfitAccountNo: Code[20]; var NetLossAccountNo: Code[20])
+    begin
+        LibraryVariableStorage.Enqueue(PostingDate);
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
+        LibraryVariableStorage.Enqueue(DocumentNo);
+        LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
+        NetProfitAccountNo := LibraryERM.CreateGLAccountNo();
+        LibraryVariableStorage.Enqueue(NetProfitAccountNo);
+        NetLossAccountNo := LibraryERM.CreateGLAccountNo();
+        LibraryVariableStorage.Enqueue(NetLossAccountNo);
         LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc);
         LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
         LibraryVariableStorage.Enqueue(UseDimensions);
