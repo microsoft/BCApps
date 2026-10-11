@@ -1333,7 +1333,7 @@ codeunit 134918 "ERM Sales/Purchase Application"
         // [GIVEN] Create balancing G/l Account
         LibraryERM.CreateGLAccount(GLAccount);
 
-        // [GIVEN] Create first Payment without balancing account 
+        // [GIVEN] Create first Payment without balancing account
         CreateGeneralJournalLines(GenJournalLine, GenJournalBatch, Customer."No.", GenJournalLine."Document Type"::Payment, -Payment, '', GenJournalLine."Account Type"::Customer);
 
         // [GIVEN] Save Document No. of Gen. Journal Line.
@@ -1367,7 +1367,7 @@ codeunit 134918 "ERM Sales/Purchase Application"
         Vendor: Record Vendor;
         Currency: Record Currency;
         PurchaseJournal: TestPage "Purchase Journal";
-        DocumentAmount: Decimal;
+        DocumentAmount, DocumentAmount2: Decimal;
     begin
         // [SCENARIO 534464] Document Amount field in Purchase Journal accepts a value of maximum 3 decimal places.
         // [SCENARIO 544673] Document amount field respects Currency Code Decimal places settings
@@ -1395,15 +1395,9 @@ codeunit 134918 "ERM Sales/Purchase Application"
 
         // [WHEN] Set Document Amount field in Purchase Journal.
         PurchaseJournal.DocumentAmount.SetValue(DocumentAmount);
-
+        Evaluate(DocumentAmount2, PurchaseJournal.DocumentAmount.Value());
         // [THEN] Document Amount in Purchase Journal has a value of 3 decimal places.
-        Assert.AreEqual(
-            DocumentAmount,
-            PurchaseJournal.DocumentAmount.AsDecimal(),
-            StrSubstNo(
-                DocumentAmountLogicErr,
-                DocumentAmount,
-                PurchaseJournal.DocumentAmount.AsDecimal()));
+        Assert.AreEqual(DocumentAmount, DocumentAmount2, StrSubstNo(DocumentAmountLogicErr, DocumentAmount, PurchaseJournal.DocumentAmount.AsDecimal()));
     end;
 
     [Test]
@@ -1418,7 +1412,7 @@ codeunit 134918 "ERM Sales/Purchase Application"
         VatPostingSetup: Record "VAT Posting Setup";
         DocumnetNo: Code[20];
     begin
-        // [SCENARIO 575956] Issue preventing General Journal posting when a line amount is less than the VAT amount triggering the error: 'Sales/Purch. (LCY) 
+        // [SCENARIO 575956] Issue preventing General Journal posting when a line amount is less than the VAT amount triggering the error: 'Sales/Purch. (LCY)
         // must have the same sign as Amount.
         Initialize();
 

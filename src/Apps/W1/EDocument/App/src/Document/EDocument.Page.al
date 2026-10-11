@@ -310,19 +310,24 @@ page 6121 "E-Document"
                         end
                     end;
                 }
+#if not CLEAN30
                 action(RejectOrder)
                 {
                     Caption = 'Reject Order';
                     ToolTip = 'Sends a rejection response to the sender of this inbound order.';
                     ApplicationArea = Basic, Suite;
                     Image = Reject;
-                    Visible = IsIncomingDoc;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Reject order action in the Incoming group.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction()
                     begin
                         EDocumentHelper.SendOrderRejection(Rec);
                     end;
                 }
+#endif
                 action(ViewFile)
                 {
                     ApplicationArea = Basic, Suite;
@@ -339,6 +344,23 @@ page 6121 "E-Document"
             group(Incoming)
             {
                 Caption = 'Incoming';
+                action(RejectInboundOrder)
+                {
+                    Caption = 'Reject order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Reject;
+                    Visible = IsIncomingDoc;
+
+                    trigger OnAction()
+                    var
+                        ConfirmManagement: Codeunit "Confirm Management";
+                    begin
+                        if not ConfirmManagement.GetResponseOrDefault(RejectOrderQst, false) then
+                            exit;
+                        EDocumentHelper.SendOrderRejection(Rec);
+                    end;
+                }
                 action(GetBasicInfo)
                 {
                     Caption = 'Get Basic Info';
@@ -668,4 +690,5 @@ page 6121 "E-Document"
         ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;
         EDocHasErrorOrWarningMsg: Label 'Errors or warnings found for E-Document. Please review below in "Error Messages" section.';
         DocNotCreatedMsg: Label 'Failed to create new %1 from E-Document. Please review errors below.', Comment = '%1 - E-Document Document Type';
+        RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
 }

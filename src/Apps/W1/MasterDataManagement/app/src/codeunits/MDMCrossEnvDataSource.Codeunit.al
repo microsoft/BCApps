@@ -258,8 +258,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     begin
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableId, true);
-        InlineMedia.Reset(); // fresh fetch: drop any prior inline media bytes
-        SourceWatermark.Reset();
+        // Keep the batch's per-batch caches (inline media + source watermarks): GetBySystemId/GetById/GetByUidFilter
+        // run during the write loop (coupling, conflict checks), so resetting here would drop the pictures the apply
+        // step still needs and the real source timestamps GetRowLastModifiedOn reads back. Only the batch fetch
+        // (GetModifiedBatch) resets them.
         if SystemIds.Count() = 0 then
             exit;
         Transport := GetTransport();
@@ -281,8 +283,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     begin
         SourceRecordRef.Close();
         SourceRecordRef.Open(TableId, true);
-        InlineMedia.Reset();
-        SourceWatermark.Reset();
+        // Keep the current batch's per-batch caches (see FetchBySystemIds): a related-table read during the write
+        // loop must not drop the batch's inline media or source watermarks.
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         // Full read from the start (selector '{}' = no watermark), narrowed to the related rows by the row filter.
@@ -303,8 +305,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         NotIndexed := false;
         SourceRecordRef.Close();
         SourceRecordRef.Open(TableId, true);
-        InlineMedia.Reset();
-        SourceWatermark.Reset();
+        // Keep the current batch's per-batch caches (see FetchBySystemIds): a related-table read during the write
+        // loop must not drop the batch's inline media or source watermarks.
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         if not TryParseCleanResponse(Transport.GetRecords(TableId, BuildFieldIdsForTable(TableId), '{}', PageSize(), RowFilter), Response, NotIndexed) then

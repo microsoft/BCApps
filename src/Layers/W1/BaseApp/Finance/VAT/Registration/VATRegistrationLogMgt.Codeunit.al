@@ -427,8 +427,11 @@ codeunit 249 "VAT Registration Log Mgt."
         end;
 
         // Integrity: both identifiers are present here, so reject when either echoed value contradicts the request.
+        // The VIES response may echo the VAT number either with or without the leading country-code prefix
+        // (member states differ), so normalize both sides to the prefix-stripped form before comparing; a purely
+        // cosmetic prefix difference must not be treated as a mismatch.
         if (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetCountryCode())) or
-           (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo()))
+           (NormalizeVATNumber(ResponseVATNumber, ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo()))
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
@@ -440,6 +443,20 @@ codeunit 249 "VAT Registration Log Mgt."
     begin
         Value := UpperCase(Value);
         exit(DelChr(Value, '=', DelChr(Value, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')));
+    end;
+
+    local procedure NormalizeVATNumber(VATNumber: Text; CountryCode: Text): Text
+    var
+        NormalizedVATNumber: Text;
+        NormalizedCountryCode: Text;
+    begin
+        NormalizedVATNumber := NormalizeIdentifier(VATNumber);
+        NormalizedCountryCode := NormalizeIdentifier(CountryCode);
+        // GetVATRegNo() strips a leading country-code prefix from the requested number, so strip the same prefix
+        // from the echoed number when it is present, so "DE813261484" and "813261484" compare as equal.
+        if (NormalizedCountryCode <> '') and (StrPos(NormalizedVATNumber, NormalizedCountryCode) = 1) then
+            NormalizedVATNumber := DelStr(NormalizedVATNumber, 1, StrLen(NormalizedCountryCode));
+        exit(NormalizedVATNumber);
     end;
 
     /// <summary>
