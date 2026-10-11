@@ -49,6 +49,8 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
         if WebServiceKey.IsEmpty() or ((ExpiryDate <> 0DT) and (ExpiryDate <= CurrentDateTime())) then begin
             ExpiryDate := CurrentDateTime() + 24 * 60 * 60 * 1000;
             WebServiceKey := IdentityManagement.CreateWebServicesKey(UserSecurityId(), ExpiryDate);
+            // The request is authenticated by a separate server session, which only sees committed data.
+            Commit();
         end;
         if WebServiceKey.IsEmpty() then
             Error(EmptyKeyErr);
