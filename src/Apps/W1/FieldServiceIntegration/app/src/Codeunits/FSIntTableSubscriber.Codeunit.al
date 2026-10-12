@@ -1382,10 +1382,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         ServiceLine.SetRange("Type", ServiceLine.Type::Item);
         ServiceLine.SetFilter("Item Type", '%1|%2', ServiceLine."Item Type"::Inventory, ServiceLine."Item Type"::"Non-Inventory");
-        if not ServiceLine.IsEmpty() then begin
-            ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
-        end;
+        ServiceLineRecordRef.GetTable(ServiceLine);
+        SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
     end;
 
     local procedure ResetFSWorkOrderServiceFromServiceOrderLine(SourceRecordRef: RecordRef; DestinationRecordRef: RecordRef)
@@ -1403,10 +1401,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         ServiceLine.SetRange("Type", ServiceLine.Type::Item);
         ServiceLine.SetRange("Item Type", ServiceLine."Item Type"::Service);
-        if not ServiceLine.IsEmpty() then begin
-            ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
-        end;
+        ServiceLineRecordRef.GetTable(ServiceLine);
+        SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
     end;
 
     procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
