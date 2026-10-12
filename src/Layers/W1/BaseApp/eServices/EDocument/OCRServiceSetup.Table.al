@@ -5,11 +5,11 @@
 namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Foundation.Company;
-using System.Integration;
 using System.Privacy;
 using System.Security.Encryption;
 using System.Telemetry;
 using System.Threading;
+using System.Utilities;
 
 table 1270 "OCR Service Setup"
 {
@@ -47,11 +47,15 @@ table 1270 "OCR Service Setup"
 
             trigger OnValidate()
             var
-                HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+                Uri: Codeunit Uri;
             begin
                 if "Service URL" = '' then
                     exit;
-                HttpWebRequestMgt.CheckUrl("Service URL");
+                if not Uri.IsValidUri("Service URL") then
+                    Error(InvalidUrlErr);
+                Uri.Init("Service URL");
+                if Uri.GetScheme() <> 'https' then
+                    Error(NonSecureUrlErr);
                 while (StrLen("Service URL") > 8) and ("Service URL"[StrLen("Service URL")] = '/') do
                     "Service URL" := CopyStr("Service URL", 1, StrLen("Service URL") - 1);
             end;
@@ -222,6 +226,8 @@ table 1270 "OCR Service Setup"
         OCRServiceEnabledTxt: Label 'The user enabled OCR service.', Locked = true;
         OCRServiceDisabledTxt: Label 'The user disabled OCR service.', Locked = true;
         TelemetryCategoryTok: Label 'AL OCR Service', Locked = true;
+        InvalidUrlErr: Label 'The URL is not valid.';
+        NonSecureUrlErr: Label 'The URL is not secure.';
         OCRServiceConsentProvidedLbl: Label 'OCR Service - consent provided by UserSecurityId %1 for company %2.', Comment = '%1 - User Security ID, %2 - Company name', Locked = true;
 
 
