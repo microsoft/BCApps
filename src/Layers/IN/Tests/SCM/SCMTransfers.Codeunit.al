@@ -6122,7 +6122,7 @@
     var
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
-        ItemTrackingSetup: Record "Item Tracking Setup";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
         ReservationEntry: Record "Reservation Entry";
     begin
         LibraryItemTracking.CreateItemTrackingCode(
@@ -6137,35 +6137,35 @@
         LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
         PostPutAwayTrackedInventory(TransferLine, TrackingType, TrackingNo);
         if Preassigned then begin
-            SetPutAwayTrackingSetup(ItemTrackingSetup, TrackingType, TrackingNo);
-            LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, ItemTrackingSetup, Quantity);
+            SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
+            LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, TempItemTrackingSetup, Quantity);
         end;
     end;
 
     local procedure PostPutAwayTrackedInventory(TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
     var
         ItemJournalLine: Record "Item Journal Line";
-        ItemTrackingSetup: Record "Item Tracking Setup";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
         ReservationEntry: Record "Reservation Entry";
     begin
-        SetPutAwayTrackingSetup(ItemTrackingSetup, TrackingType, TrackingNo);
+        SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
         LibraryInventory.CreateItemJournalLineInItemTemplate(
             ItemJournalLine, TransferLine."Item No.", TransferLine."Transfer-from Code", '', TransferLine.Quantity);
         LibraryItemTracking.CreateItemJournalLineItemTracking(
-            ReservationEntry, ItemJournalLine, ItemTrackingSetup, TransferLine."Quantity (Base)");
+            ReservationEntry, ItemJournalLine, TempItemTrackingSetup, TransferLine."Quantity (Base)");
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
-    local procedure SetPutAwayTrackingSetup(var ItemTrackingSetup: Record "Item Tracking Setup"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
+    local procedure SetPutAwayTrackingSetup(var TempItemTrackingSetup: Record "Item Tracking Setup"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
     begin
-        Clear(ItemTrackingSetup);
+        Clear(TempItemTrackingSetup);
         case TrackingType of
             TrackingType::"Serial No.":
-                ItemTrackingSetup."Serial No." := TrackingNo;
+                TempItemTrackingSetup."Serial No." := TrackingNo;
             TrackingType::"Lot No.":
-                ItemTrackingSetup."Lot No." := TrackingNo;
+                TempItemTrackingSetup."Lot No." := TrackingNo;
             TrackingType::"Package No.":
-                ItemTrackingSetup."Package No." := TrackingNo;
+                TempItemTrackingSetup."Package No." := TrackingNo;
         end;
     end;
 
@@ -6211,13 +6211,13 @@
     local procedure VerifyPutAwayTracking(TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        ItemTrackingSetup: Record "Item Tracking Setup";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
     begin
         FindDirectPutAwayLine(WarehouseActivityLine, TransferLine);
-        SetPutAwayTrackingSetup(ItemTrackingSetup, TrackingType, TrackingNo);
-        Assert.AreEqual(ItemTrackingSetup."Lot No.", WarehouseActivityLine."Lot No.", 'Unexpected put-away lot.');
-        Assert.AreEqual(ItemTrackingSetup."Serial No.", WarehouseActivityLine."Serial No.", 'Unexpected put-away serial number.');
-        Assert.AreEqual(ItemTrackingSetup."Package No.", WarehouseActivityLine."Package No.", 'Unexpected put-away package.');
+        SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
+        Assert.AreEqual(TempItemTrackingSetup."Lot No.", WarehouseActivityLine."Lot No.", 'Unexpected put-away lot.');
+        Assert.AreEqual(TempItemTrackingSetup."Serial No.", WarehouseActivityLine."Serial No.", 'Unexpected put-away serial number.');
+        Assert.AreEqual(TempItemTrackingSetup."Package No.", WarehouseActivityLine."Package No.", 'Unexpected put-away package.');
         Assert.AreEqual(TransferLine."Quantity (Base)", WarehouseActivityLine."Qty. to Handle (Base)", 'Unexpected put-away quantity.');
     end;
 
@@ -6227,18 +6227,20 @@
         DirectTransHeader: Record "Direct Trans. Header";
         DirectTransLine: Record "Direct Trans. Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        ItemTrackingSetup: Record "Item Tracking Setup";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
         ReservationEntry: Record "Reservation Entry";
     begin
         TransferHeader.SetRange("No.", TransferLine."Document No.");
         Assert.RecordIsEmpty(TransferHeader);
+#pragma warning disable AA0210
         DirectTransHeader.SetRange("Transfer Order No.", TransferLine."Document No.");
+#pragma warning restore AA0210
         Assert.RecordCount(DirectTransHeader, 1);
         DirectTransHeader.FindFirst();
         DirectTransLine.Get(DirectTransHeader."No.", TransferLine."Line No.");
         Assert.AreEqual(TransferLine."Item No.", DirectTransLine."Item No.", 'Unexpected posted transfer item.');
         Assert.AreEqual(TransferLine."Quantity (Base)", DirectTransLine."Quantity (Base)", 'Unexpected posted source-line quantity.');
-        SetPutAwayTrackingSetup(ItemTrackingSetup, TrackingType, TrackingNo);
+        SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
         ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Direct Transfer");
         ItemLedgerEntry.SetRange("Document No.", DirectTransHeader."No.");
         ItemLedgerEntry.SetRange("Document Line No.", TransferLine."Line No.");
@@ -6248,9 +6250,9 @@
         Assert.RecordCount(ItemLedgerEntry, 1);
         ItemLedgerEntry.FindFirst();
         Assert.AreEqual(TransferLine."Quantity (Base)", ItemLedgerEntry.Quantity, 'Unexpected destination quantity.');
-        Assert.AreEqual(ItemTrackingSetup."Lot No.", ItemLedgerEntry."Lot No.", 'Unexpected destination lot.');
-        Assert.AreEqual(ItemTrackingSetup."Serial No.", ItemLedgerEntry."Serial No.", 'Unexpected destination serial number.');
-        Assert.AreEqual(ItemTrackingSetup."Package No.", ItemLedgerEntry."Package No.", 'Unexpected destination package.');
+        Assert.AreEqual(TempItemTrackingSetup."Lot No.", ItemLedgerEntry."Lot No.", 'Unexpected destination lot.');
+        Assert.AreEqual(TempItemTrackingSetup."Serial No.", ItemLedgerEntry."Serial No.", 'Unexpected destination serial number.');
+        Assert.AreEqual(TempItemTrackingSetup."Package No.", ItemLedgerEntry."Package No.", 'Unexpected destination package.');
         ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
         ReservationEntry.SetRange("Source Subtype", 0, 1);
         ReservationEntry.SetRange("Source ID", TransferLine."Document No.");
