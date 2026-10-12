@@ -86,9 +86,25 @@ table 31125 "EET Service Setup CZL"
                     CancelJobQueueEntry();
             end;
         }
+#if not CLEANSCHEMA33
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
+            TableRelation = "Certificate Code CZL";
+            ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'The field has been replaced by the Taxpayer Certificate Code field, because its length (10) did not match the length of the Code field (20) in the Certificate Code CZL table, so certificates with a longer code could not be selected.';
+        }
+#endif
+        field(18; "Taxpayer Certificate Code"; Code[20])
+        {
+            Caption = 'Taxpayer Certificate Code';
             TableRelation = "Certificate Code CZL";
             ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
         }

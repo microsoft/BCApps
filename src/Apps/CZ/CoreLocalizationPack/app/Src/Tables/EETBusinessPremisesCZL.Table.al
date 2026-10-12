@@ -38,11 +38,27 @@ table 31126 "EET Business Premises CZL"
             Numeric = true;
             ToolTip = 'Specifies the identification number of the registrating unit that is assigned by the tax authority and sent in the data message. The number must be in the range from 1 to 999999999.';
         }
+#if not CLEANSCHEMA33
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
-            ToolTip = 'Specifies the certificate used to sign the data messages of this registrating unit. Leave it blank to use the certificate from the EET service setup. The certificate must be issued to the taxpayer specified on this registrating unit.';
+            ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'The field has been replaced by the Taxpayer Certificate Code field, because its length (10) did not match the length of the Code field (20) in the Certificate Code CZL table, so certificates with a longer code could not be selected.';
+        }
+#endif
+        field(18; "Taxpayer Certificate Code"; Code[20])
+        {
+            Caption = 'Taxpayer Certificate Code';
+            TableRelation = "Certificate Code CZL";
+            ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
         }
         field(30; "Taxpayer ID"; Code[20])
         {

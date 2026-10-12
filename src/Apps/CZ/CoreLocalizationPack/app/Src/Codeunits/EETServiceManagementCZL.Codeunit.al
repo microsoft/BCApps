@@ -51,7 +51,7 @@ codeunit 31116 "EET Service Management CZL"
     begin
         Initialize();
 
-        FindValidCertificate(EETEntryCZL.GetCertificateCode(), IsolatedCertificate);
+        FindValidCertificate(EETEntryCZL.GetTaxpayerCertificateCode(), IsolatedCertificate);
         if not CheckEETEntry(EETEntryCZL, IsolatedCertificate) then
             Error('');
 
@@ -520,7 +520,7 @@ codeunit 31116 "EET Service Management CZL"
         TempErrorMessage.CopyToTemp(TempDestinationErrorMessage);
     end;
 
-    [EventSubscriber(ObjectType::Table, 1400, 'OnRegisterServiceConnection', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Connection", OnRegisterServiceConnection, '', false, false)]
     local procedure HandleEETRegisterServiceConnection(var ServiceConnection: Record "Service Connection")
     var
         EETServiceSetupCZL: Record "EET Service Setup CZL";

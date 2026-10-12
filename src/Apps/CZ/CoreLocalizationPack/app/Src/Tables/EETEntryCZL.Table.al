@@ -389,26 +389,33 @@ table 31128 "EET Entry CZL"
         InterfaceEETCashRegisterCZL := "Cash Register Type";
         InterfaceEETCashRegisterCZL.ShowDocument("Cash Register No.", "Document No.");
     end;
-
+#if not CLEAN30
+    [Obsolete('The function has been replaced by the GetTaxpayerCertificateCode function, because the Code[10] return value is shorter than the Code field (20) in the Certificate Code CZL table and it truncates longer certificate codes.', '30.0')]
     procedure GetCertificateCode() CertificateCode: Code[10]
+    begin
+        exit(CopyStr(GetTaxpayerCertificateCode(), 1, 10));
+    end;
+#endif
+
+    procedure GetTaxpayerCertificateCode() CertificateCode: Code[20]
     var
         EETBusinessPremisesCZL: Record "EET Business Premises CZL";
         EETServiceSetupCZL: Record "EET Service Setup CZL";
     begin
         GetEETCashRegister();
-        CertificateCode := EETCashRegisterCZL."Certificate Code";
+        CertificateCode := EETCashRegisterCZL."Taxpayer Certificate Code";
         if CertificateCode = '' then begin
             EETBusinessPremisesCZL.Get("Business Premises Code");
-            CertificateCode := EETBusinessPremisesCZL."Certificate Code";
+            CertificateCode := EETBusinessPremisesCZL."Taxpayer Certificate Code";
         end;
         if CertificateCode = '' then begin
             EETServiceSetupCZL.Get();
-            CertificateCode := EETServiceSetupCZL."Certificate Code";
+            CertificateCode := EETServiceSetupCZL."Taxpayer Certificate Code";
         end;
 
         OnAfterGetCertificateCode(Rec, CertificateCode);
-        if (CertificateCode = '') and (EETServiceSetupCZL."Certificate Code" = '') then
-            EETServiceSetupCZL.Testfield("Certificate Code");
+        if (CertificateCode = '') and (EETServiceSetupCZL."Taxpayer Certificate Code" = '') then
+            EETServiceSetupCZL.Testfield("Taxpayer Certificate Code");
     end;
 
     procedure GetBusinessPremisesId(): Code[6]

@@ -34,7 +34,7 @@ page 31143 "EET Business Premises CZL"
                 field("Taxpayer ID"; Rec."Taxpayer ID")
                 {
                 }
-                field("Certificate Code"; Rec."Certificate Code")
+                field("Certificate Code"; Rec."Taxpayer Certificate Code")
                 {
                 }
                 field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")

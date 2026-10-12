@@ -37,7 +37,7 @@ page 31144 "EET Cash Registers CZL"
                 field("Receipt Serial Nos."; Rec."Receipt Serial Nos.")
                 {
                 }
-                field("Certificate Code"; Rec."Certificate Code")
+                field("Certificate Code"; Rec."Taxpayer Certificate Code")
                 {
                 }
                 field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")

@@ -33,7 +33,7 @@ codeunit 31099 "EET Control Codes Mgt. CZL"
         CertificateCodeCZL: Record "Certificate Code CZL";
         Base64Convert: Codeunit "Base64 Convert";
     begin
-        CertificateCodeCZL.Get(EETEntryCZL.GetCertificateCode());
+        CertificateCodeCZL.Get(EETEntryCZL.GetTaxpayerCertificateCode());
         if not CertificateCodeCZL.FindValidCertificate(IsolatedCertificate) then
             exit;
 

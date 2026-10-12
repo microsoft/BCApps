@@ -70,9 +70,25 @@ table 31127 "EET Cash Register CZL"
             Caption = 'Cash Register Name';
             ToolTip = 'Specifies the name of the cash register.';
         }
+#if not CLEANSCHEMA33
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
+            TableRelation = "Certificate Code CZL";
+            ToolTip = 'Specifies the certificate used to sign the data messages of this cash register. Leave it blank to use the certificate from the registrating unit or from the EET service setup.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'The field has been replaced by the Taxpayer Certificate Code field, because its length (10) did not match the length of the Code field (20) in the Certificate Code CZL table, so certificates with a longer code could not be selected.';
+        }
+#endif
+        field(18; "Taxpayer Certificate Code"; Code[20])
+        {
+            Caption = 'Taxpayer Certificate Code';
             TableRelation = "Certificate Code CZL";
             ToolTip = 'Specifies the certificate used to sign the data messages of this cash register. Leave it blank to use the certificate from the registrating unit or from the EET service setup.';
         }

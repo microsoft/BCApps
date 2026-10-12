@@ -54,7 +54,7 @@ page 31142 "EET Service Setup CZL"
                 {
                     Editable = EditableByNotEnabled;
                 }
-                field("Certificate Code"; Rec."Certificate Code")
+                field("Certificate Code"; Rec."Taxpayer Certificate Code")
                 {
                     Editable = EditableByNotEnabled;
                 }
