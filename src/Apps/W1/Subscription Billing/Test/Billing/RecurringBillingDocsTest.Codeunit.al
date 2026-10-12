@@ -2919,6 +2919,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     procedure CreateSalesDocumentPerSellToCustomerUsesContractCurrency()
     var
         Customer: Record Customer;
+        ExpectedUnitPrice: Decimal;
     begin
         Initialize();
 
@@ -2938,7 +2939,15 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesHeader.TestField("Currency Factor", 0);
         FilterSalesLineOnDocumentLine(SalesHeader."Document Type", BillingLine."Document No.", BillingLine."Document Line No.");
         SalesLine.FindFirst();
-        Assert.AreEqual(BillingLine."Unit Price", SalesLine."Unit Price", UnitPriceErr);
+        BillingLine.Reset();
+        BillingLine.SetRange("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesHeader."Document Type"));
+        BillingLine.SetRange("Document No.", SalesHeader."No.");
+        BillingLine.SetRange("Document Line No.", SalesLine."Line No.");
+        if BillingLine.FindSet() then
+            repeat
+                ExpectedUnitPrice += BillingLine."Unit Price";
+            until BillingLine.Next() = 0;
+        Assert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", UnitPriceErr);
     end;
 
     #endregion Tests
