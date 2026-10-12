@@ -113,20 +113,5 @@
     "codeunitId": 139867,
     "codeunitName": "APIV2 - Apply Vendor Ent. E2E",
     "method": "TestApplyVendorEntryAppliesPayment"
-  },
-  {
-    "codeunitId": 139908,
-    "method": "TestExpandPdfDocument",
-    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
-  },
-  {
-    "codeunitId": 139922,
-    "method": "TestExpandPdfDocument",
-    "codeunitName": "APIV2 - Purch. Quotes E2E"
-  },
-  {
-    "codeunitId": 139928,
-    "method": "TestExpandPdfDocument",
-    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
   }
 ]
