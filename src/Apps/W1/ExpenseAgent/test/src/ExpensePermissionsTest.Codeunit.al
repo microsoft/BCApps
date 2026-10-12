@@ -510,6 +510,17 @@ codeunit 148338 "Expense Permissions Test"
         ExpenseTeam: Record "Expense Team";
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequestCanRead: Boolean;
+        SpendRequestDetailCanRead: Boolean;
+        SpendRequestToGLLinkCanRead: Boolean;
+        SpendRequestCanWrite: Boolean;
+        SpendRequestDetailCanWrite: Boolean;
+        ExpenseUserCanRead: Boolean;
+        ExpenseReportHeaderCanRead: Boolean;
+        ExpenseUserCanWrite: Boolean;
+        ExpenseTeamCanWrite: Boolean;
+        ExpenseApprovalSetupCanWrite: Boolean;
+        ExpenseReportHeaderCanWrite: Boolean;
     begin
         Initialize();
 
@@ -518,20 +529,32 @@ codeunit 148338 "Expense Permissions Test"
         LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
 
         // [WHEN] The effective table permissions are evaluated.
-        // [THEN] BaseApp rights are not added to these roles; app-owned rights follow the role level.
-        Assert.IsFalse(SpendRequest.ReadPermission(), 'The role must not grant direct BaseApp request access.');
-        Assert.IsFalse(SpendRequestDetail.ReadPermission(), 'The role must not grant direct BaseApp detail access.');
-        Assert.IsFalse(SpendRequestToGLLink.ReadPermission(), 'The role must not grant direct BaseApp ledger-link access.');
-        Assert.IsFalse(SpendRequest.WritePermission(), 'The role must not grant direct BaseApp request writes.');
-        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The role must not grant direct BaseApp detail writes.');
-        Assert.IsTrue(ExpenseUser.ReadPermission(), 'The role must retain read access to app-owned expense users.');
-        Assert.IsTrue(ExpenseReportHeader.ReadPermission(), 'The role must retain read access to app-owned reports.');
-        Assert.AreEqual(CanMaintainSetup, ExpenseUser.WritePermission(), 'Expense user write access must follow the role level.');
-        Assert.AreEqual(CanMaintainSetup, ExpenseTeam.WritePermission(), 'Expense team write access must follow the role level.');
-        Assert.AreEqual(CanMaintainSetup, ExpenseApprovalSetup.WritePermission(), 'Expense approval setup write access must follow the role level.');
-        Assert.AreEqual(CanEdit, ExpenseReportHeader.WritePermission(), 'Expense report write access must follow the role level.');
+        SpendRequestCanRead := SpendRequest.ReadPermission();
+        SpendRequestDetailCanRead := SpendRequestDetail.ReadPermission();
+        SpendRequestToGLLinkCanRead := SpendRequestToGLLink.ReadPermission();
+        SpendRequestCanWrite := SpendRequest.WritePermission();
+        SpendRequestDetailCanWrite := SpendRequestDetail.WritePermission();
+        ExpenseUserCanRead := ExpenseUser.ReadPermission();
+        ExpenseReportHeaderCanRead := ExpenseReportHeader.ReadPermission();
+        ExpenseUserCanWrite := ExpenseUser.WritePermission();
+        ExpenseTeamCanWrite := ExpenseTeam.WritePermission();
+        ExpenseApprovalSetupCanWrite := ExpenseApprovalSetup.WritePermission();
+        ExpenseReportHeaderCanWrite := ExpenseReportHeader.WritePermission();
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] BaseApp rights are not added to these roles; app-owned rights follow the role level.
+        Assert.IsFalse(SpendRequestCanRead, 'The role must not grant direct BaseApp request access.');
+        Assert.IsFalse(SpendRequestDetailCanRead, 'The role must not grant direct BaseApp detail access.');
+        Assert.IsFalse(SpendRequestToGLLinkCanRead, 'The role must not grant direct BaseApp ledger-link access.');
+        Assert.IsFalse(SpendRequestCanWrite, 'The role must not grant direct BaseApp request writes.');
+        Assert.IsFalse(SpendRequestDetailCanWrite, 'The role must not grant direct BaseApp detail writes.');
+        Assert.IsTrue(ExpenseUserCanRead, 'The role must retain read access to app-owned expense users.');
+        Assert.IsTrue(ExpenseReportHeaderCanRead, 'The role must retain read access to app-owned reports.');
+        Assert.AreEqual(CanMaintainSetup, ExpenseUserCanWrite, 'Expense user write access must follow the role level.');
+        Assert.AreEqual(CanMaintainSetup, ExpenseTeamCanWrite, 'Expense team write access must follow the role level.');
+        Assert.AreEqual(CanMaintainSetup, ExpenseApprovalSetupCanWrite, 'Expense approval setup write access must follow the role level.');
+        Assert.AreEqual(CanEdit, ExpenseReportHeaderCanWrite, 'Expense report write access must follow the role level.');
     end;
 
     local procedure VerifyTravelRequestDetailUpdateIndirectly(PermissionSetId: Code[20])

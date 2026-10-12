@@ -143,7 +143,7 @@ codeunit 139566 "Shpfy Payments Test"
     end;
 
     [Test]
-    [HandlerFunctions('PaymentTransactionsPageHandler')]
+    [HandlerFunctions('TransactionsPageHandler')]
     procedure ShopCardPaymentTransactionsActionFiltersByShop()
     var
         OtherShop: Record "Shpfy Shop";
@@ -152,8 +152,8 @@ codeunit 139566 "Shpfy Payments Test"
         Initialize();
 
         CreateOtherShop(OtherShop);
-        CreatePaymentTransaction(Shop.Code);
-        CreatePaymentTransaction(OtherShop.Code);
+        CreateOrderTransaction(Shop.Code);
+        CreateOrderTransaction(OtherShop.Code);
 
         ShopCard.OpenView();
         ShopCard.GoToRecord(Shop);
@@ -258,18 +258,18 @@ codeunit 139566 "Shpfy Payments Test"
         OtherShop.Insert(false);
     end;
 
-    local procedure CreatePaymentTransaction(ShopCode: Code[20])
+    local procedure CreateOrderTransaction(ShopCode: Code[20])
     var
-        PaymentTransaction: Record "Shpfy Payment Transaction";
+        OrderTransaction: Record "Shpfy Order Transaction";
         Id: BigInteger;
     begin
         repeat
             Id := Any.IntegerInRange(1, 999999999);
-        until not PaymentTransaction.Get(Id);
+        until not OrderTransaction.Get(Id);
 
-        PaymentTransaction.Id := Id;
-        PaymentTransaction."Shop Code" := ShopCode;
-        PaymentTransaction.Insert(false);
+        OrderTransaction."Shopify Transaction Id" := Id;
+        OrderTransaction.Shop := ShopCode;
+        OrderTransaction.Insert(false);
     end;
 
     local procedure CreatePayout(ShopCode: Code[20])
@@ -287,10 +287,10 @@ codeunit 139566 "Shpfy Payments Test"
     end;
 
     [PageHandler]
-    procedure PaymentTransactionsPageHandler(var PaymentTransactions: TestPage "Shpfy Payment Transactions")
+    procedure TransactionsPageHandler(var Transactions: TestPage "Shpfy Transactions")
     begin
-        LibraryAssert.AreEqual(Shop.Code, PaymentTransactions.Filter.GetFilter("Shop Code"), 'Payment transactions should be filtered by Shop Code');
-        LibraryAssert.IsTrue(PaymentTransactions.First(), 'A payment transaction for the selected shop should be shown');
+        LibraryAssert.AreEqual(Shop.Code, Transactions.Filter.GetFilter(Shop), 'Transactions should be filtered by Shop');
+        LibraryAssert.IsTrue(Transactions.First(), 'A transaction for the selected shop should be shown');
     end;
 
     [PageHandler]
