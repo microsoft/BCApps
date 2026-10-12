@@ -274,7 +274,7 @@ codeunit 48522 "Fabric Install"
         TableIds.Add(8066);     // Cust. Sub. Contract Deferral
         TableIds.Add(8072);     // Vend. Sub. Contract Deferral
         TableIds.Add(36951);    // PowerBI Reports Setup
-        TableIds.Add(36952);    // 
+        TableIds.Add(36952);
         TableIds.Add(36953);    // Account Category
         TableIds.Add(36954);    // PowerBI Flat Dim. Set Entry
         TableIds.Add(36955);    // PBI C. Income St. Source Code

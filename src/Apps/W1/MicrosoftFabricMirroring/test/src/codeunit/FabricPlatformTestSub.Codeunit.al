@@ -120,4 +120,3 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
         IsSuccess := true;
     end;
 }
-
