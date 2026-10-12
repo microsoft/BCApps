@@ -49,6 +49,7 @@ codeunit 18131 "GST On Purchase Tests"
         GSTDistributionNosCodeLbl: Label 'GST-DIST', Locked = true;
         GSTReversalDistributionNosCodeLbl: Label 'GST-REV-DIST', Locked = true;
         ReversalDistNosErr: Label 'GST Reversal Distribution Nos. must have a value in General Ledger Setup';
+        TaxTypesImportedMsg: Label 'Tax Type(s) Imported.', Locked = true;
 
     // [SCENARIO] User can Apply Vendor Payments to invoice with different currency exchange rates
     // [FEATURE] [Adjust Exchange Rate] [FCY] [Post Application-Vendor]    
@@ -107,7 +108,7 @@ codeunit 18131 "GST On Purchase Tests"
     end;
 
     [Test]
-    [HandlerFunctions('TaxRatePageHandler')]
+    [HandlerFunctions('TaxRatePageHandler,TaxTypesImportedMessageHandler')]
     procedure UpdateQtyToInvoiceAfterPartialReceiptForImportPurchaseOrder()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -148,7 +149,7 @@ codeunit 18131 "GST On Purchase Tests"
     end;
 
     [Test]
-    [HandlerFunctions('TaxRatePageHandler,ConfirmationHandler')]
+    [HandlerFunctions('TaxRatePageHandler,ConfirmationHandler,TaxTypesImportedMessageHandler')]
     procedure UpdateQtyToInvoiceAfterUndoReceiptForImportPurchaseOrder()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -2817,6 +2818,12 @@ codeunit 18131 "GST On Purchase Tests"
     [MessageHandler]
     procedure DocumentArchived(Msg: Text[1024])
     begin
+    end;
+
+    [MessageHandler]
+    procedure TaxTypesImportedMessageHandler(Message: Text[1024])
+    begin
+        LibraryAssert.AreEqual(TaxTypesImportedMsg, Message, 'Unexpected tax type import message.');
     end;
 
     [PageHandler]
