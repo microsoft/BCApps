@@ -6,7 +6,7 @@
               Capability="Shopify Tax Matching Agent"
               TestRunnerId="130451"
               TestType="Copilot">
-        <Language Tag="us-US"
+        <Language Tag="en-US"
                   Frequency="Daily" />
         <Line CodeunitID="134717"
               Description="Jurisdiction Matching (J1-J8, F1-F2)"
