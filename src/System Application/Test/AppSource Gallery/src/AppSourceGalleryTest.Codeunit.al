@@ -13,6 +13,7 @@ using System.TestLibraries.Utilities;
 codeunit 135074 "AppSource Gallery Test"
 {
     Subtype = Test;
+    Permissions = tabledata "Application User Settings" = ri;
 
     var
         AppSrcProductMgrTestImpl: Codeunit "AppSrc Product Mgr. Test Impl.";
