@@ -641,7 +641,7 @@ codeunit 134228 "ERM Close Income Statement"
             if ClosingAmount <> 0 then begin
                 GenJournalLine.SetRange("Document No.", DocumentNo);
                 if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then
-                    GenJournalLine.SetFilter("Account No.", '%1|%2', NetProfitAccountNo, NetLossAccountNo);
+                    GenJournalLine.SetFilter("Account No.", '%1|%2', NetProfitAccountNo, NetLossAccountNo)
                 else
                     GenJournalLine.SetRange("Account No.", GLAccountNo);
                 Assert.RecordCount(GenJournalLine, 1);
