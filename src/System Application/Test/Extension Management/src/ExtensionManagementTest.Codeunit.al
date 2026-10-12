@@ -660,7 +660,7 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('MarketplaceDeploymentModalHandler')]
+    [HandlerFunctions('MarketplaceDeploymentModalHandler,DeclineInstallFailureStatusConfirmHandler')]
     procedure UninstalledMarketplaceRequestStillOpensWizard()
     begin
         PrepareSettingsExtension(false);
@@ -719,6 +719,12 @@ codeunit 133100 "Extension Management Test"
         MarketplaceExtnDeployment.Continue.Invoke();
         Assert.IsTrue(MarketplaceExtnDeployment.PreviewInfo.Visible(), 'Preview requests should retain the preview installation flow.');
         MarketplaceExtnDeployment.Close();
+    end;
+
+    [ConfirmHandler]
+    procedure DeclineInstallFailureStatusConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [MessageHandler]
