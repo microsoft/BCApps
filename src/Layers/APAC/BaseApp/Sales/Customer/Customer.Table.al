@@ -4650,8 +4650,8 @@ table 18 Customer
     begin
 #if not CLEAN30
         OnBeforeCheckBlockedCust(Customer, Source, DocType.AsInteger(), Shipment, Transaction, IsHandled);
-#endif
         if not IsHandled then
+#endif
             OnBeforeCheckBlockedCust2(Customer, Source, DocType, Shipment, Transaction, IsHandled)
     end;
 
