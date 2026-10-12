@@ -13,9 +13,13 @@ using System.Xml;
 codeunit 31116 "EET Service Management CZL"
 {
     Access = Internal;
+    Permissions = tabledata "EET Service Setup CZL" = r,
+                  tabledata "EET Entry Status Log CZL" = rm;
 
     var
         TempErrorMessage: Record "Error Message" temporary;
+        GlobalHttpRequestMessage: HttpRequestMessage;
+        GlobalHttpResponseMessage: HttpResponseMessage;
         POKControlCode: Text;
         ResponseContentError: Text;
         ResponseContentErrorCode: Text;
@@ -23,8 +27,6 @@ codeunit 31116 "EET Service Management CZL"
         EETNamespaceTxt: Label 'http://fs.gov.cz/eet/schema/v4', Locked = true;
         SoapActionTxt: Label 'http://fs.gov.cz/eet/OdeslaniTrzby', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
-        // XmlDsigNamespaceTxt: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
-        // SignaturePathTxt: Label '//ds:Signature', Locked = true;
         ExpectedCertOrganizationTxt: Label 'O=Generální finanční ředitelství', Locked = true;
         SecurityUtilityNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', Locked = true;
         SecurityExtensionNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', Locked = true;
@@ -57,6 +59,8 @@ codeunit 31116 "EET Service Management CZL"
 
         CreateXmlDocument(EETEntryCZL, RequestXmlDocument);
         CreateSoapRequest(RequestXmlDocument, IsolatedCertificate, SoapXmlDocument);
+        if not CheckSoapRequestSize(SoapXmlDocument) then
+            Error('');
         SendSoapRequest(SoapXmlDocument, ResponseXmlDocument, ResponseContentXmlDocument);
         if HasResponseContentError(ResponseContentXmlDocument) then
             ProcessResponseContentError(ResponseContentXmlDocument);
@@ -79,6 +83,7 @@ codeunit 31116 "EET Service Management CZL"
         EmptyBusinessPremisesIdTxt: Label 'Registrating Unit Id must not be empty.';
         EmptyCashRegisterNoTxt: Label 'Cash Register No. must not be empty.';
         EmptyReceiptSerialNoTxt: Label 'Receipt Serial No. must not be empty.';
+        ReceiptSerialNoTooLongErr: Label 'Receipt Serial No. must not be longer than %1 characters. The EET service does not accept longer values.', Comment = '%1 = maximum number of characters';
     begin
         CertificateSimpleName := CertificateManagement.GetCertSimpleName(IsolatedCertificate);
         if EETEntryCZL."Taxpayer ID" <> CertificateSimpleName then
@@ -92,6 +97,21 @@ codeunit 31116 "EET Service Management CZL"
             LogMessage(TempErrorMessage."Message Type"::Error, '', EmptyCashRegisterNoTxt);
         if EETEntryCZL."Receipt Serial No." = '' then
             LogMessage(TempErrorMessage."Message Type"::Error, '', EmptyReceiptSerialNoTxt);
+        if StrLen(EETEntryCZL."Receipt Serial No.") > GetMaxReceiptSerialNoLength() then
+            LogMessage(TempErrorMessage."Message Type"::Error, '', StrSubstNo(ReceiptSerialNoTooLongErr, GetMaxReceiptSerialNoLength()));
+        exit(not HasErrors());
+    end;
+
+    local procedure CheckSoapRequestSize(SoapXmlDocument: XmlDocument): Boolean
+    var
+        SoapTempBlob: Codeunit "Temp Blob";
+        SoapOutStream: OutStream;
+        MessageTooLargeErr: Label 'The size of the data message (%1 bytes) exceeds the limit of %2 bytes accepted by the EET service.', Comment = '%1 = size of the data message in bytes, %2 = maximum size in bytes';
+    begin
+        SoapTempBlob.CreateOutStream(SoapOutStream, TextEncoding::UTF8);
+        SoapXmlDocument.WriteTo(SoapOutStream);
+        if SoapTempBlob.Length() > GetMaxSoapMessageSize() then
+            LogMessage(TempErrorMessage."Message Type"::Error, '', StrSubstNo(MessageTooLargeErr, SoapTempBlob.Length(), GetMaxSoapMessageSize()));
         exit(not HasErrors());
     end;
 
@@ -261,6 +281,7 @@ codeunit 31116 "EET Service Management CZL"
     var
         EETServiceSetupCZL: Record "EET Service Setup CZL";
         SOAPWSRequestManagementCZL: Codeunit "SOAP WS Request Management CZL";
+        IsOk: Boolean;
         IncorrectUrlErr: Label 'The Service URL is incorrectly set up on EET Service Setup page.';
     begin
         EETServiceSetupCZL.Get();
@@ -268,27 +289,31 @@ codeunit 31116 "EET Service Management CZL"
             Error(IncorrectUrlErr);
         SOAPWSRequestManagementCZL.SetAction(SoapActionTxt);
         SOAPWSRequestManagementCZL.SetTimeout(EETServiceSetupCZL."Limit Response Time");
-        if SOAPWSRequestManagementCZL.SendRequestToWebService(EETServiceSetupCZL."Service URL", RequestContentXmlDocument) then begin
-            XmlDocument.ReadFrom(SOAPWSRequestManagementCZL.GetResponseAsText(), ResponseXmlDocument);
-            ResponseContentXmlDocument := SOAPWSRequestManagementCZL.GetResponseContent();
-        end else
+        IsOk := SOAPWSRequestManagementCZL.SendRequestToWebService(EETServiceSetupCZL."Service URL", RequestContentXmlDocument);
+        GlobalHttpRequestMessage := SOAPWSRequestManagementCZL.GetHttpRequestMessage();
+        GlobalHttpResponseMessage := SOAPWSRequestManagementCZL.GetHttpResponseMessage();
+        if not IsOk then begin
             SOAPWSRequestManagementCZL.ProcessFaultResponse();
+            exit;
+        end;
+        XmlDocument.ReadFrom(SOAPWSRequestManagementCZL.GetResponseAsText(), ResponseXmlDocument);
+        ResponseContentXmlDocument := SOAPWSRequestManagementCZL.GetResponseContent();
     end;
 
     local procedure ProcessResponseContent(ResponseContentXmlDocument: XmlDocument)
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
-        ConfirmationXmlNode: XmlNode;
+        AcknowledgementXmlNode: XmlNode;
         XMLFormatErr: Label 'XML Format of response is not supported.';
     begin
         if VerificationMode or (ResponseContentErrorCode <> '') then
             exit;
         if not XMLDOMManagement.FindNodeWithNamespace(
-             ResponseContentXmlDocument.AsXmlNode(), ConfirmationPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, ConfirmationXmlNode)
+             ResponseContentXmlDocument.AsXmlNode(), ConfirmationPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, AcknowledgementXmlNode)
         then
             LogMessage(TempErrorMessage."Message Type"::Error, '', XMLFormatErr);
 
-        POKControlCode := XMLDOMManagement.GetAttributeValue(ConfirmationXmlNode, 'pok');
+        POKControlCode := XMLDOMManagement.GetAttributeValue(AcknowledgementXmlNode, 'pok');
     end;
 
     local procedure ProcessResponseContentError(ResponseContentXmlDocument: XmlDocument)
@@ -412,6 +437,8 @@ codeunit 31116 "EET Service Management CZL"
         POKControlCode := '';
         ResponseContentError := '';
         ResponseContentErrorCode := '';
+        Clear(GlobalHttpRequestMessage);
+        Clear(GlobalHttpResponseMessage);
 
         TempErrorMessage.ClearLog();
         ClearLastError();
@@ -450,6 +477,8 @@ codeunit 31116 "EET Service Management CZL"
         WarningCodeTxt: Label 'Warning Code: %1', Comment = '%1 = warning code';
     begin
         TempErrorMessage.LogSimpleMessage(MessageType, MessageText);
+        if MessageType = TempErrorMessage."Message Type"::Information then
+            exit;
         if MessageType = TempErrorMessage."Message Type"::Warning then
             TempErrorMessage.Validate("Additional Information", StrSubstNo(WarningCodeTxt, MessageCode))
         else
@@ -489,6 +518,16 @@ codeunit 31116 "EET Service Management CZL"
         exit(CopyStr(POKControlCode, 1, 39));
     end;
 
+    procedure GetHttpRequestMessage(): HttpRequestMessage
+    begin
+        exit(GlobalHttpRequestMessage);
+    end;
+
+    procedure GetHttpResponseMessage(): HttpResponseMessage
+    begin
+        exit(GlobalHttpResponseMessage);
+    end;
+
     procedure GetResponseText(): Text
     begin
         if IsVerificationModeOK() then
@@ -518,6 +557,16 @@ codeunit 31116 "EET Service Management CZL"
 
         TempErrorMessage.Reset();
         TempErrorMessage.CopyToTemp(TempDestinationErrorMessage);
+    end;
+
+    local procedure GetMaxReceiptSerialNoLength(): Integer
+    begin
+        exit(25);
+    end;
+
+    local procedure GetMaxSoapMessageSize(): Integer
+    begin
+        exit(12288);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Connection", OnRegisterServiceConnection, '', false, false)]

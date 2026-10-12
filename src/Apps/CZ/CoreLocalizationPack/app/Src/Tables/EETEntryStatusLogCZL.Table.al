@@ -47,6 +47,19 @@ table 31129 "EET Entry Status Log CZL"
             Caption = 'Changed At';
             ToolTip = 'Specifies the date and time when the status of the EET entry was changed.';
         }
+        field(30; "Request Message"; Blob)
+        {
+            Caption = 'Request Message';
+        }
+        field(31; "Response Message"; Blob)
+        {
+            Caption = 'Response Message';
+        }
+        field(35; "Global Transaction Id"; Text[250])
+        {
+            Caption = 'Global Transaction Id';
+            ToolTip = 'Specifies the transaction ID that the EET service returned in the X-Global-Transaction-Id response header for this status change. Provide this ID to the EET service technical support when you communicate about the entry.';
+        }
     }
 
     keys
@@ -70,6 +83,11 @@ table 31129 "EET Entry Status Log CZL"
     begin
         ClearErrorMessages();
     end;
+
+    var
+        NoMessageErr: Label '%1 has not been saved for this status change.', Comment = '%1 = field caption (Request Message or Response Message)';
+        RequestFileNameTxt: Label 'EET_Request_%1_%2.xml', Locked = true;
+        ResponseFileNameTxt: Label 'EET_Response_%1_%2.xml', Locked = true;
 
     procedure GetLastEntryNo(): Integer;
     var
@@ -106,6 +124,92 @@ table 31129 "EET Entry Status Log CZL"
     begin
         ErrorMessage.SetRange("Context Record ID", RecordId);
         ErrorMessage.DeleteAll();
+    end;
+
+    procedure SaveRequestMessage(RequestMessage: Text)
+    var
+        MessageOutStream: OutStream;
+    begin
+        if RequestMessage = '' then
+            exit;
+        "Request Message".CreateOutStream(MessageOutStream, TextEncoding::UTF8);
+        MessageOutStream.WriteText(RequestMessage);
+    end;
+
+    procedure SaveResponseMessage(ResponseMessage: Text)
+    var
+        MessageOutStream: OutStream;
+    begin
+        if ResponseMessage = '' then
+            exit;
+        "Response Message".CreateOutStream(MessageOutStream, TextEncoding::UTF8);
+        MessageOutStream.WriteText(ResponseMessage);
+    end;
+
+    procedure GetRequestFileName(): Text
+    begin
+        if not HasRequestMessage() then
+            exit('');
+        exit(BuildRequestFileName());
+    end;
+
+    procedure GetResponseFileName(): Text
+    begin
+        if not HasResponseMessage() then
+            exit('');
+        exit(BuildResponseFileName());
+    end;
+
+    procedure HasRequestMessage(): Boolean
+    begin
+        CalcFields("Request Message");
+        exit("Request Message".HasValue());
+    end;
+
+    procedure HasResponseMessage(): Boolean
+    begin
+        CalcFields("Response Message");
+        exit("Response Message".HasValue());
+    end;
+
+    procedure DownloadRequestMessage()
+    var
+        MessageInStream: InStream;
+        FileName: Text;
+    begin
+        TestField("Entry No.");
+        CalcFields("Request Message");
+        if not "Request Message".HasValue() then
+            Error(NoMessageErr, FieldCaption("Request Message"));
+
+        FileName := BuildRequestFileName();
+        "Request Message".CreateInStream(MessageInStream, TextEncoding::UTF8);
+        DownloadFromStream(MessageInStream, '', '', '', FileName);
+    end;
+
+    procedure DownloadResponseMessage()
+    var
+        MessageInStream: InStream;
+        FileName: Text;
+    begin
+        TestField("Entry No.");
+        CalcFields("Response Message");
+        if not "Response Message".HasValue() then
+            Error(NoMessageErr, FieldCaption("Response Message"));
+
+        FileName := BuildResponseFileName();
+        "Response Message".CreateInStream(MessageInStream, TextEncoding::UTF8);
+        DownloadFromStream(MessageInStream, '', '', '', FileName);
+    end;
+
+    local procedure BuildRequestFileName(): Text
+    begin
+        exit(StrSubstNo(RequestFileNameTxt, "EET Entry No.", "Entry No."));
+    end;
+
+    local procedure BuildResponseFileName(): Text
+    begin
+        exit(StrSubstNo(ResponseFileNameTxt, "EET Entry No.", "Entry No."));
     end;
 }
 

@@ -36,7 +36,6 @@ codeunit 31118 "EET Management CZL"
     begin
         if EETEntryCZL.Status = EETEntryCZL.Status::Created then
             EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::"Send Pending");
-
         if EETEntryCZL."Sales Regime" = EETEntryCZL."Sales Regime"::Regular then
             SendEntryToService(EETEntryCZL, false);
     end;
@@ -54,6 +53,7 @@ codeunit 31118 "EET Management CZL"
     local procedure SendEntryToRegister(EETEntryCZL: Record "EET Entry CZL")
     var
         EETServiceManagementCZL: Codeunit "EET Service Management CZL";
+        NewDescription: Text;
     begin
         if EETEntryCZL."Status" in [EETEntryCZL."Status"::Sent,
                                     EETEntryCZL."Status"::Success,
@@ -63,24 +63,27 @@ codeunit 31118 "EET Management CZL"
 
         PrepareEntryToSend(EETEntryCZL);
         EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Sent);
-
         if EETServiceManagementCZL.Send(EETEntryCZL) then begin
             EETEntryCZL."Acknowledgement Code" := EETServiceManagementCZL.GetPOKControlCode();
-
+            EETEntryCZL."Status" := EETEntryCZL."Status"::Success;
             if EETServiceManagementCZL.HasWarnings() then begin
-                EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
-                EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::"Success with Warnings", WarningsTxt, TempErrorMessage);
-            end else
-                EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Success);
+                EETEntryCZL."Status" := EETEntryCZL."Status"::"Success with Warnings";
+                NewDescription := WarningsTxt;
+            end;
         end else begin
-            EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
-            EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Failure, EETServiceManagementCZL.GetResponseText(), TempErrorMessage);
+            EETEntryCZL."Status" := EETEntryCZL."Status"::Failure;
+            NewDescription := EETServiceManagementCZL.GetResponseText();
         end;
+
+        EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
+        EETEntryCZL.ChangeStatus(EETEntryCZL."Status", NewDescription, TempErrorMessage,
+            EETServiceManagementCZL.GetHttpRequestMessage(), EETServiceManagementCZL.GetHttpResponseMessage());
     end;
 
     local procedure SendEntryToVerification(EETEntryCZL: Record "EET Entry CZL")
     var
         EETServiceManagementCZL: Codeunit "EET Service Management CZL";
+        NewDescription: Text;
     begin
         if EETEntryCZL."Status" in [EETEntryCZL."Status"::Sent,
                                     EETEntryCZL."Status"::"Sent to Verification",
@@ -93,16 +96,20 @@ codeunit 31118 "EET Management CZL"
         EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::"Sent to Verification");
 
         EETServiceManagementCZL.SetVerificationMode(true);
-        if EETServiceManagementCZL.Send(EETEntryCZL) then
+        if EETServiceManagementCZL.Send(EETEntryCZL) then begin
+            EETEntryCZL."Status" := EETEntryCZL."Status"::Verified;
             if EETServiceManagementCZL.HasWarnings() then begin
-                EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
-                EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::"Verified with Warnings", WarningsTxt, TempErrorMessage);
-            end else
-                EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Verified, EETServiceManagementCZL.GetResponseText())
-        else begin
-            EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
-            EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Failure, EETServiceManagementCZL.GetResponseText(), TempErrorMessage);
+                EETEntryCZL."Status" := EETEntryCZL."Status"::"Verified with Warnings";
+                NewDescription := WarningsTxt;
+            end;
+        end else begin
+            EETEntryCZL."Status" := EETEntryCZL."Status"::Failure;
+            NewDescription := EETServiceManagementCZL.GetResponseText();
         end;
+
+        EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
+        EETEntryCZL.ChangeStatus(EETEntryCZL."Status", NewDescription, TempErrorMessage,
+            EETServiceManagementCZL.GetHttpRequestMessage(), EETServiceManagementCZL.GetHttpResponseMessage());
     end;
 
     local procedure PrepareEntryToSend(var EETEntryCZL: Record "EET Entry CZL")

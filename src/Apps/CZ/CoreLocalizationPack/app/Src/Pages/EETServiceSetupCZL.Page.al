@@ -36,6 +36,16 @@ page 31142 "EET Service Setup CZL"
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
                 }
+                field("Request Log Level"; Rec."Request Log Level")
+                {
+                    Editable = EditableByNotEnabled;
+                    Visible = false;
+                }
+                field("Response Log Level"; Rec."Response Log Level")
+                {
+                    Editable = EditableByNotEnabled;
+                    Visible = false;
+                }
                 field("Sales Regime"; Rec."Sales Regime")
                 {
                     Visible = false;

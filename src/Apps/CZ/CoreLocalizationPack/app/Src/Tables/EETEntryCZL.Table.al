@@ -802,10 +802,18 @@ table 31128 "EET Entry CZL"
 
     procedure ChangeStatus(NewStatus: Enum "EET Status CZL"; NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary)
     var
+        DummyHttpRequestMessage: HttpRequestMessage;
+        DummyHttpResponseMessage: HttpResponseMessage;
+    begin
+        ChangeStatus(NewStatus, NewDescription, TempErrorMessage, DummyHttpRequestMessage, DummyHttpResponseMessage);
+    end;
+
+    procedure ChangeStatus(NewStatus: Enum "EET Status CZL"; NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary; HttpRequestMessage: HttpRequestMessage; HttpResponseMessage: HttpResponseMessage)
+    var
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeChangeStatus(Rec, NewStatus, NewDescription, TempErrorMessage, IsHandled);
+        OnBeforeChangeStatus(Rec, NewStatus, NewDescription, TempErrorMessage, IsHandled, HttpRequestMessage, HttpResponseMessage);
         if IsHandled then
             exit;
 
@@ -814,7 +822,25 @@ table 31128 "EET Entry CZL"
         if "Status" <> "Status"::Created then
             Modify();
 
-        OnAfterChangeStatus(Rec, NewStatus, NewDescription, TempErrorMessage);
+        OnAfterChangeStatus(Rec, NewStatus, NewDescription, TempErrorMessage, HttpRequestMessage, HttpResponseMessage);
+    end;
+
+    procedure IsRequestMessageLogEnabled(): Boolean
+    var
+        EETServiceSetupCZL: Record "EET Service Setup CZL";
+    begin
+        if not EETServiceSetupCZL.Get() then
+            exit(false);
+        exit(EETServiceSetupCZL.IsRequestMessageLogEnabled(Rec.Status));
+    end;
+
+    procedure IsResponseMessageLogEnabled(): Boolean
+    var
+        EETServiceSetupCZL: Record "EET Service Setup CZL";
+    begin
+        if not EETServiceSetupCZL.Get() then
+            exit(false);
+        exit(EETServiceSetupCZL.IsResponseMessageLogEnabled(Rec.Status));
     end;
 
     [IntegrationEvent(false, false)]
@@ -848,7 +874,7 @@ table 31128 "EET Entry CZL"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeChangeStatus(var EETEntryCZL: Record "EET Entry CZL"; NewStatus: Enum "EET Status CZL"; var NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary; var IsHandled: Boolean)
+    local procedure OnBeforeChangeStatus(var EETEntryCZL: Record "EET Entry CZL"; NewStatus: Enum "EET Status CZL"; var NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary; var IsHandled: Boolean; HttpRequestMessage: HttpRequestMessage; HttpResponseMessage: HttpResponseMessage)
     begin
     end;
 
@@ -888,7 +914,7 @@ table 31128 "EET Entry CZL"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterChangeStatus(var EETEntryCZL: Record "EET Entry CZL"; NewStatus: Enum "EET Status CZL"; NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary)
+    local procedure OnAfterChangeStatus(var EETEntryCZL: Record "EET Entry CZL"; NewStatus: Enum "EET Status CZL"; NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary; HttpRequestMessage: HttpRequestMessage; HttpResponseMessage: HttpResponseMessage)
     begin
     end;
 

@@ -123,6 +123,16 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Multiple Taxpayer Authorization';
             ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is only copied to new registrating units, it is not applied to existing ones.';
         }
+        field(40; "Request Log Level"; Enum "EET Message Log Level CZL")
+        {
+            Caption = 'Request Log Level';
+            ToolTip = 'Specifies when the data message that is sent to the EET service is saved to the status log of the EET entry. Errors and Warnings saves it only if the sending ended with an error or with a warning. All saves it every time. The message contains the taxpayer ID and the amount of the sale.';
+        }
+        field(41; "Response Log Level"; Enum "EET Message Log Level CZL")
+        {
+            Caption = 'Response Log Level';
+            ToolTip = 'Specifies when the response that is received from the EET service is saved to the status log of the EET entry. Errors and Warnings saves it only if the sending ended with an error or with a warning. All saves it every time.';
+        }
     }
 
     keys
@@ -192,6 +202,31 @@ table 31125 "EET Service Setup CZL"
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"EET Send Entries To Serv. CZL");
         if JobQueueEntry.FindFirst() then
             Page.Run(Page::"Job Queue Entries", JobQueueEntry);
+    end;
+
+    procedure IsRequestMessageLogEnabled(EETStatus: Enum "EET Status CZL"): Boolean
+    begin
+        exit(IsMessageLogEnabled("Request Log Level", EETStatus));
+    end;
+
+    procedure IsResponseMessageLogEnabled(EETStatus: Enum "EET Status CZL"): Boolean
+    begin
+        exit(IsMessageLogEnabled("Response Log Level", EETStatus));
+    end;
+
+    local procedure IsMessageLogEnabled(EETMessageLogLevel: Enum "EET Message Log Level CZL"; EETStatus: Enum "EET Status CZL"): Boolean
+    begin
+        case EETMessageLogLevel of
+            EETMessageLogLevel::All:
+                exit(true);
+            EETMessageLogLevel::Disabled:
+                exit(false);
+            EETMessageLogLevel::Errors:
+                exit(EETStatus = EETStatus::Failure);
+            EETMessageLogLevel::ErrorsAndWarnings:
+                exit(EETStatus in [EETStatus::Failure, EETStatus::"Success with Warnings", EETStatus::"Verified with Warnings"]);
+        end;
+        exit(false);
     end;
 
     local procedure AreEETEntriesToSending(): Boolean
