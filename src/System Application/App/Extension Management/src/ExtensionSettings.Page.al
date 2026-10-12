@@ -21,7 +21,7 @@ page 2511 "Extension Settings"
     RefreshOnActivate = true;
     SourceTable = "NAV App Setting";
     ContextSensitiveHelpPage = 'ui-extensions';
-    Permissions = tabledata "Nav App Setting" = rm,
+    Permissions = tabledata "Nav App Setting" = rim,
                   tabledata "Published Application" = r;
 
     layout
