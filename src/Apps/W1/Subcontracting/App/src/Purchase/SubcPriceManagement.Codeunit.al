@@ -172,7 +172,7 @@ codeunit 20508 "Subc. Price Management"
         SubcSessionState.ClearAllDictionariesForKey('OnCalcMfgItemOnBeforeCalcRtngCost');
     end;
 
-    procedure CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; Item: Record Item; CalculationDate: Date; var SLSub: Decimal)
+    internal procedure CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; Item: Record Item; CalculationDate: Date; var SLSub: Decimal)
     var
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         CostTime: Decimal;
