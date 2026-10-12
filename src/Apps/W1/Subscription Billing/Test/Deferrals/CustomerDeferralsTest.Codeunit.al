@@ -5,6 +5,7 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -1246,6 +1247,8 @@ codeunit 139912 "Customer Deferrals Test"
     var
         Currency: Record Currency;
         GLEntry: Record "G/L Entry";
+        PostedSalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SourceCodeSetup: Record "Source Code Setup";
         ContractDeferralsRelease: Report "Contract Deferrals Release";
         ExpectedSourceCurrencyAmount: Decimal;
         TotalSourceCurrencyAmount: Decimal;
@@ -1280,6 +1283,31 @@ codeunit 139912 "Customer Deferrals Test"
                         SalesInvoiceHeader."Posting Date", SalesInvoiceHeader."Currency Code", GLEntry.Amount, SalesInvoiceHeader."Currency Factor"),
                     Currency."Amount Rounding Precision");
             Assert.AreEqual(ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'The source currency amount must use the originating invoice currency factor.');
+            TotalSourceCurrencyAmount += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(0, TotalSourceCurrencyAmount, 'The released source currency amounts must balance.');
+
+        // [WHEN] A foreign-currency credit memo is posted for the invoice.
+        PostSalesCreditMemo();
+        PostedSalesCrMemoHeader.Get(CorrectedDocumentNo);
+
+        // [THEN] Its deferral release entries contain balanced source amounts based on the credit memo currency factor.
+        Clear(TotalSourceCurrencyAmount);
+        SourceCodeSetup.Get();
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", CorrectedDocumentNo);
+        GLEntry.SetRange("Source Code", SourceCodeSetup."Sub. Contr. Deferrals Release");
+        GLEntry.SetRange("Subscription Contract No.", CustomerContractDeferral."Subscription Contract No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            GLEntry.TestField("Source Currency Code", PostedSalesCrMemoHeader."Currency Code");
+            ExpectedSourceCurrencyAmount :=
+                Round(
+                    CurrExchRate.ExchangeAmtLCYToFCY(
+                        PostedSalesCrMemoHeader."Posting Date", PostedSalesCrMemoHeader."Currency Code", GLEntry.Amount, PostedSalesCrMemoHeader."Currency Factor"),
+                    Currency."Amount Rounding Precision");
+            Assert.AreEqual(ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'The source currency amount must use the originating credit memo currency factor.');
             TotalSourceCurrencyAmount += GLEntry."Source Currency Amount";
         until GLEntry.Next() = 0;
         Assert.AreEqual(0, TotalSourceCurrencyAmount, 'The released source currency amounts must balance.');

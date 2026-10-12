@@ -341,22 +341,38 @@ report 8051 "Contract Deferrals Release"
         CustomerContractDeferral: Record "Cust. Sub. Contract Deferral";
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        CurrencyFactor: Decimal;
     begin
         InputTempGenJournalLine."Source Currency Code" := '';
         InputTempGenJournalLine."Source Currency Amount" := 0;
-        CustomerContractDeferral.Get(InputTempGenJournalLine."Deferral Line No.");
-        if (CustomerContractDeferral."Currency Code" = '') or
-           (CustomerContractDeferral."Document Type" <> CustomerContractDeferral."Document Type"::Invoice) then
+        if not CustomerContractDeferral.Get(InputTempGenJournalLine."Deferral Line No.") then
+            exit;
+        if CustomerContractDeferral."Currency Code" = '' then
             exit;
 
-        SalesInvoiceHeader.Get(CustomerContractDeferral."Document No.");
-        Currency.Get(CustomerContractDeferral."Currency Code");
+        case CustomerContractDeferral."Document Type" of
+            CustomerContractDeferral."Document Type"::Invoice:
+                begin
+                    if not SalesInvoiceHeader.Get(CustomerContractDeferral."Document No.") then
+                        exit;
+                    CurrencyFactor := SalesInvoiceHeader."Currency Factor";
+                end;
+            CustomerContractDeferral."Document Type"::"Credit Memo":
+                begin
+                    if not SalesCrMemoHeader.Get(CustomerContractDeferral."Document No.") then
+                        exit;
+                    CurrencyFactor := SalesCrMemoHeader."Currency Factor";
+                end;
+        end;
+        if not Currency.Get(CustomerContractDeferral."Currency Code") then
+            exit;
         InputTempGenJournalLine."Source Currency Code" := CustomerContractDeferral."Currency Code";
         InputTempGenJournalLine."Source Currency Amount" :=
             Round(
                 CurrencyExchangeRate.ExchangeAmtLCYToFCY(
-                    CustomerContractDeferral."Document Posting Date", CustomerContractDeferral."Currency Code", InputTempGenJournalLine.Amount, SalesInvoiceHeader."Currency Factor"),
+                    CustomerContractDeferral."Document Posting Date", CustomerContractDeferral."Currency Code", InputTempGenJournalLine.Amount, CurrencyFactor),
                 Currency."Amount Rounding Precision");
     end;
 
