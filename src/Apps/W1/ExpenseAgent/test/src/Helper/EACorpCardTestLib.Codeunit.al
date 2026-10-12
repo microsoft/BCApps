@@ -139,10 +139,11 @@ codeunit 148357 EACorpCardTestLib
         CsvPayloadBuilder.AppendLine('ProviderTransId,CardId,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
         for TransactionNo := 1 to GetCorpCardTransactionCount() do
             CsvPayloadBuilder.AppendLine(
+#pragma warning disable AA0217
                 StrSubstNo(
                     'TXN%1,%2,2026-06-02,2026-06-03,19.63,USD,Contoso Air,4511,US,Test transaction %1',
                     PadNumberLeft(TransactionNo, 5), GetCorpCardId(((TransactionNo - 1) mod GetCorpCardCount()) + 1)));
-
+#pragma warning restore AA0217
         exit(CsvPayloadBuilder.ToText());
     end;
 
@@ -168,7 +169,9 @@ codeunit 148357 EACorpCardTestLib
 
     local procedure GetCorpCardId(CardSequenceNo: Integer): Code[50]
     begin
+#pragma warning disable AA0217
         exit(CopyStr(StrSubstNo('CORPCARD-%1', PadNumberLeft(CardSequenceNo, 4)), 1, 50));
+#pragma warning restore AA0217
     end;
 
     local procedure GetCorpCardCount(): Integer
