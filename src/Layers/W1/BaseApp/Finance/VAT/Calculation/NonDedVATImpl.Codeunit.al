@@ -460,21 +460,22 @@ codeunit 6201 "Non-Ded. VAT Impl."
     procedure CopyNonDedVATFromGenJnlLineToJobJnlLine(var JobJnlLine: Record "Job Journal Line"; GenJnlLine: Record "Gen. Journal Line")
     var
         Job: Record Job;
-        CurrencyFactor, NonDedVATAmountLCY, UnitCost, UnitCostLCY, TotalCost, TotalCostLCY : Decimal;
+        CurrencyFactor, NonDedVATAmount, NonDedVATAmountLCY, UnitCost, UnitCostLCY, TotalCost, TotalCostLCY : Decimal;
     begin
         if not UseNonDeductibleVATAmountForJobCost() then
             exit;
         if not Job.Get(JobJnlLine."Job No.") then
             exit;
+        NonDedVATAmount := GenJnlLine."Non-Deductible VAT Amount";
         NonDedVATAmountLCY := GenJnlLine."Non-Deductible VAT Amount LCY";
         if GenJnlLine."Currency Code" <> Job."Currency Code" then begin
             CurrencyFactor := GenJnlLine.GetGenJnlLineToJobCurrencyFactor();
-            NonDedVATAmountLCY := Round(GenJnlLine."Non-Deductible VAT Amount" * CurrencyFactor);
+            NonDedVATAmount := Round(GenJnlLine."Non-Deductible VAT Amount" * CurrencyFactor);
         end;
         UnitCostLCY := Round(NonDedVATAmountLCY / JobJnlLine.Quantity);
-        UnitCost := Round(GenJnlLine."Non-Deductible VAT Amount" / JobJnlLine.Quantity);
+        UnitCost := Round(NonDedVATAmount / JobJnlLine.Quantity);
         TotalCostLCY := NonDedVATAmountLCY;
-        TotalCost := GenJnlLine."Non-Deductible VAT Amount";
+        TotalCost := NonDedVATAmount;
         if JobJnlLine."Unit Cost" > 0 then begin
             UnitCostLCY := Abs(UnitCostLCY);
             UnitCost := Abs(UnitCost);

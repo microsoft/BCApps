@@ -98,5 +98,19 @@ codeunit 135091 "Environment Information Test"
         // [Then] Should return true
         Assert.IsTrue(EnvironmentInformation.IsEarlyPreview(), 'Testability should have dictated an early preview environment');
     end;
-}
 
+    [Test]
+    procedure TestEnvironmentDescriptionIsClearedAfterEnvironmentCopy()
+    var
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [Given] The source environment has a description
+        EnvironmentInformation.SetEnvironmentDescription('Source environment description');
+
+        // [When] The environment is copied
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerDatabase(0, 'Source', 1, 'Destination');
+
+        // [Then] The destination environment description is empty
+        Assert.AreEqual('', EnvironmentInformation.GetEnvironmentDescription(), 'The environment description should be cleared after copying the environment.');
+    end;
+}

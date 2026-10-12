@@ -229,6 +229,9 @@ table 64 "Merge Duplicates Buffer"
 
         TableRelationsMetadata.SetRange("Related Table ID", "Table ID");
         TableRelationsMetadata.SetRange("Related Field No.", GetKeyFieldNo("Table ID"));
+        if "Table ID" in [Database::Customer, Database::Vendor] then
+            // These comments are appended with new line numbers by MoveCommentLinesFromDuplicateToCurrent.
+            TableRelationsMetadata.SetFilter("Table ID", '<>%1', Database::"Comment Line");
         if TableRelationsMetadata.FindSet() then
             repeat
                 if TableMetadata.Get(TableRelationsMetadata."Table ID") and
@@ -767,4 +770,3 @@ table 64 "Merge Duplicates Buffer"
     begin
     end;
 }
-
