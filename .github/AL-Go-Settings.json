@@ -14,8 +14,7 @@
   "useProjectDependencies": true,
   "repoVersion": "30.0",
   "memoryLimit": "16G",
-  "numberOfTenantsForTesting": 4,
-  "enableCleanTestCodeunitExecution": true,
+  "numberOfTenantsForTesting": 1,
   "maxTestAppReruns": 2,
   "failOn": "newWarning",
   "workspaceCompilation": {
