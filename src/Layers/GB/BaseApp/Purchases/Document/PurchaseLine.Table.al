@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -3795,6 +3795,7 @@ table 39 "Purchase Line"
 
                 MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
             end;
+        }
         field(10001; "Tax To Be Expensed"; Decimal)
         {
             AutoFormatType = 0;

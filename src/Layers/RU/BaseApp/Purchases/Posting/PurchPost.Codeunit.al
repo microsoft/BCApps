@@ -115,7 +115,6 @@ codeunit 90 "Purch.-Post"
         SavedIndirectCall: Boolean;
         SavedSuppressCommit: Boolean;
         SavedCalledBy: Integer;
-        BiggestLineNo: Integer;
         SavedHideProgressWindow: Boolean;
         IsHandled: Boolean;
     begin
@@ -234,7 +233,6 @@ codeunit 90 "Purch.-Post"
         ErrorContextElementProcessLines: Codeunit "Error Context Element";
         ErrorContextElementPostLine: Codeunit "Error Context Element";
         ZeroPurchLineRecID: RecordId;
-        ICGenJnlLineNo: Integer;
         BiggestLineNo: Integer;
         IsHandled: Boolean;
     begin
