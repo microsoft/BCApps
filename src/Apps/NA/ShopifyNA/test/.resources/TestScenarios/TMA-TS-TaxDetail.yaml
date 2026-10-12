@@ -122,7 +122,7 @@ tests:
       matchResult: true
 
   - name: TD3-RateConflictMatchesButHoldsForReview
-    description: Existing Tax Detail rate differs from Shopify's — the agent still matches the (correct) jurisdiction and builds the Tax Area, but flags the order as a rate conflict so it is held for review. The existing Tax Detail is left untouched (not overwritten or duplicated); the reviewer accepts BC's rate or corrects the detail before posting.
+    description: Existing Tax Detail rate differs from Shopify's — the agent still matches the (correct) jurisdiction and builds the Tax Area, but flags the order as a rate conflict so it is held for review. The existing Tax Detail is left untouched (not overwritten or duplicated); the reviewer accepts the Tax Detail Rate or corrects the detail before posting.
     setup:
       shopSettings:
         autoCreateTaxJurisdictions: true

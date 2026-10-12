@@ -171,6 +171,9 @@ codeunit 148350 "Library - Excise Tax"
         CreateExciseTaxEntryPermission(TaxTypeCode, "Excise Entry Type"::"Negative Adjmt.", true);
         CreateExciseTaxEntryPermission(TaxTypeCode, "Excise Entry Type"::Output, true);
         CreateExciseTaxEntryPermission(TaxTypeCode, "Excise Entry Type"::"Assembly Output", true);
+        CreateExciseTaxEntryPermission(TaxTypeCode, "Excise Entry Type"::"Transfer Receipt", true);
+        CreateExciseTaxEntryPermission(TaxTypeCode, "Excise Entry Type"::"Transfer Shipment", true);
+        CreateExciseTaxEntryPermission(TaxTypeCode, "Excise Entry Type"::Consumption, true);
 
         CreateExciseTaxItemFARate(TaxTypeCode, "Excise Source Type"::Item, '', PurchaseRate, CalcDate('<-CY>', WorkDate()), '');
         CreateExciseTaxItemFARate(TaxTypeCode, "Excise Source Type"::"Fixed Asset", '', PurchaseRate, CalcDate('<-CY>', WorkDate()), '');

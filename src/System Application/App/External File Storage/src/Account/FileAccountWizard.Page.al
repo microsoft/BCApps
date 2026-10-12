@@ -152,7 +152,7 @@ page 9451 "File Account Wizard"
                 }
                 label(NoConnectorsAvailable2)
                 {
-                    Caption = 'File apps are available in Extension Management and AppSource.';
+                    Caption = 'File apps are available in Extension Management and Marketplace.';
                 }
                 field(ExtensionManagement; ExtensionManagementTok)
                 {
@@ -172,7 +172,7 @@ page 9451 "File Account Wizard"
                     ShowCaption = false;
                     Visible = AppSourceAvailable;
                     Caption = ' ';
-                    ToolTip = 'Navigate to AppSource.';
+                    ToolTip = 'Navigate to Marketplace.';
 
                     trigger OnDrillDown()
                     begin
@@ -465,7 +465,7 @@ page 9451 "File Account Wizard"
         [RunOnClient]
         AppSource: DotNet AppSource;
         Step: Option Welcome,"Choose Connector","Register Account",Done;
-        AppSourceTok: Label 'AppSource';
+        AppSourceTok: Label 'Marketplace';
         ExtensionManagementTok: Label 'Extension Management';
         FileCategoryLbl: Label 'File', Locked = true;
         LearnMoreURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2134520', Locked = true;  //TODO Replace with correct URL to new documentation
