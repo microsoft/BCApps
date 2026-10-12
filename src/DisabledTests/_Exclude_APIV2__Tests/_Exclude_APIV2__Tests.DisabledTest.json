@@ -25,24 +25,9 @@
     "method": "TestActionSendCancelledInvoice"
   },
   {
-    "codeunitId": 139809,
-    "codeunitName": "APIV2 - Sales Invoices E2E",
-    "method": "TestCreateInvoiceThroughPageAndAPI"
-  },
-  {
-    "codeunitId": 139811,
-    "codeunitName": "APIV2 - Sales Orders E2E",
-    "method": "TestCreateOrderThroughPageAndAPI"
-  },
-  {
     "codeunitId": 139823,
     "codeunitName": "APIV2 - Sales Quotes E2E",
     "method": "TestActionMakeOrderFromQuote"
-  },
-  {
-    "codeunitId": 139823,
-    "codeunitName": "APIV2 - Sales Quotes E2E",
-    "method": "TestCreateQuoteThroughPageAndAPI"
   },
   {
     "codeunitId": 139828,
@@ -53,11 +38,6 @@
     "codeunitId": 139828,
     "codeunitName": "APIV2 - Sales Credit Memos E2E",
     "method": "TestActionCancelCorrectiveCreditMemo"
-  },
-  {
-    "codeunitId": 139828,
-    "codeunitName": "APIV2 - Sales Credit Memos E2E",
-    "method": "TestCreateCreditMemoThroughPageAndAPI"
   },
   {
     "codeunitId": 139834,
@@ -90,11 +70,6 @@
     "method": "TestCreateVendorPaymentWithoutDocNo"
   },
   {
-    "codeunitId": 139851,
-    "codeunitName": "APIV2 - Purchase Orders E2E",
-    "method": "TestCreateOrderThroughPageAndAPI"
-  },
-  {
     "codeunitId": 139852,
     "codeunitName": "APIV2 - Purch. Order Lines E2E",
     "method": "TestGettingLinesWithDifferentTypes"
@@ -103,11 +78,6 @@
     "codeunitId": 139852,
     "codeunitName": "APIV2 - Purch. Order Lines E2E",
     "method": "TestPatchingTheIdToItemChangesLineType"
-  },
-  {
-    "codeunitId": 139865,
-    "codeunitName": "APIV2 - Purch. Cr. Memos E2E",
-    "method": "TestCreateCreditMemoThroughPageAndAPI"
   },
   {
     "codeunitId": 139867,
