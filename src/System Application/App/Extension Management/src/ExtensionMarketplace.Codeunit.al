@@ -220,6 +220,7 @@ codeunit 2501 "Extension Marketplace"
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
@@ -228,6 +229,9 @@ codeunit 2501 "Extension Marketplace"
             Session.LogMessage('0088BQQ', StrSubstNo(MissingAppIdErr, MarketplaceApplicationId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
             Error(ExtensionNotFoundErr);
         end;
+
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
+            exit;
 
         TempExtensionInstallationRecord.SetRange(ID, AppId);
         TempExtensionInstallationRecord.ID := AppId;
@@ -240,12 +244,16 @@ codeunit 2501 "Extension Marketplace"
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionInstallationPage: Page "Extension Installation";
     begin
         if IsNullGuid(AppId) then begin
             Session.LogMessage('0000I4S', StrSubstNo(MissingAppIdErr, AppId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
             Error(ExtensionNotFoundErr);
         end;
+
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
+            exit;
 
         TempExtensionInstallationRecord.SetRange(ID, AppId);
         TempExtensionInstallationRecord.ID := AppId;

@@ -30,4 +30,11 @@ codeunit 135109 "Extension Mgt. Test Library"
     begin
         ExtensionOperationImpl.ShowInstallFailureStatus();
     end;
+
+    procedure InstallAppsourceExtensionWithRefreshSession(MarketplaceApplicationId: Text)
+    var
+        ExtensionMarketplace: Codeunit "Extension Marketplace";
+    begin
+        ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(MarketplaceApplicationId, '');
+    end;
 }
