@@ -217,7 +217,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if LookupState.HasGraphApiToken() then
             exit(LookupState.GetGraphApiToken());
 
-        Scopes.Add('https://graph.microsoft.com/Application.Read.All');
+        Scopes.Add('https://graph.microsoft.com/User.Read');
         OAuth2.AcquireOnBehalfOfToken('', Scopes, AccessToken);
         if AccessToken.IsEmpty() then
             Error(GraphApiTokenErr);
