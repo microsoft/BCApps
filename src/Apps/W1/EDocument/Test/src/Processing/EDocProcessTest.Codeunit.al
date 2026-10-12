@@ -11,6 +11,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -1360,6 +1361,101 @@ codeunit 139883 "E-Doc Process Test"
         Assert.IsFalse(SalesHeader.IsEmpty(), 'A Sales Header should be linked to the e-document after FinishDraft.');
         SalesHeader.FindFirst();
         Assert.AreEqual("Sales Document Type"::Order, SalesHeader."Document Type", 'The Sales Header Document Type should be Order.');
+    end;
+
+    [Test]
+    procedure UnmatchedInboundOrderResponseLeavesFailedEDocument()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        ErrorMessage: Record "Error Message";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] An inbound Order Response whose OrderReference matches no outgoing E-Document is not discarded silently.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [WHEN] The Order Response is imported
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        Assert.IsFalse(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-orderresponse-unmatched.xml', TempEDocImportParameters), 'The import should fail for an unmatched order response.');
+
+        // [THEN] The inbound E-Document is kept in an error state
+        Assert.IsTrue(EDocument.Get(EDocument."Entry No"), 'The inbound e-document should be kept for inspection.');
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'The e-document should be in error status.');
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors.');
+
+        // [THEN] The error explains that no outgoing e-document matches the order reference
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('UNKNOWN-ORDER-999', ErrorMessage."Message");
+    end;
+
+    [Test]
+    procedure RejectOrderActionReachableOnInboundSalesOrderDraft()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentSalesDraft: TestPage "E-Document Sales Draft";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reject Order is reachable on the sales order draft page a seller opens for an inbound order.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        EDocumentSalesDraft.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+
+        Assert.IsTrue(EDocumentSalesDraft.RejectOrder.Visible(), 'Reject Order should be reachable on the inbound sales order draft page.');
+        EDocumentSalesDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('RejectOrderConfirmHandler')]
+    procedure RejectOrderFromInboundSalesOrderDraftCreatesRejectionResponse()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessage: Record "E-Document Message";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentSalesDraft: TestPage "E-Document Sales Draft";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Rejecting an inbound order from the sales order draft creates an outgoing rejection response.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+        EDocumentService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
+        EDocumentService.Modify();
+
+        EDocumentSalesDraft.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+        EDocumentSalesDraft.RejectOrder.Invoke();
+        EDocumentSalesDraft.Close();
+
+        EDocumentMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentMessage.SetRange(Direction, "E-Document Direction"::Outgoing);
+        EDocumentMessage.SetRange("Response Type", "E-Doc. Response Type"::Rejected);
+        Assert.IsFalse(EDocumentMessage.IsEmpty(), 'Rejecting the order should create an outgoing rejection response.');
+    end;
+
+    [ConfirmHandler]
+    procedure RejectOrderConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     [Test]

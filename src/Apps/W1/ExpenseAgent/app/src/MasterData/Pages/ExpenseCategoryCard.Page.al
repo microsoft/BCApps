@@ -27,7 +27,8 @@ page 6945 "Expense Category Card"
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies a concise description that identifies the purpose or usage of this expense category.';
+                    Caption = 'Agent Skill';
+                    ToolTip = 'Specifies the skill for the agent usage that identifies expense category and its purpose or usage.';
                 }
                 field("Posting Description"; Rec."Posting Description")
                 {

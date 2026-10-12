@@ -1,5 +1,7 @@
 namespace Microsoft.Integration.MDM;
 
+using System.Telemetry;
+
 /// <summary>
 /// Guided setup for reading master data from another Business Central ENVIRONMENT (same tenant). Mirrors the
 /// Intercompany cross-environment partner wizard: consent, then the source environment/company and the
@@ -51,7 +53,7 @@ page 7232 "MDM Connection Details"
                     }
                     field(SourceCompanyName; SourceCompanyName)
                     {
-                        Caption = 'Source Company Name';
+                        Caption = 'Source Company';
                         ApplicationArea = Suite;
                         ShowMandatory = true;
                         ToolTip = 'Specifies the name of the company in the source environment that data is read from.';
@@ -174,8 +176,14 @@ page 7232 "MDM Connection Details"
                 InFooterBar = true;
 
                 trigger OnAction()
+                var
+                    FeatureTelemetry: Codeunit "Feature Telemetry";
+                    MasterDataManagement: Codeunit "Master Data Management";
                 begin
                     SaveConfiguration();
+                    // Completing the wizard saves a full cross-environment connection, which is a genuine setup of the
+                    // feature; register Set up here so it is captured even when the user declines to enable right away.
+                    FeatureTelemetry.LogUptake('0000VVS', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::"Set up");
                     EnableSynchronizationOnFinish();
                     CurrPage.Close();
                 end;
@@ -184,7 +192,13 @@ page 7232 "MDM Connection Details"
     }
 
     trigger OnOpenPage()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        MasterDataManagement: Codeunit "Master Data Management";
     begin
+        // Opening the cross-environment setup wizard is a genuine discovery of the feature, so register Discovered here
+        // too (the main setup page may never be opened in a wizard-only cross-environment setup).
+        FeatureTelemetry.LogUptake('0000VVT', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
         LoadConfiguration();
         Step := Step::Welcome;
         SetControls();
