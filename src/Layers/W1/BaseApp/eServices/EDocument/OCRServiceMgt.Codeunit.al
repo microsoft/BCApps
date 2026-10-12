@@ -525,7 +525,7 @@ codeunit 1294 "OCR Service Mgt."
             if not Authenticate() then
                 Error(GetLastErrorText);
 
-        HttpRequestMessage.SetCookie(AuthCookie.Name(), AuthCookie.Value());
+        HttpRequestMessage.SetCookie(AuthCookie);
     end;
 
     local procedure IsAuthCookieExpired(): Boolean
