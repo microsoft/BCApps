@@ -1915,3 +1915,4 @@ report 6222 "EUDR Sales Invoice"
     begin
     end;
 }
+
