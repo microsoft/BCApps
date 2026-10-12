@@ -160,7 +160,7 @@ page 48511 "Fabric Platform Setup"
                 {
                     Caption = 'Client ID';
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
+                    ToolTip = 'Specifies the Microsoft Entra application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
                     trigger OnValidate()
                     var
@@ -177,7 +177,7 @@ page 48511 "Fabric Platform Setup"
                     Caption = 'Client Secret';
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
-                    ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
+                    ToolTip = 'Specifies the client secret of the Microsoft Entra application. Enter a new value to update the stored secret.';
 
                     trigger OnValidate()
                     var
@@ -196,7 +196,7 @@ page 48511 "Fabric Platform Setup"
                 {
                     Caption = 'Principal ID';
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
+                    ToolTip = 'Specifies the object ID of the Microsoft Entra service principal. Used to grant the service principal Contributor access on the Fabric workspace.';
 
                     trigger OnValidate()
                     var
