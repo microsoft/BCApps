@@ -29,6 +29,12 @@
       "name": "Depreciation Differences FI",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
+    },
+    {
+      "id": "1ccf0618-8dba-4fe4-aad6-ef4f9c075f3b",
+      "name": "Depreciation Differences FI Demo Data",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],

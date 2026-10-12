@@ -30,11 +30,7 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
     procedure IsDataUpdateRequired(): Boolean
     begin
         CountRecords();
-        if TempDocumentEntry.IsEmpty() then begin
-            SetUpgradeTag(false);
-            exit(false);
-        end;
-        exit(true);
+        exit(not TempDocumentEntry.IsEmpty());
     end;
 
     procedure ReviewData()
@@ -49,7 +45,7 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
 
     procedure AfterUpdate(FeatureDataUpdateStatus: Record "Feature Data Update Status")
     begin
-        SetUpgradeTag(true);
+        SetUpgradeTag();
     end;
 
     procedure UpdateData(FeatureDataUpdateStatus: Record "Feature Data Update Status")
@@ -106,7 +102,7 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
         TempDocumentEntry.Insert();
     end;
 
-    local procedure SetUpgradeTag(DataUpgradeExecuted: Boolean)
+    local procedure SetUpgradeTag()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         DepreciationDifferencesFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
@@ -114,8 +110,6 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
         if UpgradeTag.HasUpgradeTag(DepreciationDifferencesFIUpgradeTag.GetUpgradeTag()) then
             exit;
         UpgradeTag.SetUpgradeTag(DepreciationDifferencesFIUpgradeTag.GetUpgradeTag());
-        if not DataUpgradeExecuted then
-            UpgradeTag.SetSkippedUpgrade(DepreciationDifferencesFIUpgradeTag.GetUpgradeTag(), true);
     end;
 }
 #endif

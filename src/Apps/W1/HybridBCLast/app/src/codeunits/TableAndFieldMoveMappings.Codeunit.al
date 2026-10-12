@@ -96,8 +96,8 @@ codeunit 40030 "Table and Field Move Mappings"
                 FieldNos.Add(5005270);
             'ES':
                 FieldNos.Add(7000000);
-            'FI':
 #if not CLEANSCHEMA33
+            'FI':
                 FieldNos.Add(13400);
 #endif
             'NL':

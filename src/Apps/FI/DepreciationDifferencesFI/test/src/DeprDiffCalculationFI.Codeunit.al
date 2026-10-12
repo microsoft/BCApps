@@ -1,5 +1,6 @@
 namespace Microsoft.FixedAssets.Depreciation;
 
+using Microsoft.DemoData.FixedAsset;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
@@ -13,10 +14,8 @@ using Microsoft.Purchases.Setup;
 #if not CLEAN30
 using System.Environment.Configuration;
 #endif
-#if CLEAN30
 #if not CLEANSCHEMA33
 using System.TestLibraries.Upgrade;
-#endif
 #endif
 using System.TestLibraries.Utilities;
 using System.Upgrade;
@@ -98,16 +97,51 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
 #if not CLEAN30
     [Test]
-    procedure UpgradeTagIsNotRegisteredBeforeClean30()
+    procedure LegacyDataCreatedAfterEmptyReviewRemainsEligibleForMigration()
     var
+        FAPostingGroup: Record "FA Posting Group";
         UpgradeTag: Codeunit "Upgrade Tag";
         DepDiffFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
+        DepDiffFIFeatureDataUpdate: Codeunit "Dep Diff FI Feature Data Upd.";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        IsDataUpdateRequired: Boolean;
     begin
         Initialize();
 
+        // [GIVEN] No legacy depreciation difference data and no migration upgrade tag exist.
+        ClearLegacyDepreciationDifferenceData();
+        if UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                DepDiffFIUpgradeTag.GetUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+
+        // [WHEN] The feature data update checks whether an update is required.
+        IsDataUpdateRequired := DepDiffFIFeatureDataUpdate.IsDataUpdateRequired();
+
+        // [THEN] No update is required and the check does not register the migration tag.
+        Assert.IsFalse(
+            IsDataUpdateRequired,
+            'The feature data update must not be required when no legacy depreciation difference data exists.');
         Assert.IsFalse(
             UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()),
-            'The depreciation differences migration tag must not be registered before CLEAN30.');
+            'Reviewing an empty feature data update must not register the depreciation differences migration tag.');
+
+        // [GIVEN] Legacy depreciation difference data is created after the empty check.
+        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+#pragma warning disable AL0432
+        FAPostingGroup."Depr. Difference Acc." := LibraryERM.CreateGLAccountNo();
+#pragma warning restore AL0432
+        FAPostingGroup.Modify(false);
+
+        // [WHEN] The feature data update checks again whether an update is required.
+        IsDataUpdateRequired := DepDiffFIFeatureDataUpdate.IsDataUpdateRequired();
+
+        // [THEN] The newly created legacy data remains eligible and checking it does not register the tag.
+        Assert.IsTrue(
+            IsDataUpdateRequired,
+            'Legacy depreciation difference data created after an empty review must remain eligible for migration.');
+        Assert.IsFalse(
+            UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()),
+            'Detecting legacy data must not register the depreciation differences migration tag.');
     end;
 
     [Test]
@@ -173,6 +207,23 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         FALedgerEntry.TestField("Depreciation Difference Posted", true);
         SourceCodeSetup.Get();
         SourceCodeSetup.TestField("Depreciation Difference Code", DeprDifferenceSourceCode);
+    end;
+
+    local procedure ClearLegacyDepreciationDifferenceData()
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        FALedgerEntry: Record "FA Ledger Entry";
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+#pragma warning disable AL0432
+        FAPostingGroup.ModifyAll("Depr. Difference Acc.", '', false);
+        FAPostingGroup.ModifyAll("Depr. Difference Bal. Acc.", '', false);
+        FALedgerEntry.ModifyAll("Depr. Difference Posted", false, false);
+        if SourceCodeSetup.Get() then begin
+            SourceCodeSetup."Depr. Difference" := '';
+            SourceCodeSetup.Modify(false);
+        end;
+#pragma warning restore AL0432
     end;
 #else
 #if not CLEANSCHEMA33
@@ -284,6 +335,38 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     end;
 #endif
 #endif
+
+    [Test]
+    procedure LegacyDemoGeneratorInitializesExtensionAccounts()
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        CreateFAPostingGroup: Codeunit "Create FA Posting Group";
+        AccountNo: Code[20];
+        DeprDifferenceAccount: Code[20];
+        DeprDifferenceBalAccount: Code[20];
+        FAPostingGroupCode: Code[10];
+    begin
+        Initialize();
+
+        // [GIVEN] Existing G/L accounts and a new FA posting group code.
+        AccountNo := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
+        FAPostingGroupCode :=
+            CopyStr(
+                LibraryUtility.GenerateRandomCode(FAPostingGroup.FieldNo(Code), Database::"FA Posting Group"),
+                1, MaxStrLen(FAPostingGroupCode));
+
+        // [WHEN] The legacy DemoTool generator inserts the FA posting group.
+        CreateFAPostingGroup.InsertData(
+            FAPostingGroupCode, AccountNo, AccountNo, AccountNo, AccountNo, AccountNo, AccountNo,
+            AccountNo, AccountNo, DeprDifferenceAccount, DeprDifferenceBalAccount, AccountNo);
+
+        // [THEN] The Depreciation Differences FI Demo Data subscriber initializes both extension accounts.
+        FAPostingGroup.Get(FAPostingGroupCode);
+        FAPostingGroup.TestField("Deprec. Difference Account", DeprDifferenceAccount);
+        FAPostingGroup.TestField("Deprec. Difference Bal Acct", DeprDifferenceBalAccount);
+    end;
 
 #if not CLEAN30
     [Test]

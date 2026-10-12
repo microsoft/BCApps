@@ -5,6 +5,7 @@
 
 namespace Microsoft.DemoData.FixedAsset;
 
+using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.DemoTool;
 
 codeunit 13486 "Dep. Diff. Demo Data FI"
@@ -12,6 +13,13 @@ codeunit 13486 "Dep. Diff. Demo Data FI"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create FA Posting Group", 'OnBeforeInsertFAPostingGroup', '', false, false)]
+    local procedure OnBeforeInsertLegacyFAPostingGroup(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
+    begin
+        FAPostingGroup.Validate("Deprec. Difference Account", DeprDifferenceAcc);
+        FAPostingGroup.Validate("Deprec. Difference Bal Acct", DeprDifferenceBalAcc);
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Contoso Demo Tool", 'OnBeforeGeneratingDemoData', '', false, false)]
     local procedure OnBeforeGeneratingDemoData(Module: Enum "Contoso Demo Data Module"; ContosoDemoDataLevel: Enum "Contoso Demo Data Level")
