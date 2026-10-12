@@ -759,7 +759,6 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
-        VATPostingSetup: Record "VAT Posting Setup";
         GLAccountNo: Code[20];
         RetainedEarningsAccountNo: Code[20];
         SourceCurrencyCode: Code[10];
@@ -774,9 +773,6 @@ codeunit 134228 "ERM Close Income Statement"
             UpdateCurOnGeneralLedgerSetup(CreateCurrency())
         else
             UpdateCurOnGeneralLedgerSetup('');
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", '');
-        VATPostingSetup.SetRange("VAT Prod. Posting Group", '');
-        VATPostingSetup.DeleteAll();
         SourceCurrencyCode := CreateCurrency();
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
