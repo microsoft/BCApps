@@ -205,7 +205,7 @@ page 2511 "Extension Settings"
             }
             action("Download Source")
             {
-                Caption = 'Download Source';
+                Caption = 'Download source';
                 Enabled = ActionsEnabled and IsTenantExtension;
                 Image = ExportFile;
                 ToolTip = 'Download the source code for the extension.';
@@ -217,7 +217,7 @@ page 2511 "Extension Settings"
             }
             action("Learn More")
             {
-                Caption = 'Learn More';
+                Caption = 'Learn more';
                 Enabled = ActionsEnabled;
                 Visible = HelpActionVisible;
                 Image = Info;
@@ -231,9 +231,9 @@ page 2511 "Extension Settings"
         }
         area(Promoted)
         {
-            group(Category_Manage)
+            group(Category_Home)
             {
-                Caption = 'Manage';
+                Caption = 'Home';
                 actionref(Install_Promoted; Install) { }
                 actionref(Uninstall_Promoted; Uninstall) { }
                 actionref(Unpublish_Promoted; Unpublish) { }
