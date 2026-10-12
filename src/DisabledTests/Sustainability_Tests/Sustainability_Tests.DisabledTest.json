@@ -140,31 +140,6 @@
     "method": "VerifySustainabilityLedgerEntryShouldBeShownWhenNavigating"
   },
   {
-    "codeunitId": 148188,
-    "codeunitName": "Sust. General Journal Test",
-    "method": "VerifyPreviewPostingOfGenJournalDoesNotConsumeSustainabilityLedgerEntryNo"
-  },
-  {
-    "codeunitId": 148188,
-    "codeunitName": "Sust. General Journal Test",
-    "method": "VerifyRepeatedGenJournalPreviewResetsNegativeTemporaryKeys"
-  },
-  {
-    "codeunitId": 148188,
-    "codeunitName": "Sust. General Journal Test",
-    "method": "VerifySustainabilityLedgerEntryIsReversedWhenGLTransactionIsReversed"
-  },
-  {
-    "codeunitId": 148188,
-    "codeunitName": "Sust. General Journal Test",
-    "method": "VerifySustainabilityLedgerEntryIsNotReversedTwiceWhenAlreadyReversedBeforeGLReversal"
-  },
-  {
-    "codeunitId": 148189,
-    "codeunitName": "Sust. Water/Waste Int. Test",
-    "method": "VerifySustAccountIsNotAllowedToUseInGeneralJournalDocumentWithIntensitySetup"
-  },
-  {
     "codeunitId": 148190,
     "codeunitName": "Sust. Value Entry Test",
     "method": "TestSustValueEntryIsCreatedForItemJournalWhenEntryTypeIsPurchase"
