@@ -525,8 +525,8 @@ codeunit 139541 "E-Doc. Serv. Supp. Type Test"
         // [WHEN] The Document Format is validated to PEPPOL BIS 3.0.
         this.ValidateDocumentFormat(EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0");
 
-        // [THEN] 5 supported document types are seeded for the service.
-        Assert.AreEqual(5, this.CountSupportedTypes(EDocumentService.Code), ExpectedSupportedTypesLbl);
+        // [THEN] 7 supported document types are seeded for the service.
+        Assert.AreEqual(7, this.CountSupportedTypes(EDocumentService.Code), ExpectedSupportedTypesLbl);
         // [THEN] Remittance Advice is seeded as Outgoing.
         Assert.AreEqual(Enum::"E-Doc. Supp. Type Direction"::Outgoing, this.GetSupportedTypeDirection(EDocumentService.Code, Enum::"E-Document Type"::"Remittance Advice"), RemittanceAdviceOutgoingLbl);
     end;

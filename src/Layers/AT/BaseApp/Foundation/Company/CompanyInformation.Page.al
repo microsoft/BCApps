@@ -612,7 +612,7 @@ page 1 "Company Information"
                             LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
                     end;
                 }
-                field(PowerBIWorkspace; Rec."Power BI Workspace Name")
+                field(PowerBIWorkspace; PowerBIWorkspaceDisplayName)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Power BI Workspace';
@@ -630,6 +630,7 @@ page 1 "Company Information"
                         if PowerBIWorkspaceMgt.LookupTargetWorkspace(NewWorkspaceId, NewWorkspaceName) then begin
                             Rec.Validate("Power BI Workspace Id", NewWorkspaceId);
                             Rec.Validate("Power BI Workspace Name", NewWorkspaceName);
+                            UpdatePowerBIWorkspaceDisplayName();
                             CurrPage.Update(true);
                         end;
                     end;
@@ -892,6 +893,7 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        UpdatePowerBIWorkspaceDisplayName();
         LoadDescriptions();
     end;
 
@@ -902,7 +904,6 @@ page 1 "Company Information"
     begin
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
-
         if SystemIndicatorChanged then begin
             Message(CompanyBadgeRefreshPageTxt);
             AuditLog.LogAuditMessage(StrSubstNo(CompanyBadgeChangedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
@@ -959,9 +960,17 @@ page 1 "Company Information"
         DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
+        PowerBIWorkspaceDisplayName: Text[200];
 
     protected var
         SystemIndicatorChanged: Boolean;
+
+    local procedure UpdatePowerBIWorkspaceDisplayName()
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+    begin
+        PowerBIWorkspaceDisplayName := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
+    end;
 
     local procedure UpdateSystemIndicator()
     var

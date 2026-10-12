@@ -13,6 +13,12 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
+      "name": "Test Runner",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "bc7b3891-f61b-4883-bbb3-384cdef88bec",
       "name": "Quality Management",
       "publisher": "Microsoft",

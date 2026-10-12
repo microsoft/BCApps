@@ -97,7 +97,7 @@ report 20404 "Qlty. Move Inventory"
                     {
                         ApplicationArea = All;
                         Caption = 'Entire Lot/Serial/Package';
-                        ToolTip = 'Specifies that this will move the entire lot/serial/package.';
+                        ToolTip = 'Uses all posted inventory that matches the lot, serial, or package number on the inspection and any source filters. The item and inspection must include item tracking.';
 
                         trigger OnValidate()
                         begin
@@ -118,7 +118,7 @@ report 20404 "Qlty. Move Inventory"
                     {
                         ApplicationArea = All;
                         Caption = 'Specific Quantity';
-                        ToolTip = 'Specifies a well known quantity to use.';
+                        ToolTip = 'Uses Quantity to Handle. If it is 0, uses Quantity (Base) from the inspection. The resulting quantity must be greater than 0.';
 
                         trigger OnValidate()
                         begin
@@ -144,7 +144,7 @@ report 20404 "Qlty. Move Inventory"
                         {
                             ApplicationArea = All;
                             Caption = 'Quantity to Handle';
-                            ToolTip = 'Specifies the specific quantity to move.';
+                            ToolTip = 'Specifies the quantity for Specific Quantity. Enter 0 to use Quantity (Base) from the inspection.';
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowMandatory = true;
@@ -155,7 +155,7 @@ report 20404 "Qlty. Move Inventory"
                     {
                         ApplicationArea = All;
                         Caption = 'Sample Quantity';
-                        ToolTip = 'Specifies to use the sample size for the quantity.';
+                        ToolTip = 'Uses Sample Size from the inspection. Sample Size must be greater than 0.';
 
                         trigger OnValidate()
                         begin
@@ -176,7 +176,7 @@ report 20404 "Qlty. Move Inventory"
                     {
                         ApplicationArea = All;
                         Caption = 'Passed Quantity';
-                        ToolTip = 'Specifies to use the number of passed samples as the quantity. When transferring passed samples, all sampling measurements must pass for the sample to be accepted.';
+                        ToolTip = 'Uses Passed Quantity from the inspection. Passed Quantity must be greater than 0.';
 
                         trigger OnValidate()
                         begin
@@ -197,7 +197,7 @@ report 20404 "Qlty. Move Inventory"
                     {
                         ApplicationArea = All;
                         Caption = 'Failed Quantity';
-                        ToolTip = 'Specifies to use the number of failed samples as the quantity. When using failed samples, at least one sampling measurement must have failed.';
+                        ToolTip = 'Uses Failed Quantity from the inspection. Failed Quantity must be greater than 0.';
 
                         trigger OnValidate()
                         begin
