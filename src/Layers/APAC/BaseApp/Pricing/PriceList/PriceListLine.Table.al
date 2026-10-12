@@ -730,6 +730,16 @@ table 7001 "Price List Line"
             if ("Source Type" <> "Source Type"::"Customer Price Group") and ("Asset Type" <> "Asset Type"::Item) then
                 "Allow Invoice Disc." := true;
         end;
+        ValidateBlankProductUnitOfMeasure();
+    end;
+
+    trigger OnModify()
+    begin
+        if ("Asset Type" <> xRec."Asset Type") or
+           ("Asset No." <> xRec."Asset No.") or
+           ("Unit of Measure Code" <> xRec."Unit of Measure Code")
+        then
+            ValidateBlankProductUnitOfMeasure();
     end;
 
     protected var
@@ -1219,6 +1229,17 @@ table 7001 "Price List Line"
             TestField("Source No.")
         else
             TestField("Source No.", '');
+    end;
+
+    local procedure ValidateBlankProductUnitOfMeasure()
+    begin
+        if ("Asset No." <> '') or ("Unit of Measure Code" = '') or
+           not ("Asset Type" in ["Asset Type"::Item, "Asset Type"::Resource])
+        then
+            exit;
+
+        CopyTo(PriceAsset);
+        PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
     end;
 
     procedure UseCustomizedLookup(): Boolean

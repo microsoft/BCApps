@@ -1038,14 +1038,14 @@ codeunit 134119 "Price Asset UT"
     end;
 
     [Test]
-    procedure BlankProductDiscountRejectsMissingGlobalUOMOnActivation()
+    procedure BlankProductDiscountRejectsMissingGlobalUOMOnSave()
     var
         PriceListHeader: Record "Price List Header";
         PriceListLine: Record "Price List Line";
         UnitOfMeasure: Record "Unit of Measure";
     begin
         // [FEATURE] [AI test 0.3]
-        // [SCENARIO] A blank-product discount cannot be activated with a missing global unit.
+        // [SCENARIO] A blank-product discount cannot be saved with a missing global unit.
         Initialize();
 
         // [GIVEN] A draft item discount line with no product and a raw unit value that no longer exists.
@@ -1056,12 +1056,11 @@ codeunit 134119 "Price Asset UT"
         LibraryPriceCalculation.CreatePriceListLine(
             PriceListLine, PriceListHeader, PriceListLine."Amount Type"::Discount, PriceListLine."Asset Type"::Item, '');
         PriceListLine."Unit of Measure Code" := UnitOfMeasure.Code;
-        PriceListLine.Modify(true);
 
-        // [WHEN] The price list is activated.
-        asserterror PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        // [WHEN] The line is saved.
+        asserterror PriceListLine.Modify(true);
 
-        // [THEN] Verification rejects the missing global unit.
+        // [THEN] Persistence rejects the missing global unit.
         VerifyMissingUnitError('Unit of Measure', UnitOfMeasure.Code);
     end;
 
