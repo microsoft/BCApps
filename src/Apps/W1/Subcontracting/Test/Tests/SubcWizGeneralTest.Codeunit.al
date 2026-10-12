@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 149923 "Subc. Wiz. General Test"
+codeunit 140003 "Subc. Wiz. General Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -324,7 +324,6 @@ codeunit 149923 "Subc. Wiz. General Test"
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
         EnqueueWizardNavigation(4);
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Wiz. General Test");

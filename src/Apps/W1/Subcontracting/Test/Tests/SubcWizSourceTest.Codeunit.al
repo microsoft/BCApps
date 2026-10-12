@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 139997 "Subc. Wiz. Source Test"
+codeunit 140001 "Subc. Wiz. Source Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -361,7 +361,6 @@ codeunit 139997 "Subc. Wiz. Source Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Source Test");
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Wiz. Source Test");

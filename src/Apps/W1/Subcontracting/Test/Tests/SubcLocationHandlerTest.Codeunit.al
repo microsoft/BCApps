@@ -64,7 +64,6 @@ codeunit 139981 "Subc. Location Handler Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Location Handler Test");
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Location Handler Test");
@@ -72,8 +71,9 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcontractingMgmtLibrary.Initialize();
         LibraryMfgManagement.Initialize();
         SubSetupLibrary.InitSetupFields();
-        LibraryERMCountryData.CreateV;
- 
+        LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+
         LibrarySetupStorage.Save(Database::"Inventory Setup");
 
         IsInitialized := true;
@@ -1003,7 +1003,7 @@ codeunit 139981 "Subc. Location Handler Test"
           'Subcontracting order must not use the Work Center location.');
     end;
 
-        local procedure CreateComponentWarehouseTransferSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrderComp: Record "Prod. Order Component"; var Item: Record Item; var Location: Record Location; var LocationSub: Record Location; Quantity: Decimal)
+    local procedure CreateComponentWarehouseTransferSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrderComp: Record "Prod. Order Component"; var Item: Record Item; var Location: Record Location; var LocationSub: Record Location; Quantity: Decimal)
     var
         ItemJournalLine: Record "Item Journal Line";
     begin

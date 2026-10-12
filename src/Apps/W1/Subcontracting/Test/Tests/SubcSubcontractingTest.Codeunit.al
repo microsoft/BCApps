@@ -4391,9 +4391,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
     begin
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);

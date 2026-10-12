@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 139996 "Subc. Wiz. Variant Test"
+codeunit 140004 "Subc. Wiz. Variant Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -873,7 +873,6 @@ codeunit 139996 "Subc. Wiz. Variant Test"
     begin
         // [SCENARIO J1] Handle wizard to select existing BOM variant and verify lines are updated
         WizardWasOpened := true;
-
         if ProductionDefinitionWizard.ActionNext.Enabled() then begin
             VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
@@ -922,12 +921,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
     begin
         // [SCENARIO J2] Handle wizard to select existing Routing variant and verify lines are updated
         WizardWasOpened := true;
-
         if ProductionDefinitionWizard.ActionNext.Enabled() then begin
             VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke(); //Components
         end;
-
         if ProductionDefinitionWizard.ActionNext.Enabled() then begin
             VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke(); //Routing
@@ -1037,7 +1034,6 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Variant Test");
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Wiz. Variant Test");
