@@ -70,6 +70,27 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNT', ExternalStorageTok, 'File Deleted', Dimensions);
     end;
 
+    internal procedure LogExternalFileRetained(DocumentAttachment: Record "Document Attachment"; Operation: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetFailureTelemetryDimensions(DocumentAttachment, Operation, Dimensions);
+        FeatureTelemetry.LogUsage('0000W5Q', ExternalStorageTok, 'External File Retained', Dimensions);
+    end;
+
+    internal procedure LogSyncRetention(RetainedCount: Integer; RetiredCount: Integer; RetirementBlockedCount: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        if RetainedCount = 0 then
+            exit;
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('RetainedCount', Format(RetainedCount));
+        Dimensions.Add('LocallyRetiredCount', Format(RetiredCount));
+        Dimensions.Add('RetirementBlockedCount', Format(RetirementBlockedCount));
+        FeatureTelemetry.LogUsage('0000W5R', ExternalStorageTok, 'External Cleanup Blocked During Sync', Dimensions);
+    end;
+
     internal procedure LogCompanyMigration()
     begin
         FeatureTelemetry.LogUsage('0000RNU', ExternalStorageTok, 'Company Migration');
@@ -85,6 +106,18 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNW', ExternalStorageTok, 'Auto Sync');
     end;
 
+    internal procedure LogSyncFailed(DocumentAttachment: Record "Document Attachment"; Operation: Text; ErrorText: Text; ErrorCallStack: Text; IsInteractive: Boolean)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetFailureTelemetryDimensions(DocumentAttachment, Operation, Dimensions);
+        if IsInteractive then
+            Dimensions.Add('SyncMode', 'Interactive')
+        else
+            Dimensions.Add('SyncMode', 'Background');
+        FeatureTelemetry.LogError('0000VL5', ExternalStorageTok, 'Synchronizing document attachments', ErrorText, ErrorCallStack, Dimensions);
+    end;
+
     internal procedure LogRootFolderConfigured()
     begin
         FeatureTelemetry.LogUsage('0000RNX', ExternalStorageTok, 'Root Folder Configured');
@@ -97,23 +130,20 @@ codeunit 8754 "DA Feature Telemetry"
         Clear(Dimensions);
         Dimensions.Add('Category', ExternalStorageCategoryLbl);
         Dimensions.Add('Operation', Operation);
-        Dimensions.Add('User ID', UserId());
-        Dimensions.Add('File Name', DocumentAttachment."File Name");
         Dimensions.Add('File Extension', DocumentAttachment."File Extension");
         Dimensions.Add('Table ID', Format(DocumentAttachment."Table ID"));
-        
+
         if TryGetTableName(DocumentAttachment."Table ID", TableName) then
             Dimensions.Add('Table Name', TableName);
-        
-        Dimensions.Add('Document No.', DocumentAttachment."No.");
+
         Dimensions.Add('Stored Externally', Format(DocumentAttachment."Stored Externally"));
         Dimensions.Add('Stored Internally', Format(DocumentAttachment."Stored Internally"));
-        
+
         if DocumentAttachment."External File Path" <> '' then
             Dimensions.Add('Has External Path', 'Yes')
         else
             Dimensions.Add('Has External Path', 'No');
-        
+
         if DocumentAttachment."External Upload Date" <> 0DT then
             Dimensions.Add('Upload Date', Format(DocumentAttachment."External Upload Date", 0, 9));
     end;

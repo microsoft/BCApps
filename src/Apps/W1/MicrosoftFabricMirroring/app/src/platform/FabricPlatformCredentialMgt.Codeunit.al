@@ -21,7 +21,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         FabricApiTokenErr: Label 'Failed to acquire a Microsoft Fabric API token. Sign in again and verify that admin consent was granted.';
         GraphApiTokenErr: Label 'Failed to acquire a Microsoft Graph token. Sign in again and verify that admin consent was granted.';
 #if not CLEAN29
-        FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
+        FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration in Microsoft Entra ID and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
         OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
         OAuthAuthorityUrlTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = tenant ID', Locked = true;
@@ -259,7 +259,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     begin
         if GetClientId() = '' then
             Error(ClientIdRequiredErr);
-
         AuthorityTenantId := GetTenantId();
         if AuthorityTenantId = '' then
             Error(TenantIdRequiredErr);

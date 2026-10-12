@@ -13,9 +13,16 @@ The External Storage extension provides seamless integration between Microsoft D
 - **Migration Support**: Built-in migration tool to move files between company folders when needed
 - **Environment Hash Display**: View current environment hash for reference and troubleshooting
 
-### **Flexible Deletion Policies**
-- **Delete from External Storage**: Optionally delete files from external storage when attachments are removed from BC
-- **Automatic Cleanup**: Scheduled job queue can automatically delete expired files based on retention policy
+### **External Content Retention**
+- Remote files are never deleted by attachment deletion, synchronization, or failed-upload handling.
+- **Retire External Reference** removes only local external metadata after a fresh, locked attachment and actual nonempty internal media have been verified. Remote bytes remain retained.
+- External-only, missing-content, temporary, or changed attachment snapshots cannot retire their local references.
+- The public `DeleteFromExternalStorage` overloads retain their signatures, but a successful result now means only that the local reference was retired. Callers must not interpret it as remote deletion.
+
+### **Standalone Scope**
+The filename, synchronization diagnostics, and remote-retention changes operate against the dependencies available on main. They do not require the proposed internal-release work in [#12438](https://github.com/microsoft/BCApps/pull/12438), which is optional future work and is not a remote-deletion or ownership foundation.
+
+Internal release remains the separate synchronous behavior described below; this change does not establish globally owner-safe internal-media release. Remote retention is intentional regardless of whether future internal-release work ships; no future physical remote deletion is promised.
 
 ### **Customizable Root Folder**
 - Configure a custom root folder path for all attachments
@@ -52,7 +59,7 @@ The External Storage extension provides seamless integration between Microsoft D
    - Configure settings:
      - **Enabled**: Enable the External Storage feature
      - **Root Folder**: Select the root folder path for attachments (use AssistEdit to browse)
-     - **Delete from External Storage**: Enable to delete external files when attachments are removed from BC
+     - **External Cleanup Status**: Explains retention; the saved legacy deletion policy is read-only.
 
 ### Configuration Options
 
@@ -63,7 +70,7 @@ The External Storage extension provides seamless integration between Microsoft D
   - Use AssistEdit button to browse and select folder interactively
 
 #### Upload and Delete Policy
-- **Delete from External Storage**: When enabled, files are deleted from external storage when the attachment is removed from Business Central
+- **Delete from External Storage**: The saved legacy policy does not authorize remote deletion. External files are retained regardless of this value.
 
 
 ## Usage
@@ -121,14 +128,14 @@ From **Document Attachment - External** page:
 - **Upload to External Storage**: Upload selected file manually
 - **Download from External Storage**: Download file for viewing
 - **Download to Internal Storage**: Restore file to internal storage
-- **Delete from External Storage**: Remove file from external storage
+- **Retire External Reference**: Retire local metadata only after confirming nonempty internal content; retain the remote file
 - **Delete from Internal Storage**: Remove file from internal storage only
 
 #### Bulk Operations
 From **External Storage Synchronize** report:
 - **To External Storage**: Upload multiple files to external storage
 - **From External Storage**: Download multiple files from external storage
-- **Delete Expired Files**: Clean up files based on retention policy
+- **Move to Internal Storage**: Restore bytes when needed, then retire verified local external references. Already-internal attachments can retire without contacting the provider. The summary distinguishes retained remote files, retired local references, and blocked retirements.
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
@@ -136,6 +143,15 @@ From **External Storage Synchronize** report:
 - Files deleted internally are automatically retrieved from external storage when accessed
 - No change to end-user experience
 - Cross-environment and cross-company access is handled automatically
+
+### Filename Migration and Synchronization Diagnostics
+- Generated storage filenames and filenames passed to media import omit `"`, `'`, `<`, `>`, `/`, `\`, and `|`. The attachment's displayed File Name and File Extension remain unchanged.
+- Uploads retain a GUID suffix, so names that sanitize to the same value still use separate files. Downloads use the saved External File Path without regenerating or decoding it.
+- Each synchronization step runs in its own transaction. A successful copy is committed before source cleanup; a runtime failure rolls back that step and processing continues with the next attachment.
+- Every failed attachment is recorded in the **Error Message Register** with its original filename and reason. Interactive runs also show the **Error Messages** page; background runs register failures without raising an attachment error or opening dialogs.
+- If an upload creates an external file but its attachment update fails, the external file is retained, not automatically deleted. The registered error includes the created logical path for recovery. Verify the actual storage account and file before taking any manual action; the current account mapping is not proof of ownership.
+- **Maximum Records to Process** limits a run when nonzero. Subsequent runs exclude successfully uploaded attachments; failed attachments remain eligible for retry.
+- This change does not rename existing external files or remove provider-specific folder-name restrictions, including trailing-dot folder names.
 
 ## Important Notes
 
@@ -153,7 +169,7 @@ From **External Storage Synchronize** report:
 
 ### Feature Disable Protection
 - Cannot disable External Storage setup if files are uploaded
-- Must delete all uploaded files before disabling the feature
+- Restore and retire all external references with **To Internal Storage / Move** before disabling the feature; **Copy** alone retains both references
 - Cannot unassign External Storage scenario if files exist in external storage
 
 **© 2025 Microsoft Corporation. All rights reserved.**

@@ -64,7 +64,7 @@ page 48519 "Fabric Platform Setup Wizard"
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
                     ObsoleteTag = '29.0';
-                    ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
+                    ToolTip = 'Specifies the Microsoft Entra application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
                     trigger OnValidate()
                     begin
@@ -81,7 +81,7 @@ page 48519 "Fabric Platform Setup Wizard"
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
                     ObsoleteTag = '29.0';
-                    ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
+                    ToolTip = 'Specifies the client secret of the Microsoft Entra application. Enter a new value to update the stored secret.';
 
                     trigger OnValidate()
                     begin
@@ -100,7 +100,7 @@ page 48519 "Fabric Platform Setup Wizard"
 #if not CLEAN29
                     ShowMandatory = UseCustomAppValue;
 #endif
-                    ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace. With the default Microsoft application it is looked up automatically; enter it manually only if your tenant does not allow reading service principals.';
+                    ToolTip = 'Specifies the object ID of the Microsoft Entra service principal. Used to grant the service principal Contributor access on the Fabric workspace. With the default Microsoft application it is looked up automatically; enter it manually only if your tenant does not allow reading service principals.';
 
                     trigger OnValidate()
                     begin
