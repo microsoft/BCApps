@@ -1637,7 +1637,7 @@ codeunit 22 "Item Jnl.-Post Line"
                       and (not ItemJnlLine."Assemble to Order") then
                     exit(true);
     end;
-    
+
     local procedure UpdateReservationEntryForNonInventoriableItem()
     var
         ReservationEntry: Record "Reservation Entry";
@@ -5972,7 +5972,6 @@ codeunit 22 "Item Jnl.-Post Line"
             if ReservationEntry2.Get(ReservationEntry."Entry No.", not ReservationEntry.Positive) then
                 SourceType := ReservationEntry2."Source Type";
 
-
         case SourceType of
             Database::"Sales Line":
                 AppliedQty := -Abs(OldItemLedgerEntry."Remaining Quantity" - OldItemLedgerEntry."Reserved Quantity");
@@ -5983,7 +5982,7 @@ codeunit 22 "Item Jnl.-Post Line"
         OnAfterGetUpdatedAppliedQtyForConsumption(OldItemLedgerEntry, ItemLedgerEntry, ReservationEntry2, SourceType, AppliedQty);
     end;
 
-    procedure PostDeferredValueEntriesToGL(PostponedValueEntries: List of [Integer])
+    procedure PostDeferredValueEntriesToGL(PostponedValueEntries: List of [BigInteger])
     var
         ValueEntry: Record "Value Entry";
         ValueEntryUpdate: Record "Value Entry";
