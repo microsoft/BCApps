@@ -3,7 +3,7 @@
     "name": "Shopify Connector NA Test",
     "publisher": "Microsoft",
     "brief": "Tests for Shopify Connector NA",
-    "description": "Data-driven and Responsible-AI tests for Shopify Connector NA (Tax Matching Agent) using the AI Test Toolkit and Red Team Scan.",
+    "description": "Data-driven and Responsible-AI tests for Shopify Connector NA (Shopify Tax Matching) using the AI Test Toolkit and Red Team Scan.",
     "version": "30.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",

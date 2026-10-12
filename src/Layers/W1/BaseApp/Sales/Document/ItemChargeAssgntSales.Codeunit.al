@@ -382,6 +382,7 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
             ItemChargeAssgntSales.ModifyAll("Qty. to Assign", 0);
             ItemChargeAssgntSales.ModifyAll("Amount to Handle", 0);
             ItemChargeAssgntSales.ModifyAll("Qty. to Handle", 0);
+            ItemChargeAssgntSales.Findset();
 
             case SelectionTxt of
                 AssignEquallyMenuText():
