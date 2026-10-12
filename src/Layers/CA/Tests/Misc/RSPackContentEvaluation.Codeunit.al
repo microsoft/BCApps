@@ -197,14 +197,14 @@ codeunit 138400 "RS Pack Content - Evaluation"
         Initialize();
 
         TempXMLBuffer.Load(FileManagement.CombinePath(
-            ApplicationPath, '../../App/Demotool/Pictures/MachineLearning/itemsales.xml'));
+            ApplicationPath, '../../App/BCApps/src/DemoTool/Pictures/MachineLearning/itemsales.xml'));
 
-        Item.SetRange("Assembly BOM", false);
         Evaluate(Periods, TempXMLBuffer.GetAttributeValueAsText('Periods'));
         TempXMLBuffer.FindChildElements(TempXMLBuffer);
         TempXMLBuffer.FindSet();
-        Assert.RecordCount(TempXMLBuffer, Item.Count);
         repeat
+            Item.Get(TempXMLBuffer.GetAttributeValueAsText('item'));
+            Item.TestField("Assembly BOM", false);
             TempXMLBuffer.FindChildElements(TempXMLBufferPeriods);
             Assert.AreEqual(Periods, TempXMLBufferPeriods.Count,
               StrSubstNo('Item %1 does not have %2 periods',

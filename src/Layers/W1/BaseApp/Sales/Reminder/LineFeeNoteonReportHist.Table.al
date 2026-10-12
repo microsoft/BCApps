@@ -16,6 +16,7 @@ table 1053 "Line Fee Note on Report Hist."
 {
     Caption = 'Line Fee Note on Report Hist.';
     Permissions = TableData "Line Fee Note on Report Hist." = rimd,
+                  tabledata "Reminder Attachment Text" = R,
                   tabledata "Reminder Terms" = R;
     DataClassification = CustomerContent;
 
@@ -116,6 +117,11 @@ table 1053 "Line Fee Note on Report Hist."
         LineFeeNoteOnReportHist: Record "Line Fee Note on Report Hist.";
     begin
         if LineFeeNoteOnReport <> '' then begin
+            if LineFeeNoteOnReportHist.Get(
+                CustLedgerEntryNo, DueDate, LanguageCode, ReminderLevel."Reminder Terms Code", ReminderLevel."No.")
+            then
+                exit;
+
             LineFeeNoteOnReportHist.Init();
             LineFeeNoteOnReportHist."Cust. Ledger Entry No" := CustLedgerEntryNo;
             LineFeeNoteOnReportHist."Due Date" := DueDate;
@@ -127,37 +133,49 @@ table 1053 "Line Fee Note on Report Hist."
         end;
     end;
 
-    local procedure InsertTransLineFeeNoteOnReport(CustLedgerEntry: Record "Cust. Ledger Entry"; ReminderTerms: Record "Reminder Terms"; ReminderLevel: Record "Reminder Level"; DueDate: Date)
+    local procedure InsertAttachmentLineFeeNotesOnReport(CustLedgerEntry: Record "Cust. Ledger Entry"; ReminderTerms: Record "Reminder Terms"; ReminderLevel: Record "Reminder Level"; DueDate: Date)
     var
-        ReminderTermsTranslation: Record "Reminder Terms Translation";
-        Language: Codeunit Language;
-        AddTextOnReport: Text[200];
-        AddTextOnReportDefault: Text[200];
-        DefaultLanguageCode: Code[10];
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderLevelAttachmentText: Record "Reminder Attachment Text";
+        LineFeeNoteOnReport: Text[200];
     begin
-        // insert default language
-        if ReminderTerms."Note About Line Fee on Report" <> '' then begin
-            DefaultLanguageCode := Language.GetUserLanguageCode();
-            if not ReminderTermsTranslation.Get(ReminderTerms.Code, DefaultLanguageCode) then begin
-                AddTextOnReportDefault := GetLineFeeNoteOnReport(CustLedgerEntry, ReminderLevel,
-                    ReminderTerms."Note About Line Fee on Report", DueDate);
-                InsertRec(ReminderLevel, CustLedgerEntry."Entry No.", DueDate, Language.GetUserLanguageCode(), AddTextOnReportDefault);
-            end;
+        if not IsNullGuid(ReminderLevel."Reminder Attachment Text") then begin
+            ReminderAttachmentText.SetRange(Id, ReminderLevel."Reminder Attachment Text");
+            if ReminderAttachmentText.FindSet() then
+                repeat
+                    if ReminderAttachmentText."Inline Fee Description" <> '' then begin
+                        LineFeeNoteOnReport :=
+                            GetLineFeeNoteOnReport(CustLedgerEntry, ReminderLevel, ReminderAttachmentText."Inline Fee Description", DueDate);
+                        InsertRec(ReminderLevel,
+                            CustLedgerEntry."Entry No.",
+                            DueDate,
+                            ReminderAttachmentText."Language Code",
+                            LineFeeNoteOnReport);
+                    end;
+                until ReminderAttachmentText.Next() = 0;
         end;
 
-        // insert Reminder Terms Translation records
-        ReminderTermsTranslation.SetRange("Reminder Terms Code", ReminderLevel."Reminder Terms Code");
-        if ReminderTermsTranslation.FindSet() then
-            repeat
-                AddTextOnReport :=
-                  GetLineFeeNoteOnReport(CustLedgerEntry, ReminderLevel, ReminderTermsTranslation."Note About Line Fee on Report", DueDate);
-                InsertRec(ReminderLevel,
-                  CustLedgerEntry."Entry No.",
-                  DueDate,
-                  ReminderTermsTranslation."Language Code",
-                  AddTextOnReport);
+        if IsNullGuid(ReminderTerms."Reminder Attachment Text") then
+            exit;
 
-            until ReminderTermsTranslation.Next() = 0;
+        ReminderAttachmentText.Reset();
+        ReminderAttachmentText.SetRange(Id, ReminderTerms."Reminder Attachment Text");
+        ReminderAttachmentText.SetFilter("Inline Fee Description", '<>%1', '');
+        if ReminderAttachmentText.FindSet() then
+            repeat
+                if IsNullGuid(ReminderLevel."Reminder Attachment Text") or
+                   not ReminderLevelAttachmentText.Get(
+                       ReminderLevel."Reminder Attachment Text", ReminderAttachmentText."Language Code")
+                then begin
+                    LineFeeNoteOnReport :=
+                        GetLineFeeNoteOnReport(CustLedgerEntry, ReminderLevel, ReminderAttachmentText."Inline Fee Description", DueDate);
+                    InsertRec(ReminderLevel,
+                        CustLedgerEntry."Entry No.",
+                        DueDate,
+                        ReminderAttachmentText."Language Code",
+                        LineFeeNoteOnReport);
+                end;
+            until ReminderAttachmentText.Next() = 0;
     end;
 
     /// <summary>
@@ -184,12 +202,11 @@ table 1053 "Line Fee Note on Report Hist."
         ReminderLevel.SetRange("Reminder Terms Code", ReminderTerms.Code);
         if ReminderLevel.FindSet() then begin
             DueDate := CalcDate(ReminderLevel."Grace Period", CustLedgerEntry."Due Date");
-            InsertTransLineFeeNoteOnReport(CustLedgerEntry, ReminderTerms, ReminderLevel, DueDate);
+            InsertAttachmentLineFeeNotesOnReport(CustLedgerEntry, ReminderTerms, ReminderLevel, DueDate);
             while ReminderLevel.Next() <> 0 do begin
                 DueDate := CalcDate(ReminderLevel."Grace Period", DueDate);
-                InsertTransLineFeeNoteOnReport(CustLedgerEntry, ReminderTerms, ReminderLevel, DueDate);
+                InsertAttachmentLineFeeNotesOnReport(CustLedgerEntry, ReminderTerms, ReminderLevel, DueDate);
             end;
         end;
     end;
 }
-

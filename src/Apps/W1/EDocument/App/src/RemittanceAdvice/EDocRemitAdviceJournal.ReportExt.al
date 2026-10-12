@@ -45,13 +45,17 @@ reportextension 6100 "E-Doc. Remit. Advice Journal" extends "Remittance Advice -
     var
         LastAccountNo: Code[20];
         LastDocumentNo: Code[20];
-        LastJournalTemplateName: Code[10];
         LastJournalBatchName: Code[10];
+        LastJournalTemplateName: Code[10];
         FirstGroup: Boolean;
     begin
         if not CreateEDocuments then
             exit;
 
+        Clear(LastAccountNo);
+        Clear(LastDocumentNo);
+        Clear(LastJournalBatchName);
+        Clear(LastJournalTemplateName);
         TempFlaggedGenJnlLine.Reset();
         TempFlaggedGenJnlLine.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Account No.", "Document No.", "Line No.");
         FirstGroup := true;
@@ -78,9 +82,9 @@ reportextension 6100 "E-Doc. Remit. Advice Journal" extends "Remittance Advice -
     end;
 
     var
+        TempFlaggedGenJnlLine: Record "Gen. Journal Line" temporary;
         EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
         EDocRemitAdviceExport: Codeunit "E-Doc. Remit. Advice Export";
-        TempFlaggedGenJnlLine: Record "Gen. Journal Line" temporary;
         CreateEDocuments: Boolean;
         ReExportConfirmQst: Label 'An e-document was already created for this payment. Create again?';
 

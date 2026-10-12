@@ -494,7 +494,7 @@ report 31270 "Compensation CZC"
         BusinessNameLbl: Label 'Business Name:';
         RegistrationNoLbl: Label 'Reg. No.:';
         BankConnectionLbl: Label 'Bank connection:';
-        ParagraphLbl: Label 'by reciprocally Compensation receibables by PAR. 1982-1991 of Civil Code No. 89/2012';
+        ParagraphLbl: Label 'by reciprocally Compensation receivables by PAR. 1982-1991 of Civil Code No. 89/2012';
         RemainingAmountLbl: Label 'Remaining Amount';
         CompensationAmountLbl: Label 'Compensation Amount';
         LedgerEntryRemainingAmountLbl: Label 'Ledg. Entry Remaining Amount';

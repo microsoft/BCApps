@@ -8,7 +8,7 @@ page 7098 "Expense Report FactBox"
 {
     PageType = CardPart;
     SourceTable = "Expense Report Header";
-    Caption = 'Expense Report FactBox';
+    Caption = 'Expense Report';
 
     layout
     {

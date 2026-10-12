@@ -61,6 +61,12 @@ tableextension 6239 "Sust. Sales Invoice Line" extends "Sales Invoice Line"
             Caption = 'Total EPR Fee';
             DataClassification = CustomerContent;
         }
+        field(6242; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR Relevant';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
         field(6250; "EPR Reported"; Boolean)
         {
             DataClassification = CustomerContent;

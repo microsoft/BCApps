@@ -959,6 +959,9 @@ table 30118 "Shpfy Order Header"
         key(Key3; "Created At")
         {
         }
+        key(Key4; "Has Order State Error")
+        {
+        }
     }
     var
         ShopifyOrderLine: Record "Shpfy Order Line";

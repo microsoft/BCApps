@@ -2,6 +2,7 @@ namespace Microsoft.Sustainability.Calculation;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Sustainability.Account;
+using Microsoft.Sustainability.Journal;
 
 page 6224 "Collect Amount from G/L Entry"
 {
@@ -95,6 +96,11 @@ page 6224 "Collect Amount from G/L Entry"
     begin
         FromDate2 := FromDate;
         ToDate2 := ToDate;
+    end;
+
+    internal procedure SetCollectingJournalLine(SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+        SustainabilityCalcMgt.SetCollectingJournalLine(SustainabilityJnlLine);
     end;
 
     local procedure UpdateSubformForDateFilter()

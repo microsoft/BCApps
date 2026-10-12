@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+using System.Telemetry;
+
 /// <summary>
 /// Displays a list of all reminder terms with navigation to the detailed setup page.
 /// </summary>
@@ -13,11 +15,7 @@ page 837 "Reminder Terms List"
     Caption = 'Reminder Terms';
     PageType = List;
     SourceTable = "Reminder Terms";
-#if not CLEAN27
-    UsageCategory = None;
-#else
     UsageCategory = Lists;
-#endif
     CardPageID = "Reminder Terms Setup";
     DataCaptionFields = Code;
     Editable = false;
@@ -141,6 +139,22 @@ page 837 "Reminder Terms List"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if CurrPage.LookupMode() then
+            exit;
+        FeatureTelemetry.LogUptake('0000LAY', 'Reminder', Enum::"Feature Uptake Status"::Discovered);
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000LAZ', 'Reminder', Enum::"Feature Uptake Status"::"Set up");
+    end;
 
     var
         ReminderTermsNotSelectedErr: Label 'You need to select one Reminder Term.';

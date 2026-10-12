@@ -146,7 +146,7 @@ codeunit 8209 "Create Expense SubCategories"
         LaundryTok: Label 'LAUNDRY', MaxLength = 20, Locked = true;
         PhoneTok: Label 'PHONE', MaxLength = 20, Locked = true;
         RoomTok: Label 'ROOM', MaxLength = 20, Locked = true;
-        RoomServiceTok: Label 'ROOM-SER', MaxLength = 20, Locked = true;
+        RoomServiceTok: Label 'ROOM-SERVICE', MaxLength = 20, Locked = true;
         TaxTok: Label 'TAX', MaxLength = 20, Locked = true;
         InternetTok: Label 'INTERNET', MaxLength = 20, Locked = true;
         MiscTok: Label 'MISC', MaxLength = 20, Locked = true;

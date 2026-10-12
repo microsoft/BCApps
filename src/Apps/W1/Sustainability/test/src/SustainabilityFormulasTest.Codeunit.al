@@ -22,6 +22,7 @@ codeunit 148216 "Sustainability Formulas Test"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySustainability: Codeunit "Library - Sustainability";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
@@ -1868,6 +1869,96 @@ codeunit 148216 "Sustainability Formulas Test"
             StrSubstNo(ValueMustBeEqualErr, PurchRcptLine.FieldCaption(Distance), Distance, PurchRcptLine.TableCaption()));
     end;
 
+    [Test]
+    procedure TestPurchaseOrderFormulaInputEditabilityMatrix()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 641058] Formula inputs on purchase orders are editable only when the calculation uses them.
+        Initialize();
+
+        // [GIVEN] Purchase formulas are enabled in Sustainability Setup.
+        LibrarySustainability.EnableFormulaInPurchDocsInSustainabilitySetup();
+
+        // [WHEN] Purchase Order lines are opened for each supported and unsupported matrix combination.
+
+        // [THEN] Each line exposes only the formula inputs used by its scope and calculation foundation.
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity", true, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 1", "Calculation Foundation"::Distance, false, true, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 1", "Calculation Foundation"::Installations, false, false, true, true, true);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 1", "Calculation Foundation"::Custom, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 2", "Calculation Foundation"::"Fuel/Electricity", true, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 2", "Calculation Foundation"::Distance, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 2", "Calculation Foundation"::Installations, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 2", "Calculation Foundation"::Custom, false, false, true, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 3", "Calculation Foundation"::"Fuel/Electricity", true, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 3", "Calculation Foundation"::Distance, false, true, false, true, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 3", "Calculation Foundation"::Installations, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 3", "Calculation Foundation"::Custom, false, false, true, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Water/Waste", "Calculation Foundation"::"Fuel/Electricity", false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Water/Waste", "Calculation Foundation"::Distance, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Water/Waste", "Calculation Foundation"::Installations, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Water/Waste", "Calculation Foundation"::Custom, false, false, false, false, false);
+        VerifyPurchaseOrderFormulaInputEditability("Emission Scope"::"Scope 1", "Calculation Foundation"::" ", false, false, false, false, false);
+    end;
+
+    [Test]
+    procedure TestPurchaseOrderFormulaInputEditabilityFallbacks()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 641058] Incomplete account context disables formula inputs without making the unit read-only.
+        Initialize();
+
+        // [GIVEN] Purchase formulas are enabled in Sustainability Setup.
+        LibrarySustainability.EnableFormulaInPurchDocsInSustainabilitySetup();
+
+        // [WHEN] Purchase Order lines are opened with a blank scope, missing category, or blank account.
+
+        // [THEN] All numeric formula inputs are disabled and the formula unit remains editable.
+        VerifyPurchaseOrderBlankScopeFormulaInputEditability();
+        VerifyPurchaseOrderMissingCategoryFormulaInputEditability();
+        VerifyPurchaseOrderBlankAccountFormulaInputEditability();
+    end;
+
+    [Test]
+    procedure TestPurchaseOrderFormulaInputEditabilityRefresh()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Scope1SustainabilityAccount: Record "Sustainability Account";
+        Scope3SustainabilityAccount: Record "Sustainability Account";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 641058] Changing or clearing the sustainability account refreshes purchase formula editability immediately.
+        Initialize();
+
+        // [GIVEN] Purchase formulas are enabled and a Purchase Order line uses a Scope 1 Fuel/Electricity account.
+        LibrarySustainability.EnableFormulaInPurchDocsInSustainabilitySetup();
+        Scope1SustainabilityAccount := CreateFormulaEditabilitySustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity");
+        Scope3SustainabilityAccount := CreateFormulaEditabilitySustainabilityAccount("Emission Scope"::"Scope 3", "Calculation Foundation"::Distance);
+        CreatePurchaseOrderLineWithSustainabilityAccount(PurchaseHeader, PurchaseLine, Scope1SustainabilityAccount."No.");
+
+        // [WHEN] The Purchase Order line is opened.
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchLines.Filter.SetFilter("Line No.", Format(PurchaseLine."Line No."));
+
+        // [THEN] Only Fuel/Electricity is editable.
+        AssertPurchaseOrderFormulaInputEditability(PurchaseOrder, true, false, false, false, false);
+
+        // [WHEN] The account is changed to Scope 3 Distance.
+        PurchaseOrder.PurchLines."Sust. Account No.".SetValue(Scope3SustainabilityAccount."No.");
+
+        // [THEN] Distance and Installation Multiplier become editable.
+        AssertPurchaseOrderFormulaInputEditability(PurchaseOrder, false, true, false, true, false);
+
+        // [WHEN] The sustainability account is cleared.
+        PurchaseOrder.PurchLines."Sust. Account No.".SetValue('');
+
+        // [THEN] All numeric formula inputs are disabled.
+        AssertPurchaseOrderFormulaInputEditability(PurchaseOrder, false, false, false, false, false);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1891,6 +1982,134 @@ codeunit 148216 "Sustainability Formulas Test"
         IsInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Sustainability Formulas Test");
+    end;
+
+    local procedure VerifyPurchaseOrderFormulaInputEditability(Scope: Enum "Emission Scope"; CalcFoundation: Enum "Calculation Foundation"; ExpectedFuelElectricityEditable: Boolean; ExpectedDistanceEditable: Boolean; ExpectedCustomAmountEditable: Boolean; ExpectedInstallationMultiplierEditable: Boolean; ExpectedTimeFactorEditable: Boolean)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SustainabilityAccount: Record "Sustainability Account";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        SustainabilityAccount := CreateFormulaEditabilitySustainabilityAccount(Scope, CalcFoundation);
+        CreatePurchaseOrderLineWithSustainabilityAccount(PurchaseHeader, PurchaseLine, SustainabilityAccount."No.");
+
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchLines.Filter.SetFilter("Line No.", Format(PurchaseLine."Line No."));
+
+        AssertPurchaseOrderFormulaInputEditability(
+            PurchaseOrder, ExpectedFuelElectricityEditable, ExpectedDistanceEditable, ExpectedCustomAmountEditable,
+            ExpectedInstallationMultiplierEditable, ExpectedTimeFactorEditable);
+        PurchaseOrder.Close();
+    end;
+
+    local procedure VerifyPurchaseOrderBlankScopeFormulaInputEditability()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainabilityAccount: Record "Sustainability Account";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        SustainabilityAccount := CreateFormulaEditabilitySustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::Custom);
+        CreatePurchaseOrderLineWithSustainabilityAccount(PurchaseHeader, PurchaseLine, SustainabilityAccount."No.");
+        SustainAccountCategory.Get(SustainabilityAccount.Category);
+        SustainAccountCategory."Emission Scope" := "Emission Scope"::" ";
+        SustainAccountCategory.Modify(false);
+
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchLines.Filter.SetFilter("Line No.", Format(PurchaseLine."Line No."));
+
+        AssertPurchaseOrderFormulaInputEditability(PurchaseOrder, false, false, false, false, false);
+        PurchaseOrder.Close();
+    end;
+
+    local procedure VerifyPurchaseOrderMissingCategoryFormulaInputEditability()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SustainabilityAccount: Record "Sustainability Account";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        SustainabilityAccount := CreateFormulaEditabilitySustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity");
+        CreatePurchaseOrderLineWithSustainabilityAccount(PurchaseHeader, PurchaseLine, SustainabilityAccount."No.");
+        PurchaseLine."Sust. Account Category" := 'MISSING';
+        PurchaseLine.Modify(false);
+
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchLines.Filter.SetFilter("Line No.", Format(PurchaseLine."Line No."));
+
+        AssertPurchaseOrderFormulaInputEditability(PurchaseOrder, false, false, false, false, false);
+        PurchaseOrder.Close();
+    end;
+
+    local procedure VerifyPurchaseOrderBlankAccountFormulaInputEditability()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, "Purchase Line Type"::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrder.PurchLines.Filter.SetFilter("Line No.", Format(PurchaseLine."Line No."));
+
+        AssertPurchaseOrderFormulaInputEditability(PurchaseOrder, false, false, false, false, false);
+        PurchaseOrder.Close();
+    end;
+
+    local procedure CreatePurchaseOrderLineWithSustainabilityAccount(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; AccountCode: Code[20])
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, "Purchase Line Type"::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        PurchaseLine.Validate("Sust. Account No.", AccountCode);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure AssertPurchaseOrderFormulaInputEditability(var PurchaseOrder: TestPage "Purchase Order"; ExpectedFuelElectricityEditable: Boolean; ExpectedDistanceEditable: Boolean; ExpectedCustomAmountEditable: Boolean; ExpectedInstallationMultiplierEditable: Boolean; ExpectedTimeFactorEditable: Boolean)
+    begin
+        AssertFormulaInputEditability(
+            ExpectedFuelElectricityEditable, ExpectedDistanceEditable, ExpectedCustomAmountEditable,
+            ExpectedInstallationMultiplierEditable, ExpectedTimeFactorEditable,
+            PurchaseOrder.PurchLines."Fuel/Electricity".Editable(), PurchaseOrder.PurchLines.Distance.Editable(),
+            PurchaseOrder.PurchLines."Custom Amount".Editable(), PurchaseOrder.PurchLines."Installation Multiplier".Editable(),
+            PurchaseOrder.PurchLines."Time Factor".Editable());
+        Assert.IsTrue(PurchaseOrder.PurchLines."Unit for Sust. Formulas".Editable(), 'Unit for Sust. Formulas must remain editable.');
+        Assert.AreEqual(1, PurchaseOrder.PurchLines."Installation Multiplier".AsDecimal(), 'Installation Multiplier must retain its default value.');
+    end;
+
+    local procedure AssertFormulaInputEditability(ExpectedFuelElectricityEditable: Boolean; ExpectedDistanceEditable: Boolean; ExpectedCustomAmountEditable: Boolean; ExpectedInstallationMultiplierEditable: Boolean; ExpectedTimeFactorEditable: Boolean; ActualFuelElectricityEditable: Boolean; ActualDistanceEditable: Boolean; ActualCustomAmountEditable: Boolean; ActualInstallationMultiplierEditable: Boolean; ActualTimeFactorEditable: Boolean)
+    begin
+        Assert.AreEqual(ExpectedFuelElectricityEditable, ActualFuelElectricityEditable, 'Unexpected Fuel/Electricity editability.');
+        Assert.AreEqual(ExpectedDistanceEditable, ActualDistanceEditable, 'Unexpected Distance editability.');
+        Assert.AreEqual(ExpectedCustomAmountEditable, ActualCustomAmountEditable, 'Unexpected Custom Amount editability.');
+        Assert.AreEqual(ExpectedInstallationMultiplierEditable, ActualInstallationMultiplierEditable, 'Unexpected Installation Multiplier editability.');
+        Assert.AreEqual(ExpectedTimeFactorEditable, ActualTimeFactorEditable, 'Unexpected Time Factor editability.');
+    end;
+
+    local procedure CreateFormulaEditabilitySustainabilityAccount(Scope: Enum "Emission Scope"; CalcFoundation: Enum "Calculation Foundation") SustainabilityAccount: Record "Sustainability Account"
+    var
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        TracksEmissions: Boolean;
+    begin
+        CategoryCode := LibraryUtility.GenerateGUID();
+        SubcategoryCode := LibraryUtility.GenerateGUID();
+        AccountCode := LibraryUtility.GenerateGUID();
+        TracksEmissions := Scope <> "Emission Scope"::"Water/Waste";
+        LibrarySustainability.InsertAccountCategory(
+            CategoryCode, CategoryCode, Scope, CalcFoundation, TracksEmissions, TracksEmissions, TracksEmissions, '', false);
+        LibrarySustainability.InsertAccountSubcategory(CategoryCode, SubcategoryCode, SubcategoryCode, 1, 1, 1, false);
+        SustainabilityAccount := LibrarySustainability.InsertSustainabilityAccount(
+            AccountCode, AccountCode, CategoryCode, SubcategoryCode, "Sustainability Account Type"::Posting, '', true);
     end;
 
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer; Scope: Enum "Emission Scope"; CalcFoundation: Enum "Calculation Foundation"; CO2: Boolean; CH4: Boolean; N2O: Boolean; CustomValue: Text; CalcFromGL: Boolean; EFCO2: Decimal; EFCH4: Decimal; EFN2O: Decimal; RenewableEnergy: Boolean): Record "Sustainability Account"

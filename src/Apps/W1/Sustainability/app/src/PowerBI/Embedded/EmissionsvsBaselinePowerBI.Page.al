@@ -48,13 +48,7 @@ page 6306 "Emissions vs Baseline Power BI"
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sustainability Report ID"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }
 

@@ -482,8 +482,8 @@ codeunit 132202 "Library - Manufacturing"
 
         ProductionBOMCommentLine.Init();
         ProductionBOMCommentLine.Validate("Production BOM No.", ProductionBOMLine."Production BOM No.");
-        ProductionBOMCommentLine.Validate("BOM Line No.", ProductionBOMLine."Line No.");
         ProductionBOMCommentLine.Validate("Version Code", ProductionBOMLine."Version Code");
+        ProductionBOMCommentLine.Validate("BOM Line No.", ProductionBOMLine."Line No.");
         ProductionBOMCommentLine.Validate("Line No.", LineNo);
         ProductionBOMCommentLine.Validate(Comment, LibraryUtility.GenerateGUID());
         ProductionBOMCommentLine.Insert(true);

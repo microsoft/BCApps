@@ -1151,7 +1151,12 @@ table 254 "VAT Entry"
            (Base = 0)
         then begin
             UnrealizedVATType := GetUnrealizedVATType();
-            if Abs(Paid) = Abs(Full) then
+            // Only fully realize when there is remaining unrealized VAT left on this entry.
+            // Otherwise a fully-settled entry with nothing left to realize returns 1, producing a
+            // zero-amount reversal entry that re-qualifies and drives an unbounded loop.
+            if (Abs(Paid) = Abs(Full)) and
+               (("Remaining Unrealized Amount" <> 0) or ("Remaining Unrealized Base" <> 0))
+            then
                 exit(1);
 
             if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Refund then

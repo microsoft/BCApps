@@ -70,7 +70,7 @@ codeunit 6998 "EA Metadata Provider" implements IAgentMetadata, IAgentFactory
 
     procedure GetAgentAnnotations(AgentUserId: Guid; var Annotations: Record "Agent Annotation")
     begin
-        Clear(Annotations); //TODO: Add default annotation for Expense Agent similar to SOA
+        Clear(Annotations);
     end;
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid): Integer

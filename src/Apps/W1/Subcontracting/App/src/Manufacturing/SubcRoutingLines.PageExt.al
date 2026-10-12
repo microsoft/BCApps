@@ -37,7 +37,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Subcontracting;
-                Enabled = TransferWIPItemEnabled;
+                Enabled = SubcontractingUIEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
@@ -54,6 +54,21 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subc. Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Enabled = SubcontractingUIEnabled;
+                Image = ViewComments;
+                RunObject = Page "Subc. Routing Comments";
+                RunPageLink = "Routing No." = field("Routing No."),
+                              "Version Code" = field("Version Code"),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the routing line.';
+            }
+        }
         addafter("&Quality Measures")
         {
             action("Subc. Prices")
@@ -107,12 +122,12 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
 #pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
-        TransferWIPItemEnabled: Boolean;
+        SubcontractingUIEnabled: Boolean;
 
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
+        SubcontractingUIEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     procedure ShowRelatedSubcontractorPrices()
