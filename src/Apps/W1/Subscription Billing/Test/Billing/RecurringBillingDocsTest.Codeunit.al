@@ -2922,7 +2922,8 @@ codeunit 139687 "Recurring Billing Docs Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
         Customer.Get(CustomerContract."Sell-to Customer No.");
         Customer.Validate("Currency Code", LibraryERM.CreateCurrencyWithRandomExchRates());
         Customer.Modify(false);
