@@ -9,5 +9,10 @@ permissionset 10807 "XML - Objects"
     Access = Public;
     Assignable = false;
 
-    Permissions = codeunit "Install XML" = X;
+    Permissions = codeunit "Data Check XML" = X,
+                  codeunit "Data Handling XML" = X,
+                  codeunit "Generate File XML" = X,
+                  codeunit "Install XML" = X,
+                  codeunit "Page Visibility XML" = X,
+                  xmlport "Export G/L Entries FR" = X;
 }

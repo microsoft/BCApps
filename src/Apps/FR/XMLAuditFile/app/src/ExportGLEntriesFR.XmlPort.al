@@ -148,6 +148,8 @@ xmlport 10803 "Export G/L Entries FR"
 
                 trigger OnAfterGetRecord()
                 begin
+                    EntriesExported := true;
+
                     if not GuiAllowed() then
                         exit;
 
@@ -178,10 +180,15 @@ xmlport 10803 "Export G/L Entries FR"
     begin
         if GuiAllowed() then
             Window.Close();
+
+        if not EntriesExported then
+            Error(NoEntriesToExportErr);
     end;
 
     trigger OnPreXmlPort()
     begin
+        EntriesExported := false;
+
         if not GuiAllowed() then
             exit;
 
@@ -197,8 +204,10 @@ xmlport 10803 "Export G/L Entries FR"
         Text001Lbl: Label 'Exporting G/L Entries to XML File...\\';
         Text002Lbl: Label 'Entry No.           #1######\', Comment = '%1 = Value';
         Text003Lbl: Label 'Posting Date        #2######', Comment = '%2 = Date';
+        NoEntriesToExportErr: Label 'There are no entries to export within the defined filter. The file was not created.';
         Window: Dialog;
         NextProgressUpdate: DateTime;
+        EntriesExported: Boolean;
 
     procedure InitializeRequest(var GLEntry: Record "G/L Entry"; StartDate: Date; EndDate: Date)
     begin
@@ -207,4 +216,3 @@ xmlport 10803 "Export G/L Entries FR"
         EndingDate := Format(EndDate);
     end;
 }
-

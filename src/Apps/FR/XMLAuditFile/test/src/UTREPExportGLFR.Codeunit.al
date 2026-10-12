@@ -15,6 +15,7 @@ codeunit 148006 "UT REP Export G/L FR"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
 
     var
         Assert: Codeunit Assert;
@@ -53,6 +54,7 @@ codeunit 148006 "UT REP Export G/L FR"
     [HandlerFunctions('ConfirmHandlerYes')]
     procedure NoEntriesToExportError()
     var
+        AuditFile: Record "Audit File";
         AuditFileExportHeaderID: Integer;
         StartingDate: Date;
     begin
@@ -61,7 +63,84 @@ codeunit 148006 "UT REP Export G/L FR"
         LibraryVariableStorage.Enqueue(GenerateAuditFileImmediatelyQst);
         AuditFileExportHeaderID := RunXMLExport('', StartingDate, StartingDate);
         VerifyError(AuditFileExportHeaderID, NoEntriesToExportErr);
+        AuditFile.SetRange("Export ID", AuditFileExportHeaderID);
+        Assert.RecordIsEmpty(AuditFile);
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure ExportEntriesWithinDateFilter()
+    var
+        GLEntry: Record "G/L Entry";
+        AuditFile: Record "Audit File";
+        AuditFileExportHeaderID: Integer;
+        StartingDate: Date;
+        ExpectedDocumentNo: Code[20];
+        FileInStream: InStream;
+        ExportDocument: XmlDocument;
+        EntryNodes: XmlNodeList;
+        DocumentNoNode: XmlNode;
+    begin
+        Initialize();
+        StartingDate := GetStartingDate();
+        InsertGLEntry(GLEntry, StartingDate);
+        ExpectedDocumentNo := GLEntry."Document No.";
+        InsertGLEntry(GLEntry, CalcDate('<-1D>', StartingDate));
+
+        LibraryVariableStorage.Enqueue(GenerateAuditFileImmediatelyQst);
+        AuditFileExportHeaderID := RunXMLExport('', StartingDate, StartingDate);
+
+        AuditFile.SetRange("Export ID", AuditFileExportHeaderID);
+        Assert.RecordCount(AuditFile, 1);
+        AuditFile.FindFirst();
+        AuditFile.CalcFields("File Content");
+        AuditFile."File Content".CreateInStream(FileInStream);
+        XmlDocument.ReadFrom(FileInStream, ExportDocument);
+        ExportDocument.SelectNodes('/FichierAudit/EcritureComptable', EntryNodes);
+        Assert.AreEqual(1, EntryNodes.Count(), 'Only entries within the posting date filter should be exported.');
+        Assert.IsTrue(
+            ExportDocument.SelectSingleNode('/FichierAudit/EcritureComptable/NoDocument', DocumentNoNode),
+            'The exported entry must contain a document number.');
+        Assert.AreEqual(ExpectedDocumentNo, DocumentNoNode.AsXmlElement().InnerText(), 'The wrong G/L entry was exported.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure NoEntriesWithinDateFilterError()
+    var
+        GLEntry: Record "G/L Entry";
+        AuditFile: Record "Audit File";
+        AuditFileExportHeaderID: Integer;
+        StartingDate: Date;
+    begin
+        Initialize();
+        StartingDate := GetStartingDate();
+        InsertGLEntry(GLEntry, CalcDate('<-1D>', StartingDate));
+
+        LibraryVariableStorage.Enqueue(GenerateAuditFileImmediatelyQst);
+        AuditFileExportHeaderID := RunXMLExport('', StartingDate, StartingDate);
+
+        VerifyError(AuditFileExportHeaderID, NoEntriesToExportErr);
+        AuditFile.SetRange("Export ID", AuditFileExportHeaderID);
+        Assert.RecordIsEmpty(AuditFile);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure InsertGLEntry(var GLEntry: Record "G/L Entry"; PostingDate: Date)
+    var
+        EntryNo: Integer;
+    begin
+        GLEntry.Reset();
+        GLEntry.LockTable();
+        if GLEntry.FindLast() then
+            EntryNo := GLEntry."Entry No.";
+        GLEntry.Init();
+        GLEntry."Entry No." := EntryNo + 1;
+        GLEntry."Posting Date" := PostingDate;
+        GLEntry."Document No." := Format(GLEntry."Entry No.");
+        GLEntry.Insert();
     end;
 
     local procedure Initialize()
@@ -107,8 +186,9 @@ codeunit 148006 "UT REP Export G/L FR"
         AuditFileExportHeader.Validate("Audit File Export Format", "Audit File Export Format"::"GL Entries XML FR");
         AuditFileExportHeader.Validate("Starting Date", StartingDate);
         AuditFileExportHeader.Validate("Ending Date", EndingDate);
-        AuditFileExportHeader.Validate("Parallel Processing", false);
         AuditFileExportHeader.Insert(true);
+        AuditFileExportHeader.Validate("Parallel Processing", false);
+        AuditFileExportHeader.Modify(true);
     end;
 
     local procedure RunXMLExport(GLAccountNoFilter: Text; StartDate: Date; EndDate: Date) AuditFileExportHeaderID: Integer

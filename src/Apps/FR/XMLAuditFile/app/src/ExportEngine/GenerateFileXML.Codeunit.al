@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AuditFileExport;
 
-using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Telemetry;
 using System.Utilities;
@@ -20,7 +19,6 @@ codeunit 10811 "Generate File XML"
         EndingDate: Date;
         FRGeneralLedgerXMLTok: Label 'FR Export General Ledger Entries to XML File', Locked = true;
         FRGLXMLFrameworkTok: Label 'FR General Ledger Entries XML generated via Audit File Export Framework';
-        NoEntriesToExportErr: Label 'There are no entries to export within the defined filter. The file was not created.';
 
     procedure GenerateXMLFile(AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
     var
@@ -31,7 +29,6 @@ codeunit 10811 "Generate File XML"
         OutStream: OutStream;
     begin
         AuditFileExportHeader.Get(AuditFileExportLine.ID);
-        CheckGLEntriesExist(AuditFileExportHeader);
         InitGlobalVariables(AuditFileExportHeader);
 
         FeatureTelemetry.LogUptake('0000V8T', FRGeneralLedgerXMLTok, Enum::"Feature Uptake Status"::"Set up");
@@ -45,22 +42,6 @@ codeunit 10811 "Generate File XML"
 
         FeatureTelemetry.LogUptake('0000QPP', FRGeneralLedgerXMLTok, Enum::"Feature Uptake Status"::"Used");
         FeatureTelemetry.LogUsage('0000QPQ', FRGeneralLedgerXMLTok, FRGLXMLFrameworkTok);
-    end;
-
-    local procedure CheckGLEntriesExist(AuditFileExportHeader: Record "Audit File Export Header")
-    var
-        GLEntry: Record "G/L Entry";
-        GLAccount: Record "G/L Account";
-        GLAccNoFilter: Text;
-    begin
-        if GLAccount.GetFilter("No.") <> '' then
-            GLAccNoFilter := GLAccount.GetFilter("No.");
-
-        GLEntry.SetCurrentKey("Posting Date", "G/L Account No.", "Dimension Set ID");
-        GLEntry.SetRange("Posting Date", AuditFileExportHeader."Starting Date", AuditFileExportHeader."Ending Date");
-        GLEntry.SetFilter("G/L Account No.", GLAccNoFilter);
-        if GLEntry.IsEmpty() then
-            Error(NoEntriesToExportErr);
     end;
 
     procedure InitGlobalVariables(AuditFileExportHeader: Record "Audit File Export Header")

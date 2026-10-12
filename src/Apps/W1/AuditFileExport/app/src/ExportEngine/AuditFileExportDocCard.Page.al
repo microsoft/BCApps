@@ -25,6 +25,11 @@ page 5267 "Audit File Export Doc. Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the format which is used for exporting the audit file.';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateVisibility();
+                    end;
                 }
                 field(GLAccountMappingCode; Rec."G/L Account Mapping Code")
                 {
@@ -270,7 +275,6 @@ page 5267 "Audit File Export Doc. Card"
         IAuditFileExportPageVisibility := Rec."Audit File Export Format";
         IAuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
         ApplyVisibility(FieldVisibility, ActionVisibility);
-        CurrPage.Update();
     end;
 
     local procedure InitializeVisibility(var FieldVisibility: Dictionary of [Text, Boolean]; var ActionVisibility: Dictionary of [Text, Boolean])
