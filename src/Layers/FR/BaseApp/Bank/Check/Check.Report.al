@@ -1342,6 +1342,19 @@ report 1401 Check
         end;
     end;
 
+    local procedure GetAmtDecimalPosition(): Decimal
+    var
+        Currency: Record Currency;
+    begin
+        if GenJnlLine."Currency Code" = '' then
+            Currency.InitRoundingPrecision()
+        else begin
+            Currency.Get(GenJnlLine."Currency Code");
+            Currency.TestField("Amount Rounding Precision");
+        end;
+        exit(1 / Currency."Amount Rounding Precision");
+    end;
+
     [Scope('OnPrem')]
     procedure FormatNoTextFR(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var
@@ -1469,10 +1482,12 @@ report 1401 Check
         Hundreds: Integer;
         Exponent: Integer;
         NoTextIndex: Integer;
+        DecimalPosition: Decimal;
     begin
         Clear(NoText);
         NoTextIndex := 1;
         NoText[1] := '****';
+        GLSetup.Get();
 
         if No < 1 then
             AddToNoText(NoText, NoTextIndex, PrintExponent, Text026)
@@ -1500,7 +1515,8 @@ report 1401 Check
             end;
 
         AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
-        AddToNoText(NoText, NoTextIndex, PrintExponent, Format(No * 100) + '/100');
+        DecimalPosition := GetAmtDecimalPosition();
+        AddToNoText(NoText, NoTextIndex, PrintExponent, (Format(No * DecimalPosition) + '/' + Format(DecimalPosition)));
 
         if CurrencyCode <> '' then
             AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
@@ -1694,4 +1710,3 @@ report 1401 Check
     begin
     end;
 }
-

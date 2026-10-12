@@ -1058,6 +1058,8 @@ report 1401 Check
         Text064: Label '%1 must not be %2 for %3 %4.';
 #pragma warning restore AA0470
         Text065: Label 'Subtotal';
+        Text10800: Label 'EUROS';
+        Text10801: Label 'CENT';
 #pragma warning restore AA0074
         CheckNoTextCaptionLbl: Label 'Check No.';
         LineAmountCaptionLbl: Label 'Net Amount';
@@ -1078,51 +1080,11 @@ report 1401 Check
     /// <param name="No">Decimal amount to convert to text</param>
     /// <param name="CurrencyCode">Currency code for proper text formatting</param>
     procedure FormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
-    var
-        PrintExponent: Boolean;
-        Ones: Integer;
-        Tens: Integer;
-        Hundreds: Integer;
-        Exponent: Integer;
-        NoTextIndex: Integer;
-        DecimalPosition: Decimal;
     begin
-        Clear(NoText);
-        NoTextIndex := 1;
-        NoText[1] := '****';
-        GLSetup.Get();
-
-        if No < 1 then
-            AddToNoText(NoText, NoTextIndex, PrintExponent, Text026)
+        if GlobalLanguage in [1036, 2060, 3084, 4108] then
+            FormatNoTextFR(NoText, No, CurrencyCode)
         else
-            for Exponent := 4 downto 1 do begin
-                PrintExponent := false;
-                Ones := No div Power(1000, Exponent - 1);
-                Hundreds := Ones div 100;
-                Tens := (Ones mod 100) div 10;
-                Ones := Ones mod 10;
-                if Hundreds > 0 then begin
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Hundreds]);
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text027);
-                end;
-                if Tens >= 2 then begin
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, TensText[Tens]);
-                    if Ones > 0 then
-                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
-                end else
-                    if (Tens * 10 + Ones) > 0 then
-                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Tens * 10 + Ones]);
-                if PrintExponent and (Exponent > 1) then
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
-                No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
-            end;
-
-        AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
-        DecimalPosition := GetAmtDecimalPosition();
-        AddToNoText(NoText, NoTextIndex, PrintExponent, (Format(No * DecimalPosition) + '/' + Format(DecimalPosition)));
-
-        if CurrencyCode <> '' then
-            AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
+            FormatNoTextINTL(NoText, No, CurrencyCode);
 
         OnAfterFormatNoText(NoText, No, CurrencyCode);
     end;
@@ -1392,6 +1354,173 @@ report 1401 Check
         exit(1 / Currency."Amount Rounding Precision");
     end;
 
+    [Scope('OnPrem')]
+    procedure FormatNoTextFR(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
+    var
+        PrintExponent: Boolean;
+        Ones: Integer;
+        Tens: Integer;
+        Hundreds: Integer;
+        Exponent: Integer;
+        NoTextIndex: Integer;
+    begin
+        Clear(NoText);
+        NoTextIndex := 1;
+        NoText[1] := '****';
+
+        if No < 1 then
+            AddToNoText(NoText, NoTextIndex, PrintExponent, Text026)
+        else
+            for Exponent := 4 downto 1 do begin
+                PrintExponent := false;
+                Ones := No div Power(1000, Exponent - 1);
+                Hundreds := Ones div 100;
+                Tens := (Ones mod 100) div 10;
+                Ones := Ones mod 10;
+
+                if Hundreds = 1 then
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text027)
+                else
+                    if Hundreds > 1 then begin
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Hundreds]);
+                        if (Tens * 10 + Ones) = 0 then
+                            AddToNoText(NoText, NoTextIndex, PrintExponent, Text027 + 'S')
+                        else
+                            AddToNoText(NoText, NoTextIndex, PrintExponent, Text027);
+                    end;
+
+                FormatTens(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+
+                if PrintExponent and (Exponent > 1) then
+                    if ((Hundreds * 100 + Tens * 10 + Ones) > 1) and (Exponent <> 2) then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent] + 'S')
+                    else
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
+
+                No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
+            end;
+
+        if CurrencyCode = '' then
+            AddToNoText(NoText, NoTextIndex, PrintExponent, Text10800)
+        else begin
+            Currency.Get(CurrencyCode);
+            AddToNoText(NoText, NoTextIndex, PrintExponent, UpperCase(Currency.Description));
+        end;
+
+        No := No * 100;
+        Ones := No mod 10;
+        Tens := No div 10;
+        FormatTens(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+
+        if (CurrencyCode = '') or (CurrencyCode = 'FRF') then
+            case true of
+                No = 1:
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text10801);
+                No > 1:
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text10801 + 'S');
+            end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure FormatTens(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; Exponent: Integer; Hundreds: Integer; Tens: Integer; Ones: Integer)
+    begin
+        case Tens of
+            9:
+                begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text057);
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones + 10]);
+                end;
+            8:
+                if Ones = 0 then
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text057 + 'S')
+                else begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text057);
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
+                end;
+            7:
+                begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text055);
+                    if Ones = 1 then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones + 10]);
+                end;
+            2:
+                begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text051);
+                    if Ones > 0 then begin
+                        if Ones = 1 then
+                            AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
+                    end;
+                end;
+            1:
+                AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Tens * 10 + Ones]);
+            0:
+                if Ones > 0 then
+                    if (Ones = 1) and (Hundreds < 1) and (Exponent = 2) then
+                        PrintExponent := true
+                    else
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
+            else begin
+                AddToNoText(NoText, NoTextIndex, PrintExponent, TensText[Tens]);
+                if Ones > 0 then begin
+                    if Ones = 1 then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, 'ET');
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
+                end;
+            end;
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure FormatNoTextINTL(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
+    var
+        PrintExponent: Boolean;
+        Ones: Integer;
+        Tens: Integer;
+        Hundreds: Integer;
+        Exponent: Integer;
+        NoTextIndex: Integer;
+        DecimalPosition: Decimal;
+    begin
+        Clear(NoText);
+        NoTextIndex := 1;
+        NoText[1] := '****';
+        GLSetup.Get();
+
+        if No < 1 then
+            AddToNoText(NoText, NoTextIndex, PrintExponent, Text026)
+        else
+            for Exponent := 4 downto 1 do begin
+                PrintExponent := false;
+                Ones := No div Power(1000, Exponent - 1);
+                Hundreds := Ones div 100;
+                Tens := (Ones mod 100) div 10;
+                Ones := Ones mod 10;
+                if Hundreds > 0 then begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Hundreds]);
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text027);
+                end;
+                if Tens >= 2 then begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, TensText[Tens]);
+                    if Ones > 0 then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
+                end else
+                    if (Tens * 10 + Ones) > 0 then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Tens * 10 + Ones]);
+                if PrintExponent and (Exponent > 1) then
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
+                No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
+            end;
+
+        AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
+        DecimalPosition := GetAmtDecimalPosition();
+        AddToNoText(NoText, NoTextIndex, PrintExponent, (Format(No * DecimalPosition) + '/' + Format(DecimalPosition)));
+
+        if CurrencyCode <> '' then
+            AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
+    end;
+
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -1580,4 +1709,3 @@ report 1401 Check
     begin
     end;
 }
-
