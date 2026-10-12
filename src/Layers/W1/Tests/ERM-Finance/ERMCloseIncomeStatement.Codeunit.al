@@ -799,15 +799,14 @@ codeunit 134228 "ERM Close Income Statement"
         if not UseAdditionalReportingCurrency then begin
             if ClosingAmount <> 0 then begin
                 GenJournalLine.SetRange("Document No.", DocumentNo);
-                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
+                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then
                     GenJournalLine.SetRange("Account No.", RetainedEarningsAccountNo);
-                end else
+                else
                     GenJournalLine.SetRange("Account No.", GLAccountNo);
                 Assert.RecordCount(GenJournalLine, 1);
                 GenJournalLine.FindFirst();
-                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
+                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then
                     Assert.AreEqual(0, GenJournalLine."Source Curr. VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
-                end;
                 GenJournalLine.Reset();
             end;
             LibraryERM.PostGeneralJnlLine(GenJournalLine);
