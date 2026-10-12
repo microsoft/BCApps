@@ -4,7 +4,7 @@
     "publisher": "Microsoft",
     "brief": "Mirror data from Business Central to Microsoft Fabric using Open Mirroring.",
     "description": "Mirror data from Business Central to Microsoft Fabric using Open Mirroring technology. Supports table selection, category-based mirroring ordering, multi-company sync.",
-    "version": "30.0.0.0",
+    "version": "29.1.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
     "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -14,12 +14,12 @@
     "dependencies": [
     ],
     "screenshots": [],
-    "platform": "30.0.0.0",
-    "application": "30.0.0.0",
+    "platform": "29.0.0.0",
+    "application": "29.1.0.0",
     "idRanges": [
         {
             "from": 48500,
-            "to": 48534
+            "to": 48536
         }
     ],
     "target": "Cloud",
@@ -39,5 +39,4 @@
         "includeSourceInSymbolFile": true
     }
 }
-
 
