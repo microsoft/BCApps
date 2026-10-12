@@ -1493,7 +1493,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnSetDisableItemTracking', '', true, false)]
     local procedure OnSetupSplitJnlLineOnSetDisableItemTracking(var ItemJournalLine: Record "Item Journal Line"; var DisableItemTracking: Boolean)
     begin
-        DisableItemTracking := not ItemJournalLine.ItemPosting();
+        DisableItemTracking := not ItemJournalLine.ItemPosting() or IsCapacityReversalWithoutOutput(ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnCheckOperationNo', '', true, false)]
@@ -1580,5 +1580,13 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ReversedCapacityLedgerEntry.Reversed := true;
         ReversedCapacityLedgerEntry."Reversed by Entry No." := CapLedgEntry."Entry No.";
         ReversedCapacityLedgerEntry.Modify();
+    end;
+
+    local procedure IsCapacityReversalWithoutOutput(ItemJournalLine: Record "Item Journal Line"): Boolean
+    begin
+        exit(
+            (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
+            (ItemJournalLine."Rev. Capacity Ledger Entry No." <> 0) and
+            (ItemJournalLine."Output Quantity" = 0));
     end;
 }
