@@ -12,7 +12,7 @@ page 48512 "Fabric Platform Tables"
     InsertAllowed = false;
     DeleteAllowed = false;
     AboutTitle = 'Choose tables to synchronize';
-    AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 500 tables.';
+    AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 1000 tables.';
 
     layout
     {
@@ -52,7 +52,7 @@ page 48512 "Fabric Platform Tables"
                 Caption = 'Add table';
                 ApplicationArea = All;
                 Image = New;
-                ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 500 tables can be selected.';
+                ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 1000 tables can be selected.';
 
                 trigger OnAction()
                 var

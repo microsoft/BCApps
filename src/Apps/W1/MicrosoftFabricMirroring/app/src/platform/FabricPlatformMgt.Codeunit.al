@@ -7,7 +7,7 @@ using System.Reflection;
 
 codeunit 48520 "Fabric Platform Mgt"
 {
-    // Mediates writes to the platform selection tables (500-table cap, existence checks),
+    // Mediates writes to the platform selection tables (1000-table cap, existence checks),
     // so callers only need read access to these tables directly.
     Permissions = tabledata "Fabric Table Claim" = RIMD,
                   tabledata "Tenant Fabric Companies" = RIMD,
@@ -41,7 +41,7 @@ codeunit 48520 "Fabric Platform Mgt"
     internal procedure MaxTableCount(): Integer
     begin
         // Platform limit for the number of exported tables.
-        exit(500);
+        exit(1000);
     end;
 
     // -------------------------------------------------------------------------
@@ -68,7 +68,7 @@ codeunit 48520 "Fabric Platform Mgt"
     end;
 
     // -------------------------------------------------------------------------
-    // Table selection (500-table platform limit enforced here)
+    // Table selection (1000-table platform limit enforced here)
     // -------------------------------------------------------------------------
 
     internal procedure SelectedTableCount(): Integer
@@ -120,7 +120,6 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableId) then
             Error(TableInvalidErr, TableId);
-
         if TenantFabricTables.Get(TableId) then
             Error(TableExistsErr, TableId);
 
@@ -141,7 +140,6 @@ codeunit 48520 "Fabric Platform Mgt"
         NewTableCount: Integer;
     begin
         AllObjWithCaption.SetLoadFields("Object ID");
-
         if AllObjWithCaption.FindSet() then
             repeat
                 if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
@@ -149,7 +147,6 @@ codeunit 48520 "Fabric Platform Mgt"
             until AllObjWithCaption.Next() = 0;
 
         EnsureCapacity(NewTableCount);
-
         if AllObjWithCaption.FindSet() then
             repeat
                 if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then begin
@@ -191,7 +188,6 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if Claim.Get(TableId, SourceType, PackageCode) then
             Claim.Delete(true);
-
         if not HasAnyClaim(TableId) then
             if TenantFabricTables.Get(TableId) then
                 TenantFabricTables.Delete(true);
@@ -243,7 +239,6 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if not Company.Get(CompanyName) then
             Error(CompanyInvalidErr, CompanyName);
-
         if TenantFabricCompanies.Get(CompanyName) then
             Error(CompanyExistsErr, CompanyName);
 
