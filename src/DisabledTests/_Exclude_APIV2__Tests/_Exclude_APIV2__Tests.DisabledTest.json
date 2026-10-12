@@ -8,20 +8,5 @@
     "codeunitId": 139806,
     "codeunitName": "APIV2 - Company Info. E2E",
     "method": "TestModifyCompanyInformation"
-  },
-  {
-    "codeunitId": 139908,
-    "method": "TestExpandPdfDocument",
-    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
-  },
-  {
-    "codeunitId": 139922,
-    "method": "TestExpandPdfDocument",
-    "codeunitName": "APIV2 - Purch. Quotes E2E"
-  },
-  {
-    "codeunitId": 139928,
-    "method": "TestExpandPdfDocument",
-    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
   }
 ]
