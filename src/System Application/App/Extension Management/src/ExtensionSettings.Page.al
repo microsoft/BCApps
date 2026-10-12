@@ -150,12 +150,13 @@ page 2511 "Extension Settings"
             action(Install)
             {
                 Caption = 'Install';
-                Enabled = ActionsEnabled and (not AppIsInstalled);
+                Enabled = ActionsEnabled and CanManageExtensions and (not AppIsInstalled);
                 Image = NewRow;
                 ToolTip = 'Install the extension for the current tenant.';
 
                 trigger OnAction()
                 begin
+                    ExtensionInstallationImpl.CheckPermissions();
                     if ExtensionInstallationImpl.RunExtensionInstallation(PublishedApplication) then
                         CurrPage.Update(false);
                 end;
@@ -163,12 +164,13 @@ page 2511 "Extension Settings"
             action(Uninstall)
             {
                 Caption = 'Uninstall';
-                Enabled = ActionsEnabled and AppIsInstalled;
+                Enabled = ActionsEnabled and CanManageExtensions and AppIsInstalled;
                 Image = RemoveLine;
                 ToolTip = 'Remove the extension from the current tenant.';
 
                 trigger OnAction()
                 begin
+                    ExtensionInstallationImpl.CheckPermissions();
                     if ExtensionInstallationImpl.RunExtensionInstallation(PublishedApplication) then
                         CurrPage.Update(false);
                 end;
@@ -176,12 +178,13 @@ page 2511 "Extension Settings"
             action(Unpublish)
             {
                 Caption = 'Unpublish';
-                Enabled = ActionsEnabled and IsTenantExtension and (not AppIsInstalled);
+                Enabled = ActionsEnabled and CanManageExtensions and IsTenantExtension and (not AppIsInstalled);
                 Image = RemoveLine;
                 ToolTip = 'Unpublish the extension from the tenant.';
 
                 trigger OnAction()
                 begin
+                    ExtensionInstallationImpl.CheckPermissions();
                     if ExtensionInstallationImpl.IsInstalledByPackageId(PublishedApplication."Package ID") then begin
                         Message(CannotUnpublishIfInstalledMsg, PublishedApplication.Name);
                         exit;
@@ -194,24 +197,26 @@ page 2511 "Extension Settings"
             action(SetupApp)
             {
                 Caption = 'Set up';
-                Enabled = ActionsEnabled and AppIsInstalled;
+                Enabled = ActionsEnabled and CanManageExtensions and AppIsInstalled;
                 Image = SetupList;
                 ToolTip = 'Runs the setup page that has been marked as primary for the selected app.';
 
                 trigger OnAction()
                 begin
+                    ExtensionInstallationImpl.CheckPermissions();
                     ExtensionInstallationImpl.RunExtensionSetup(PublishedApplication.ID);
                 end;
             }
             action("Download Source")
             {
                 Caption = 'Download source';
-                Enabled = ActionsEnabled and IsTenantExtension;
+                Enabled = ActionsEnabled and CanManageExtensions and IsTenantExtension;
                 Image = ExportFile;
                 ToolTip = 'Download the source code for the extension.';
 
                 trigger OnAction()
                 begin
+                    ExtensionInstallationImpl.CheckPermissions();
                     ExtensionOperationImpl.DownloadExtensionSource(PublishedApplication."Package ID");
                 end;
             }
