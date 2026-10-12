@@ -4,9 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
-using System.Azure.Identity;
 using System.Environment;
 using System.Reflection;
+using System.Security.User;
+using System.Text;
 
 page 9886 "Effective Permissions Overview"
 {
@@ -29,50 +30,121 @@ page 9886 "Effective Permissions Overview"
         {
             group(Filters)
             {
-                Caption = 'Filters';
-                field(UserFilter; UserFilter)
-                {
-                    Caption = 'User';
-                    TableRelation = User."User Name";
-                }
+                ShowCaption = false;
                 field(CompanyFilter; CompanyFilter)
                 {
                     Caption = 'Company';
                     TableRelation = Company;
+                    trigger OnValidate()
+                    begin
+                        if CompanyFilter = '' then
+                            Error('TEMP CompanyFilter is empty');
+                        ApplyFilters();
+                    end;
+                }
+                field(UserFilter; UserFilter)
+                {
+                    Caption = 'User';
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        User: Record User;
+                        Users: Page Users;
+                        RecRef: RecordRef;
+                    begin
+                        Users.LookupMode(true);
+                        if Users.RunModal() = Action::LookupOK then begin
+                            Users.GetSelectionFilter(User);
+                            RecRef.GetTable(User);
+                            Text := SelectionFilterMgt.GetSelectionFilter(RecRef, User.FieldNo("User Name"));
+                            exit(true);
+                        end;
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
                 field(ObjTypeFilter; ObjTypeFilter)
                 {
                     Caption = 'Object Type';
                     OptionCaption = ' ,Table Data,Table,,Report,,Codeunit,XMLport,MenuSuite,Page,Query,System';
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
                 field(ObjIDFilter; ObjIDFilter)
                 {
                     Caption = 'Object ID';
-                    TableRelation = AllObjWithCaption;
+                    TableRelation = AllObjWithCaption."Object ID";
+
+                    trigger OnAssistEdit()
+                    var
+                        AllObjWithCaption: Record AllObjWithCaption;
+                        AllObjectsWithCaption: Page "All Objects with Caption";  // FIXME: Temp
+                        RecRef: RecordRef;
+                    begin
+                        AllObjectsWithCaption.LookupMode(true);
+                        if AllObjectsWithCaption.RunModal() = Action::LookupOK then begin
+                            AllObjectsWithCaption.GetSelectionFilter(AllObjWithCaption);
+                            RecRef.GetTable(AllObjWithCaption);
+                            ObjIDFilter := SelectionFilterMgt.GetSelectionFilter(RecRef, AllObjWithCaption.FieldNo("Object ID"));
+                            ApplyFilters();
+                        end;
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
                 field(ReadFilter; ReadFilter)
                 {
                     Caption = 'Read';
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
                 field(InsertFilter; InsertFilter)
                 {
                     Caption = 'Insert';
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
                 field(ModifyFilter; ModifyFilter)
                 {
                     Caption = 'Modify';
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
                 field(DeleteFilter; DeleteFilter)
                 {
                     Caption = 'Delete';
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
                 }
             }
             repeater(General)
             {
-                field(Company; Rec.Company) { }
+                field(Company; Rec.Company)
+                {
+                    Visible = false;
+
+                }
                 field(UserName; Rec."User Name") { }
                 field(ObjectType; Rec."Object Type") { }
-                field(ObjectID; Rec."Object ID") { }
+                field(ObjectID; Rec."Object ID")
+                {
+                    Visible = false;
+                }
                 field(ObjectName; Rec."Object Name") { }
                 field(ReadPermission; Rec."Read Permission") { }
                 field(InsertPermission; Rec."Insert Permission") { }
@@ -99,6 +171,7 @@ page 9886 "Effective Permissions Overview"
             {
                 ApplicationArea = All;
                 Caption = 'Refresh';
+                Image = Refresh;
 
                 trigger OnAction()
                 begin
@@ -118,16 +191,19 @@ page 9886 "Effective Permissions Overview"
     }
 
     var
+        TempUser: Record User temporary;
+        SelectionFilterMgt: Codeunit SelectionFilterManagement;
         UserFilter: Text;
         CompanyFilter: Text[30];
         ObjTypeFilter: Option " ","Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         ObjIDFilter: Text;
-        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Option " ",Yes,Indirect;
+        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Option " ",No,Yes,Indirect;
 
     trigger OnOpenPage()
     begin
-        // Rec.SetRange(Company, 'CRONUS International Ltd.');
         CompanyFilter := CopyStr(CompanyName(), 1, MaxStrLen(CompanyFilter));
+        LoadUsers();
+        ApplyFilters(false);
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -135,18 +211,89 @@ page 9886 "Effective Permissions Overview"
         // CurrPage.YS_EffectivePermissionBySet.Page.SetSource(Rec);
     end;
 
+    local procedure ApplyFilters()
+    begin
+        ApplyFilters(true);
+    end;
+
+    local procedure ApplyFilters(Update: Boolean)
+    var
+        AllObj: Record AllObj;
+    begin
+        Rec.SetFilter("User Name", UserFilter);
+        Rec.SetFilter(Company, CompanyFilter);
+        if ObjTypeFilter = ObjTypeFilter::" " then
+            Rec.SetRange("Object Type")
+        else
+            Rec.SetRange("Object Type", ObjTypeFilter - 1);
+        Rec.SetFilter("Object ID", ObjIDFilter);
+        if ReadFilter = ReadFilter::" " then
+            Rec.SetRange("Read Permission")
+        else
+            Rec.SetRange("Read Permission", ReadFilter - 1);
+        if InsertFilter = InsertFilter::" " then
+            Rec.SetRange("Insert Permission")
+        else
+            Rec.SetRange("Insert Permission", InsertFilter - 1);
+        if ModifyFilter = ModifyFilter::" " then
+            Rec.SetRange("Modify Permission")
+        else
+            Rec.SetRange("Modify Permission", ModifyFilter - 1);
+        if DeleteFilter = DeleteFilter::" " then
+            Rec.SetRange("Delete Permission")
+        else
+            Rec.SetRange("Delete Permission", DeleteFilter - 1);
+        if Update then begin
+            TempUser.Reset();
+            if not TempUser.IsEmpty() and (ObjTypeFilter <> ObjTypeFilter::" ") then begin
+                FilterAllObj(AllObj);
+                // 20000 entries can be processed relatively quickly
+                if TempUser.Count() * AllObj.Count() < 20000 then
+                    LoadData()
+
+                // TODO: else Notify to refresh manually
+            end;
+            CurrPage.Update(false);
+        end;
+    end;
+
+    local procedure FilterAllObj(var AllObj: Record AllObj)
+    begin
+        AllObj.SetRange("Object Type", ObjTypeFilter - 1);
+        AllObj.SetFilter("Object ID", ObjIDFilter);
+    end;
+
+    local procedure LoadUsers()
+    var
+        User: Record User;
+        UserProperty: Record "User Property";
+        EnvironmentInfo: Codeunit "Environment Information";
+        // AzureADUserManagement: Codeunit "Azure AD User Management";
+        IsSaaS: Boolean;
+    begin
+        IsSaaS := EnvironmentInfo.IsSaaS();
+        TempUser.Reset();
+        TempUser.DeleteAll();
+        UserProperty.SetLoadFields("Authentication Object ID");
+        User.SetLoadFields("User Security ID", "User Name");
+        if User.FindSet() then
+            repeat
+                // FIXME: TEMP DEV
+                // if IsSaaS then
+                //     if not AzureADUserManagement.IsUserDelegated(User."User Security ID") then
+                //         if (not UserProperty.Get(User."User Security ID")) or (UserProperty."Authentication Object ID" = '') then
+                //             continue;
+                TempUser."User Security ID" := User."User Security ID";
+                TempUser."User Name" := User."User Name";
+                TempUser.Insert();
+            until User.Next() = 0;
+    end;
+
     local procedure LoadData()
     var
         AllObj: Record AllObj;
-        User: Record User;
-        TempUser: Record User temporary;
-        UserProperty: Record "User Property";
-
         TempPermission: Record Permission temporary;
-        EnvironmentInfo: Codeunit "Environment Information";
-        AzureADUserManagement: Codeunit "Azure AD User Management";
         EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
-        IsSaaS: Boolean;
         Window: Dialog;
         ProcessCount, TotalCount : Integer;
         LastUpdateDateTime: DateTime;
@@ -154,49 +301,47 @@ page 9886 "Effective Permissions Overview"
     begin
         Window.Open(ProcessingMsg);
 
-        User.SetLoadFields("User Security ID", "User Name");
-        UserProperty.SetLoadFields("Authentication Object ID");
-        IsSaaS := EnvironmentInfo.IsSaaS();
-        User.SetRange("User Name", UserFilter);
-        if User.FindSet() then
-            repeat
-                if IsSaaS then
-                    if not AzureADUserManagement.IsUserDelegated(User."User Security ID") then
-                        if (not UserProperty.Get(User."User Security ID")) or (UserProperty."Authentication Object ID" = '') then
-                            continue;
-                TempUser."User Security ID" := User."User Security ID";
-                TempUser.Insert();
-            until User.Next() = 0;
+        LoadUsers();
+        TempUser.Reset();
+        TempUser.SetFilter("User Name", UserFilter);
+        if TempUser.IsEmpty() then
+            exit;
 
-        AllObj.SetRange("Object Type", ObjTypeFilter);
-        AllObj.SetFilter("Object ID", ObjIDFilter);
-        if AllObj.FindSet() then begin
-            TotalCount := AllObj.Count();
-            LastUpdateDateTime := CurrentDateTime();
+        AllObj.SetLoadFields("Object Type", "Object ID", "Object Name");
+        FilterAllObj(AllObj);
+        if not AllObj.FindSet() then
+            exit;
+
+        TotalCount := AllObj.Count() * TempUser.Count();
+        LastUpdateDateTime := CurrentDateTime();
+        repeat
+            TempUser.FindSet();
             repeat
                 EffectivePermissionsMgt.PopulatePermissionRecordWithEffectivePermissionsForObject(
-                    TempPermission, User."User Security ID", CompanyFilter, AllObj."Object Type", AllObj."Object ID");
+                    TempPermission, TempUser."User Security ID", CompanyFilter, AllObj."Object Type", AllObj."Object ID");
 
                 Rec.Init();
                 Rec.Company := CompanyFilter;
-                Rec."User Name" := User."User Name";
-                Rec."User Security ID" := User."User Security ID";
+                Rec."User Name" := TempUser."User Name";
+                Rec."User Security ID" := TempUser."User Security ID";
                 Rec."Object Type" := AllObj."Object Type";
                 Rec."Object ID" := AllObj."Object ID";
+                Rec."Object Name" := AllObj."Object Name";
                 Rec."Read Permission" := TempPermission."Read Permission";
                 Rec."Insert Permission" := TempPermission."Insert Permission";
                 Rec."Modify Permission" := TempPermission."Modify Permission";
                 Rec."Delete Permission" := TempPermission."Delete Permission";
                 Rec."Execute Permission" := TempPermission."Execute Permission";
-                Rec.Insert();
+                if Rec.Insert() then;
 
                 ProcessCount += 1;
                 if CurrentDateTime() - LastUpdateDateTime > 1000 then begin
                     Window.Update(1, Round(ProcessCount * 10000 / TotalCount, 1));
                     LastUpdateDateTime := CurrentDateTime();
                 end;
-            until AllObj.Next() = 0;
-        end;
+            until TempUser.Next() = 0;
+        until AllObj.Next() = 0;
+        if Rec.FindFirst() then;
 
         Window.Close();
     end;
