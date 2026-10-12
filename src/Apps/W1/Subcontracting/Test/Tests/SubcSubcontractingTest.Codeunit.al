@@ -4533,26 +4533,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         exit(ReqWkshTemplate.Name);
     end;
 
-    local procedure AssignItemChargeToReceiptLine(ItemChargeInvLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; QtyToAssign: Decimal)
-    var
-        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
-    begin
-        LibraryInventory.CreateItemChargeAssignPurchase(
-            ItemChargeAssignmentPurch, ItemChargeInvLine,
-            ItemChargeAssignmentPurch."Applies-to Doc. Type"::Receipt,
-            PurchRcptLine."Document No.", PurchRcptLine."Line No.", PurchRcptLine."No.");
-        ItemChargeAssignmentPurch.Validate("Qty. to Assign", QtyToAssign);
-        ItemChargeAssignmentPurch.Modify(true);
-    end;
-
-    procedure UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method")
-    var
-        ProdOrderComp: Record "Prod. Order Component";
-    begin
-        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComp.ModifyAll("Component Supply Method", ComponentSupplyMethod);
-    end;
-
     local procedure CreateItemChargeOrderLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ItemCharge: Record "Item Charge")
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
