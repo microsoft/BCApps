@@ -118,7 +118,7 @@ try {
     $token = Get-KustoAccessToken -Resource $cluster
 
     $timestamp = [DateTime]::UtcNow.ToString('o')
-    $csl = ".set-or-append $Table with (extend_schema=true) <| print " +
+    $csl = ".append $Table <| print " +
         "Timestamp=datetime('$timestamp'), " +
         "Tag='$(ConvertTo-KustoString $Tag)', " +
         "RunId='$(ConvertTo-KustoString $RunId)', " +

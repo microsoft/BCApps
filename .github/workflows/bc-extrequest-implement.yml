@@ -141,6 +141,7 @@ jobs:
       github.event_name == 'pull_request_target' &&
       (startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-') ||
        startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/team-'))
+    environment: extensibility-agent
     runs-on: ubuntu-latest
 
     steps:
