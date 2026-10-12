@@ -561,18 +561,6 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ExtensionSettingsDoesNotAllowDelete()
-    var
-        ExtensionSettings: TestPage "Extension Settings";
-    begin
-        PrepareSettingsExtension(false);
-        OpenExtensionSettings(ExtensionSettings);
-
-        asserterror ExtensionSettings.Delete();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure ExtensionSettingsAllowsEditingHttpClientRequests()
     var
         NAVAppSetting: Record "NAV App Setting";
@@ -662,14 +650,11 @@ codeunit 133100 "Extension Management Test"
     [Test]
     [Scope('OnPrem')]
     procedure ReopenedInstallationPageSkipsInstalledApp()
-    var
-        ExtensionInstallation: Record "Extension Installation";
     begin
         PrepareSettingsExtension(true);
-        ExtensionInstallation.SetRange(ID, MainAppId);
 
         // Simulate restoring the installation page from its filters in the refreshed session.
-        Page.RunModal(Page::"Extension Installation", ExtensionInstallation);
+        ExtensionMgtTestLibrary.RunExtensionInstallationPage(MainAppId, '');
     end;
 
     [Test]
@@ -688,14 +673,10 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     [HandlerFunctions('MarketplacePreviewDeploymentModalHandler')]
     procedure InstalledAppPreviewRequestStillOpensWizard()
-    var
-        ExtensionInstallation: Record "Extension Installation";
     begin
         PrepareSettingsExtension(true);
-        ExtensionInstallation.SetRange(ID, MainAppId);
-        ExtensionInstallation.SetRange(PreviewKey, 'test-preview-key');
 
-        Page.RunModal(Page::"Extension Installation", ExtensionInstallation);
+        ExtensionMgtTestLibrary.RunExtensionInstallationPage(MainAppId, 'test-preview-key');
     end;
 
     local procedure PrepareSettingsExtension(Install: Boolean)

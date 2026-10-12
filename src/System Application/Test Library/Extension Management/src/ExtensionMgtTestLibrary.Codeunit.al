@@ -37,4 +37,15 @@ codeunit 135109 "Extension Mgt. Test Library"
     begin
         ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(MarketplaceApplicationId, '');
     end;
+
+    procedure RunExtensionInstallationPage(AppId: Guid; PreviewKey: Text)
+    var
+        ExtensionInstallation: Record "Extension Installation";
+    begin
+        ExtensionInstallation.SetRange(ID, AppId);
+        if PreviewKey <> '' then
+            ExtensionInstallation.SetRange(PreviewKey, PreviewKey);
+
+        Page.RunModal(Page::"Extension Installation", ExtensionInstallation);
+    end;
 }
