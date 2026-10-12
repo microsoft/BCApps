@@ -40,12 +40,12 @@ codeunit 135109 "Extension Mgt. Test Library"
 
     procedure RunExtensionInstallationPage(AppId: Guid; PreviewKey: Text)
     var
-        ExtensionInstallation: Record "Extension Installation";
+        TempExtensionInstallation: Record "Extension Installation";
     begin
-        ExtensionInstallation.SetRange(ID, AppId);
+        TempExtensionInstallation.SetRange(ID, AppId);
         if PreviewKey <> '' then
-            ExtensionInstallation.SetRange(PreviewKey, PreviewKey);
+            TempExtensionInstallation.SetRange(PreviewKey, PreviewKey);
 
-        Page.RunModal(Page::"Extension Installation", ExtensionInstallation);
+        Page.RunModal(Page::"Extension Installation", TempExtensionInstallation);
     end;
 }
