@@ -664,7 +664,9 @@ codeunit 333 "Req. Wksh.-Make Order"
 
     local procedure CopyOrderDateFromPurchHeader(var RequisitionLine: Record "Requisition Line"; PurchOrderHeader: Record "Purchase Header"; PurchOrderLine: Record "Purchase Line")
     var
+        RequisitionLineAtOriginalDate: Record "Requisition Line";
         DirectUnitCost: Decimal;
+        ManualDirectUnitCost: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -674,8 +676,14 @@ codeunit 333 "Req. Wksh.-Make Order"
 
         if PurchOrderLine.CountPrice(true) > 0 then begin
             DirectUnitCost := RequisitionLine."Direct Unit Cost";
+            RequisitionLineAtOriginalDate := RequisitionLine;
+            RequisitionLineAtOriginalDate.GetDirectCost(
+                RequisitionLineAtOriginalDate.FieldNo("Order Date"));
+            ManualDirectUnitCost :=
+                DirectUnitCost <> RequisitionLineAtOriginalDate."Direct Unit Cost";
             RequisitionLine.Validate("Order Date", PurchOrderHeader."Order Date");
-            RequisitionLine."Direct Unit Cost" := DirectUnitCost;
+            if ManualDirectUnitCost then
+                RequisitionLine."Direct Unit Cost" := DirectUnitCost;
         end;
     end;
 
@@ -1960,4 +1968,3 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
     end;
 }
-
