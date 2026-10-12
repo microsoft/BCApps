@@ -18,6 +18,7 @@ pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Show Currency';
                 importance = Additional;
+                visible = false;
 
                 trigger OnValidate()
                 begin
@@ -29,6 +30,7 @@ pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Currency Symbol Position';
                 importance = Additional;
+                visible = false;
 
                 trigger OnValidate()
                 begin

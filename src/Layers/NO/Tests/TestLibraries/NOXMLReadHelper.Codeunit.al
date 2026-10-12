@@ -47,9 +47,9 @@ codeunit 143001 "NO XML Read Helper"
     var
         Node: DotNet XmlNode;
     begin
-        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror GetNodeByElementName(ElementName, Node);
-        #pragma warning restore AS0058, PTE0007
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedError(StrSubstNo(MissingElementErr, ElementName));
     end;
 
@@ -89,9 +89,9 @@ codeunit 143001 "NO XML Read Helper"
     var
         Attribute: DotNet XmlAttribute;
     begin
-        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror GetAttributeFromElement(ElementName, AttributeName, Attribute);
-        #pragma warning restore AS0058, PTE0007
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedError('Attribute is missing!');
     end;
 

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
+using System.Environment;
+
 /// <summary>
 /// Configures interest calculation and additional fee settings for a reminder level.
 /// </summary>
@@ -68,5 +70,40 @@ page 1895 "Reminder Level Fee Setup"
             }
         }
     }
-}
 
+    actions
+    {
+        area(Processing)
+        {
+            action("View Additional Fee Chart")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'View Additional Fee Chart';
+                Image = Forecast;
+                ToolTip = 'View additional fees in a chart.';
+                Visible = IsWinClient;
+
+                trigger OnAction()
+                var
+                    AddFeeChart: Page "Additional Fee Chart";
+                begin
+                    if ClientTypeManagement.GetCurrentClientType() <> CLIENTTYPE::Windows then
+                        Error(ChartNotAvailableInWebErr, PRODUCTNAME.Short());
+
+                    AddFeeChart.SetViewMode(Rec, false, true);
+                    AddFeeChart.RunModal();
+                end;
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    begin
+        IsWinClient := ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Windows;
+    end;
+
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
+        ChartNotAvailableInWebErr: Label 'The chart cannot be shown in the %1 Web client. To see the chart, use the %1 Windows client.', Comment = '%1 - product name';
+        IsWinClient: Boolean;
+}

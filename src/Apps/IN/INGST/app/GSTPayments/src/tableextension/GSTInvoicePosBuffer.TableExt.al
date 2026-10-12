@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
+#pragma warning disable AL0520 // Accepted: the base table is obsolete but this extension must remain for upgrade compatibility.
 tableextension 18244 "GST Invoice Pos Buffer" extends "Invoice Post. Buffer"
+#pragma warning restore AL0520
 {
     fields
     {

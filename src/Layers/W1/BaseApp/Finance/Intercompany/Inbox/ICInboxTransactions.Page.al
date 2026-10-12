@@ -78,7 +78,7 @@ page 615 "IC Inbox Transactions"
                 {
                     ApplicationArea = Intercompany;
                     Caption = 'Show Line Action';
-                    OptionCaption = 'All,No Action,Accept,Return to IC Partner';
+                    OptionCaption = 'All,No Action,Accept,Return to IC Partner,Cancel';
                     ToolTip = 'Specifies how you want to filter the lines shown in the window. You can choose to see all lines, or only lines with a specific option in the Line Action field.';
 
                     trigger OnValidate()

@@ -7,7 +7,6 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
@@ -320,7 +319,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         RelatedItem: Record Item;
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         RecordRefToBufferTriggeringRecord: RecordRef;
@@ -341,9 +339,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         Clear(LastCreatedQltyInspectionHeader);
 
         TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
-
-        if IsManualCreation then
-            QltyPermissionMgmt.VerifyCanCreateManualInspection();
 
         OriginalRecordId := TargetRecordRef.RecordId();
         OriginalRecordTableNo := TargetRecordRef.Number();
@@ -658,6 +653,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// Creates inspection lines and result conditions from the header's template and evaluates the new lines.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection for which to create lines.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     local procedure CreateQualityInspectionResultLinesFromTemplate(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -680,6 +676,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 QltyInspectionLine.Description := QltyInspectionTemplateLine.Description;
                 QltyInspectionLine."Allowable Values" := QltyInspectionTemplateLine."Allowable Values";
                 QltyInspectionLine."Unit of Measure Code" := QltyInspectionTemplateLine."Unit of Measure Code";
+                OnCreateQualityInspectionResultLinesFromTemplateOnBeforeInsertQltyInspectionLine(QltyInspectionLine, QltyInspectionTemplateLine);
                 QltyInspectionLine.Insert();
                 QltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine, QltyInspectionLine);
                 QltyInspectionHeader.SetPreventAutoAssignment(true);
@@ -846,6 +843,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         CreatedReinspectionQltyInspectionHeader."Finished By User ID" := '';
         CreatedReinspectionQltyInspectionHeader."Finished Date" := 0DT;
         CreatedReinspectionQltyInspectionHeader.Validate("Result Code", '');
+        CreatedReinspectionQltyInspectionHeader."Pass Quantity" := 0;
+        CreatedReinspectionQltyInspectionHeader."Fail Quantity" := 0;
     end;
 
     /// <summary>
@@ -1263,6 +1262,16 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     #endregion Event Subscribers
+
+    /// <summary>
+    /// Raised before a quality inspection line created from a template line is inserted.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The quality inspection line to be inserted.</param>
+    /// <param name="QltyInspectionTemplateLine">The source quality inspection template line.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateQualityInspectionResultLinesFromTemplateOnBeforeInsertQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    begin
+    end;
 
     /// <summary>
     /// OnBeforeCreateInspection is called before an inspection is created.

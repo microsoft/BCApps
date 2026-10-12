@@ -69,7 +69,9 @@ table 17313 "Tax Calc. Dim. Filter"
                     "If No Value" := "If No Value"::Ignore;
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(9; "Dimension Name"; Text[30])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("Dimension Value Filter")));

@@ -147,7 +147,9 @@ table 17211 "Tax Register FA Entry"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(83; "Taken Off Books Reason"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("FA Ledger Entry".Description where("FA No." = field("FA No."),
                                                                       "Depreciation Book Code" = field("Depreciation Book Code"),

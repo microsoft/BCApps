@@ -286,6 +286,7 @@ codeunit 4019 "GP Item Migrator"
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
     begin
+        ItemJournalBatch.SetFilter(Name, 'GP*');
         CurrentBatchNumber := ItemJournalBatch.Count();
 
         if ItemJournalBatch.FindLast() then begin
@@ -343,7 +344,7 @@ codeunit 4019 "GP Item Migrator"
         ItemJnlLine."Document No." := CopyStr(GPItem.No, 1, 20);
 
         CurrentBatchLineNo := CurrentBatchLineNo + 1;
-        ItemJnlLine."Line No." := CurrentBatchLineNo;
+        ItemJnlLine."Line No." := CurrentBatchLineNo * 10000;
 
         if GPItemTransaction.Quantity > 0 then
             ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::"Positive Adjmt.")

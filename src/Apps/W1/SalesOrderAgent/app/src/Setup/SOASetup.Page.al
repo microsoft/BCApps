@@ -8,6 +8,7 @@
 
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using Microsoft.Inventory.Availability;
 using System.Agents;
 using System.AI;
 using System.Email;
@@ -27,7 +28,7 @@ page 4400 "SOA Setup"
     RefreshOnActivate = true;
     InherentEntitlements = X;
     InherentPermissions = X;
-    HelpLink = 'https://go.microsoft.com/fwlink/?linkid=2281481';
+    HelpLink = 'https://go.microsoft.com/fwlink/?LinkId=2382318';
 
     layout
     {
@@ -123,24 +124,31 @@ page 4400 "SOA Setup"
 
                         trigger OnDrillDown()
                         var
+                            TempAgentTaskFile: Record "Agent Task File" temporary;
                             SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
+                            SenderEmail: Text[250];
+                            MessageText: Text;
                         begin
                             if AgentIsArchived then begin
                                 Message(AgentArchivedNotificationMsg);
                                 exit;
                             end;
 
+                            if not SOACreateTaskImpl.OpenCreateTaskPageForData(Rec."User Security ID", SenderEmail, MessageText, TempAgentTaskFile) then
+                                exit;
+
                             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
-                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) and (Rec."Email Monitoring" or (Rec."Email Address" <> '')) then begin
+                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) then begin
                                 if not Confirm(EnableAgentForTaskQst) then
                                     exit;
                                 TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
                                 TempAgentSetupBuffer.Modify();
                                 CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
                                 CurrPage.AgentSetupPart.Page.Update();
-                                Rec."Email Monitoring" := false;
-                                Rec."Incoming Monitoring" := false;
-                                Rec.Modify();
+                                if Rec."Email Monitoring" and (MailboxName = '') then begin
+                                    Rec."Email Monitoring" := false;
+                                    Rec.Modify();
+                                end
                             end;
 
                             if not ApplySetup(true) then
@@ -154,7 +162,8 @@ page 4400 "SOA Setup"
 
                             Commit();
 
-                            SOACreateTaskImpl.OpenCreateTaskPage(Rec."User Security ID");
+                            SOACreateTaskImpl.SetAgentUserSecurityID(Rec."User Security ID");
+                            SOACreateTaskImpl.CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
                             CurrPage.Update(false);
                         end;
                     }
@@ -250,6 +259,8 @@ page 4400 "SOA Setup"
                             Editable = OnlyAvailableItemsActive;
                             trigger OnValidate()
                             begin
+                                if Rec."Incl. Capable to Promise" then
+                                    VerifyOrderPromisingSetupConfigured();
                                 ConfigUpdated();
                             end;
                         }
@@ -620,6 +631,10 @@ page 4400 "SOA Setup"
         SOASetupCU: Codeunit "SOA Setup";
     begin
         UpdateAgentSetupBuffer();
+        // The warning is only meaningful when the agent actually monitors a mailbox.
+        if (not Rec."Email Monitoring") or IsNullGuid(Rec."Email Account ID") then
+            exit(false);
+
         if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled) and StateChanged() and not IsFirstConfig() then
             if not SOASetupCU.ValidateEmailConnectionStatus(Rec) then
                 exit(true);
@@ -674,6 +689,22 @@ page 4400 "SOA Setup"
 
         if EnabledAgentFirstConfig() then
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
+    end;
+
+    local procedure VerifyOrderPromisingSetupConfigured()
+    var
+        OrderPromisingSetup: Record "Order Promising Setup";
+        SOAShipmentDateMgt: Codeunit "SOA Shipment Date Mgt.";
+    begin
+        if SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
+            exit;
+
+        // Capable to Promise needs the Order Promising Setup template and worksheet; offer to configure it so the agent does not fail later.
+        if Confirm(OrderPromisingSetupMissingQst, false, OrderPromisingSetup.TableCaption()) then
+            Page.RunModal(Page::"Order Promising Setup");
+
+        if not SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
+            Rec."Incl. Capable to Promise" := false;
     end;
 
     local procedure EnabledAgentFirstConfig(): Boolean
@@ -850,10 +881,11 @@ page 4400 "SOA Setup"
         NotAuthorizedToConfigureAgentErr: Label 'You do not have permission to configure the Sales Order Agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         ConfiguredBy: Text[80];
         SOACreateTaskLbl: Label 'Create task for the agent';
-        EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
+        EnableAgentForTaskQst: Label 'Trying out the agent will activate it with the current settings.\\Do you want to continue?';
         IsConfigUpdated: Boolean;
         InboxFolderNameTok: Label 'Inbox', Locked = true;
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
+        OrderPromisingSetupMissingQst: Label '%1 is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?', Comment = '%1 = Order Promising Setup caption';
 }

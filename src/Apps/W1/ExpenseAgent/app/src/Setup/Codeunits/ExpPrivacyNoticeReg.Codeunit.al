@@ -53,9 +53,8 @@ codeunit 6951 "Exp. Privacy Notice Reg."
     var
         PrivacyNotice: Codeunit "Privacy Notice";
     begin
-        if PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAITok, false) <> "Privacy Notice Approval State"::Agreed then
+        if PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAITok, true) <> "Privacy Notice Approval State"::Agreed then
             exit(false);
-
         if PrivacyNotice.GetPrivacyNoticeApprovalState(GetExpenseAgentPrivacyNoticeId(), false) <> "Privacy Notice Approval State"::Agreed then
             exit(false);
 
@@ -66,9 +65,8 @@ codeunit 6951 "Exp. Privacy Notice Reg."
     var
         PrivacyNotice: Codeunit "Privacy Notice";
     begin
-        if not PrivacyNotice.ConfirmPrivacyNoticeApproval(AzureOpenAITok, false) then
+        if not PrivacyNotice.ConfirmPrivacyNoticeApproval(AzureOpenAITok, true) then
             exit(false);
-
         if not PrivacyNotice.ConfirmPrivacyNoticeApproval(GetExpenseAgentPrivacyNoticeId(), false) then
             exit(false);
 

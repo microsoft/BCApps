@@ -502,7 +502,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="QltyTestValueType">The data type used to interpret the value.</param>
     /// <param name="TempBufferQltyTestLookupValue">The allowable lookup values for option and table lookup tests.</param>
     /// <param name="QltyCaseSensitivity">The case sensitivity used for text matching.</param>
-    local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
+    procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
         QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
         QltyLocalization: Codeunit "Qlty. Localization";

@@ -333,7 +333,6 @@ report 15000062 "Remittance - Import (Bank)"
     begin
         // Process invoice transaction - BETFOR04 and BETFOR23.
         // Own referance is read by the time this function is called.
-        if false then;
         // Update waiting journal:
         WaitingJournal.Get(OwnRef);
         WaitingJournal."Return Code" := ReturnCode;

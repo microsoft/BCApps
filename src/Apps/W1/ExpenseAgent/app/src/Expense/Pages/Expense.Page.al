@@ -253,6 +253,17 @@ page 6988 "Expense"
                         CurrPage.Update();
                     end;
                 }
+                field("Vehicle Type"; Rec."Vehicle Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense. The matching vehicle-specific mileage rate is applied, or the generic rate when none exists. Available for Mileage expenses.';
+                    Editable = IsMileageCategory;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
+                }
                 field("Total Mileage"; TotalMileage)
                 {
                     ApplicationArea = Basic, Suite;

@@ -78,7 +78,9 @@ table 11000005 "Export Protocol"
         {
             Caption = 'Parameter';
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(30; "Check Name"; Text[30])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Check ID")));
@@ -91,7 +93,9 @@ table 11000005 "Export Protocol"
             Caption = 'Export Name';
             Editable = false;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(32; "Docket Name"; Text[30])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Docket ID")));
