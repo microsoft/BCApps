@@ -511,7 +511,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         HttpRequestMessage.GetHeaders(HttpRequestHeaders);
         HttpRequestHeaders.Add(RsoVersionHeaderNameTok, RsoVersionTok);
-        HttpRequestHeaders.Add(RsoKeyHeaderNameTok, OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Authorization Key"));
+        HttpRequestHeaders.TryAddWithoutValidation(RsoKeyHeaderNameTok, OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Authorization Key"));
         HttpRequestHeaders.Add(RsoCultureHeaderNameTok, RsoCultureTok);
         HttpRequestHeaders.Add(RsoUICultureHeaderNameTok, RsoCultureTok);
     end;
