@@ -286,8 +286,6 @@ table 7022 "Price Worksheet Line"
             trigger OnValidate()
             begin
                 TestStatusDraft();
-                if ("Asset No." = '') and ("Unit of Measure Code" <> '') then
-                    "Work Type Code" := '';
                 if not FieldLookedUp then begin
                     CopyRecTo(PriceAsset);
                     PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
