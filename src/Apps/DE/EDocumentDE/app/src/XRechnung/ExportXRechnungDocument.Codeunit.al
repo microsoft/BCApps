@@ -1342,14 +1342,17 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
-    local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]; CustomerGLN: Code[13]);
+    local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[20]);
     var
         PartyLegalEntityElement: XmlElement;
     begin
         PartyLegalEntityElement := XmlElement.Create('PartyLegalEntity', XmlNamespaceCAC);
         PartyLegalEntityElement.Add(XmlElement.Create('RegistrationName', XmlNamespaceCBC, CustomerName));
         if CustomerGLN <> '' then
-            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
+            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN))
+        else
+            if CustomerRegistrationNo <> '' then
+                PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, CustomerRegistrationNo));
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
@@ -1448,6 +1451,7 @@ codeunit 13916 "Export XRechnung Document"
         TempBodyReportSelections: Record "Report Selections" temporary;
         ReportSelections: Record "Report Selections";
         CustomerGLN: Text[13];
+        CustomerRegistrationNo: Text[20];
         AccountingCustomerParty: XmlElement;
     begin
         BillToAddress.Address := SalesInvoiceHeader."Bill-to Address";
@@ -1460,9 +1464,11 @@ codeunit 13916 "Export XRechnung Document"
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
+        if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
+            CustomerRegistrationNo := CopyStr(Customer."Registration Number", 1, MaxStrLen(CustomerRegistrationNo));
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
         InsertCustomerParty(
-              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN,
+              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN, CustomerRegistrationNo,
               SalesInvoiceHeader."Bill-to Name", BillToAddress, SalesInvoiceHeader."Sell-to Customer Name",
               SalesInvoiceHeader."Sell-to Contact",
               ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections));
@@ -1476,6 +1482,7 @@ codeunit 13916 "Export XRechnung Document"
         TempBodyReportSelections: Record "Report Selections" temporary;
         ReportSelections: Record "Report Selections";
         CustomerGLN: Text[13];
+        CustomerRegistrationNo: Text[20];
         AccountingCustomerParty: XmlElement;
     begin
         BillToAddress.Address := SalesCrMemoHeader."Bill-to Address";
@@ -1488,16 +1495,18 @@ codeunit 13916 "Export XRechnung Document"
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
+        if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
+            CustomerRegistrationNo := CopyStr(Customer."Registration Number", 1, MaxStrLen(CustomerRegistrationNo));
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
         InsertCustomerParty(
-              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN,
+              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN, CustomerRegistrationNo,
               SalesCrMemoHeader."Bill-to Name", BillToAddress, SalesCrMemoHeader."Sell-to Customer Name",
               SalesCrMemoHeader."Sell-to Contact",
               ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections));
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
-    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
+    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[20]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
     var
         PartyElement: XmlElement;
     begin
@@ -1513,9 +1522,9 @@ codeunit 13916 "Export XRechnung Document"
 
         InsertPartyName(PartyElement, PartyName);
         InsertAddress(PartyElement, 'PostalAddress', PostalAddress);
-        if not AllLinesNotSubjectToVAT then
+        if (VATRegNo <> '') and not AllLinesNotSubjectToVAT then
             InsertPartyTaxScheme(PartyElement, VATRegNo, PostalAddress."Country/Region Code");
-        InsertCustomerPartyLegalEntity(PartyElement, CustomerName, CustomerGLN);
+        InsertCustomerPartyLegalEntity(PartyElement, CustomerName, CustomerGLN, CustomerRegistrationNo);
         InsertContact(PartyElement, ContactName, ContactEMail);
         AccountingCustomerParty.Add(PartyElement);
     end;
