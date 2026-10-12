@@ -2539,6 +2539,7 @@ codeunit 139204 "FS Integration Test"
         FSBookingStatus: Record "FS Booking Status";
         FSBooking: Record "FS Bookable Resource Booking";
     begin
+        SetUpServiceManagement();
         InitSetup(true, '');
         LibraryCRMIntegration.RegisterTestTableConnection();
         FSConnectionSetup.Get();
