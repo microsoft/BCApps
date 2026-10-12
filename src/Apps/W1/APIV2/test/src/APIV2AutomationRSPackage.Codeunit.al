@@ -3,6 +3,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -28,6 +29,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     var
         TenantConfigPackageFile: Record "Tenant Config. Package File";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         TenantConfigPackageFile.DELETEALL(true);
 
 

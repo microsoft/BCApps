@@ -3,6 +3,7 @@ codeunit 139733 "APIV1 - Attachments E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -43,6 +44,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreateGenJournalLine(DocumentRecordRef);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -65,6 +68,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreateGLEntry(DocumentRecordRef);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -88,6 +93,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -110,6 +117,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreateDraftSalesInvoice(DocumentRecordRef);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -133,6 +142,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreatePostedPurchaseInvoice(DocumentRecordRef, DocumentId);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -155,6 +166,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreateDraftPurchaseInvoice(DocumentRecordRef);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -177,6 +190,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve all records from the Attachments API.
+        Initialize();
+
         // [GIVEN] 2 Attachments in the Incoming Document Attachment table
         CreateSalesQuote(DocumentRecordRef);
         CreateAttachments(DocumentRecordRef, AttachmentId);
@@ -199,6 +214,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
+        Initialize();
+
         // [GIVEN] Attachment exists in the Incoming Document Attachment table
         CreateGenJournalLine(DocumentRecordRef);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -224,6 +241,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
+        Initialize();
+
         // [GIVEN] Attachment exists in the Incoming Document Attachment table
         JournalName := LibraryUtility.GenerateRandomCode(GenJournalBatch.FieldNo(Name), Database::"Gen. Journal Batch");
         LibraryAPIGeneralJournal.EnsureGenJnlBatchExists(GraphMgtJournal.GetDefaultJournalLinesTemplateName(), JournalName);
@@ -249,6 +268,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
+        Initialize();
+
         // [GIVEN] Attachment exists in the Incoming Document Attachment table
         CreateGLEntry(DocumentRecordRef);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -273,6 +294,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
+        Initialize();
+
         // [GIVEN] Attachment exists in the Incoming Document Attachment table
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -296,6 +319,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
+        Initialize();
+
         // [GIVEN] Attachment exists in the Incoming Document Attachment table
         CreateDraftSalesInvoice(DocumentRecordRef);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -319,6 +344,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
+        Initialize();
+
         // [GIVEN] Attachment exists in the Incoming Document Attachment table
         CreateSalesQuote(DocumentRecordRef);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -346,6 +373,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         ActualBase64Content: Text;
     begin
         // [SCENARIO] User can update linked attachment binary content through the Attachment API.
+        Initialize();
+
         // [GIVEN] A linked attachment exists
         CreateGenJournalLine(DocumentRecordRef);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -380,6 +409,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         ActualBase64Content: Text;
     begin
         // [SCENARIO] User can update linked attachment binary content through the Attachment API.
+        Initialize();
+
         // [GIVEN] A linked attachment exists
         CreateGLEntry(DocumentRecordRef);
         AttachmentId := CreateAttachment(DocumentRecordRef);
@@ -407,6 +438,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateGenJournalLine(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -416,6 +449,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateGLEntry(DocumentRecordRef);
         TestCreateGLEAttachment(DocumentRecordRef);
     end;
@@ -426,6 +461,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
         TestCreateAttachment(DocumentRecordRef, DocumentId);
     end;
@@ -435,6 +472,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftSalesInvoice(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -445,6 +484,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedPurchaseInvoice(DocumentRecordRef, DocumentId);
         TestCreateAttachment(DocumentRecordRef, DocumentId);
     end;
@@ -454,8 +495,15 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseInvoice(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     local procedure TestCreateAttachment(var DocumentRecordRef: RecordRef)
@@ -555,6 +603,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateSalesQuote(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -564,6 +614,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateGenJournalLine(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -573,6 +625,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateGLEntry(DocumentRecordRef);
         TestDeleteGLEAttachment(DocumentRecordRef);
     end;
@@ -583,6 +637,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
         TestDeleteAttachment(DocumentRecordRef, DocumentId);
     end;
@@ -592,6 +648,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftSalesInvoice(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -602,6 +660,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedPurchaseInvoice(DocumentRecordRef, DocumentId);
         TestDeleteAttachment(DocumentRecordRef, DocumentId);
     end;
@@ -611,6 +671,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseInvoice(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -620,6 +682,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateSalesQuote(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -697,6 +761,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] The Attachment is transferred from a Draft Invoice the to Posted Invoice after posting.
+        Initialize();
+
         // [GIVEN] A draft sales invoice exists.
         CreateDraftSalesInvoice(DocumentRecordRef);
         DocumentId := GetDocumentId(DocumentRecordRef);
@@ -737,6 +803,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] The Attachment is transferred from a Draft Invoice the to Posted Invoice after posting.
+        Initialize();
+
         // [GIVEN] A draft sales invoice exists.
         CreateDraftPurchaseInvoice(DocumentRecordRef);
         DocumentId := GetDocumentId(DocumentRecordRef);
@@ -779,6 +847,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         NewBase64Content: Text;
     begin
         // [SCENARIO] Changing an attachment file name keeps other fields unchanged
+        Initialize();
+
         // [GIVEN] A sales quote exists.
         CreateSalesQuote(DocumentRecordRef);
         DocumentId := GetDocumentId(DocumentRecordRef);
@@ -824,6 +894,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         NewFileName: Text;
     begin
         // [SCENARIO] Changing an attachment content keeps other fields unchanged
+        Initialize();
+
         // [GIVEN] A draft sales invoice exists.
         CreateDraftSalesInvoice(DocumentRecordRef);
         DocumentId := GetDocumentId(DocumentRecordRef);
@@ -862,6 +934,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         JSONBody: Text;
     begin
         // [SCENARIO] User cannot change the linked attachment ID by making a PATCH request to the Attachments API
+        Initialize();
+
         // [GIVEN] A sales quote exists.
         CreateSalesQuote(DocumentRecordRef);
 
@@ -891,6 +965,8 @@ codeunit 139733 "APIV1 - Attachments E2E"
         JSONBody: Text;
     begin
         // [SCENARIO] User cannot change the attachment ID by making a PATCH request to the Attachments API
+        Initialize();
+
         // [GIVEN] Two documents exist.
         CreateSalesQuote(DocumentRecordRef[1]);
         CreateDraftSalesInvoice(DocumentRecordRef[2]);
