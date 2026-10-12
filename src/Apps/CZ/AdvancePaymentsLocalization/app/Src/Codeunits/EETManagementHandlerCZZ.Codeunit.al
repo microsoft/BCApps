@@ -6,7 +6,9 @@ namespace Microsoft.Finance.AdvancePayments;
 
 using Microsoft.Finance;
 using Microsoft.Finance.CashDesk;
+#if not CLEAN30
 using Microsoft.Finance.VAT.Ledger;
+#endif
 
 codeunit 31090 "EET Management Handler CZZ"
 {
