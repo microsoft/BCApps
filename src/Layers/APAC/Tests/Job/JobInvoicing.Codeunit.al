@@ -4323,6 +4323,253 @@ codeunit 136306 "Job Invoicing"
         Assert.AreEqual(JobPlanningLine.Quantity, JobPlanningLine."Qty. Transferred to Invoice", QtyTransferredShouldEqualQtyErr);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,TransferToInvoiceHandler')]
+    [Scope('OnPrem')]
+    procedure LineDiscountAmountPreservedWhenTransferringJobPlanningLineToSalesInvoice()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        // [SCENARIO 647197] Line Discount Amount is preserved (no 0.01 rounding drift) when a Project Planning Line is transferred to a Sales Invoice.
+        Initialize();
+
+        // [GIVEN] A project with a billable item planning line: Quantity = 2, Unit Price = 72786, Line Discount Amount = 8511.37 (Line Discount % rounds to 5.84685).
+        CreateJob(Job, '', false);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryInventory.CreateItem(Item);
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, 2);
+        JobPlanningLine.Validate("Unit Price", 72786);
+        JobPlanningLine.Validate("Line Discount Amount", 8511.37);
+        JobPlanningLine.Modify(true);
+
+        // [GIVEN] The planning line retains the exact Line Discount Amount entered.
+        Assert.AreEqual(
+            8511.37, JobPlanningLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, JobPlanningLine.FieldCaption("Line Discount Amount"), Format(8511.37)));
+
+        // [WHEN] The planning line is transferred to a Sales Invoice.
+        TransferJobPlanningLine(JobPlanningLine, 1, false, SalesHeader);
+
+        // [THEN] The created sales line keeps the exact Line Discount Amount from the planning line (8511.37, not the recalculated 8511.38).
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        Assert.AreEqual(
+            JobPlanningLine."Line Discount Amount", SalesLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, SalesLine.FieldCaption("Line Discount Amount"), Format(JobPlanningLine."Line Discount Amount")));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,TransferToInvoiceHandler')]
+    [Scope('OnPrem')]
+    procedure LineDiscountAmountPreservedWithPricesIncludingVATWhenTransferringJobPlanningLine()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        Item: Record Item;
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedDiscountAmount: Decimal;
+    begin
+        // [AI] v0.2
+        // [SCENARIO 647197] For a Prices Including VAT customer, the transferred Line Discount Amount is preserved and only the VAT conversion is applied, instead of re-deriving it from the rounded Line Discount %.
+        Initialize();
+
+        // [GIVEN] A VAT posting setup with a fixed 25% VAT rate.
+        CreateVATPostingSetupWithRate(VATPostingSetup, 25);
+
+        // [GIVEN] A Prices Including VAT customer and an item that use that VAT setup.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Validate("Prices Including VAT", true);
+        Customer.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        // [GIVEN] A project for that customer with a billable item planning line: Quantity = 2, Unit Price = 72786, Line Discount Amount = 8511.37 (Line Discount % rounds to 5.84685).
+        LibraryJob.CreateJob(Job, Customer."No.");
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, 2);
+        JobPlanningLine.Validate("Unit Price", 72786);
+        JobPlanningLine.Validate("Line Discount Amount", 8511.37);
+        JobPlanningLine.Modify(true);
+
+        // [WHEN] The planning line is transferred to a Sales Invoice.
+        TransferJobPlanningLine(JobPlanningLine, 1, false, SalesHeader);
+
+        // [THEN] The sales line Line Discount Amount equals the exact planning-line amount grossed up by VAT, not the value recomputed from the rounded percentage.
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        ExpectedDiscountAmount :=
+            Round(
+                JobPlanningLine."Line Discount Amount" * (1 + SalesLine."VAT %" / 100),
+                LibraryERM.GetAmountRoundingPrecision());
+        Assert.AreEqual(
+            ExpectedDiscountAmount, SalesLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, SalesLine.FieldCaption("Line Discount Amount"), Format(ExpectedDiscountAmount)));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,TransferToInvoiceHandler')]
+    [Scope('OnPrem')]
+    procedure LineDiscountAmountPreservedForPartialInvoicing()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        JobPlanningLineInvoice: Record "Job Planning Line Invoice";
+        Item: Record Item;
+        FirstInvoiceNo: Code[20];
+        FirstDiscountAmount: Decimal;
+        SecondDiscountAmount: Decimal;
+    begin
+        // [SCENARIO 647197] Staged (partial) invoicing preserves the total Line Discount Amount; the rounding remainder lands on the final transfer.
+        // [AI] v0.2
+        Initialize();
+
+        // [GIVEN] A project with a billable item planning line: Quantity = 2, Unit Price = 72786, Line Discount Amount = 8511.37 (Line Discount % rounds to 5.84685).
+        CreateJob(Job, '', false);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryInventory.CreateItem(Item);
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, 2);
+        JobPlanningLine.Validate("Unit Price", 72786);
+        JobPlanningLine.Validate("Line Discount Amount", 8511.37);
+        JobPlanningLine.Modify(true);
+
+        // [WHEN] Half of the planning line (Quantity = 1) is transferred to a first Sales Invoice.
+        TransferJobPlanningLine(JobPlanningLine, 1 / 2, false, SalesHeader);
+
+        // [THEN] The first sales line carries its rounded share of the discount.
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        FirstInvoiceNo := SalesHeader."No.";
+        FirstDiscountAmount := SalesLine."Line Discount Amount";
+
+        // [WHEN] The remaining half (Quantity = 1) is transferred to a second Sales Invoice.
+        JobPlanningLine.Get(JobPlanningLine."Job No.", JobPlanningLine."Job Task No.", JobPlanningLine."Line No.");
+        TransferJobPlanningLine(JobPlanningLine, 1 / 2, false, SalesHeader);
+
+        // [THEN] The second sales line (a separate invoice) carries the rest, including the rounding remainder.
+        JobPlanningLineInvoice.SetRange("Job No.", JobPlanningLine."Job No.");
+        JobPlanningLineInvoice.SetRange("Job Task No.", JobPlanningLine."Job Task No.");
+        JobPlanningLineInvoice.SetRange("Job Planning Line No.", JobPlanningLine."Line No.");
+        JobPlanningLineInvoice.SetRange("Document Type", JobPlanningLineInvoice."Document Type"::Invoice);
+        JobPlanningLineInvoice.SetFilter("Document No.", '<>%1', FirstInvoiceNo);
+        JobPlanningLineInvoice.FindFirst();
+        FindSalesLine(SalesLine, SalesLine."Document Type"::Invoice, JobPlanningLineInvoice."Document No.");
+        SecondDiscountAmount := SalesLine."Line Discount Amount";
+
+        // [THEN] The sum of both partial discounts equals the exact planning-line discount, with no rounding drift across the staged transfers.
+        JobPlanningLine.Get(JobPlanningLine."Job No.", JobPlanningLine."Job Task No.", JobPlanningLine."Line No.");
+        Assert.AreEqual(
+            JobPlanningLine."Line Discount Amount", FirstDiscountAmount + SecondDiscountAmount,
+            StrSubstNo(ExpectedValueErr, SalesLine.FieldCaption("Line Discount Amount"), Format(JobPlanningLine."Line Discount Amount")));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,TransferToInvoiceHandler')]
+    [Scope('OnPrem')]
+    procedure LineDiscountAmountPreservedForInvoiceCurrency()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        Currency: Record Currency;
+        Item: Record Item;
+        ExpectedDiscountAmount: Decimal;
+    begin
+        // [SCENARIO 647197] When the project is invoiced in a foreign currency, the transferred Line Discount Amount is grossed up by the currency factor exactly once.
+        // [AI] v0.2
+        Initialize();
+
+        // [GIVEN] A currency with an exchange rate and a customer that uses it, so the project is invoiced in that currency (Invoice Currency Code set, factor <> 1).
+        LibraryERM.CreateCurrency(Currency);
+        CreateCurrencyExchangeRate(Currency.Code, WorkDate());
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Currency Code", Currency.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] A project for that customer with a billable item planning line: Quantity = 2, Unit Price = 72786, Line Discount Amount = 8511.37.
+        LibraryJob.CreateJob(Job, Customer."No.");
+        Job.TestField("Invoice Currency Code", Currency.Code);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryInventory.CreateItem(Item);
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, 2);
+        JobPlanningLine.Validate("Unit Price", 72786);
+        JobPlanningLine.Validate("Line Discount Amount", 8511.37);
+        JobPlanningLine.Modify(true);
+
+        // [WHEN] The planning line is transferred to a Sales Invoice.
+        TransferJobPlanningLine(JobPlanningLine, 1, false, SalesHeader);
+
+        // [THEN] The sales line discount equals the planning-line amount grossed up by the sales header currency factor, applied exactly once.
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        Currency.Initialize(Currency.Code);
+        ExpectedDiscountAmount :=
+            Round(
+                JobPlanningLine."Line Discount Amount" * SalesHeader."Currency Factor",
+                Currency."Amount Rounding Precision");
+        Assert.AreEqual(
+            ExpectedDiscountAmount, SalesLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, SalesLine.FieldCaption("Line Discount Amount"), Format(ExpectedDiscountAmount)));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,TransferToCreditMemoHandler')]
+    [Scope('OnPrem')]
+    procedure LineDiscountAmountPreservedForCreditMemo()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        // [SCENARIO 647197] Transferring a project planning line to a credit memo preserves the discount magnitude and applies the correct credit-memo factor sign.
+        // [AI] v0.2
+        Initialize();
+
+        // [GIVEN] A project with an item contract planning line of negative Quantity = -2, Unit Price = 72786, Line Discount Amount = -8511.37.
+        CreateJob(Job, '', false);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryInventory.CreateItem(Item);
+        LibraryJob.CreateJobPlanningLine(LibraryJob.PlanningLineTypeContract(), JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, -2);
+        JobPlanningLine.Validate("Unit Price", 72786);
+        JobPlanningLine.Validate("Line Discount Amount", -8511.37);
+        JobPlanningLine.Modify(true);
+
+        // [WHEN] The planning line is transferred to a Sales Credit Memo.
+        TransferJobPlanningLine(JobPlanningLine, 1, true, SalesHeader);
+
+        // [THEN] The credit memo sales line keeps the exact discount magnitude with the sign corrected by the credit-memo factor (8511.37).
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        Assert.AreEqual(
+            8511.37, SalesLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, SalesLine.FieldCaption("Line Discount Amount"), Format(8511.37)));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4886,6 +5133,23 @@ codeunit 136306 "Job Invoicing"
         LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup.Code, GenProdPostingGroup.Code);
         GenBusPostingGroupCode := GenBusPostingGroup.Code;
         GenProdPostingGroupCode := GenProdPostingGroup.Code;
+    end;
+
+    local procedure CreateVATPostingSetupWithRate(var VATPostingSetup: Record "VAT Posting Setup"; VATRate: Decimal)
+    var
+        VATBusPostingGroup: Record "VAT Business Posting Group";
+        VATProdPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProdPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup.Code, VATProdPostingGroup.Code);
+        VATPostingSetup.Validate(
+            "VAT Identifier",
+            CopyStr(LibraryERM.CreateRandomVATIdentifierAndGetCode(), 1, MaxStrLen(VATPostingSetup."VAT Identifier")));
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("VAT %", VATRate);
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure CreateVATPostingGroupsArray(var VATBusPostingGroup: Record "VAT Business Posting Group"; var VATProdPostingGroupArray: array[6] of Record "VAT Product Posting Group"; var VATPostingSetupArray: array[6] of Record "VAT Posting Setup")

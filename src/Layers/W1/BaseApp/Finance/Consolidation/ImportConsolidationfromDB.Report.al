@@ -540,7 +540,9 @@ report 90 "Import Consolidation from DB"
         AccountingPeriod.Reset();
         AccountingPeriod.SetRange(Closed, false);
         AccountingPeriod.SetRange("New Fiscal Year", true);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         if AccountingPeriod.Find('-') then begin
+#pragma warning restore AA0181, AA0233
             FiscalYearStartDate := AccountingPeriod."Starting Date";
             if AccountingPeriod.Find('>') then
                 FiscalYearEndDate := CalcDate('<-1D>', AccountingPeriod."Starting Date")

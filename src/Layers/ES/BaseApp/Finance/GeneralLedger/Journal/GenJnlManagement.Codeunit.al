@@ -617,6 +617,21 @@ codeunit 230 GenJnlManagement
         OnAfterCalcBalance(GenJnlLine);
     end;
 
+    procedure CalcBatchTotal(var GenJnlLine: Record "Gen. Journal Line"; var BatchTotal: Decimal; var ShowBatchTotal: Boolean)
+    var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        TotalGenJnlLine: Record "Gen. Journal Line";
+    begin
+        BatchTotal := 0;
+        ShowBatchTotal := not (CurrentClientType in [CLIENTTYPE::SOAP, CLIENTTYPE::OData, CLIENTTYPE::ODataV4, CLIENTTYPE::Api]);
+        if not ShowBatchTotal then
+            exit;
+
+        TotalGenJnlLine.CopyFilters(GenJnlLine);
+        TotalGenJnlLine.CalcSums("Amount (LCY)");
+        BatchTotal := TotalGenJnlLine."Amount (LCY)";
+    end;
+
     /// <summary>
     /// Generates unique journal template names by checking for conflicts and incrementing names when needed.
     /// Ensures new template names are unique while maintaining meaningful naming based on template type.

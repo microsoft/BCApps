@@ -39,6 +39,15 @@ pageextension 4353 "Agent Card" extends "Agent Card"
                         CustomAgentInstructionsDialog: Page "Custom Ag. Instructions Dialog";
                     begin
                         CustomAgentInstructionsDialog.SetUserSecurityId(Rec."User Security ID");
+
+                        // Archived agents stay viewable, but the dialog writes instructions
+                        // straight to the setup record, so it must be opened read-only.
+                        if CustomAgentIsArchived then begin
+                            CustomAgentInstructionsDialog.SetReadOnlyMode(true);
+                            CustomAgentInstructionsDialog.RunModal();
+                            exit;
+                        end;
+
                         if CustomAgentInstructionsDialog.RunModal() = Action::OK then begin
                             Commit();
                             if Confirm(OpenEditInstructionsPageQst) then
@@ -59,7 +68,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
                 Caption = 'Customize profile (role)';
                 Image = SetupColumns;
                 Visible = IsWebClient;
-                Enabled = IsProfileEditable;
+                Enabled = IsProfileEditable and not CustomAgentIsArchived;
                 ToolTip = 'Change the user interface to fit the needs of this agent (opens in new tab). The changes that you make will apply to all users and agents that are assigned this profile.';
                 AccessByPermission = tabledata "All Profile" = M;
 
@@ -96,7 +105,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
                 ApplicationArea = All;
                 Caption = 'Test agent';
                 ToolTip = 'Open the test agent page to test and interact with this agent.';
-                Enabled = IsCustomAgent;
+                Enabled = IsCustomAgent and not CustomAgentIsArchived;
                 Image = DocumentEdit;
 
                 trigger OnAction()
@@ -142,6 +151,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
     var
         Agent: Codeunit "Agent";
     begin
+        CustomAgentIsArchived := Rec.Substate = Rec.Substate::Archived;
         IsCustomAgent := CustomAgentSetup.Get(Rec."User Security ID");
         if IsCustomAgent then
             AgentModelName := Agent.GetModelName(Rec."User Security ID")
@@ -158,6 +168,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
         CustomAgentSetupCodeunit: Codeunit "Custom Agent Setup";
         AgentModelName: Text;
         IsWebClient, IsProfileEditable : Boolean;
+        CustomAgentIsArchived: Boolean;
         ConfirmExportAgentQst: Label 'Are you sure you want to export the selected agent?';
         OpenEditInstructionsPageQst: Label 'Do you want to open the test agent page to test the agent with the updated instructions?';
 }

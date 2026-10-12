@@ -698,6 +698,8 @@ codeunit 99000832 "Sales Line-Reserve"
             ItemTrackingLines.SetSecondSourceID(Database::"Warehouse Shipment Line", AsmToOrder);
 
         InitFromSalesLine(TrackingSpecification, SalesLine);
+        if SecondSourceQuantityArray[1] = Database::"Warehouse Shipment Line" then
+            TrackingSpecification."Bin Code" := '';
 
         IsHandled := false;
         OnCallItemTrackingSecondSourceOnBeforeOpenItemTrackingLines(SalesLine, TrackingSpecification, SecondSourceQuantityArray, IsHandled);

@@ -107,7 +107,9 @@ table 17207 "Tax Register Section"
                 CheckUseDimCode(4, xRec."Dimension 4 Code", "Dimension 4 Code");
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(16; "Page Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Page),
                                                                            "Object ID" = field("Page ID")));

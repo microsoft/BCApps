@@ -42,6 +42,16 @@ pageextension 18244 "GST Bank Receipt Voucher Ext" extends "Bank Receipt Voucher
                     CallTaxEngine();
                 end;
             }
+            field("GST Without Payment of Duty"; Rec."GST Without Payment of Duty")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies if the journal is with or without payment of duty.';
+
+                trigger OnValidate()
+                begin
+                    CallTaxEngine();
+                end;
+            }
             field("GST TDS/GST TCS"; Rec."GST TDS/GST TCS")
             {
                 ApplicationArea = Basic, Suite;

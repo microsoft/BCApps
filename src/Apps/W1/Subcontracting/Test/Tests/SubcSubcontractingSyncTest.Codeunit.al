@@ -132,28 +132,28 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Initialize();
 
         // [GIVEN] Subcontracting setup with Transfer-type Production Order "P" for item "I", Subcontracting PO for vendor "V1", Transfer Order "T"
-        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcManagementLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcManagementLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        SubcManagementLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+        SubcManagementLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder."Created from Purch. Order" := true;
         ProductionOrder.Modify();
         UpdateSubMgmtSetupWithReqWkshTemplate();
         SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocation.Code);
-        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        SubcManagementLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcManagementLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -202,28 +202,28 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Initialize();
 
         // [GIVEN] Subcontracting setup with Transfer-type Production Order "P", Subcontracting PO for vendor "V1", Transfer Order "T"
-        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcManagementLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcManagementLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        SubcManagementLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+        SubcManagementLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);  // Use quantity 1
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder."Created from Purch. Order" := true;
         ProductionOrder.Modify();
         UpdateSubMgmtSetupWithReqWkshTemplate();
         SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocation.Code);
-        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        SubcManagementLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcManagementLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -400,7 +400,6 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
         MachineCenter[2].Get(MachineCenterNo2);
         LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
         if Subcontracting then
             CreateWorkCenter(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", Subcontracting, UnitCostCalculation, '')
         else
@@ -523,13 +522,12 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         WorkCenter.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 1));
         WorkCenter.Validate("Overhead Rate", LibraryRandom.RandDec(5, 1));
         WorkCenter.Validate("Unit Cost Calculation", UnitCostCalc);
-
         if Subcontract then begin
             LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
             GenProductPostingGroup.FindFirst();
             GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             GenProductPostingGroup.Modify(true);
-            WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+            WorkCenter.Validate("Subcontractor No.", SubcManagementLibrary.CreateSubcontractorWithCurrency(CurrencyCode));
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
@@ -603,10 +601,9 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Sync Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
+        SubcManagementLibrary.Initialize();
         UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Subcontracting Sync Test");
@@ -719,7 +716,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
-        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
         LibraryPurchase: Codeunit "Library - Purchase";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         LibraryInventory: Codeunit "Library - Inventory";

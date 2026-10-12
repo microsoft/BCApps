@@ -1802,6 +1802,189 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         VerifyItemLedgerEntriesForTransfer(Item."No.", LocationFrom.Code, LocationTo.Code, -Quantity, Quantity);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectManualDirectTransferWithPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Warehouse]
+        // [SCENARIO] A manually selected direct transfer can be deselected for a put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" has two unposted direct lines and a put-away destination.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, false, true, false);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectManualDirectTransferWithReceiveAndPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Warehouse]
+        // [SCENARIO] A manually selected direct transfer can be deselected for a receipt and put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" has two unposted direct lines and a receipt and put-away destination.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, false, true, true);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectRouteDirectTransferWithPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Transfer Route] [Warehouse]
+        // [SCENARIO] A route-initialized direct transfer can be deselected for a put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" inherits direct posting from its route and has two unposted lines.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, true, true, false);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectRouteDirectTransferWithReceiveAndPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Transfer Route] [Warehouse]
+        // [SCENARIO] A route-initialized direct transfer can be deselected for a receipt and put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" inherits direct posting from its route and has two unposted lines.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, true, true, true);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectDirectTransferWithoutWarehouseRequirements()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer]
+        // [SCENARIO] Deselecting a direct transfer without warehouse requirements still requires in-transit handling.
+        Initialize();
+
+        // [GIVEN] Order "T" has two unposted direct lines and no warehouse requirements.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, false, false, false);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectDirectTransferRejectsPartiallyShippedLines()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer]
+        // [SCENARIO] Deselecting a partially posted direct transfer retains the shipped-quantity safeguard.
+        Initialize();
+
+        // [GIVEN] Order "T" has shipped five of ten items.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 10);
+        CreateDirectTransferOrder(
+            TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
+            TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferLine.Validate("Qty. to Ship", 5);
+        TransferLine.Modify(true);
+        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
+        LibraryInventory.ReopenTransferOrder(TransferHeader);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(5, TransferLine."Quantity Shipped", 'The fixture must be partially shipped.');
+
+        // [WHEN] Direct Transfer is deselected.
+        asserterror TransferHeader.Validate("Direct Transfer", false);
+
+        // [THEN] The line cannot be reinitialized after shipment.
+        Assert.ExpectedError('Quantity Shipped must be equal to ''0''');
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectDirectTransferRetainsWarehouseLineProtection()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Warehouse Shipment]
+        // [SCENARIO] Deselecting a direct transfer cannot reinitialize a warehouse-protected line.
+        Initialize();
+
+        // [GIVEN] Order "T" has a warehouse shipment for its unposted line.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+        CreateLocationWithWarehouseSetup(LocationFrom, false, false, false, false, true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 10);
+        CreateDirectTransferOrder(
+            TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
+            TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, TransferHeader."No.");
+        LibraryInventory.ReopenTransferOrder(TransferHeader);
+
+        // [WHEN] Direct Transfer is deselected.
+        asserterror TransferHeader.Validate("Direct Transfer", false);
+
+        // [THEN] Existing warehouse source-line protection rejects the change.
+        Assert.ExpectedError('must not be changed when a Warehouse Shipment Line');
+        Assert.ExpectedErrorCode('NCLCSRTS:TableErrorStr');
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
@@ -1815,6 +1998,82 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
 
         isInitialized := true;
         Commit();
+    end;
+
+    local procedure CreateTransferForDeselection(var TransferHeader: Record "Transfer Header"; UseTransferRoute: Boolean; RequirePutaway: Boolean; RequireReceive: Boolean)
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferLine: Record "Transfer Line";
+        TransferRoute: Record "Transfer Route";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        CreateLocationWithWarehouseSetup(LocationTo, false, RequirePutaway, false, RequireReceive, false);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 100);
+        if UseTransferRoute then begin
+            LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationFrom.Code, LocationTo.Code, '', '', '');
+            TransferRoute.Validate("Direct Transfer", true);
+            TransferRoute.Validate("Direct Transfer Posting", TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+            TransferRoute.Modify(true);
+            LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, '');
+            LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+        end else
+            CreateDirectTransferOrder(
+                TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
+                TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 20);
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status, 'The transfer must be open.');
+        Assert.AreEqual(true, TransferHeader."Direct Transfer", 'The transfer must initially be direct.');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::"Direct Transfer", TransferHeader."Direct Transfer Posting",
+            'The initial posting mode must allow inbound warehouse handling.');
+        VerifyTransferLinesDirect(TransferHeader."No.", true);
+    end;
+
+    local procedure VerifyTransferLinesDirect(TransferOrderNo: Code[20]; ExpectedDirectTransfer: Boolean)
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.SetRange("Document No.", TransferOrderNo);
+        Assert.RecordCount(TransferLine, 2);
+        TransferLine.FindSet();
+        repeat
+            Assert.AreEqual(ExpectedDirectTransfer, TransferLine."Direct Transfer", 'Every line must follow the header.');
+            Assert.AreEqual(0, TransferLine."Quantity Shipped", 'The transfer line must remain unshipped.');
+            Assert.AreEqual(0, TransferLine."Quantity Received", 'The transfer line must remain unreceived.');
+            Assert.IsTrue(TransferLine.Quantity > 0, 'The transfer line must retain its positive quantity.');
+        until TransferLine.Next() = 0;
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(30, TransferLine.Quantity, 'The total transfer quantity must be retained.');
+    end;
+
+    local procedure VerifyDeselectedTransferAndRelease(var TransferHeader: Record "Transfer Header")
+    var
+        LocationInTransit: Record Location;
+    begin
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(false, TransferHeader."Direct Transfer", 'The persisted header must no longer be direct.');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::" ", TransferHeader."Direct Transfer Posting",
+            'The persisted direct posting mode must be cleared.');
+        Assert.AreEqual('', TransferHeader."In-Transit Code", 'Deselection must not invent an in-transit location.');
+        VerifyTransferLinesDirect(TransferHeader."No.", false);
+
+        asserterror LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        Assert.ExpectedError('In-Transit Code must have a value');
+        Assert.ExpectedErrorCode('TestField');
+
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status, 'Release without in-transit must fail.');
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        TransferHeader.Validate("In-Transit Code", LocationInTransit.Code);
+        TransferHeader.Modify(true);
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'A valid in-transit location must permit release.');
+        VerifyTransferLinesDirect(TransferHeader."No.", false);
     end;
 
     local procedure SetDirectTransferPostingMode(PostingMode: Enum "Direct Transfer Posting Type")

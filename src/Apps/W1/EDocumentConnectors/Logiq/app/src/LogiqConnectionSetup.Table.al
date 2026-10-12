@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Logiq;
 
+using System.Utilities;
+
 table 6430 "Logiq Connection Setup"
 {
     Caption = 'Logiq Connection Setup';
@@ -76,6 +78,34 @@ table 6430 "Logiq Connection Setup"
         Rec."Authentication URL" := this.PilotAuthenticationUrlTok;
         Rec."File List Endpoint" := this.FileListTok;
         Rec."Base URL" := this.PilotBaseUrlTok;
+    end;
+
+    internal procedure GetValidatedAuthenticationUrl(): Text
+    var
+        URI: Codeunit Uri;
+    begin
+        exit(URI.ValidateIntegrationURL(Rec."Authentication URL", GetExpectedAuthenticationUrl()));
+    end;
+
+    internal procedure GetValidatedBaseUrl(): Text
+    var
+        URI: Codeunit Uri;
+    begin
+        exit(URI.ValidateIntegrationURL(Rec."Base URL", GetExpectedBaseUrl()));
+    end;
+
+    local procedure GetExpectedAuthenticationUrl(): Text
+    begin
+        if Rec.Environment = Rec.Environment::Production then
+            exit(this.ProdAuthenticationUrlTok);
+        exit(this.PilotAuthenticationUrlTok);
+    end;
+
+    local procedure GetExpectedBaseUrl(): Text
+    begin
+        if Rec.Environment = Rec.Environment::Production then
+            exit(this.ProdBaseUrlTok);
+        exit(this.PilotBaseUrlTok);
     end;
 
     var

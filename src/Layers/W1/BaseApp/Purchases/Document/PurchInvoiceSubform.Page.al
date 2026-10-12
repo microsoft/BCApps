@@ -333,8 +333,10 @@ page 55 "Purch. Invoice Subform"
 
                     trigger OnDrillDown()
                     var
+                        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                         MatchedOrderLines: Page "Matched Order Lines";
                     begin
+                        MatchedOrderLineMgmt.CheckLineCanBeMatched(Rec);
                         MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", false, Rec.SystemId);
                         MatchedOrderLines.RunModal();
                     end;
@@ -1181,8 +1183,10 @@ page 55 "Purch. Invoice Subform"
 
                         trigger OnAction()
                         var
+                            MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                             MatchedOrderLines: Page "Matched Order Lines";
                         begin
+                            MatchedOrderLineMgmt.CheckLineCanBeMatched(Rec);
                             MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", false, Rec.SystemId);
                             MatchedOrderLines.RunModal();
                         end;

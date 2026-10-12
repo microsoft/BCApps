@@ -3137,6 +3137,45 @@ codeunit 137056 "SCM Warehouse-V"
         WhseCrossDockOpportunity.TestField("Qty. to Cross-Dock", 5);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,ConfirmHandlerYes,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure InvtMovementRespectsReducedQtyAfterGetBinContentWithLotNo()
+    var
+        Bin: Record Bin;
+        Bin2: Record Bin;
+        Item: Record Item;
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        QuantityToMove: Integer;
+    begin
+        // [SCENARIO 650986] Create Movement from Movement Worksheet doesn't respect Quantity nor Qty. to Handle if we Get Bin Content.
+        Initialize();
+
+        // [GIVEN] A lot-tracked item with inventory in a bin at a non-directed warehouse location.
+        LibraryWarehouse.FindBin(Bin, LocationSilver2.Code, '', 1);
+        LibraryWarehouse.FindBin(Bin2, LocationSilver2.Code, '', 2);
+        TrackingQuantity := LibraryRandom.RandIntInRange(10, 20);
+        QuantityToMove := TrackingQuantity - LibraryRandom.RandInt(TrackingQuantity - 1);
+        CreateLotTrackedItem(Item);
+        UpdateItemInventory(Item."No.", LocationSilver2.Code, Bin.Code, TrackingQuantity, true);
+
+        // [GIVEN] Get Bin Content creates a movement worksheet line and its quantity is reduced.
+        GetBinContentFromMovementWorksheet(WhseWorksheetLine, LocationSilver2.Code, Item."No.");
+        WhseWorksheetLine.SetRange("From Bin Code", Bin.Code);
+        WhseWorksheetLine.FindFirst();
+        WhseWorksheetLine.Validate("To Bin Code", Bin2.Code);
+        WhseWorksheetLine.Validate(Quantity, QuantityToMove);
+        WhseWorksheetLine.Validate("Qty. to Handle", QuantityToMove);
+        WhseWorksheetLine.Modify(true);
+        Commit();
+
+        // [WHEN] The inventory movement is created.
+        WhseWorksheetLine.MovementCreate(WhseWorksheetLine);
+
+        // [THEN] The inventory movement uses the reduced worksheet quantity.
+        VerifyWhseActivityLineForMovement(Item."No.", LocationSilver2.Code, QuantityToMove);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

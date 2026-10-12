@@ -68,6 +68,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Processing Status';
             Editable = false;
+            ToolTip = 'Specifies whether the row has been processed. In case of an error during processing, it is displayed in the "Reason (Preview)" field.';
             trigger OnValidate()
             begin
                 if "Processing Status" in ["Processing Status"::None, "Processing Status"::Ok] then
@@ -114,7 +115,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -132,7 +135,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -152,7 +157,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -478,6 +485,11 @@ table 8006 "Usage Data Billing"
     begin
         Rec.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
         Rec.FilterOnServiceCommitment(ServiceCommitment);
+    end;
+
+    internal procedure ExcludeProcessingStatusError()
+    begin
+        Rec.SetFilter("Processing Status", '<>%1', Rec."Processing Status"::Error);
     end;
 
     internal procedure FilterOnServiceCommitment(ServiceCommitment: Record "Subscription Line")

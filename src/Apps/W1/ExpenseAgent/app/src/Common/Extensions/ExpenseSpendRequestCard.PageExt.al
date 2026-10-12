@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,29 +9,18 @@ using Microsoft.Finance.SpendRequest;
 
 pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The Expense Agent no longer extends the generic Spend Request pages. Travel-specific fields and actions moved to the dedicated Travel Request pages.';
+    ObsoleteTag = '30.0';
+
     layout
     {
-        modify("Requested By")
-        {
-            Visible = false;
-        }
-        modify("Currency Code")
-        {
-            Importance = Additional;
-        }
-        modify("Total Expected Amount (LCY)")
-        {
-            Importance = Additional;
-        }
-        modify(TotalSpentAmountLCY)
-        {
-            Importance = Additional;
-        }
         addafter("Requested By")
         {
             field("Requested For"; Rec."Requested For")
             {
                 ApplicationArea = Basic, Suite;
+                Visible = false;
             }
         }
         addafter(Lines)
@@ -38,6 +28,7 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
             group("Travel Details")
             {
                 Caption = 'Travel Details';
+                Visible = false;
                 field("Business Justification"; Rec."Business Justification")
                 {
                     ApplicationArea = Basic, Suite;
@@ -79,32 +70,18 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
+                Visible = false;
             }
             field("Actual End Date and Time"; Rec."Actual End Date and Time")
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
+                Visible = false;
             }
-        }
-        modify("Approved by User Name")
-        {
-            Editable = false;
         }
     }
     actions
     {
-        modify(Approve)
-        {
-            Visible = false;
-        }
-        modify(Reject)
-        {
-            Visible = false;
-        }
-        modify(Print)
-        {
-            Visible = false;
-        }
         addlast(Navigation)
         {
             action("Travelers")
@@ -113,6 +90,7 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
                 Caption = 'Travelers';
                 ToolTip = 'View the travelers associated with this spend request.';
                 ApplicationArea = Basic, Suite;
+                Visible = false;
                 RunObject = page "Travelers";
                 RunPageLink = "Spend Request No." = field("No.");
             }
@@ -125,3 +103,4 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
         }
     }
 }
+#endif

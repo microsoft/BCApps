@@ -135,7 +135,7 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
         end;
 
         // Split filename into name and extension
-        DocumentAttachment.Validate("File Extension", FileManagement.GetExtension(AttachmentEntityBuffer."File Name"));
+        DocumentAttachment.Validate("File Extension", CopyStr(FileManagement.GetExtension(AttachmentEntityBuffer."File Name"), 1, MaxStrLen(DocumentAttachment."File Extension")));
         DocumentAttachment.Validate("File Name", CopyStr(FileManagement.GetFileNameWithoutExtension(AttachmentEntityBuffer."File Name"), 1, MaxStrLen(DocumentAttachment."File Name")));
 
         BindSubscription(ExpDocAttSubscribers);
@@ -164,7 +164,7 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
         if HasRegisteredField(AttachmentEntityBuffer.FieldNo("File Name"), TempFieldBuffer) then begin
             ExpenseAttachmentMgt.RestrictAttachment(DocumentAttachment);
 
-            DocumentAttachment.Validate("File Extension", FileManagement.GetExtension(AttachmentEntityBuffer."File Name"));
+            DocumentAttachment.Validate("File Extension", CopyStr(FileManagement.GetExtension(AttachmentEntityBuffer."File Name"), 1, MaxStrLen(DocumentAttachment."File Extension")));
             DocumentAttachment.Validate("File Name", CopyStr(FileManagement.GetFileNameWithoutExtension(AttachmentEntityBuffer."File Name"), 1, MaxStrLen(DocumentAttachment."File Name")));
             ModifyRecord := true;
         end;

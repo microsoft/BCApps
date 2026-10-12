@@ -286,7 +286,7 @@ table 503 "Reminder Email Text"
         Language: Codeunit Language;
         CurrentGlobalLanguage: Integer;
     begin
-        if ExistingReminderEmailText.Get(Id, LanguageCode) then
+        if ExistingReminderEmailText.Get(SelectedId, LanguageCode) then
             Error(AlreadyExistsSelectedLanguageErr, LanguageCode);
 
         CurrentGlobalLanguage := GlobalLanguage();
@@ -324,4 +324,3 @@ table 503 "Reminder Email Text"
         end;
     end;
 }
-
