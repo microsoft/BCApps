@@ -1453,5 +1453,680 @@
     "codeunitId": 139745,
     "codeunitName": "APIV1 - Journal Lines E2E",
     "method": "TestCreateJournalLineWithOverridenDefaultDimension"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestGetSimpleCustomer"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestGetCustomerWithComplexType"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestGetCustomerWithAddressAndSpecialCharacters"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestCreateDetailedCustomer"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestCreateCustomerWithComplexType"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestCreateCustomerWithTemplate"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestDeleteCustomer"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestModifyCustomer"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestModifyCustomerWithComplexType"
+  },
+  {
+    "codeunitId": 139702,
+    "codeunitName": "APIV1 - Customers E2E",
+    "method": "TestRemoveComplexTypeFromCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionWithDimensionCodeOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionWithDimensionCodeOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionWithDimensionCodeOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithoutDimensionOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithoutDimensionOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithoutDimensionOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithMismatchingDimensionsOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithMismatchingDimensionsOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithMismatchingDimensionsOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithBlockedDimensionOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithBlockedDimensionOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithBlockedDimensionOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithBlockedDimensionValueOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithBlockedDimensionValueOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestCreateDefaultDimensionFailsWithBlockedDimensionValueOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestDeleteDefaultDimensionOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestDeleteDefaultDimensionOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestDeleteDefaultDimensionOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestGetDefaultDimensionOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestGetDefaultDimensionOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestGetDefaultDimensionOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionFailsWithBlockedValueOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionFailsWithBlockedValueOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionFailsWithBlockedValueOnItem"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionFailsWhenChangingDimensionCodeOnCustomer"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionFailsWhenChangingDimensionCodeOnVendor"
+  },
+  {
+    "codeunitId": 139732,
+    "codeunitName": "APIV1 - Default Dimensions E2E",
+    "method": "TestPatchDefaultDimensionFailsWhenChangingDimensionCodeOnItem"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestCreateDimensionLine"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestCreateDimensionLineFailsWithoutParentId"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestCreateDoesntWorkWithAlreadyExistingCode"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestGetDimensionLinesOfJournalLines"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestGetDimensionLinesFailsWithoutFilter"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestGetDimensionLinesFailsWithNonSupportedEntity"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestModifyDimensionLine"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestModifyOfDimensionCodeDoesntWork"
+  },
+  {
+    "codeunitId": 139725,
+    "codeunitName": "APIV1 - Dimension Lines E2E",
+    "method": "TestDeleteDimensionLine"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithItemId"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithNonExistingItemId"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithItemNumber"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithNonExistingItemNumber"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithItemNumberAndItemId"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithMismatchingItemNumberAndItemId"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestCreateItemVariantWithExistingItemNumberAndCode"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestGetItemVariant"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestModifyItemVariant"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestModifyItemVariantItemId"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestModifyItemVariantItemNumber"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestDeleteItemVariant"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestDeleteInUse"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateSimpleItem"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateItemWithInventoryAmount"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateItemWithCategoryId"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateItemWithCategoryCode"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateItemWithComplexType"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateItemWithTemplate"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestCreateItemWithTemplateIgnoresFieldsSet"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestGetSimpleItem"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestSuccessfulTemplateSelection"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestSuccessfulTemplateSelectionWithSelectionCriteria"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestTempcodeCannotbeblankOrInvalidValue"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestGetItemWithCategory"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestGetItemWithComplexType"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestModifyItem"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestModifyItemInventory"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestModifyItemWithComplexType"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestRemoveComplexTypeFromItemUsingNull"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestRemoveComplexTypeFromItemUsingBlankValue"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestDeleteItem"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestPostItemWithUoMIdCreatesItemUoM"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestPatchItemWithUoMIdCreatesItemUoM"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestPatchItemWithCategoryCode"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestPatchItemWithCategoryId"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestPostItemWithUoMComplexTypeCreatesItemUoM"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestPatchItemWithUoMComplexTypeCreatesItemUoM"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestUoMSync"
+  },
+  {
+    "codeunitId": 139700,
+    "codeunitName": "APIV1 - Items E2E",
+    "method": "TestUoMSyncErrors"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueCustomer"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataCustomer"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueCustomerWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataCustomerWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureUploadCustomer"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureReplaceCustomer"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureDeleteCustomer"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueVendor"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataVendor"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueVendorWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataVendorWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureUploadVendor"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureReplaceVendor"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureDeleteVendor"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueEmployee"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataEmployee"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueEmployeeWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataEmployeeWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureUploadEmployee"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureReplaceEmployee"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureDeleteEmployee"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueItem"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadataItem"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureValueItemWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestGetPictureMetadatItemWithoutPicture"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureUploadItem"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureReplaceItem"
+  },
+  {
+    "codeunitId": 139742,
+    "codeunitName": "APIV1 - Pictures E2E",
+    "method": "TestPictureDeleteItem"
+  },
+  {
+    "codeunitId": 139726,
+    "codeunitName": "APIV1 - Tax Areas E2E",
+    "method": "TestVerifyIDandLastDateModified"
+  },
+  {
+    "codeunitId": 139726,
+    "codeunitName": "APIV1 - Tax Areas E2E",
+    "method": "TestGetTaxAreas"
+  },
+  {
+    "codeunitId": 139726,
+    "codeunitName": "APIV1 - Tax Areas E2E",
+    "method": "TestGetTaxArea"
+  },
+  {
+    "codeunitId": 139726,
+    "codeunitName": "APIV1 - Tax Areas E2E",
+    "method": "TestCreateTaxArea"
+  },
+  {
+    "codeunitId": 139726,
+    "codeunitName": "APIV1 - Tax Areas E2E",
+    "method": "TestModifyTaxArea"
+  },
+  {
+    "codeunitId": 139726,
+    "codeunitName": "APIV1 - Tax Areas E2E",
+    "method": "TestDeleteTaxArea"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestGetSimpleVendor"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestGetVendorWithComplexType"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestCreateSimpleVendor"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestCreateVendorWithComplexType"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestCreateVendorWithTemplate"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestModifyVendor"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestVendorModifyWithComplexTypes"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestRemoveComplexTypeFromVendor"
+  },
+  {
+    "codeunitId": 139703,
+    "codeunitName": "APIV1 - Vendors E2E",
+    "method": "TestDeleteVendor"
   }
 ]

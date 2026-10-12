@@ -31,6 +31,12 @@ codeunit 130618 "Library - Graph Mgt"
         AuthenticationProviderResolved := true;
     end;
 
+    /// <summary>Sets the work date to November 15 in the current year to stay within test-license date limits.</summary>
+    procedure SetLicenseSafeWorkDate()
+    begin
+        WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
+    end;
+
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
     var
         WebService: Record "Web Service";
