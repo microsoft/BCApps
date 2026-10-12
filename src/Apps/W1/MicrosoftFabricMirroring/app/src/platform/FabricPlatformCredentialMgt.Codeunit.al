@@ -1,6 +1,7 @@
 namespace Microsoft.FabricExport;
 
 using System.Azure.Identity;
+using System.Azure.KeyVault;
 using System.Security.Authentication;
 #if not CLEAN29
 using System.Security.Encryption;
@@ -11,7 +12,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     Access = Internal;
 
     var
-        FabricMirroringAppIdTok: Label 'dcc80069-ba40-4ad9-ba8c-60001cea3497', Locked = true;
+        FabricMirroringAppIdSecretNameTok: Label 'FabricMirroringAppId', Locked = true;
+        FabricMirroringAppIdMissingErr: Label 'The Microsoft Fabric application ID could not be retrieved from Azure Key Vault.';
         AdminConsentUrlTok: Label 'https://login.microsoftonline.com/%1/adminconsent', Comment = '%1 = tenant ID', Locked = true;
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
@@ -26,13 +28,11 @@ codeunit 48524 "Fabric Platform Credential Mgt"
 #endif
 
 #if not CLEAN29
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     internal procedure IsCustomAppEnabled(): Boolean
     begin
         exit(IsolatedStorage.Contains('FabricPlat.UseCustomApp', DataScope::Module));
     end;
 
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     internal procedure SetCustomAppEnabled(Enabled: Boolean)
     begin
         if Enabled then
@@ -42,14 +42,12 @@ codeunit 48524 "Fabric Platform Credential Mgt"
                 IsolatedStorage.Delete('FabricPlat.UseCustomApp', DataScope::Module);
     end;
 
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     internal procedure SetClientId(ClientId: Text)
     begin
         IsolatedStorage.Set('FabricPlat.ClientId', ClientId, DataScope::Module);
     end;
 
     /// <summary>Returns the client ID entered for the user's own app registration, regardless of the active mode.</summary>
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     internal procedure GetCustomClientId(): Text
     var
         Value: Text;
@@ -61,15 +59,19 @@ codeunit 48524 "Fabric Platform Credential Mgt"
 #endif
 
     /// <summary>Returns the client ID of the active app: the Microsoft first-party app unless a custom app registration is enabled.</summary>
+    [NonDebuggable]
     internal procedure GetClientId(): Text
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        ClientId: Text;
     begin
 #if not CLEAN29
-#pragma warning disable AL0432
         if IsCustomAppEnabled() then
             exit(GetCustomClientId());
-#pragma warning restore AL0432
 #endif
-        exit(FabricMirroringAppIdTok);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdSecretNameTok, ClientId) then
+            Error(FabricMirroringAppIdMissingErr);
+        exit(ClientId);
     end;
 
     internal procedure GetTenantId(): Text
@@ -97,10 +99,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     local procedure PrincipalIdStorageKey(): Text
     begin
 #if not CLEAN29
-#pragma warning disable AL0432
         if IsCustomAppEnabled() then
             exit('FabricPlat.PrincipalId');
-#pragma warning restore AL0432
 #endif
         exit('FabricPlat.FirstPartyPrincipalId');
     end;
@@ -136,7 +136,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     end;
 
 #if not CLEAN29
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     [NonDebuggable]
     internal procedure SetClientSecret(ClientSecret: SecretText)
     var
@@ -156,14 +155,12 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         Error(EncryptionNotEnabledErrorInfo);
     end;
 
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     [NonDebuggable]
     internal procedure IsClientSecretSet(): Boolean
     begin
         exit(not GetClientSecretSecure().IsEmpty());
     end;
 
-    [Obsolete('Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.', '29.0')]
     [NonDebuggable]
     internal procedure GetClientSecret(): SecretText
     begin
@@ -176,7 +173,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         LookupState: Codeunit "Fabric Platform Lookup State";
     begin
         LookupState.ClearFabricApiToken();
-        LookupState.ClearGraphApiToken();
     end;
 
     /// <summary>
@@ -209,16 +205,13 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     procedure AcquireGraphApiTokenDelegated(): SecretText
     var
         OAuth2: Codeunit OAuth2;
-        LookupState: Codeunit "Fabric Platform Lookup State";
         AccessToken: SecretText;
+        RedirectUrl: Text;
         Scopes: List of [Text];
     begin
-        // Test-injection seam: unit tests pre-seed a token to bypass the platform flow.
-        if LookupState.HasGraphApiToken() then
-            exit(LookupState.GetGraphApiToken());
-
         Scopes.Add('https://graph.microsoft.com/User.Read');
-        OAuth2.AcquireOnBehalfOfToken('', Scopes, AccessToken);
+        OAuth2.GetDefaultRedirectUrl(RedirectUrl);
+        OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
         if AccessToken.IsEmpty() then
             Error(GraphApiTokenErr);
         exit(AccessToken);
@@ -240,10 +233,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
             exit(LookupState.GetFabricApiToken());
 
 #if not CLEAN29
-#pragma warning disable AL0432
         if IsCustomAppEnabled() then
             exit(AcquireFabricApiTokenWithCustomApp());
-#pragma warning restore AL0432
 #endif
 
         Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
