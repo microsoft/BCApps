@@ -19,6 +19,7 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         CurrentSaveValuesId: Integer;
 
+#pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
@@ -46,7 +47,9 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         ECSLVATReportLine.FindFirst();
         Assert.AreEqual(PartId, ECSLVATReportLine."XML Part Id GB", 'The legacy XML part ID must be migrated.');
     end;
+#pragma warning restore AL0432
 
+#pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
@@ -68,7 +71,9 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         ECSLVATReportLine.FindFirst();
         Assert.AreEqual(PartId, ECSLVATReportLine."XML Part Id GB", 'An empty legacy XML part ID must not overwrite the target.');
     end;
+#pragma warning restore AL0432
 
+#pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
@@ -99,6 +104,7 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type", 'ZERO');
         Assert.AreEqual(200, VATReportsConfiguration."Content Max Lines GB", 'A zero legacy value must not overwrite the target.');
     end;
+#pragma warning restore AL0432
 
     [Test]
     [HandlerFunctions('ECSalesListReportRPH')]
