@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,7 +8,7 @@ using Microsoft.CRM.Outlook;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System;
-using System.Integration;
+using System.Environment;
 using System.IO;
 using System.Telemetry;
 using System.Utilities;
@@ -25,7 +25,7 @@ codeunit 1294 "OCR Service Mgt."
         MissingCredentialsQst: Label '%1\ Do you want to open %2 to specify the missing values?', Comment = '%1=error message. %2=OCR Service Setup';
         MissingCredentialsErr: Label 'You must fill the User Name, Password, and Authorization Key fields.', Comment = '%1 = OCR Service Setup';
         OCRServiceSetup: Record "OCR Service Setup";
-        AuthCookie: DotNet Cookie;
+        AuthCookie: Cookie;
         ConnectionSuccessMsg: Label 'Connection succeeded.';
         ConnectionFailedErr: Label 'The connection failed. Check that the User Name, Password, and Authorization Key fields are filled correctly.';
         NoFileContentErr: Label 'The file is empty.';
@@ -87,6 +87,36 @@ codeunit 1294 "OCR Service Mgt."
         FailedRequestResultTxt: Label 'Request to OCR service failed. Status code: %1. Message: %2. Details: %3.', Locked = true;
         FailedRequestBodyTxt: Label 'Request to OCR service failed. Method: %1. URL: %2. Body: %3', Locked = true;
         TelemetryCategoryTok: Label 'AL OCR Service', Locked = true;
+        ApplicationXmlTok: Label 'application/xml', Locked = true;
+        AcceptHeaderNameTok: Label 'Accept', Locked = true;
+        ContentTypeHeaderNameTok: Label 'Content-Type', Locked = true;
+        RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\%1', Comment = '%1 = The error message returned by the remote service';
+        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
+        RemoteServerReturnedErrorErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
+        ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
+        NoCookieErr: Label 'The web request has no cookies.';
+        SendRequestFailedErr: Label 'The request to the OCR service could not be sent. %1', Comment = '%1 = The error message returned by the platform';
+        RsoVersionHeaderNameTok: Label 'x-rs-version', Locked = true;
+        RsoVersionTok: Label '2011-10-14', Locked = true;
+        RsoKeyHeaderNameTok: Label 'x-rs-key', Locked = true;
+        RsoCultureHeaderNameTok: Label 'x-rs-culture', Locked = true;
+        RsoUICultureHeaderNameTok: Label 'x-rs-uiculture', Locked = true;
+        RsoCultureTok: Label 'en-US', Locked = true;
+        SendRequestFailedTelemetryTxt: Label 'The HTTP request to the OCR service could not be sent.', Locked = true;
+        AuthenticationUrlTxt: Label '%1/authentication/rest/authenticate', Locked = true, Comment = '%1 = OCR service URL';
+        ServicePathUrlTxt: Label '%1/%2', Locked = true, Comment = '%1 = OCR service URL; %2 = API path and query';
+        UserConfigurationPathTxt: Label 'accounts/rest/customers/%1/userconfiguration', Locked = true, Comment = '%1 = organization ID';
+        RequestUploadPathTxt: Label 'files/rest/requestupload?targetCount=%1', Locked = true, Comment = '%1 = number of documents to upload';
+        UploadImagePathTxt: Label 'files/rest/image2?filename=%1&customerid=&batchexternalid=%2&buyerid=&documenttype=%3&sortingmethod=OneDocumentPerFile', Locked = true, Comment = '%1 = file name; %2 = batch external ID; %3 = document template code';
+        LearningDocumentPathTxt: Label 'documents/rest/%1/learningdocument', Locked = true, Comment = '%1 = document ID';
+        OutputDocumentsPathTxt: Label 'documents/rest/customers/%1/outputdocuments', Locked = true, Comment = '%1 = customer ID';
+        BatchDocumentsPathTxt: Label 'documents/rest/customers/%1/batches/%2/documents?pageIndex=%3&pageSize=%4', Locked = true, Comment = '%1 = customer ID; %2 = batch ID; %3 = page index; %4 = page size';
+        BatchesWithExternalIdPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&externalId=%4', Locked = true, Comment = '%1 = customer ID; %2 = page index; %3 = page size; %4 = batch external ID';
+        BatchesPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&excludeProcessed=1', Locked = true, Comment = '%1 = customer ID; %2 = page index; %3 = page size';
+        DocumentPathTxt: Label 'documents/rest/%1', Locked = true, Comment = '%1 = document ID';
+        DocumentImagePathTxt: Label 'documents/rest/file/%1/image', Locked = true, Comment = '%1 = document ID';
+        DocumentDownloadedPathTxt: Label 'documents/rest/%1/downloaded', Locked = true, Comment = '%1 = document ID';
+        ExternalDocumentUrlTxt: Label '%1/documents/%2', Locked = true, Comment = '%1 = OCR service sign-in URL; %2 = document ID';
 
     procedure SetURLsToDefaultRSO(var OCRServiceSetup: Record "OCR Service Setup")
     begin
@@ -155,35 +185,34 @@ codeunit 1294 "OCR Service Mgt."
     [NonDebuggable]
     local procedure TryAuthenticate(var AuthenticationSucceeded: Boolean)
     var
-        TempBlob: Codeunit "Temp Blob";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        CookieNames: List of [Text];
         InStr: InStream;
+        RequestSent: Boolean;
         ResponseString: Text;
-        ResponseReceived: Boolean;
     begin
         GetOcrServiceSetup(false);
-        HttpWebRequestMgt.Initialize(StrSubstNo('%1/authentication/rest/authenticate', OCRServiceSetup."Service URL"));
-        HttpWebRequestMgt.DisableUI();
-        RsoAddHeaders(HttpWebRequestMgt);
-        HttpWebRequestMgt.SetMethod(MethodPostTok);
-        HttpWebRequestMgt.AddBodyAsText(
-          StrSubstNo(
+        InitializeRsoRequest(StrSubstNo(AuthenticationUrlTxt, OCRServiceSetup."Service URL"), MethodPostTok, ApplicationXmlTok, false, HttpRequestMessage);
+        SetRsoRequestBody(HttpRequestMessage,
+          SecretStrSubstNo(
             '<AuthenticationCredentials><UserName>%1</UserName><Password>%2</Password>' +
             '<AuthenticationType>SetCookie</AuthenticationType></AuthenticationCredentials>',
-            OCRServiceSetup."User Name", OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Password Key").Unwrap()));
-        TempBlob.CreateInStream(InStr);
-        ResponseReceived := HttpWebRequestMgt.GetResponse(InStr, HttpStatusCode, ResponseHeaders);
+            OCRServiceSetup."User Name", OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Password Key")));
 
-        if ResponseReceived then begin
-            InStr.ReadText(ResponseString);
-            AuthenticationSucceeded := StrPos(ResponseString, '<Status>Success</Status>') >= 1;
-        end else
-            Error(GetLastErrorText);
+        // Called without using the return value so that the original error propagates.
+        TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
 
-        if AuthenticationSucceeded then
-            HttpWebRequestMgt.GetCookie(AuthCookie);
+        CopyResponseContent(HttpResponseMessage, true, InStr);
+        InStr.ReadText(ResponseString);
+        AuthenticationSucceeded := StrPos(ResponseString, '<Status>Success</Status>') >= 1;
+
+        if AuthenticationSucceeded then begin
+            CookieNames := HttpResponseMessage.GetCookieNames();
+            if CookieNames.Count() = 0 then
+                Error(NoCookieErr);
+            HttpResponseMessage.GetCookie(CookieNames.Get(1), AuthCookie);
+        end;
     end;
 
     [Scope('OnPrem')]
@@ -227,7 +256,7 @@ codeunit 1294 "OCR Service Mgt."
         GetOcrServiceSetup(false);
         OCRServiceSetup.TestField("Organization ID");
 
-        if not RsoGetRequest(StrSubstNo('accounts/rest/customers/%1/userconfiguration', OCRServiceSetup."Organization ID"), ResponseStr) then
+        if not RsoGetRequest(StrSubstNo(UserConfigurationPathTxt, OCRServiceSetup."Organization ID"), ResponseStr) then
             Session.LogMessage('00008KD', GettingUserConfigurationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
         XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
 
@@ -253,20 +282,22 @@ codeunit 1294 "OCR Service Mgt."
     [Scope('OnPrem')]
     procedure RsoGetRequestBinary(PathQuery: Text; var ResponseStr: InStream; var ContentType: Text)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        ContentHeaders: HttpHeaders;
+        ContentTypeValues: List of [Text];
+        RequestSent: Boolean;
     begin
         GetOcrServiceSetup(true);
 
-        HttpWebRequestMgt.Initialize(StrSubstNo('%1/%2', OCRServiceSetup."Service URL", PathQuery));
-        HttpWebRequestMgt.DisableUI();
-        RsoAddCookie(HttpWebRequestMgt);
-        RsoAddHeaders(HttpWebRequestMgt);
-        HttpWebRequestMgt.SetMethod(MethodGetTok);
-        HttpWebRequestMgt.CreateInstream(ResponseStr);
-        HttpWebRequestMgt.GetResponse(ResponseStr, HttpStatusCode, ResponseHeaders);
-        ContentType := ResponseHeaders.Item('Content-Type');
+        InitializeRsoRequest(StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery), MethodGetTok, ApplicationXmlTok, true, HttpRequestMessage);
+        // Called without using the return value so that the original error propagates.
+        TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
+        CopyResponseContent(HttpResponseMessage, true, ResponseStr);
+        HttpResponseMessage.Content.GetHeaders(ContentHeaders);
+        if ContentHeaders.GetValues(ContentTypeHeaderNameTok, ContentTypeValues) then
+            if ContentTypeValues.Count() > 0 then
+                ContentType := ContentTypeValues.Get(1);
     end;
 
     [Scope('OnPrem')]
@@ -290,70 +321,218 @@ codeunit 1294 "OCR Service Mgt."
     [Scope('OnPrem')]
     procedure RsoRequest(PathQuery: Text; RequestAction: Code[6]; BodyText: Text; var ResponseStr: InStream): Boolean
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        RequestSent: Boolean;
+        Result: Boolean;
     begin
         GetOcrServiceSetup(true);
 
-        HttpWebRequestMgt.Initialize(StrSubstNo('%1/%2', OCRServiceSetup."Service URL", PathQuery));
-        HttpWebRequestMgt.DisableUI();
-        RsoAddCookie(HttpWebRequestMgt);
-        RsoAddHeaders(HttpWebRequestMgt);
-        HttpWebRequestMgt.SetMethod(RequestAction);
-        if BodyText <> '' then
-            HttpWebRequestMgt.AddBodyAsText(BodyText);
-        HttpWebRequestMgt.CreateInstream(ResponseStr);
-        exit(HttpWebRequestMgt.GetResponse(ResponseStr, HttpStatusCode, ResponseHeaders));
+        InitializeRsoRequest(StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery), RequestAction, ApplicationXmlTok, true, HttpRequestMessage);
+        if (BodyText <> '') or (RequestAction <> MethodGetTok) then
+            SetRsoRequestBody(HttpRequestMessage, BodyText);
+        Result := TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
+        CopyResponseContent(HttpResponseMessage, Result, ResponseStr);
+        exit(Result);
     end;
 
     [Scope('OnPrem')]
     procedure RsoRequest(PathQuery: Text; RequestAction: Code[6]; RequestBody: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var StatusCode: Integer): Boolean
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        ResponseHeaders: DotNet NameValueCollection;
-        HttpStatusCode: DotNet HttpStatusCode;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         RequestUrl: Text;
+        RequestSent: Boolean;
         Result: Boolean;
     begin
         GetOcrServiceSetup(true);
 
-        RequestUrl := StrSubstNo('%1/%2', OCRServiceSetup."Service URL", PathQuery);
-        HttpWebRequestMgt.Initialize(RequestUrl);
-        HttpWebRequestMgt.DisableUI();
-        RsoAddCookie(HttpWebRequestMgt);
-        RsoAddHeaders(HttpWebRequestMgt);
-        HttpWebRequestMgt.SetMethod(RequestAction);
-        if RequestBody <> '' then
-            HttpWebRequestMgt.AddBodyAsText(RequestBody);
+        RequestUrl := StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery);
+        InitializeRsoRequest(RequestUrl, RequestAction, ApplicationXmlTok, true, HttpRequestMessage);
+        if (RequestBody <> '') or (RequestAction <> MethodGetTok) then
+            SetRsoRequestBody(HttpRequestMessage, RequestBody);
 
-        Result := HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders);
-        if not Result then begin
-            StatusCode := HttpStatusCode;
+        Result := TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
+        if Result then
+            HttpResponseMessage.Content.ReadAs(ResponseBody)
+        else begin
+            ErrorMessage := GetLastErrorText();
+            if RequestSent then begin
+                StatusCode := HttpResponseMessage.HttpStatusCode();
+                HttpResponseMessage.Content.ReadAs(ErrorDetails);
+            end;
             Session.LogMessage('0000BBJ', StrSubstNo(FailedRequestResultTxt, StatusCode, ErrorMessage, ErrorDetails), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Session.LogMessage('0000BBK', StrSubstNo(FailedRequestBodyTxt, RequestAction, RequestUrl, RequestBody), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
         end;
         exit(Result);
     end;
 
-    local procedure RsoAddHeaders(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure InitializeRsoRequest(RequestUrl: Text; Method: Text; ReturnType: Text; AddAuthCookie: Boolean; var HttpRequestMessage: HttpRequestMessage)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        HttpRequestHeaders: HttpHeaders;
     begin
-        HttpWebRequestMgt.AddHeader('x-rs-version', '2011-10-14');
-        HttpWebRequestMgt.AddHeader('x-rs-key', OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Authorization Key"));
-        HttpWebRequestMgt.AddHeader('x-rs-culture', 'en-US');
-        HttpWebRequestMgt.AddHeader('x-rs-uiculture', 'en-US');
+        if not EnvironmentInformation.IsSaaS() then
+            OnInitializeRsoRequestOnBeforeSetRequestUri(RequestUrl);
+        HttpRequestMessage.SetRequestUri(RequestUrl);
+        HttpRequestMessage.Method(Method);
+        if AddAuthCookie then
+            RsoAddCookie(HttpRequestMessage);
+        RsoAddHeaders(HttpRequestMessage);
+        HttpRequestMessage.GetHeaders(HttpRequestHeaders);
+        HttpRequestHeaders.Add(AcceptHeaderNameTok, ReturnType);
     end;
 
-    local procedure RsoAddCookie(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure SetRsoRequestBody(var HttpRequestMessage: HttpRequestMessage; BodyText: Text)
+    var
+        HttpContent: HttpContent;
     begin
-        if IsNull(AuthCookie) then
+        HttpContent.WriteFrom(BodyText);
+        SetRsoRequestContent(HttpRequestMessage, HttpContent, ApplicationXmlTok);
+    end;
+
+    [NonDebuggable]
+    local procedure SetRsoRequestBody(var HttpRequestMessage: HttpRequestMessage; BodyText: SecretText)
+    var
+        HttpContent: HttpContent;
+    begin
+        HttpContent.WriteFrom(BodyText);
+        SetRsoRequestContent(HttpRequestMessage, HttpContent, ApplicationXmlTok);
+    end;
+
+    local procedure SetRsoRequestBody(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; ContentType: Text)
+    var
+        HttpContent: HttpContent;
+        BodyInStream: InStream;
+    begin
+        TempBlob.CreateInStream(BodyInStream);
+        HttpContent.WriteFrom(BodyInStream);
+        SetRsoRequestContent(HttpRequestMessage, HttpContent, ContentType);
+    end;
+
+    local procedure SetRsoRequestContent(var HttpRequestMessage: HttpRequestMessage; var HttpContent: HttpContent; ContentType: Text)
+    var
+        HttpContentHeaders: HttpHeaders;
+    begin
+        HttpContent.GetHeaders(HttpContentHeaders);
+        if HttpContentHeaders.Contains(ContentTypeHeaderNameTok) then
+            HttpContentHeaders.Remove(ContentTypeHeaderNameTok);
+        HttpContentHeaders.Add(ContentTypeHeaderNameTok, ContentType);
+        HttpRequestMessage.Content(HttpContent);
+    end;
+
+    local procedure SendRsoRequest(var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        HttpClient: HttpClient;
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        HttpClient.Timeout(60000);
+        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+            exit(true);
+
+        CustomDimensions.Add('Category', TelemetryCategoryTok);
+        CustomDimensions.Add('ErrorCode', GetLastErrorCode());
+        Session.LogMessage('0000VWB', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        exit(false);
+    end;
+
+    [TryFunction]
+    local procedure TrySendRsoRequest(var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage; var RequestSent: Boolean)
+    begin
+        RequestSent := SendRsoRequest(HttpRequestMessage, HttpResponseMessage);
+        if not RequestSent then
+            Error(SendRequestFailedErr, GetLastErrorText());
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            Error(RemoteServerReturnedErrorErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
+    end;
+
+    [TryFunction]
+    local procedure TryRaiseFaultXMLResponseError(RequestSent: Boolean; var HttpResponseMessage: HttpResponseMessage; RequestUrl: Text; NodePath: Text)
+    var
+        XmlDoc: XmlDocument;
+        FoundNode: XmlNode;
+        ErrorText: Text;
+        RemoteServerError: Text;
+        ResponseText: Text;
+    begin
+        if not RequestSent then begin
+            ErrorText := ConnectionErr + GetLastErrorText();
+            Error(RemoteServiceErrorMessageErr, ErrorText);
+        end;
+
+        RemoteServerError := StrSubstNo(RemoteServerReturnedErrorErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
+        if not (HttpResponseMessage.HttpStatusCode() in [302, 500]) then // Found, Internal Server Error
+            ErrorText := ConnectionErr + RemoteServerError + StrSubstNo(ServiceUrlTxt, RequestUrl);
+
+        HttpResponseMessage.Content.ReadAs(ResponseText);
+        if XmlDocument.ReadFrom(ResponseText, XmlDoc) then
+            if XmlDoc.SelectSingleNode(NodePath, FoundNode) then
+                ErrorText := GetNodeInnerText(FoundNode)
+            else
+                ErrorText := '';
+
+        if ErrorText = '' then
+            ErrorText := RemoteServerError;
+
+        Error(RemoteServiceErrorMessageErr, ErrorText);
+    end;
+
+    local procedure GetNodeInnerText(Node: XmlNode): Text
+    begin
+        case true of
+            Node.IsXmlElement():
+                exit(Node.AsXmlElement().InnerText());
+            Node.IsXmlAttribute():
+                exit(Node.AsXmlAttribute().Value());
+            Node.IsXmlText():
+                exit(Node.AsXmlText().Value());
+        end;
+        exit('');
+    end;
+
+    local procedure CopyResponseContent(var HttpResponseMessage: HttpResponseMessage; HasContent: Boolean; var ResponseStr: InStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ContentInStream: InStream;
+        ResponseOutStream: OutStream;
+    begin
+        if HasContent then begin
+            HttpResponseMessage.Content.ReadAs(ContentInStream);
+            TempBlob.CreateOutStream(ResponseOutStream);
+            CopyStream(ResponseOutStream, ContentInStream);
+        end;
+        TempBlob.CreateInStream(ResponseStr);
+    end;
+
+    [NonDebuggable]
+    local procedure RsoAddHeaders(var HttpRequestMessage: HttpRequestMessage)
+    var
+        HttpRequestHeaders: HttpHeaders;
+    begin
+        HttpRequestMessage.GetHeaders(HttpRequestHeaders);
+        HttpRequestHeaders.Add(RsoVersionHeaderNameTok, RsoVersionTok);
+        HttpRequestHeaders.Add(RsoKeyHeaderNameTok, OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Authorization Key"));
+        HttpRequestHeaders.Add(RsoCultureHeaderNameTok, RsoCultureTok);
+        HttpRequestHeaders.Add(RsoUICultureHeaderNameTok, RsoCultureTok);
+    end;
+
+    local procedure RsoAddCookie(var HttpRequestMessage: HttpRequestMessage)
+    begin
+        if AuthCookie.Name() = '' then
             if not Authenticate() then
                 Error(GetLastErrorText);
-        if AuthCookie.Expired then
+        if IsAuthCookieExpired() then
             if not Authenticate() then
                 Error(GetLastErrorText);
 
-        HttpWebRequestMgt.SetCookie(AuthCookie);
+        HttpRequestMessage.SetCookie(AuthCookie.Name(), AuthCookie.Value());
+    end;
+
+    local procedure IsAuthCookieExpired(): Boolean
+    begin
+        if AuthCookie.Expires() = 0DT then
+            exit(false);
+        exit(AuthCookie.Expires() <= CurrentDateTime());
     end;
 
     local procedure URLEncode(InText: Text): Text
@@ -411,7 +590,7 @@ codeunit 1294 "OCR Service Mgt."
         end;
 
         // Initialize upload
-        if not RsoGetRequest(StrSubstNo('files/rest/requestupload?targetCount=%1', NumberOfUploads), ResponseStr) then begin
+        if not RsoGetRequest(StrSubstNo(RequestUploadPathTxt, NumberOfUploads), ResponseStr) then begin
             Session.LogMessage('00008KE', InitializingUploadFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             LogActivityFailed(OCRServiceSetup.RecordId, InitiateUploadMsg, '');
             exit(false); // in case error text is empty
@@ -436,9 +615,9 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
         APIPart := StrSubstNo(
-            'files/rest/image2?filename=%1&customerid=&batchexternalid=%2&buyerid=&documenttype=%3&sortingmethod=OneDocumentPerFile',
+            UploadImagePathTxt,
             URLEncode(FileName), ExternalReference, Template);
-        HttpRequestURL := StrSubstNo('%1/%2', OCRServiceSetup."Service URL", APIPart);
+        HttpRequestURL := StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", APIPart);
         if UploadFile(TempBlob, HttpRequestURL, '*/*', 'application/octet-stream', LoggingRecordId) then begin
             Session.LogMessage('000089H', OCRServiceUserSuccessfullyUploadedDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             exit(true)
@@ -454,8 +633,8 @@ codeunit 1294 "OCR Service Mgt."
         APIPart: Text;
     begin
         GetOcrServiceSetup(true);
-        APIPart := StrSubstNo('documents/rest/%1/learningdocument', DocumentId);
-        HttpRequestURL := StrSubstNo('%1/%2', OCRServiceSetup."Service URL", APIPart);
+        APIPart := StrSubstNo(LearningDocumentPathTxt, DocumentId);
+        HttpRequestURL := StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", APIPart);
         if UploadFile(TempBlob, HttpRequestURL, '', '', LoggingRecordId) then begin
             Session.LogMessage('000089J', OCRServiceUserSuccessfullyUploadedLearningDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             exit(true)
@@ -466,11 +645,11 @@ codeunit 1294 "OCR Service Mgt."
 
     local procedure UploadFile(var TempBlob: Codeunit "Temp Blob"; HttpRequestURL: Text; HttpRequestReturnType: Text; HttpRequestContentType: Text; LoggingRecordId: RecordID): Boolean
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         OfficeMgt: Codeunit "Office Management";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         ResponseStr: InStream;
+        RequestSent: Boolean;
         ResponseText: Text;
     begin
         if not TempBlob.HasValue() then begin
@@ -481,27 +660,22 @@ codeunit 1294 "OCR Service Mgt."
 
         GetOcrServiceSetup(true);
 
-        HttpWebRequestMgt.Initialize(HttpRequestURL);
-        HttpWebRequestMgt.SetTraceLogEnabled(false); // Activity Log will log for us
-        HttpWebRequestMgt.DisableUI();
-        RsoAddCookie(HttpWebRequestMgt);
-        RsoAddHeaders(HttpWebRequestMgt);
-        if HttpRequestReturnType <> '' then
-            HttpWebRequestMgt.SetReturnType(HttpRequestReturnType);
-        if HttpRequestContentType <> '' then
-            HttpWebRequestMgt.SetContentType(HttpRequestContentType);
-        HttpWebRequestMgt.SetMethod(MethodPostTok);
-        HttpWebRequestMgt.AddBodyBlob(TempBlob);
-        HttpWebRequestMgt.CreateInstream(ResponseStr);
+        if HttpRequestReturnType = '' then
+            HttpRequestReturnType := ApplicationXmlTok;
+        if HttpRequestContentType = '' then
+            HttpRequestContentType := ApplicationXmlTok;
+        InitializeRsoRequest(HttpRequestURL, MethodPostTok, HttpRequestReturnType, true, HttpRequestMessage);
+        SetRsoRequestBody(HttpRequestMessage, TempBlob, HttpRequestContentType);
 
-        if not HttpWebRequestMgt.GetResponse(ResponseStr, HttpStatusCode, ResponseHeaders) then begin
-            if HttpWebRequestMgt.ProcessFaultXMLResponse('', '/ServiceError/Message', '', '') then;
+        if not TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent) then begin
+            if TryRaiseFaultXMLResponseError(RequestSent, HttpResponseMessage, HttpRequestURL, '/ServiceError/Message') then;
             Session.LogMessage('000089L', UploadFileFailedWithNoResponseMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             LogActivityFailedNoError(OCRServiceSetup.RecordId, UploadFileMsg, '');
             LogActivityFailed(LoggingRecordId, UploadFileMsg, '');
             exit(false); // in case error text is empty
         end;
 
+        CopyResponseContent(HttpResponseMessage, true, ResponseStr);
         ResponseStr.ReadText(ResponseText);
 
         if ResponseText = '<BoolValue xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><Value>true</Value></BoolValue>' then begin
@@ -706,7 +880,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
 
-        if not RsoGetRequest(StrSubstNo('documents/rest/customers/%1/outputdocuments', OCRServiceSetup."Customer ID"), ResponseStr) then
+        if not RsoGetRequest(StrSubstNo(OutputDocumentsPathTxt, OCRServiceSetup."Customer ID"), ResponseStr) then
             Session.LogMessage('00008KK', GettingDocumentsForCustomerFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
 
         XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
@@ -843,7 +1017,7 @@ codeunit 1294 "OCR Service Mgt."
         PageSize := 200;
         CurrentPage := 0;
         Path := StrSubstNo(
-            'documents/rest/customers/%1/batches/%2/documents?pageIndex=%3&pageSize=%4', OCRServiceSetup."Customer ID",
+            BatchDocumentsPathTxt, OCRServiceSetup."Customer ID",
             BatchFilter, CurrentPage, PageSize);
         if not RsoGetRequest(Path, ResponseStr) then begin
             Session.LogMessage('00008KN', GettingBatchDocumentsFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
@@ -865,11 +1039,11 @@ codeunit 1294 "OCR Service Mgt."
         CurrentPage := 0;
         if ExternalBatchFilter <> '' then
             Path := StrSubstNo(
-                'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&externalId=%4', OCRServiceSetup."Customer ID",
+                BatchesWithExternalIdPathTxt, OCRServiceSetup."Customer ID",
                 CurrentPage, PageSize, ExternalBatchFilter)
         else
             Path := StrSubstNo(
-                'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&excludeProcessed=1', OCRServiceSetup."Customer ID",
+                BatchesPathTxt, OCRServiceSetup."Customer ID",
                 CurrentPage, PageSize);
 
         if not RsoGetRequest(Path, ResponseStr) then begin
@@ -948,7 +1122,7 @@ codeunit 1294 "OCR Service Mgt."
         ResponseStr: InStream;
         XMLRootNode: DotNet XmlNode;
         AttachmentName: Text[250];
-        ContentType: Text[50];
+        ContentType: Text;
         TrackId: Text;
         IsHandled: Boolean;
         Result: Integer;
@@ -959,7 +1133,7 @@ codeunit 1294 "OCR Service Mgt."
         if IsHandled then
             exit(Result);
 
-        if not RsoGetRequest(StrSubstNo('documents/rest/%1', DocId), ResponseStr) then begin
+        if not RsoGetRequest(StrSubstNo(DocumentPathTxt, DocId), ResponseStr) then begin
             Session.LogMessage('00008KP', OCRServiceUserFailedToDownloadDocumentTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             LogActivityFailedNoError(OCRServiceSetup.RecordId, StrSubstNo(DocumentNotDownloadedTxt, DocId, ''), '');
             exit(0);
@@ -986,7 +1160,7 @@ codeunit 1294 "OCR Service Mgt."
             IncomingDocument.Init();
             IncomingDocument.CreateIncomingDocument(AttachmentName, '');
             IncomingDocumentAttachment.SetRange("External Document Reference");
-            if not RsoGetRequestBinary(StrSubstNo('documents/rest/file/%1/image', DocId), ImageInStr, ContentType) then begin
+            if not RsoGetRequestBinary(StrSubstNo(DocumentImagePathTxt, DocId), ImageInStr, ContentType) then begin
                 Session.LogMessage('00008KS', OCRServiceUserFailedToDownloadDocumentTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
                 LogActivityFailedNoError(OCRServiceSetup.RecordId, StrSubstNo(DocumentNotDownloadedTxt, DocId, TrackId), '');
                 exit(0);
@@ -1012,7 +1186,7 @@ codeunit 1294 "OCR Service Mgt."
         LogActivitySucceeded(IncomingDocument.RecordId, GetDocumentMsg, StrSubstNo(DocumentDownloadedTxt, DocId, TrackId));
 
         if not RsoPutRequest(
-             StrSubstNo('documents/rest/%1/downloaded', DocId),
+             StrSubstNo(DocumentDownloadedPathTxt, DocId),
              '<UploadDataCollection xmlns:i="http://www.w3.org/2001/XMLSchema-instance" />', ResponseStr)
         then begin
             Session.LogMessage('00008KU', RegisteringDownloadFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
@@ -1290,7 +1464,7 @@ codeunit 1294 "OCR Service Mgt."
                 exit('');
 
             DocumentID := GetDocumentId(IncomingDocumentAttachment."External Document Reference");
-            exit(StrSubstNo('%1/documents/%2', OCRServiceSetup."Sign-in URL", DocumentID));
+            exit(StrSubstNo(ExternalDocumentUrlTxt, OCRServiceSetup."Sign-in URL", DocumentID));
         end;
 
         if OCRServiceSetup.Enabled and (OCRServiceSetup."Sign-in URL" <> '') then
@@ -1334,5 +1508,12 @@ codeunit 1294 "OCR Service Mgt."
     local procedure OnCorrectOCRFileOnAfterCorrectOCRFileNodes(var OCRFileXMLRootNode: DotNet XmlNode; var IncomingDocument: Record "Incoming Document")
     begin
     end;
-}
 
+    /// <summary>
+    /// Raised in InitializeRsoRequest before the request URI is set. Allows tests to redirect OCR service requests to a mock service. Raised only in non-SaaS environments.
+    /// </summary>
+    [InternalEvent(false)]
+    local procedure OnInitializeRsoRequestOnBeforeSetRequestUri(var Url: Text)
+    begin
+    end;
+}
