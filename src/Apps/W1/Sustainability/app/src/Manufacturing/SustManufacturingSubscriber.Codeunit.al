@@ -254,13 +254,10 @@ codeunit 6254 "Sust. Manufacturing Subscriber"
     begin
         if not (ItemJournalLine."Entry Type" in [ItemJournalLine."Entry Type"::Output]) then
             exit;
-
         if (ItemJournalLine."Item No." = '') then
             exit;
-
         if (ItemJournalLine."Order Type" <> ItemJournalLine."Order Type"::Production) then
             exit;
-
         if not SustainabilitySetup.IsValueChainTrackingEnabled() then
             exit;
 
@@ -281,13 +278,10 @@ codeunit 6254 "Sust. Manufacturing Subscriber"
     begin
         if (ItemJournalLine."Order Type" <> ItemJournalLine."Order Type"::Production) then
             exit;
-
         if not (ItemJournalLine."Entry Type" in [ItemJournalLine."Entry Type"::Consumption]) then
             exit;
-
         if not SustainabilitySetup.IsValueChainTrackingEnabled() then
             exit;
-
         if ProdOrderComponent.Get(ProdOrderComponent.Status::Released, ItemJournalLine."Order No.", ItemJournalLine."Order Line No.", ItemJournalLine."Prod. Order Comp. Line No.") then
             if ProdOrderComponent."Sust. Account No." <> '' then begin
                 ItemJournalLine.Validate("Sust. Account No.", ProdOrderComponent."Sust. Account No.");

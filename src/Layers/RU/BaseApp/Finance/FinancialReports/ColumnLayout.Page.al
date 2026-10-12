@@ -26,6 +26,7 @@ page 489 "Column Layout"
     AutoSplitKey = true;
     Caption = '(Financial Report) Column Definitions';
     DataCaptionFields = "Column Layout Name";
+    MultipleNewLines = true;
     PageType = Worksheet;
     SourceTable = "Column Layout";
     UsageCategory = None;
@@ -102,6 +103,22 @@ page 489 "Column Layout"
                     begin
                         ColumnLayoutName.Get(CurrentColumnName);
                         ColumnLayoutName.Status := DefinitionStatus;
+                        ColumnLayoutName.Modify();
+                    end;
+                }
+                field(PreviewRowDef; PreviewRowDef)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Row Definition (for Preview)';
+                    TableRelation = "Acc. Schedule Name";
+                    ToolTip = 'Specifies the row definition used when previewing this column definition.';
+
+                    trigger OnValidate()
+                    var
+                        ColumnLayoutName: Record "Column Layout Name";
+                    begin
+                        ColumnLayoutName.Get(CurrentColumnName);
+                        ColumnLayoutName."Preview Row Def." := PreviewRowDef;
                         ColumnLayoutName.Modify();
                     end;
                 }
@@ -355,6 +372,26 @@ page 489 "Column Layout"
                 end;
             }
 #endif
+            action(Preview)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Preview';
+                Image = View;
+                ToolTip = 'Preview the financial report using the current column definition and the row definition specified for preview.';
+
+                trigger OnAction()
+                var
+                    AccScheduleOverview: Page "Acc. Schedule Overview";
+                begin
+                    if PreviewRowDef = '' then
+                        Error(MissingPreviewRowDefErr);
+                    AccScheduleOverview.SetViewOnlyMode(true);
+                    AccScheduleOverview.SetPreview(AccSchedManagement.GetColumnLayoutCaption(CurrentColumnName));
+                    AccScheduleOverview.SetColumnDefinition(CurrentColumnName);
+                    AccScheduleOverview.SetAccSchedName(PreviewRowDef);
+                    AccScheduleOverview.Run();
+                end;
+            }
             action(WhereUsed)
             {
                 ApplicationArea = Basic, Suite;
@@ -411,6 +448,7 @@ page 489 "Column Layout"
                     ObsoleteTag = '28.0';
                 }
 #endif
+                actionref(Preview_Promoted; Preview) { }
                 actionref(WhereUsed_Promoted; WhereUsed) { }
                 actionref(HideHeader_Promoted; HideHeader) { }
                 actionref(ShowHeader_Promoted; ShowHeader) { }
@@ -449,6 +487,30 @@ page 489 "Column Layout"
         GetDescriptions();
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        PrecedingColumnLayout: Record "Column Layout";
+    begin
+        if not GetPrecedingColumnLayout(BelowxRec, PrecedingColumnLayout) then
+            exit;
+        Rec."Column Type" := PrecedingColumnLayout."Column Type";
+        Rec."Amount Type" := PrecedingColumnLayout."Amount Type";
+    end;
+
+    local procedure GetPrecedingColumnLayout(BelowxRec: Boolean; var PrecedingColumnLayout: Record "Column Layout"): Boolean
+    begin
+        // A new column inherits its type settings from the column that precedes it in the list.
+        // When inserting below xRec, xRec is that preceding column; when inserting above xRec,
+        // the preceding column is the record immediately before xRec.
+        if xRec."Line No." = 0 then
+            exit(false);
+        PrecedingColumnLayout := xRec;
+        PrecedingColumnLayout.SetRange("Column Layout Name", xRec."Column Layout Name");
+        if BelowxRec then
+            exit(true);
+        exit(PrecedingColumnLayout.Next(-1) <> 0);
+    end;
+
     var
         AccSchedManagement: Codeunit AccSchedManagement;
         CurrentColumnName: Code[10];
@@ -456,7 +518,9 @@ page 489 "Column Layout"
         DimCaptionsInitialized: Boolean;
         CurrentDescription: Text[80];
         InternalDescription: Text[500];
+        PreviewRowDef: Code[10];
         HeaderHidden: Boolean;
+        MissingPreviewRowDefErr: Label 'Specify a row definition in the Row Definition (for Preview) field before you preview this column definition.';
 
     local procedure GetDescriptions()
     var
@@ -465,10 +529,12 @@ page 489 "Column Layout"
     begin
         CurrentDescription := '';
         InternalDescription := '';
+        PreviewRowDef := '';
         if ColumnLayoutName.Get(CurrentColumnName) then begin
             DefinitionStatus := ColumnLayoutName.Status;
             CurrentDescription := ColumnLayoutName.Description;
             InternalDescription := ColumnLayoutName."Internal Description";
+            PreviewRowDef := ColumnLayoutName."Preview Row Def.";
             FinancialReportMgt.CheckStatus(ColumnLayoutName.TableCaption(), ColumnLayoutName.Status);
         end;
     end;

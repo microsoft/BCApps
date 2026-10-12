@@ -6,7 +6,7 @@
 #pragma warning disable AA0247
 
 /// <summary>
-/// Leaves API test requests configured with the transport's default authentication behavior.
+/// Leaves API test requests configured with the library's default authentication behavior (the default credentials of the Business Central service).
 /// </summary>
 codeunit 131024 "No API Test Auth Provider" implements "API Test Auth Provider"
 {
