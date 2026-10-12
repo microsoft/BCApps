@@ -210,6 +210,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
+        PrevTransactionNo: BigInteger;
     begin
         if GLEntry2.Find('+') then begin
             PrevTransactionNo := GLEntry2."Transaction No.";
