@@ -1,6 +1,7 @@
 codeunit 139843 "APIV2 - Vendor Payments E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -884,6 +885,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Vendor Payments E2E");
 
         if not isInitialized then
