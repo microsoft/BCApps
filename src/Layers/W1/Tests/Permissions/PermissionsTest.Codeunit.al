@@ -945,7 +945,7 @@ codeunit 139400 "Permissions Test"
         // [WHEN] The permissions overview page insert permission is filtered to Yes
         PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::Yes);
         // [THEN] Only permissions with insert permission set to Yes are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
         // [WHEN] The permissions overview page insert permission is filtered to Indirect
         PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::Indirect);
         // [THEN] Only permissions with insert permission set to Indirect are visible
@@ -1130,16 +1130,28 @@ codeunit 139400 "Permissions Test"
         TenantPermission.Insert(true);
     end;
 
-    local procedure AssertPermOverviewObjPerm(var PermissionsOverview: TestPage "Permissions Overview"; TenantPermission: Record "Tenant Permission")
+    local procedure AssertPermOverviewObjPerm(var PermissionsOverview: TestPage "Permissions Overview"; TenantPermissionExpected: Record "Tenant Permission")
+    var
+        BlankTenantPermission: Record "Tenant Permission";
     begin
-        PermissionsOverview.ObjTypeFilter.SetValue(TenantPermission."Object Type" + 1);
-        PermissionsOverview.ObjIDFilter.SetValue(TenantPermission."Object ID");
-        Assert.IsTrue(PermissionsOverview.First(), StrSubstNo('Expected permission %1 %2 not found', TenantPermission."Object Type", TenantPermission."Object ID"));
-        PermissionsOverview.ReadPermission.AssertEquals(TenantPermission."Read Permission");
-        PermissionsOverview.InsertPermission.AssertEquals(TenantPermission."Insert Permission");
-        PermissionsOverview.ModifyPermission.AssertEquals(TenantPermission."Modify Permission");
-        PermissionsOverview.DeletePermission.AssertEquals(TenantPermission."Delete Permission");
-        PermissionsOverview.ExecutePermission.AssertEquals(TenantPermission."Execute Permission");
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermissionExpected, BlankTenantPermission);
+    end;
+
+    local procedure AssertPermOverviewObjPerm(var PermissionsOverview: TestPage "Permissions Overview"; TenantPermissionExpected: Record "Tenant Permission"; TenantPermissionUnexpected: Record "Tenant Permission")
+    begin
+        PermissionsOverview.ObjTypeFilter.SetValue(TenantPermissionExpected."Object Type" + 1);
+        PermissionsOverview.ObjIDFilter.SetValue(TenantPermissionExpected."Object ID");
+        Assert.IsTrue(PermissionsOverview.First(), StrSubstNo('Expected permission %1 %2 not found', TenantPermissionExpected."Object Type", TenantPermissionExpected."Object ID"));
+        PermissionsOverview.ReadPermission.AssertEquals(TenantPermissionExpected."Read Permission");
+        PermissionsOverview.InsertPermission.AssertEquals(TenantPermissionExpected."Insert Permission");
+        PermissionsOverview.ModifyPermission.AssertEquals(TenantPermissionExpected."Modify Permission");
+        PermissionsOverview.DeletePermission.AssertEquals(TenantPermissionExpected."Delete Permission");
+        PermissionsOverview.ExecutePermission.AssertEquals(TenantPermissionExpected."Execute Permission");
+        if TenantPermissionUnexpected."Object ID" <> 0 then begin
+            PermissionsOverview.ObjTypeFilter.SetValue(TenantPermissionUnexpected."Object Type" + 1);
+            PermissionsOverview.ObjIDFilter.SetValue(TenantPermissionUnexpected."Object ID");
+            Assert.IsFalse(PermissionsOverview.First(), StrSubstNo('Unexpected permission %1 %2 found', TenantPermissionUnexpected."Object Type", TenantPermissionUnexpected."Object ID"));
+        end;
     end;
 
     [Test]

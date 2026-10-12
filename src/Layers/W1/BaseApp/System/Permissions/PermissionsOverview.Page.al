@@ -742,14 +742,19 @@ page 9883 "Permissions Overview"
 
     local procedure SetPermFieldFilter(FldRef: FieldRef; var PageFilter: Enum "Permission Filter")
     begin
+        if TrySetPermFieldFilter(FldRef, PageFilter) then;
+    end;
+
+    [TryFunction]
+    local procedure TrySetPermFieldFilter(FldRef: FieldRef; var PageFilter: Enum "Permission Filter")
+    begin
+        PageFilter := "Permission Filter"::" ";
         if FldRef.GetFilter() <> '' then
             if FldRef.GetRangeMin() = FldRef.GetRangeMax() then begin
                 PageFilter := FldRef.GetRangeMin();
                 PageFilter := "Permission Filter".FromInteger(PageFilter.AsInteger() + 1);
                 exit;
             end;
-
-        PageFilter := "Permission Filter"::" ";
     end;
 
     /// <summary>
