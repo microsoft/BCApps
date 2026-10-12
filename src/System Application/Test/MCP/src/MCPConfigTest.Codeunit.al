@@ -23,6 +23,7 @@ codeunit 130130 "MCP Config Test"
         Assert: Codeunit "Library Assert";
         MCPConfig: Codeunit "MCP Config";
         MCPConfigTestLibrary: Codeunit "MCP Config Test Library";
+        ConfigurationWithMissingAgentJsonTxt: Label '{"name":"Imported configuration","enableAgents":true,"tools":[],"agents":[{"agentId":"%1"}]}', Locked = true;
 
     #region Configurations
 
@@ -238,6 +239,7 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(NewMCPConfiguration.Description, 'Copy of ' + SourceMCPConfiguration.Description, 'Description mismatch');
         Assert.AreEqual(NewMCPConfiguration.Active, SourceMCPConfiguration.Active, 'Active is not true');
         Assert.AreEqual(NewMCPConfiguration.EnableDynamicToolMode, SourceMCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode is not true');
+        Assert.AreEqual(NewMCPConfiguration.EnableAgents, SourceMCPConfiguration.EnableAgents, 'EnableAgents mismatch');
         Assert.AreEqual(NewMCPConfiguration.AllowProdChanges, SourceMCPConfiguration.AllowProdChanges, 'AllowProdChanges is not true');
 
         NewMCPConfigurationTool.SetRange(ID, NewConfigId);
@@ -249,6 +251,7 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(NewMCPConfigurationTool."Allow Modify", SourceMCPConfigurationTool."Allow Modify", 'Allow Modify mismatch');
         Assert.AreEqual(NewMCPConfigurationTool."Allow Delete", SourceMCPConfigurationTool."Allow Delete", 'Allow Delete mismatch');
         Assert.AreEqual(NewMCPConfigurationTool."Allow Bound Actions", SourceMCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions mismatch');
+        AssertConfigurationAgentCount(NewConfigId, 0);
     end;
 
     #endregion
@@ -329,6 +332,191 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
+    #region Agent Tools
+
+    [Test]
+    procedure TestEnableAgents()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        MCPConfig.EnableAgents(ConfigId, true);
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'Agent Tools should be enabled');
+    end;
+
+    [Test]
+    procedure TestDisableAgents()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAgents(ConfigId, true);
+
+        MCPConfig.EnableAgents(ConfigId, false);
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableAgents, 'Agent Tools should be disabled');
+    end;
+
+    [Test]
+    procedure TestEnableAgentsMissingConfigurationDoesNothing()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        MCPConfig.EnableAgents(CreateGuid(), true);
+        MCPConfig.EnableAgents(CreateGuid(), false);
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableAgents, 'Unrelated configuration was changed');
+    end;
+
+    [Test]
+    procedure TestCopyConfigurationCopiesAgents()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        SourceConfigId: Guid;
+        NewConfigId: Guid;
+        FirstAgentId: Guid;
+        SecondAgentId: Guid;
+    begin
+        SourceConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAgents(SourceConfigId, true);
+        FirstAgentId := CreateGuid();
+        SecondAgentId := CreateGuid();
+        InsertConfigurationAgent(SourceConfigId, FirstAgentId, 'First agent');
+        InsertConfigurationAgent(SourceConfigId, SecondAgentId, 'Second agent');
+
+        NewConfigId := MCPConfig.CopyConfiguration(SourceConfigId, CopyStr(Format(CreateGuid()), 1, 100), 'Copied configuration');
+
+        MCPConfiguration.GetBySystemId(NewConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents was not copied');
+        AssertConfigurationAgentCount(NewConfigId, 2);
+        MCPConfigurationAgent.Get(NewConfigId, FirstAgentId);
+        MCPConfigurationAgent.TestField("Agent Name", 'First agent');
+        MCPConfigurationAgent.Get(NewConfigId, SecondAgentId);
+        MCPConfigurationAgent.TestField("Agent Name", 'Second agent');
+        AssertConfigurationAgentCount(SourceConfigId, 2);
+    end;
+
+    [Test]
+    procedure TestDeleteConfigurationRemovesOnlyOwnedAgents()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        DeletedConfigId: Guid;
+        OtherConfigId: Guid;
+        SharedAgentId: Guid;
+    begin
+        DeletedConfigId := CreateMCPConfig(false, false, true, false);
+        OtherConfigId := CreateMCPConfig(false, false, true, false);
+        SharedAgentId := CreateGuid();
+        InsertConfigurationAgent(DeletedConfigId, SharedAgentId, 'Deleted agent');
+        InsertConfigurationAgent(DeletedConfigId, CreateGuid(), 'Second agent');
+        InsertConfigurationAgent(OtherConfigId, SharedAgentId, 'Retained agent');
+
+        MCPConfig.DeleteConfiguration(DeletedConfigId);
+
+        Assert.IsFalse(MCPConfiguration.GetBySystemId(DeletedConfigId), 'Deleted configuration still exists');
+        AssertConfigurationAgentCount(DeletedConfigId, 0);
+        AssertConfigurationAgentCount(OtherConfigId, 1);
+        MCPConfigurationAgent.Get(OtherConfigId, SharedAgentId);
+        MCPConfigurationAgent.TestField("Agent Name", 'Retained agent');
+    end;
+
+    [Test]
+    procedure TestDeleteConfigurationRecordRemovesAgents()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        InsertConfigurationAgent(ConfigId, CreateGuid(), 'Configured agent');
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfiguration.Delete(true);
+
+        AssertConfigurationAgentCount(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestCreateAgentToolWithMissingAgent()
+    var
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        asserterror MCPConfig.CreateAgentTool(ConfigId, CreateGuid());
+
+        Assert.ExpectedError('The selected agent no longer exists.');
+        AssertConfigurationAgentCount(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestGetAgentToolId()
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        ConfigId: Guid;
+        AgentId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        AgentId := CreateGuid();
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
+        MCPConfigurationAgent.Get(ConfigId, AgentId);
+
+        Assert.AreEqual(MCPConfigurationAgent.SystemId, MCPConfig.GetAgentToolId(ConfigId, AgentId), 'Agent tool ID mismatch');
+        Assert.IsTrue(IsNullGuid(MCPConfig.GetAgentToolId(ConfigId, CreateGuid())), 'Missing agent tool should return an empty GUID');
+    end;
+
+    [Test]
+    procedure TestDeleteAgentToolDeletesAgentTool()
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        ConfigId: Guid;
+        AgentId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        AgentId := CreateGuid();
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
+        MCPConfigurationAgent.Get(ConfigId, AgentId);
+
+        MCPConfig.DeleteAgentTool(MCPConfigurationAgent.SystemId);
+
+        AssertConfigurationAgentCount(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestDeleteAgentToolDoesNotDeleteAPIToolWithSameSystemId()
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        SharedSystemId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        SharedSystemId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationAgent.ID := ConfigId;
+        MCPConfigurationAgent."Agent ID" := CreateGuid();
+        MCPConfigurationAgent."Agent Name" := 'Configured agent';
+        MCPConfigurationAgent.SystemId := SharedSystemId;
+        MCPConfigurationAgent.Insert(false, true);
+
+        MCPConfig.DeleteAgentTool(SharedSystemId);
+
+        Assert.IsFalse(MCPConfigurationAgent.GetBySystemId(SharedSystemId), 'Agent tool was not deleted');
+        Assert.IsTrue(MCPConfigurationTool.GetBySystemId(SharedSystemId), 'API tool with the same SystemId was deleted');
+    end;
+
+    #endregion
+
     #region Tools
 
     [Test]
@@ -369,6 +557,21 @@ codeunit 130130 "MCP Config Test"
 
         // [THEN] Error message is returned
         Assert.ExpectedError('Only API pages are supported.');
+    end;
+
+    [Test]
+    procedure TestDeleteAPITool()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        APIToolId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        APIToolId := CreateMCPConfigTool(ConfigId);
+
+        MCPConfig.DeleteAPITool(APIToolId);
+
+        Assert.IsFalse(MCPConfigurationTool.GetBySystemId(APIToolId), 'API tool was not deleted');
     end;
 
     [Test]
@@ -1072,15 +1275,22 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
         JsonText: Text;
         ConfigJson: JsonObject;
+        AgentJson: JsonObject;
         JsonToken: JsonToken;
+        AgentToken: JsonToken;
+        AgentsArray: JsonArray;
+        AgentId: Guid;
     begin
-        // [GIVEN] Configuration with two tools and both tool features enabled is created
+        // [GIVEN] Configuration with API, data query, and agent tools enabled is created
         ConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(ConfigId);
         CreateMCPConfigTool(ConfigId);
+        AgentId := CreateGuid();
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
         MCPConfiguration.GetBySystemId(ConfigId);
         MCPConfiguration.EnableApiTools := true;
         MCPConfiguration.EnableAlQueryTools := true;
+        MCPConfiguration.EnableAgents := true;
         MCPConfiguration.Modify();
 
         // [WHEN] Export configuration is called
@@ -1104,8 +1314,20 @@ codeunit 130130 "MCP Config Test"
         ConfigJson.Get('enableAlQueryTools', JsonToken);
         Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableAlQueryTools mismatch');
 
+        ConfigJson.Get('enableAgents', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableAgents mismatch');
+
         ConfigJson.Get('tools', JsonToken);
         Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
+
+        ConfigJson.Get('agents', JsonToken);
+        AgentsArray := JsonToken.AsArray();
+        Assert.AreEqual(1, AgentsArray.Count(), 'Agents count mismatch');
+        AgentsArray.Get(0, AgentToken);
+        AgentJson := AgentToken.AsObject();
+        Assert.AreEqual(Format(AgentId, 0, 9), AgentJson.GetText('agentId'), 'Agent ID mismatch');
+        Assert.IsFalse(AgentJson.Contains('agentName'), 'Agent name should not be exported');
+        Assert.IsFalse(AgentJson.Contains('agentDescription'), 'Agent description should not be exported');
     end;
 
     [Test]
@@ -1122,13 +1344,14 @@ codeunit 130130 "MCP Config Test"
         NewName: Text[100];
         NewDescription: Text[250];
     begin
-        // [GIVEN] Configuration with two tools and both tool features enabled is created and exported
+        // [GIVEN] Configuration with API, data query, and agent tools enabled is created and exported
         SourceConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(SourceConfigId);
         CreateMCPConfigTool(SourceConfigId);
         MCPConfiguration.GetBySystemId(SourceConfigId);
         MCPConfiguration.EnableApiTools := true;
         MCPConfiguration.EnableAlQueryTools := true;
+        MCPConfiguration.EnableAgents := true;
         MCPConfiguration.Modify();
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
@@ -1149,12 +1372,37 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
         Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
         Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled on import');
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents mismatch');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
         Assert.RecordCount(MCPConfigurationTool, 2);
         MCPConfigurationTool.FindFirst();
         Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
+    end;
+
+    [Test]
+    procedure TestImportConfigurationSkipsMissingAgent()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+        ImportedConfigId: Guid;
+        MissingAgentId: Guid;
+        NewName: Text[100];
+    begin
+        MissingAgentId := CreateGuid();
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(StrSubstNo(ConfigurationWithMissingAgentJsonTxt, Format(MissingAgentId, 0, 9)));
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        NewName := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewName));
+
+        ImportedConfigId := MCPConfig.ImportConfiguration(InStream, NewName, 'Imported configuration');
+
+        MCPConfiguration.GetBySystemId(ImportedConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'Agent Tools should remain enabled');
+        AssertConfigurationAgentCount(ImportedConfigId, 0);
     end;
 
     [Test]
@@ -1217,6 +1465,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.Active, 'Default configuration is not active');
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
+        Assert.IsFalse(MCPConfiguration.EnableAgents, 'Agent Tools should not be enabled by default');
     end;
 
     [Test]
@@ -1494,13 +1743,15 @@ codeunit 130130 "MCP Config Test"
         MCPConfigCard.OpenEdit();
         MCPConfigCard.GoToRecord(MCPConfiguration);
 
-        // [THEN] The Server Features list shows all three features in enum order
+        // [THEN] The Server Features list shows all four features in enum order
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.First(), 'Server Features list is empty');
         Assert.AreEqual('API Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected first feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Dynamic Tool Mode row is missing');
         Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected second feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Data Query Tools row is missing');
         Assert.AreEqual('Data Query Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Agent Tools row is missing');
+        Assert.AreEqual('Agent Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fourth feature');
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
     end;
 
@@ -1528,6 +1779,8 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be enabled for Dynamic Tool Mode');
         MCPConfigCard.ServerFeatureList.Next(); // Data Query Tools
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for Data Query Tools');
+        MCPConfigCard.ServerFeatureList.Next(); // Agent Tools
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for Agent Tools');
     end;
 
     [Test]
@@ -1555,6 +1808,30 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual('Active', MCPConfigCard.ServerFeatureList.Status.Value, 'Dynamic Tool Mode row is not Active');
         MCPConfiguration.GetBySystemId(ConfigId);
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode was not set');
+    end;
+
+    [Test]
+    procedure TestActivateAgentToolsFromServerFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        MCPConfig.EnableDataQueryTools(ConfigId, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+        GoToAgentToolsFeature(MCPConfigCard);
+
+        MCPConfigCard.ServerFeatureList.Activate.Invoke();
+
+        Assert.AreEqual('Active', MCPConfigCard.ServerFeatureList.Status.Value, 'Agent Tools row is not Active');
+        Assert.IsTrue(MCPConfigCard.AgentList.Visible(), 'Available Agents should be visible');
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents was not set');
+        AssertAgentSystemTools(MCPConfigCard);
     end;
 
     [Test]
@@ -1727,6 +2004,50 @@ codeunit 130130 "MCP Config Test"
         MCPConfigurationTool."Allow Bound Actions" := false;
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
+    end;
+
+    local procedure InsertConfigurationAgent(ConfigId: Guid; AgentId: Guid; AgentName: Text[80])
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        MCPConfigurationAgent.ID := ConfigId;
+        MCPConfigurationAgent."Agent ID" := AgentId;
+        MCPConfigurationAgent."Agent Name" := AgentName;
+        MCPConfigurationAgent.Insert();
+    end;
+
+    local procedure AssertConfigurationAgentCount(ConfigId: Guid; ExpectedCount: Integer)
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        MCPConfigurationAgent.SetRange(ID, ConfigId);
+        Assert.AreEqual(ExpectedCount, MCPConfigurationAgent.Count(), 'Unexpected configured agent count');
+    end;
+
+    local procedure GoToAgentToolsFeature(var MCPConfigCard: TestPage "MCP Config Card")
+    begin
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.First(), 'Server Features list is empty');
+        while MCPConfigCard.ServerFeatureList.Feature.Value <> 'Agent Tools (Preview/Billable)' do
+            if not MCPConfigCard.ServerFeatureList.Next() then
+                Error('Agent Tools row is missing.');
+    end;
+
+    local procedure AssertAgentSystemTools(var MCPConfigCard: TestPage "MCP Config Card")
+    var
+        ExpectedSystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
+        ToolCount: Integer;
+    begin
+        MCPConfigTestLibrary.GetAgentSystemTools(ExpectedSystemTools);
+        if MCPConfigCard.SystemToolList.First() then
+            repeat
+                ToolCount += 1;
+                ToolName := MCPConfigCard.SystemToolList."Tool Name".Value;
+                Assert.IsTrue(ExpectedSystemTools.ContainsKey(ToolName), 'Unexpected active system tool: ' + ToolName);
+                Assert.AreEqual(ExpectedSystemTools.Get(ToolName), MCPConfigCard.SystemToolList."Tool Description".Value, 'Agent system tool description mismatch');
+            until not MCPConfigCard.SystemToolList.Next();
+
+        Assert.AreEqual(ExpectedSystemTools.Count(), ToolCount, 'Unexpected Active System Tools count');
     end;
 
     local procedure EnsureSystemDefaultExists()
