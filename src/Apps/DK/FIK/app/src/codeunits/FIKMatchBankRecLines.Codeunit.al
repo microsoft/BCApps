@@ -327,15 +327,16 @@ Codeunit 13651 FIK_MatchBankRecLines
     VAR
         CustLedgerEntry: Record "Cust. Ledger Entry";
     BEGIN
-        CustLedgerEntry.SETAUTOCALCFIELDS("Remaining Amt. (LCY)");
-        IF CustLedgerEntry.FINDSET() THEN
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange(Open, true);
+        CustLedgerEntry.SetLoadFields("Customer No.");
+        CustLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)");
+        IF CustLedgerEntry.FindSet() THEN
             REPEAT
-                IF (CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::Invoice) AND
-                   (CustLedgerEntry."Remaining Amt. (LCY)" > 0)
-                THEN
+                IF CustLedgerEntry."Remaining Amt. (LCY)" > 0 THEN
                     TempBankStatementMatchingBuffer2.AddMatchCandidate(StatementLineNo, CustLedgerEntry."Entry No.", 5,
                       TempBankStatementMatchingBuffer2."Account Type"::Customer, CustLedgerEntry."Customer No.");
-            UNTIL CustLedgerEntry.NEXT() = 0;
+            UNTIL CustLedgerEntry.Next() = 0;
     END;
 }
 

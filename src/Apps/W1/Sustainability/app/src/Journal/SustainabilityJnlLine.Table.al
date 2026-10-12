@@ -130,6 +130,7 @@ table 6214 "Sustainability Jnl. Line"
             var
                 SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
             begin
+                ClearGLCollectionInformation(Rec);
                 Validate(Distance, 0);
                 Validate("Fuel/Electricity", 0);
                 Validate("Custom Amount", 0);
@@ -181,6 +182,9 @@ table 6214 "Sustainability Jnl. Line"
             var
                 SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
             begin
+                if CurrFieldNo = FieldNo("Custom Amount") then
+                    ClearGLCollectionInformation(Rec);
+
                 SustainabilityCalcMgt.CalculationEmissions(Rec);
             end;
         }
@@ -409,6 +413,21 @@ table 6214 "Sustainability Jnl. Line"
                     Rec.TestField("Energy Source Code");
             end;
         }
+        field(43; "Collected from G/L Entries"; Boolean)
+        {
+            Caption = 'Collected from G/L Entries';
+            Editable = false;
+        }
+        field(44; "Collect From Date"; Date)
+        {
+            Caption = 'Collect From Date';
+            Editable = false;
+        }
+        field(45; "Collect To Date"; Date)
+        {
+            Caption = 'Collect To Date';
+            Editable = false;
+        }
         field(5154; "Renewable Energy"; Boolean)
         {
             Caption = 'Renewable Energy';
@@ -434,6 +453,7 @@ table 6214 "Sustainability Jnl. Line"
     var
         SustJournalBatch: Record "Sustainability Jnl. Batch";
         SustJournalLine: Record "Sustainability Jnl. Line";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
         SustJournalLine.SetRange("Journal Template Name", "Journal Template Name");
         SustJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
@@ -441,6 +461,8 @@ table 6214 "Sustainability Jnl. Line"
         if SustJournalLine.IsEmpty() then
             if SustJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
                 ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(SustJournalBatch);
+
+        SustJnlLineGLEntry.DeleteCollectedGLEntries(Rec);
     end;
 
     trigger OnInsert()
@@ -460,8 +482,12 @@ table 6214 "Sustainability Jnl. Line"
     end;
 
     trigger OnRename()
+    var
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
         ApprovalsMgmt.OnRenameRecordInApprovalRequest(xRec.RecordId, RecordId);
+
+        SustJnlLineGLEntry.MoveCollectedGLEntries(xRec, Rec);
     end;
 
     var
@@ -556,8 +582,27 @@ table 6214 "Sustainability Jnl. Line"
         IsChanged := OldDimSetID <> "Dimension Set ID";
     end;
 
+    internal procedure SetGLCollectionInformation(FromDate: Date; ToDate: Date)
+    begin
+        "Collected from G/L Entries" := true;
+        "Collect From Date" := FromDate;
+        "Collect To Date" := ToDate;
+    end;
+
+    local procedure ClearGLCollectionInformation(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    var
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
+    begin
+        SustainabilityJnlLine."Collected from G/L Entries" := false;
+        SustainabilityJnlLine."Collect From Date" := 0D;
+        SustainabilityJnlLine."Collect To Date" := 0D;
+
+        SustJnlLineGLEntry.DeleteCollectedGLEntries(SustainabilityJnlLine);
+    end;
+
     local procedure ClearEmissionInformation(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
     begin
+        ClearGLCollectionInformation(SustainabilityJnlLine);
         SustainabilityJnlLine.Validate("Emission CO2", 0);
         SustainabilityJnlLine.Validate("Emission CH4", 0);
         SustainabilityJnlLine.Validate("Emission N2O", 0);

@@ -76,7 +76,7 @@ table 15 "G/L Account"
                 if (xRec."No." <> '') then
                     if (StrLen("No.") > 5) <> (StrLen(xRec."No.") > 5) then
                         Error(Text1100001,
-                          FieldName("Account Type"));
+                          FieldCaption("Account Type"));
                 Evaluate(TestNo, CopyStr("No.", 1, 1));
                 if TestNo in [6 .. 7] then
                     "Income/Balance" := "Income/Balance"::"Income Statement"
@@ -1128,7 +1128,7 @@ table 15 "G/L Account"
                 if (GLEntry.Find('-')) and (Balance <> 0) then
                     if xRec."Ignore in 347 Report" <> "Ignore in 347 Report" then
                         Message(Text1100002 + Text1100003
-                          , FieldName(Balance));
+                          , FieldCaption(Balance));
             end;
         }
         field(10702; "Ignore Discounts"; Boolean)

@@ -76,10 +76,20 @@ page 40056 "GP Company Migration Settings"
                     Caption = 'Snapshot Purch. Trx.';
                     ToolTip = 'Specify whether to migrate historical Purchase receivable transactions.';
                 }
+                field("Migrate Hist. Payroll Detail"; Rec."Migrate Hist. Payroll Detail")
+                {
+                    Caption = 'Snapshot Payroll Dtl';
+                    ToolTip = 'Specify whether to migrate historical payroll details on transactions.';
+                }
                 field("Migrate Inactive Checkbooks"; Rec."Migrate Inactive Checkbooks")
                 {
                     Caption = 'Inactive Checkbooks';
                     ToolTip = 'Specify whether to migrate inactive checkbooks.';
+                }
+                field("Migrate Inactive Alloc. Accts."; Rec."Migrate Inactive Alloc. Accts.")
+                {
+                    Caption = 'Inactive Allocation Accounts';
+                    ToolTip = 'Specify whether to migrate inactive allocation accounts.';
                 }
                 field("Migrate Inactive Customers"; Rec."Migrate Inactive Customers")
                 {

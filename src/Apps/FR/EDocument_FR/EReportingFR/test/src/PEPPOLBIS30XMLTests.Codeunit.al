@@ -38,7 +38,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [PEPPOL BIS 3.0 FR E-document]
     end;
 
     var
@@ -54,6 +53,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         EDocHelpers: Codeunit "EDoc. Helpers";
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
+        InvoiceLineXPathLbl: Label '/Invoice/cac:InvoiceLine[cbc:ID=''%1'']/cac:OrderLineReference/cac:OrderReference/cbc:ID', Comment = '%1 = Invoice line number', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
 
@@ -146,7 +146,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [GIVEN] Posted sales invoice for customer with FR electronic address
         CustomerAddress := '123456789';
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0002")));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0225")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
@@ -198,7 +198,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [GIVEN] Posted sales invoice for customer with FR electronic address in SIREN_suffix format
         CustomerAddress := '123456789_001';
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0009")));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0225")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
@@ -213,14 +213,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvIgnoresConfiguredSchemeForBuyerEndpoint()
+    procedure ExportSalesInvUsesConfiguredSchemeForBuyerEndpoint()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CustomerAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR always uses scheme 0225 regardless of customer configured scheme
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR uses the scheme configured for the customer electronic address
         Initialize();
 
         // [GIVEN] Posted sales invoice for customer with FR electronic address and configured scheme 0002
@@ -230,8 +230,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID uses scheme 0225 regardless of configured 0002
-        Assert.AreEqual('0225',
+        // [THEN] Buyer EndpointID uses the configured scheme 0002
+        Assert.AreEqual('0002',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
 
@@ -242,7 +242,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvNormalizesBuyerServiceParticipantScheme()
+    procedure ExportSalesInvUsesBuyerServiceParticipantScheme()
     var
         ServiceParticipant: Record "Service Participant";
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -251,7 +251,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         EndpointId: Text[200];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR normalizes service participant scheme to 0225 regardless of configured enum
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR uses the scheme configured for the service participant
         Initialize();
 
         // [GIVEN] Customer with service participant using configured scheme 0002
@@ -269,24 +269,55 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID uses scheme 0225 even though participant was configured with 0002
+        // [THEN] Buyer EndpointID uses the participant's configured scheme 0002
         Assert.AreEqual(EndpointId,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0225',
+        Assert.AreEqual('0002',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure ExportSalesInvDoesNotSynthesizeBuyerPartyIdentification()
+    procedure ExportSalesInvInjectsBuyerLegalEntitySIREN()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects the buyer SIREN as the legal registration identifier
+        Initialize();
+
+        // [GIVEN] Customer "C" with blank Registration Number and FR electronic address in SIREN_suffix format
+        CustomerNo := CreateCustomer('123456789_001', "Electronic Address Scheme"::"0225");
+        Customer.Get(CustomerNo);
+        Customer.Validate("Registration Number", '');
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Buyer PartyLegalEntity CompanyID contains the SIREN from the FR electronic address with scheme 0002
+        Assert.AreEqual('123456789',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer CompanyID'));
+        Assert.AreEqual('0002',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer CompanyID schemeID'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvPreservesConfiguredSIRETScheme()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CustomerAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR does not synthesize buyer PartyIdentification even with 0009 configured
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR preserves a configured SIRET endpoint scheme without synthesizing PartyIdentification
         Initialize();
 
         // [GIVEN] Posted sales invoice for customer with FR electronic address and configured scheme 0009
@@ -296,11 +327,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID uses scheme 0225 (not the configured 0009)
+        // [THEN] Buyer EndpointID uses the configured scheme 0009
         Assert.AreEqual(CustomerAddress,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0225',
+        Assert.AreEqual('0009',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
 
@@ -361,12 +392,96 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvConcatenatesRegulatoryCommentsOfSameType()
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        FirstCommentLine: Text[80];
+        SecondCommentLine: Text[80];
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Multiple PMD comment lines are concatenated into one tagged UBL note
+        Initialize();
+
+        // [GIVEN] Sales invoice "SI" with the mandatory PMD text split across two comment lines
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
+        FirstCommentLine := 'Tout retard de paiement engendre une pénalité exigible à compter de la date';
+        SecondCommentLine := 'd''échéance, calculée sur la base de trois fois le taux d''intérêt légal.';
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, FirstCommentLine);
+        SalesCommentLine.Modify(true);
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, SecondCommentLine);
+        SalesCommentLine.Modify(true);
+        SalesHeader.Get("Sales Document Type"::Invoice, InvoiceNo);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Both lines are concatenated into one PMD note without repeating the tag
+        Assert.AreEqual('#PMD#' + FirstCommentLine + SecondCommentLine,
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMD regulatory note'));
+        Assert.AreEqual('',
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')][2]'),
+            StrSubstNo(IncorrectValueErr, 'Second PMD regulatory note should be empty'));
+        Assert.AreEqual('',
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(substring-after(., ''#PMD#''), ''#PMD#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMD regulatory note with repeated tag should be empty'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvTrimsRegulatoryCommentsBeforeConcatenating()
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Regulatory comment lines are trimmed and concatenated without a separator
+        Initialize();
+
+        // [GIVEN] Sales invoice "SI" with two padded PMD comment lines
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, ' First comment ');
+        SalesCommentLine.Modify(true);
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, ' Second comment ');
+        SalesCommentLine.Modify(true);
+        SalesHeader.Get("Sales Document Type"::Invoice, InvoiceNo);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] The trimmed lines are concatenated directly
+        Assert.AreEqual('#PMD#First commentSecond comment',
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMD regulatory note'));
+    end;
+
+    [Test]
     procedure ExportSalesInvDoesNotIncludeBillingReference()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO] Exporting a sales invoice does not add a credit note billing reference
         Initialize();
 
@@ -387,13 +502,17 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] An invoice containing only service lines uses billing mode S1
         Initialize();
 
+        // [GIVEN] Posted sales invoice "SI" with service lines only
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
 
+        // [WHEN] Sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
+        // [THEN] ProfileID = 'S1'
         Assert.AreEqual('S1', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
     end;
 
@@ -407,9 +526,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CustomerNo: Code[20];
         EndpointId: Text[200];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A service-specific routing identifier overrides the endpoint on the customer card
         Initialize();
 
+        // [GIVEN] Customer "C" with service participant using scheme 0225
         CustomerNo := CreateCustomer('12345678901234', "Electronic Address Scheme"::"0009");
         EndpointId := '123456789_001';
         ServiceParticipant.Service := EDocumentService.Code;
@@ -426,9 +547,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::" ";
         Customer.Modify(true);
 
+        // [WHEN] Sales invoice is checked and exported in PEPPOL BIS 3.0 FR
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
+        // [THEN] Buyer EndpointID uses service participant value with scheme 0225
         Assert.AreEqual(EndpointId,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
@@ -500,7 +623,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [GIVEN] Posted sales credit memo for customer with FR electronic address
         CustomerAddress := '123456789';
-        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0002")));
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0225")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportCrMemo(SalesCrMemoHeader, XmlDoc);
@@ -536,9 +659,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         XmlDoc: XmlDocument;
         CommentText: Text[80];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A French regulatory comment on a posted credit memo is prefixed with its type in a UBL header note
         Initialize();
 
+        // [GIVEN] Posted sales credit memo "SCM" with an AAB regulatory comment
         SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer('', "Electronic Address Scheme"::"EM")));
         CommentText := 'No discount is granted for early payment.';
         SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Credit Memo";
@@ -548,8 +673,10 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesCommentLine.Comment := CommentText;
         SalesCommentLine.Insert();
 
+        // [WHEN] Sales credit memo "SCM" is exported in PEPPOL BIS 3.0 FR
         ExportCrMemo(SalesCrMemoHeader, XmlDoc);
 
+        // [THEN] The AAB regulatory comment is exported as a UBL header note
         Assert.AreEqual('#AAB#' + CommentText, GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
     end;
 
@@ -561,7 +688,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         XmlDoc: XmlDocument;
         CustomerNo: Code[20];
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO] A sales credit memo applied to an invoice exports the invoice number and issue date
         Initialize();
 
@@ -590,7 +717,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         XmlDoc: XmlDocument;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO] A sales credit memo without an applied invoice does not export an incomplete billing reference
         Initialize();
 
@@ -613,7 +740,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         XmlDoc: XmlDocument;
         CommentText: Text[80];
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO] Export includes an explicit regulatory note without synthesizing PMT, PMD, or AAB notes
         Initialize();
 
@@ -650,19 +777,22 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceLine: Record "Sales Invoice Line";
         XmlDoc: XmlDocument;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] An invoice containing lines from distinct orders uses the Extended CTC profile
         Initialize();
 
+        // [GIVEN] Posted sales invoice "SI" with lines from distinct orders
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromMultipleOrders(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
+        // [WHEN] Sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+        Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
         SalesInvoiceLine.FindFirst();
-        Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference[following-sibling::cac:AllowanceCharge]/cac:OrderReference/cbc:ID'),
+        Assert.AreEqual('FR-BUYER-REF', GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference[following-sibling::cac:AllowanceCharge]/cac:OrderReference/cbc:ID'),
             StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
         Assert.AreEqual(Format(SalesInvoiceLine."Order Line No.", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cbc:LineID'),
             StrSubstNo(IncorrectValueErr, 'OrderLineReference LineID'));
@@ -678,14 +808,17 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesShipmentHeader: Record "Sales Shipment Header";
         XmlDoc: XmlDocument;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] An invoice containing lines from distinct shipments uses the Extended CTC profile
         Initialize();
 
+        // [GIVEN] Posted sales invoice "SI" with lines from distinct shipments
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromMultipleShipments(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
+        // [WHEN] Sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+        Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
@@ -698,19 +831,95 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvUsesShipmentExternalDocumentNoAsBuyerReference()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        BuyerReference: Text[35];
+        CustomerNo: Code[20];
+        FirstShipmentNo: Code[20];
+        SecondShipmentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An empty shipment buyer reference falls back to its external document number
+        Initialize();
+
+        // [GIVEN] Customer "C" with two distinct posted shipments "S1" and "S2" using the same external document number
+        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
+        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        BuyerReference := 'FR-EXTERNAL-REF';
+        SetSalesShipmentExternalDocumentNo(FirstShipmentNo, BuyerReference);
+        SetSalesShipmentExternalDocumentNo(SecondShipmentNo, BuyerReference);
+
+        // [WHEN] Combined invoice "I" is created from "S1" and "S2" and exported
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Invoice "I" uses the Extended CTC France customization
+        Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+            StrSubstNo(IncorrectValueErr, 'CustomizationID'));
+
+        // [THEN] Invoice "I" uses the shipment external document number as buyer reference
+        Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvAllowsShipmentWithoutBuyerReference()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        XmlDoc: XmlDocument;
+        BuyerReference: Text[35];
+        CustomerNo: Code[20];
+        FirstShipmentNo: Code[20];
+        InvoiceLineXPath: Text;
+        SecondShipmentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An Extended CTC invoice can include a shipment without a buyer reference
+        Initialize();
+
+        // [GIVEN] Customer "C" with two distinct shipments where only "S2" has a buyer reference
+        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
+        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        BuyerReference := 'FR-EXTERNAL-REF';
+        SetSalesShipmentExternalDocumentNo(SecondShipmentNo, BuyerReference);
+
+        // [WHEN] Combined invoice "I" is created from "S1" and "S2" and exported
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Invoice "I" uses Extended CTC France and exports the available buyer reference
+        Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+            StrSubstNo(IncorrectValueErr, 'CustomizationID'));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange("Shipment No.", SecondShipmentNo);
+        SalesInvoiceLine.FindFirst();
+        InvoiceLineXPath := StrSubstNo(InvoiceLineXPathLbl, Format(SalesInvoiceLine."Line No.", 0, 9));
+        Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, InvoiceLineXPath),
+            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
+    end;
+
+    [Test]
     procedure ExportSalesInvKeepsBasicCTCForRepeatedReferences()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Repeated references to one shipment and one order do not select the Extended CTC profile
         Initialize();
 
+        // [GIVEN] Posted sales invoice "SI" with repeated references to one shipment and one order
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromSingleShipment(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
+        // [WHEN] Sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreEqual('urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+        Assert.AreEqual('urn:cen.eu:en16931:2017', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
     end;
     #endregion
@@ -753,6 +962,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
         // [WHEN] Check is called
+        // [THEN] No error is raised
         CheckInvoice(SalesInvoiceHeader);
 
         // Cleanup
@@ -762,20 +972,21 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETIsEmpty()
+    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETAndSIRENAreEmpty()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         OriginalRegistrationNo: Text[20];
         OriginalSIRETNo: Code[14];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Company VAT registration number is used as the seller endpoint when SIRET and SIREN are blank
         Initialize();
 
         // [GIVEN] Company with blank SIRET No. and Registration No., and a VAT registration number
+        CompanyInformation.Get();
         OriginalSIRETNo := CompanyInformation."SIRET No.";
         OriginalRegistrationNo := CompanyInformation."Registration No.";
-        CompanyInformation.Get();
         CompanyInformation."SIRET No." := '';
         CompanyInformation."Registration No." := '';
         CompanyInformation.Modify(true);
@@ -807,6 +1018,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CountryRegion: Record "Country/Region";
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A non-French company VAT registration number cannot be used as a French seller endpoint
         Initialize();
 
@@ -837,9 +1049,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         XmlDoc: XmlDocument;
         EndpointId: Text[200];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A service-specific company participant overrides the company endpoint fallbacks
         Initialize();
 
+        // [GIVEN] Company with service participant using scheme 0002
         EndpointId := CompanyInformation."Registration No.";
         ServiceParticipant.Service := EDocumentService.Code;
         ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Company;
@@ -857,9 +1071,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CompanyInformation."Registration No." := '';
         CompanyInformation.Modify(true);
 
+        // [WHEN] Sales invoice is checked and exported
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
+        // [THEN] Seller EndpointID uses service participant value
         Assert.AreEqual(EndpointId,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
@@ -905,6 +1121,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Customer Registration Number is used when both FR Electronic Address and Service Participant are absent
         Initialize();
 
@@ -961,6 +1178,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
+        Assert.AreEqual('945627890',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer CompanyID'));
+        Assert.AreEqual('0002',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer CompanyID schemeID'));
     end;
 
     [Test]
@@ -996,9 +1219,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A malformed FR Electronic Address that does not match SIREN format is rejected
         Initialize();
 
+        // [GIVEN] Customer "C" with malformed FR Electronic Address and no Registration Number
         Customer.Get(CreateCustomer('ABCD56789', "Electronic Address Scheme"::"0002"));
         Customer."Registration Number" := '';
         Customer.Modify(true);
@@ -1019,17 +1244,21 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         XmlDoc: XmlDocument;
         OriginalSIRETNo: Code[14];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Company Registration No. is used as the seller endpoint when SIRET is missing
         Initialize();
 
+        // [GIVEN] Company with blank SIRET No.
         OriginalSIRETNo := CompanyInformation."SIRET No.";
         CompanyInformation."SIRET No." := '';
         CompanyInformation.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
+        // [WHEN] Sales invoice is checked and exported
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
+        // [THEN] Supplier EndpointID uses Registration No. with scheme 0002
         Assert.AreEqual(CompanyInformation."Registration No.",
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
@@ -1037,6 +1266,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
 
+        // Cleanup
         CompanyInformation.Get();
         CompanyInformation."SIRET No." := OriginalSIRETNo;
         CompanyInformation.Modify(true);
@@ -1048,9 +1278,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant: Record "Service Participant";
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Check rejects a company participant identifier without its scheme even when SIRET is valid
         Initialize();
 
+        // [GIVEN] Company with service participant missing FR Identifier Scheme
         ServiceParticipant.Init();
         ServiceParticipant.Service := EDocumentService.Code;
         ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Company;
@@ -1058,8 +1290,10 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
+        // [THEN] Error about incomplete service participant is raised
         AssertExpectedDialogError(EDocHelpers.GetServiceParticipantAddressIncompleteError());
     end;
 
@@ -1069,16 +1303,20 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustomerNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Check rejects a buyer without an electronic address, Registration Number, or a service participant identifier
         Initialize();
 
+        // [GIVEN] Customer "C" without electronic address, Registration Number, or VAT
         CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
         ClearCustomerVATRegistrationNo(CustomerNo);
         ClearCustomerRegistrationNumber(CustomerNo);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
+        // [THEN] Error about buyer electronic address is raised;
         AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
 
@@ -1089,17 +1327,21 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Customer: Record Customer;
         CustomerNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Check rejects a buyer electronic address that does not match SIREN or SIREN_suffix format
         Initialize();
 
+        // [GIVEN] Customer "C" with short malformed FR Electronic Address
         CustomerNo := CreateCustomer('SHORT', "Electronic Address Scheme"::"0002");
         Customer.Get(CustomerNo);
         Customer."Registration Number" := '';
         Customer.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
+        // [THEN] Error about malformed buyer electronic address is raised
         AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
             Customer.FieldCaption("FR Electronic Address"), CustomerNo));
     end;
@@ -1111,17 +1353,21 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Customer: Record Customer;
         CustomerNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Check rejects a buyer electronic address with a blank SIREN suffix
         Initialize();
 
+        // [GIVEN] Customer "C" with FR Electronic Address having a blank suffix
         CustomerNo := CreateCustomer('123456789_ ', "Electronic Address Scheme"::"0225");
         Customer.Get(CustomerNo);
         Customer."Registration Number" := '';
         Customer.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
+        // [THEN] Error about malformed buyer electronic address is raised
         AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
             Customer.FieldCaption("FR Electronic Address"), CustomerNo));
     end;
@@ -1133,9 +1379,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustomerNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Check rejects a service participant identifier without its French identifier scheme even when the customer endpoint is valid
         Initialize();
 
+        // [GIVEN] Customer "C" with service participant missing FR Identifier Scheme
         CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::"EM");
         ServiceParticipant.Init();
         ServiceParticipant.Service := EDocumentService.Code;
@@ -1145,8 +1393,10 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
+        // [THEN] Error about incomplete service participant is raised;
         AssertExpectedDialogError(EDocHelpers.GetServiceParticipantAddressIncompleteError());
     end;
 
@@ -1157,9 +1407,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustomerNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Check rejects a French identifier scheme without its service participant identifier even when the customer endpoint is valid
         Initialize();
 
+        // [GIVEN] Customer "C" with FR Identifier Scheme but missing Participant Identifier
         CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::"EM");
         ServiceParticipant.Init();
         ServiceParticipant.Service := EDocumentService.Code;
@@ -1169,9 +1421,41 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
+        // [THEN] Error about incomplete service participant is raised;
         AssertExpectedDialogError(EDocHelpers.GetServiceParticipantAddressIncompleteError());
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenParticipantIdentifierIsMalformed()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Check rejects a service participant identifier that does not match SIREN or SIREN_suffix format
+        Initialize();
+
+        // [GIVEN] Customer "C" with a service participant whose identifier is malformed
+        CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::"EM");
+        ServiceParticipant.Init();
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
+        ServiceParticipant.Participant := CustomerNo;
+        ServiceParticipant."Participant Identifier" := 'INVALID';
+        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0225";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        // [WHEN] Check the posted sales invoice
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        // [THEN] The malformed participant identifier error is raised
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            ServiceParticipant.FieldCaption("Participant Identifier"), CustomerNo));
     end;
     #endregion
 
@@ -1189,11 +1473,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
-        InitializeCompanyIdentity();
-        if IsInitialized then
+        if IsInitialized then begin
+            LibrarySetupStorage.Restore();
+            InitializeCompanyIdentity();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
 
+        InitializeCompanyIdentity();
         CompanyInformation.Get();
         CompanyInformation.Name := 'Test Company FR';
         CompanyInformation.Address := '123 Rue de Paris';
@@ -1320,6 +1607,16 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
     end;
 
+    local procedure SetSalesShipmentExternalDocumentNo(ShipmentNo: Code[20]; ExternalDocumentNo: Code[35])
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        SalesShipmentHeader.Get(ShipmentNo);
+        SalesShipmentHeader.Validate("Your Reference", '');
+        SalesShipmentHeader.Validate("External Document No.", ExternalDocumentNo);
+        SalesShipmentHeader.Modify(true);
+    end;
+
     local procedure CreateSalesOrderWithLines(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; NumberOfLines: Integer; Quantity: Decimal)
     var
         Customer: Record Customer;
@@ -1339,6 +1636,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Customer.Modify(true);
 
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
         for LineIndex := 1 to NumberOfLines do begin
             LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", Quantity);
             SalesLine.Validate("Unit Price", 100);

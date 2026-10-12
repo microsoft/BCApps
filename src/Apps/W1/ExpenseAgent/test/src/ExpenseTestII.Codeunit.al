@@ -358,6 +358,44 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo,AddExpensesToExpenseReportModalPageHandler')]
+    procedure CreateExpenseReportUsesLocalCurrencyForForeignCurrencyExpense()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 647169] Verify that a report created from a foreign currency expense uses local currency for reimbursement.
+        Initialize();
+
+        // [GIVEN] Create a released expense in a foreign currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, CurrencyCode, 100);
+        Expense.PerformManualRelease();
+
+        // [GIVEN] Select a new expense report.
+        LibraryVariableStorage.Enqueue(false);
+
+        // [WHEN] Create the expense report from the expense.
+        Expense.SetRange("No.", Expense."No.");
+        CreateExpenseReport.AddExpensesToReport(Expense);
+
+        // [THEN] The report uses local currency for reimbursement and retains the foreign currency on the line.
+        Expense.Get(Expense."No.");
+        ExpenseReportHeader.Get(Expense."Expense Report No.");
+        ExpenseReportHeader.TestField("Reimbursement Currency Code", '');
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLine.TestField("Expense Currency Code", CurrencyCode);
+    end;
+
+    [Test]
     procedure ReimbursementTypeMustBeUpdatedFromPaymentMethodCodeInExpense()
     var
         ExpensePaymentMethod: Record "Expense Payment Method";
@@ -1067,7 +1105,7 @@ codeunit 148309 "Expense Test II"
 
         // [GIVEN] Create Expense with Expense Category.
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', Amount);
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(10));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
         Expense.Modify();
 
         // [WHEN] Update Amount Reduction in Expense to negative value.
@@ -1730,14 +1768,14 @@ codeunit 148309 "Expense Test II"
 
         // [GIVEN] Create Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser[1]);
-        ExpenseUser[1].Validate("E-mail", EmailId);
+        ExpenseUser[1].Validate("E-mail", CopyStr(EmailId, 1, 80));
         ExpenseUser[1].Modify();
 
         // [GIVEN] Create another Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser[2]);
 
         // [WHEN] Update the same Email ID in another Expense User.
-        asserterror ExpenseUser[2].Validate("E-mail", EmailId);
+        asserterror ExpenseUser[2].Validate("E-mail", CopyStr(EmailId, 1, 80));
 
         // [THEN] Verify that the error is thrown for duplicate Email ID in Expense User.
         Assert.ExpectedError(StrSubstNo(DuplicateEmailErr, ExpenseUser[2].FieldCaption("E-mail"), EmailId, ExpenseUser[2].TableCaption()));
@@ -1792,7 +1830,7 @@ codeunit 148309 "Expense Test II"
             StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("E-mail"), Employee."Company E-Mail", ExpenseUser.TableCaption()));
 
         // [WHEN] Update Job Title in Employee.
-        Employee.Validate("Job Title", LibraryRandom.RandText(20));
+        Employee.Validate("Job Title", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [THEN] Verify that the Job Title is updated in Expense User.
         ExpenseUser.Get(ExpenseUser."No.");
@@ -1802,7 +1840,7 @@ codeunit 148309 "Expense Test II"
             StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("Job Title"), Employee."Job Title", ExpenseUser.TableCaption()));
 
         // [WHEN] Update First Name in Employee.
-        Employee.Validate("First Name", LibraryRandom.RandText(20));
+        Employee.Validate("First Name", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [THEN] Verify that the Name is updated in Expense User.
         ExpenseUser.Get(ExpenseUser."No.");
@@ -2534,6 +2572,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenNameIsEmpty()
     var
         ExpenseUser: Record "Expense User";
@@ -2563,6 +2602,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenEmailIsEmpty()
     var
         ExpenseUser: Record "Expense User";

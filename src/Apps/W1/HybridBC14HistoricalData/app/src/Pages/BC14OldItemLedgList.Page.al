@@ -10,7 +10,7 @@ page 46891 "BC14 Old Item Ledg. List"
     Caption = 'BC14 Old Item Ledger Entries';
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Lists;
+    UsageCategory = History;
     SourceTable = "BC14 Old Item Ledg. Entry";
     Editable = false;
 

@@ -2232,9 +2232,6 @@
                               </TablixRowHierarchy>
                               <KeepTogether>true</KeepTogether>
                               <DataSetName>DataSet_Result</DataSetName>
-                              <PageBreak>
-                                <BreakLocation>Start</BreakLocation>
-                              </PageBreak>
                               <Filters>
                                 <Filter>
                                   <FilterExpression>=Fields!TrackingSpecBufferItemNo.Value</FilterExpression>

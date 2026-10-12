@@ -276,18 +276,6 @@ report 99000753 "Quantity Explosion of BOM"
             LayoutFile = './Manufacturing/Reports/QuantityExplosionOfBOM.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLCLayout)
-        {
-            Caption = 'Quantity Explosion of BOM RDLC';
-            Type = RDLC;
-            LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOM.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels

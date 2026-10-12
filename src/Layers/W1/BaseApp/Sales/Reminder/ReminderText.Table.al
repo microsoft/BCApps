@@ -10,8 +10,10 @@ namespace Microsoft.Sales.Reminder;
 table 294 "Reminder Text"
 {
     Caption = 'Reminder Text';
+#if not CLEAN29
     DrillDownPageID = "Reminder Text";
     LookupPageID = "Reminder Text";
+#endif
     DataClassification = CustomerContent;
 
     fields
@@ -89,4 +91,3 @@ table 294 "Reminder Text"
     var
         ReminderLevel: Record "Reminder Level";
 }
-

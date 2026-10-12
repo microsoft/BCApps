@@ -40,7 +40,7 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemTemplateAllowInvoiceDiscErr: Label 'Item template should have value "Allow Invoice Disc." set to %1', Comment = '%1 = value of "Allow Invoice Disc." field which can be either true or false.';
         ItemAllowInvoiceDiscErr: Label 'Item should have received the value "Allow Invoice Disc." = % from the Item Template', Comment = '%1 = value of "Allow Invoice Disc." field which can be either true or false.';
         ItemTrackingCodeErr: Label '%1 should be empty', Comment = '%1 = Field Caption';
-        ClosingPageErr: Label 'You must enter a value for all Option-type attributes before closing this page.';
+        BlankOptionAttributeErr: Label 'You must enter a value for the Option attribute %1. Blank values are not allowed for Option-type attributes.', Comment = '%1 - attribute name';
 
     [Test]
     [Scope('OnPrem')]
@@ -1902,6 +1902,89 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure CustomerTemplCardControls()
+    var
+        CustomerCardPageControlField: Record "Page Control Field";
+        CustomerTemplCardPageControlField: Record "Page Control Field";
+        CustomerTemplField: Record Field;
+    begin
+        CustomerTemplCardPageControlField.SetRange(PageNo, Page::"Customer Templ. Card");
+
+        CustomerCardPageControlField.SetRange(PageNo, Page::"Customer Card");
+        CustomerCardPageControlField.SetFilter(FieldNo, '<>0');
+        if CustomerCardPageControlField.FindSet() then
+            repeat
+                if CustomerTemplField.Get(Database::"Customer Templ.", CustomerCardPageControlField.FieldNo) then begin
+                    CustomerTemplCardPageControlField.SetRange(FieldNo, CustomerCardPageControlField.FieldNo);
+                    if CustomerTemplCardPageControlField.IsEmpty() then
+                        Error('%1 should exist on the customer template card.', CustomerCardPageControlField.ControlName);
+                end;
+            until CustomerCardPageControlField.Next() = 0;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTemplCardControls()
+    var
+        VendorCardPageControlField: Record "Page Control Field";
+        VendorTemplCardPageControlField: Record "Page Control Field";
+        VendorTemplField: Record Field;
+    begin
+        VendorTemplCardPageControlField.SetRange(PageNo, Page::"Vendor Templ. Card");
+
+        VendorCardPageControlField.SetRange(PageNo, Page::"Vendor Card");
+        VendorCardPageControlField.SetFilter(FieldNo, '<>0');
+        if VendorCardPageControlField.FindSet() then
+            repeat
+                if VendorTemplField.Get(Database::"Vendor Templ.", VendorCardPageControlField.FieldNo) then begin
+                    VendorTemplCardPageControlField.SetRange(FieldNo, VendorCardPageControlField.FieldNo);
+                    if VendorTemplCardPageControlField.IsEmpty() then
+                        Error('%1 should exist on the Vendor template card.', VendorCardPageControlField.ControlName);
+                end;
+            until VendorCardPageControlField.Next() = 0;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ItemTemplCardControls()
+    var
+        ItemCardPageControlField: Record "Page Control Field";
+        ItemTemplCardPageControlField: Record "Page Control Field";
+        ItemField: Record Field;
+        ItemTemplField: Record Field;
+        FieldExclusionList: List of [Integer];
+    begin
+        FillItemFieldExclusionList(FieldExclusionList);
+
+        // Verify fields in "Item" and "Item Templ." tables, all fields should match or added in the exclusion list
+        ItemField.SetRange(TableNo, Database::Item);
+        ItemField.SetRange(Class, ItemField.Class::Normal);
+        ItemField.SetRange(ObsoleteState, ItemField.ObsoleteState::No);
+        ItemField.SetRange("No.", 1, 9999); // Only check w1 fields
+        if ItemField.FindSet() then
+            repeat
+                if not FieldExclusionList.Contains(ItemField."No.") then
+                    if not ItemTemplField.Get(Database::"Item Templ.", ItemField."No.") then
+                        Error('%1 field should exist in "Item Templ." table or added to exclusion list', ItemField."Field Caption");
+            until ItemField.Next() = 0;
+
+        // Verify controls on "Item Card" and "Item Templ. Card" pages, all controls should match or added in the exclusion list
+        ItemTemplCardPageControlField.SetRange(PageNo, Page::"Item Templ. Card");
+        ItemCardPageControlField.SetRange(PageNo, Page::"Item Card");
+        ItemCardPageControlField.SetFilter(FieldNo, '<>0');
+        if ItemCardPageControlField.FindSet() then
+            repeat
+                if not FieldExclusionList.Contains(ItemCardPageControlField.FieldNo) then
+                    if ItemTemplField.Get(Database::"Item Templ.", ItemCardPageControlField.FieldNo) then begin
+                        ItemTemplCardPageControlField.SetRange(FieldNo, ItemCardPageControlField.FieldNo);
+                        if ItemTemplCardPageControlField.IsEmpty() then
+                            Error('%1 control should exist on the item template card or added to exclusion list.', ItemCardPageControlField.ControlName);
+                    end;
+            until ItemCardPageControlField.Next() = 0;
+    end;
+
+    [Test]
     procedure CustomerRecordAfterApplyCustomerTemplate()
     var
         Customer: Record Customer;
@@ -2945,12 +3028,13 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemCategoryCard.OpenEdit();
         ItemCategoryCard.GotoRecord(ItemCategory);
 
-        // [WHEN] User adds a new attribute line and selects Option type attribute but leaves value blank.
+        // [WHEN] User adds a new attribute line, selects an Option-type attribute, and validates a blank value.
         ItemCategoryCard.Attributes.New();
         ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
-        ItemCategoryCard.Attributes.Next();
-        asserterror ItemCategoryCard.Close();
-        Assert.ExpectedError(ClosingPageErr);
+        asserterror ItemCategoryCard.Attributes.Value.SetValue('');
+
+        // [THEN] The blank Option value is rejected with the expected error.
+        Assert.ExpectedError(StrSubstNo(BlankOptionAttributeErr, ItemAttribute.Name));
 
         // [THEN] Verify no record is created in Item Attribute Value Mapping.
         ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
@@ -2981,26 +3065,72 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemCategoryCard.OpenEdit();
         ItemCategoryCard.GotoRecord(ItemCategory);
 
-        // [WHEN] User adds a new attribute line and selects option type attribute but leaves value blank.
+        // [WHEN] User adds a new attribute line and selects an Option-type attribute (value still blank).
         ItemCategoryCard.Attributes.New();
         ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
 
-        // [THEN] Verify Item Attribute Value Mapping is not created with blank value.
+        // [THEN] No Item Attribute Value Mapping is created while the Option value is blank.
         ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
         ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
         ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
         Assert.RecordIsEmpty(ItemAttributeValueMapping);
 
-        // [WHEN] User adds a new attribute line and selects option type attribute and its value.
+        // [WHEN] User enters a valid value and closes the page.
         ItemCategoryCard.Attributes.Value.SetValue(ItemAttributeValue.Value);
         ItemCategoryCard.Attributes.Next();
         ItemCategoryCard.Close();
 
         // [THEN] Verify Item Attribute Value Mapping is created.
-        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
-        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
-        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
         Assert.RecordIsNotEmpty(ItemAttributeValueMapping);
+    end;
+
+    local procedure FillItemFieldExclusionList(var FieldExclusionList: List of [Integer])
+    var
+        Item: Record Item;
+    begin
+        FieldExclusionList.Add(Item.FieldNo("Prevent Negative Inventory"));
+        FieldExclusionList.Add(Item.FieldNo("Stockout Warning"));
+        FieldExclusionList.Add(Item.FieldNo("Variant Mandatory if Exists"));
+        FieldExclusionList.Add(Item.FieldNo("No."));
+        FieldExclusionList.Add(Item.FieldNo("No. 2"));
+        FieldExclusionList.Add(Item.FieldNo("Alternative Item No."));
+        FieldExclusionList.Add(Item.FieldNo("Description"));
+        FieldExclusionList.Add(Item.FieldNo("Search Description"));
+        FieldExclusionList.Add(Item.FieldNo("Description 2"));
+        FieldExclusionList.Add(Item.FieldNo("Last Direct Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Cost is Adjusted"));
+        FieldExclusionList.Add(Item.FieldNo("Allow Online Adjustment"));
+        FieldExclusionList.Add(Item.FieldNo("Excluded from Cost Adjustment"));
+        FieldExclusionList.Add(Item.FieldNo("Last DateTime Modified"));
+        FieldExclusionList.Add(Item.FieldNo("Last Date Modified"));
+        FieldExclusionList.Add(Item.FieldNo("Last Time Modified"));
+        FieldExclusionList.Add(Item.FieldNo("Picture"));
+        FieldExclusionList.Add(Item.FieldNo("Application Wksh. User ID"));
+        FieldExclusionList.Add(Item.FieldNo("Low-Level Code"));
+        FieldExclusionList.Add(Item.FieldNo("Last Unit Cost Calc. Date"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Material Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Capacity Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Inventory Value Zero"));
+        FieldExclusionList.Add(Item.FieldNo("Sales Unit of Measure"));
+        FieldExclusionList.Add(Item.FieldNo("Purch. Unit of Measure"));
+        FieldExclusionList.Add(Item.FieldNo("Created From Nonstock Item"));
+        FieldExclusionList.Add(Item.FieldNo("Put-away Unit of Measure Code"));
+        FieldExclusionList.Add(Item.FieldNo("Last Counting Period Update"));
+        FieldExclusionList.Add(Item.FieldNo("Next Counting Start Date"));
+        FieldExclusionList.Add(Item.FieldNo("Next Counting End Date"));
+        FieldExclusionList.Add(Item.FieldNo("Unit of Measure Id"));
+        FieldExclusionList.Add(Item.FieldNo("Tax Group Id"));
+        FieldExclusionList.Add(Item.FieldNo("Item Category Id"));
+        FieldExclusionList.Add(Item.FieldNo("Inventory Posting Group Id"));
+        FieldExclusionList.Add(Item.FieldNo("Gen. Prod. Posting Group Id"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Material Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Capacity Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Subcontrd. Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Cap. Ovhd Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Mfg. Ovhd Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Subcontracted Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Mfg. Ovhd Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Cap. Overhead Cost"));
     end;
 
     local procedure Initialize()

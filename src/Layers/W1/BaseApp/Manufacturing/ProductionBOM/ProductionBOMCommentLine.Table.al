@@ -23,7 +23,8 @@ table 99000776 "Production BOM Comment Line"
         {
             Caption = 'BOM Line No.';
             NotBlank = true;
-            TableRelation = "Production BOM Line"."Line No." where("Production BOM No." = field("Production BOM No."));
+            TableRelation = "Production BOM Line"."Line No." where("Production BOM No." = field("Production BOM No."),
+                                                                   "Version Code" = field("Version Code"));
         }
         field(3; "Line No."; Integer)
         {
@@ -32,8 +33,7 @@ table 99000776 "Production BOM Comment Line"
         field(4; "Version Code"; Code[20])
         {
             Caption = 'Version Code';
-            TableRelation = "Production BOM Version"."Version Code" where("Production BOM No." = field("Production BOM No."),
-                                                                           "Version Code" = field("Version Code"));
+            TableRelation = "Production BOM Version"."Version Code" where("Production BOM No." = field("Production BOM No."));
         }
         field(10; Date; Date)
         {

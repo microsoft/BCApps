@@ -36,6 +36,9 @@ codeunit 2503 "Extension Operation Impl"
         InstallationFailedOpenDetailsQst: Label 'Sorry, we couldn''t install the app. Do you want to see the details?';
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
+        InstallationFailedOpenStatusQst: Label 'Sorry, we couldn''t install the app. Do you want to open Extension Installation Status?';
+        InstallationFailedOpenStatusTxt: Label 'App installation failed. User has chosen to open Extension Installation Status.', Locked = true;
+        InstallationFailedDoNotOpenStatusTxt: Label 'App installation failed. User has chosen not to open Extension Installation Status.', Locked = true;
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
 
     local procedure AssertIsInitialized()
@@ -91,6 +94,18 @@ codeunit 2503 "Extension Operation Impl"
         DotNetALPackageDeploymentSchedule := DotNetALPackageDeploymentSchedule.Immediate;
         InitializeOperationInvoker();
         DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid));
+    end;
+
+    internal procedure ShowInstallFailureStatus()
+    begin
+        if not GuiAllowed() then
+            exit;
+
+        if Confirm(InstallationFailedOpenStatusQst) then begin
+            Session.LogMessage('0000VD5', InstallationFailedOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+            Page.Run(Page::"Extension Deployment Status");
+        end else
+            Session.LogMessage('0000VD6', InstallationFailedDoNotOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
     end;
 
     procedure DeployAndUploadExtension(PackageInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")

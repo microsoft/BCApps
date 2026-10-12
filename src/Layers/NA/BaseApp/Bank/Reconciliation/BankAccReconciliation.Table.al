@@ -307,6 +307,7 @@ table 273 "Bank Acc. Reconciliation"
         field(24; "Import Posted Transactions"; Option)
         {
             Caption = 'Import Posted Transactions';
+            ToolTip = 'Specifies whether to import bank transactions that are already applied but whose related bank account ledger entries are not yet closed.';
             OptionCaption = ' ,Yes,No';
             OptionMembers = " ",Yes,No;
         }
@@ -413,8 +414,8 @@ table 273 "Bank Acc. Reconciliation"
         /// </summary>
         field(51; "Allow Duplicated Transactions"; Boolean)
         {
-            Caption = 'Allow Duplicated Transactions';
-            ToolTip = 'Specifies whether to allow bank account reconciliation lines to have the same transaction ID. Although itâ€™s rare, this is useful when your bank statement file contains transactions with duplicate IDs. Most businesses leave this toggle turned off.';
+            Caption = 'Import Duplicated Transactions';
+            ToolTip = 'Specifies whether to allow bank account reconciliation lines to have the same transaction ID.';
         }
         /// <summary>
         /// Dimension set identifier linking this reconciliation to its dimension values.

@@ -263,7 +263,11 @@ codeunit 148500 "XRechnung Structured Tests"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         DocumentAttachment: Record "Document Attachment";
         Currency: Record Currency;
+#if not CLEAN28
+#pragma warning disable AL0432
         EDocumentsSetup: Record "E-Documents Setup";
+#pragma warning restore AL0432
+#endif
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
         LibraryVariableStorage.Clear();
@@ -286,7 +290,9 @@ codeunit 148500 "XRechnung Structured Tests"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::XRechnung;
         EDocumentService.Modify();
+#if not CLEAN28
         EDocumentsSetup.InsertNewExperienceSetup();
+#endif
 
         // Set a currency that can be used across all localizations
         MockCurrencyCode := 'XYZ';
@@ -310,13 +316,18 @@ codeunit 148500 "XRechnung Structured Tests"
     end;
 
     local procedure CreateInboundEDocumentFromXML(var EDocument: Record "E-Document"; FilePath: Text)
+    begin
+        CreateInboundEDocumentFromXMLText(EDocument, NavApp.GetResourceAsText(FilePath));
+    end;
+
+    local procedure CreateInboundEDocumentFromXMLText(var EDocument: Record "E-Document"; XmlContent: Text)
     var
         EDocLogRecord: Record "E-Document Log";
         EDocumentLog: Codeunit "E-Document Log";
     begin
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
-        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, NavApp.GetResourceAsText(FilePath));
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, XmlContent);
         EDocumentLog.SetFields(EDocument, EDocumentService);
         EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Readable);
 
