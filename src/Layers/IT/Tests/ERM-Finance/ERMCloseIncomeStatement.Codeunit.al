@@ -946,7 +946,7 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     local procedure RunCloseIncomeStatementForSourceVAT(
-        GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; PostToRetainedEarningsAcc: Option;
+        GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsPosting: Option;
         ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20];
         var NetProfitAccountNo: Code[20]; var NetLossAccountNo: Code[20])
     begin
@@ -959,7 +959,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(NetProfitAccountNo);
         NetLossAccountNo := LibraryERM.CreateGLAccountNo();
         LibraryVariableStorage.Enqueue(NetLossAccountNo);
-        LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc);
+        LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
         LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
         LibraryVariableStorage.Enqueue(UseDimensions);
 
