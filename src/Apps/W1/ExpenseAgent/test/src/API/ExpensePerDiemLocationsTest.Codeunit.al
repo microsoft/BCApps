@@ -17,6 +17,7 @@ codeunit 148349 "Expense PerDiem Locations Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
 
     [Test]
@@ -81,14 +82,11 @@ codeunit 148349 "Expense PerDiem Locations Test"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense PerDiem Locations Test");
         if IsInitialized then
             exit;
 
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-
+        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense PerDiem Locations Test");
         IsInitialized := true;
         Commit();

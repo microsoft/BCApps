@@ -1,7 +1,11 @@
+#if not CLEAN30
 codeunit 134297 "Http Web Req. Mgt. Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The codeunit under test, Http Web Request Mgt., is obsolete. Use the native HttpClient data types instead.';
+    ObsoleteTag = '30.0';
 
     trigger OnRun()
     begin
@@ -129,3 +133,4 @@ codeunit 134297 "Http Web Req. Mgt. Tests"
     end;
 }
 
+#endif
