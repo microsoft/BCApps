@@ -892,15 +892,15 @@ codeunit 139400 "Permissions Test"
         // [WHEN] The permissions overview page read permission is filtered to Yes
         PermissionsOverview.ReadFilter.SetValue(Enum::"Permission Filter"::Yes);
         // [THEN] Only permissions with read permission set to Yes are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
         // [WHEN] The permissions overview page read permission is filtered to Indirect
         PermissionsOverview.ReadFilter.SetValue(Enum::"Permission Filter"::Indirect);
         // [THEN] Only permissions with read permission set to Indirect are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
         // [WHEN] The permissions overview page read permission is filtered to No
         PermissionsOverview.ReadFilter.SetValue(Enum::"Permission Filter"::No);
         // [THEN] Only permissions with read permission set to No (i.e. " ") are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
     end;
 
     [Test]
@@ -949,11 +949,11 @@ codeunit 139400 "Permissions Test"
         // [WHEN] The permissions overview page insert permission is filtered to Indirect
         PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::Indirect);
         // [THEN] Only permissions with insert permission set to Indirect are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
         // [WHEN] The permissions overview page insert permission is filtered to No
         PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::No);
         // [THEN] Only permissions with insert permission set to No (i.e. " ") are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
     end;
 
     [Test]
@@ -998,15 +998,15 @@ codeunit 139400 "Permissions Test"
         // [WHEN] The permissions overview page modify permission is filtered to Yes
         PermissionsOverview.ModifyFilter.SetValue(Enum::"Permission Filter"::Yes);
         // [THEN] Only permissions with modify permission set to Yes are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
         // [WHEN] The permissions overview page modify permission is filtered to Indirect
         PermissionsOverview.ModifyFilter.SetValue(Enum::"Permission Filter"::Indirect);
         // [THEN] Only permissions with modify permission set to Indirect are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
         // [WHEN] The permissions overview page modify permission is filtered to No
         PermissionsOverview.ModifyFilter.SetValue(Enum::"Permission Filter"::No);
         // [THEN] Only permissions with modify permission set to No (i.e. " ") are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
     end;
 
     [Test]
@@ -1051,15 +1051,15 @@ codeunit 139400 "Permissions Test"
         // [WHEN] The permissions overview page delete permission is filtered to Yes
         PermissionsOverview.DeleteFilter.SetValue(Enum::"Permission Filter"::Yes);
         // [THEN] Only permissions with delete permission set to Yes are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
         // [WHEN] The permissions overview page delete permission is filtered to Indirect
         PermissionsOverview.DeleteFilter.SetValue(Enum::"Permission Filter"::Indirect);
         // [THEN] Only permissions with delete permission set to Indirect are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
         // [WHEN] The permissions overview page delete permission is filtered to No
         PermissionsOverview.DeleteFilter.SetValue(Enum::"Permission Filter"::No);
         // [THEN] Only permissions with delete permission set to No (i.e. " ") are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
     end;
 
     [Test]
@@ -1104,15 +1104,15 @@ codeunit 139400 "Permissions Test"
         // [WHEN] The permissions overview page execute permission is filtered to Yes
         PermissionsOverview.ExecuteFilter.SetValue(Enum::"Permission Filter"::Yes);
         // [THEN] Only permissions with execute permission set to Yes are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
         // [WHEN] The permissions overview page execute permission is filtered to Indirect
         PermissionsOverview.ExecuteFilter.SetValue(Enum::"Permission Filter"::Indirect);
         // [THEN] Only permissions with execute permission set to Indirect are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
         // [WHEN] The permissions overview page execute permission is filtered to No
         PermissionsOverview.ExecuteFilter.SetValue(Enum::"Permission Filter"::No);
         // [THEN] Only permissions with execute permission set to No (i.e. " ") are visible
-        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
     end;
 
     local procedure CreateTenantPermission(TenantPermissionSet: Record "Tenant Permission Set"; ObjectType: Option; ObjectID: Integer; R: Option; I: Option; M: Option; D: Option; E: Option) TenantPermission: Record "Tenant Permission";
