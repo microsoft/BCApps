@@ -19,6 +19,7 @@ codeunit 134097 "ERM Check Posting Groups"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+
     [Test]
     [Scope('OnPrem')]
     procedure CheckCustPostingGroupGetAccounts()
