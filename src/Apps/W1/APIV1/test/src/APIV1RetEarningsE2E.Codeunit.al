@@ -3,6 +3,7 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 

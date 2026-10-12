@@ -3,6 +3,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     // version Test,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 

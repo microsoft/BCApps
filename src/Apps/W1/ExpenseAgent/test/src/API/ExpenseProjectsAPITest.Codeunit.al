@@ -13,6 +13,7 @@ using Microsoft.Projects.Resources.Resource;
 codeunit 148331 "Expense Projects API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
