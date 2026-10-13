@@ -282,9 +282,14 @@ table 31128 "EET Entry CZL"
         }
         key(Key3; "Status")
         {
+            SumIndexFields = "Total Sales Amount";
         }
         key(Key4; "Document No.")
         {
+        }
+        key(Key5; "Canceled By Entry No.")
+        {
+            SumIndexFields = "Total Sales Amount";
         }
     }
 
@@ -401,6 +406,9 @@ table 31128 "EET Entry CZL"
     var
         EETBusinessPremisesCZL: Record "EET Business Premises CZL";
         EETServiceSetupCZL: Record "EET Service Setup CZL";
+#if not CLEAN30
+        ShortCertificateCode: Code[10];
+#endif
     begin
         GetEETCashRegister();
         CertificateCode := EETCashRegisterCZL."Taxpayer Certificate Code";
@@ -412,8 +420,12 @@ table 31128 "EET Entry CZL"
             EETServiceSetupCZL.Get();
             CertificateCode := EETServiceSetupCZL."Taxpayer Certificate Code";
         end;
-
-        OnAfterGetCertificateCode(Rec, CertificateCode);
+#if not CLEAN30
+        OnAfterGetCertificateCode(Rec, ShortCertificateCode);
+        if ShortCertificateCode <> '' then
+            CertificateCode := ShortCertificateCode;
+#endif
+        OnAfterGetTaxpayerCertificateCode(Rec, CertificateCode);
         if (CertificateCode = '') and (EETServiceSetupCZL."Taxpayer Certificate Code" = '') then
             EETServiceSetupCZL.Testfield("Taxpayer Certificate Code");
     end;
@@ -874,9 +886,16 @@ table 31128 "EET Entry CZL"
     local procedure OnBeforeChangeStatus(var EETEntryCZL: Record "EET Entry CZL"; NewStatus: Enum "EET Status CZL"; var NewDescription: Text; var TempErrorMessage: Record "Error Message" temporary; var IsHandled: Boolean; HttpRequestMessage: HttpRequestMessage; HttpResponseMessage: HttpResponseMessage)
     begin
     end;
-
+#if not CLEAN30
+    [Obsolete('The event has been replaced by the OnAfterGetTaxpayerCertificateCode event, because the Code[10] return value is shorter than the Code field (20) in the Certificate Code CZL table and it truncates longer certificate codes.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCertificateCode(EETEntryCZL: Record "EET Entry CZL"; var CertificateCode: Code[10])
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetTaxpayerCertificateCode(EETEntryCZL: Record "EET Entry CZL"; var CertificateCode: Code[20])
     begin
     end;
 
