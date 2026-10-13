@@ -1422,25 +1422,29 @@ codeunit 139595 "Report Layouts Test"
 
     [Test]
     [HandlerFunctions('NewRDLCLayoutModalHandler')]
-    procedure TestReportLayoutsFacadeValidateLayoutWithMissingPartIsValidWithWarnings()
+    procedure TestReportLayoutsFacadeValidateLayoutWithObsoletePartIsValidWithWarnings()
     var
         ReportLayoutList: Record "Report Layout List";
         ReportLayouts: Codeunit "Report Layouts";
-        LookupHelper: Codeunit "Composite Layout Lookup Helper";
         ValidationMessage: Text;
     begin
         // [FEATURE] [Report Layouts Facade]
-        // [SCENARIO] ValidateReportLayout returns Valid with Warnings and the part warnings when the report references a header/footer part that does not exist
-        // [GIVEN] An RDLC layout and a report configuration row that references a header/footer part that does not exist
+        // [SCENARIO] ValidateReportLayout returns Valid with Warnings and the part warnings when the report references an obsolete header/footer part
+        // [GIVEN] An RDLC layout and a report configuration row that references a header/footer part
         CreateNewLayoutForTestReport(ReportLayoutList);
-        InsertCompositePartReferences(LookupHelper.EncodeCompositeName(CreateGuid(), MissingHeaderPartNameTxt), '');
+        InsertCompositePartReferences(CreateHeaderFooterPart(), '');
+
+        // [GIVEN] The header/footer part is marked as obsolete after it was assigned
+        SetHeaderFooterPartObsolete();
 
         // [WHEN] The layout is validated through the facade
-        // [THEN] The layout is valid with warnings and the message names the missing part
+        // [THEN] The layout is valid with warnings and the message names the obsolete part
         Assert.AreEqual(Enum::"Layout Validation Result"::"Valid with Warnings", ReportLayouts.ValidateReportLayout(ReportLayoutList, ValidationMessage), 'The layout should be valid with warnings.');
-        Assert.IsTrue(ValidationMessage.Contains(MissingHeaderPartNameTxt), 'The message should name the missing header/footer part.');
+        Assert.IsTrue(ValidationMessage.Contains(HeaderFooterPartNameTxt), 'The message should name the obsolete header/footer part.');
 
+        // The configuration row must be gone before the part it references can be deleted.
         EnsureNewLayoutsAreCleaned();
+        DeleteHeaderFooterPart();
     end;
 
     [Test]
@@ -1565,7 +1569,7 @@ codeunit 139595 "Report Layouts Test"
         // [SCENARIO] A header/footer part cannot be set as the default layout of a report
         // [GIVEN] A header/footer part
         ReportLayoutList."Report ID" := 139595;
-        ReportLayoutList.Name := MissingHeaderPartNameTxt;
+        ReportLayoutList.Name := HeaderFooterPartNameTxt;
         ReportLayoutList."Layout Subtype" := ReportLayoutList."Layout Subtype"::HeaderFooter;
 
         // [WHEN] The part is set as default through the facade
@@ -1585,7 +1589,7 @@ codeunit 139595 "Report Layouts Test"
         // [SCENARIO] A theme part cannot be selected as a report layout, neither for the company nor for a user
         // [GIVEN] A theme part
         ReportLayoutList."Report ID" := 139595;
-        ReportLayoutList.Name := MissingHeaderPartNameTxt;
+        ReportLayoutList.Name := HeaderFooterPartNameTxt;
         ReportLayoutList."Layout Subtype" := ReportLayoutList."Layout Subtype"::Theme;
 
         // [WHEN] The part is selected through the facade
@@ -1661,6 +1665,48 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
     end;
 
+    local procedure CreateHeaderFooterPart(): Text
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        ExcelSheetConfiguration: Enum "Excel Sheet Configuration";
+        EmptyGuid: Guid;
+        ReturnReportID: Integer;
+        ReturnLayoutName: Text;
+    begin
+        DeleteHeaderFooterPart();
+
+        // Tenant Report Layout Cfg only accepts references to existing parts. An empty Word layout under the Tenant Report
+        // Defaults report is such a part.
+        ReportLayoutsImpl.InsertNewLayout(
+            LookupHelper.GetTenantReportDefaultsReportID(), HeaderFooterPartNameTxt, HeaderFooterPartNameTxt, ReportLayoutList."Layout Format"::Word,
+            true, true, ExcelSheetConfiguration::Default, Enum::"Report Layout Subtype"::HeaderFooter, ReturnReportID, ReturnLayoutName);
+
+        exit(LookupHelper.EncodeCompositeName(EmptyGuid, HeaderFooterPartNameTxt));
+    end;
+
+    local procedure SetHeaderFooterPartObsolete()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), HeaderFooterPartNameTxt, EmptyGuid);
+        TenantReportLayout.IsObsolete := true;
+        TenantReportLayout.Modify(true);
+    end;
+
+    local procedure DeleteHeaderFooterPart()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EmptyGuid: Guid;
+    begin
+        if TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), HeaderFooterPartNameTxt, EmptyGuid) then
+            TenantReportLayout.Delete(true);
+    end;
+
     local procedure InsertCompositePartReferences(HeaderPartName: Text; ThemePartName: Text)
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
@@ -1703,7 +1749,7 @@ codeunit 139595 "Report Layouts Test"
         GlobalOverrideApprovedErr: Label 'The global override for %1 should carry the Approved status.', Comment = '%1 = layout name';
         GlobalOverrideRetiredErr: Label 'The global override for %1 should carry the Retired status.', Comment = '%1 = layout name';
         CompanyOverrideUnexpectedErr: Label 'No company-specific override should exist for layout %1.', Comment = '%1 = layout name';
-        MissingHeaderPartNameTxt: Label 'MissingHeaderPart', Locked = true;
+        HeaderFooterPartNameTxt: Label 'ReportLayoutsTestHeaderFooter', Locked = true;
         CustomLayoutInvalidTxt: Label 'The custom layout is not valid.', Locked = true;
         CompositePartCannotBeSelectedTxt: Label 'cannot be selected as a report layout', Locked = true;
         InsertedLayoutContextTxt: Text;
