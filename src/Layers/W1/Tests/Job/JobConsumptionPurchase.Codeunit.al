@@ -4700,6 +4700,105 @@ codeunit 136302 "Job Consumption Purchase"
         PurchCredMemoLine.TestField("Job Line Amount", PurchaseLine."Job Line Amount");
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoice()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
+        PurchaseOrder: TestPage "Purchase Order";
+        GLAccountNo: Code[20];
+        DocumentNo: Code[20];
+        Quantity: Decimal;
+        QtyToInvoice: Decimal;
+        DirectUnitCost: Decimal;
+        InvDiscAmountPerUnit: Decimal;
+        NewInvDiscAmountPerUnit: Decimal;
+        ExpectedUnitCost: Decimal;
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount]
+        // [SCENARIO 642385] Project ledger entry total cost for a G/L Account line follows the invoice discount changed on the Invoicing tab of purchase order statistics
+        Initialize();
+
+        // [GIVEN] Purchases & Payables Setup with "Calc. Inv. Discount" disabled
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Calc. Inv. Discount", false);
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] Integer amounts per unit keep all expected values free of rounding differences
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        QtyToInvoice := LibraryRandom.RandIntInRange(1, Quantity - 1);
+        DirectUnitCost := LibraryRandom.RandIntInRange(100, 200);
+        InvDiscAmountPerUnit := LibraryRandom.RandIntInRange(10, 50);
+        NewInvDiscAmountPerUnit := LibraryRandom.RandIntInRange(0, InvDiscAmountPerUnit - 1);
+        ExpectedUnitCost := DirectUnitCost - NewInvDiscAmountPerUnit;
+        ExpectedAmount := ExpectedUnitCost * QtyToInvoice;
+
+        // [GIVEN] Purchase order with G/L Account line linked to a project task: Quantity = "Q", "Direct Unit Cost" = "C"
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Validate("Allow Invoice Disc.", true);
+        PurchaseLine.Validate("Job No.", JobTask."Job No.");
+        PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Invoice discount amount "D" * "Q" for the whole order
+        PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(InvDiscAmountPerUnit * Quantity, PurchaseHeader);
+
+        // [GIVEN] "Qty. to Invoice" = "QI" < "Q", so proportional "Inv. Disc. Amount to Invoice" = "D" * "QI"
+        PurchaseLine.Find();
+        PurchaseLine.Validate("Qty. to Invoice", QtyToInvoice);
+        PurchaseLine.Modify(true);
+        Assert.AreEqual(
+            InvDiscAmountPerUnit * QtyToInvoice, PurchaseLine."Inv. Disc. Amount to Invoice",
+            StrSubstNo(ValueMustMatchErr, PurchaseLine.FieldCaption("Inv. Disc. Amount to Invoice"), InvDiscAmountPerUnit * QtyToInvoice));
+
+        // [GIVEN] Invoice discount amount on the Invoicing tab of purchase order statistics is changed to "ND" * "QI", where "ND" < "D"
+        LibraryVariableStorage.Enqueue(NewInvDiscAmountPerUnit * QtyToInvoice);
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.GotoRecord(PurchaseHeader);
+        PurchaseOrder.PurchaseOrderStatistics.Invoke();
+        PurchaseOrder.Close();
+        PurchaseLine.Find();
+        Assert.AreEqual(
+            NewInvDiscAmountPerUnit * QtyToInvoice, PurchaseLine."Inv. Disc. Amount to Invoice",
+            StrSubstNo(ValueMustMatchErr, PurchaseLine.FieldCaption("Inv. Disc. Amount to Invoice"), NewInvDiscAmountPerUnit * QtyToInvoice));
+        Assert.AreEqual(
+            InvDiscAmountPerUnit * Quantity, PurchaseLine."Inv. Discount Amount",
+            StrSubstNo(ValueMustMatchErr, PurchaseLine.FieldCaption("Inv. Discount Amount"), InvDiscAmountPerUnit * Quantity));
+
+        // [WHEN] Receive and invoice the purchase order
+        PurchaseHeader.Find();
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] G/L entry for the G/L Account has amount ("C" - "ND") * "QI"
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.FindFirst();
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry has Quantity = "QI", "Unit Cost (LCY)" = "C" - "ND" and "Total Cost (LCY)" equal to the G/L entry amount
+        FindJobLedgerEntry(JobLedgerEntry, DocumentNo, JobTask."Job No.");
+        Assert.AreEqual(QtyToInvoice, JobLedgerEntry.Quantity, StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption(Quantity), QtyToInvoice));
+        Assert.AreEqual(
+            ExpectedUnitCost, JobLedgerEntry."Unit Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Unit Cost (LCY)"), ExpectedUnitCost));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";
@@ -7117,6 +7216,13 @@ codeunit 136302 "Job Consumption Purchase"
     begin
         Reservation."Reserve from Current Line".Invoke();
         Reservation.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
+    begin
+        PurchaseOrderStatistics.InvDiscountAmount_Invoicing.SetValue(LibraryVariableStorage.DequeueDecimal());
+        PurchaseOrderStatistics.OK().Invoke();
     end;
 
     local procedure UndoPurchReciptAndAdjustCostItemEntries(var PurchaseLine: Record "Purchase Line"; var Item: Record Item)
