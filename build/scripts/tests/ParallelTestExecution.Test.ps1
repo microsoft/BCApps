@@ -156,6 +156,35 @@ Describe "ParallelTestExecution app-name resolution" {
         }
     }
 
+    It "passes a bounded drop query that ends sessions on the tenant database" {
+        InModuleScope ParallelTestExecution {
+            Mock Invoke-ScriptInBcContainer { }
+
+            Reset-BcTestTenant -ContainerName 'bc' -Tenant 'tenant2' `
+                -TenantDatabaseName 'tenant2' -TemplateDatabaseName 'default-test-template'
+
+            Should -Invoke Invoke-ScriptInBcContainer -Times 1 -ParameterFilter {
+                $argumentList.Count -eq 4 -and
+                $argumentList[0] -eq 'tenant2' -and
+                $argumentList[3] -like "*DECLARE @db sysname = N'tenant2';*" -and
+                $argumentList[3] -like '*KILL*' -and
+                $argumentList[3] -like '*SET SINGLE_USER WITH ROLLBACK IMMEDIATE*' -and
+                $argumentList[3] -like '*DROP DATABASE*'
+            }
+        }
+    }
+
+    It "escapes the database name in the drop query" {
+        InModuleScope ParallelTestExecution {
+            $query = Get-BcTestTenantDatabaseDropQuery -DatabaseName "it's"
+
+            $query | Should -BeLike "*DECLARE @db sysname = N'it''s';*"
+            $query | Should -BeLike '*QUOTENAME(@db)*'
+            $query | Should -BeLike '*IF DB_ID(@db) IS NULL RETURN;*'
+            $query | Should -BeLike '*s.is_user_process = 1*'
+        }
+    }
+
     It "removes the clean template when normal app dispatch aborts" {
         InModuleScope ParallelTestExecution {
             Mock Get-AvailableBcTenantInfo {
