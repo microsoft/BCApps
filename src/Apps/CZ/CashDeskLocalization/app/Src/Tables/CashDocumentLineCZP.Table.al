@@ -1902,7 +1902,7 @@ table 11733 "Cash Document Line CZP"
             GetCashDeskEventCZP();
             EETTransaction := CashDeskEventCZP."EET Transaction";
         end else
-            EETTransaction := IsInvoicePayment() or IsCreditMemoRefund();
+            EETTransaction := IsCustomerPayment() or IsCustomerRefund();
 
         OnAfterIsEETTransaction(Rec, EETTransaction);
     end;
@@ -1919,6 +1919,22 @@ table 11733 "Cash Document Line CZP"
     begin
         if not "System-Created Entry" then
             "EET Transaction" := IsEETTransaction();
+    end;
+
+    local procedure IsCustomerPayment(): Boolean
+    begin
+        exit(
+            ("Document Type" = "Document Type"::Receipt) and
+            ("Account Type" = "Account Type"::Customer) and
+            ("Gen. Document Type" = "Gen. Document Type"::Payment));
+    end;
+
+    local procedure IsCustomerRefund(): Boolean
+    begin
+        exit(
+            ("Document Type" = "Document Type"::Withdrawal) and
+            ("Account Type" = "Account Type"::Customer) and
+            ("Gen. Document Type" = "Gen. Document Type"::Payment));
     end;
 
     procedure IsInvoicePayment(): Boolean

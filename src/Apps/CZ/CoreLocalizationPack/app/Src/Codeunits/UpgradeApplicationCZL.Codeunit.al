@@ -192,6 +192,7 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeOriginalVATAmountsACYInVATEntries();
         UpgradeDraftInvoiceAndProformaReportLayouts();
         UpgradeEETTaxpayerCertificateCode();
+        UpgradeEETBusinessPremisesExtendedDescription();
     end;
 
     local procedure UpgradeReplaceVATDateCZL()
@@ -884,6 +885,23 @@ codeunit 31017 "Upgrade Application CZL"
         EETCashRegisterDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetEETTaxpayerCertificateCodeUpgradeTag());
+    end;
+
+    local procedure UpgradeEETBusinessPremisesExtendedDescription()
+    var
+        EETBusinessPremisesCZL: Record "EET Business Premises CZL";
+        EETBusinessPremisesDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetEETBusinessPremisesExtendedDescriptionUpgradeTag()) then
+            exit;
+
+        EETBusinessPremisesDataTransfer.SetTables(Database::"EET Business Premises CZL", Database::"EET Business Premises CZL");
+        EETBusinessPremisesDataTransfer.AddSourceFilter(EETBusinessPremisesCZL.FieldNo(Description), '<>%1', '');
+        EETBusinessPremisesDataTransfer.AddSourceFilter(EETBusinessPremisesCZL.FieldNo("Extended Description"), '=%1', '');
+        EETBusinessPremisesDataTransfer.AddFieldValue(EETBusinessPremisesCZL.FieldNo(Description), EETBusinessPremisesCZL.FieldNo("Extended Description"));
+        EETBusinessPremisesDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetEETBusinessPremisesExtendedDescriptionUpgradeTag());
     end;
 
     internal procedure IsReportLayoutSelectionCustomized(ReportId: Integer): Boolean

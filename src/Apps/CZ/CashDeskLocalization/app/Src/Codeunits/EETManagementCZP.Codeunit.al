@@ -18,7 +18,7 @@ codeunit 31083 "EET Management CZP"
 
     var
         EETManagementCZL: Codeunit "EET Management CZL";
-        MoreEETLinesDeniedErr: Label 'Cash document %1 %2 cannot contain more than one EET line.', Comment = '%1 = Cash Document Type;%2 = Cash Document No.';
+        LinesWithDifferentCustomersErr: Label 'There are lines with different customers.';
         EntryDescriptionTxt: Label '%1 %2', Comment = '%1 = Applied Document Type;%2 = Applied Document No.';
 
     local procedure CheckEETTransaction(CashDocumentHeaderCZP: Record "Cash Document Header CZP"): Boolean
@@ -29,6 +29,7 @@ codeunit 31083 "EET Management CZP"
     procedure CheckCashDocument(var CashDocumentHeaderCZP: Record "Cash Document Header CZP")
     var
         CashDocumentLineCZP: Record "Cash Document Line CZP";
+        CustomerNo: Code[20];
         NoOfLines: Integer;
         IsHandled: Boolean;
     begin
@@ -64,15 +65,18 @@ codeunit 31083 "EET Management CZP"
         if CashDocumentLineCZP.FindFirst() then
             CashDocumentLineCZP.TestField("Account Type", CashDocumentLineCZP."Account Type"::Customer);
 
-        // If there is a line with customer account type then number of lines must be only one
+        // Each line with customer account type must not exceed the original amount of the applied customer ledger entry and must belong to the same customer.
         CashDocumentLineCZP.SetRange("Cash Desk Event");
         CashDocumentLineCZP.SetRange("Account Type", CashDocumentLineCZP."Account Type"::Customer);
-        if CashDocumentLineCZP.FindFirst() then begin
-            if NoOfLines > 1 then
-                Error(MoreEETLinesDeniedErr, CashDocumentLineCZP."Document Type", CashDocumentLineCZP."Cash Document No.");
-
-            CheckLineWithAppliedDocument(CashDocumentLineCZP, GetAppliedDocumentAmount(CashDocumentLineCZP));
-        end;
+        if CashDocumentLineCZP.FindSet() then begin
+            CustomerNo := CashDocumentLineCZP."Account No.";
+            repeat
+                if CashDocumentLineCZP."Account No." <> CustomerNo then
+                    Error(LinesWithDifferentCustomersErr);
+                if CashDocumentLineCZP."Applies-To Doc. No." <> '' then
+                    CheckLineWithAppliedDocument(CashDocumentLineCZP, GetAppliedDocumentAmount(CashDocumentLineCZP));
+            until CashDocumentLineCZP.Next() = 0;
+        end
     end;
 
     local procedure CheckLineWithAppliedDocument(CashDocumentLineCZP: Record "Cash Document Line CZP"; AppliedDocumentAmount: Decimal)
@@ -82,9 +86,6 @@ codeunit 31083 "EET Management CZP"
         OnBeforeCheckLineWithAppliedDocument(CashDocumentLineCZP, AppliedDocumentAmount, IsHandled);
         if IsHandled then
             exit;
-
-        CashDocumentLineCZP.TestField("Account Type", CashDocumentLineCZP."Account Type"::Customer);
-        CashDocumentLineCZP.TestField("Applies-To Doc. No.");
         if CashDocumentLineCZP."Amount Including VAT" > AppliedDocumentAmount then
             CashDocumentLineCZP.TestField("Amount Including VAT", AppliedDocumentAmount);
     end;
@@ -116,6 +117,7 @@ codeunit 31083 "EET Management CZP"
     procedure CreateEETEntry(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"): Integer
     var
         CashDocumentLineCZP: Record "Cash Document Line CZP";
+        PostedCashDocumentLineCZP: Record "Posted Cash Document Line CZP";
         EETCashRegisterCZL: Record "EET Cash Register CZL";
         EETEntryCZL: Record "EET Entry CZL";
         IsHandled: Boolean;
@@ -135,21 +137,31 @@ codeunit 31083 "EET Management CZP"
         EETEntryCZL."Business Premises Code" := EETCashRegisterCZL."Business Premises Code";
         EETEntryCZL."Cash Register Code" := EETCashRegisterCZL.Code;
 
-        // Calculate amounts
         SetFilterCashDocumentLine(CashDocumentHeaderCZP, CashDocumentLineCZP);
-        if CashDocumentLineCZP.FindSet() then begin
+        CashDocumentLineCZP.SetFilter("Applies-To Doc. No.", '<>%1', '');
+        if CashDocumentLineCZP.Count() = 1 then begin
+            CashDocumentLineCZP.FindFirst();
             EETEntryCZL."Applied Document Type" := GetAppliedDocumentType(CashDocumentLineCZP);
             EETEntryCZL."Applied Document No." := GetAppliedDocumentNo(CashDocumentLineCZP);
-            repeat
-                EETEntryCZL."Total Sales Amount" += -CashDocumentHeaderCZP.SignAmount() * CashDocumentLineCZP."Amount Including VAT (LCY)";
-                case CashDocumentLineCZP."Amount Type" of
-                    CashDocumentLineCZP."Amount Type"::Charging:
-                        EETEntryCZL."Amt. For Subseq. Draw/Settle" += -CashDocumentHeaderCZP.SignAmount() * CashDocumentLineCZP."Amount Including VAT (LCY)";
-                    CashDocumentLineCZP."Amount Type"::Drawing:
-                        EETEntryCZL."Amt. Subseq. Drawn/Settled" += -CashDocumentHeaderCZP.SignAmount() * CashDocumentLineCZP."Amount Including VAT (LCY)";
-                end;
-            until CashDocumentLineCZP.Next() = 0;
         end;
+
+        // Calculate amounts
+        PostedCashDocumentHdrCZP.CalcFields("Amount Including VAT (LCY)");
+        EETEntryCZL."Total Sales Amount" := -CashDocumentHeaderCZP.SignAmount() * PostedCashDocumentHdrCZP."Amount Including VAT (LCY)";
+
+        PostedCashDocumentLineCZP.Reset();
+        PostedCashDocumentLineCZP.SetRange("Cash Desk No.", PostedCashDocumentHdrCZP."Cash Desk No.");
+        PostedCashDocumentLineCZP.SetRange("Cash Document No.", PostedCashDocumentHdrCZP."No.");
+        PostedCashDocumentLineCZP.SetFilter("Amount Type", '<>%1', PostedCashDocumentLineCZP."Amount Type"::" ");
+        if PostedCashDocumentLineCZP.FindSet() then
+            repeat
+                case PostedCashDocumentLineCZP."Amount Type" of
+                    PostedCashDocumentLineCZP."Amount Type"::Settlement:
+                        EETEntryCZL."Amt. For Subseq. Draw/Settle" += -CashDocumentHeaderCZP.SignAmount() * PostedCashDocumentLineCZP."Amount Including VAT (LCY)";
+                    PostedCashDocumentLineCZP."Amount Type"::Drawing:
+                        EETEntryCZL."Amt. Subseq. Drawn/Settled" += -CashDocumentHeaderCZP.SignAmount() * PostedCashDocumentLineCZP."Amount Including VAT (LCY)";
+                end;
+            until PostedCashDocumentLineCZP.Next() = 0;
 
         EETEntryCZL.RoundAmounts();
         if EETEntryCZL."Applied Document No." <> '' then

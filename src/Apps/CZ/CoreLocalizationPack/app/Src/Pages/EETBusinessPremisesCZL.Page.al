@@ -20,7 +20,7 @@ page 31143 "EET Business Premises CZL"
                 field("Code"; Rec.Code)
                 {
                 }
-                field(Description; Rec.Description)
+                field(Description; Rec."Extended Description")
                 {
                 }
                 field(Identification; Rec.Identification)

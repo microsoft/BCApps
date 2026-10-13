@@ -21,10 +21,25 @@ table 31126 "EET Business Premises CZL"
             NotBlank = true;
             ToolTip = 'Specifies the code of the registrating unit. The code is used only in Business Central, the number that is sent to the EET service is specified in the Unit ID field.';
         }
+#if not CLEANSCHEMA33
         field(2; Description; Text[50])
         {
             Caption = 'Description';
             ToolTip = 'Specifies the description of the registrating unit.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'The field has been replaced by the Extended Description field, because its length (50) was too short to describe the registrating unit.';
+        }
+#endif
+        field(3; "Extended Description"; Text[100])
+        {
+            Caption = 'Description';
+            ToolTip = 'Specifies the description of the registrating unit, for example its address or other details that identify the unit.';
         }
         field(15; Identification; Code[6])
         {

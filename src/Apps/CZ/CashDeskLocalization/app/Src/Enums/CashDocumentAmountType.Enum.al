@@ -11,9 +11,9 @@ enum 11737 "Cash Document Amount Type CZP"
     value(0; " ")
     {
     }
-    value(1; Charging)
+    value(1; Settlement)
     {
-        Caption = 'Charging';
+        Caption = 'Settlement';
     }
     value(2; Drawing)
     {

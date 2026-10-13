@@ -678,7 +678,6 @@ table 31128 "EET Entry CZL"
 
     procedure RoundAmounts()
     begin
-        "Total Sales Amount" := Round("Total Sales Amount");
         "Amount Exempted From VAT" := Round("Amount Exempted From VAT");
         "VAT Base (Basic)" := Round("VAT Base (Basic)");
         "VAT Amount (Basic)" := Round("VAT Amount (Basic)");
@@ -690,8 +689,6 @@ table 31128 "EET Entry CZL"
         "Amount (Basic) - Art.90" := Round("Amount (Basic) - Art.90");
         "Amount (Reduced) - Art.90" := Round("Amount (Reduced) - Art.90");
         "Amount (Reduced 2) - Art.90" := Round("Amount (Reduced 2) - Art.90");
-        "Amt. For Subseq. Draw/Settle" := Round("Amt. For Subseq. Draw/Settle");
-        "Amt. Subseq. Drawn/Settled" := Round("Amt. Subseq. Drawn/Settled");
     end;
 
     procedure CopyFromEETEntry(EETEntryCZL: Record "EET Entry CZL")
