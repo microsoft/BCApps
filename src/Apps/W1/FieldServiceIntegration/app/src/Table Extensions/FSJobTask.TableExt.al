@@ -11,6 +11,7 @@ tableextension 6611 "FS Job Task" extends "Job Task"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(12000; "Coupled to FS"; Boolean)
         {
             FieldClass = FlowField;
@@ -18,5 +19,6 @@ tableextension 6611 "FS Job Task" extends "Job Task"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Job Task")));
         }
+#pragma warning restore AS0099
     }
 }
