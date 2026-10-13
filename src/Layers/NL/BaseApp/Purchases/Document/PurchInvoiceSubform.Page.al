@@ -1475,14 +1475,17 @@ page 55 "Purch. Invoice Subform"
     end;
 
     procedure NoOnAfterValidate()
+    var
+        ValueChangedNo: Boolean;
     begin
         UpdateEditableOnRow();
         InsertExtendedText(false);
-        if (Rec.Type = Rec.Type::"Charge (Item)") and (Rec."No." <> xRec."No.") and
-           (xRec."No." <> '')
-        then
+        ValueChangedNo := (Rec."No." <> xRec."No.") and (xRec."No." <> '');
+
+        if (Rec.Type = Rec.Type::"Charge (Item)") and ValueChangedNo then
             CurrPage.SaveRecord();
-        if Rec.Type = Rec.Type::"G/L Account" then
+
+        if (Rec.Type = Rec.Type::"G/L Account") and ValueChangedNo then
             Rec.Validate(Quantity, 1);
 
         OnAfterNoOnAfterValidate(Rec, xRec);

@@ -428,6 +428,33 @@ codeunit 144541 "Purchase Document - VAT"
         VerifyForeignCurrencyAndAmountOnProposalLine(TransactionMode."Our Bank", VendorNo[3], CurrencyCode, Amount[3], '', 0);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PurchaseInvoiceGLAccountQuantityUnchangedAfterDescriptionModified()
+    var
+        Vendor: Record Vendor;
+        PurchaseLine: Record "Purchase Line";
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        Quantity: Decimal;
+    begin
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(2, 10);
+
+        // [GIVEN] Purchase Invoice with a G/L Account line and Quantity greater than 1
+        PurchaseInvoice.OpenNew();
+        Vendor.Get(LibraryPurchase.CreateVendorNo());
+        PurchaseInvoice."Buy-from Vendor Name".SetValue(Vendor.Name);
+        PurchaseInvoice.PurchLines.Type.SetValue(PurchaseLine.Type::"G/L Account");
+        PurchaseInvoice.PurchLines."No.".SetValue(LibraryERM.CreateGLAccountWithPurchSetup());
+        PurchaseInvoice.PurchLines.Quantity.SetValue(Quantity);
+
+        // [WHEN] Modify the line Description
+        PurchaseInvoice.PurchLines.Description.SetValue(LibraryRandom.RandText(50));
+
+        // [THEN] Quantity is unchanged
+        PurchaseInvoice.PurchLines.Quantity.AssertEquals(Quantity);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Purchase Document - VAT");
