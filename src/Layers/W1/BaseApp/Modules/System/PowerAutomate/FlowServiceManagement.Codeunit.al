@@ -184,7 +184,7 @@ codeunit 6400 "Flow Service Management"
         if not Uri.IsValidUri(Url) then
             Error(InvalidUriErr);
         Uri.Init(Url);
-        if not (LowerCase(Uri.GetScheme()) in ['http', 'https']) then
+        if not Uri.IsHttpUrl() then
             Error(SchemeNotAllowedErr);
 
         HttpRequestMessage.Method(Method);
