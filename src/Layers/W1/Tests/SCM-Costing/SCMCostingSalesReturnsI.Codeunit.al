@@ -14,6 +14,8 @@ codeunit 137012 "SCM Costing Sales Returns I"
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory to G/L";
         LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -21,6 +23,61 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesAmountMustBeSameErr: Label 'Sales Amount must be same.';
         MsgSalesLineTxt: Label 'Sales Line must not exist.';
         CorrectedInvoiceNoQst: Label 'have a Corrected Invoice No. Do you want to continue?';
+
+    [Test]
+    procedure SalesReturnUsesHistoricalBlankTrackingAfterLotTrackingIsEnabled()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        OriginalSalesEntryNo: Integer;
+    begin
+        // [FEATURE] [Item Tracking Code Change]
+        // [SCENARIO] A sales return uses historical blank tracking after lot tracking is enabled.
+        Initialize();
+
+        // [GIVEN] An untracked item is purchased into inventory and completely sold.
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', 1, WorkDate(), 0);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        OriginalSalesEntryNo := ItemLedgerEntry."Entry No.";
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
+
+        // [GIVEN] Costs are finalized and lot tracking is enabled on the following day.
+        WorkDate(WorkDate() + 1);
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [WHEN] A return order is explicitly applied from the historical sale.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, Item."No.", 1);
+        SalesReturnLine.Validate("Appl.-from Item Entry", OriginalSalesEntryNo);
+        SalesReturnLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] The return entry is posted without a lot.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.TestField("Lot No.", '');
+    end;
 
     [Test]
     [HandlerFunctions('CorrectedInvoiceNoConfirmHandler')]
@@ -704,4 +761,3 @@ codeunit 137012 "SCM Costing Sales Returns I"
         if Confirm(CorrectedInvoiceNoQst) then;
     end;
 }
-

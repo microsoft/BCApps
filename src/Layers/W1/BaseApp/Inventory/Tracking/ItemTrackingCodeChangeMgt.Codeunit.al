@@ -437,6 +437,18 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         exit(GetTrackingCodeAtPosting(ItemLedgerEntry) <> Item."Item Tracking Code");
     end;
 
+    internal procedure GetTrackingCodeForLinkedApplication(ItemNo: Code[20]; ItemLedgerEntryNo: Integer; var ItemTrackingCode: Code[10]): Boolean
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if not IsLinkedApplicationAcrossTrackingPeriods(ItemNo, ItemLedgerEntryNo) then
+            exit(false);
+
+        ItemLedgerEntry.Get(ItemLedgerEntryNo);
+        ItemTrackingCode := GetTrackingCodeAtPosting(ItemLedgerEntry);
+        exit(true);
+    end;
+
     local procedure GetTrackingCodeAtPosting(ItemLedgerEntry: Record "Item Ledger Entry"): Code[10]
     var
         Item: Record Item;

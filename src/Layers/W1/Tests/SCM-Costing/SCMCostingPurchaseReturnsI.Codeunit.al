@@ -18,11 +18,73 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory to G/L";
         LibraryUtility: Codeunit "Library - Utility";
         isInitialized: Boolean;
         ErrAmountsMustBeSame: Label 'Purchase Amounts must be same.';
         CostingMethod: array[2] of Enum "Costing Method";
         MsgCorrectedInvoiceNo: Label 'have a Corrected Invoice No. Do you want to continue?';
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PurchaseReturnUsesHistoricalBlankTrackingAfterLotTrackingIsEnabled()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseReturnHeader: Record "Purchase Header";
+        PurchaseReturnLine: Record "Purchase Line";
+        OriginalPurchaseEntryNo: Integer;
+    begin
+        // [FEATURE] [Item Tracking Code Change]
+        // [SCENARIO] A purchase return uses historical blank tracking after lot tracking is enabled.
+        Initialize();
+
+        // [GIVEN] An untracked purchase receipt is fully consumed.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader, PurchaseLine, Item, '', '', 1, WorkDate(), 0);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+        OriginalPurchaseEntryNo := ItemLedgerEntry."Entry No.";
+        LibraryInventory.CreateItemJnlLine(
+            ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", WorkDate(), Item."No.", 1, '');
+        ItemJournalLine.Validate("Applies-to Entry", OriginalPurchaseEntryNo);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
+
+        // [GIVEN] Costs are finalized and lot tracking is enabled on the following day.
+        WorkDate(WorkDate() + 1);
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [WHEN] A purchase return is explicitly applied to the historical receipt.
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseReturnHeader, PurchaseReturnHeader."Document Type"::"Return Order", PurchaseHeader."Buy-from Vendor No.");
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseReturnLine, PurchaseReturnHeader, PurchaseReturnLine.Type::Item, Item."No.", 1);
+        PurchaseReturnLine.Validate("Appl.-to Item Entry", OriginalPurchaseEntryNo);
+        PurchaseReturnLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseReturnHeader, true, true);
+
+        // [THEN] The return shipment entry is posted without a lot.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.TestField("Lot No.", '');
+    end;
 
     local procedure NoSeriesSetup()
     var
@@ -872,4 +934,3 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         if Confirm(MsgCorrectedInvoiceNo) then;
     end;
 }
-
