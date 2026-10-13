@@ -160,6 +160,11 @@
     "method": "VerifySustainabilityLedgerEntryIsNotReversedTwiceWhenAlreadyReversedBeforeGLReversal"
   },
   {
+    "codeunitId": 148189,
+    "codeunitName": "Sust. Water/Waste Int. Test",
+    "method": "VerifySustAccountIsNotAllowedToUseInGeneralJournalDocumentWithIntensitySetup"
+  },
+  {
     "codeunitId": 148190,
     "codeunitName": "Sust. Value Entry Test",
     "method": "TestSustValueEntryIsCreatedForItemJournalWhenEntryTypeIsPurchase"
