@@ -25,4 +25,9 @@ enum 8351 "MCP Server Feature" implements "MCP Server Features"
         Caption = 'Data Query Tools (Preview/Billable)';
         Implementation = "MCP Server Features" = "MCP Data Query Tools Feature";
     }
+    value(3; "Agent Tools")
+    {
+        Caption = 'Agent Tools (Preview/Billable)';
+        Implementation = "MCP Server Features" = "MCP Agent Tools Feature";
+    }
 }
