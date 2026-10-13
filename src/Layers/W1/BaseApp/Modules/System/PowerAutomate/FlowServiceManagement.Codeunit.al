@@ -193,7 +193,8 @@ codeunit 6400 "Flow Service Management"
         HttpRequestMessage.GetHeaders(RequestHeaders);
         RequestHeaders.Add('Authorization', SecretStrSubstNo(BearerTokenTxt, AccessToken));
 
-        HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+            Error(GetLastErrorText());
         if not HttpResponseMessage.IsSuccessStatusCode() then
             Error(RemoteServerErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
 
