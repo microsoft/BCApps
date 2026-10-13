@@ -3344,7 +3344,7 @@ codeunit 137262 "SCM Invt Item Tracking III"
     end;
 
     [Test]
-    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption')]
+    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption,ConfirmHandlerTrue')]
     procedure RemainingQtyOnProdOrderCompAfterTwoPartialConsumptionsWithPlanningAndLotTracking()
     var
         CompItem: Record Item;
