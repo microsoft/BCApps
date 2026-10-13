@@ -18,9 +18,11 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         TempBlobDebugLog: Codeunit "Temp Blob";
         TempBlobResponseBody: Codeunit "Temp Blob";
         TempBlobResponseInStream: Codeunit "Temp Blob";
+        TempBlobRequestContent: Codeunit "Temp Blob";
+        TempBlobFaultResponse: Codeunit "Temp Blob";
         Trace: Codeunit Trace;
         GlobalRequestBodyInStream: InStream;
-        HttpWebResponse: DotNet HttpWebResponse;
+        GlobalRequestContentInStream: InStream;
         GlobalPassword: SecretText;
         GlobalURL: Text;
         [NonDebuggable]
@@ -36,6 +38,12 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         GlobalSkipCheckHttps: Boolean;
         GlobalProgressDialogEnabled: Boolean;
         GlobalUseDefaultCredentials: Boolean;
+        GlobalHttpRequestFailed: Boolean;
+        GlobalHttpResponseReceived: Boolean;
+        GlobalHttpStatusCode: Integer;
+        GlobalHttpReasonPhrase: Text;
+        GlobalHttpRequestUri: Text;
+        GlobalHttpErrorText: Text;
 
         BodyPathTxt: Label '/soap:Envelope/soap:Body', Locked = true;
         ContentTypeTxt: Label 'multipart/form-data; charset=utf-8', Locked = true;
@@ -51,44 +59,131 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         UsernameTokenNamepsaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText', Locked = true;
         InternalErr: Label 'The remote service has returned the following error message:\\';
         InvalidTokenFormatErr: Label 'The token must be in JWS or JWE Compact Serialization Format.';
+        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
+        ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
+        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - url, e.g. https://microsoft.com';
+        RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 - HTTP status code, e.g. 500, %2 - reason phrase, e.g. Internal Server Error';
+        RemoteServerNoReasonErr: Label 'The remote server returned an error: (%1).', Comment = '%1 - HTTP status code, e.g. 500';
+        ServiceURLTxt: Label '\\Service URL: %1.', Comment = '%1 - url, e.g. http://www.contoso.com/';
 
     [TryFunction]
     procedure SendRequestToWebService()
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
-        HttpWebRequest: DotNet HttpWebRequest;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
         ResponseInStream: InStream;
     begin
+        ClearResponseState();
         CheckGlobals();
-        BuildWebRequest(GlobalURL, HttpWebRequest);
-        Clear(TempBlobResponseInStream);
+        BuildWebRequest(GlobalURL, HttpClient, HttpRequestMessage);
+        CreateRequestContent(HttpRequestMessage);
+        AddBasicAuthorizationHeader(GlobalBasicUsername, GlobalBasicPassword, HttpRequestMessage);
+        AddSoapActionHeader(GlobalSoapAction, HttpRequestMessage);
+        SendWebRequest(HttpClient, HttpRequestMessage);
         TempBlobResponseInStream.CreateInStream(ResponseInStream, GlobalStreamEncoding);
-        CreateSoapRequest(HttpWebRequest.GetRequestStream(), GlobalRequestBodyInStream, GlobalUsername, GlobalPassword);
-        AddBasicAuthorizationHeader(GlobalURL, GlobalBasicUsername, GlobalBasicPassword, HttpWebRequest);
-        AddSoapActionHeader(GlobalSoapAction, HttpWebRequest);
-        WebRequestHelper.GetWebResponse(HttpWebRequest, HttpWebResponse, ResponseInStream,
-          HttpStatusCode, ResponseHeaders, GlobalProgressDialogEnabled);
         ExtractContentFromResponse(ResponseInStream, TempBlobResponseBody);
     end;
 
-    local procedure BuildWebRequest(ServiceUrl: Text; var HttpWebRequest: DotNet HttpWebRequest)
-    var
-        DecompressionMethods: DotNet DecompressionMethods;
+    local procedure ClearResponseState()
     begin
-        HttpWebRequest := HttpWebRequest.Create(ServiceUrl);
-        HttpWebRequest.Method := 'POST';
-        HttpWebRequest.KeepAlive := true;
-        HttpWebRequest.AllowAutoRedirect := true;
-        HttpWebRequest.UseDefaultCredentials := GlobalUseDefaultCredentials;
+        Clear(TempBlobRequestContent);
+        Clear(TempBlobResponseInStream);
+        Clear(TempBlobFaultResponse);
+        GlobalHttpRequestFailed := false;
+        GlobalHttpResponseReceived := false;
+        GlobalHttpStatusCode := 0;
+        GlobalHttpReasonPhrase := '';
+        GlobalHttpRequestUri := '';
+        GlobalHttpErrorText := '';
+    end;
+
+    local procedure BuildWebRequest(ServiceUrl: Text; var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage)
+    begin
+        HttpRequestMessage.Method('POST');
+        HttpRequestMessage.SetRequestUri(ServiceUrl);
+        // Explicit Basic credentials take precedence over the service account's default credentials.
+        if GlobalUseDefaultCredentials and (GlobalBasicUsername = '') then
+            HttpClient.UseDefaultNetworkWindowsAuthentication();
         if GlobalContentType = '' then
             GlobalContentType := ContentTypeTxt;
-        HttpWebRequest.ContentType := GlobalContentType;
         if GlobalTimeout <= 0 then
-            GlobalTimeout := 600000;
-        HttpWebRequest.Timeout := GlobalTimeout;
-        HttpWebRequest.AutomaticDecompression := DecompressionMethods.GZip;
+            GlobalTimeout := MaxHttpClientTimeoutMs();
+        if GlobalTimeout > MaxHttpClientTimeoutMs() then
+            GlobalTimeout := MaxHttpClientTimeoutMs();
+        HttpClient.Timeout(GlobalTimeout);
+    end;
+
+    local procedure MaxHttpClientTimeoutMs(): Integer
+    begin
+        // HttpClient does not support timeouts above 5 minutes.
+        exit(300000);
+    end;
+
+    local procedure CreateRequestContent(var HttpRequestMessage: HttpRequestMessage)
+    var
+        HttpContent: HttpContent;
+        ContentHeaders: HttpHeaders;
+        RequestOutStream: OutStream;
+    begin
+        TempBlobRequestContent.CreateOutStream(RequestOutStream, TextEncoding::UTF8);
+        CreateSoapRequest(RequestOutStream, GlobalRequestBodyInStream, GlobalUsername, GlobalPassword);
+        TempBlobRequestContent.CreateInStream(GlobalRequestContentInStream);
+        HttpContent.WriteFrom(GlobalRequestContentInStream);
+        HttpContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.TryAddWithoutValidation('Content-Type', GlobalContentType);
+        HttpRequestMessage.Content(HttpContent);
+    end;
+
+    local procedure SendWebRequest(var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage)
+    var
+        HttpResponseMessage: HttpResponseMessage;
+        ProcessingWindow: Dialog;
+        HttpResponseInStream: InStream;
+        ResponseOutStream: OutStream;
+        RequestSent: Boolean;
+    begin
+        if GlobalProgressDialogEnabled then
+            ProcessingWindow.Open(ProcessingWindowMsg);
+
+        ClearLastError();
+        RequestSent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+
+        if GlobalProgressDialogEnabled then
+            ProcessingWindow.Close();
+
+        GlobalHttpRequestUri := HttpRequestMessage.GetRequestUri();
+        if not RequestSent then begin
+            GlobalHttpRequestFailed := true;
+            if HttpResponseMessage.IsBlockedByEnvironment() then
+                GlobalHttpErrorText := StrSubstNo(EnvironmentBlocksErr, GlobalHttpRequestUri)
+            else
+                GlobalHttpErrorText := GetLastErrorText();
+            Error(GlobalHttpErrorText);
+        end;
+
+        HttpResponseMessage.Content.ReadAs(HttpResponseInStream);
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            GlobalHttpRequestFailed := true;
+            GlobalHttpResponseReceived := true;
+            GlobalHttpStatusCode := HttpResponseMessage.HttpStatusCode();
+            GlobalHttpReasonPhrase := HttpResponseMessage.ReasonPhrase();
+            TempBlobFaultResponse.CreateOutStream(ResponseOutStream);
+            CopyStream(ResponseOutStream, HttpResponseInStream);
+            GlobalHttpErrorText := GetRemoteServerErrorText();
+            Error(GlobalHttpErrorText);
+        end;
+
+        TempBlobResponseInStream.CreateOutStream(ResponseOutStream);
+        CopyStream(ResponseOutStream, HttpResponseInStream);
+    end;
+
+    local procedure GetRemoteServerErrorText(): Text
+    begin
+        if GlobalHttpReasonPhrase = '' then
+            exit(StrSubstNo(RemoteServerNoReasonErr, GlobalHttpStatusCode));
+        exit(StrSubstNo(RemoteServerErr, GlobalHttpStatusCode, GlobalHttpReasonPhrase));
     end;
 
     local procedure CreateSoapRequest(RequestOutStream: OutStream; BodyContentInStream: InStream; Username: Text; Password: SecretText)
@@ -194,34 +289,65 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
     procedure ProcessFaultResponse(SupportInfo: Text)
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
         XMLDOMMgt: Codeunit "XML DOM Management";
-        WebException: DotNet WebException;
         XmlNode: DotNet XmlNode;
         ResponseInputStream: InStream;
         ErrorText: Text;
         ServiceURL: Text;
     begin
-        ErrorText := WebRequestHelper.GetWebResponseError(WebException, ServiceURL);
+        if not GlobalHttpRequestFailed then
+            Error(GetLastErrorText());
 
-        if ErrorText <> '' then
+        if not GlobalHttpResponseReceived then begin
+            ErrorText := ConnectionErr + GlobalHttpErrorText;
             Error(ErrorText);
+        end;
 
-        ResponseInputStream := WebException.Response.GetResponseStream();
-        if TraceLogEnabled then
+        ServiceURL := StrSubstNo(ServiceURLTxt, GlobalHttpRequestUri);
+        if not (GlobalHttpStatusCode in [302, 500]) then begin
+            ErrorText := ConnectionErr + GlobalHttpErrorText + ServiceURL;
+            Error(ErrorText);
+        end;
+
+        TempBlobFaultResponse.CreateInStream(ResponseInputStream);
+        if TraceLogEnabled then begin
             Trace.LogStreamToTempFile(ResponseInputStream, 'WebExceptionResponse', TempBlobDebugLog);
+            TempBlobFaultResponse.CreateInStream(ResponseInputStream);
+        end;
 
         XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInputStream, XmlNode);
 
         ErrorText := XMLDOMMgt.FindNodeTextWithNamespace(XmlNode, FaultStringXmlPathTxt, 'soap', SoapNamespaceTxt);
         if ErrorText = '' then
-            ErrorText := WebException.Message;
+            ErrorText := GlobalHttpErrorText;
         ErrorText := InternalErr + ErrorText + ServiceURL;
 
         if SupportInfo <> '' then
             ErrorText += '\\' + SupportInfo;
 
         Error(ErrorText);
+    end;
+
+    /// <summary>
+    /// Gets the content of the response returned by the web service when the last request failed with an HTTP error status code.
+    /// </summary>
+    /// <param name="FaultResponseInStream">The stream that receives the content of the failed response.</param>
+    /// <returns>True if the last request received a response with an HTTP error status code; otherwise, false.</returns>
+    procedure GetFaultResponseContent(var FaultResponseInStream: InStream): Boolean
+    begin
+        if not GlobalHttpResponseReceived then
+            exit(false);
+        TempBlobFaultResponse.CreateInStream(FaultResponseInStream);
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Gets the HTTP status code returned by the web service when the last request failed with an HTTP error status code.
+    /// </summary>
+    /// <returns>The HTTP status code, or 0 if no error response was received.</returns>
+    procedure GetFaultResponseStatusCode(): Integer
+    begin
+        exit(GlobalHttpStatusCode);
     end;
 
     [NonDebuggable]
@@ -309,29 +435,27 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     end;
 
     [NonDebuggable]
-    local procedure AddBasicAuthorizationHeader(Uri: Text; Username: Text; Password: SecretText; var DotNet_HttpWebRequest: DotNet HttpWebRequest);
+    local procedure AddBasicAuthorizationHeader(Username: Text; Password: SecretText; var HttpRequestMessage: HttpRequestMessage);
     var
-        DotNet_Uri: DotNet Uri;
-        DotNet_CredentialCache: DotNet CredentialCache;
-        DotNet_NetworkCredential: DotNet NetworkCredential;
+        Base64Convert: Codeunit "Base64 Convert";
+        RequestHeaders: HttpHeaders;
     begin
         if (Username = '') then
             exit;
 
-        DotNet_Uri := DotNet_Uri.Uri(Uri);
-        DotNet_NetworkCredential := DotNet_NetworkCredential.NetworkCredential(Username, Password.Unwrap());
-        DotNet_CredentialCache := DotNet_CredentialCache.CredentialCache();
-        DotNet_CredentialCache.Add(DotNet_Uri, 'Basic', DotNet_NetworkCredential);
-
-        DotNet_HttpWebRequest.Credentials := DotNet_CredentialCache;
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', Username, Password))));
     end;
 
-    local procedure AddSoapActionHeader(SoapAction: Text; var DotNet_HttpWebRequest: DotNet HttpWebRequest);
+    local procedure AddSoapActionHeader(SoapAction: Text; var HttpRequestMessage: HttpRequestMessage);
+    var
+        RequestHeaders: HttpHeaders;
     begin
         if (SoapAction = '') then
             exit;
 
-        DotNet_HttpWebRequest.Headers.Add('SOAPAction', SoapAction);
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        RequestHeaders.TryAddWithoutValidation('SOAPAction', SoapAction);
     end;
 
     procedure SetTraceMode(NewTraceMode: Boolean)
