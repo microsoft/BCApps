@@ -164,16 +164,12 @@ codeunit 144541 "Purchase Document - VAT"
     procedure PurchaseInvoiceQtyToReceiveForGLAccSecondLine()
     var
         Vendor: Record Vendor;
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         PurchaseInvoice: TestPage "Purchase Invoice";
         DocNo: Code[20];
         GLAccountNo: Code[20];
         Amt: Decimal;
     begin
         Initialize();
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Default G/L Account Quantity", false);
-        PurchasesPayablesSetup.Modify(true);
         GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
         Amt := LibraryRandom.RandDec(100, 2);
 
@@ -189,7 +185,6 @@ codeunit 144541 "Purchase Document - VAT"
         PurchaseInvoice.PurchLines.New();
         // [WHEN] create the second line with G/L Account 'A', set "Direct Unit Cost" to 'X'
         PurchaseInvoice.PurchLines."No.".SetValue(GLAccountNo);
-        PurchaseInvoice.PurchLines.Quantity.AssertEquals(1);
         PurchaseInvoice.PurchLines."Direct Unit Cost".SetValue(Amt);
         PurchaseInvoice.OK().Invoke();
 
@@ -438,11 +433,15 @@ codeunit 144541 "Purchase Document - VAT"
     procedure PurchaseInvoiceGLAccountQuantityUnchangedAfterDescriptionModified()
     var
         Vendor: Record Vendor;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         PurchaseLine: Record "Purchase Line";
         PurchaseInvoice: TestPage "Purchase Invoice";
         Quantity: Decimal;
     begin
         Initialize();
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Default G/L Account Quantity", false);
+        PurchasesPayablesSetup.Modify(true);
         Quantity := LibraryRandom.RandIntInRange(2, 10);
 
         // [GIVEN] Purchase Invoice with a G/L Account line and Quantity greater than 1
@@ -451,6 +450,7 @@ codeunit 144541 "Purchase Document - VAT"
         PurchaseInvoice."Buy-from Vendor Name".SetValue(Vendor.Name);
         PurchaseInvoice.PurchLines.Type.SetValue(PurchaseLine.Type::"G/L Account");
         PurchaseInvoice.PurchLines."No.".SetValue(LibraryERM.CreateGLAccountWithPurchSetup());
+        PurchaseInvoice.PurchLines.Quantity.AssertEquals(1);
         PurchaseInvoice.PurchLines.Quantity.SetValue(Quantity);
 
         // [WHEN] Modify the line Description
