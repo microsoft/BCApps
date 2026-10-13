@@ -35,6 +35,8 @@ codeunit 137087 "SCM Order Planning - II"
         CheckBlockedItemItemNo: Code[20];
         CheckBlockedItemEventCount: Integer;
         HandleCheckBlockedItem: Boolean;
+        NotBlockedItemNo: Code[20];
+        NotBlockedItemEventCount: Integer;
         DemandTypeGlobal: Option Sales,Production;
         IsInitialized: Boolean;
         ValidationError: Label '%1  must be %2 in %3.';
@@ -44,6 +46,8 @@ codeunit 137087 "SCM Order Planning - II"
         RequisitionLineMustNotExist: Label 'Requisition Line must not exist for Item %1.';
         PostDateOutOfRangeErr: Label 'Posting Date is not within your range of allowed posting dates in Warehouse Shipment Header No.=';
         OnBeforeCheckBlockedItemCountErr: Label 'OnBeforeCheckBlockedItem must be raised exactly once for the blocked item.';
+        UnexpectedCheckBlockedItemEventCountErr: Label 'OnBeforeCheckBlockedItem is raised an unexpected number of times for the handled blocked item.';
+        HandledCheckBlockedItemEventCountErr: Label 'OnBeforeCheckBlockedItem must be raised for the handled blocked item as many times as for an item that is not blocked.';
 
     [Test]
     [HandlerFunctions('MakeSupplyOrdersPageHandler')]
@@ -1496,6 +1500,70 @@ codeunit 137087 "SCM Order Planning - II"
         RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
     end;
 
+    [Test]
+    procedure BlockedItemPlannedWhenCheckBlockedItemEventIsHandled()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 651525] When a subscriber handles OnBeforeCheckBlockedItem, Order Planning does not skip the blocked item, and the event is raised at its regular places only.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Items "I1" and "I2" with Reordering Policy = "Lot-for-Lot".
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+        end;
+
+        // [GIVEN] Sales order with lines for "I1" and "I2" on location "L".
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item[1]."No.", Quantity, LocationBlue.Code, WorkDate());
+        CreateSalesLine(SalesHeader, Item[2]."No.", LocationBlue.Code, Quantity, Quantity);
+
+        // [GIVEN] Item "I1" is blocked.
+        BlockItem(Item[1]);
+
+        // [GIVEN] Subscriber to OnBeforeCheckBlockedItem sets IsHandled for item "I1" and tracks the calls for both items.
+        CheckBlockedItemItemNo := Item[1]."No.";
+        NotBlockedItemNo := Item[2]."No.";
+        HandleCheckBlockedItem := true;
+        BindSubscription(this);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+        UnbindSubscription(this);
+
+        // [THEN] OnBeforeCheckBlockedItem is raised for item "I1" exactly twice: on validation of "No." and on validation of blank "Variant Code", which validates "No." again.
+        Assert.AreEqual(2, CheckBlockedItemEventCount, UnexpectedCheckBlockedItemEventCountErr);
+
+        // [THEN] OnBeforeCheckBlockedItem is raised for the handled blocked item "I1" as many times as for the not blocked item "I2".
+        Assert.AreEqual(NotBlockedItemEventCount, CheckBlockedItemEventCount, HandledCheckBlockedItemEventCountErr);
+
+        // [THEN] At the time of the first event, the requisition line is initialized for order planning and populated from the demand.
+        VerifyRequisitionLineOnCheckBlockedItem(Item[1]."No.", LocationBlue.Code);
+
+        // [THEN] Requisition line for the blocked item "I1" is created with the demanded quantity.
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[1]."No.", LocationBlue.Code);
+        RequisitionLine.TestField(Quantity, Quantity);
+
+        // [THEN] Requisition line for item "I2" is created with the demanded quantity.
+        RequisitionLine.Reset();
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", LocationBlue.Code);
+        RequisitionLine.TestField(Quantity, Quantity);
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1528,6 +1596,8 @@ codeunit 137087 "SCM Order Planning - II"
         Clear(CheckBlockedItemItemNo);
         Clear(CheckBlockedItemEventCount);
         Clear(HandleCheckBlockedItem);
+        Clear(NotBlockedItemNo);
+        Clear(NotBlockedItemEventCount);
         RequisitionLine.DeleteAll();
         ClearManufacturingUserTemplate();
     end;
@@ -2425,11 +2495,15 @@ codeunit 137087 "SCM Order Planning - II"
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnBeforeCheckBlockedItem', '', false, false)]
     local procedure OnBeforeCheckBlockedItemHandler(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     begin
+        if RequisitionLine."No." = NotBlockedItemNo then
+            NotBlockedItemEventCount += 1;
+
         if RequisitionLine."No." <> CheckBlockedItemItemNo then
             exit;
 
         CheckBlockedItemEventCount += 1;
-        RequisitionLineOnCheckBlockedItem := RequisitionLine;
+        if CheckBlockedItemEventCount = 1 then
+            RequisitionLineOnCheckBlockedItem := RequisitionLine;
         if HandleCheckBlockedItem then
             IsHandled := true;
     end;
