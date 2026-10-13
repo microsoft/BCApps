@@ -696,7 +696,9 @@ codeunit 6710 ODataUtility
 #if not CLEAN30
     [Scope('OnPrem')]
     [Obsolete('Http Web Request Mgt. is being phased out. Build the $metadata request with the native HttpClient and HttpRequestMessage instead.', '30.0')]
+#pragma warning disable AL0432
     procedure CreateMetadataWebRequest(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."): Boolean
+#pragma warning restore AL0432
     var
         AzureAdMgt: Codeunit "Azure AD Mgt.";
         UrlHelper: Codeunit "Url Helper";
