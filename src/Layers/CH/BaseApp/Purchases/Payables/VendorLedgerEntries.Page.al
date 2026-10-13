@@ -256,7 +256,6 @@ page 29 "Vendor Ledger Entries"
                 field("Dispute Status"; Rec."Dispute Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    Visible = false;
                 }
                 field("Reference No."; Rec."Reference No.")
                 {
