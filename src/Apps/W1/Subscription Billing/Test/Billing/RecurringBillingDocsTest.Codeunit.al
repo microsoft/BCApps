@@ -2915,6 +2915,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsSellToCustomerPageHandler,MessageHandler')]
     procedure CreateSalesDocumentPerSellToCustomerUsesContractCurrency()
     var
         Customer: Record Customer;
