@@ -1337,7 +1337,7 @@ codeunit 139145 "PEPPOL BIS BillingTests"
         SalesInvoiceHeader.Modify();
         MockTextSalesInvoiceLine(SalesInvoiceHeader."No.");
         ExpectedClientFileName := CopyStr(
-            StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), Format("Sales Document Type"::Invoice), SalesInvoiceHeader."No.", 'XML'), 1, 250);
+            StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), Format("Sales Document Type"::Invoice), SalesInvoiceHeader."No.", 'xml'), 1, 250);
 
         // [WHEN] Export Sales Invoice with PEPPOL BIS3
         SalesInvoiceHeader.SetRecFilter();

@@ -1150,30 +1150,39 @@ codeunit 134284 "Non Ded. VAT Misc."
         // [GIVEN] VAT Posting Setup, where "Tax Calculation Type"::"Normal VAT", 'Deductible %' is '60'
         DeductiblePercent := LibraryRandom.RandInt(90);
         CreateNonDeductibleVATPostingSetup(VATPostingSetup, "Tax Calculation Type"::"Normal VAT", '', DeductiblePercent);
-        // [GIVEN] Job "X" with currency which factor is 0.5
+        // [GIVEN] Job "X" with a foreign currency
         LibrarySales.CreateCustomer(Customer);
         LibraryJob.CreateJob(Job, Customer."No.");
-        Job.Validate("Currency Code", LibraryERM.CreateCurrencyWithRandomExchRates());
+        Job.Validate("Currency Code", LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 2));
         Job.Modify(true);
         LibraryJob.CreateJobTask(Job, JobTask);
-        // [GIVEN] General journal line where line contains "Non-Deductible VAT Amount" = 100, "Job No." = "X" "Job Line Type" = 'Billable'
-        // [GIVEN] "Job Quantity" = 2, "Job Unit Cost" = 50
+        // [GIVEN] General journal line in LCY for Job "X" with non-deductible VAT
         CreateJobGLJournalLine(GenJnlLine, JobTask, VATPostingSetup);
 
         // [WHEN] Run FromGenJnlLineToJnlLine
         JobTransferLine.FromGenJnlLineToJnlLine(GenJnlLine, JobJnlLine);
 
-        // [THEN] JobJnlLine contains "Unit Cost LCY" = ("Job Unit Cost" + "Non-Deductible VAT Amount") * "Currency Factor" / "Job Quantity" = (50 + 100) * 0.5 / 2 = 37.5
+        // [THEN] LCY costs include the LCY non-deductible VAT amount
         Assert.AreEqual(
             Round(JobJnlLine."Unit Cost (LCY)"),
             Round(GenJnlLine."Job Total Cost (LCY)" / GenJnlLine."Job Quantity") +
-            Round(Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor") / GenJnlLine."Job Quantity"),
+            Round(GenJnlLine."Non-Deductible VAT Amount LCY" / GenJnlLine."Job Quantity"),
             'Unit Cost (LCY) with Non-Deductible VAT amount is not correct in Job Journal Line');
-        // [THEN] JobJnlLine contains "Total Unit Cost" = ("Job Unit Cost" + "Non-Deductible VAT Amount") * "Currency Factor" = (50 + 100) * 0.5 = 75
         Assert.AreEqual(
             Round(JobJnlLine."Total Cost (LCY)"),
-            Round(GenJnlLine."Job Total Cost (LCY)" + Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor")),
+            Round(GenJnlLine."Job Total Cost (LCY)" + GenJnlLine."Non-Deductible VAT Amount LCY"),
             'Total Cost (LCY) with Non-Deductible VAT amount is not correct in Job Journal Line');
+
+        // [THEN] Project currency costs include the non-deductible VAT amount converted to project currency
+        Assert.AreEqual(
+            Round(JobJnlLine."Unit Cost"),
+            Round(GenJnlLine."Job Total Cost" / GenJnlLine."Job Quantity") +
+            Round(Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor") / GenJnlLine."Job Quantity"),
+            'Unit Cost with Non-Deductible VAT amount is not correct in Job Journal Line');
+        Assert.AreEqual(
+            Round(JobJnlLine."Total Cost"),
+            Round(GenJnlLine."Job Total Cost" + Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor")),
+            'Total Cost with Non-Deductible VAT amount is not correct in Job Journal Line');
     end;
 
     [Test]

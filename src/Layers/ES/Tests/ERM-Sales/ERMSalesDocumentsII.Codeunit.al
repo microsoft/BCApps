@@ -32,6 +32,8 @@ codeunit 134386 "ERM Sales Documents II"
         LibraryTemplates: Codeunit "Library - Templates";
         LibraryMarketing: Codeunit "Library - Marketing";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryDimension: Codeunit "Library - Dimension";
+        Any: Codeunit Any;
         ItemTrackingHandlerAction: Option AssignRandomSN,AssignSpecificLot;
         isInitialized: Boolean;
         AmountErr: Label '%1 must be %2 in %3.', Comment = '%1 = Field Name, %2 = Amount, %3 = Table Name';
@@ -56,6 +58,8 @@ codeunit 134386 "ERM Sales Documents II"
         SalesQuoteLineNotEditableErr: Label 'The Sales Quote line should be editable';
         CannotRenameItemUsedInSalesLinesErr: Label 'You cannot rename %1 in a %2, because it is used in sales document lines.', Comment = '%1 = Item No. caption, %2 = Table caption.';
         ChangeExtendedTextErr: Label 'You cannot change %1 for Extended Text Line.', Comment = '%1= Field Caption';
+        WrongAmountErr: Label 'Wrong %1 on %2. The invoice discount was applied more than once by the allocation account split.', Comment = '%1 = Field Caption, %2 = Table Caption';
+
 
     [Test]
     [Scope('OnPrem')]
@@ -1009,7 +1013,6 @@ codeunit 134386 "ERM Sales Documents II"
         SalesHeader: Record "Sales Header";
         StandardSalesLine: Record "Standard Sales Line";
         GeneralLedgerSetup: Record "General Ledger Setup";
-        LibraryDimension: Codeunit "Library - Dimension";
     begin
         // Check Sales Code Line with Dimensions are copied correctly in Sales Line.
 
@@ -4653,6 +4656,67 @@ codeunit 134386 "ERM Sales Documents II"
                 InvoiceDiscountErr, InvoiceDiscountValue, SalesHeader.TableCaption()));
     end;
 
+    [Test]
+    [HandlerFunctions('HandleEditDimensionSetEntriesPage')]
+    procedure PostSalesInvoiceWithAllocationAccountAndInvoiceDiscountIsConsistent()
+    var
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        AllocationAccount: Record "Allocation Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GLAccount: Record "G/L Account";
+        PostedDocumentNo: Code[20];
+        CustomerNo: Code[20];
+        TotalAmount: Decimal;
+        TotalAmountInclVAT: Decimal;
+    begin
+        // [SCENARIO 650386] The posted sales invoice and the resulting ledger entries must stay financially consistent.
+        Initialize();
+
+        SetupInvoiceDiscountPosting();
+        CreateVATPostingSetupWithRate(VATPostingSetup, 21);
+        CreateCustomerWithInvoiceDiscount(CustomerNo, VATPostingSetup, 10);
+        Customer.Get(CustomerNo);
+        CreateAllocationAccountWithTwoDimensionedShares(AllocationAccount, VATPostingSetup, 50, 50);
+        GLAccount.Get(CreateGLAccountForSales(VATPostingSetup));
+        CreateSalesOrderWithAllocationAccount(SalesHeader, SalesLine, Customer, GLAccount, AllocationAccount, 1, 1100);
+        CalcSalesInvoiceDiscount(SalesHeader, SalesLine);
+
+        // [WHEN] The sales order is posted
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Two posted invoice lines are created, one per allocation account share
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        SalesInvoiceLine.SetRange("Document No.", PostedDocumentNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"G/L Account");
+        Assert.AreEqual(2, SalesInvoiceLine.Count(), 'Wrong number of posted sales invoice lines created by the allocation account.');
+
+        SalesInvoiceLine.FindSet();
+        repeat
+            TotalAmount += SalesInvoiceLine.Amount;
+            TotalAmountInclVAT += SalesInvoiceLine."Amount Including VAT";
+        until SalesInvoiceLine.Next() = 0;
+
+        // [THEN] The invoice discount of 110 is applied exactly once across the two allocated lines
+        Assert.AreNearlyEqual(990, TotalAmount, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, SalesInvoiceLine.FieldCaption(Amount), SalesInvoiceLine.TableCaption()));
+        Assert.AreNearlyEqual(1197.9, TotalAmountInclVAT, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, SalesInvoiceLine.FieldCaption("Amount Including VAT"), SalesInvoiceLine.TableCaption()));
+
+        // [THEN] The customer ledger entry equals the expected total including VAT (and so does the source currency amount)
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", PostedDocumentNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields(Amount, "Amount (LCY)");
+        Assert.AreNearlyEqual(1197.9, CustLedgerEntry.Amount, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, CustLedgerEntry.FieldCaption(Amount), CustLedgerEntry.TableCaption()));
+        Assert.AreNearlyEqual(1197.9, CustLedgerEntry."Amount (LCY)", LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, CustLedgerEntry.FieldCaption("Amount (LCY)"), CustLedgerEntry.TableCaption()));
+
+        // [THEN] The G/L entries of the document are balanced
+        VerifyGLEntriesAreBalanced(PostedDocumentNo);
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
@@ -4670,7 +4734,6 @@ codeunit 134386 "ERM Sales Documents II"
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
         DocumentNoVisibility.ClearState();
-
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"ERM Sales Documents II");
@@ -4688,6 +4751,174 @@ codeunit 134386 "ERM Sales Documents II"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Documents II");
+    end;
+
+    local procedure VerifyGLEntriesAreBalanced(DocumentNo: Code[20])
+    var
+        GLEntry: Record "G/L Entry";
+        Balance: Decimal;
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.FindSet();
+        repeat
+            Balance += GLEntry.Amount;
+        until GLEntry.Next() = 0;
+
+        Assert.AreEqual(0, Balance, 'The G/L entries of the posted document are not balanced.');
+    end;
+
+    local procedure CalcSalesInvoiceDiscount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    begin
+        LibrarySales.CalcSalesDiscount(SalesHeader);
+        SalesHeader.Find();
+        SalesLine.Find();
+    end;
+
+    local procedure SetupInvoiceDiscountPosting()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Calc. Inv. Discount", true);
+        SalesReceivablesSetup.Validate("Discount Posting", SalesReceivablesSetup."Discount Posting"::"All Discounts");
+        SalesReceivablesSetup.Modify(true);
+
+        FillMissingDiscountAccountsInGeneralPostingSetup();
+    end;
+
+    local procedure FillMissingDiscountAccountsInGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        DiscountGLAccountNo: Code[20];
+    begin
+        if not GeneralPostingSetup.FindSet() then
+            exit;
+
+        DiscountGLAccountNo := LibraryERM.CreateGLAccountNo();
+        repeat
+            if (GeneralPostingSetup."Sales Inv. Disc. Account" = '') or
+               (GeneralPostingSetup."Sales Line Disc. Account" = '') or
+               (GeneralPostingSetup."Purch. Inv. Disc. Account" = '') or
+               (GeneralPostingSetup."Purch. Line Disc. Account" = '')
+            then begin
+                if GeneralPostingSetup."Sales Inv. Disc. Account" = '' then
+                    GeneralPostingSetup.Validate("Sales Inv. Disc. Account", DiscountGLAccountNo);
+                if GeneralPostingSetup."Sales Line Disc. Account" = '' then
+                    GeneralPostingSetup.Validate("Sales Line Disc. Account", DiscountGLAccountNo);
+                if GeneralPostingSetup."Purch. Inv. Disc. Account" = '' then
+                    GeneralPostingSetup.Validate("Purch. Inv. Disc. Account", DiscountGLAccountNo);
+                if GeneralPostingSetup."Purch. Line Disc. Account" = '' then
+                    GeneralPostingSetup.Validate("Purch. Line Disc. Account", DiscountGLAccountNo);
+                GeneralPostingSetup.Modify(true);
+            end;
+        until GeneralPostingSetup.Next() = 0;
+    end;
+
+
+    local procedure CreateVATPostingSetupWithRate(var VATPostingSetup: Record "VAT Posting Setup"; VATRate: Decimal)
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATRate);
+    end;
+
+    local procedure CreateCustomerWithInvoiceDiscount(var CustomerNo: Code[20]; VATPostingSetup: Record "VAT Posting Setup"; DiscountPct: Decimal)
+    var
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        Customer: Record Customer;
+    begin
+        CustomerNo := LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group");
+        LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, CustomerNo, '', 0);
+        CustInvoiceDisc.Validate("Discount %", DiscountPct);
+        CustInvoiceDisc.Modify(true);
+
+        Customer.Get(CustomerNo);
+        Customer.Validate("Invoice Disc. Code", CustInvoiceDisc.Code);
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateAllocationAccountWithTwoDimensionedShares(var AllocationAccount: Record "Allocation Account"; VATPostingSetup: Record "VAT Posting Setup"; FirstShare: Decimal; SecondShare: Decimal)
+    var
+        FirstDimensionValue: Record "Dimension Value";
+        SecondDimensionValue: Record "Dimension Value";
+        FirstDestinationGLAccount: Record "G/L Account";
+        SecondDestinationGLAccount: Record "G/L Account";
+        AllocationAccountPage: TestPage "Allocation Account";
+        AllocationAccountNo: Code[20];
+    begin
+        CreateTwoDimensionValues(FirstDimensionValue, SecondDimensionValue);
+        FirstDestinationGLAccount.Get(CreateGLAccountForSales(VATPostingSetup));
+        SecondDestinationGLAccount.Get(CreateGLAccountForSales(VATPostingSetup));
+
+        AllocationAccountNo := CreateAllocationAccountWithFixedDistribution(AllocationAccountPage);
+
+        AddGLDestinationAccountForFixedDistribution(AllocationAccountPage, FirstDestinationGLAccount);
+        AllocationAccountPage.FixedAccountDistribution.Share.SetValue(FirstShare);
+        SetDimensionToCurrentFixedLine(AllocationAccountPage, FirstDimensionValue);
+
+        AllocationAccountPage.FixedAccountDistribution.New();
+        AddGLDestinationAccountForFixedDistribution(AllocationAccountPage, SecondDestinationGLAccount);
+        AllocationAccountPage.FixedAccountDistribution.Share.SetValue(SecondShare);
+        SetDimensionToCurrentFixedLine(AllocationAccountPage, SecondDimensionValue);
+
+        AllocationAccountPage.Close();
+
+        AllocationAccount.Get(AllocationAccountNo);
+    end;
+
+    local procedure CreateAllocationAccountWithFixedDistribution(var AllocationAccountPage: TestPage "Allocation Account"): Code[20]
+    var
+        DummyAllocationAccount: Record "Allocation Account";
+        AllocationAccountNo: Code[20];
+    begin
+        AllocationAccountPage.OpenNew();
+#pragma warning disable AA0139
+        AllocationAccountNo := Any.AlphanumericText(MaxStrLen(DummyAllocationAccount."No."));
+#pragma warning restore AA0139
+
+        AllocationAccountPage."No.".SetValue(AllocationAccountNo);
+        AllocationAccountPage."Account Type".SetValue(DummyAllocationAccount."Account Type"::Fixed);
+        AllocationAccountPage.Name.SetValue(Any.AlphabeticText(MaxStrLen(DummyAllocationAccount.Name)));
+        exit(AllocationAccountNo);
+    end;
+
+    local procedure AddGLDestinationAccountForFixedDistribution(var AllocationAccountPage: TestPage "Allocation Account"; var GLAccount: Record "G/L Account")
+    var
+        DummyAllocAccountDistribution: Record "Alloc. Account Distribution";
+    begin
+        if GLAccount."No." = '' then
+            GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
+        AllocationAccountPage.FixedAccountDistribution."Destination Account Type".SetValue(DummyAllocAccountDistribution."Destination Account Type"::"G/L Account");
+        AllocationAccountPage.FixedAccountDistribution."Destination Account Number".SetValue(GLAccount."No.");
+    end;
+
+    local procedure SetDimensionToCurrentFixedLine(var AllocationAcccount: TestPage "Allocation Account"; var DimensionValue: Record "Dimension Value")
+    begin
+        LibraryVariableStorage.Enqueue(DimensionValue.SystemId);
+        AllocationAcccount.FixedAccountDistribution.Dimensions.Invoke();
+    end;
+
+    local procedure CreateGLAccountForSales(VATPostingSetup: Record "VAT Posting Setup"): Code[20]
+    begin
+        exit(LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Sale));
+    end;
+
+    local procedure CreateTwoDimensionValues(var FirstDimensionValue: Record "Dimension Value"; var SecondDimensionValue: Record "Dimension Value")
+    var
+        Dimension: Record Dimension;
+    begin
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(FirstDimensionValue, Dimension.Code);
+        LibraryDimension.CreateDimensionValue(SecondDimensionValue, Dimension.Code);
+    end;
+
+    local procedure CreateSalesOrderWithAllocationAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; Customer: Record Customer; GLAccount: Record "G/L Account"; AllocationAccount: Record "Allocation Account"; Quantity: Decimal; UnitPrice: Decimal)
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", Quantity);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Validate("Allow Invoice Disc.", true);
+        SalesLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
+        SalesLine.Modify(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnCustomerCreditLimitNotExceeded', '', false, false)]
@@ -4734,7 +4965,6 @@ codeunit 134386 "ERM Sales Documents II"
           LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup[1]."VAT Bus. Posting Group"));
         SalesHeader.Validate("Prices Including VAT", PriceIncludingVAT);
         SalesHeader.Modify(true);
-
         for i := 1 to ArrayLen(VATPostingSetup) do begin
             LibrarySales.CreateSalesLine(
               SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
@@ -4985,7 +5215,6 @@ codeunit 134386 "ERM Sales Documents II"
         DimensionValue: Record "Dimension Value";
         DefaultDimension: Record "Default Dimension";
         Customer: Record Customer;
-        LibraryDimension: Codeunit "Library - Dimension";
     begin
         LibrarySales.CreateCustomer(Customer);
         LibraryDimension.FindDimension(Dimension);
@@ -6523,6 +6752,20 @@ codeunit 134386 "ERM Sales Documents II"
         LibraryVariableStorage.Enqueue(LibraryVariableStorage.DequeueInteger() + 1);
     end;
 
+    [ModalPageHandler]
+    procedure HandleEditDimensionSetEntriesPage(var EditDimensionSetEntriesPage: TestPage "Edit Dimension Set Entries")
+    var
+        DimensionValue: Record "Dimension Value";
+        DimensionValueSystemId: Text;
+    begin
+        DimensionValueSystemId := LibraryVariableStorage.DequeueText();
+        DimensionValue.GetBySystemId(DimensionValueSystemId);
+        EditDimensionSetEntriesPage.New();
+        EditDimensionSetEntriesPage."Dimension Code".SetValue(DimensionValue."Dimension Code");
+        EditDimensionSetEntriesPage.DimensionValueCode.SetValue(DimensionValue.Code);
+        EditDimensionSetEntriesPage.OK().Invoke();
+    end;
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")
@@ -6582,7 +6825,6 @@ codeunit 134386 "ERM Sales Documents II"
             LibraryVariableStorage.DequeueText(); // dummy dequeue
             Flag := LibraryVariableStorage.DequeueBoolean();
         end;
-
         if Flag then
             // Enter Quantity To Create Page is Handled in 'EnterQuantityToCreatePageHandler'.
             ItemTrackingLines."Assign Serial No.".Invoke()

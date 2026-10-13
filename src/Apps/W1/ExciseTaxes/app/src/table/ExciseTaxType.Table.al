@@ -34,6 +34,11 @@ table 7412 "Excise Tax Type"
         {
             Caption = 'Report Caption';
         }
+        field(6; "Bonded Location Treatment"; Enum "Excise Bonded Loc. Treatment")
+        {
+            Caption = 'Bonded Location Treatment';
+            ToolTip = 'Specifies how inventory movements involving bonded locations are treated for excise duty calculations, such as whether excise is ignored, suspended while in bond, or becomes due when goods are released from bond.';
+        }
     }
 
     keys

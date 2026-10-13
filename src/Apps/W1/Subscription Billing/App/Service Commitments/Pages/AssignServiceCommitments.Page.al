@@ -6,6 +6,7 @@ using Microsoft.Sales.Document;
 page 8065 "Assign Service Commitments"
 {
     Caption = 'Assign Subscription Lines';
+    DataCaptionExpression = GetCaption();
     PageType = ListPlus;
     SourceTable = "Subscription Package";
     InsertAllowed = false;
@@ -105,6 +106,17 @@ page 8065 "Assign Service Commitments"
     internal procedure GetServiceAndCalculationStartDate(): Date
     begin
         exit(ServiceAndCalculationStartDate);
+    end;
+
+    local procedure GetCaption(): Text
+    var
+        SalesServiceCommitmentMgmt: Codeunit "Sales Subscription Line Mgmt.";
+        DataCaption: Text;
+    begin
+        DataCaption := SalesServiceCommitmentMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, OpenedFromSalesLine);
+        if DataCaption = '' then
+            exit(Rec.Code);
+        exit(DataCaption);
     end;
 
     local procedure ErrorIfInvoicingItemNoIsMissingForSalesWithServiceCommitmentItem(): Boolean

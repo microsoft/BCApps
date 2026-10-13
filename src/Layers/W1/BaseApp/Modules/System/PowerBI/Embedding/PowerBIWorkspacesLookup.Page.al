@@ -34,6 +34,7 @@ page 6349 "Power BI Workspaces Lookup"
 
     trigger OnOpenPage()
     begin
+        CurrPage.LookupMode(true);
         if Rec.IsEmpty() then
             Initialize();
     end;

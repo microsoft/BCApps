@@ -234,6 +234,7 @@ page 6248 "Sustainability Value Entries"
                 Image = Navigate;
                 ShortCutKey = 'Ctrl+Alt+Q';
                 ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document. (Formerly this action was named Navigate.)';
+                Visible = ShowPostedEntryActions;
 
                 trigger OnAction()
                 begin
@@ -272,13 +273,21 @@ page 6248 "Sustainability Value Entries"
 
     trigger OnOpenPage()
     begin
+        ShowPostedEntryActions := true;
         SetDimVisibility();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        ShowPostedEntryActions := not (Rec.IsTemporary() and SustPreviewPostInstance.IsPreviewValueEntry(Rec."Entry No."));
+    end;
+
     var
+        SustPreviewPostInstance: Codeunit "Sust. Preview Post Instance";
         Navigate: Page Navigate;
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
         Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible : Boolean;
+        ShowPostedEntryActions: Boolean;
 
     local procedure SetDimVisibility()
     var
