@@ -13,7 +13,6 @@ codeunit 7769 "AOAI Deployments Impl"
     InherentPermissions = X;
 
     var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         Telemetry: Codeunit Telemetry;
 #if not CLEAN27
         GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
@@ -36,7 +35,6 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
-        NotMicrosoftPublisherErr: Label 'This deployment is only available to Microsoft published apps.';
 #if not CLEAN27
     procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
     begin
@@ -103,20 +101,12 @@ codeunit 7769 "AOAI Deployments Impl"
 
     procedure GetGPT56CeresLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        CheckPublisherIsMicrosoft(CallerModuleInfo);
         exit(GetDeploymentName(GPT56CeresLatestLbl));
     end;
 
     procedure GetGPT56CeresPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        CheckPublisherIsMicrosoft(CallerModuleInfo);
         exit(GetDeploymentName(GPT56CeresPreviewLbl));
-    end;
-
-    local procedure CheckPublisherIsMicrosoft(CallerModuleInfo: ModuleInfo)
-    begin
-        if not CopilotCapabilityImpl.IsPublisherMicrosoft(CallerModuleInfo) then
-            Error(NotMicrosoftPublisherErr);
     end;
 
     procedure IsFileContentSupported(DeploymentName: Text): Boolean
