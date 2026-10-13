@@ -179,6 +179,7 @@ codeunit 6400 "Flow Service Management"
         TempBlobInStream: InStream;
         TempBlobOutStream: OutStream;
         EncodingToUse: TextEncoding;
+        ResponseTextBuilder: TextBuilder;
         TextChunk: Text;
     begin
         if not Uri.IsValidUri(Url) then
@@ -205,11 +206,11 @@ codeunit 6400 "Flow Service Management"
         else
             TempBlob.CreateInStream(TempBlobInStream);
 
-        ResponseText := '';
         while not TempBlobInStream.EOS() do begin
             TempBlobInStream.ReadText(TextChunk);
-            ResponseText += TextChunk;
+            ResponseTextBuilder.Append(TextChunk);
         end;
+        ResponseText := ResponseTextBuilder.ToText();
     end;
 
     [TryFunction]
