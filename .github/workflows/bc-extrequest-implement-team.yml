@@ -98,9 +98,9 @@ jobs:
   implement-team:
     needs: prepare
     permissions:
-      contents: write
+      contents: read
       issues: read
-      pull-requests: write
+      pull-requests: read
       id-token: write
       copilot-requests: write
     environment: extensibility-agent
