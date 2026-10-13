@@ -47,6 +47,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryPurchase: Codeunit "Library - Purchase";
         NegativeTrackingErr: Label 'Cannot create negative tracking entries on the item %1 in the purchase document %2', Comment = '%1=the item no., %2=the purchase document no';
         SNAlreadyEnteredErr: Label 'Serial Number: [%1] has already been entered.', Comment = '%1 = The serial number';
+        TrackedInventoryRowsErr: Label 'Tracked inventory lookup must read fewer than 50 SQL rows; actual rows read: %1.', Comment = '%1 = SQL rows read';
         IsInitialized: Boolean;
 
     [Test]
@@ -3102,7 +3103,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] The correct buffer is returned within a fixed SQL-row budget.
         VerifySingleLookupBin(Found, TempBinContent, MatchingBinContent, 7);
-        LibraryAssert.IsTrue(RowsRead < 50, StrSubstNo('Tracked inventory lookup must read fewer than 50 SQL rows; actual rows read: %1.', RowsRead));
+        LibraryAssert.IsTrue(RowsRead < 50, StrSubstNo(TrackedInventoryRowsErr, RowsRead));
     end;
 
     [Test]

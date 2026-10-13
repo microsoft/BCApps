@@ -93,6 +93,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ResultCode2Tok: Label '"|\/?&*()';
         CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         TestAddedExactlyOnceErr: Label 'Test %1 should be added exactly once.', Comment = '%1 = quality test code';
+        UnexpectedFallbackIntentErr: Label 'Incorrect setup fallback intent for table %1.', Comment = '%1 = source table ID';
+        UnexpectedFallbackCertaintyErr: Label 'Incorrect setup fallback certainty for table %1.', Comment = '%1 = source table ID';
         IsInitialized: Boolean;
 
     [Test]
@@ -4991,8 +4993,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
-        LibraryAssert.AreEqual(ExpectedIntent, GenRuleIntent, StrSubstNo('Incorrect setup fallback intent for table %1.', SourceTableNo));
-        LibraryAssert.AreEqual(ExpectedCertainty, Certainty, StrSubstNo('Incorrect setup fallback certainty for table %1.', SourceTableNo));
+        LibraryAssert.AreEqual(ExpectedIntent, GenRuleIntent, StrSubstNo(UnexpectedFallbackIntentErr, SourceTableNo));
+        LibraryAssert.AreEqual(ExpectedCertainty, Certainty, StrSubstNo(UnexpectedFallbackCertaintyErr, SourceTableNo));
     end;
 
     [ConfirmHandler]
