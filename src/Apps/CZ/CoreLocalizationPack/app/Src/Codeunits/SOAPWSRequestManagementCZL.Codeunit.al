@@ -53,7 +53,7 @@ codeunit 31031 "SOAP WS Request Management CZL"
 
         if not GlobalSkipCheckHttps then begin
             Uri.Init(ServiceUrl);
-            if Uri.GetScheme() <> 'https' then
+            if not Uri.IsSecureHttpUrl() then
                 Error(NonSecureUriErr);
         end;
 

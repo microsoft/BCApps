@@ -222,7 +222,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         if not Uri.IsValidUri(ServiceURL) then
             Error(InvalidUriErr);
         Uri.Init(ServiceURL);
-        if not (Uri.GetScheme() in ['http', 'https']) then
+        if not Uri.IsHttpUrl() then
             Error(InvalidUriErr);
     end;
 

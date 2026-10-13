@@ -297,7 +297,7 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
         if not GlobalSkipCheckHttps then begin
             Uri.Init(GlobalURL);
-            if Uri.GetScheme() <> 'https' then
+            if not Uri.IsSecureHttpUrl() then
                 Error(NonSecureUriErr);
         end;
     end;

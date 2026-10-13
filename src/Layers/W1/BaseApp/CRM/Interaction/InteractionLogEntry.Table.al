@@ -551,7 +551,7 @@ table 5065 "Interaction Log Entry"
         if not Uri.IsValidUri(Url) then
             exit(false);
         Uri.Init(Url);
-        exit(Uri.GetScheme() in ['http', 'https']);
+        exit(Uri.IsHttpUrl());
     end;
 
     procedure ToggleCanceledCheckmark()

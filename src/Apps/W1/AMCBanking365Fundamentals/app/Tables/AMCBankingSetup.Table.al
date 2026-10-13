@@ -59,7 +59,7 @@ table 20101 "AMC Banking Setup"
                     if not Uri.IsValidUri("Service URL") then
                         Error(InvalidUriErr);
                     Uri.Init("Service URL");
-                    if Uri.GetScheme() <> 'https' then
+                    if not Uri.IsSecureHttpUrl() then
                         Error(NonSecureUriErr);
                     ClearCredentials();
                 end;

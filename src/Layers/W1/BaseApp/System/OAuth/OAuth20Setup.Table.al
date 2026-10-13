@@ -182,7 +182,7 @@ table 1140 "OAuth 2.0 Setup"
         if not Uri.IsValidUri(Url) then
             Error(InvalidUriErr);
         Uri.Init(Url);
-        if Uri.GetScheme() <> 'https' then
+        if not Uri.IsSecureHttpUrl() then
             Error(NonSecureUriErr);
     end;
 

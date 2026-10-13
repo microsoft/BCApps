@@ -138,7 +138,7 @@ table 1062 "Payment Reporting Argument"
         if not Uri.IsValidUri(ServiceURL) then
             Error(InvalidUriErr);
         Uri.Init(ServiceURL);
-        if not (Uri.GetScheme() in ['http', 'https']) then
+        if not Uri.IsHttpUrl() then
             Error(InvalidUriErr);
 
         "Target URL".CreateOutStream(OutStream);

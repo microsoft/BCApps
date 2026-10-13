@@ -713,7 +713,7 @@ codeunit 419 "File Management"
         if not Uri.IsValidUri(Url) then
             exit(false);
         Uri.Init(Url);
-        exit(Uri.GetScheme() in ['http', 'https']);
+        exit(Uri.IsHttpUrl());
     end;
 
     procedure AppendFileNameWithIndex(OriginalFileName: Text; AppendIndex: Integer): Text

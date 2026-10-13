@@ -160,7 +160,7 @@ table 1450 "MS - Yodlee Bank Service Setup"
         if not Uri.IsValidUri(Url) then
             Error(InvalidUriErr);
         Uri.Init(Url);
-        if Uri.GetScheme() <> 'https' then
+        if not Uri.IsSecureHttpUrl() then
             Error(NonSecureUriErr);
     end;
 

@@ -44,26 +44,26 @@ codeunit 1299 "Web Request Helper"
     end;
 
     [TryFunction]
-    [Obsolete('Use the IsValidUri, Init and GetScheme procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
+    [Obsolete('Use the IsValidUri, Init and IsSecureHttpUrl procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
     procedure IsSecureHttpUrl(Url: Text)
     var
         Uri: Codeunit Uri;
     begin
         CheckValidUri(Url);
         Uri.Init(Url);
-        if Uri.GetScheme() <> 'https' then
+        if not Uri.IsSecureHttpUrl() then
             Error(NonSecureUriErr);
     end;
 
     [TryFunction]
-    [Obsolete('Use the IsValidUri, Init and GetScheme procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
+    [Obsolete('Use the IsValidUri, Init and IsHttpUrl procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
     procedure IsHttpUrl(Url: Text)
     var
         Uri: Codeunit Uri;
     begin
         CheckValidUri(Url);
         Uri.Init(Url);
-        if not (Uri.GetScheme() in ['http', 'https']) then
+        if not Uri.IsHttpUrl() then
             Error(InvalidUriErr);
     end;
 #endif

@@ -400,7 +400,7 @@ codeunit 1070 "MS - PayPal Standard Mgt."
     begin
         if Uri.IsValidUri(URL) then begin
             Uri.Init(URL);
-            if Uri.GetScheme() = 'https' then
+            if Uri.IsSecureHttpUrl() then
                 exit(true);
         end;
         exit(false);

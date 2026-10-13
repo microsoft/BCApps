@@ -280,7 +280,7 @@ table 1275 "Doc. Exch. Service Setup"
         if not Uri.IsValidUri(Url) then
             Error(InvalidUriErr);
         Uri.Init(Url);
-        if Uri.GetScheme() <> 'https' then
+        if not Uri.IsSecureHttpUrl() then
             Error(NonSecureUriErr);
     end;
 
