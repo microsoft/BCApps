@@ -12,6 +12,7 @@ codeunit 1299 "Web Request Helper"
 
     var
         ConnectionErr: Label 'Connection to the remote service could not be established.\\';
+        FileSchemeNotAllowedErr: Label 'The file scheme is not allowed.';
         InvalidEncodingErr: Label 'The text encoding is not specified or is not valid.';
         InvalidUriErr: Label 'The URI is not valid.';
         NonSecureUriErr: Label 'The URI is not secure.';
@@ -132,10 +133,16 @@ codeunit 1299 "Web Request Helper"
         TempBlob: Codeunit "Temp Blob";
         HttpWebRequest: DotNet HttpWebRequest;
         HttpWebResponse: DotNet HttpWebResponse;
+        Uri: DotNet Uri;
         ResponseInputStream: InStream;
         TextEncodingVar: TextEncoding;
         ChunkText: Text;
     begin
+        IsValidUri(Url);
+        Uri := Uri.Uri(Url);
+        if Uri.Scheme = 'file' then
+            Error(FileSchemeNotAllowedErr);
+
         HttpWebRequest := HttpWebRequest.Create(Url);
         HttpWebRequest.Method := Method;
         HttpWebRequest.ContentLength := 0;
