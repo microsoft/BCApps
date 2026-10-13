@@ -181,6 +181,50 @@ codeunit 139098 "Power BI Synchronizer Tests"
         Assert.AreEqual('Parameters Updated', PowerBIDeploymentBuffer."Current Step", 'Current Step should show the step where failure was recorded');
     end;
 
+    [Test]
+    procedure TestDeploymentBufferLoadsSelection()
+    var
+        TempSelectedBuffer: Record "Power BI Deployment Buffer" temporary;
+        TempDeploymentBuffer: Record "Power BI Deployment Buffer" temporary;
+    begin
+        // [SCENARIO] Loading a selection rebuilds the deployment buffer for every selected report
+        SetupBase();
+
+        TempSelectedBuffer."Report Id" := Enum::"Power BI Deployable Report"::"Test Report";
+        TempSelectedBuffer.Insert();
+        TempSelectedBuffer."Report Id" := Enum::"Power BI Deployable Report"::"Test Report 2";
+        TempSelectedBuffer.Insert();
+
+        TempDeploymentBuffer.LoadSelection(TempSelectedBuffer);
+
+        Assert.AreEqual(2, TempDeploymentBuffer.Count(), 'The deployment buffer should contain every selected report.');
+        Assert.IsTrue(TempDeploymentBuffer.Get(Enum::"Power BI Deployable Report"::"Test Report"), 'The first selected report should be loaded.');
+        Assert.IsTrue(TempDeploymentBuffer.Get(Enum::"Power BI Deployable Report"::"Test Report 2"), 'The second selected report should be loaded.');
+    end;
+
+    [Test]
+    procedure TestDeploymentBufferCountsAndRemovesOutcomes()
+    var
+        TempDeploymentBuffer: Record "Power BI Deployment Buffer" temporary;
+    begin
+        // [SCENARIO] Multi-selection helpers count and remove only reports with the requested outcome
+        TempDeploymentBuffer."Report Id" := Enum::"Power BI Deployable Report"::"Test Report";
+        TempDeploymentBuffer.Outcome := Enum::"Power BI Deployment Outcome"::"In Progress";
+        TempDeploymentBuffer.Insert();
+
+        TempDeploymentBuffer."Report Id" := Enum::"Power BI Deployable Report"::"Test Report 2";
+        TempDeploymentBuffer.Outcome := Enum::"Power BI Deployment Outcome"::Finished;
+        TempDeploymentBuffer.Insert();
+
+        Assert.AreEqual(1, TempDeploymentBuffer.CountForOutcome(Enum::"Power BI Deployment Outcome"::"In Progress"), 'Only the in-progress report should be counted.');
+        Assert.AreEqual(1, TempDeploymentBuffer.CountForOutcome(Enum::"Power BI Deployment Outcome"::Finished), 'Only the finished report should be counted.');
+
+        TempDeploymentBuffer.RemoveOutcome(Enum::"Power BI Deployment Outcome"::"In Progress");
+
+        Assert.AreEqual(1, TempDeploymentBuffer.Count(), 'Only reports with the requested outcome should be removed.');
+        Assert.IsTrue(TempDeploymentBuffer.Get(Enum::"Power BI Deployable Report"::"Test Report 2"), 'The report with another outcome should remain selected.');
+    end;
+
     #endregion
 
     #region AggregatorTests
@@ -621,11 +665,11 @@ codeunit 139098 "Power BI Synchronizer Tests"
         // and the deployment record afterwards shows the workspace the report actually landed in
         SetupBase();
 
-        // [GIVEN] A writable workspace configured on Company Information, and it is an evaluation company so the action is enabled
+        // [GIVEN] A writable workspace configured on Company Information in a non-evaluation company
         WorkspaceId := CreateGuid();
         PowerBITestSubscriber.AddWorkspace(WorkspaceId, 'HQ Workspace');
         SetCompanyInformationWorkspace(WorkspaceId, 'HQ Workspace');
-        SetEvaluationCompany(true);
+        SetEvaluationCompany(false);
         PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
 
         // [WHEN] The user selects the test report, deploys it, and the deployment runs

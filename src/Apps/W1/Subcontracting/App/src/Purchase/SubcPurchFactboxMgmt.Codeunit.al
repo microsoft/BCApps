@@ -418,8 +418,11 @@ codeunit 20560 "Subc. Purch. Factbox Mgmt."
     /// <param name="IsReturn">When true, filters to return transfer orders; when false, filters to outbound transfer orders.</param>
     procedure ShowTransferOrdersFromPurchaseOrder(PurchaseHeader: Record "Purchase Header"; IsReturn: Boolean)
     var
+        SelectedTransferHeader: Record "Transfer Header";
         TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
         PageManagement: Codeunit "Page Management";
+        SelectionFilterMgt: Codeunit SelectionFilterManagement;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -427,8 +430,25 @@ codeunit 20560 "Subc. Purch. Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
-        TransferHeader.SetRange("Subc. Return Order", IsReturn);
+        if IsReturn then begin
+            TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader."No.");
+            TransferLine.SetRange("Subc. Return Order", true);
+            TransferLine.SetRange("Derived From Line No.", 0);
+            if TransferLine.FindSet() then
+                repeat
+                    if SelectedTransferHeader.Get(TransferLine."Document No.") then
+                        SelectedTransferHeader.Mark(true);
+                until TransferLine.Next() = 0;
+            SelectedTransferHeader.MarkedOnly(true);
+
+            if SelectedTransferHeader.IsEmpty() then
+                TransferHeader.SetRange("No.", '')
+            else
+                TransferHeader.SetFilter("No.", SelectionFilterMgt.GetSelectionFilterForTransferHeader(SelectedTransferHeader));
+        end else begin
+            TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+            TransferHeader.SetRange("Subc. Return Order", IsReturn);
+        end;
         if TransferHeader.Count() = 1 then begin
             TransferHeader.FindFirst();
             PageManagement.PageRun(TransferHeader);

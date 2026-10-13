@@ -24,6 +24,7 @@ codeunit 148344 "Policy Evaluations API Test"
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
         SubjectVersionRequiredErr: Label 'Subject Version is required.';
         PolicyVersionRequiredErr: Label 'Policy Version is required.';
+        ExpenseReportLineSubjectTypeTok: Label 'Expense_x0020_Report_x0020_Line', Locked = true;
 
     [Test]
     procedure PolicyEvaluationAPIInsertsFlagWithRequiredVersions()
@@ -80,7 +81,7 @@ codeunit 148344 "Policy Evaluations API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
-        Assert.AreNotEqual(0, StrPos(ResponseText, SubjectVersionRequiredErr), 'The response must identify the missing subject version.');
+        Assert.ExpectedError(SubjectVersionRequiredErr);
         CompleteTest();
     end;
 
@@ -106,7 +107,7 @@ codeunit 148344 "Policy Evaluations API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
-        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyVersionRequiredErr), 'The response must identify the missing policy version.');
+        Assert.ExpectedError(PolicyVersionRequiredErr);
         CompleteTest();
     end;
 
@@ -174,7 +175,7 @@ codeunit 148344 "Policy Evaluations API Test"
         IncludePolicyVersion: Boolean)
     begin
         RequestBody.Add('subjectSystemId', ExpenseReportLine.SystemId);
-        RequestBody.Add('subjectType', 'expenseReportLine');
+        RequestBody.Add('subjectType', ExpenseReportLineSubjectTypeTok);
         if IncludeSubjectVersion then
             RequestBody.Add('subjectVersion', ExpenseReportLine."Policy Eval Version");
         RequestBody.Add('policySystemId', ExpensePolicy.SystemId);

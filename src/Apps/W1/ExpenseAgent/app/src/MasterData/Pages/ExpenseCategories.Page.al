@@ -31,7 +31,8 @@ page 6946 "Expense Categories"
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the category description.';
+                    Caption = 'Agent Skills';
+                    ToolTip = 'Specifies the skill for the agent usage that identifies expense category and its purpose or usage.';
                 }
                 field("Posting Group"; Rec."Posting Group")
                 {
