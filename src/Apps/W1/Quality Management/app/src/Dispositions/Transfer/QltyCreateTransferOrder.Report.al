@@ -280,6 +280,12 @@ report 20410 "Qlty. Create Transfer Order"
         begin
             UpdateDestinationBinState();
         end;
+
+        trigger OnQueryClosePage(CloseAction: Action): Boolean
+        begin
+            if CloseAction = Action::OK then
+                ValidateDestinationBin();
+        end;
     }
 
     var
@@ -297,10 +303,16 @@ report 20410 "Qlty. Create Transfer Order"
         InTransit: Code[10];
         DirectTransfer: Boolean;
         ShowDestinationBin: Boolean;
+        DestinationBinRequiredErr: Label 'Enter a destination bin for location %1.', Comment = '%1 = Location Code';
 
     trigger OnInitReport()
     begin
         MoveSpecific := true;
+    end;
+
+    trigger OnPreReport()
+    begin
+        ValidateDestinationBin();
     end;
 
     local procedure UpdateDestinationBinState()
@@ -321,5 +333,20 @@ report 20410 "Qlty. Create Transfer Order"
 
         if not Bin.Get(Destination, DestinationBin) then
             Clear(DestinationBin);
+    end;
+
+    local procedure ValidateDestinationBin()
+    var
+        Bin: Record Bin;
+        DestinationLocation: Record Location;
+    begin
+        if not DestinationLocation.Get(Destination) then
+            exit;
+        if not DestinationLocation."Bin Mandatory" or DestinationLocation."Directed Put-away and Pick" then
+            exit;
+        if DestinationBin = '' then
+            Error(DestinationBinRequiredErr, Destination);
+
+        Bin.Get(Destination, DestinationBin);
     end;
 }
