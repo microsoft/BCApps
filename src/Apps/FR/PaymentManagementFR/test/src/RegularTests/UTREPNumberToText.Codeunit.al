@@ -6,7 +6,10 @@ namespace Microsoft.Bank.Payment;
 
 using Microsoft.Bank.Check;
 using Microsoft.Finance.Currency;
+using Microsoft.Foundation.Reporting;
+using System.Reflection;
 using System.TestLibraries.Utilities;
+using System.Upgrade;
 
 codeunit 144042 "UT REP Number To Text"
 {
@@ -21,6 +24,7 @@ codeunit 144042 "UT REP Number To Text"
     var
         Assert: Codeunit Assert;
         UnexpectedAmountTextErr: Label 'Unexpected amount text for %1 in language %2.', Comment = '%1 = amount, %2 = language ID';
+        UnexpectedLayoutErr: Label 'Unexpected check layout selection.';
 
     [Test]
     procedure FrenchNumberGrammar()
@@ -106,6 +110,232 @@ codeunit 144042 "UT REP Number To Text"
         FormatAmount(NoText, 999999.99, '', 1036);
 
         Assert.AreNotEqual('', NoText[2], StrSubstNo(UnexpectedAmountTextErr, 999999.99, 1036));
+    end;
+
+    [Test]
+    procedure FrenchCheckLayoutIsProvidedByExtension()
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        // [SCENARIO 653674] The French layout is owned by Payment Management FR, not Base Application.
+        ReportLayoutList.Get(Report::Check, 'CheckFR', PaymentManagementAppId());
+        Assert.AreEqual(ReportLayoutList."Layout Format"::RDLC, ReportLayoutList."Layout Format", UnexpectedLayoutErr);
+    end;
+
+    [Test]
+    procedure FrenchCheckLayoutIsSelectedWithoutExistingSelection()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+    begin
+        // [SCENARIO 653674] A company using the implicit built-in layout gets the extension layout.
+        ClearLayoutSelections();
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
+    end;
+
+    [Test]
+    procedure LegacyBuiltInCheckLayoutIsMigrated()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        BaseApplicationId: Guid;
+    begin
+        // [SCENARIO 653674] An explicit Base Application check layout selection is migrated.
+        ClearLayoutSelections();
+        BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        CreateLayoutSelection(CompanyName(), 'RDLCLayout', BaseApplicationId);
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
+    end;
+
+    [Test]
+    procedure AllCompanyBuiltInCheckLayoutIsMigratedPerCompany()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        BaseApplicationId: Guid;
+    begin
+        // [SCENARIO 653674] A global built-in default is migrated only for the current company.
+        ClearLayoutSelections();
+        BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        CreateLayoutSelection('', 'RDLCLayout', BaseApplicationId);
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
+        VerifyLayoutSelection('', 'RDLCLayout', BaseApplicationId);
+    end;
+
+    [Test]
+    procedure CustomCheckLayoutSelectionIsPreserved()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO 653674] A tenant-defined company layout is not replaced.
+        ClearLayoutSelections();
+        CreateLayoutSelection(CompanyName(), 'CUSTOM CHECK', EmptyGuid);
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'CUSTOM CHECK', EmptyGuid);
+    end;
+
+    [Test]
+    procedure AllCompanyCustomCheckLayoutSelectionIsPreserved()
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO 653674] A custom default applying to all companies is not shadowed.
+        ClearLayoutSelections();
+        CreateLayoutSelection('', 'CUSTOM CHECK', EmptyGuid);
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection('', 'CUSTOM CHECK', EmptyGuid);
+        Assert.IsFalse(TenantReportLayoutSelection.Get(Report::Check, CompanyName(), EmptyGuid), UnexpectedLayoutErr);
+    end;
+
+    [Test]
+    procedure OtherExtensionCheckLayoutSelectionIsPreserved()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        OtherAppId: Guid;
+    begin
+        // [SCENARIO 653674] A layout selected from another extension is not replaced.
+        ClearLayoutSelections();
+        OtherAppId := CreateGuid();
+        CreateLayoutSelection(CompanyName(), 'OTHER CHECK', OtherAppId);
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'OTHER CHECK', OtherAppId);
+    end;
+
+    [Test]
+    procedure LegacyCustomCheckLayoutSelectionIsPreserved()
+    var
+        ReportLayoutSelection: Record "Report Layout Selection";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO 653674] A legacy custom layout remains selected.
+        ClearLayoutSelections();
+        ReportLayoutSelection.Init();
+        ReportLayoutSelection."Report ID" := Report::Check;
+        ReportLayoutSelection."Company Name" := CompanyName();
+        ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
+        ReportLayoutSelection."Custom Report Layout Code" := 'CUSTOM CHECK';
+        ReportLayoutSelection.Insert();
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        ReportLayoutSelection.Get(Report::Check, CompanyName());
+        Assert.AreEqual('CUSTOM CHECK', ReportLayoutSelection."Custom Report Layout Code", UnexpectedLayoutErr);
+        Assert.IsFalse(TenantReportLayoutSelection.Get(Report::Check, CompanyName(), EmptyGuid), UnexpectedLayoutErr);
+    end;
+
+    [Test]
+    procedure FrenchCheckLayoutSelectionIsIdempotent()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+    begin
+        // [SCENARIO 653674] Repeated selection does not change the selected extension layout.
+        ClearLayoutSelections();
+
+        CheckLayoutFR.SetDefaultLayout();
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
+    end;
+
+    [Test]
+    procedure UserSpecificCheckLayoutSelectionIsPreserved()
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        EmptyGuid: Guid;
+        SelectedUserId: Guid;
+    begin
+        // [SCENARIO 653674] Migrating the company default does not change user-specific selections.
+        ClearLayoutSelections();
+        SelectedUserId := CreateGuid();
+        TenantReportLayoutSelection.Init();
+        TenantReportLayoutSelection."Report ID" := Report::Check;
+        TenantReportLayoutSelection."Company Name" := CompanyName();
+        TenantReportLayoutSelection."User ID" := SelectedUserId;
+        TenantReportLayoutSelection."Layout Name" := 'USER CHECK';
+        TenantReportLayoutSelection.Insert();
+
+        CheckLayoutFR.SetDefaultLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
+        TenantReportLayoutSelection.Get(Report::Check, CompanyName(), SelectedUserId);
+        Assert.AreEqual('USER CHECK', TenantReportLayoutSelection."Layout Name", UnexpectedLayoutErr);
+        Assert.AreEqual(EmptyGuid, TenantReportLayoutSelection."App ID", UnexpectedLayoutErr);
+    end;
+
+    [Test]
+    procedure CompletedLayoutUpgradeDoesNotOverrideLaterSelection()
+    var
+        CheckLayoutFR: Codeunit "Check Layout FR";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+        BaseApplicationId: Guid;
+    begin
+        // [SCENARIO 653674] Later upgrades preserve a built-in layout explicitly selected after migration.
+        ClearLayoutSelections();
+        if not UpgradeTag.HasUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag()) then
+            UpgradeTag.SetUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag());
+        BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        CreateLayoutSelection(CompanyName(), 'RDLCLayout', BaseApplicationId);
+
+        CheckLayoutFR.UpgradeLayout();
+
+        VerifyLayoutSelection(CompanyName(), 'RDLCLayout', BaseApplicationId);
+    end;
+
+    local procedure ClearLayoutSelections()
+    var
+        ReportLayoutSelection: Record "Report Layout Selection";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+    begin
+        ReportLayoutSelection.SetRange("Report ID", Report::Check);
+        ReportLayoutSelection.DeleteAll();
+        TenantReportLayoutSelection.SetRange("Report ID", Report::Check);
+        TenantReportLayoutSelection.DeleteAll();
+    end;
+
+    local procedure CreateLayoutSelection(SelectedCompany: Text[30]; LayoutName: Text[250]; AppId: Guid)
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+    begin
+        TenantReportLayoutSelection.Init();
+        TenantReportLayoutSelection."Report ID" := Report::Check;
+        TenantReportLayoutSelection."Company Name" := SelectedCompany;
+        TenantReportLayoutSelection."Layout Name" := LayoutName;
+        TenantReportLayoutSelection."App ID" := AppId;
+        TenantReportLayoutSelection.Insert();
+    end;
+
+    local procedure VerifyLayoutSelection(SelectedCompany: Text[30]; LayoutName: Text[250]; AppId: Guid)
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayoutSelection.Get(Report::Check, SelectedCompany, EmptyGuid);
+        Assert.AreEqual(LayoutName, TenantReportLayoutSelection."Layout Name", UnexpectedLayoutErr);
+        Assert.AreEqual(AppId, TenantReportLayoutSelection."App ID", UnexpectedLayoutErr);
+    end;
+
+    local procedure PaymentManagementAppId(): Guid
+    begin
+        exit('24f54185-e697-4e03-bae0-f134f2d69673');
     end;
 
     local procedure VerifyFrenchAmountText(Amount: Decimal; ExpectedAmountText: Text)
