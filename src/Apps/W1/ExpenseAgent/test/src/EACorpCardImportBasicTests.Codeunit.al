@@ -42,14 +42,13 @@ codeunit 148356 EACorpCardImportBasicTests
     var
         FirstStatement: Record "EA Corp Card Statement";
         SecondStatement: Record "EA Corp Card Statement";
-        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
         Initialize();
 
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, FirstStatement);
         Assert.IsTrue(FirstStatement.Imported > 0, 'First CSV import must import transactions before duplicate rerun is tested.');
 
-        CreateCorpCardSetup.CreateDefaults();
+        CorpCardTestLib.SetCsvProviderSourcePayload();
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, SecondStatement);
 
         Assert.IsTrue(SecondStatement.Duplicates > 0, 'Second CSV import must count the previously imported transactions as duplicates.');

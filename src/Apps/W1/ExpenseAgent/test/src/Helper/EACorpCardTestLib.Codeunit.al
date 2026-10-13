@@ -18,12 +18,15 @@ codeunit 148357 EACorpCardTestLib
         NoStatementCreatedForProviderTxt: Label 'No statement was created for provider %1.', Comment = '%1 = provider code', Locked = true;
         ProviderTransactionNotImportedTxt: Label 'Provider transaction %1 was not imported for provider %2.', Comment = '%1 = provider transaction ID, %2 = provider code', Locked = true;
         ProviderNotFoundTxt: Label 'Provider %1 was not found.', Comment = '%1 = provider code', Locked = true;
+        CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
+        CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
+        CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
+        CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
 
     internal procedure InitializeCorpCardData()
     var
         CorpCard: Record "EA Corp Card";
         ExpenseUser: Record "Expense User";
-        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         ExpenseUserNo: Integer;
     begin
         LibraryExpense.CleanUpBeforeTesting();
@@ -34,9 +37,162 @@ codeunit 148357 EACorpCardTestLib
 
         for ExpenseUserNo := 1 to 8 do
             LibraryExpense.CreateExpenseUser(ExpenseUser);
-        CreateCorpCardSetup.CreateDefaults();
+        InitializeCorpCardSetup();
+        InitializeCorpCardProviders();
+        InitializeCorpCards();
         EnsureCurrencyExchangeRate('USD');
         EnsureCurrencyExchangeRate('EUR');
+    end;
+
+    local procedure InitializeCorpCardSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CorpCardMCCMgt: Codeunit "EA Corp Card MCC Mgt";
+        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
+        CreateExpenseCategories: Codeunit "Create Expense Categories";
+    begin
+        CreateExpenseAgentSetup.CreateDefaultPaymentMethods();
+        CreateExpenseCategories.InsertAccountingDefaults();
+        CorpCardMCCMgt.InitializeDefaultMCCMappings();
+        InitializeCorpCardExpenseCategoryPostingGroups();
+
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert(true);
+        end;
+        ExpenseAgentSetup."Corp Card Create Mode" := ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft;
+        ExpenseAgentSetup."Corp Card Auto Create Draft" := true;
+        ExpenseAgentSetup."Corp Card Date Match Window" := 7;
+        ExpenseAgentSetup."Corp Card Amount Tolerance" := 5;
+        ExpenseAgentSetup."Corp Card Default Provider" := CorpCardCsvProviderCodeTok;
+        ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure InitializeCorpCardExpenseCategoryPostingGroups()
+    var
+        CorpCardMCCMap: Record "EA Corp Card MCC Map";
+        ExpenseCategory: Record "Expense Category";
+        TempExpenseCategory: Record "Expense Category" temporary;
+        CreateExpenseCategories: Codeunit "Create Expense Categories";
+    begin
+        CreateExpenseCategories.BuildCategorySeeds(TempExpenseCategory);
+        if CorpCardMCCMap.FindSet() then
+            repeat
+                if ExpenseCategory.Get(CorpCardMCCMap."Expense Category") and
+                   (ExpenseCategory."Posting Group" = '') and
+                   TempExpenseCategory.Get(ExpenseCategory.Code)
+                then begin
+                    ExpenseCategory.Validate("Posting Group", TempExpenseCategory."Posting Group");
+                    ExpenseCategory.Modify(true);
+                end;
+            until CorpCardMCCMap.Next() = 0;
+    end;
+
+    local procedure InitializeCorpCardProviders()
+    begin
+        InitializeCorpCardProvider(CorpCardCsvProviderCodeTok, Enum::"EA Corp Card Feed Type"::CSV);
+        InitializeCorpCardProvider(CorpCardXmlProviderCodeTok, Enum::"EA Corp Card Feed Type"::XML);
+        SetCsvProviderSourcePayload();
+        SetProviderSourcePayload(CorpCardXmlProviderCodeTok, GetXmlProviderSourcePayload(), CorpCardXmlSampleFileNameTok);
+    end;
+
+    local procedure InitializeCorpCardProvider(ProviderCode: Code[20]; FeedType: Enum "EA Corp Card Feed Type")
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+    begin
+        EnsureCorpCardProvider(ProviderCode);
+        CorpCardProvider.Get(ProviderCode);
+        CorpCardProvider.Enabled := true;
+        CorpCardProvider."Feed Type" := FeedType;
+        CorpCardProvider.Modify(true);
+        CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
+    end;
+
+    local procedure InitializeCorpCards()
+    var
+        CorpCard: Record "EA Corp Card";
+        ExpenseUser: Record "Expense User";
+        CardSequenceNo: Integer;
+    begin
+        ExpenseUser.FindSet();
+        repeat
+            CardSequenceNo += 1;
+            CorpCard.Init();
+            CorpCard."Card Id" := GetCorpCardId(CardSequenceNo);
+            CorpCard."Provider Code" := CorpCardCsvProviderCodeTok;
+            CorpCard."Expense User No." := ExpenseUser."No.";
+            CorpCard.Insert(true);
+        until (ExpenseUser.Next() = 0) or (CardSequenceNo = GetCorpCardCount());
+    end;
+
+    internal procedure SetCsvProviderSourcePayload()
+    begin
+        SetProviderSourcePayload(CorpCardCsvProviderCodeTok, GetCsvProviderSourcePayload(), CorpCardCsvSampleFileNameTok);
+    end;
+
+    local procedure GetCsvProviderSourcePayload(): Text
+    var
+        CsvPayloadBuilder: TextBuilder;
+        TransactionNo: Integer;
+    begin
+        CsvPayloadBuilder.AppendLine('ProviderTransId,CardId,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
+        for TransactionNo := 1 to GetCorpCardTransactionCount() do
+            CsvPayloadBuilder.AppendLine(
+#pragma warning disable AA0217
+                StrSubstNo(
+                    'TXN%1,%2,2026-06-02,2026-06-03,19.63,USD,Contoso Air,4511,US,Test transaction %1',
+                    PadNumberLeft(TransactionNo, 5), GetCorpCardId(((TransactionNo - 1) mod GetCorpCardCount()) + 1)));
+#pragma warning restore AA0217
+        exit(CsvPayloadBuilder.ToText());
+    end;
+
+    local procedure GetXmlProviderSourcePayload(): Text
+    begin
+        exit(
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<CorporateCardTransactions>' +
+                '<Transaction>' +
+                    '<ProviderTransId>XMLTXN0001</ProviderTransId>' +
+                    '<CardId>' + GetCorpCardId(1) + '</CardId>' +
+                    '<TransDate>2026-06-02</TransDate>' +
+                    '<PostingDate>2026-06-03</PostingDate>' +
+                    '<Amount>19.63</Amount>' +
+                    '<CurrencyCode>USD</CurrencyCode>' +
+                    '<MerchantRaw>Contoso Air</MerchantRaw>' +
+                    '<MCC>4511</MCC>' +
+                    '<Country>US</Country>' +
+                    '<Notes>Test transaction</Notes>' +
+                '</Transaction>' +
+            '</CorporateCardTransactions>');
+    end;
+
+    local procedure GetCorpCardId(CardSequenceNo: Integer): Code[50]
+    begin
+#pragma warning disable AA0217
+        exit(CopyStr(StrSubstNo('CORPCARD-%1', PadNumberLeft(CardSequenceNo, 4)), 1, 50));
+#pragma warning restore AA0217
+    end;
+
+    local procedure GetCorpCardCount(): Integer
+    begin
+        exit(6);
+    end;
+
+    local procedure GetCorpCardTransactionCount(): Integer
+    begin
+        exit(60);
+    end;
+
+    local procedure PadNumberLeft(Value: Integer; TotalLength: Integer): Text
+    var
+        ValueTxt: Text;
+    begin
+        ValueTxt := Format(Value);
+        while StrLen(ValueTxt) < TotalLength do
+            ValueTxt := '0' + ValueTxt;
+
+        exit(ValueTxt);
     end;
 
     internal procedure DeleteCorpCardTransactionalData()
