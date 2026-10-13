@@ -190,6 +190,12 @@ table 7428 "EA Corp Card Trans"
         }
     }
 
+    trigger OnInsert()
+    begin
+        if ("Amount (LCY)" = 0) and ("Currency Code" <> '') then
+            "Amount (LCY)" := CalcAmountLCY();
+    end;
+
     trigger OnDelete()
     var
         CorpCardException: Record "EA Corp Card Exception";
@@ -221,13 +227,31 @@ table 7428 "EA Corp Card Trans"
             Error(ClosedStatementTransactionCannotChangeErr, "Entry No.", CorpCardStatement."Statement No.");
     end;
 
+    local procedure CalcAmountLCY(): Decimal
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        RateDate: Date;
+    begin
+        if "Currency Code" = '' then
+            exit(Amount);
+
+        RateDate := "Posting Date";
+        if RateDate = 0D then
+            RateDate := "Trans Date";
+        if RateDate = 0D then
+            RateDate := WorkDate();
+
+        exit(CurrencyExchangeRate.ExchangeAmtFCYToLCY(RateDate, "Currency Code", Amount, CurrencyExchangeRate.ExchangeRate(RateDate, "Currency Code")));
+    end;
+
     internal procedure GetAmountInCurrency(TargetCurrencyCode: Code[10]): Decimal
     begin
         if TargetCurrencyCode = "Currency Code" then
             exit(Amount);
         if (TargetCurrencyCode = '') and ("Currency Code" <> '') then begin
-            TestField("Amount (LCY)");
-            exit("Amount (LCY)");
+            if "Amount (LCY)" <> 0 then
+                exit("Amount (LCY)");
+            exit(CalcAmountLCY());
         end;
 
         Error(UnsupportedSettlementCurrencyErr, "Entry No.", "Currency Code", TargetCurrencyCode);
