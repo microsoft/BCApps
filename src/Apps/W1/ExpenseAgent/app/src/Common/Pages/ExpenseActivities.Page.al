@@ -10,7 +10,7 @@ page 7141 "Expense Activities"
     PageType = CardPart;
     RefreshOnActivate = true;
     SourceTable = "Expense Activities Cue";
-    Permissions = tabledata "Expense Activities Cue" = rm;
+    Permissions = tabledata "Expense Activities Cue" = rim;
 
     layout
     {
