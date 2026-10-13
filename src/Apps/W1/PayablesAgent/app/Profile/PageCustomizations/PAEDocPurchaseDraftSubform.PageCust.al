@@ -34,6 +34,14 @@ pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase D
         {
             Visible = true;
         }
+        modify("Name")
+        {
+            Visible = true;
+        }
+        modify("VAT Prod. Posting Group")
+        {
+            Visible = true;
+        }
         modify("Item Reference No.")
         {
             Visible = true;
@@ -43,6 +51,10 @@ pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase D
             Visible = true;
         }
         modify("Unit Of Measure")
+        {
+            Visible = true;
+        }
+        modify("Shortcut Dimension 1 Code")
         {
             Visible = true;
         }

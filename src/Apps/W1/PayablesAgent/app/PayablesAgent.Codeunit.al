@@ -50,13 +50,8 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
     end;
 
     procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
     begin
-        if Feature <> Feature::BusinessIQ then
-            exit(false);
-        PayablesAgentSetup.GetSetup();
-        exit(PayablesAgentSetup."Use Business Central IQ");
+        exit(Feature = Feature::BusinessIQ);
     end;
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
