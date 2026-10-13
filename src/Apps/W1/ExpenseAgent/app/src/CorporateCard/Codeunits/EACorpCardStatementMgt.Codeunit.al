@@ -11,6 +11,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     Access = Internal;
     Permissions =
         tabledata "Bank Account Ledger Entry" = r,
+        tabledata "EA Corp Card" = r,
         tabledata "EA Corp Card Settlement" = r,
         tabledata "EA Corp Card Settlement Line" = r,
         tabledata "EA Corp Card Statement" = rimd,
@@ -152,7 +153,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardStatement."Reconciliation Invalidated By" := CopyStr(UserId(), 1, MaxStrLen(CorpCardStatement."Reconciliation Invalidated By"));
         CorpCardStatement."Recon. Invalidation Reason" := InvalidationReason;
         CorpCardStatement.Status := CorpCardStatement.Status::ReconciliationRequired;
-        CorpCardStatement.Modify(false);
+        CorpCardStatement.ModifyForReconciliationInvalidation();
     end;
 
     internal procedure GetReconciliationSummary(CorpCardStatement: Record "EA Corp Card Statement"; var ReconciledTransactions: Integer; var ReconciledAmount: Decimal; var UnreconciledTransactions: Integer; var UnreconciledAmount: Decimal; var SettlementStatus: Enum "EA Corp Card Settle Status")
@@ -194,10 +195,14 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     end;
 
     local procedure ValidateTransaction(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans")
+    var
+        CorpCard: Record "EA Corp Card";
     begin
         CorpCardTrans.TestField("Provider Trans Id");
         CorpCardTrans.TestField("Card Id");
         CorpCardTrans.TestField("Trans Date");
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCard.TestField(Blocked, false);
 
         if CorpCardTrans."Currency Code" <> CorpCardStatement."Currency Code" then
             Error(TransactionCurrencyMismatchErr, CorpCardTrans."Entry No.", CorpCardTrans."Currency Code", CorpCardStatement."Currency Code");

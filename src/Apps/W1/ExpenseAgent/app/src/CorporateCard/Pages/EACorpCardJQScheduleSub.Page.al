@@ -69,12 +69,4 @@ page 7445 "EA Corp Card JQ Schedule Sub"
         if Rec."Record ID to Process".TableNo() = 0 then
             CurrPage.Close();
     end;
-
-    procedure SetProviderFilter(ProviderCode: Code[20])
-    var
-        CorpCardProvider: Record "EA Corp Card Provider";
-    begin
-        CorpCardProvider.Get(ProviderCode);
-        Rec.SetRange("Record ID to Process", CorpCardProvider.RecordId);
-    end;
 }

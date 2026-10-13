@@ -78,7 +78,7 @@ page 7441 "EA Corp Card Dashboard Fact"
             action(OpenStatement)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Open Statement';
+                Caption = 'Open statement';
                 Image = Document;
                 ToolTip = 'Open the selected corporate card statement.';
 

@@ -13,7 +13,15 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     Access = Internal;
 
     var
+        ExpenseUserNosByCardId: Dictionary of [Code[50], Code[20]];
+        MissingCardIds: Dictionary of [Code[50], Boolean];
         MediumScoreThreshold: Decimal;
+
+    internal procedure InitializeCardCache()
+    begin
+        Clear(ExpenseUserNosByCardId);
+        Clear(MissingCardIds);
+    end;
 
     /// <summary>
     /// Enhanced transaction matching with multiple strategies.
@@ -21,27 +29,31 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     /// </summary>
     internal procedure EnhancedMatchTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
     var
+        ExpenseUserNo: Code[20];
         MatchScore: Decimal;
     begin
+        if not GetExpenseUserNo(CorpCardTrans."Card Id", ExpenseUserNo) then
+            exit(false);
+
         // Initialize thresholds
         MediumScoreThreshold := 0.70; // 70% similarity for medium confidence
 
         // Strategy 1: Exact match by amount, date, user (highest priority)
-        if ExactAmountDateMatch(CorpCardTrans, ExpenseNo, MatchScore) then begin
+        if ExactAmountDateMatch(CorpCardTrans, ExpenseUserNo, ExpenseNo, MatchScore) then begin
             CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Full;
             CorpCardTrans."Match Score" := MatchScore;
             exit(true);
         end;
 
         // Strategy 2: Fuzzy merchant name matching (medium priority)
-        if FuzzyMerchantMatch(CorpCardTrans, ExpenseNo, MatchScore) then begin
+        if FuzzyMerchantMatch(CorpCardTrans, ExpenseUserNo, ExpenseNo, MatchScore) then begin
             CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Expense;
             CorpCardTrans."Match Score" := MatchScore;
             exit(true);
         end;
 
         // Strategy 3: Employee-only match (lowest priority, requires manual review)
-        if EmployeeOnlyMatch(CorpCardTrans, ExpenseNo) then begin
+        if EmployeeOnlyMatch(ExpenseUserNo, ExpenseNo) then begin
             CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Employee;
             CorpCardTrans."Match Score" := 50; // Manual review needed
             exit(true);
@@ -54,27 +66,22 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     /// Exact match on amount, date within window, and expense user.
     /// Returns match score 90-100 based on exactness.
     /// </summary>
-    local procedure ExactAmountDateMatch(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
+    local procedure ExactAmountDateMatch(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseUserNo: Code[20]; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
         DateDiff: Integer;
         AmountDiff: Decimal;
         MaxDateDiff: Integer;
         MaxAmountDiff: Decimal;
     begin
-        if not CorpCard.Get(CorpCardTrans."Card Id") then
-            exit(false);
-        CorpCard.TestField(Blocked, false);
-
         if not ExpenseAgentSetup.Get() then
             exit(false);
 
         MaxDateDiff := ExpenseAgentSetup."Corp Card Date Match Window";
         MaxAmountDiff := ExpenseAgentSetup."Corp Card Amount Tolerance";
 
-        Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
+        Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange("Status", Expense."Status"::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
@@ -103,20 +110,15 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     /// Fuzzy merchant name matching using string similarity.
     /// Returns true if similarity >= MediumScoreThreshold.
     /// </summary>
-    local procedure FuzzyMerchantMatch(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
+    local procedure FuzzyMerchantMatch(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseUserNo: Code[20]; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
     var
-        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
         SimilarityScore: Decimal;
         BestScore: Decimal;
         BestExpenseNo: Code[20];
     begin
-        if not CorpCard.Get(CorpCardTrans."Card Id") then
-            exit(false);
-        CorpCard.TestField(Blocked, false);
-
         Expense.SetLoadFields("No.", "Merchant Name");
-        Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
+        Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange("Status", Expense."Status"::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
 
@@ -145,16 +147,11 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     /// Employee-only match: matches to any Open expense for same user.
     /// Requires manual review by user before posting.
     /// </summary>
-    local procedure EmployeeOnlyMatch(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
+    local procedure EmployeeOnlyMatch(ExpenseUserNo: Code[20]; var ExpenseNo: Code[20]): Boolean
     var
-        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
-        if not CorpCard.Get(CorpCardTrans."Card Id") then
-            exit(false);
-        CorpCard.TestField(Blocked, false);
-
-        Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
+        Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange("Status", Expense."Status"::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
 
@@ -164,6 +161,27 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         end;
 
         exit(false);
+    end;
+
+    local procedure GetExpenseUserNo(CardId: Code[50]; var ExpenseUserNo: Code[20]): Boolean
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        if ExpenseUserNosByCardId.Get(CardId, ExpenseUserNo) then
+            exit(true);
+        if MissingCardIds.ContainsKey(CardId) then
+            exit(false);
+
+        CorpCard.SetLoadFields(Blocked, "Expense User No.");
+        if not CorpCard.Get(CardId) then begin
+            MissingCardIds.Add(CardId, true);
+            exit(false);
+        end;
+
+        CorpCard.TestField(Blocked, false);
+        ExpenseUserNo := CorpCard."Expense User No.";
+        ExpenseUserNosByCardId.Add(CardId, ExpenseUserNo);
+        exit(true);
     end;
 
     /// <summary>

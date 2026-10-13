@@ -9,6 +9,7 @@ using System.IO;
 
 table 7422 "EA Corp Card Statement"
 {
+    Access = Internal;
     Caption = 'Corp Card Statement';
     DataClassification = CustomerContent;
     LookupPageId = "EA Corp Card Statements";
@@ -292,6 +293,12 @@ table 7422 "EA Corp Card Statement"
         exit(TotalAmount);
     end;
 
+    internal procedure ModifyForReconciliationInvalidation()
+    begin
+        AllowClosedStatementInvalidation := true;
+        Modify(true);
+    end;
+
     trigger OnDelete()
     var
         CorpCardException: Record "EA Corp Card Exception";
@@ -311,12 +318,19 @@ table 7422 "EA Corp Card Statement"
     end;
 
     trigger OnModify()
+    var
+        ClosedStatementInvalidationAllowed: Boolean;
     begin
-        if xRec.Status = xRec.Status::Closed then
+        ClosedStatementInvalidationAllowed := AllowClosedStatementInvalidation;
+        Clear(AllowClosedStatementInvalidation);
+        if (xRec.Status = xRec.Status::Closed) and
+           not (ClosedStatementInvalidationAllowed and (Status = Status::ReconciliationRequired))
+        then
             Error(ClosedStatementCannotChangeErr, "Statement No.");
     end;
 
     var
+        AllowClosedStatementInvalidation: Boolean;
         ClosedStatementCannotChangeErr: Label 'Corporate card statement %1 is closed and cannot be changed.', Comment = '%1 = statement number';
         StatementInSettlementErr: Label 'Statement %1 cannot be deleted because it is included in settlement entry %2.', Comment = '%1 = statement number, %2 = settlement entry number';
 }

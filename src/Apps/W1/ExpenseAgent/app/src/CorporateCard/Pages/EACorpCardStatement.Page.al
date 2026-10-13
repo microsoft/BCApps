@@ -190,7 +190,7 @@ page 7444 "EA Corp Card Statement"
             action(ValidateStatement)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Validate Statement';
+                Caption = 'Validate statement';
                 Enabled = Rec.Status = Rec.Status::Imported;
                 Image = Approve;
                 ToolTip = 'Validates import completeness, statement identity, dates, currency, total, and expense matching.';
@@ -241,7 +241,7 @@ page 7444 "EA Corp Card Statement"
             action(CloseReconciliation)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Close Reconciliation';
+                Caption = 'Close reconciliation';
                 Enabled = Rec.Status = Rec.Status::Validated;
                 Image = ClosePeriod;
                 ToolTip = 'Verifies every statement transaction and the posted settlement entries, then closes the statement period.';

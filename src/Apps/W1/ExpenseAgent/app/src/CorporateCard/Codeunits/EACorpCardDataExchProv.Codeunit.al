@@ -24,8 +24,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         NoParsedLinesErr: Label 'No transaction lines were parsed from file %1 for provider %2. Verify Data Exchange definition %3 and mapping %4.', Comment = '%1 = file name, %2 = provider code, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
         NonCsvFallbackErr: Label 'No Data Exchange fields were parsed for non-CSV provider %1 (feed type %2). Verify Data Exchange definition %3 and line mapping %4.', Comment = '%1 = provider code, %2 = feed type, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
         StrictLineValidationErr: Label 'Line %1 (provider %2): missing mapped field(s): %3. Verify Data Exchange definition %4 and mapping line %5.', Comment = '%1 = line no, %2 = provider code, %3 = field list, %4 = Data Exch Def Code, %5 = Data Exch Map Code';
-        MissingLevel3LineErr: Label 'Provider %1: no parsed rows for detail line %2 in Data Exchange %3 (definition %4). Check Data Line Tag and column paths for Level 3 details.', Comment = '%1 = provider code, %2 = detail line code, %3 = Data Exch Entry No., %4 = Data Exch Def Code';
-        MissingLevel3DetailForTransErr: Label 'Provider transaction %1 has no Level 3 detail rows. Verify incoming <Level3><TaxLine> content and detail line mapping %2 in definition %3.', Comment = '%1 = Provider Trans Id, %2 = detail line code, %3 = Data Exch Def Code';
         ProviderTransIdXmlTok: Label '<ProviderTransId>%1</ProviderTransId>', Locked = true, Comment = '%1 = Provider Trans Id';
         ShowItLbl: Label 'Show it';
 
@@ -86,14 +84,12 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         end;
         DataExchDef.Get(CorpCardProvider."Data Exch Def Code");
         CorpCardMapMgt.ValidateMandatoryFieldMappings(CorpCardProvider);
-
         if not DataExch.ImportToDataExch(DataExchDef) then begin
             CorpCardStatement.Status := CorpCardStatement.Status::Failed;
             CorpCardStatement.Rejected += 1;
             CorpCardStatement.Modify();
             exit;
         end;
-
         if HasParsedFields(DataExch) then
             MapDataExchToTrans(CorpCardStatement, CorpCardProvider, DataExch)
         else
@@ -103,12 +99,10 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 CorpCardStatement.Status := CorpCardStatement.Status::Failed;
                 CorpCardStatement.Rejected += 1;
                 CorpCardStatement.Modify();
-                Error(CreateProviderSetupErrorInfo(
+                RaiseProviderSetupError(
                     StrSubstNo(NonCsvFallbackErr, CorpCardProvider.Code, CorpCardProvider."Feed Type", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code"),
-                    CorpCardProvider));
+                    CorpCardProvider);
             end;
-
-        ImportLevel3DetailsFromDataExch(CorpCardStatement, CorpCardProvider, DataExch);
 
         ExpenseWriter := ExpenseWriterImpl;
         PostImportOrch.ProcessStatementPostImport(StatementEntryNo, ExpenseWriter);
@@ -138,7 +132,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         TempBlob.CreateInStream(InStr);
         DataExch."File Content".CreateOutStream(OutStr);
         CopyStream(OutStr, InStr);
-
         if SourceFileName <> '' then begin
             DataExch."File Name" := CopyStr(SourceFileName, 1, MaxStrLen(DataExch."File Name"));
             CorpCardStatement."Source File Name" := SourceFileName;
@@ -170,7 +163,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         ProviderRefreshed."Source Payload".CreateInStream(SourceInStr);
         DataExch."File Content".CreateOutStream(TargetOutStr);
         CopyStream(TargetOutStr, SourceInStr);
-
         if ProviderRefreshed."Source File Name" <> '' then
             DataExch."File Name" := CopyStr(ProviderRefreshed."Source File Name", 1, MaxStrLen(DataExch."File Name"));
 
@@ -206,7 +198,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             LineTxt := DelChr(LineTxt, '<>', ' ');
             if LineTxt = '' then
                 continue;
-
             if IsHeader then begin
                 IsHeader := false;
                 if IsHeaderLine(LineTxt) then
@@ -231,7 +222,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 CorpCardStatement.Rejected += 1;
                 continue;
             end;
-
             if CorpCardDedupMgt.IsDuplicate(CorpCardTrans) then begin
                 CorpCardStatement.Duplicates += 1;
                 continue;
@@ -242,15 +232,24 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         end;
 
         CorpCardStatement.Modify();
-
         if (CorpCardStatement.Imported = 0) and (CorpCardStatement.Duplicates = 0) then begin
             CorpCardStatement.Status := CorpCardStatement.Status::Failed;
             CorpCardStatement.Rejected += 1;
             CorpCardStatement.Modify();
-            Error(CreateProviderSetupErrorInfo(
+            RaiseProviderSetupError(
                 StrSubstNo(NoParsedLinesErr, DataExch."File Name", CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code"),
-                CorpCardProvider));
+                CorpCardProvider);
         end;
+    end;
+
+    local procedure RaiseProviderSetupError(ErrorMessage: Text; CorpCardProvider: Record "EA Corp Card Provider")
+    var
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+        ProviderSetupErrorInfo: ErrorInfo;
+    begin
+        ProviderSetupErrorInfo := CreateProviderSetupErrorInfo(ErrorMessage, CorpCardProvider);
+        CorpCardErrorContext.SetErrorInfo(ProviderSetupErrorInfo);
+        Error(ProviderSetupErrorInfo);
     end;
 
     local procedure CreateProviderSetupErrorInfo(ErrorMessage: Text; CorpCardProvider: Record "EA Corp Card Provider"): ErrorInfo
@@ -285,7 +284,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             Evaluate(CorpCardTrans."Trans Date", DateTxt);
 
         PostingDateTxt := GetCsvField(LineTxt, 4);
-        if ParseIsoDate(PostingDateTxt, CorpCardTrans."Posting Date") then
+        if not ParseIsoDate(PostingDateTxt, CorpCardTrans."Posting Date") then
             Evaluate(CorpCardTrans."Posting Date", PostingDateTxt);
 
         AmountTxt := NormalizeDecimalText(GetCsvField(LineTxt, 5));
@@ -320,7 +319,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             exit(false);
         if (CopyStr(DateTxt, 5, 1) <> '-') or (CopyStr(DateTxt, 8, 1) <> '-') then
             exit(false);
-
         if not Evaluate(YearNo, CopyStr(DateTxt, 1, 4)) then
             exit(false);
         if not Evaluate(MonthNo, CopyStr(DateTxt, 6, 2)) then
@@ -363,7 +361,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         DataExchField.SetRange("Data Exch. Line Def Code", CorpCardProvider."Data Exch Map Code");
         if not DataExchField.FindSet() then
             exit;
-
         if not IsStrictMappingProvider(CorpCardProvider) then
             SourcePayloadTxt := ReadSourcePayload(DataExch);
 
@@ -421,7 +418,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 CorpCardStatement.Rejected += 1;
                 continue;
             end;
-
             if CorpCardDedupMgt.IsDuplicate(CorpCardTrans) then begin
                 CorpCardStatement.Duplicates += 1;
                 continue;
@@ -444,130 +440,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CurrencyCode := CopyStr(DataExchField.GetValue(), 1, MaxStrLen(CurrencyCode));
         CorpCardValidateMgt.NormalizeCurrencyCode(CurrencyCode);
         DataExchField.SetValueWithoutModifying(CurrencyCode);
-    end;
-
-    local procedure ImportLevel3DetailsFromDataExch(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
-    var
-        DataExchField: Record "Data Exch. Field";
-        CurrentLineNo: Integer;
-        DetailFieldValues: array[7] of Text[250];
-        NextDetailLineNosByTransEntryNo: Dictionary of [Integer, Integer];
-        TransEntryNosByProviderTransId: Dictionary of [Code[100], Integer];
-        MissingDetailsReason: Text[250];
-    begin
-        LoadStatementTransactionEntries(CorpCardStatement, CorpCardProvider.Code, TransEntryNosByProviderTransId, NextDetailLineNosByTransEntryNo);
-
-        DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
-        DataExchField.SetRange("Data Exch. Line Def Code", Level3DetailLineCodeTok);
-        if not DataExchField.FindSet() then begin
-            if IsStrictMappingProvider(CorpCardProvider) then
-                Error(MissingLevel3LineErr, CorpCardProvider.Code, Level3DetailLineCodeTok, DataExch."Entry No.", CorpCardProvider."Data Exch Def Code");
-            exit;
-        end;
-
-        CurrentLineNo := -1;
-        repeat
-            if CurrentLineNo = DataExchField."Line No." then
-                CollectLevel3DetailField(DataExchField, DetailFieldValues)
-            else begin
-                if CurrentLineNo <> -1 then
-                    InsertLevel3Detail(DetailFieldValues, TransEntryNosByProviderTransId, NextDetailLineNosByTransEntryNo);
-
-                CurrentLineNo := DataExchField."Line No.";
-                Clear(DetailFieldValues);
-                CollectLevel3DetailField(DataExchField, DetailFieldValues);
-            end;
-        until DataExchField.Next() = 0;
-
-        InsertLevel3Detail(DetailFieldValues, TransEntryNosByProviderTransId, NextDetailLineNosByTransEntryNo);
-
-        if IsStrictMappingProvider(CorpCardProvider) then begin
-            MissingDetailsReason := '';
-            if not ValidateStrictLevel3Details(CorpCardStatement, CorpCardProvider, MissingDetailsReason) then
-                Error(MissingDetailsReason);
-        end;
-    end;
-
-    local procedure LoadStatementTransactionEntries(CorpCardStatement: Record "EA Corp Card Statement"; ProviderCode: Code[20]; var TransEntryNosByProviderTransId: Dictionary of [Code[100], Integer]; var NextDetailLineNosByTransEntryNo: Dictionary of [Integer, Integer])
-    var
-        CorpCardTrans: Record "EA Corp Card Trans";
-    begin
-        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
-        CorpCardTrans.SetRange("Provider Code", ProviderCode);
-        if CorpCardTrans.FindSet() then
-            repeat
-                TransEntryNosByProviderTransId.Add(CorpCardTrans."Provider Trans Id", CorpCardTrans."Entry No.");
-                NextDetailLineNosByTransEntryNo.Add(CorpCardTrans."Entry No.", 10000);
-            until CorpCardTrans.Next() = 0;
-    end;
-
-    local procedure CollectLevel3DetailField(DataExchField: Record "Data Exch. Field"; var DetailFieldValues: array[7] of Text[250])
-    begin
-        if DataExchField."Column No." in [1 .. 7] then
-            DetailFieldValues[DataExchField."Column No."] := CopyStr(DataExchField.GetValue(), 1, MaxStrLen(DetailFieldValues[1]));
-    end;
-
-    local procedure InsertLevel3Detail(DetailFieldValues: array[7] of Text[250]; TransEntryNosByProviderTransId: Dictionary of [Code[100], Integer]; var NextDetailLineNosByTransEntryNo: Dictionary of [Integer, Integer])
-    var
-        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
-        ProviderTransId: Code[100];
-        TransEntryNo: Integer;
-        NextDetailLineNo: Integer;
-        DecValue: Decimal;
-    begin
-        ProviderTransId := CopyStr(DetailFieldValues[1], 1, MaxStrLen(ProviderTransId));
-        if not TransEntryNosByProviderTransId.Get(ProviderTransId, TransEntryNo) then
-            exit;
-
-        CorpCardTransDetail.Init();
-        CorpCardTransDetail."Trans Entry No." := TransEntryNo;
-        if not NextDetailLineNosByTransEntryNo.Get(TransEntryNo, NextDetailLineNo) then
-            exit;
-
-        CorpCardTransDetail."Line No." := NextDetailLineNo;
-        CorpCardTransDetail.Description := CopyStr(DetailFieldValues[2], 1, MaxStrLen(CorpCardTransDetail.Description));
-
-        if Evaluate(DecValue, NormalizeDecimalText(DetailFieldValues[3])) then
-            CorpCardTransDetail.Quantity := DecValue;
-        if Evaluate(DecValue, NormalizeDecimalText(DetailFieldValues[4])) then
-            CorpCardTransDetail."Unit Cost" := DecValue;
-        if Evaluate(DecValue, NormalizeDecimalText(DetailFieldValues[5])) then
-            CorpCardTransDetail."VAT Amount" := DecValue;
-        if Evaluate(DecValue, NormalizeDecimalText(DetailFieldValues[6])) then
-            CorpCardTransDetail."Tax Amount" := DecValue;
-
-        CorpCardTransDetail."Tax Code" := CopyStr(DetailFieldValues[7], 1, MaxStrLen(CorpCardTransDetail."Tax Code"));
-        CorpCardTransDetail.Insert(true);
-        NextDetailLineNosByTransEntryNo.Set(TransEntryNo, NextDetailLineNo + 10000);
-    end;
-
-    local procedure ValidateStrictLevel3Details(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardProvider: Record "EA Corp Card Provider"; var ValidationReason: Text[250]): Boolean
-    var
-        CorpCardTrans: Record "EA Corp Card Trans";
-        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
-    begin
-        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
-        CorpCardTrans.SetRange("Provider Code", CorpCardProvider.Code);
-        if not CorpCardTrans.FindSet() then
-            exit(true);
-
-        repeat
-            CorpCardTransDetail.SetRange("Trans Entry No.", CorpCardTrans."Entry No.");
-            if CorpCardTransDetail.IsEmpty() then begin
-                ValidationReason := CopyStr(
-                    StrSubstNo(
-                        MissingLevel3DetailForTransErr,
-                        CorpCardTrans."Provider Trans Id",
-                        Level3DetailLineCodeTok,
-                        CorpCardProvider."Data Exch Def Code"),
-                    1,
-                    MaxStrLen(ValidationReason));
-                exit(false);
-            end;
-        until CorpCardTrans.Next() = 0;
-
-        ValidationReason := '';
-        exit(true);
     end;
 
     local procedure GetDataExchFieldValue(DataExchNo: Integer; LineDefCode: Code[20]; LineNo: Integer; ColumnNo: Integer): Text
@@ -601,7 +473,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             MissingFields := AppendFieldName(MissingFields, 'Trans Date');
         if CorpCardTrans.Amount = 0 then
             MissingFields := AppendFieldName(MissingFields, 'Amount');
-
         if MissingFields = '' then begin
             ValidationReason := '';
             exit(true);
@@ -668,10 +539,8 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         // CAMT mappings can carry key-value text in remittance/additional fields.
         if StrPos(CorpCardTrans."Card Id", 'CardId=') > 0 then
             CorpCardTrans."Card Id" := CopyStr(ExtractTaggedValue(CorpCardTrans."Card Id", 'CardId='), 1, MaxStrLen(CorpCardTrans."Card Id"));
-
         if StrPos(CorpCardTrans.MCC, 'MCC=') > 0 then
             CorpCardTrans.MCC := CopyStr(ExtractTaggedValue(CorpCardTrans.MCC, 'MCC='), 1, MaxStrLen(CorpCardTrans.MCC));
-
         if (CorpCardTrans.Country = '') and (StrPos(CorpCardTrans."Merchant Raw", 'Country=') > 0) then
             CorpCardTrans.Country := CopyStr(ExtractTaggedValue(CorpCardTrans."Merchant Raw", 'Country='), 1, MaxStrLen(CorpCardTrans.Country));
     end;
@@ -682,64 +551,47 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     begin
         if CorpCardTrans."Provider Trans Id" = '' then
             CorpCardTrans."Provider Trans Id" := CopyStr(GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 1), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-
         if CorpCardTrans."Provider Trans Id" = '' then
             CorpCardTrans."Provider Trans Id" := CopyStr(GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'ProviderTransId'), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-
         if CorpCardTrans."Provider Trans Id" = '' then
             CorpCardTrans."Provider Trans Id" := CopyStr(ReadProviderTransIdFromSourcePayload(SourcePayloadTxt, CurrentLineNo), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-
         if CorpCardTrans."Card Id" = '' then
             CorpCardTrans."Card Id" := CopyStr(GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 2), 1, MaxStrLen(CorpCardTrans."Card Id"));
-
         if CorpCardTrans."Card Id" = '' then
             CorpCardTrans."Card Id" := CopyStr(GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'CardId'), 1, MaxStrLen(CorpCardTrans."Card Id"));
-
         if (CorpCardTrans."Card Id" = '') and (CorpCardTrans."Provider Trans Id" <> '') then
             CorpCardTrans."Card Id" := CopyStr(ReadCardIdFromSourcePayload(SourcePayloadTxt, CorpCardTrans."Provider Trans Id"), 1, MaxStrLen(CorpCardTrans."Card Id"));
-
-        if CorpCardTrans."Card Id" = '' then
-            CorpCardTrans."Card Id" := CopyStr(GetAnyProviderCardId(CorpCardProvider.Code), 1, MaxStrLen(CorpCardTrans."Card Id"));
-
         if CorpCardTrans.MCC = '' then
             CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 8)), 1, MaxStrLen(CorpCardTrans.MCC));
-
         if CorpCardTrans.MCC = '' then
             CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'MCC')), 1, MaxStrLen(CorpCardTrans.MCC));
-
         if CorpCardTrans.MCC = '' then
             CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(CorpCardTrans."Merchant Raw"), 1, MaxStrLen(CorpCardTrans.MCC));
-
         if CorpCardTrans."Trans Date" = 0D then begin
             DateTxt := GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 3);
             if not ParseIsoDate(DateTxt, CorpCardTrans."Trans Date") then
                 Evaluate(CorpCardTrans."Trans Date", DateTxt);
         end;
-
         if CorpCardTrans."Trans Date" = 0D then begin
             DateTxt := GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'TransDate');
             if not ParseIsoDate(DateTxt, CorpCardTrans."Trans Date") then
                 Evaluate(CorpCardTrans."Trans Date", DateTxt);
         end;
-
         if CorpCardTrans."Trans Date" = 0D then begin
             DateTxt := ReadTagValueByOccurrenceFromSourcePayload(SourcePayloadTxt, 'TransDate', CurrentLineNo);
             if not ParseIsoDate(DateTxt, CorpCardTrans."Trans Date") then
                 Evaluate(CorpCardTrans."Trans Date", DateTxt);
         end;
-
         if CorpCardTrans."Posting Date" = 0D then begin
             DateTxt := GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 4);
             if not ParseIsoDate(DateTxt, CorpCardTrans."Posting Date") then
                 Evaluate(CorpCardTrans."Posting Date", DateTxt);
         end;
-
         if CorpCardTrans."Posting Date" = 0D then begin
             DateTxt := GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'PostingDate');
             if not ParseIsoDate(DateTxt, CorpCardTrans."Posting Date") then
                 Evaluate(CorpCardTrans."Posting Date", DateTxt);
         end;
-
         if CorpCardTrans."Posting Date" = 0D then begin
             DateTxt := ReadTagValueByOccurrenceFromSourcePayload(SourcePayloadTxt, 'PostingDate', CurrentLineNo);
             if not ParseIsoDate(DateTxt, CorpCardTrans."Posting Date") then
@@ -870,7 +722,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         StartTag := StrSubstNo('<%1>', TagName);
         EndTag := StrSubstNo('</%1>', TagName);
         SearchPos := 1;
-
         repeat
             FoundPos := StrPos(CopyStr(SourceText, SearchPos), StartTag);
             if FoundPos = 0 then
@@ -878,7 +729,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
             SearchPos += FoundPos - 1;
             HitNo += 1;
-
             if HitNo = Occurrence then begin
                 TailText := CopyStr(SourceText, SearchPos + StrLen(StartTag));
                 EndPos := StrPos(TailText, EndTag);
@@ -889,17 +739,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
             SearchPos += StrLen(StartTag);
         until false;
-    end;
-
-    local procedure GetAnyProviderCardId(ProviderCode: Code[20]): Code[50]
-    var
-        CorpCard: Record "EA Corp Card";
-    begin
-        CorpCard.SetRange("Provider Code", ProviderCode);
-        if not CorpCard.FindFirst() then
-            exit('');
-
-        exit(CorpCard."Card Id");
     end;
 
     local procedure ExtractTaggedValue(SourceText: Text; Tag: Text): Text
@@ -939,7 +778,4 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     local procedure OnAfterAck(StatementEntryNo: Integer)
     begin
     end;
-
-    var
-        Level3DetailLineCodeTok: Label 'L3DTL', MaxLength = 20, Locked = true;
 }

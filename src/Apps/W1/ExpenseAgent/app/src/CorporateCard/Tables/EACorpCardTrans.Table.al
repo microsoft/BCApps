@@ -9,6 +9,7 @@ using Microsoft.Foundation.Address;
 
 table 7428 "EA Corp Card Trans"
 {
+    Access = Internal;
     Caption = 'Corp Card Transaction';
     DataClassification = CustomerContent;
     LookupPageId = "EA Corp Card Trans List";

@@ -178,7 +178,7 @@ page 7447 "EA Corp Card Settlement"
             action(SetReadyToPost)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Set Ready to Post';
+                Caption = 'Set ready to post';
                 Enabled = Rec.Status = Rec.Status::Open;
                 Image = Approve;
                 ToolTip = 'Validates the settlement setup and included statements, then marks the settlement ready for posting.';

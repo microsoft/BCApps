@@ -89,4 +89,16 @@ table 7421 "EA Corp Card"
         {
         }
     }
+
+    trigger OnDelete()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        CorpCardTrans.SetRange("Card Id", "Card Id");
+        if not CorpCardTrans.IsEmpty() then
+            Error(CardHasTransactionsErr, "Card Id");
+    end;
+
+    var
+        CardHasTransactionsErr: Label 'Corporate card %1 cannot be deleted because one or more transactions exist.', Comment = '%1 = Card Id';
 }

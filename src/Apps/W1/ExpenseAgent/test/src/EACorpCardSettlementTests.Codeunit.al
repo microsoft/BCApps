@@ -370,6 +370,11 @@ codeunit 148360 EACorpCardSettlementTests
         asserterror CorpCardTrans.Modify(true);
 
         Assert.ExpectedError('is closed');
+
+        CorpCardStatement."Statement Total" := 3100;
+        asserterror CorpCardStatement.Modify(true);
+
+        Assert.ExpectedError('is closed');
     end;
 
     [Test]

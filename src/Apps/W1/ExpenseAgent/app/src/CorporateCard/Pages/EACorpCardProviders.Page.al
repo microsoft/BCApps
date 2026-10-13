@@ -93,7 +93,7 @@ page 7434 "EA Corp Card Providers"
 
                 action(UploadSourcePayload)
                 {
-                    Caption = 'Upload Source File';
+                    Caption = 'Upload source file';
                     ApplicationArea = Basic, Suite;
                     Image = Import;
                     ToolTip = 'Upload a source file to the selected provider for statement imports.';
@@ -105,7 +105,7 @@ page 7434 "EA Corp Card Providers"
                 }
                 action(ClearSourcePayload)
                 {
-                    Caption = 'Clear Source File';
+                    Caption = 'Clear source file';
                     ApplicationArea = Basic, Suite;
                     Image = Delete;
                     ToolTip = 'Clear the stored source file and file name for the selected provider.';
@@ -117,7 +117,7 @@ page 7434 "EA Corp Card Providers"
                 }
                 action(ImportStatement)
                 {
-                    Caption = 'Import Statement';
+                    Caption = 'Import statement';
                     ApplicationArea = Basic, Suite;
                     Image = Import;
                     ToolTip = 'Import a statement immediately for the selected provider.';
@@ -134,7 +134,7 @@ page 7434 "EA Corp Card Providers"
 
                 action(ScheduleImport)
                 {
-                    Caption = 'Schedule Import';
+                    Caption = 'Schedule import';
                     ApplicationArea = Basic, Suite;
                     Image = Calendar;
                     ToolTip = 'Schedule recurring imports for the selected provider.';
@@ -146,7 +146,7 @@ page 7434 "EA Corp Card Providers"
                 }
                 action(UnscheduleImport)
                 {
-                    Caption = 'Unschedule Import';
+                    Caption = 'Unschedule import';
                     ApplicationArea = Basic, Suite;
                     Image = Delete;
                     ToolTip = 'Remove the scheduled import job for the selected provider.';
@@ -158,7 +158,7 @@ page 7434 "EA Corp Card Providers"
                 }
                 action(ViewSchedule)
                 {
-                    Caption = 'View Schedule';
+                    Caption = 'View schedule';
                     ApplicationArea = Basic, Suite;
                     Image = List;
                     ToolTip = 'View the scheduled import job for the selected provider.';
@@ -175,7 +175,7 @@ page 7434 "EA Corp Card Providers"
 
                 action(InitializeDataExchange)
                 {
-                    Caption = 'Initialize Data Exchange';
+                    Caption = 'Initialize data exchange';
                     ApplicationArea = Basic, Suite;
                     Image = Setup;
                     ToolTip = 'Create or repair the data exchange definition and mappings for the selected provider.';

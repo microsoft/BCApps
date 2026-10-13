@@ -21,6 +21,7 @@ codeunit 148353 EACorpCardPhase3Tests
         IsInitialized: Boolean;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure XmlImportWithMalformedPayloadFailsStatement()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -46,6 +47,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ImportClearsSourcePayloadAndRetainsMetadata()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -66,6 +68,40 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ImportWithoutCardIdCreatesException()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpenseCountBeforeImport: Integer;
+    begin
+        Initialize();
+        ExpenseUser.FindSet();
+        CreateProviderCorpCard(CorpCard, 'XML-CARD-1', CorpCardXmlProviderCodeTok, ExpenseUser."No.");
+        ExpenseUser.Next();
+        CreateProviderCorpCard(CorpCard, 'XML-CARD-2', CorpCardXmlProviderCodeTok, ExpenseUser."No.");
+        ExpenseCountBeforeImport := Expense.Count();
+        SetProviderSourcePayload(CorpCardXmlProviderCodeTok, GetXmlPayloadWithoutCardId(), MissingCardIdXmlFileNameTok);
+
+        RunImportAndGetLastStatement(CorpCardXmlProviderCodeTok, CorpCardStatement);
+
+        Assert.AreEqual(0, CorpCardStatement.Imported, 'A transaction without an explicit card identifier must not be imported.');
+        Assert.AreEqual(1, CorpCardStatement.Exceptions, 'A transaction without an explicit card identifier must create an exception.');
+        Assert.AreEqual(1, CorpCardStatement.Rejected, 'A transaction without an explicit card identifier must be rejected.');
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.IsTrue(CorpCardTrans.IsEmpty(), 'A rejected transaction must not be staged with an arbitrary provider card.');
+        CorpCardException.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.IsTrue(CorpCardException.FindFirst(), 'The rejected transaction must create an import exception.');
+        Assert.AreEqual('Card Id is missing.', CorpCardException.Message, 'The import exception must identify the missing card identifier.');
+        Assert.AreEqual(ExpenseCountBeforeImport, Expense.Count(), 'A rejected transaction must not create or match an expense.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ResolvingExceptionStampsAuditFields()
     var
         CorpCardException: Record "EA Corp Card Exception";
@@ -99,6 +135,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DeletingTransactionDeletesOwnedDetailsAndExceptions()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -118,6 +155,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DeletingStatementDeletesOwnedTransactionsDetailsAndExceptions()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -141,6 +179,83 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingCardWithTransactionsFails()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+    begin
+        Initialize();
+        CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
+        CreateCorpCard(CorpCard, CorpCardTrans."Card Id");
+
+        asserterror CorpCard.Delete(true);
+
+        Assert.ExpectedError('Corporate card ' + CorpCard."Card Id" + ' cannot be deleted because one or more transactions exist.');
+        Assert.IsTrue(CorpCard.Get(CorpCard."Card Id"), 'A card with transactions must not be deleted.');
+        Assert.IsTrue(CorpCardTrans.Get(CorpCardTrans."Entry No."), 'Rejecting card deletion must preserve its transactions.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingCardWithoutTransactionsSucceeds()
+    var
+        CorpCard: Record "EA Corp Card";
+        CardId: Code[50];
+    begin
+        Initialize();
+        CardId := 'DELETE-CARD-TEST';
+        CreateCorpCard(CorpCard, CardId);
+
+        CorpCard.Delete(true);
+
+        Assert.IsFalse(CorpCard.Get(CardId), 'A card without transactions must be deleted.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingMCCMapWithTransactionsFails()
+    var
+        CorpCardMCCMap: Record "EA Corp Card MCC Map";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+    begin
+        Initialize();
+        CreateCorpCardMCCMap(CorpCardMCCMap, 'TST1');
+        CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
+        CorpCardTrans.MCC := CorpCardMCCMap.MCC;
+        CorpCardTrans.Modify(true);
+
+        asserterror CorpCardMCCMap.Delete(true);
+
+        Assert.ExpectedError('MCC mapping ' + CorpCardMCCMap.MCC + ' cannot be deleted because one or more corporate card transactions exist.');
+        Assert.IsTrue(CorpCardMCCMap.Get(CorpCardMCCMap.MCC), 'An MCC mapping used by transactions must not be deleted.');
+        Assert.IsTrue(CorpCardTrans.Get(CorpCardTrans."Entry No."), 'Rejecting MCC mapping deletion must preserve its transactions.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingMCCMapWithoutTransactionsSucceeds()
+    var
+        CorpCardMCCMap: Record "EA Corp Card MCC Map";
+        MCC: Code[4];
+    begin
+        Initialize();
+        MCC := 'TST2';
+        CreateCorpCardMCCMap(CorpCardMCCMap, MCC);
+
+        CorpCardMCCMap.Delete(true);
+
+        Assert.IsFalse(CorpCardMCCMap.Get(MCC), 'An unused MCC mapping must be deleted.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DeletingProviderDoesNotDeleteSharedDataExchangeDefinition()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
@@ -167,6 +282,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure XmlImportMapsMandatoryFields()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -217,6 +333,24 @@ codeunit 148353 EACorpCardPhase3Tests
                     '<MCC>4511</MCC>' +
                     '<Country>US</Country>' +
                 '</Transaction>');
+    end;
+
+    local procedure GetXmlPayloadWithoutCardId(): Text
+    begin
+        exit(
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<CorporateCardTransactions>' +
+                '<Transaction>' +
+                    '<ProviderTransId>XML-NO-CARD-1</ProviderTransId>' +
+                    '<TransDate>2026-07-01</TransDate>' +
+                    '<PostingDate>2026-07-01</PostingDate>' +
+                    '<Amount>19.63</Amount>' +
+                    '<CurrencyCode>USD</CurrencyCode>' +
+                    '<MerchantRaw>Missing Card Merchant</MerchantRaw>' +
+                    '<MCC>4511</MCC>' +
+                    '<Country>US</Country>' +
+                '</Transaction>' +
+            '</CorporateCardTransactions>');
     end;
 
     local procedure Initialize()
@@ -281,6 +415,29 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardException.Insert(true);
     end;
 
+    local procedure CreateCorpCard(var CorpCard: Record "EA Corp Card"; CardId: Code[50])
+    begin
+        CorpCard.Init();
+        CorpCard."Card Id" := CardId;
+        CorpCard.Insert(true);
+    end;
+
+    local procedure CreateProviderCorpCard(var CorpCard: Record "EA Corp Card"; CardId: Code[50]; ProviderCode: Code[20]; ExpenseUserNo: Code[20])
+    begin
+        CorpCard.Init();
+        CorpCard."Card Id" := CardId;
+        CorpCard."Provider Code" := ProviderCode;
+        CorpCard."Expense User No." := ExpenseUserNo;
+        CorpCard.Insert(true);
+    end;
+
+    local procedure CreateCorpCardMCCMap(var CorpCardMCCMap: Record "EA Corp Card MCC Map"; MCC: Code[4])
+    begin
+        CorpCardMCCMap.Init();
+        CorpCardMCCMap.MCC := MCC;
+        CorpCardMCCMap.Insert(true);
+    end;
+
     local procedure RunImportAndGetLastStatement(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
@@ -313,4 +470,5 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         MalformedXmlRootElementTok: Label 'CorporateCardTransactions', Locked = true;
         MalformedXmlFileNameTok: Label 'CorpCard-Malformed.xml', Locked = true;
+        MissingCardIdXmlFileNameTok: Label 'CorpCard-Missing-Card-Id.xml', Locked = true;
 }

@@ -64,4 +64,16 @@ table 7424 "EA Corp Card MCC Map"
             Clustered = true;
         }
     }
+
+    trigger OnDelete()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        CorpCardTrans.SetRange(MCC, MCC);
+        if not CorpCardTrans.IsEmpty() then
+            Error(MCCMapHasTransactionsErr, MCC);
+    end;
+
+    var
+        MCCMapHasTransactionsErr: Label 'MCC mapping %1 cannot be deleted because one or more corporate card transactions exist.', Comment = '%1 = Merchant Category Code';
 }

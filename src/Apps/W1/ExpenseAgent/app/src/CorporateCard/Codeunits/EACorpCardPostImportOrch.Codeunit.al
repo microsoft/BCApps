@@ -37,6 +37,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         if not CorpCardTrans.FindSet() then
             exit;
 
+        EnhancedMatchMgt.InitializeCardCache();
         repeat
             MerchantNorm.NormalizeTransaction(CorpCardTrans);
             CorpCardTrans.Modify();

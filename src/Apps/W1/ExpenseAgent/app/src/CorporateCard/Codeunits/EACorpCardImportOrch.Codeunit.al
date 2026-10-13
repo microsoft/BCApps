@@ -27,7 +27,10 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+        ImportErrorInfo: ErrorInfo;
         ImportErrorText: Text;
+        HasStructuredErrorInfo: Boolean;
     begin
         CorpCardStatement.Init();
         CorpCardStatement."Provider Code" := CorpCardProvider.Code;
@@ -38,15 +41,20 @@ codeunit 7432 "EA Corp Card Import Orch"
         AuditSubscribers.LogImportStarted(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
 
         Commit();
+        CorpCardErrorContext.ClearErrorInfo();
         if not CorpCardImportOrch.Run(CorpCardStatement) then begin
             ImportErrorText := GetLastErrorText();
+            HasStructuredErrorInfo := CorpCardErrorContext.TryGetErrorInfo(ImportErrorInfo);
             MarkImportFailed(CorpCardStatement);
             AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", ImportErrorText);
             ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
             UpdateProviderLastStatementEntryNo(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
             Commit();
-            if RaiseImportError then
+            if RaiseImportError then begin
+                if HasStructuredErrorInfo then
+                    Error(ImportErrorInfo);
                 Error(ImportErrorText);
+            end;
             exit;
         end;
 

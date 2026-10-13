@@ -208,7 +208,7 @@ page 7442 "EA Corp Card Stats Factbox"
         }
     }
 
-    trigger OnOpenPage()
+    trigger OnAfterGetCurrRecord()
     begin
         CurrPage.EnqueueBackgroundTask(StatisticsTaskId, Codeunit::"EA Corp Card Stats Calculator", StatisticsTaskParameters, 60000, PageBackgroundTaskErrorLevel::Warning);
     end;
@@ -231,6 +231,30 @@ page 7442 "EA Corp Card Stats Factbox"
         Evaluate(EnabledProviders, Results.Get(CorpCardStatsCalculator.GetEnabledProvidersKey()));
         Evaluate(ScheduledImports, Results.Get(CorpCardStatsCalculator.GetScheduledImportsKey()));
         Evaluate(TotalActiveCards, Results.Get(CorpCardStatsCalculator.GetTotalActiveCardsKey()));
+    end;
+
+    trigger OnPageBackgroundTaskError(TaskId: Integer; ErrorCode: Text; ErrorText: Text; ErrorCallStack: Text; var IsHandled: Boolean)
+    begin
+        if TaskId <> StatisticsTaskId then
+            exit;
+
+        ClearStatisticsVariables();
+        IsHandled := true;
+    end;
+
+    local procedure ClearStatisticsVariables()
+    begin
+        Clear(TotalStatements);
+        Clear(TotalTransactions);
+        Clear(MatchSuccessRate);
+        Clear(ExceptionRate);
+        Clear(DuplicateRate);
+        Clear(UnmatchedCount);
+        Clear(DraftCount);
+        Clear(ExceptionCount);
+        Clear(EnabledProviders);
+        Clear(ScheduledImports);
+        Clear(TotalActiveCards);
     end;
 
     var

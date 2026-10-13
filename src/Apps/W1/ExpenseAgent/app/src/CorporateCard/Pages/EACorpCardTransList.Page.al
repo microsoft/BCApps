@@ -100,7 +100,7 @@ page 7433 "EA Corp Card Trans List"
         {
             action(OpenMatchedExpense)
             {
-                Caption = 'Open Matched Expense';
+                Caption = 'Open matched expense';
                 ApplicationArea = Basic, Suite;
                 Image = Navigate;
                 Enabled = Rec."Expense No." <> '';

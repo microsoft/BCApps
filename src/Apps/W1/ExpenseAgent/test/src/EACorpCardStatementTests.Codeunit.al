@@ -93,6 +93,26 @@ codeunit 148359 EACorpCardStatementTests
     end;
 
     [Test]
+    procedure ValidateStatementRejectsCardBlockedAfterImport()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-BLOCKED-CARD', 2000, 1);
+        CreateTransaction(CorpCardTrans, CorpCardStatement, 'TRANS-BLOCKED-CARD', 2000, 'EXP-BLOCKED-CARD');
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCard.Blocked := true;
+        CorpCard.Modify(true);
+
+        asserterror CorpCardStatementMgt.ValidateStatement(CorpCardStatement);
+
+        Assert.ExpectedTestFieldError(CorpCard.FieldCaption(Blocked), Format(false));
+    end;
+
+    [Test]
     procedure ValidateStatementRejectsUnbalancedTotal()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -147,13 +167,16 @@ codeunit 148359 EACorpCardStatementTests
     end;
 
     local procedure CreateTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCardStatement: Record "EA Corp Card Statement"; ProviderTransId: Code[100]; Amount: Decimal; ExpenseNo: Code[20])
+    var
+        CorpCard: Record "EA Corp Card";
     begin
+        CorpCard.FindFirst();
         Clear(CorpCardTrans);
         CorpCardTrans.Init();
         CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardTrans."Provider Code" := CorpCardStatement."Provider Code";
         CorpCardTrans."Provider Trans Id" := ProviderTransId;
-        CorpCardTrans."Card Id" := 'CARD-001';
+        CorpCardTrans."Card Id" := CorpCard."Card Id";
         CorpCardTrans."Trans Date" := WorkDate() - 1;
         CorpCardTrans.Amount := Amount;
         CorpCardTrans."Currency Code" := CorpCardStatement."Currency Code";
