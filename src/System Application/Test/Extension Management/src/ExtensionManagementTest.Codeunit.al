@@ -689,7 +689,8 @@ codeunit 133100 "Extension Management Test"
         InitializeExtensions();
         if Install then begin
             PackageId := ExtensionManagement.GetLatestVersionPackageIdByAppId(MainAppId);
-            Assert.IsTrue(ExtensionManagement.InstallExtension(PackageId, GlobalLanguage(), false), NotInstalledSuccErr);
+            ExtensionManagement.InstallExtension(PackageId, GlobalLanguage(), false);
+            Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(MainAppId), NotInstalledSuccErr);
         end;
     end;
 
