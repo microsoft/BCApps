@@ -550,7 +550,7 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         ConfigXMLExchange.ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
 
         if CustomerNo <> '' then
-            SetXMLNodeValue(PackageXML, ConfigXMLExchange.GetElementName(Customer.FieldName("No.")), CustomerNo);
+            SetXMLNodeValue(PackageXML, ConfigXMLExchange.GetElementName(CopyStr(Customer.FieldName("No."), 1, 250)), CustomerNo);
         if DimCode <> '' then
             SetXMLNodeValue(PackageXML, ConfigXMLExchange.GetElementName(DimCode), DimValCode);
 

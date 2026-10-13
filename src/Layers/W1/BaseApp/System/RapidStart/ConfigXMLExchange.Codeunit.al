@@ -142,25 +142,25 @@ codeunit 8614 "Config. XML Exchange"
     local procedure AddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var TableNode: XmlNode)
     begin
         if ConfigPackageTable."Page ID" > 0 then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Page ID")), '', Format(ConfigPackageTable."Page ID")));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Page ID")), '', Format(ConfigPackageTable."Page ID")));
         if ConfigPackageTable."Package Processing Order" > 0 then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Package Processing Order")), '', Format(ConfigPackageTable."Package Processing Order")));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Package Processing Order")), '', Format(ConfigPackageTable."Package Processing Order")));
         if ConfigPackageTable."Processing Order" > 0 then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Processing Order")), '', Format(ConfigPackageTable."Processing Order")));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Processing Order")), '', Format(ConfigPackageTable."Processing Order")));
         if ConfigPackageTable."Data Template" <> '' then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Data Template")), '', Format(ConfigPackageTable."Data Template")));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Data Template")), '', Format(ConfigPackageTable."Data Template")));
         if ConfigPackageTable.Comments <> '' then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName(Comments)), '', Format(ConfigPackageTable.Comments)));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName(Comments)), '', Format(ConfigPackageTable.Comments)));
         if ConfigPackageTable."Created by User ID" <> '' then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Created by User ID")), '', Format(ConfigPackageTable."Created by User ID")));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Created by User ID")), '', Format(ConfigPackageTable."Created by User ID")));
         if ConfigPackageTable."Skip Table Triggers" then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Skip Table Triggers")), '', '1'));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Skip Table Triggers")), '', '1'));
         if ConfigPackageTable."Parent Table ID" > 0 then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Parent Table ID")), '', Format(ConfigPackageTable."Parent Table ID")));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Parent Table ID")), '', Format(ConfigPackageTable."Parent Table ID")));
         if ConfigPackageTable."Delete Recs Before Processing" then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Delete Recs Before Processing")), '', '1'));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Delete Recs Before Processing")), '', '1'));
         if ConfigPackageTable."Dimensions as Columns" then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Dimensions as Columns")), '', '1'));
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Dimensions as Columns")), '', '1'));
 
         OnAfterAddTableAttributesProcedure(ConfigPackageTable, TableNode);
     end;
@@ -185,14 +185,14 @@ codeunit 8614 "Config. XML Exchange"
     local procedure AddFieldAttributes(ConfigPackageField: Record "Config. Package Field"; var FieldNode: XmlNode)
     begin
         if ConfigPackageField."Primary Key" then
-            XMLDOMMgt.AddAttribute(FieldNode, GetElementName(ConfigPackageField.FieldName("Primary Key")), '1');
+            XMLDOMMgt.AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Primary Key")), '1');
         if ConfigPackageField."Validate Field" then
-            XMLDOMMgt.AddAttribute(FieldNode, GetElementName(ConfigPackageField.FieldName("Validate Field")), '1');
+            XMLDOMMgt.AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Validate Field")), '1');
         if ConfigPackageField."Create Missing Codes" then
-            XMLDOMMgt.AddAttribute(FieldNode, GetElementName(ConfigPackageField.FieldName("Create Missing Codes")), '1');
+            XMLDOMMgt.AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Create Missing Codes")), '1');
         if ConfigPackageField."Processing Order" <> 0 then
             XMLDOMMgt.AddAttribute(
-              FieldNode, GetElementName(ConfigPackageField.FieldName("Processing Order")), Format(ConfigPackageField."Processing Order"));
+              FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Processing Order")), Format(ConfigPackageField."Processing Order"));
 
         OnAfterAddFieldAttributesProcedure(ConfigPackageField, FieldNode);
     end;
@@ -511,13 +511,13 @@ codeunit 8614 "Config. XML Exchange"
         ExcludeRemovedFields(ConfigPackageTable);
         PackageXML.GetRoot(DocumentElement);
         DocumentElementNode := DocumentElement.AsXmlNode();
-        TableNode := XmlElement.Create(GetElementName(ConfigPackageTable."Table Name" + 'List')).AsXmlNode();
+        TableNode := XmlElement.Create(GetElementNameFromText(ConfigPackageTable."Table Name" + 'List')).AsXmlNode();
         DocumentElementNode.AsXmlElement().Add(TableNode);
 
-        TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Table ID")), '', Format(ConfigPackageTable."Table ID")));
+        TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Table ID")), '', Format(ConfigPackageTable."Table ID")));
 
         if ExcelMode then
-            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Package Code")), '', Format(ConfigPackageTable."Package Code")))
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementNameFromText(ConfigPackageTable.FieldName("Package Code")), '', Format(ConfigPackageTable."Package Code")))
         else
             AddTableAttributes(ConfigPackageTable, TableNode);
 
@@ -558,7 +558,7 @@ codeunit 8614 "Config. XML Exchange"
                                 // Reuse validated field name. Validating and creating field names is expensive when done many times.
                                 if not (FieldNameLookup.Get(FieldRef.Number, FieldElementName)) then
                                     if TypeHelper.GetField(RecRef.Number, FieldRef.Number, Field) then begin
-                                        FieldElementName := GetFieldElementName(ConfigPackageField.GetValidatedElementName());
+                                        FieldElementName := GetFieldElementNameFromText(ConfigPackageField.GetValidatedElementName());
                                         FieldNameLookup.Add(FieldRef.Number, FieldElementName);
                                     end;
 
@@ -602,7 +602,7 @@ codeunit 8614 "Config. XML Exchange"
             if ConfigPackageField.FindSet() then
                 repeat
                     FieldRef := RecRef.Field(ConfigPackageField."Field ID");
-                    FieldNode := XmlElement.Create(GetFieldElementName(ConfigPackageField.GetValidatedElementName())).AsXmlNode();
+                    FieldNode := XmlElement.Create(GetFieldElementNameFromText(ConfigPackageField.GetValidatedElementName())).AsXmlNode();
                     RecordNode.AsXmlElement().Add(FieldNode);
                     if not ExcelMode then
                         AddFieldAttributes(ConfigPackageField, FieldNode);
@@ -891,24 +891,22 @@ codeunit 8614 "Config. XML Exchange"
     end;
 #endif
 
-    procedure ExportPackageToXMLDocument(var PackageXML: XmlDocument; var ConfigPackageTable: Record "Config. Package Table"; ConfigPackage: Record "Config. Package"; Advanced: Boolean)
+    procedure ExportPackageToXMLDocument(var PackageXML: XmlDocument; var ConfigPackageTable: Record "Config. Package Table"; ConfigPackage: Record "Config. Package"; AdvancedMode: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         DocumentElement: XmlElement;
         DocumentElementNode: XmlNode;
         LocXML: Text[1024];
         XmlText: Text;
+        PackageXmlTemplateTxt: Label '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><%1>%2</%1>', Locked = true;
     begin
         FeatureTelemetry.LogUptake('0000E3X', 'Configuration packages', Enum::"Feature Uptake Status"::"Used");
         ConfigPackage.TestField(Code);
         ConfigPackage.TestField("Package Name");
 
-        if Advanced then
+        if AdvancedMode then
             LocXML := '<_locDefinition><_locDefault _loc="locNone"/></_locDefinition>';
-        XmlText := StrSubstNo(
-            '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><%1>%2</%1>',
-            GetPackageTag(),
-            LocXML);
+        XmlText := StrSubstNo(PackageXmlTemplateTxt, GetPackageTag(), LocXML);
         XmlDocument.ReadFrom(XmlText, PackageXML);
 
         CleanUpConfigPackageData(ConfigPackage);
@@ -918,24 +916,24 @@ codeunit 8614 "Config. XML Exchange"
             PackageXML.GetRoot(DocumentElement);
             DocumentElementNode := DocumentElement.AsXmlNode();
             XMLDOMMgt.AddAttribute(
-              DocumentElementNode, GetElementName(ConfigPackage.FieldName("Min. Count For Async Import")),
+              DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Min. Count For Async Import")),
               Format(ConfigPackage."Min. Count For Async Import"));
             if ConfigPackage."Exclude Config. Tables" then
-                XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementName(ConfigPackage.FieldName("Exclude Config. Tables")), '1');
+                XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Exclude Config. Tables")), '1');
             if ConfigPackage."Processing Order" > 0 then
                 XMLDOMMgt.AddAttribute(
-                  DocumentElementNode, GetElementName(ConfigPackage.FieldName("Processing Order")), Format(ConfigPackage."Processing Order"));
+                  DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Processing Order")), Format(ConfigPackage."Processing Order"));
             if ConfigPackage."Language ID" > 0 then
                 XMLDOMMgt.AddAttribute(
-                  DocumentElementNode, GetElementName(ConfigPackage.FieldName("Language ID")), Format(ConfigPackage."Language ID"));
+                  DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Language ID")), Format(ConfigPackage."Language ID"));
             XMLDOMMgt.AddAttribute(
-              DocumentElementNode, GetElementName(ConfigPackage.FieldName("Product Version")), ConfigPackage."Product Version");
-            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementName(ConfigPackage.FieldName("Package Name")), ConfigPackage."Package Name");
-            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementName(ConfigPackage.FieldName(Code)), ConfigPackage.Code);
+              DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Product Version")), ConfigPackage."Product Version");
+            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Package Name")), ConfigPackage."Package Name");
+            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName(Code)), ConfigPackage.Code);
             OnExportPackageToXMLDocumentOnAfterSetAttributes(ConfigPackage, DocumentElementNode);
         end;
 
-        OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit(ConfigPackageTable, ConfigPackage, Advanced, HideDialog);
+        OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit(ConfigPackageTable, ConfigPackage, AdvancedMode, HideDialog);
 
         if not HideDialog then
             ConfigProgressBar.Init(ConfigPackageTable.Count, 1, ExportPackageTxt);
@@ -1268,7 +1266,6 @@ codeunit 8614 "Config. XML Exchange"
         PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Locked = true;
         StartTime: DateTime;
         TableID: Integer;
-        NodeCount: Integer;
         Confirmed: Boolean;
         NoOfChildNodes: Integer;
         FileSize: Integer;
@@ -1316,22 +1313,22 @@ codeunit 8614 "Config. XML Exchange"
 
             ConfigPackage."Package Name" :=
               CopyStr(
-                GetAttribute(GetElementName(ConfigPackage.FieldName("Package Name")), DocumentElementNode), 1,
+                GetAttribute(GetElementNameFromText(ConfigPackage.FieldName("Package Name")), DocumentElementNode), 1,
                 MaxStrLen(ConfigPackage."Package Name"));
-            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Language ID")), DocumentElementNode);
+            Value := GetAttribute(GetElementNameFromText(ConfigPackage.FieldName("Language ID")), DocumentElementNode);
             if Value <> '' then
                 Evaluate(ConfigPackage."Language ID", Value);
             ConfigPackage."Product Version" :=
               CopyStr(
-                GetAttribute(GetElementName(ConfigPackage.FieldName("Product Version")), DocumentElementNode), 1,
+                GetAttribute(GetElementNameFromText(ConfigPackage.FieldName("Product Version")), DocumentElementNode), 1,
                 MaxStrLen(ConfigPackage."Product Version"));
-            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Processing Order")), DocumentElementNode);
+            Value := GetAttribute(GetElementNameFromText(ConfigPackage.FieldName("Processing Order")), DocumentElementNode);
             if Value <> '' then
                 Evaluate(ConfigPackage."Processing Order", Value);
-            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Exclude Config. Tables")), DocumentElementNode);
+            Value := GetAttribute(GetElementNameFromText(ConfigPackage.FieldName("Exclude Config. Tables")), DocumentElementNode);
             if Value <> '' then
                 Evaluate(ConfigPackage."Exclude Config. Tables", Value);
-            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Min. Count For Async Import")), DocumentElementNode);
+            Value := GetAttribute(GetElementNameFromText(ConfigPackage.FieldName("Min. Count For Async Import")), DocumentElementNode);
             if Value <> '' then begin
                 IsHandled := false;
                 OnBeforeEvaluateMinCountForAsyncImport(ConfigPackage, Value, IsHandled);
@@ -1353,7 +1350,6 @@ codeunit 8614 "Config. XML Exchange"
         if not HideDialog then
             ConfigProgressBar.Init(TableNodes.Count(), 1, ImportPackageTxt);
         foreach TableNode in TableNodes do begin
-            NodeCount += 1;
             if GetTableIdFromXmlNode(TableNode, TableID) then begin
                 if GetTableStatisticsForTelemetry(TableNode, CurrTableName, CurrRecordCount, TotalTableFields, ImportedTableFields) then
                     Session.LogMessage('0000BV1', StrSubstNo(ImportedTableContentTxt, CurrTableName, CurrRecordCount, TotalTableFields, ImportedTableFields), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
@@ -1933,9 +1929,9 @@ codeunit 8614 "Config. XML Exchange"
     end;
 #endif
 
-    procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: XmlNode): Text[1000]
+    procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: XmlNode) AttributeValue: Text[1000]
     begin
-        exit(XMLDOMMgt.GetAttributeValue(XMLNode, AttributeName));
+        AttributeValue := CopyStr(XMLDOMMgt.GetAttributeValue(XMLNode, AttributeName), 1, MaxStrLen(AttributeValue));
     end;
 
     local procedure GetDimValueFromTable(var RecRef: RecordRef; DimCode: Code[20]): Code[20]
@@ -2000,6 +1996,22 @@ codeunit 8614 "Config. XML Exchange"
         exit(GetElementName(NameIn));
     end;
 
+    local procedure GetElementNameFromText(Name: Text): Text[250]
+    var
+        NameIn: Text[250];
+    begin
+        NameIn := CopyStr(Name, 1, MaxStrLen(NameIn));
+        exit(GetElementName(NameIn));
+    end;
+
+    local procedure GetFieldElementNameFromText(Name: Text): Text[250]
+    var
+        NameIn: Text[250];
+    begin
+        NameIn := CopyStr(Name, 1, MaxStrLen(NameIn));
+        exit(GetFieldElementName(NameIn));
+    end;
+
 #if not CLEAN30
     [Obsolete('Replaced by procedure GetNodeValue', '30.0')]
     local procedure GetNodeValue(var RecordNode: DotNet XmlNode; FieldNodeName: Text[250]): Text
@@ -2045,7 +2057,7 @@ codeunit 8614 "Config. XML Exchange"
     begin
         PackageXML.GetRoot(DocumentElement);
         DocumentElementNode := DocumentElement.AsXmlNode();
-        exit(CopyStr(GetAttribute(GetElementName(ConfigPackage.FieldName(Code)), DocumentElementNode), 1, MaxStrLen(ConfigPackage.Code)));
+        exit(CopyStr(GetAttribute(GetElementNameFromText(ConfigPackage.FieldName(Code)), DocumentElementNode), 1, MaxStrLen(ConfigPackage.Code)));
     end;
 
     local procedure GetDefaultDimensionNoLinkFieldNumber(TableID: Integer): Integer
@@ -2487,7 +2499,6 @@ codeunit 8614 "Config. XML Exchange"
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageField: Record "Config. Package Field";
         "Field": Record "Field";
-        ConfigMgt: Codeunit "Config. Management";
         RecordNode: XmlNode;
         FieldNode: XmlNode;
         Value: Text;
@@ -2496,7 +2507,7 @@ codeunit 8614 "Config. XML Exchange"
     begin
         if ExcelMode then begin
             PackageCode :=
-              CopyStr(GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Package Code"))), 1, MaxStrLen(PackageCode));
+              CopyStr(GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Package Code"))), 1, MaxStrLen(PackageCode));
             if PackageCode = '' then
                 Error(MissingInExcelFileErr, ConfigPackageTable.FieldCaption("Package Code"));
         end;
@@ -2505,43 +2516,43 @@ codeunit 8614 "Config. XML Exchange"
                 ConfigPackageTable.Init();
                 ConfigPackageTable."Package Code" := PackageCode;
                 ConfigPackageTable."Table ID" := TableID;
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Page ID")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Page ID")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Page ID", Value);
                 if ConfigPackageTable."Page ID" = 0 then
                     ConfigPackageTable."Page ID" := ConfigMgt.FindPage(TableID);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Package Processing Order")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Package Processing Order")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Package Processing Order", Value);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Processing Order")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Processing Order")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Processing Order", Value);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Dimensions as Columns")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Dimensions as Columns")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Dimensions as Columns", Value);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Skip Table Triggers")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Skip Table Triggers")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Skip Table Triggers", Value);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Parent Table ID")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Parent Table ID")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Parent Table ID", Value);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Delete Recs Before Processing")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Delete Recs Before Processing")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Delete Recs Before Processing", Value);
-                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Created by User ID")));
+                Value := GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Created by User ID")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Created by User ID", CopyStr(Value, 1, 50));
                 OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromTableNode(ConfigPackageTable, TableNode);
                 ConfigPackageTable."Data Template" :=
                   CopyStr(
-                    GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Data Template"))), 1,
+                    GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName("Data Template"))), 1,
                     MaxStrLen(ConfigPackageTable."Data Template"));
                 ConfigPackageTable.Comments :=
                   CopyStr(
-                    GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName(Comments))),
+                    GetNodeValue(TableNode, GetElementNameFromText(ConfigPackageTable.FieldName(Comments))),
                     1, MaxStrLen(ConfigPackageTable.Comments));
                 ConfigPackageTable."Imported Date and Time" := CreateDateTime(Today, Time);
-                ConfigPackageTable."Imported by User ID" := UserId;
+                ConfigPackageTable."Imported by User ID" := CopyStr(UserId(), 1, MaxStrLen(ConfigPackageTable."Imported by User ID"));
                 ConfigPackageTable.Insert(true);
                 ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
                 ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
@@ -2573,15 +2584,15 @@ codeunit 8614 "Config. XML Exchange"
                                     ConfigPackageField."Primary Key" := ConfigValidateMgt.IsKeyField(TableID, Field."No.");
                                     ConfigPackageField."Include Field" := true;
                                     if RecordNode.SelectSingleNode(GetElementName(Field.FieldName), FieldNode) and not ExcelMode then begin
-                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Primary Key")), FieldNode);
+                                        Value := GetAttribute(GetElementNameFromText(ConfigPackageField.FieldName("Primary Key")), FieldNode);
                                         ConfigPackageField."Primary Key" := Value = '1';
-                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Validate Field")), FieldNode);
+                                        Value := GetAttribute(GetElementNameFromText(ConfigPackageField.FieldName("Validate Field")), FieldNode);
                                         ConfigPackageField."Validate Field" := (Value = '1') and
                                           not ConfigPackageMgt.ValidateException(TableID, Field."No.");
-                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Create Missing Codes")), FieldNode);
+                                        Value := GetAttribute(GetElementNameFromText(ConfigPackageField.FieldName("Create Missing Codes")), FieldNode);
                                         ConfigPackageField."Create Missing Codes" := (Value = '1') and
                                           not ConfigPackageMgt.ValidateException(TableID, Field."No.");
-                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Processing Order")), FieldNode);
+                                        Value := GetAttribute(GetElementNameFromText(ConfigPackageField.FieldName("Processing Order")), FieldNode);
                                         if Value <> '' then
                                             Evaluate(ConfigPackageField."Processing Order", Value);
 
@@ -2616,6 +2627,7 @@ codeunit 8614 "Config. XML Exchange"
         ErrorText: Text[250];
         ShouldAssignValue: Boolean;
         ShouldShowTableContainsRecordsQst: Boolean;
+        RecordsProgressTxt: Label 'Records: %1 of %2', Comment = '%1 = number of the current record, %2 = total number of records';
     begin
         if ConfigMgt.IsSystemTable(TableID) then
             exit;
@@ -2693,10 +2705,10 @@ codeunit 8614 "Config. XML Exchange"
                         until TempConfigPackageField.Next() = 0;
 
                     ConfigPackageTable."Imported Date and Time" := CurrentDateTime;
-                    ConfigPackageTable."Imported by User ID" := UserId;
+                    ConfigPackageTable."Imported by User ID" := CopyStr(UserId(), 1, MaxStrLen(ConfigPackageTable."Imported by User ID"));
                     ConfigPackageTable.Modify();
                     if not HideDialog and (RecordCount > 1000) then
-                        ConfigProgressBarRecord.Update(StrSubstNo('Records: %1 of %2', ConfigPackageRecord."No.", RecordCount));
+                        ConfigProgressBarRecord.Update(StrSubstNo(RecordsProgressTxt, ConfigPackageRecord."No.", RecordCount));
                 end;
             end;
             if not HideDialog and (RecordCount > 1000) then

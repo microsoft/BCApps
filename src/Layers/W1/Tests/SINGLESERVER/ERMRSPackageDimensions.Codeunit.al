@@ -487,15 +487,15 @@ codeunit 136604 "ERM RS Package Dimensions"
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
-        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        ConfigXMLExchangeNative: Codeunit "Config. XML Exchange";
         PackageXML: XmlDocument;
     begin
         ConfigPackage.Get(ConfigPackageCode);
         ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
 
-        ConfigXMLExchange.SetExcelMode(true);
-        ConfigXMLExchange.ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
-        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
+        ConfigXMLExchangeNative.SetExcelMode(true);
+        ConfigXMLExchangeNative.ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
+        ConfigXMLExchangeNative.ImportPackageXMLDocument(PackageXML, '');
     end;
 
     local procedure HideDialog()

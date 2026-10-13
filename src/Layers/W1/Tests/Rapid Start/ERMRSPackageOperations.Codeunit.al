@@ -2220,7 +2220,7 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackage: Record "Config. Package";
         DummyRSTable: Record DummyRSTable;
         ConfigPackageTable: Record "Config. Package Table";
-        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        ConfigXMLExchangeNative: Codeunit "Config. XML Exchange";
         TempBlob: Codeunit "Temp Blob";
         TempBlobInStream: InStream;
         PackageOutStream: OutStream;
@@ -2249,7 +2249,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         // [WHEN] The package is exported
         TempBlob.CreateOutStream(PackageOutStream);
-        ConfigXMLExchange.ExportPackageXMLToStream(ConfigPackage, PackageOutStream);
+        ConfigXMLExchangeNative.ExportPackageXMLToStream(ConfigPackage, PackageOutStream);
 
         // [THEN] The content corresponds to the package that was exported
         TempBlob.CreateInStream(TempBlobInStream);
@@ -2268,7 +2268,7 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackage: Record "Config. Package";
         DummyRSTable: Record DummyRSTable;
         ConfigPackageTable: Record "Config. Package Table";
-        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        ConfigXMLExchangeNative: Codeunit "Config. XML Exchange";
         TempBlob: Codeunit "Temp Blob";
         TempBlobInStream: InStream;
         PackageOutStream: OutStream;
@@ -2282,7 +2282,7 @@ codeunit 136603 "ERM RS Package Operations"
         DummyRSTable."Decimal Field" := 3.21;
         DummyRSTable."Date Field" := 20180325D;
         DummyRSTable."Text Field" := 'Lorem ipsum dolor sit amet';
-        DummyRSTable."Long Text Field" := GetLongText();
+        DummyRSTable."Long Text Field" := CopyStr(GetLongText(), 1, MaxStrLen(DummyRSTable."Long Text Field"));
         DummyRSTable.Insert();
 
         // [GIVEN] Rapidstart package is created from DummyRSTable table
@@ -2294,7 +2294,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         // [GIVEN] The package is exported
         TempBlob.CreateOutStream(PackageOutStream);
-        ConfigXMLExchange.ExportPackageXMLToStream(ConfigPackage, PackageOutStream);
+        ConfigXMLExchangeNative.ExportPackageXMLToStream(ConfigPackage, PackageOutStream);
 
         // Cleanup before import
         DummyRSTable.DeleteAll();
@@ -2302,7 +2302,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         // [WHEN] the rapidstart package is imported and applied
         TempBlob.CreateInStream(TempBlobInStream);
-        ConfigXMLExchange.ImportPackageXML(TempBlobInStream);
+        ConfigXMLExchangeNative.ImportPackageXML(TempBlobInStream);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
         // [THEN] DummyRSTable records are properly applied
@@ -3470,6 +3470,7 @@ codeunit 136603 "ERM RS Package Operations"
         TableID: Integer;
         TextXMLPackage: Text;
         PackageCode: Code[20];
+        PackageWithTableXmlTxt: Label '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList LanguageID="1033" ProductVersion="NAV 7.1" PackageName="Tables" Code="%1"><ApprovalSetupList><TableID>%2</TableID></ApprovalSetupList></DataList>', Locked = true;
     begin
         // [SCENARIO 380200] Importing of Package with non existing table does not break import process, but creates Package Error
         // [FEATURE] [UT]
@@ -3477,13 +3478,7 @@ codeunit 136603 "ERM RS Package Operations"
         // [GIVEN] Package "PACK01" with non existing table "-452"
         PackageCode := 'PACK01';
         TableID := -452;
-        TextXMLPackage :=
-          StrSubstNo(
-            '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' +
-            '<DataList LanguageID="1033" ProductVersion="NAV 7.1" PackageName="Tables" Code="%1">' +
-            '<ApprovalSetupList><TableID>%2</TableID></ApprovalSetupList></DataList>',
-            PackageCode,
-            TableID);
+        TextXMLPackage := StrSubstNo(PackageWithTableXmlTxt, PackageCode, TableID);
         XmlDocument.ReadFrom(TextXMLPackage, PackageXML);
 
         // [WHEN] Importing "PACK01"

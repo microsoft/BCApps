@@ -1289,7 +1289,6 @@ codeunit 136610 "ERM RS Package Base Operations"
     local procedure AddCustPriceGroupToXML(var CustomerPriceGroup: Record "Customer Price Group"; var XMLDoc: XmlDocument; FilePath: Text)
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
-        ConfigXMLExchange: Codeunit "Config. XML Exchange";
         RootElement: XmlElement;
         XMLNode: XmlNode;
         DummyXMLNode: XmlNode;
@@ -1297,27 +1296,36 @@ codeunit 136610 "ERM RS Package Base Operations"
     begin
         XMLDOMManagement.LoadXMLDocumentFromFile(FilePath, XMLDoc);
         XMLDoc.GetRoot(RootElement);
-        RootElement.SelectSingleNode(ConfigXMLExchange.GetElementName(CustomerPriceGroup.TableName() + 'List'), TableNode);
+        RootElement.SelectSingleNode(GetElementNameFromText(CustomerPriceGroup.TableName() + 'List'), TableNode);
         CreateDummyCustPriceGroup(CustomerPriceGroup);
         XMLDOMManagement.AddElement(
-          TableNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.TableName), '', '', XMLNode);
+          TableNode, GetElementNameFromText(CustomerPriceGroup.TableName), '', '', XMLNode);
         XMLDOMManagement.AddElement(
-          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Code)), CustomerPriceGroup.Code, '', DummyXMLNode);
+          XMLNode, GetElementNameFromText(CustomerPriceGroup.FieldName(Code)), CustomerPriceGroup.Code, '', DummyXMLNode);
         XMLDOMManagement.AddElement(
-          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Price Includes VAT")),
+          XMLNode, GetElementNameFromText(CustomerPriceGroup.FieldName("Price Includes VAT")),
           Format(CustomerPriceGroup."Price Includes VAT"), '', DummyXMLNode);
         XMLDOMManagement.AddElement(
-          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Allow Invoice Disc.")),
+          XMLNode, GetElementNameFromText(CustomerPriceGroup.FieldName("Allow Invoice Disc.")),
           Format(CustomerPriceGroup."Allow Invoice Disc."), '', DummyXMLNode);
         XMLDOMManagement.AddElement(
-          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("VAT Bus. Posting Gr. (Price)")),
+          XMLNode, GetElementNameFromText(CustomerPriceGroup.FieldName("VAT Bus. Posting Gr. (Price)")),
           CustomerPriceGroup."VAT Bus. Posting Gr. (Price)", '', DummyXMLNode);
         XMLDOMManagement.AddElement(
-          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Description)),
+          XMLNode, GetElementNameFromText(CustomerPriceGroup.FieldName(Description)),
           CustomerPriceGroup.Description, '', DummyXMLNode);
         XMLDOMManagement.AddElement(
-          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Allow Line Disc.")),
+          XMLNode, GetElementNameFromText(CustomerPriceGroup.FieldName("Allow Line Disc.")),
           Format(CustomerPriceGroup."Allow Line Disc."), '', DummyXMLNode);
+    end;
+
+    local procedure GetElementNameFromText(Name: Text): Text[250]
+    var
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        NameIn: Text[250];
+    begin
+        NameIn := CopyStr(Name, 1, MaxStrLen(NameIn));
+        exit(ConfigXMLExchange.GetElementName(NameIn));
     end;
 
     local procedure ExportToXML(PackageCode: Code[20]; var ConfigPackageTable: Record "Config. Package Table"; var FilePath: Text)
