@@ -1480,9 +1480,11 @@ page 55 "Purch. Invoice Subform"
     begin
         UpdateEditableOnRow();
         InsertExtendedText(false);
-        ValueChangedNo := (Rec."No." <> xRec."No.") and (xRec."No." <> '');
+        ValueChangedNo := Rec."No." <> xRec."No.";
 
-        if (Rec.Type = Rec.Type::"Charge (Item)") and ValueChangedNo then
+        if (Rec.Type = Rec.Type::"Charge (Item)") and ValueChangedNo and
+           (xRec."No." <> '')
+        then
             CurrPage.SaveRecord();
 
         if (Rec.Type = Rec.Type::"G/L Account") and ValueChangedNo then

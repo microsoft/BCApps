@@ -164,12 +164,16 @@ codeunit 144541 "Purchase Document - VAT"
     procedure PurchaseInvoiceQtyToReceiveForGLAccSecondLine()
     var
         Vendor: Record Vendor;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         PurchaseInvoice: TestPage "Purchase Invoice";
         DocNo: Code[20];
         GLAccountNo: Code[20];
         Amt: Decimal;
     begin
         Initialize();
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Default G/L Account Quantity", false);
+        PurchasesPayablesSetup.Modify(true);
         GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
         Amt := LibraryRandom.RandDec(100, 2);
 
@@ -185,6 +189,7 @@ codeunit 144541 "Purchase Document - VAT"
         PurchaseInvoice.PurchLines.New();
         // [WHEN] create the second line with G/L Account 'A', set "Direct Unit Cost" to 'X'
         PurchaseInvoice.PurchLines."No.".SetValue(GLAccountNo);
+        PurchaseInvoice.PurchLines.Quantity.AssertEquals(1);
         PurchaseInvoice.PurchLines."Direct Unit Cost".SetValue(Amt);
         PurchaseInvoice.OK().Invoke();
 
