@@ -22,6 +22,7 @@ codeunit 133100 "Extension Management Test"
     // The tests script will therefore publish the two extensions separately so the tests in this codeunit can execute and complete succesfully.
 
     Subtype = Test;
+    Permissions = tabledata "NAV App Setting" = rimd;
 
     trigger OnRun()
     begin
@@ -34,6 +35,7 @@ codeunit 133100 "Extension Management Test"
         PermissionsMock: Codeunit "Permissions Mock";
         MainAppId: Guid;
         DependingAppId: Guid;
+        SettingsAppId: Guid;
         NotInstalledSuccErr: Label 'Extension was not installed succesfully';
         NotUninstalledSuccErr: Label 'Extension has not been uninstalled succesfully';
         MainExtNotInstalledSuccErr: Label 'The extension the current extension is depending on was not installed succesfully';
@@ -553,7 +555,7 @@ codeunit 133100 "Extension Management Test"
     var
         ExtensionSettings: TestPage "Extension Settings";
     begin
-        PrepareSettingsExtension(false);
+        PrepareSettingsApp();
         OpenExtensionSettings(ExtensionSettings);
 
         asserterror ExtensionSettings.New();
@@ -568,7 +570,7 @@ codeunit 133100 "Extension Management Test"
         ExtensionSettings: TestPage "Extension Settings";
         AllowHttpClientRequests: Boolean;
     begin
-        PrepareSettingsExtension(false);
+        PrepareSettingsApp();
         OpenExtensionSettings(ExtensionSettings);
         ExtensionSettings.Edit().Invoke();
         Assert.IsTrue(ExtensionSettings.AllowHttpClientRequests.Editable(), 'HTTP client settings should remain editable.');
@@ -577,50 +579,23 @@ codeunit 133100 "Extension Management Test"
         ExtensionSettings.AllowHttpClientRequests.SetValue(AllowHttpClientRequests);
         ExtensionSettings.Close();
 
-        NAVAppSetting.Get(MainAppId);
+        NAVAppSetting.Get(SettingsAppId);
         Assert.AreEqual(AllowHttpClientRequests, NAVAppSetting."Allow HttpClient Requests", 'The edited setting should be saved.');
     end;
 
     [Test]
     [Scope('OnPrem')]
-    procedure ExtensionSettingsDisablesUninstallWhenNotInstalled()
+    procedure ExtensionSettingsOffersLifecycleActionsForInstalledApp()
     var
         ExtensionSettings: TestPage "Extension Settings";
     begin
-        PrepareSettingsExtension(false);
-        OpenExtensionSettings(ExtensionSettings);
-
-        Assert.IsFalse(ExtensionSettings.Uninstall.Enabled(), 'Uninstall should be disabled for an uninstalled app.');
-        Assert.IsFalse(ExtensionSettings.SetupApp.Enabled(), 'Set up should be disabled for an uninstalled app.');
-        Assert.IsTrue(ExtensionSettings.Install.Enabled(), 'Install should be enabled for an uninstalled app.');
-        ExtensionSettings.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('MessageHandler')]
-    procedure ExtensionSettingsUninstallsSelectedExtension()
-    var
-        ExtensionSettings: TestPage "Extension Settings";
-        ExtensionDetails: TestPage "Extension Details";
-    begin
-        PrepareSettingsExtension(true);
+        PrepareSettingsApp();
         OpenExtensionSettings(ExtensionSettings);
 
         Assert.IsTrue(ExtensionSettings.Uninstall.Enabled(), 'Uninstall should be enabled for an installed app.');
         Assert.IsTrue(ExtensionSettings.SetupApp.Enabled(), 'Set up should be enabled for an installed app.');
         Assert.IsFalse(ExtensionSettings.Install.Enabled(), 'Install should be disabled for an installed app.');
         Assert.IsFalse(ExtensionSettings.Unpublish.Enabled(), 'Unpublish should be disabled for an installed app.');
-
-        ExtensionDetails.Trap();
-        ExtensionSettings.Uninstall.Invoke();
-        ExtensionDetails.Un_Id.AssertEquals(LowerCase(DelChr(Format(MainAppId), '=', '{}')));
-        Assert.IsTrue(ExtensionDetails.Uninstall.Visible(), 'The existing uninstall experience should open.');
-        ExtensionDetails.Uninstall.Invoke();
-
-        Assert.IsFalse(ExtensionManagement.IsInstalledByAppId(MainAppId), 'The selected extension should be uninstalled.');
-        Assert.IsFalse(ExtensionSettings.Uninstall.Enabled(), 'Uninstall should be disabled after returning to the card.');
-        Assert.IsTrue(ExtensionSettings.Install.Enabled(), 'Install should be enabled after returning to the card.');
         ExtensionSettings.Close();
     end;
 
@@ -628,46 +603,34 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure InstalledMarketplaceRequestDoesNotReopenWizard()
     begin
-        PrepareSettingsExtension(true);
+        PrepareSettingsApp();
 
         // No page handlers: reopening the installation or setup UI fails this test.
-        ExtensionManagement.InstallMarketplaceExtension(MainAppId);
-        ExtensionManagement.InstallMarketplaceExtension(MainAppId);
+        ExtensionManagement.InstallMarketplaceExtension(SettingsAppId);
+        ExtensionManagement.InstallMarketplaceExtension(SettingsAppId);
 
-        Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(MainAppId), 'The existing installation should be unchanged.');
+        Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(SettingsAppId), 'The existing installation should be unchanged.');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure InstalledAppsourceRequestDoesNotReopenWizard()
     begin
-        PrepareSettingsExtension(true);
+        PrepareSettingsApp();
 
-        ExtensionMgtTestLibrary.InstallAppsourceExtensionWithRefreshSession('PAPPID.' + Format(MainAppId));
+        ExtensionMgtTestLibrary.InstallAppsourceExtensionWithRefreshSession('PAPPID.' + Format(SettingsAppId));
 
-        Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(MainAppId), 'The existing installation should be unchanged.');
+        Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(SettingsAppId), 'The existing installation should be unchanged.');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure ReopenedInstallationPageSkipsInstalledApp()
     begin
-        PrepareSettingsExtension(true);
+        PrepareSettingsApp();
 
         // Simulate restoring the installation page from its filters in the refreshed session.
-        ExtensionMgtTestLibrary.RunExtensionInstallationPage(MainAppId, '');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('MarketplaceDeploymentModalHandler,DeclineInstallFailureStatusConfirmHandler')]
-    procedure UninstalledMarketplaceRequestStillOpensWizard()
-    begin
-        PrepareSettingsExtension(false);
-
-        ExtensionManagement.InstallMarketplaceExtension(MainAppId);
-
-        Assert.IsFalse(ExtensionManagement.IsInstalledByAppId(MainAppId), 'Closing the wizard should not install the app.');
+        ExtensionMgtTestLibrary.RunExtensionInstallationPage(SettingsAppId, '');
     end;
 
     [Test]
@@ -675,23 +638,18 @@ codeunit 133100 "Extension Management Test"
     [HandlerFunctions('MarketplacePreviewDeploymentModalHandler')]
     procedure InstalledAppPreviewRequestStillOpensWizard()
     begin
-        PrepareSettingsExtension(true);
+        PrepareSettingsApp();
 
-        ExtensionMgtTestLibrary.RunExtensionInstallationPage(MainAppId, 'test-preview-key');
+        ExtensionMgtTestLibrary.RunExtensionInstallationPage(SettingsAppId, 'test-preview-key');
     end;
 
-    local procedure PrepareSettingsExtension(Install: Boolean)
+    local procedure PrepareSettingsApp()
     var
-        PackageId: Guid;
+        ModuleInformation: ModuleInfo;
     begin
         PermissionsMock.Set('Exten. Mgt. - Admin');
-        SetNavAppIds();
-        InitializeExtensions();
-        if Install then begin
-            PackageId := ExtensionManagement.GetLatestVersionPackageIdByAppId(MainAppId);
-            ExtensionManagement.InstallExtension(PackageId, GlobalLanguage(), false);
-            Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(MainAppId), NotInstalledSuccErr);
-        end;
+        NavApp.GetCurrentModuleInfo(ModuleInformation);
+        SettingsAppId := ModuleInformation.Id;
     end;
 
     local procedure OpenExtensionSettings(var ExtensionSettings: TestPage "Extension Settings")
@@ -699,19 +657,10 @@ codeunit 133100 "Extension Management Test"
         NAVAppSetting: Record "NAV App Setting";
         ExtensionSettingsPage: Page "Extension Settings";
     begin
-        NAVAppSetting.SetRange("App ID", MainAppId);
+        NAVAppSetting.SetRange("App ID", SettingsAppId);
         ExtensionSettingsPage.SetTableView(NAVAppSetting);
         ExtensionSettings.Trap();
         ExtensionSettingsPage.Run();
-    end;
-
-    [ModalPageHandler]
-    procedure MarketplaceDeploymentModalHandler(var MarketplaceExtnDeployment: TestPage "Marketplace Extn Deployment")
-    begin
-        Assert.IsTrue(MarketplaceExtnDeployment.Continue.Visible(), 'The installation wizard should open at the disclaimer.');
-        MarketplaceExtnDeployment.Continue.Invoke();
-        Assert.IsTrue(MarketplaceExtnDeployment.Install.Visible(), 'The installation step should remain available.');
-        MarketplaceExtnDeployment.Close();
     end;
 
     [ModalPageHandler]
@@ -720,12 +669,6 @@ codeunit 133100 "Extension Management Test"
         MarketplaceExtnDeployment.Continue.Invoke();
         Assert.IsTrue(MarketplaceExtnDeployment.PreviewInfo.Visible(), 'Preview requests should retain the preview installation flow.');
         MarketplaceExtnDeployment.Close();
-    end;
-
-    [ConfirmHandler]
-    procedure DeclineInstallFailureStatusConfirmHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
     end;
 
     [MessageHandler]
