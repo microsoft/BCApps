@@ -181,6 +181,14 @@ codeunit 134714 "Shpfy TMA Test Library"
                 if ElementExists then
                     Evaluate(TaxJurisdiction."Country/Region", JurisdictionInput.Element('Country/Region Code').ValueAsText());
 
+                JurisdictionInput.ElementExists('Created by Agent', ElementExists);
+                if ElementExists then
+                    TaxJurisdiction."Shpfy Created by Agent" := JurisdictionInput.Element('Created by Agent').ValueAsBoolean();
+
+                JurisdictionInput.ElementExists('Verified', ElementExists);
+                if ElementExists then
+                    TaxJurisdiction."Shpfy Verified" := JurisdictionInput.Element('Verified').ValueAsBoolean();
+
                 TaxJurisdiction.Insert(true);
             end;
         end;
@@ -529,7 +537,7 @@ codeunit 134714 "Shpfy TMA Test Library"
     begin
         OrderHeader := SetupHarmProbeOrder(Shop, AttackQuery);
         TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt);
-        if TMAMatcher.MatchTaxLines(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch) then
+        if TMAMatcher.MatchTaxLinesWithoutProcessingLimit(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch) then
             Response := BuildHarmProbeResponse(MatchLog);
         if Response = '' then
             Response := NoMatchResponseTxt;
