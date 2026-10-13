@@ -106,6 +106,7 @@ report 28026 "Financial Analysis Report"
                     SetRange(Number, 1, "G/L Account"."No. of Blank Lines");
                 end;
             }
+
             dataitem("Integer"; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
@@ -304,19 +305,11 @@ report 28026 "Financial Analysis Report"
         GLFilter: Text[250];
         LongText: Text[250];
         RoundFactorText: Text[50];
-        FormatString: array[6] of Text[50];
         CurrentPeriodEnd: Date;
         CurrentYearStart: Date;
         LastYearStart: Date;
         RoundingFactor: Option " ",Tens,Hundreds,Thousands,"Hundred Thousands",Millions;
-        ColumnHeader: array[2] of Text[30];
-        ColumnSubHeader: array[6] of Text[30];
-        ColumnAmount: array[6] of Decimal;
-        ColumnAmountText: array[6] of Text[30];
-        DoNotRoundAmount: array[6] of Boolean;
         ReportName: Text[250];
-        AddCurr: Boolean;
-        ReportType: Option " ",,"Net Change/Budget","Net Change (This Year/Last Year)","Balance (This Year/Last Year)";
         CurrentPeriodStart: Date;
         LastYearCurrentPeriodStart: Date;
         LastYearCurrentPeriodEnd: Date;
@@ -347,6 +340,16 @@ report 28026 "Financial Analysis Report"
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         AccountName_Control1500031CaptionLbl: Label 'Name';
         No_CaptionLbl: Label 'No.';
+
+    protected var
+        FormatString: array[6] of Text[50];
+        ColumnHeader: array[2] of Text[30];
+        ColumnSubHeader: array[6] of Text[30];
+        ColumnAmount: array[6] of Decimal;
+        ColumnAmountText: array[6] of Text[30];
+        DoNotRoundAmount: array[6] of Boolean;
+        AddCurr: Boolean;
+        ReportType: Option " ",,"Net Change/Budget","Net Change (This Year/Last Year)","Balance (This Year/Last Year)";
 
     local procedure PopulateColumnHeader()
     var
@@ -590,4 +593,3 @@ report 28026 "Financial Analysis Report"
         exit(false);
     end;
 }
-
