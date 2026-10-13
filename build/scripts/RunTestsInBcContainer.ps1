@@ -126,8 +126,8 @@ $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
 
 # Preserve the old sequential fallback. Parallel project execution defers this pass to the
 # clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
-if ($TestType -eq "UnitTest" -and -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
-    Write-Host "Running DisableTestIsolation pass for UnitTest"
+if ($TestType -in @("UnitTest", "IntegrationTest", "Uncategorized") -and -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
+    Write-Host "Running DisableTestIsolation pass for $TestType"
     $parameters["requiredTestIsolation"] = "Disabled"
     $parameters["testRunnerCodeunitId"] = "130451"
     $parameters.Remove("ReRun") # Clear rerun state from the first pass
