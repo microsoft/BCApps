@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 xmlport 10803 "Export G/L Entries FR"
 {
     Caption = 'Export G/L Entries';
+    Permissions = tabledata "G/L Entry" = r;
 
     schema
     {

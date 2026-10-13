@@ -15,6 +15,6 @@ permissionset 10808 "XML Audit - Export"
     IncludedPermissionSets = "XML - Objects",
                              "Audit Export - Edit";
 
-    Permissions = tabledata "G/L Entry" = R,
+    Permissions = tabledata "G/L Entry" = r,
                   table "G/L Entry" = X;
 }
