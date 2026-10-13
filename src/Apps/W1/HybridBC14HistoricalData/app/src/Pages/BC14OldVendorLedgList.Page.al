@@ -10,7 +10,7 @@ page 46889 "BC14 Old Vendor Ledg. List"
     Caption = 'BC14 Old Vendor Ledger Entries';
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Lists;
+    UsageCategory = History;
     SourceTable = "BC14 Old Vendor Ledg. Entry";
     Editable = false;
 

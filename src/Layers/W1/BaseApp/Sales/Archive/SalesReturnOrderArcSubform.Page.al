@@ -163,10 +163,22 @@ page 6628 "Sales Return Order Arc Subform"
                 field("Qty. to Ship"; Rec."Qty. to Ship")
                 {
                     ApplicationArea = SalesReturnOrder;
+                    Visible = false;
                 }
                 field("Quantity Shipped"; Rec."Quantity Shipped")
                 {
                     ApplicationArea = SalesReturnOrder;
+                    Visible = false;
+                }
+                field("Return Qty. to Receive"; Rec."Return Qty. to Receive")
+                {
+                    ApplicationArea = SalesReturnOrder;
+                    ToolTip = 'Specifies the quantity of items to receive as recorded when the sales return order was archived.';
+                }
+                field("Return Qty. Received"; Rec."Return Qty. Received")
+                {
+                    ApplicationArea = SalesReturnOrder;
+                    ToolTip = 'Specifies the quantity of items already received when the sales return order was archived.';
                 }
                 field("Qty. to Invoice"; Rec."Qty. to Invoice")
                 {
