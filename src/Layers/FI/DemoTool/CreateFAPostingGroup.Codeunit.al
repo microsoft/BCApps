@@ -14,9 +14,6 @@ codeunit 101803 "Create FA Posting Group"
     var
         "FA Posting Group": Record "FA Posting Group";
         CA: Codeunit "Make Adjustments";
-#if not CLEAN30
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-#endif
         XCAR: Label 'CAR';
         XMACHINERY: Label 'MACHINERY';
         XTELEPHONE: Label 'TELEPHONE';
@@ -45,15 +42,11 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
 #if not CLEAN30
 #pragma warning disable AL0432
-        if not FeatureManagementFacade.IsEnabled('DepreciationDifferencesFI') then begin
-            "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert("Depr. Difference Acc."));
-            "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert("Depr. Difference Bal. Acc."));
-        end;
+        "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert("Depr. Difference Acc."));
+        "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert("Depr. Difference Bal. Acc."));
 #pragma warning restore AL0432
 #endif
 
-        OnBeforeInsertFAPostingGroup(
-            "FA Posting Group", CA.Convert("Depr. Difference Acc."), CA.Convert("Depr. Difference Bal. Acc."));
         "FA Posting Group".Insert();
     end;
 
@@ -77,9 +70,5 @@ codeunit 101803 "Create FA Posting Group"
         InsertData(XLEASEHOLD, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991645', '991646', '991220');
         InsertData(XEQUIPMENT, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991645', '991646', '991220');
     end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertFAPostingGroup(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
-    begin
-    end;
 }
+
