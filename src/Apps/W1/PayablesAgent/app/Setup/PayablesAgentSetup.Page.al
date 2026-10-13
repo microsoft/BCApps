@@ -377,6 +377,22 @@ page 3304 "Payables Agent Setup"
                     }
                 }
             }
+            group(BusinessCentralIQ)
+            {
+                Caption = 'Business Central IQ';
+                InstructionalText = 'Use company-specific Business Central IQ skills to guide invoice coding decisions.';
+
+                field(UseBusinessCentralIQ; Rec."Use Business Central IQ")
+                {
+                    Caption = 'Use Business Central IQ';
+                    ToolTip = 'Specifies whether Payables Agent asks Business Central IQ for applicable company guidance when processing invoice lines.';
+
+                    trigger OnValidate()
+                    begin
+                        SetupChanged := true;
+                    end;
+                }
+            }
         }
     }
     actions

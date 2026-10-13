@@ -49,6 +49,8 @@ codeunit 3307 "Payables Agent Setup"
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         OutlookSetup: Record "Outlook Setup";
         AgentSetup: Codeunit "Agent Setup";
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
+        BusinessCentralIQEnabled: Boolean;
     begin
         // Skipping configuring the Agent framework records is valid in tests
         if not PASetupConfiguration.GetSkipAgentConfiguration() then begin
@@ -65,6 +67,8 @@ codeunit 3307 "Payables Agent Setup"
         end;
 
         PayablesAgentSetup.GetSetup();
+        if AgentFeatureMgt.TryGetBusinessCentralIQEnabled(PayablesAgentSetup."User Security Id", BusinessCentralIQEnabled) then
+            PayablesAgentSetup."Use Business Central IQ" := BusinessCentralIQEnabled;
         if EDocumentService.Get(PayablesAgentSetup."E-Document Service Code") then;
         if OutlookSetup.Get() then;
 
@@ -83,6 +87,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup: Record "Payables Agent Setup";
         TempPayablesAgentSetup: Record "Payables Agent Setup" temporary;
         OutlookSetup: Record "Outlook Setup";
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
         AzureADGraphUser: Codeunit "Azure AD Graph User";
         EnvironmentInformation: Codeunit "Environment Information";
         PADemoGuide: Codeunit "PA Demo Guide";
@@ -174,6 +179,7 @@ codeunit 3307 "Payables Agent Setup"
 
         // We apply the changes to the E-Document Service related records
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
+        AgentFeatureMgt.SetBusinessCentralIQEnabled(PayablesAgentSetup."User Security Id", PayablesAgentSetup."Use Business Central IQ");
         PayablesAgentSetup.Modify();
 
         EDocPOMatching.ConfigureDefaultPOMatchingSettings();
