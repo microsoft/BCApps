@@ -2,6 +2,7 @@ codeunit 144200 "FatturaPA Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -108,6 +109,58 @@ codeunit 144200 "FatturaPA Test"
         VerifyFatturaPAFileHeaderPublicCompany(TempXMLBuffer, DocumentRecRef, CustomerNo);
         VerifyFatturaPAFileBody(TempXMLBuffer, DocumentRecRef, CustLedgerEntry."Document Type"::Invoice, ExportFromType::Sales, '', true, '');
         VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithAdditionalDataPerLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        FatturaPATest: Codeunit "FatturaPA Test";
+        ClientFileName: Text[250];
+        FirstLineNo: Integer;
+        SecondLineNo: Integer;
+    begin
+        // [SCENARIO] A subscriber adds schema-valid line-specific data to each DettaglioLinee.
+        Initialize();
+
+        // [GIVEN] A sales invoice containing two item lines.
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        LibrarySales.FindFirstSalesLine(SalesLine, SalesHeader);
+        FirstLineNo := SalesLine."Line No.";
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        SecondLineNo := SalesLine."Line No.";
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The document is exported with an additional per-line data subscriber.
+        BindSubscription(FatturaPATest);
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        UnbindSubscription(FatturaPATest);
+
+        // [THEN] Each XML line receives its own additional data, without affecting other lines.
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        TempXMLBuffer.FindNodesByXPath(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto');
+        Assert.RecordCount(TempXMLBuffer, 2);
+
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="' +
+                Format(FirstLineNo) + '"]/AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto',
+            Format(FirstLineNo));
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="' +
+                Format(SecondLineNo) + '"]/AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto',
+            Format(SecondLineNo));
     end;
 
     [Test]
@@ -3312,5 +3365,14 @@ codeunit 144200 "FatturaPA Test"
     begin
         exit(Format(Amount, 0, '<Sign><Integer><Decimals,8><Comma,.>'))
     end;
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export FatturaPA Document", 'OnPopulateLineDataOnBeforeCloseLine', '', false, false)]
+    local procedure AddAdditionalDataToFatturaPALine(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+        TempXMLBuffer.AddGroupElement('AltriDatiGestionali');
+        TempXMLBuffer.AddNonEmptyElement('TipoDato', 'RYRTEST');
+        TempXMLBuffer.AddNonEmptyLastElement('RiferimentoTesto', Format(TempFatturaLine."Line No."));
+    end;
+
+
 }
 
