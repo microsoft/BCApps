@@ -153,12 +153,10 @@ codeunit 148083 "EET UT CZL"
 
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"EET UT CZL");
-
         if not EETServiceSetup.Get() then begin
             EETServiceSetup.Init();
             EETServiceSetup.Insert(true);
@@ -199,14 +197,14 @@ codeunit 148083 "EET UT CZL"
 
     procedure GetWebServiceURLTxt(): Text[250]
     var
-        WebServiceURLTxt: Label 'https://prod.eet.cz/eet/services/EETServiceSOAP/v3', Locked = true;
+        WebServiceURLTxt: Label 'https://trzbyeet.gov.cz/eet/services/EETServiceSOAP/v4', Locked = true;
     begin
         exit(WebServiceURLTxt);
     end;
 
     procedure GetWebServicePlayGroundURLTxt(): Text[250]
     var
-        WebServicePGURLTxt: Label 'https://pg.eet.cz/eet/services/EETServiceSOAP/v3', Locked = true;
+        WebServicePGURLTxt: Label 'https://pg.trzbyeet.gov.cz/eet/services/EETServiceSOAP/v4', Locked = true;
     begin
         exit(WebServicePGURLTxt);
     end;
