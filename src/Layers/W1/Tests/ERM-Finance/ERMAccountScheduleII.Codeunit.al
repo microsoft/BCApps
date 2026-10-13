@@ -3310,6 +3310,75 @@
         Assert.AreEqual('', ColumnLayoutName."Preview Row Def.", 'Preview row definition reference was not cleared.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure NewRowDefinitionLineInheritsTypeFromPreviousLine()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleNames: TestPage "Account Schedule Names";
+        AccountSchedule: TestPage "Account Schedule";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO 625586] A new row definition line defaults its type fields from the line above.
+        Initialize();
+
+        // [GIVEN] A row definition open on the Account Schedule page
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        AccScheduleNames.OpenEdit();
+        AccScheduleNames.GoToKey(AccScheduleName.Name);
+        AccountSchedule.Trap();
+        AccScheduleNames.EditAccountSchedule.Invoke();
+
+        // [GIVEN] A first line with non-default Row Type, Totaling Type and Amount Type
+        AccountSchedule.New();
+        AccountSchedule."Totaling Type".SetValue("Acc. Schedule Line Totaling Type"::Formula);
+        AccountSchedule."Row Type".SetValue(AccScheduleLine."Row Type"::"Beginning Balance");
+        AccountSchedule."Amount Type".SetValue("Account Schedule Amount Type"::"Debit Amount");
+
+        // [WHEN] A new line is added below
+        AccountSchedule.New();
+
+        // [THEN] The new line inherits the type fields from the previous line
+        AccountSchedule."Totaling Type".AssertEquals("Acc. Schedule Line Totaling Type"::Formula);
+        AccountSchedule."Row Type".AssertEquals(AccScheduleLine."Row Type"::"Beginning Balance");
+        AccountSchedule."Amount Type".AssertEquals("Account Schedule Amount Type"::"Debit Amount");
+        AccountSchedule.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NewColumnDefinitionLineInheritsTypeFromPreviousLine()
+    var
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO 625586] A new column definition line defaults its type fields from the line above.
+        Initialize();
+
+        // [GIVEN] A column definition open on the Column Layout page
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutNames.OpenEdit();
+        ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+
+        // [GIVEN] A first line with non-default Column Type and Amount Type
+        ColumnLayoutPage.New();
+        ColumnLayoutPage."Column Type".SetValue("Column Layout Type"::"Net Change");
+        ColumnLayoutPage."Amount Type".SetValue("Account Schedule Amount Type"::"Debit Amount");
+
+        // [WHEN] A new line is added below
+        ColumnLayoutPage.New();
+
+        // [THEN] The new line inherits the type fields from the previous line
+        ColumnLayoutPage."Column Type".AssertEquals("Column Layout Type"::"Net Change");
+        ColumnLayoutPage."Amount Type".AssertEquals("Account Schedule Amount Type"::"Debit Amount");
+        ColumnLayoutPage.Close();
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
