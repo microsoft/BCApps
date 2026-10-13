@@ -25,7 +25,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
-using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 #pragma warning disable AA0210
@@ -196,8 +195,6 @@ codeunit 144013 "ERM Payment Management"
         // [SCENARIO 644993] Invoice and credit memo payment lines post with opposite signs and document types.
         Initialize();
 
-        EnableFeature('Payment');
-
         Amount := LibraryRandom.RandDecInRange(100, 1000, 2);
         CustomerNo := CreateCustomer('');
         CreateAndPostGeneralJournal(
@@ -232,8 +229,6 @@ codeunit 144013 "ERM Payment Management"
         Assert.AreEqual(
             InvoiceCreditGLEntry."G/L Account No.", CreditMemoDebitGLEntry."G/L Account No.",
             CreditMemoDebitGLEntry.FieldCaption("G/L Account No."));
-
-        DisableFeature('Payment');
     end;
 
     local procedure PaymentDiscountOnPurchaseCrMemo(CurrencyCode: Code[10]; CalcPmtDiscOnCrMemos: Boolean)
@@ -1991,42 +1986,6 @@ codeunit 144013 "ERM Payment Management"
         ClearPaymentSlipData();
     end;
 
-    local procedure EnableFeature(Feature: Text[50])
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureDataUpdateStatus: Record "Feature Data Update Status";
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        OriginalEnabled: Option None,"All Users";
-    begin
-        FeatureKey.Get(Feature);
-        OriginalEnabled := FeatureKey.Enabled;
-
-        // Enable temporarily
-        if FeatureKey.Enabled <> FeatureKey.Enabled::"All Users" then begin
-            FeatureKey.Validate(Enabled, FeatureKey.Enabled::"All Users");
-            FeatureKey.Modify();
-            FeatureManagementFacade.AfterValidateEnabled(FeatureKey);
-
-            FeatureManagementFacade.GetFeatureDataUpdateStatus(
-        FeatureKey,
-        FeatureDataUpdateStatus);
-            FeatureManagementFacade.UpdateData(FeatureDataUpdateStatus);
-        end;
-    end;
-
-    local procedure DisableFeature(Feature: Text[50])
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-    begin
-        FeatureKey.Get(Feature);
-
-        if FeatureKey.Enabled <> FeatureKey.Enabled::None then begin
-            FeatureKey.Validate(Enabled, FeatureKey.Enabled::None);
-            FeatureKey.Modify();
-            FeatureManagementFacade.AfterValidateEnabled(FeatureKey);
-        end;
-    end;
 
     local procedure ApplyPaymentSlip(PaymentClass: Text[30])
     var
