@@ -174,6 +174,7 @@ codeunit 7768 "AOAI Deployments"
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-5.6 Ceres.
     /// </summary>
+    /// <remarks>Only available to Microsoft published apps.</remarks>
     /// <returns>The deployment name.</returns>
     procedure GetGPT56CeresLatest(): Text
     var
@@ -186,7 +187,7 @@ codeunit 7768 "AOAI Deployments"
     /// <summary>
     /// Returns the name of the preview AOAI deployment model of GPT-5.6 Ceres.
     /// </summary>
-    /// <remarks>Use this deployment when the chat messages contain file content parts.</remarks>
+    /// <remarks>Only available to Microsoft published apps. Use this deployment when the chat messages contain file content parts.</remarks>
     /// <returns>The deployment name.</returns>
     procedure GetGPT56CeresPreview(): Text
     var
