@@ -107,6 +107,13 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
                 TestStatusOpen();
             end;
         }
+        field(6910; "Requested For Name"; Text[100])
+        {
+            Caption = 'Requested For Name';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Requested For")));
+            ToolTip = 'Specifies the name of the expense user for whom the spend request is being created.';
+        }
         field(6911; "Actual Start Date and Time"; DateTime)
         {
             Caption = 'Actual Start Date and Time';

@@ -3841,6 +3841,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
     begin
         Cust.Get(CustNo);
         Cust.Validate(GLN, '1234567891231');
+        Cust.Validate("Use GLN in Electronic Document", true);
         Cust.Modify(true);
     end;
 

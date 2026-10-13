@@ -24,6 +24,7 @@ using Microsoft.Sales.Setup;
 using System.Diagnostics;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Integration.PowerBI;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -599,6 +600,7 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the first four digits of the VAT registration number for the administrative tax authority code.';
                 }
+
                 field(DefaultThemePart; ThemePartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
@@ -635,6 +637,29 @@ page 1 "Company Information"
                     begin
                         if HeaderPartDisplay = '' then
                             LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
+                    end;
+                }
+                field(PowerBIWorkspace; PowerBIWorkspaceDisplayName)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Power BI Workspace';
+                    Editable = false;
+                    ToolTip = 'Specifies the Power BI workspace that Power BI reports are deployed to. Leave blank to deploy to "My Workspace".';
+
+                    trigger OnAssistEdit()
+                    var
+                        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+                        NewWorkspaceId: Guid;
+                        NewWorkspaceName: Text[200];
+                    begin
+                        NewWorkspaceId := Rec."Power BI Workspace Id";
+                        NewWorkspaceName := Rec."Power BI Workspace Name";
+                        if PowerBIWorkspaceMgt.LookupTargetWorkspace(NewWorkspaceId, NewWorkspaceName) then begin
+                            Rec.Validate("Power BI Workspace Id", NewWorkspaceId);
+                            Rec.Validate("Power BI Workspace Name", NewWorkspaceName);
+                            UpdatePowerBIWorkspaceDisplayName();
+                            CurrPage.Update(true);
+                        end;
                     end;
                 }
             }
@@ -921,6 +946,7 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        UpdatePowerBIWorkspaceDisplayName();
     end;
 
     trigger OnClosePage()
@@ -930,7 +956,6 @@ page 1 "Company Information"
     begin
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
-
         if SystemIndicatorChanged then begin
             Message(CompanyBadgeRefreshPageTxt);
             AuditLog.LogAuditMessage(StrSubstNo(CompanyBadgeChangedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
@@ -984,9 +1009,17 @@ page 1 "Company Information"
         DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
+        PowerBIWorkspaceDisplayName: Text[200];
 
     protected var
         SystemIndicatorChanged: Boolean;
+
+    local procedure UpdatePowerBIWorkspaceDisplayName()
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+    begin
+        PowerBIWorkspaceDisplayName := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
+    end;
 
     local procedure UpdateSystemIndicator()
     var

@@ -29,6 +29,7 @@ page 7129 "Travel Request Card"
                 field("No."; Rec."No.")
                 {
                     ToolTip = 'Specifies the number of the travel request.';
+                    Editable = Rec."No." = '';
 
                     trigger OnAssistEdit()
                     begin
@@ -38,11 +39,18 @@ page 7129 "Travel Request Card"
                 field("Requested For"; Rec."Requested For")
                 {
                     ToolTip = 'Specifies the expense user for whom the travel request is being created.';
+                    Editable = Rec.Status = Rec.Status::Open;
+                }
+                field("Requested For Name"; Rec."Requested For Name")
+                {
+                    ToolTip = 'Specifies the name of the expense user for whom the travel request is being created.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field(Purpose; Rec.Purpose)
                 {
                     MultiLine = true;
                     ToolTip = 'Specifies the purpose of the travel request.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field(Status; Rec.Status)
                 {
@@ -93,6 +101,7 @@ page 7129 "Travel Request Card"
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
@@ -115,21 +124,25 @@ page 7129 "Travel Request Card"
                 {
                     Importance = Promoted;
                     ToolTip = 'Specifies the expected start date of the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Expected End Date"; Rec."Expected End Date")
                 {
                     Importance = Promoted;
                     ToolTip = 'Specifies the expected end date of the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Actual Start Date and Time"; Rec."Actual Start Date and Time")
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies the actual start date and time of the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Actual End Date and Time"; Rec."Actual End Date and Time")
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies the actual end date and time of the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
             }
             group("Travel Details")
@@ -141,33 +154,40 @@ page 7129 "Travel Request Card"
                     MultiLine = true;
                     Importance = Additional;
                     ToolTip = 'Specifies the business justification for the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("International Travel"; Rec."International Travel")
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies whether the travel is international.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Origin Country"; Rec."Origin Country/Region Code")
                 {
                     ToolTip = 'Specifies the origin country for the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Destination Country"; Rec."Dest. Country/Region Code")
                 {
                     ToolTip = 'Specifies the destination country for the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field(Restrictions; Rec.Restrictions)
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies any travel restrictions that apply.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Travel Policy Acknowledgment"; Rec."Travel Policy Acknowledgment")
                 {
                     ToolTip = 'Specifies whether the travel policy has been acknowledged.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Per Diem Included"; Rec."Per Diem Included")
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies whether per diem is included in the travel request.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
             }
             group(Approval)

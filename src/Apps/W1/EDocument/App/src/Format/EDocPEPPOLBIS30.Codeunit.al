@@ -30,6 +30,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         FinChargeMemoHeader: Record "Finance Charge Memo Header";
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
         EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
         EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
         SalesValidation: Interface "PEPPOL30 Validation";
@@ -80,6 +81,11 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                     SourceDocumentHeader.SetTable(ServiceHeader);
                     ServiceValidation.ValidateDocument(ServiceHeader);
                     ServiceValidation.ValidateDocumentLines(ServiceHeader);
+                end;
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    EDocPEPPOLValidation.CheckPurchaseOrder(PurchaseHeader, EDocumentProcessingPhase);
                 end;
             Database::"Gen. Journal Line":
                 begin

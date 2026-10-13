@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Root>
     <AITSuite Code="TMA-UNIT"
-              Description="Shopify Tax Matching Agent - Tests"
+              Description="Shopify Tax Matching - Tests"
               Dataset="TMA-Setup.yaml"
               Capability="Shopify Tax Matching Agent"
               Frequency="Daily"

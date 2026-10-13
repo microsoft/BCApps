@@ -3066,6 +3066,35 @@
         VerifyTextValueAppearsOnce('Currency');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure ExportAccScheduleToExcelWithEmptyLCYCode()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        DimensionValue: array[4] of Record "Dimension Value";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // [FEATURE] [Excel]
+        // [SCENARIO 650415] Account Schedule can be exported to Excel when the LCY Code is blank
+        Initialize();
+
+        // [GIVEN] LCY Code is blank
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := '';
+        GeneralLedgerSetup.Modify();
+
+        // [GIVEN] An Account Schedule
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryReportValidation.SetFileName(AccScheduleName.Name);
+
+        // [WHEN] Export Account Schedule to Excel
+        RunExportAccScheduleToExcel(AccScheduleName, DimensionValue);
+
+        // [THEN] Excel file is exported without error
+        Assert.IsTrue(FILE.Exists(LibraryReportValidation.GetFileName()), AccScheduleExportErr);
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";

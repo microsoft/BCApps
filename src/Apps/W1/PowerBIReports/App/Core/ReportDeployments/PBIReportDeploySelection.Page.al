@@ -125,8 +125,11 @@ page 36968 "PBI Report Deploy. Selection"
     var
         PowerBIDeployment: Record "Power BI Deployment";
         PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
         HasSelections: Boolean;
     begin
+        PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
+
         Rec.SetRange(Deploy, true);
         if Rec.FindSet() then
             repeat
