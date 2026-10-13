@@ -128,7 +128,7 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         ApplyConfigLineAndVerifyApplication(ConfigLine, Customer."No.", DimensionCode);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ConfirmAddDimTablesHandlerYes')]
     [Scope('OnPrem')]
@@ -492,7 +492,7 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         ConfigPackageTable.SetFilter("Table ID", ConfigMgt.MakeTableFilter(ConfigLine, true));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure ExportImportPackageSetNewCustAndDimWithDotNet(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
     begin
         ExportImportPackageSetNewValuesWithDotNet(ConfigPackage, ConfigPackageTable, CustomerNo, DimCode, DimValCode);

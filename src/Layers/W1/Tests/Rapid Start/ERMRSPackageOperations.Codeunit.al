@@ -189,7 +189,7 @@ codeunit 136603 "ERM RS Package Operations"
         TableAutoIncrementOutOfPK.TestField(ID, LastID - 1);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ExportImportAndApplyPackageWithBlobFieldWithDotNet()
@@ -342,7 +342,7 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(OriginalWorkDescription, SalesHeader.GetWorkDescription(), SalesHeader.FieldCaption("Work Description"));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ApplyDependentTableWithEmptyParentTableIDWithDotNet()
@@ -501,7 +501,7 @@ codeunit 136603 "ERM RS Package Operations"
         Erase(FilePath);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageFromXMLWithDotNet()
@@ -1528,7 +1528,7 @@ codeunit 136603 "ERM RS Package Operations"
           DecompressWrongResultErr);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageFromXMLMultipleWithDotNet()
@@ -1784,7 +1784,7 @@ codeunit 136603 "ERM RS Package Operations"
         Erase(CompressedServerFileName);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageFromXMLKeyApplyWithDotNet()
@@ -2114,7 +2114,7 @@ codeunit 136603 "ERM RS Package Operations"
           PaymentTerms);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     procedure TestExportPackageXMLToStreamWithDotNet()
     var
@@ -2345,7 +2345,7 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(NoOfFields, ConfigPackageTable."No. of Fields Included", Text101Err);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure PackageOverviewPage_DatabaseDataActionWithDotNet()
@@ -2766,7 +2766,7 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(GetTableName(TableID), ConfigPackageCard.Control10."Table Name".Value, TableNotValidatedErr);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [Scope('OnPrem')]
@@ -3420,7 +3420,7 @@ codeunit 136603 "ERM RS Package Operations"
             until SalesHeader.Next() = 0;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithNonExistingTableWithDotNet()
@@ -3557,7 +3557,7 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(0, ProcedureResult, 'GetNoOfDatabaseRecords result must be 0');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackage_ImportCreateMissingCodesValueInFieldPackageWithDotNet()
@@ -3794,7 +3794,7 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.RecordCount(ConfigPackageTable, 2);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithOptionsAndEnumsWithDotNet()
@@ -4120,7 +4120,7 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(ItemUnitOfMeasure."Qty. per Unit of Measure", 1.23457, 'value should be rounded to 5 decimals.');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithDuplicatedXMLFieldsWithDotNet()
@@ -4254,7 +4254,7 @@ codeunit 136603 "ERM RS Package Operations"
         VerifyDuplicatedXMLFieldsRecords(TempDuplicatedXMLFields);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithEmptyXMLFieldNamesWithDotNet()
@@ -4660,7 +4660,7 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackageField."Field ID" := Field."No.";
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure ImportFromXML(var ConfigPackage: Record "Config. Package"; var CountryCode: Code[10]; var LocationCode: Code[10])
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -5338,7 +5338,7 @@ codeunit 136603 "ERM RS Package Operations"
                 LibraryERM.PostGeneralJnlLine(GenJnlLine);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure ExportImportXMLWithDotNet(PackageCode: Code[20])
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -5529,7 +5529,7 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPckgCompressionMgt.ServersideCompress(ServerFileName, CompressedServerFileName);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure InitializePackageCardWithDotNet(var ConfigPackageCard: TestPage "Config. Package Card"; FillPackageData: Boolean)
     var
         ConfigPackage: Record "Config. Package";

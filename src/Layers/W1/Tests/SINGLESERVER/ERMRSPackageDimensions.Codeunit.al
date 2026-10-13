@@ -159,7 +159,7 @@ codeunit 136604 "ERM RS Package Dimensions"
         DimensionSetEntry.Delete();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes')]
@@ -465,7 +465,7 @@ codeunit 136604 "ERM RS Package Dimensions"
         until DimSetEntry.Next() = 0;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure ExportImportPackageWithDotNet(ConfigPackageCode: Code[20])
     var
         ConfigPackage: Record "Config. Package";

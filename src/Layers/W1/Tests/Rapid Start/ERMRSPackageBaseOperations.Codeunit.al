@@ -816,7 +816,7 @@ codeunit 136610 "ERM RS Package Base Operations"
         Assert.AreEqual(Format(TableTok), ConfigXMLExchange.GetTableElementName(TableTok), '');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithBlankLineWithDotNet()
@@ -1252,7 +1252,7 @@ codeunit 136610 "ERM RS Package Base Operations"
         ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure AddCustPriceGroupToXML(var CustomerPriceGroup: Record "Customer Price Group"; var XMLDocument: DotNet XmlDocument; FilePath: Text)
     var
         XMLDOMManagement: Codeunit "XML DOM Management";

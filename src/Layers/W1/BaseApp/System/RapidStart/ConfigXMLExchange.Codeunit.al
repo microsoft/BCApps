@@ -61,8 +61,8 @@ codeunit 8614 "Config. XML Exchange"
         ImportingIsNotAllowedDuringUpgradeOrInstallationErr: Label 'Importing configuration packages is not allowed during upgrade or installation. Importing configuration packages requires multiple threads and sessions which is not supported.';
 
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure AddXMLComment', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure AddXMLComment', '30.0')]
     local procedure AddXMLComment(var PackageXML: DotNet XmlDocument; var Node: DotNet XmlNode; Comment: Text[250])
     var
         CommentNode: DotNet XmlNode;
@@ -79,8 +79,8 @@ codeunit 8614 "Config. XML Exchange"
         ParentXmlNode.AsXmlElement().Add(CommentNode);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure AddTableAttributes', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure AddTableAttributes', '30.0')]
     local procedure AddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument; var TableNode: DotNet XmlNode)
     var
         FieldNode: DotNet XmlNode;
@@ -165,8 +165,8 @@ codeunit 8614 "Config. XML Exchange"
         OnAfterAddTableAttributesProcedure(ConfigPackageTable, TableNode);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure AddFieldAttributes', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure AddFieldAttributes', '30.0')]
     local procedure AddFieldAttributes(ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
     begin
         if ConfigPackageField."Primary Key" then
@@ -198,8 +198,8 @@ codeunit 8614 "Config. XML Exchange"
     end;
 
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure AddDimensionFields', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure AddDimensionFields', '30.0')]
     local procedure AddDimensionFields(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExportValue: Boolean)
     var
         DimCode: Code[20];
@@ -239,8 +239,8 @@ codeunit 8614 "Config. XML Exchange"
             until ConfigPackageField.Next() = 0;
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure AddDimPackageFields', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure AddDimPackageFields', '30.0')]
     local procedure AddDimPackageFields(var ConfigPackageTable: Record "Config. Package Table"; RecordNode: DotNet XmlNode)
     var
         ConfigPackageField: Record "Config. Package Field";
@@ -327,8 +327,8 @@ codeunit 8614 "Config. XML Exchange"
             RecRef.FilterGroup(0);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure CreateRecordNodes', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure CreateRecordNodes', '30.0')]
     local procedure CreateRecordNodes(var PackageXML: DotNet XmlDocument; ConfigPackageTable: Record "Config. Package Table")
     var
         "Field": Record "Field";
@@ -722,14 +722,14 @@ codeunit 8614 "Config. XML Exchange"
         exit(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
 
     /// <summary>
     /// Export the provided configuration package to an OutStream.
     /// </summary>
     /// <param name="ConfigPackage">Configuration package to export.</param>
     /// <param name="PackageOutStream">OutStream object that the content of the package will be written to.</param>
-    [Obsolete('Replaced by procedure ExportPackageXMLToStream', '29.0')]
+    [Obsolete('Replaced by procedure ExportPackageXMLToStream', '30.0')]
     procedure ExportPackageXMLToStreamLegacy(ConfigPackage: Record "Config. Package"; PackageOutStream: OutStream)
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -756,7 +756,7 @@ codeunit 8614 "Config. XML Exchange"
     end;
 
     [Scope('OnPrem')]
-    [Obsolete('Replaced by procedure ExportPackageXML', '29.0')]
+    [Obsolete('Replaced by procedure ExportPackageXML', '30.0')]
     procedure ExportPackageXMLLegacy(var ConfigPackageTable: Record "Config. Package Table"; XMLDataFile: Text): Boolean
     var
         ConfigPackage: Record "Config. Package";
@@ -823,7 +823,7 @@ codeunit 8614 "Config. XML Exchange"
     end;
 
     [Scope('OnPrem')]
-    [Obsolete('Replaced by procedure ExportPackageToXMLDocument', '29.0')]
+    [Obsolete('Replaced by procedure ExportPackageToXMLDocument', '30.0')]
     procedure ExportPackageXMLDocument(var PackageXML: DotNet XmlDocument; var ConfigPackageTable: Record "Config. Package Table"; ConfigPackage: Record "Config. Package"; Advanced: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -959,8 +959,8 @@ codeunit 8614 "Config. XML Exchange"
         OnAfterExportPackageToXMLDocument(ConfigPackage, HideDialog);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure ExportConfigTableToXML', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure ExportConfigTableToXML', '30.0')]
     local procedure ExportConfigTableToXML(var ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument)
     begin
         CreateRecordNodes(PackageXML, ConfigPackageTable);
@@ -991,7 +991,7 @@ codeunit 8614 "Config. XML Exchange"
         DummyModifyDate: Date;
         DummyModifyTime: Time;
         FileSize: BigInteger;
-#if not CLEAN29
+#if not CLEAN30
         UseImportWithDotNet: Boolean;
 #endif
     begin
@@ -1005,7 +1005,7 @@ codeunit 8614 "Config. XML Exchange"
                 exit(false);
         DecompressedFileName := DecompressPackage(ServerFileName);
 
-#if not CLEAN29
+#if not CLEAN30
         UseImportWithDotNet := false;
         OnImportPackageXMLFromClientOnBeforeImportPackage(UseImportWithDotNet);
         if UseImportWithDotNet then
@@ -1014,8 +1014,8 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLFromFile(DecompressedFileName));
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure ImportPackageXMLFromFile(XMLDataFile: Text)', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure ImportPackageXMLFromFile(XMLDataFile: Text)', '30.0')]
     procedure ImportPackageXML(XMLDataFile: Text): Boolean
     var
         PackageXML: DotNet XmlDocument;
@@ -1025,7 +1025,7 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, ''));
     end;
 
-    [Obsolete('Replaced by procedure ImportPackageXML(InStream: InStream)', '29.0')]
+    [Obsolete('Replaced by procedure ImportPackageXML(InStream: InStream)', '30.0')]
     procedure ImportPackageXMLFromStream(InStream: InStream): Boolean
     var
         PackageXML: DotNet XmlDocument;
@@ -1035,7 +1035,7 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, ''));
     end;
 
-    [Obsolete('Replaced by procedure ImportPackageXMLWithCode(InStream: InStream; PackageCode: Code[20])', '29.0')]
+    [Obsolete('Replaced by procedure ImportPackageXMLWithCode(InStream: InStream; PackageCode: Code[20])', '30.0')]
     procedure ImportPackageXMLWithCodeFromStream(InStream: InStream; PackageCode: Code[20]): Boolean
     var
         PackageXML: DotNet XmlDocument;
@@ -1079,9 +1079,9 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, PackageCode));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
-    [Obsolete('Replaced by procedure ImportPackageXMLDocument', '29.0')]
+    [Obsolete('Replaced by procedure ImportPackageXMLDocument', '30.0')]
     procedure ImportPackageXMLDocument(PackageXML: DotNet XmlDocument; PackageCode: Code[20]) Result: Boolean
     var
         ConfigPackage: Record "Config. Package";
@@ -1421,9 +1421,9 @@ codeunit 8614 "Config. XML Exchange"
         OnAfterImportPackageXMLDocument(PackageCode, ExcelMode, Result);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [TryFunction]
-    [Obsolete('Replaced by procedure GetTableStatisticsForTelemetry', '29.0')]
+    [Obsolete('Replaced by procedure GetTableStatisticsForTelemetry', '30.0')]
     internal procedure GetTableStatisticsForTelemetry(TableNode: DotNet XmlNode; var TableName: Text; var RecordCount: Integer; var TotalTableFields: Integer; var ImportedTableFields: Integer)
     var
         CurrTableRecordRef: RecordRef;
@@ -1544,9 +1544,9 @@ codeunit 8614 "Config. XML Exchange"
         end;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
-    [Obsolete('Replaced by procedure ImportTableFromXMLNode', '29.0')]
+    [Obsolete('Replaced by procedure ImportTableFromXMLNode', '30.0')]
     procedure ImportTableFromXMLNode(var TableNode: DotNet XmlNode; var PackageCode: Code[20])
     var
         ConfigPackageRecord: Record "Config. Package Record";
@@ -1565,7 +1565,7 @@ codeunit 8614 "Config. XML Exchange"
         end;
     end;
 
-    [Obsolete('Replaced by procedure PackageDataExistsInXML', '29.0')]
+    [Obsolete('Replaced by procedure PackageDataExistsInXML', '30.0')]
     local procedure PackageDataExistsInXML(PackageCode: Code[20]; TableID: Integer; var TableNode: DotNet XmlNode): Boolean
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -1612,8 +1612,8 @@ codeunit 8614 "Config. XML Exchange"
         RecordRef.Open(TableId);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure FillPackageMetadataFromXML', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure FillPackageMetadataFromXML', '30.0')]
     local procedure FillPackageMetadataFromXML(var PackageCode: Code[20]; TableID: Integer; var TableNode: DotNet XmlNode)
     var
         ConfigPackage: Record "Config. Package";
@@ -1732,7 +1732,7 @@ codeunit 8614 "Config. XML Exchange"
         end;
     end;
 
-    [Obsolete('Replaced by procedure FillPackageDataFromXML', '29.0')]
+    [Obsolete('Replaced by procedure FillPackageDataFromXML', '30.0')]
     local procedure FillPackageDataFromXML(PackageCode: Code[20]; TableID: Integer; var TableNode: DotNet XmlNode)
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -1855,8 +1855,8 @@ codeunit 8614 "Config. XML Exchange"
             until Field.Next() = 0;
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure FieldNodeExists', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure FieldNodeExists', '30.0')]
     local procedure FieldNodeExists(var RecordNode: DotNet XmlNode; FieldNodeName: Text[250]): Boolean
     var
         FieldNode: DotNet XmlNode;
@@ -1917,9 +1917,9 @@ codeunit 8614 "Config. XML Exchange"
         exit(InnerText);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
-    [Obsolete('Replaced by procedure GetAttribute', '29.0')]
+    [Obsolete('Replaced by procedure GetAttribute', '30.0')]
     procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: DotNet XmlNode): Text[1000]
     var
         XMLAttributes: DotNet XmlNamedNodeMap;
@@ -2000,8 +2000,8 @@ codeunit 8614 "Config. XML Exchange"
         exit(GetElementName(NameIn));
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure GetNodeValue', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure GetNodeValue', '30.0')]
     local procedure GetNodeValue(var RecordNode: DotNet XmlNode; FieldNodeName: Text[250]): Text
     var
         FieldNode: DotNet XmlNode;
@@ -2025,9 +2025,9 @@ codeunit 8614 "Config. XML Exchange"
         exit(DataListTxt);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
-    [Obsolete('Replaced by procedure GetPackageCode', '29.0')]
+    [Obsolete('Replaced by procedure GetPackageCode', '30.0')]
     procedure GetPackageCode(PackageXML: DotNet XmlDocument): Code[20]
     var
         ConfigPackage: Record "Config. Package";
@@ -2282,8 +2282,8 @@ codeunit 8614 "Config. XML Exchange"
         exit(MediaIDGuidText);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure GetConfigPackageDataValue', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure GetConfigPackageDataValue', '30.0')]
     local procedure GetConfigPackageDataValue(var ConfigPackageData: Record "Config. Package Data"; var RecordNode: DotNet XmlNode; FieldNodeName: Text[250])
     var
         Base64Convert: Codeunit "Base64 Convert";
@@ -2316,8 +2316,8 @@ codeunit 8614 "Config. XML Exchange"
         FileManagement.ServerRemoveDirectory(MediaFolder, true);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure ExportConfigPackageMediaSetToXML', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure ExportConfigPackageMediaSetToXML', '30.0')]
     local procedure ExportConfigPackageMediaSetToXML(var PackageXML: DotNet XmlDocument; ConfigPackage: Record "Config. Package")
     var
         ConfigMediaBuffer: Record "Config. Media Buffer";
@@ -2386,8 +2386,8 @@ codeunit 8614 "Config. XML Exchange"
         ConfigMediaBuffer.DeleteAll();
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by procedure AddDimensionFieldsWhenProcessingOrder', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by procedure AddDimensionFieldsWhenProcessingOrder', '30.0')]
     local procedure AddDimensionFieldsWhenProcessingOrder(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExportValue: Boolean)
     var
         DimCode: Code[20];
@@ -2728,21 +2728,21 @@ codeunit 8614 "Config. XML Exchange"
             Error(ImportingIsNotAllowedDuringUpgradeOrInstallationErr);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnAfterAddFieldAttributesProcedure', '29.0')]
+    [Obsolete('Replaced by event OnAfterAddFieldAttributesProcedure', '30.0')]
     local procedure OnAfterAddFieldAttributes(var ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnAfterAddTableAttributesProcedure', '29.0')]
+    [Obsolete('Replaced by event OnAfterAddTableAttributesProcedure', '30.0')]
     local procedure OnAfterAddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument; var TableNode: DotNet XmlNode)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnAfterExportPackageToXMLDocument', '29.0')]
+    [Obsolete('Replaced by event OnAfterExportPackageToXMLDocument', '30.0')]
     local procedure OnAfterExportPackageXMLDocument(var ConfigPackage: Record "Config. Package"; HideDialog: Boolean)
     begin
     end;
@@ -2758,9 +2758,9 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnBeforeCreateRecordNodesProcedure', '29.0')]
+    [Obsolete('Replaced by event OnBeforeCreateRecordNodesProcedure', '30.0')]
     local procedure OnBeforeCreateRecordNodes(var ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var TypeHelper: Codeunit "Type Helper"; var XMLDOMManagement: Codeunit "XML DOM Management"; var WorkingFolder: Text; var ExcelMode: Boolean; var Advanced: Boolean; var HideDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
@@ -2796,9 +2796,9 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnCreateRecordNodesProcedureOnAfterRecordProcessed', '29.0')]
+    [Obsolete('Replaced by event OnCreateRecordNodesProcedureOnAfterRecordProcessed', '30.0')]
     local procedure OnCreateRecordNodesOnAfterRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
     begin
     end;
@@ -2809,21 +2809,21 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnCreateRecordNodesProcedureOnAfterNotFoundRecordProcessed', '29.0')]
+    [Obsolete('Replaced by event OnCreateRecordNodesProcedureOnAfterNotFoundRecordProcessed', '30.0')]
     local procedure OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnExportPackageToXMLDocumentOnAfterSetAttributes', '29.0')]
+    [Obsolete('Replaced by event OnExportPackageToXMLDocumentOnAfterSetAttributes', '30.0')]
     local procedure OnExportPackageXMLDocumentOnAfterSetAttributes(var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management"; var DocumentElement: DotNet XmlElement)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit', '29.0')]
+    [Obsolete('Replaced by event OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit', '30.0')]
     local procedure OnExportPackageXMLDocumentOnBeforeConfigProgressBarInit(var ConfigPackageTable: Record "Config. Package Table"; var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management"; Advanced: Boolean; HideDialog: Boolean)
     begin
     end;
@@ -2839,9 +2839,9 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromTableNode', '29.0')]
+    [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromTableNode', '30.0')]
     local procedure OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML(ConfigPackageTable: Record "Config. Package Table"; var TableNode: DotNet XmlNode)
     begin
     end;
@@ -2877,15 +2877,15 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnImportPackageXMLDocumentOnBeforeModifyConfigPackage', '29.0')]
+    [Obsolete('Replaced by event OnImportPackageXMLDocumentOnBeforeModifyConfigPackage', '30.0')]
     local procedure OnImportPackageXMLDocumentOnBeforeModify(var ConfigPackage: Record "Config. Package"; var DocumentElement: DotNet XmlElement)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnBeforeModifyConfigPackageField', '29.0')]
+    [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnBeforeModifyConfigPackageField', '30.0')]
     local procedure OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(var ConfigPackageField: Record "Config. Package Field"; var Value: Text; var FieldNode: DotNet XmlNode)
     begin
     end;
@@ -2961,9 +2961,9 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('Temporary fallback to the DotNet based import. It is removed together with the DotNet based import.', '29.0')]
+    [Obsolete('Temporary fallback to the DotNet based import. It is removed together with the DotNet based import.', '30.0')]
     local procedure OnImportPackageXMLFromClientOnBeforeImportPackage(var UseImportWithDotNet: Boolean)
     begin
     end;
