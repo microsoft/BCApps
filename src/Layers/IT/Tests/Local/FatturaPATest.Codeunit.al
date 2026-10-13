@@ -132,9 +132,10 @@ codeunit 144200 "FatturaPA Test"
         CreateSalesDocument(
             SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
         LibrarySales.FindFirstSalesLine(SalesLine, SalesHeader);
-        FirstLineNo := SalesLine."Line No.";
+        // Fattura Doc. Helper renumbers exported document lines sequentially.
+        FirstLineNo := 1;
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
-        SecondLineNo := SalesLine."Line No.";
+        SecondLineNo := 2;
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader.SetRecFilter();
 
