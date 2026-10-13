@@ -19,6 +19,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using System.Environment;
+using System.Privacy;
 
 /// <summary>
 /// Assigned to the customer-registered Entra app on the SOURCE (Microsoft Entra Application Card) to grant
@@ -66,5 +67,8 @@ permissionset 7242 "MDM Cross-Env Read"
                   tabledata "Tax Area" = R,
                   tabledata "Tax Group" = R,
                   tabledata "Tax Jurisdiction" = R,
-                  tabledata "Tenant Media" = R;
+                  tabledata "Tenant Media" = R,
+                  // Read the consent tables so the source can answer "not consented" as a structured signal instead of throwing a permission error (surfaced as a bare HTTP 403).
+                  tabledata "Privacy Notice" = R,
+                  tabledata "Privacy Notice Approval" = R;
 }

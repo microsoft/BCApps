@@ -268,8 +268,10 @@ report 29 "Export Acc. Sched. to Excel"
         else
             EnterFilterInCell(
               RowNo, GLSetup."LCY Code", Currency.TableCaption(), '', TempExcelBuffer."Cell Type"::Text);
-
-        InsertBlankRowAndFillCells(RowNo, 3, false, true);
+        if (UseAmtsInAddCurr and (GLSetup."Additional Reporting Currency" <> '')) or
+        (not UseAmtsInAddCurr and (GLSetup."LCY Code" <> ''))
+        then
+            InsertBlankRowAndFillCells(RowNo, 3, false, true);
         InsertBlankRowAndFillCells(RowNo, 3, true, false);
         if AccSchedLine.Find('-') then begin
             if ColumnLayout.Find('-') then begin

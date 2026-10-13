@@ -188,6 +188,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
     local procedure OnAfterAssignItemValues(var PurchLine: Record "Purchase Line"; Item: Record Item)
     begin
         PurchLine.Validate("Sust. Account No.", Item."Default Sust. Account");
+        PurchLine.Validate("EUDR Relevant", Item."EUDR Relevant");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterAssignResourceValues', '', false, false)]

@@ -22,6 +22,8 @@ page 6973 "Expense Subcategories"
                 }
                 field(Description; Rec.Description)
                 {
+                    Caption = 'Agent Skills';
+                    ToolTip = 'Specifies the skill for the agent usage that identifies expense subcategory and its purpose or usage.';
                 }
                 field("Posting Description"; Rec."Posting Description")
                 {

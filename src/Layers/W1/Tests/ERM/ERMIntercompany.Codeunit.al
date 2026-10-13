@@ -1131,6 +1131,7 @@ codeunit 134151 "ERM Intercompany"
         CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         Assert.IsTrue(
             CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics.com/v2.0/tenant/environment/api/v2.0/companies', '.dynamics.com'),
             'The trusted Business Central API URL must be allowed.');
@@ -1143,6 +1144,7 @@ codeunit 134151 "ERM Intercompany"
         CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('http://api.businesscentral.dynamics.com/v2.0/companies', '.dynamics.com'), 'A non-HTTPS URL must be rejected.');
         Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics.com.example.com/v2.0/companies', '.dynamics.com'), 'A look-alike host must be rejected.');
         Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('', '.dynamics.com'), 'A blank URL must be rejected.');
@@ -1157,6 +1159,7 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         TokenEndpoint := 'https://login.microsoftonline.com/' + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
 
         Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.microsoftonline.com/'), 'The trusted Microsoft Entra token endpoint must be returned unchanged.');
@@ -1170,6 +1173,7 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         TokenEndpoint := 'https://login.microsoftonline.com/contoso.onmicrosoft.com/oauth2/v2.0/token';
 
         Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.microsoftonline.com/'), 'A domain-based tenant identifier must be accepted.');
@@ -1183,6 +1187,7 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         TokenEndpoint := 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
         asserterror CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.microsoftonline.com/');
         Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
@@ -1204,6 +1209,7 @@ codeunit 134151 "ERM Intercompany"
         CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         Assert.IsTrue(
             CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics-tie.com/v2.0/tenant/environment/api/v2.0/companies', '.dynamics-tie.com'),
             'The trusted PPE Business Central API URL must be allowed.');
@@ -1220,6 +1226,7 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        LibraryLowerPermissions.SetO365Basic();
         TokenEndpoint := 'https://login.windows-ppe.net/' + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
         Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.windows-ppe.net/'), 'The trusted PPE token endpoint must be returned unchanged.');
 
