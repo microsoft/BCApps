@@ -460,6 +460,38 @@ codeunit 144541 "Purchase Document - VAT"
         PurchaseInvoice.PurchLines.Quantity.AssertEquals(Quantity);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PurchaseCrMemoGLAccountQuantityUnchangedAfterDescriptionModified()
+    var
+        Vendor: Record Vendor;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseCrMemo: TestPage "Purchase Credit Memo";
+        Quantity: Decimal;
+    begin
+        Initialize();
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Default G/L Account Quantity", false);
+        PurchasesPayablesSetup.Modify(true);
+        Quantity := LibraryRandom.RandIntInRange(2, 10);
+
+        // [GIVEN] Purchase Credit Memo with a G/L Account line and Quantity greater than 1
+        PurchaseCrMemo.OpenNew();
+        Vendor.Get(LibraryPurchase.CreateVendorNo());
+        PurchaseCrMemo."Buy-from Vendor Name".SetValue(Vendor.Name);
+        PurchaseCrMemo.PurchLines.Type.SetValue(PurchaseLine.Type::"G/L Account");
+        PurchaseCrMemo.PurchLines."No.".SetValue(LibraryERM.CreateGLAccountWithPurchSetup());
+        PurchaseCrMemo.PurchLines.Quantity.AssertEquals(1);
+        PurchaseCrMemo.PurchLines.Quantity.SetValue(Quantity);
+
+        // [WHEN] Modify the line Description
+        PurchaseCrMemo.PurchLines.Description.SetValue(LibraryRandom.RandText(50));
+
+        // [THEN] Quantity is unchanged
+        PurchaseCrMemo.PurchLines.Quantity.AssertEquals(Quantity);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Purchase Document - VAT");
