@@ -15,7 +15,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.IO;
 using System.Reflection;
-using System.Telemetry;
 using System.Threading;
 using System.Utilities;
 
@@ -75,7 +74,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         IntegrationTableMapping: Record "Integration Table Mapping";
         OriginalIntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if IsJobQueueEntryDataSynchJob(JobQueueEntry, IntegrationTableMapping) then begin
             if IntegrationSynchJob.HaveJobsBeenIdle(JobQueueEntry.GetLastLogEntryNo()) then begin
@@ -83,7 +81,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                     JobQueueEntry.Status := JobQueueEntry.Status::"On Hold with Inactivity Timeout"
             end else
                 JobQueueEntry.Status := JobQueueEntry.Status::Ready;
-            FeatureTelemetry.LogUptake('0000OUA', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Used);
+            MasterDataManagement.LogSynchronizationUsage(); // registers daily usage/uptake; internally guarded to once per day
             if IntegrationTableMapping.IsFullSynch() then begin
                 Session.LogMessage('0000JIS', StrSubstNo(RunningFullSynchTelemetryTxt, IntegrationTableMapping.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 OriginalIntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
