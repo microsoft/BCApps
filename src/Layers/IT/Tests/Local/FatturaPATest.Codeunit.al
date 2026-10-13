@@ -145,23 +145,26 @@ codeunit 144200 "FatturaPA Test"
             TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
         UnbindSubscription(FatturaPATest);
 
-        // [THEN] Each XML line receives its own additional data, without affecting other lines.
+        // [THEN] Each exported line contains its own additional data in document order.
         LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
         TempXMLBuffer.FindNodesByXPath(
             TempXMLBuffer,
-            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto');
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/TipoDato');
         Assert.RecordCount(TempXMLBuffer, 2);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                Assert.AreEqual('RYRTEST', TempXMLBuffer.Value, 'Unexpected additional data type.');
+            until TempXMLBuffer.Next() = 0;
 
-        AssertCurrentElementValue(
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindNodesByXPath(
             TempXMLBuffer,
-            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="' +
-                Format(FirstLineNo) + '"]/AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto',
-            Format(FirstLineNo));
-        AssertCurrentElementValue(
-            TempXMLBuffer,
-            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="' +
-                Format(SecondLineNo) + '"]/AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto',
-            Format(SecondLineNo));
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/RiferimentoTesto');
+        Assert.RecordCount(TempXMLBuffer, 2);
+        TempXMLBuffer.FindFirst();
+        Assert.AreEqual(Format(FirstLineNo), TempXMLBuffer.Value, 'Incorrect additional data on first line.');
+        TempXMLBuffer.Next();
+        Assert.AreEqual(Format(SecondLineNo), TempXMLBuffer.Value, 'Incorrect additional data on second line.');
     end;
 
     [Test]
