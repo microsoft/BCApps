@@ -18,12 +18,30 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.History;
 
 #pragma warning disable AA0215
 codeunit 149927 "Subc. Get Receipt Lines"
 #pragma warning restore AA0215
 {
     // [FEATURE] Subcontracting Get Receipt Lines
+    // Scenario matrix:
+    // T1  Supported: An untracked final-operation inventory put-away receipt posts on a separate invoice.
+    // T2  Supported: A tracked non-final-operation receipt posts through the capacity-only path.
+    // T3  Blocked: A serial-tracked final-operation receipt is rejected before invoice or ledger mutation.
+    // T4  Blocked: A tracked final-operation receipt is rejected when expected cost posting is enabled.
+    // T5  Blocked: A lot-tracked final-operation receipt is rejected before invoice mutation.
+    // T6  Supported: A partial receipt posts on a separate invoice and only the received quantity is invoiced.
+    // T7  Supported: A partial invoice posts and leaves the uninvoiced receipt quantity available.
+    // T8  Supported: Multiple receipts from one subcontracting order post on one vendor invoice.
+    // T9  Supported: Receipts from multiple production orders post on one vendor invoice.
+    // T10 Supported: An alternate-UOM receipt posts with the correct capacity cost and receipt invoicing state.
+    // T11 Blocked: A tracked final-operation warehouse receipt is rejected before invoice mutation.
+    // T12 Blocked: Cancel is rejected for a posted separate subcontracting invoice.
+    // T13 Blocked: Cancel remains rejected after the posted receipt is deleted.
+    // T14 Blocked: Correct is rejected for a posted separate subcontracting invoice.
+    // T15 Blocked: Create Corrective Credit Memo is rejected for a posted separate subcontracting invoice.
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
@@ -77,7 +95,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice()
+    procedure T1_GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice()
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
@@ -180,220 +198,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CancelSeparateSubcontractingInvoiceIsBlocked()
-    var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
-    begin
-        // [SCENARIO 649862] Cancel is blocked for a separate subcontracting invoice
-        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
-
-        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
-
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    procedure CancelSeparateSubcontractingInvoiceAfterReceiptDeletionIsBlocked()
-    var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
-        PostedInvoiceLine: Record "Purch. Inv. Line";
-        PurchRcptHeader: Record "Purch. Rcpt. Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
-    begin
-        // [SCENARIO 649862] Cancel remains blocked after the invoiced subcontracting receipt is deleted
-        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
-        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
-        PostedInvoiceLine.SetRange("Document No.", PostedInvoiceHeader."No.");
-#pragma warning disable AA0210
-        PostedInvoiceLine.SetFilter("Receipt No.", '<>%1', '');
-#pragma warning restore AA0210
-        PostedInvoiceLine.FindFirst();
-        PurchRcptHeader.Get(PostedInvoiceLine."Receipt No.");
-        LibraryPurchase.SetAllowDocumentDeletionBeforeDate(PurchRcptHeader."Posting Date" + 1);
-        PurchRcptHeader.Delete(true);
-
-        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
-
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    procedure CorrectSeparateSubcontractingInvoiceIsBlocked()
-    var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
-        PurchaseHeader: Record "Purchase Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
-    begin
-        // [SCENARIO 649862] Correct is blocked for a separate subcontracting invoice
-        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
-
-        asserterror CorrectPostedPurchInvoice.CancelPostedInvoiceStartNewInvoice(PostedInvoiceHeader, PurchaseHeader);
-
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler')]
-    procedure CreateCorrectiveCreditMemoForSeparateSubcontractingInvoiceIsBlocked()
-    var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
-        PurchaseHeader: Record "Purchase Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
-    begin
-        // [SCENARIO 649862] Create Corrective Credit Memo is blocked for a separate subcontracting invoice
-        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
-        Assert.IsTrue(PostedInvoiceHeader.IsFullyOpen(), 'The posted invoice must be fully open before creating a corrective credit memo.');
-
-        asserterror CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, PurchaseHeader);
-
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesForTrackedLastOperationSubcontractingReceiptIsBlockedBeforeMutation()
-    var
-        CapacityLedgerEntry: Record "Capacity Ledger Entry";
-        Item: Record Item;
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        ProductionOrder: Record "Production Order";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        InvoiceHeader: Record "Purchase Header";
-        InvoiceLine: Record "Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        ReservationEntry: Record "Reservation Entry";
-        Vendor: Record Vendor;
-        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
-        CapacityLedgerEntryCount: Integer;
-        CapacityLedgerEntryNo: Integer;
-        OutputItemLedgerEntryCount: Integer;
-        InvoiceLineCountBefore: Integer;
-        ReservationEntryCountBefore: Integer;
-        CapacityInvoicedQtyBefore: Decimal;
-        OutputInvoicedQtyBefore: Decimal;
-        Quantity: Decimal;
-    begin
-        // [SCENARIO 649862] A tracked last-operation subcontracting receipt is blocked before any invoice-line or ledger mutation
-        // [GIVEN] A fully received, uninvoiced, serial-tracked, last-operation subcontracting receipt
-        Quantity := 1;
-        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
-            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
-            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-            Quantity, true, false, 'BLOCKED-SN1', Quantity, '', 0, true, 0, 0);
-
-        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
-        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
-        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
-        InvoiceLineCountBefore := InvoiceLine.Count();
-        ReservationEntry.SetSourceFilter(
-            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", false);
-        ReservationEntryCountBefore := ReservationEntry.Count();
-        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
-        CapacityInvoicedQtyBefore := CapacityLedgerEntry."Invoiced Quantity";
-        ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        ItemLedgerEntry.FindFirst();
-        OutputInvoicedQtyBefore := ItemLedgerEntry."Invoiced Quantity";
-
-        // [WHEN] Get Receipt Lines is run for the tracked last-operation receipt
-        PurchRcptLine.SetRecFilter();
-        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-
-        // [THEN] The copy is rejected and nothing is mutated
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
-
-        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
-        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
-        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
-        Assert.AreEqual(InvoiceLineCountBefore, InvoiceLine.Count(), 'A blocked tracked last-operation receipt must not create an invoice line.');
-        ReservationEntry.SetSourceFilter(
-            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", false);
-        Assert.AreEqual(ReservationEntryCountBefore, ReservationEntry.Count(), 'A blocked tracked last-operation receipt must not create a reservation entry.');
-        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
-        Assert.AreEqual(
-            CapacityInvoicedQtyBefore, CapacityLedgerEntry."Invoiced Quantity",
-            'A blocked tracked last-operation receipt must not change the capacity ledger entry invoiced quantity.');
-        ItemLedgerEntry.FindFirst();
-        Assert.AreEqual(
-            OutputInvoicedQtyBefore, ItemLedgerEntry."Invoiced Quantity",
-            'A blocked tracked last-operation receipt must not change the output item ledger entry invoiced quantity.');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesForTrackedLastOperationIsBlockedWithExpectedCostPosting()
-    var
-        CapacityLedgerEntry: Record "Capacity Ledger Entry";
-        Item: Record Item;
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        ProductionOrder: Record "Production Order";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        InvoiceHeader: Record "Purchase Header";
-        InvoiceLine: Record "Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        ValueEntry: Record "Value Entry";
-        Vendor: Record Vendor;
-        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
-        CapacityLedgerEntryCount: Integer;
-        CapacityLedgerEntryNo: Integer;
-        OutputItemLedgerEntryCount: Integer;
-        CapacityInvoicedQtyBefore: Decimal;
-        OutputInvoicedQtyBefore: Decimal;
-        Quantity: Decimal;
-    begin
-        // [SCENARIO 649862] A tracked last-operation subcontracting receipt stays blocked even with Expected Cost Posting to G/L enabled
-        // [GIVEN] Expected Cost Posting to G/L is enabled and a fully received, uninvoiced, serial-tracked, last-operation subcontracting receipt exists
-        LibraryInventory.SetAutomaticCostPosting(true);
-        LibraryInventory.SetExpectedCostPosting(true);
-
-        Quantity := 1;
-        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
-            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
-            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-            Quantity, true, false, 'EXPCOST-SN1', Quantity, '', 0, true, 0, 0);
-
-        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
-        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
-        CapacityInvoicedQtyBefore := CapacityLedgerEntry."Invoiced Quantity";
-        ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        ItemLedgerEntry.FindFirst();
-        OutputInvoicedQtyBefore := ItemLedgerEntry."Invoiced Quantity";
-
-        // [WHEN] Get Receipt Lines is run for the tracked last-operation receipt
-        PurchRcptLine.SetRecFilter();
-        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-
-        // [THEN] The copy is rejected, no invoice line or Value Entry is created, and ledger state is unchanged
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
-
-        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
-        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
-        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
-        Assert.RecordIsEmpty(InvoiceLine);
-        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
-        ValueEntry.SetRange("Document No.", InvoiceHeader."No.");
-        Assert.RecordIsEmpty(ValueEntry);
-        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
-        Assert.AreEqual(
-            CapacityInvoicedQtyBefore, CapacityLedgerEntry."Invoiced Quantity",
-            'Expected Cost Posting must not let a blocked tracked last-operation receipt change the capacity ledger entry invoiced quantity.');
-        ItemLedgerEntry.FindFirst();
-        Assert.AreEqual(
-            OutputInvoicedQtyBefore, ItemLedgerEntry."Invoiced Quantity",
-            'Expected Cost Posting must not let a blocked tracked last-operation receipt change the output item ledger entry invoiced quantity.');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesForNonLastOperationTrackedSubcontractingReceiptPostsInvoice()
+    procedure T2_GetReceiptLinesForNonLastOperationTrackedSubcontractingReceiptPostsInvoice()
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
@@ -443,6 +248,525 @@ codeunit 149927 "Subc. Get Receipt Lines"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not create item output for a non-last operation.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T3_GetReceiptLinesForTrackedLastOperationSubcontractingReceiptIsBlockedBeforeMutation()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        InvoiceLineCountBefore: Integer;
+        ReservationEntryCountBefore: Integer;
+        CapacityInvoicedQtyBefore: Decimal;
+        OutputInvoicedQtyBefore: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A tracked last-operation subcontracting receipt is blocked before any invoice-line or ledger mutation
+        // [GIVEN] A fully received, uninvoiced, serial-tracked, last-operation subcontracting receipt
+        Quantity := 1;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, true, false, 'BLOCKED-SN1', Quantity, '', 0, true, 0, 0, 0, '', 0, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLineCountBefore := InvoiceLine.Count();
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        ReservationEntryCountBefore := ReservationEntry.Count();
+        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
+        CapacityInvoicedQtyBefore := CapacityLedgerEntry."Invoiced Quantity";
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindFirst();
+        OutputInvoicedQtyBefore := ItemLedgerEntry."Invoiced Quantity";
+
+        // [WHEN] Get Receipt Lines is run for the tracked last-operation receipt
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+
+        // [THEN] The copy is rejected and nothing is mutated
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        Assert.AreEqual(InvoiceLineCountBefore, InvoiceLine.Count(), 'A blocked tracked last-operation receipt must not create an invoice line.');
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        Assert.AreEqual(ReservationEntryCountBefore, ReservationEntry.Count(), 'A blocked tracked last-operation receipt must not create a reservation entry.');
+        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
+        Assert.AreEqual(
+            CapacityInvoicedQtyBefore, CapacityLedgerEntry."Invoiced Quantity",
+            'A blocked tracked last-operation receipt must not change the capacity ledger entry invoiced quantity.');
+        ItemLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            OutputInvoicedQtyBefore, ItemLedgerEntry."Invoiced Quantity",
+            'A blocked tracked last-operation receipt must not change the output item ledger entry invoiced quantity.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T4_GetReceiptLinesForTrackedLastOperationIsBlockedWithExpectedCostPosting()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        CapacityInvoicedQtyBefore: Decimal;
+        OutputInvoicedQtyBefore: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A tracked last-operation subcontracting receipt stays blocked even with Expected Cost Posting to G/L enabled
+        // [GIVEN] Expected Cost Posting to G/L is enabled and a fully received, uninvoiced, serial-tracked, last-operation subcontracting receipt exists
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(true);
+
+        Quantity := 1;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, true, false, 'EXPCOST-SN1', Quantity, '', 0, true, 0, 0, 0, '', 0, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
+        CapacityInvoicedQtyBefore := CapacityLedgerEntry."Invoiced Quantity";
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindFirst();
+        OutputInvoicedQtyBefore := ItemLedgerEntry."Invoiced Quantity";
+
+        // [WHEN] Get Receipt Lines is run for the tracked last-operation receipt
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+
+        // [THEN] The copy is rejected, no invoice line or Value Entry is created, and ledger state is unchanged
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        Assert.RecordIsEmpty(InvoiceLine);
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", InvoiceHeader."No.");
+        Assert.RecordIsEmpty(ValueEntry);
+        CapacityLedgerEntry.Get(CapacityLedgerEntryNo);
+        Assert.AreEqual(
+            CapacityInvoicedQtyBefore, CapacityLedgerEntry."Invoiced Quantity",
+            'Expected Cost Posting must not let a blocked tracked last-operation receipt change the capacity ledger entry invoiced quantity.');
+        ItemLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            OutputInvoicedQtyBefore, ItemLedgerEntry."Invoiced Quantity",
+            'Expected Cost Posting must not let a blocked tracked last-operation receipt change the output item ledger entry invoiced quantity.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T5_GetReceiptLinesForLotTrackedLastOperationIsBlockedBeforeMutation()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+    begin
+        // [SCENARIO 649862] A lot-tracked last-operation subcontracting receipt is blocked before invoice-line mutation
+        CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            2, false, true, 'BLOCKED-LOT1', 1, 'BLOCKED-LOT2', 1, true);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        Assert.RecordIsEmpty(InvoiceLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T6_GetReceiptLinesForPartialReceiptPostsSeparateInvoice()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PartialQuantity: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A partial subcontracting receipt can be invoiced through Get Receipt Lines
+        Quantity := 10;
+        PartialQuantity := 4;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, false, false, '', 0, '', 0, false, 0, 0, PartialQuantity, '', 0, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(PartialQuantity, PurchRcptLine.Quantity, 'The posted receipt must contain the partial quantity.');
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The partial receipt must be fully invoiced.');
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(PartialQuantity, PurchaseLine."Quantity Received", 'Only the partial quantity must be received.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T7_GetReceiptLinesForPartialInvoicePostsRemainingQuantity()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        InvoiceQuantity: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] Part of a subcontracting receipt can be invoiced through Get Receipt Lines
+        Quantity := 10;
+        InvoiceQuantity := 4;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, false, false, '', 0, '', 0, false, 0, 0, 0, '', 0, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        InvoiceLine.Validate(Quantity, InvoiceQuantity);
+        InvoiceLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(
+            Quantity - InvoiceQuantity, PurchRcptLine."Qty. Rcd. Not Invoiced",
+            'The receipt must retain the quantity that was not invoiced.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T8_GetReceiptLinesForMultipleReceiptsPostsOneInvoice()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PartialQuantity: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] Multiple receipts from one subcontracting order can be invoiced together
+        Quantity := 10;
+        PartialQuantity := 4;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, false, false, '', 0, '', 0, false, 0, 0, PartialQuantity, '', 0, false);
+
+        WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
+        WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Purchase Order");
+        WarehouseActivityHeader.SetRange("Source No.", PurchaseHeader."No.");
+#pragma warning disable AA0210
+        WarehouseActivityHeader.SetRange("Source Type", Database::"Purchase Line");
+        WarehouseActivityHeader.SetRange("Source Subtype", PurchaseHeader."Document Type");
+#pragma warning restore AA0210
+        WarehouseActivityHeader.FindFirst();
+        SubcWarehouseLibrary.PostPartialPutAway(WarehouseActivityHeader, Quantity - PartialQuantity);
+
+        PurchRcptLine.Reset();
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        Assert.RecordCount(PurchRcptLine, 2);
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Reset();
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindSet();
+        repeat
+            Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'Each receipt must be fully invoiced.');
+        until PurchRcptLine.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T9_GetReceiptLinesForMultipleProductionOrdersPostsOneInvoice()
+    var
+        Item: array[2] of Record Item;
+        ProductionOrder: array[2] of Record "Production Order";
+        PurchRcptLine: array[2] of Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO 649862] Receipts from multiple production orders can be posted on one vendor invoice
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item[1], Vendor, ProductionOrder[1], PurchRcptLine[1], PurchaseHeader[1], PurchaseLine[1],
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            5, false, false, '', 0, '', 0, false, 0, 0, 0, '', 0, false);
+        VendorNo := Vendor."No.";
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item[2], Vendor, ProductionOrder[2], PurchRcptLine[2], PurchaseHeader[2], PurchaseLine[2],
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            7, false, false, '', 0, '', 0, false, 0, 0, 0, VendorNo, 0, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, VendorNo);
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchRcptLine[1].SetRecFilter();
+        PurchGetReceipt.CreateInvLines(PurchRcptLine[1]);
+        PurchRcptLine[2].SetRecFilter();
+        PurchGetReceipt.CreateInvLines(PurchRcptLine[2]);
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        Assert.RecordCount(ValueEntry, 2);
+        Assert.AreNotEqual(ProductionOrder[1]."No.", ProductionOrder[2]."No.", 'The test must use two production orders.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T10_GetReceiptLinesWithAlternateUnitOfMeasurePostsSeparateInvoice()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+        QtyPerUnitOfMeasure: Decimal;
+        QuantityBase: Decimal;
+    begin
+        // [SCENARIO 649862] A subcontracting receipt with an alternate UOM can be invoiced separately
+        QuantityBase := 10;
+        QtyPerUnitOfMeasure := 5;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            QuantityBase, false, false, '', 0, '', 0, false, 0, 0, 0, '', QtyPerUnitOfMeasure, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.FindFirst();
+        Assert.AreEqual(PurchRcptLine."Unit of Measure Code", InvoiceLine."Unit of Measure Code", 'The alternate UOM code must be preserved.');
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The alternate-UOM receipt must be fully invoiced.');
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(
+            Round(InvoiceLine.Quantity * InvoiceLine."Direct Unit Cost"), Round(ValueEntry."Cost Amount (Actual)"),
+            'The alternate-UOM invoice cost must be posted to the original capacity ledger entry.');
+    end;
+
+    [Test]
+    procedure T11_GetReceiptLinesForTrackedFinalOperationWarehouseReceiptIsBlocked()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+    begin
+        // [SCENARIO 649862] A tracked final-operation warehouse receipt is blocked before invoice mutation
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            1, true, false, 'WHSE-BLOCKED-SN1', 1, '', 0, true, 0, 0, 0, '', 0, true);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        Assert.RecordIsEmpty(InvoiceLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T12_CancelSeparateSubcontractingInvoiceIsBlocked()
+    var
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [SCENARIO 649862] Cancel is blocked for a separate subcontracting invoice
+        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
+
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
+
+        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T13_CancelSeparateSubcontractingInvoiceAfterReceiptDeletionIsBlocked()
+    var
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
+        PostedInvoiceLine: Record "Purch. Inv. Line";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [SCENARIO 649862] Cancel remains blocked after the invoiced subcontracting receipt is deleted
+        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+        PostedInvoiceLine.SetRange("Document No.", PostedInvoiceHeader."No.");
+#pragma warning disable AA0210
+        PostedInvoiceLine.SetFilter("Receipt No.", '<>%1', '');
+#pragma warning restore AA0210
+        PostedInvoiceLine.FindFirst();
+        PurchRcptHeader.Get(PostedInvoiceLine."Receipt No.");
+        LibraryPurchase.SetAllowDocumentDeletionBeforeDate(PurchRcptHeader."Posting Date" + 1);
+        PurchRcptHeader.Delete(true);
+
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
+
+        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure T14_CorrectSeparateSubcontractingInvoiceIsBlocked()
+    var
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
+        PurchaseHeader: Record "Purchase Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [SCENARIO 649862] Correct is blocked for a separate subcontracting invoice
+        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
+
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoiceStartNewInvoice(PostedInvoiceHeader, PurchaseHeader);
+
+        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure T15_CreateCorrectiveCreditMemoForSeparateSubcontractingInvoiceIsBlocked()
+    var
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
+        PurchaseHeader: Record "Purchase Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [SCENARIO 649862] Create Corrective Credit Memo is blocked for a separate subcontracting invoice
+        CreatePostedSeparateSubcontractingInvoice(PostedInvoiceHeader);
+        Assert.IsTrue(PostedInvoiceHeader.IsFullyOpen(), 'The posted invoice must be fully open before creating a corrective credit memo.');
+
+        asserterror CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, PurchaseHeader);
+
+        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
     end;
 
     local procedure CreatePostedSeparateSubcontractingInvoice(var PostedInvoiceHeader: Record "Purch. Inv. Header")
@@ -523,7 +847,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
             Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
             CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
             Quantity, TrackSerialOutput, TrackLotOutput, TrackingNo1, TrackingQuantity1,
-            TrackingNo2, TrackingQuantity2, LastOperation, 0, 0);
+            TrackingNo2, TrackingQuantity2, LastOperation, 0, 0, 0, '', 0, false);
     end;
 
     local procedure CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
@@ -545,16 +869,23 @@ codeunit 149927 "Subc. Get Receipt Lines"
         TrackingQuantity2: Decimal;
         LastOperation: Boolean;
         StandardSubcontractedCost: Decimal;
-        DirectUnitCost: Decimal)
+        DirectUnitCost: Decimal;
+        ReceiptQuantity: Decimal;
+        ForcedVendorNo: Code[20];
+        QtyPerUnitOfMeasure: Decimal;
+        UseWarehouseReceipt: Boolean)
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
         Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
+        PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header";
         ProdOrderLine: Record "Prod. Order Line";
         ReservationEntry: Record "Reservation Entry";
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
         WorkCenter: array[2] of Record "Work Center";
         SubcontractingWorkCenterIndex: Integer;
     begin
@@ -570,6 +901,8 @@ codeunit 149927 "Subc. Get Receipt Lines"
                 SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter)
             else
                 SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        if QtyPerUnitOfMeasure <> 0 then
+            LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUnitOfMeasure);
         if StandardSubcontractedCost <> 0 then begin
             Item.Validate("Costing Method", Item."Costing Method"::Standard);
             Item.Validate("Standard Cost", StandardSubcontractedCost);
@@ -581,8 +914,15 @@ codeunit 149927 "Subc. Get Receipt Lines"
         SubcontractingWorkCenterIndex := 2;
         if not LastOperation then
             SubcontractingWorkCenterIndex := 1;
+        if ForcedVendorNo <> '' then begin
+            WorkCenter[SubcontractingWorkCenterIndex].Validate("Subcontractor No.", ForcedVendorNo);
+            WorkCenter[SubcontractingWorkCenterIndex].Modify(true);
+        end;
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[SubcontractingWorkCenterIndex]."No.");
-        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+        if UseWarehouseReceipt then
+            SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location)
+        else
+            SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
 
         Vendor.Get(WorkCenter[SubcontractingWorkCenterIndex]."Subcontractor No.");
         Vendor."Subc. Location Code" := Location.Code;
@@ -595,6 +935,11 @@ codeunit 149927 "Subc. Get Receipt Lines"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
             Item."Routing No.", WorkCenter[SubcontractingWorkCenterIndex]."No.", PurchaseLine);
+        if QtyPerUnitOfMeasure <> 0 then begin
+            PurchaseLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+            PurchaseLine.Validate(Quantity, Quantity / QtyPerUnitOfMeasure);
+            PurchaseLine.Modify(true);
+        end;
         if DirectUnitCost = 0 then
             DirectUnitCost := LibraryRandom.RandDecInRange(10, 25, 2);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
@@ -620,42 +965,50 @@ codeunit 149927 "Subc. Get Receipt Lines"
             end;
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
-        if not LastOperation then
-            LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader)
-        else
-            if TrackSerialOutput then begin
-                WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
-                WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-                WarehouseActivityLine.FindSet();
-                WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
-                WarehouseActivityLine.Validate("Serial No.", TrackingNo1);
-                WarehouseActivityLine.Modify(true);
-                if TrackingQuantity2 <> 0 then begin
-                    WarehouseActivityLine.Next();
-                    WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
-                    WarehouseActivityLine.Validate("Serial No.", TrackingNo2);
-                    WarehouseActivityLine.Modify(true);
-                end;
-            end else
-                if TrackLotOutput then begin
+        if UseWarehouseReceipt then begin
+            SubcWarehouseLibrary.CreateWarehouseReceiptFromPurchaseOrder(PurchaseHeader, WarehouseReceiptHeader);
+            SubcWarehouseLibrary.PostWarehouseReceipt(WarehouseReceiptHeader, PostedWhseReceiptHeader);
+        end else begin
+            LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+            SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+            if not LastOperation then
+                LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader)
+            else
+                if TrackSerialOutput then begin
                     WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
                     WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-                    WarehouseActivityLine.SetRange("Lot No.", TrackingNo1);
-                    WarehouseActivityLine.FindFirst();
-                    Assert.AreEqual(TrackingQuantity1, WarehouseActivityLine.Quantity, 'The first lot must retain its production tracking quantity.');
+                    WarehouseActivityLine.FindSet();
                     WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
+                    WarehouseActivityLine.Validate("Serial No.", TrackingNo1);
                     WarehouseActivityLine.Modify(true);
-
-                    WarehouseActivityLine.SetRange("Lot No.", TrackingNo2);
-                    WarehouseActivityLine.FindFirst();
-                    Assert.AreEqual(TrackingQuantity2, WarehouseActivityLine.Quantity, 'The second lot must retain its production tracking quantity.');
-                    WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
-                    WarehouseActivityLine.Modify(true);
+                    if TrackingQuantity2 <> 0 then begin
+                        WarehouseActivityLine.Next();
+                        WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
+                        WarehouseActivityLine.Validate("Serial No.", TrackingNo2);
+                        WarehouseActivityLine.Modify(true);
+                    end;
                 end else
-                    LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
-        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+                    if TrackLotOutput then begin
+                        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+                        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+                        WarehouseActivityLine.SetRange("Lot No.", TrackingNo1);
+                        WarehouseActivityLine.FindFirst();
+                        Assert.AreEqual(TrackingQuantity1, WarehouseActivityLine.Quantity, 'The first lot must retain its production tracking quantity.');
+                        WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
+                        WarehouseActivityLine.Modify(true);
+
+                        WarehouseActivityLine.SetRange("Lot No.", TrackingNo2);
+                        WarehouseActivityLine.FindFirst();
+                        Assert.AreEqual(TrackingQuantity2, WarehouseActivityLine.Quantity, 'The second lot must retain its production tracking quantity.');
+                        WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
+                        WarehouseActivityLine.Modify(true);
+                    end else
+                        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+            if ReceiptQuantity <> 0 then
+                SubcWarehouseLibrary.PostPartialPutAway(WarehouseActivityHeader, ReceiptQuantity)
+            else
+                LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+        end;
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
         PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
