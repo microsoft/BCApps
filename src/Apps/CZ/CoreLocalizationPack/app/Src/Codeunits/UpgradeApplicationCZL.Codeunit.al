@@ -191,6 +191,9 @@ codeunit 31017 "Upgrade Application CZL"
 #endif
         UpgradeOriginalVATAmountsACYInVATEntries();
         UpgradeDraftInvoiceAndProformaReportLayouts();
+#if not CLEANSCHEMA33
+        UpgradeStatutoryReportingSetupOfficialFullName();
+#endif
         UpgradeEETTaxpayerCertificateCode();
         UpgradeEETBusinessPremisesExtendedDescription();
     end;
@@ -660,6 +663,24 @@ codeunit 31017 "Upgrade Application CZL"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetOriginalVATAmountsACYInVATEntriesUpgradeTag());
     end;
+#if not CLEANSCHEMA33
+
+    local procedure UpgradeStatutoryReportingSetupOfficialFullName()
+    var
+        StatutoryReportingSetupCZL: Record "Statutory Reporting Setup CZL";
+        StatutoryReportingSetupDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetStatutoryReportingSetupOfficialFullNameUpgradeTag()) then
+            exit;
+
+        StatutoryReportingSetupDataTransfer.SetTables(Database::"Statutory Reporting Setup CZL", Database::"Statutory Reporting Setup CZL");
+        StatutoryReportingSetupDataTransfer.AddSourceFilter(StatutoryReportingSetupCZL.FieldNo("Official Name"), '<>%1', '');
+        StatutoryReportingSetupDataTransfer.AddFieldValue(StatutoryReportingSetupCZL.FieldNo("Official Name"), StatutoryReportingSetupCZL.FieldNo("Official Full Name"));
+        StatutoryReportingSetupDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetStatutoryReportingSetupOfficialFullNameUpgradeTag());
+    end;
+#endif
 
     local procedure UpgradeEnableNonDeductibleVATCZ()
     var
