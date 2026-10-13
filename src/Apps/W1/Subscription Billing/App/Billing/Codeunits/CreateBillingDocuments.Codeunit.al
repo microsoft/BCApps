@@ -1358,7 +1358,7 @@ codeunit 8060 "Create Billing Documents"
         // (incl. automated/background billing) without committing inside the per-line loop.
         // When posting follows, creation and posting are kept atomic and PostCreatedDocuments
         // manages its own commit/rollback.
-        if not PostDocuments then
+        if (not PostDocuments) and (DocumentsCreatedCount > 0) then
             Commit();
     end;
 

@@ -10,10 +10,12 @@ tableextension 10569 "VAT Reports Configuration" extends "VAT Reports Configurat
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(10501; "Content Max Lines GB"; Integer)
         {
             Caption = 'Content Max Lines';
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
     }
 }
