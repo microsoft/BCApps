@@ -40,7 +40,7 @@ codeunit 6400 "Flow Service Management"
         PowerPlatformTenantNotConfiguredErr: Label 'Power Automate cannot connect because this Business Central environment is not linked to a Power Platform tenant. Contact your system administrator to configure the Power Platform environment link.';
         BearerTokenTxt: Label 'Bearer %1', Locked = true;
         InvalidUriErr: Label 'The URI is not valid.';
-        FileSchemeNotAllowedErr: Label 'The file scheme is not allowed.';
+        SchemeNotAllowedErr: Label 'Only the http and https schemes are allowed.';
         InvalidEncodingErr: Label 'The text encoding is not specified or is not valid.';
         RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
 
@@ -184,8 +184,8 @@ codeunit 6400 "Flow Service Management"
         if not Uri.IsValidUri(Url) then
             Error(InvalidUriErr);
         Uri.Init(Url);
-        if LowerCase(Uri.GetScheme()) = 'file' then
-            Error(FileSchemeNotAllowedErr);
+        if not (LowerCase(Uri.GetScheme()) in ['http', 'https']) then
+            Error(SchemeNotAllowedErr);
 
         HttpRequestMessage.Method(Method);
         HttpRequestMessage.SetRequestUri(Url);
