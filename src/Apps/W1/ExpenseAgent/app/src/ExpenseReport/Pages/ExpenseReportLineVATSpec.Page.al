@@ -45,7 +45,10 @@ page 7081 "Expense Report Line VAT Spec."
                 field("VAT %"; Rec."VAT %")
                 {
                     Caption = 'VAT %';
-                    Editable = false;
+                }
+                field(Amount; Rec.Amount)
+                {
+                    Caption = 'Amount';
                 }
                 field("VAT Base Amount"; Rec."VAT Base Amount")
                 {
@@ -57,6 +60,10 @@ page 7081 "Expense Report Line VAT Spec."
                     Caption = 'VAT Amount';
                     Editable = false;
                 }
+                field("Amount (LCY)"; Rec."Amount (LCY)")
+                {
+                    Caption = 'Amount (LCY)';
+                }
                 field("VAT Base Amount (LCY)"; Rec."VAT Base Amount (LCY)")
                 {
                     Caption = 'VAT Base Amount (LCY)';
@@ -65,6 +72,21 @@ page 7081 "Expense Report Line VAT Spec."
                 field("VAT Amount (LCY)"; Rec."VAT Amount (LCY)")
                 {
                     Caption = 'VAT Amount (LCY)';
+                    Editable = false;
+                }
+                field("Amount (RCY)"; Rec."Amount (RCY)")
+                {
+                    Caption = 'Amount (RCY)';
+                    Editable = false;
+                }
+                field("VAT Base Amount (RCY)"; Rec."VAT Base Amount (RCY)")
+                {
+                    Caption = 'VAT Base Amount (RCY)';
+                    Editable = false;
+                }
+                field("VAT Amount (RCY)"; Rec."VAT Amount (RCY)")
+                {
+                    Caption = 'VAT Amount (RCY)';
                     Editable = false;
                 }
                 field(Reclaimable; Rec.Reclaimable)
@@ -83,6 +105,11 @@ page 7081 "Expense Report Line VAT Spec."
                 field("Reclaim VAT Amount (LCY)"; Rec."Reclaim VAT Amount (LCY)")
                 {
                     Caption = 'Reclaim VAT Amount (LCY)';
+                    Editable = false;
+                }
+                field("Reclaim VAT Amount (RCY)"; Rec."Reclaim VAT Amount (RCY)")
+                {
+                    Caption = 'Reclaim VAT Amount (RCY)';
                     Editable = false;
                 }
                 field("Reclaim Reason"; Rec."Reclaim Reason")
@@ -154,6 +181,28 @@ page 7081 "Expense Report Line VAT Spec."
                         CurrPage.Update(false);
                     end;
                 }
+                action(ApproveAllReclaims)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Approve All Reclaims';
+                    Image = Approve;
+                    ToolTip = 'Approve all VAT reclaims for the selected expense report line.';
+
+                    trigger OnAction()
+                    var
+                        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+                    begin
+                        ExpenseReportLineVATSpec.SetRange("Document No.", Rec."Document No.");
+                        ExpenseReportLineVATSpec.SetRange("Document Line No.", Rec."Document Line No.");
+                        ExpenseReportLineVATSpec.SetRange("Reclaim Status", ExpenseReportLineVATSpec."Reclaim Status"::Pending);
+                        if ExpenseReportLineVATSpec.FindSet(true) then
+                            repeat
+                                ExpenseReportLineVATSpec.Validate("Reclaim Status", Rec."Reclaim Status"::Approved);
+                                ExpenseReportLineVATSpec.Modify(true);
+                            until ExpenseReportLineVATSpec.Next() = 0;
+                        CurrPage.Update(false);
+                    end;
+                }
                 action(RejectReclaim)
                 {
                     ApplicationArea = Basic, Suite;
@@ -176,6 +225,9 @@ page 7081 "Expense Report Line VAT Spec."
             {
                 Caption = 'Process';
                 actionref(ApproveReclaim_Promoted; ApproveReclaim)
+                {
+                }
+                actionref(ApproveAllReclaims_Promoted; ApproveAllReclaims)
                 {
                 }
                 actionref(RejectReclaim_Promoted; RejectReclaim)

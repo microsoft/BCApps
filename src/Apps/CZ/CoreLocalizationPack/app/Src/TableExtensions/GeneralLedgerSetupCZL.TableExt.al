@@ -180,6 +180,7 @@ tableextension 11713 "General Ledger Setup CZL" extends "General Ledger Setup"
     begin
         if ("Def. Orig. Doc. VAT Date CZL" = DefaultOrigDocVATDate) then
             OriginalDocumentVATDate := NewDate;
+        OnAfterUpdateOriginalDocumentVATDateCZL(NewDate, DefaultOrigDocVATDate, OriginalDocumentVATDate);
     end;
 
     procedure GetOriginalDocumentVATDateCZL(PostingDate: Date; VATDate: Date; DocumentDate: Date): Date
@@ -233,6 +234,11 @@ tableextension 11713 "General Ledger Setup CZL" extends "General Ledger Setup"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitVATDateCZL()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateOriginalDocumentVATDateCZL(NewDate: Date; DefaultOriginalDocumentVATDate: Enum "Default Orig.Doc. VAT Date CZL"; var OriginalDocumentVATDate: Date)
     begin
     end;
 }

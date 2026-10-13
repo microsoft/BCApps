@@ -1036,6 +1036,163 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
             StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Carbon Fee"), 0, SustainabilityLedgerEntry.TableCaption()));
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure TestFAReclassJournalLineWithDifferentCO2ePercent()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SustainabilityAccount: array[2] of Record "Sustainability Account";
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: array[2] of Record "Fixed Asset";
+        EmissionFee: array[3] of Record "Emission Fee";
+        FAReclassJournalLine: Record "FA Reclass. Journal Line";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        ExpectedCO2eEmission: Decimal;
+        ReclassifyCO2ePercent: Decimal;
+        CategoryCode, CategoryCode1 : Code[20];
+        SubcategoryCode, SubcategoryCode1 : Code[20];
+        DocumentNo: Code[20];
+        AccountCode, AccountCode1 : Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 641282] [Sustainability] - Value Chain: Fixed Assets - Emissions are split by "Reclassify CO2e %" independently of "Reclassify Acq. Cost %".
+        Initialize();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount[1].Get(AccountCode);
+
+        // [GIVEN] Create Emission Fee With Emission Scope and Country/Region.
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount[1]."Emission Scope", '');
+
+        // [GIVEN] Save Expected CO2e Emission.
+        ExpectedCO2eEmission := LibraryRandom.RandDecInRange(1, 2, 2);
+
+        // [GIVEN] Create a Fixed Asset.
+        CreateFixedAssetSetup(DepreciationBook);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset[1]);
+        CreateFADepreciationBook(FixedAsset[1]."No.", DepreciationBook.Code, FixedAsset[1]."FA Posting Group");
+        UpdateIntegrationInBook(DepreciationBook, false, false, false, false, false, false, false);
+
+        // [GIVEN] Create a Fixed Asset Journal Line.
+        CreateFAJournalLine(FAJournalLine, FixedAsset[1]."No.", DepreciationBook.Code);
+        FAJournalLine.Validate("Sust. Account No.", SustainabilityAccount[1]."No.");
+        FAJournalLine.Validate("Total CO2e", ExpectedCO2eEmission);
+        FAJournalLine.Modify(true);
+
+        // [GIVEN] Post the FA Journal Line.
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [GIVEN] Create another Fixed Assets with same depreciation book.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset[2]);
+        CreateFADepreciationBook(FixedAsset[2]."No.", DepreciationBook.Code, FixedAsset[2]."FA Posting Group");
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode1, CategoryCode1, SubcategoryCode1, LibraryRandom.RandInt(10));
+        SustainabilityAccount[2].Get(AccountCode1);
+
+        // [GIVEN] Create a Fixed Asset Reclassification Journal Line with "Reclassify Acq. Cost %" of 50.
+        CreateFAReclassJournalLine(FAReclassJournalLine);
+        UpdateFAReclassJournal(FAReclassJournalLine, FixedAsset[1]."No.", FixedAsset[2]."No.", SustainabilityAccount[1]."No.", SustainabilityAccount[2]."No.");
+
+        // [GIVEN] Set a "Reclassify CO2e %" that differs from "Reclassify Acq. Cost %".
+        FAReclassJournalLine.Validate("Reclassify CO2e %", LibraryRandom.RandIntInRange(2, 4) * 10);  // 20, 30 or 40, always different from 50.
+        FAReclassJournalLine.Modify(true);
+
+        // [GIVEN] Reclassify FA Reclassification Journal Line.
+        DocumentNo := FAReclassJournalLine."Document No.";
+        ReclassifyCO2ePercent := FAReclassJournalLine."Reclassify CO2e %";
+        Codeunit.Run(Codeunit::"FA Reclass. Jnl.-Transfer", FAReclassJournalLine);
+
+        // [WHEN] Find and Post the FA Journal Line.
+        FindAndPostFAJournalLineAfterReclass(DocumentNo);
+
+        // [THEN] Emissions moved to the new account are split by "Reclassify CO2e %".
+        SustainabilityLedgerEntry.SetRange("Account No.", SustainabilityAccount[2]."No.");
+        SustainabilityLedgerEntry.CalcSums("CO2e Emission");
+        Assert.AreEqual(
+            Round(ExpectedCO2eEmission * ReclassifyCO2ePercent / 100),
+            SustainabilityLedgerEntry."CO2e Emission",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("CO2e Emission"), 0, SustainabilityLedgerEntry.TableCaption()));
+
+        // [THEN] Emissions remaining on the original account are the complement of "Reclassify CO2e %".
+        SustainabilityLedgerEntry.SetRange("Account No.", SustainabilityAccount[1]."No.");
+        SustainabilityLedgerEntry.CalcSums("CO2e Emission");
+        Assert.AreEqual(
+            Round(ExpectedCO2eEmission * (100 - ReclassifyCO2ePercent) / 100),
+            SustainabilityLedgerEntry."CO2e Emission",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("CO2e Emission"), 0, SustainabilityLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestFAReclassJournalLineWithZeroCO2ePercent()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SustainabilityAccount: array[2] of Record "Sustainability Account";
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: array[2] of Record "Fixed Asset";
+        EmissionFee: array[3] of Record "Emission Fee";
+        FAReclassJournalLine: Record "FA Reclass. Journal Line";
+        CategoryCode, CategoryCode1 : Code[20];
+        SubcategoryCode, SubcategoryCode1 : Code[20];
+        AccountCode, AccountCode1 : Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 641282] [Sustainability] - Value Chain: Fixed Assets - Reclassifying with "Reclassify CO2e %" left at 0 throws an error.
+        Initialize();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount[1].Get(AccountCode);
+
+        // [GIVEN] Create Emission Fee With Emission Scope and Country/Region.
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount[1]."Emission Scope", '');
+
+        // [GIVEN] Create a Fixed Asset, post a Fixed Asset Journal Line with CO2e emissions to it.
+        CreateFixedAssetSetup(DepreciationBook);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset[1]);
+        CreateFADepreciationBook(FixedAsset[1]."No.", DepreciationBook.Code, FixedAsset[1]."FA Posting Group");
+        UpdateIntegrationInBook(DepreciationBook, false, false, false, false, false, false, false);
+
+        CreateFAJournalLine(FAJournalLine, FixedAsset[1]."No.", DepreciationBook.Code);
+        FAJournalLine.Validate("Sust. Account No.", SustainabilityAccount[1]."No.");
+        FAJournalLine.Validate("Total CO2e", LibraryRandom.RandDecInRange(1, 2, 2));
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [GIVEN] Create another Fixed Asset with same depreciation book and a second Sustainability Account.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset[2]);
+        CreateFADepreciationBook(FixedAsset[2]."No.", DepreciationBook.Code, FixedAsset[2]."FA Posting Group");
+        CreateSustainabilityAccount(AccountCode1, CategoryCode1, SubcategoryCode1, LibraryRandom.RandInt(10));
+        SustainabilityAccount[2].Get(AccountCode1);
+
+        // [GIVEN] Create a Fixed Asset Reclassification Journal Line with "Reclassify Acq. Cost %" and Sustainability Accounts set, but "Reclassify CO2e %" left at 0.
+        CreateFAReclassJournalLine(FAReclassJournalLine);
+        FAReclassJournalLine.Validate("FA Posting Date", WorkDate());
+        FAReclassJournalLine.Validate("Document No.", FixedAsset[1]."No.");
+        FAReclassJournalLine.Validate("FA No.", FixedAsset[1]."No.");
+        FAReclassJournalLine.Validate("New FA No.", FixedAsset[2]."No.");
+        FAReclassJournalLine.Validate("Sust. Account No.", SustainabilityAccount[1]."No.");
+        FAReclassJournalLine.Validate("New Sust. Account No.", SustainabilityAccount[2]."No.");
+        FAReclassJournalLine.Validate("Reclassify Acq. Cost %", LibraryRandom.RandIntInRange(50, 50));
+        FAReclassJournalLine.Validate("Reclassify Acquisition Cost", true);
+        FAReclassJournalLine.Modify(true);
+
+        // [WHEN] Reclassify the FA Reclassification Journal Line.
+        asserterror Codeunit.Run(Codeunit::"FA Reclass. Jnl.-Transfer", FAReclassJournalLine);
+
+        // [THEN] An error is thrown that "Reclassify CO2e %" must have a value.
+        Assert.ExpectedError(FAReclassJournalLine.FieldCaption("Reclassify CO2e %"));
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1232,7 +1389,8 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
     var
         FAReclassJournalTemplate: Record "FA Reclass. Journal Template";
     begin
-        FAReclassJournalTemplate.FindFirst();
+        if not FAReclassJournalTemplate.FindFirst() then
+            LibraryFixedAsset.CreateFAReclassJournalTemplate(FAReclassJournalTemplate);
         LibraryFixedAsset.CreateFAReclassJournalBatch(FAReclassJournalBatch, FAReclassJournalTemplate.Name);
     end;
 
@@ -1245,6 +1403,7 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
         FAReclassJournalLine.Validate("Sust. Account No.", SustainabilityAccountNo);
         FAReclassJournalLine.Validate("New Sust. Account No.", NewSustainabilityAccountNo);
         FAReclassJournalLine.Validate("Reclassify Acq. Cost %", LibraryRandom.RandIntInRange(50, 50));  // Using Ranodm Reclassify Acq. Cost.
+        FAReclassJournalLine.Validate("Reclassify CO2e %", FAReclassJournalLine."Reclassify Acq. Cost %");
         FAReclassJournalLine.Validate("Reclassify Acquisition Cost", true);
         FAReclassJournalLine.Modify(true);
     end;

@@ -85,23 +85,14 @@ codeunit 6989 "Expense Attachment Mgt."
     begin
         case DocumentAttachment."Table ID" of
             Database::Expense:
-                begin
-                    RecRef.Open(Database::Expense);
-                    if Expense.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Expense);
-                end;
+                if Expense.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Expense);
             Database::"Expense Report Line":
-                begin
-                    RecRef.Open(Database::"Expense Report Line");
-                    if ExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
-                        RecRef.GetTable(ExpenseReportLine);
-                end;
+                if ExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
+                    RecRef.GetTable(ExpenseReportLine);
             Database::"Posted Expense Report Line":
-                begin
-                    RecRef.Open(Database::"Posted Expense Report Line");
-                    if PostedExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
-                        RecRef.GetTable(PostedExpenseReportLine);
-                end;
+                if PostedExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
+                    RecRef.GetTable(PostedExpenseReportLine);
         end;
     end;
 
@@ -426,7 +417,9 @@ codeunit 6989 "Expense Attachment Mgt."
             exit;
         end;
 
-        DocumentAttachment.GetAsTempBlob(TempBlob);
+        // Content hashing is best-effort bookkeeping and must not block attachment writes when external storage is unavailable.
+        if not TryGetAsTempBlob(DocumentAttachment, TempBlob) then
+            Clear(TempBlob);
         if not TempBlob.HasValue() then begin
             if DocumentAttachment."Content Hash" = '' then
                 exit;
@@ -447,6 +440,12 @@ codeunit 6989 "Expense Attachment Mgt."
 
         DocumentAttachment."Content Hash" := NewHash;
         DocumentAttachment.Modify(false);
+    end;
+
+    [TryFunction]
+    local procedure TryGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob")
+    begin
+        DocumentAttachment.GetAsTempBlob(TempBlob);
     end;
 
     internal procedure HasPDFAttachment(TableID: Integer; DocumentNo: Code[20]; LineNo: Integer): Boolean

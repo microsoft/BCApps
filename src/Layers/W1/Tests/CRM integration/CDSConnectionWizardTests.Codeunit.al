@@ -18,6 +18,7 @@ codeunit 139194 "CDS Connection Wizard Tests"
         ShouldNotBeErr: Label '%1 should not be %2', Comment = '%1=filed name, %2=visibility';
         WrongConnectionStringErr: Label 'Wrong connection string generated';
         MustUseHttpsErr: Label 'The application is set up to support secure connections (HTTPS) to the Dataverse environment only. You cannot use HTTP.';
+        InvalidHostSuffixErr: Label 'The Dataverse environment URL must be a dynamics.com address.';
         MissingClientIdOrSecretOnPremErr: Label 'You must register an Microsoft Entra application that will be used to connect to the Dataverse environment and specify the application id, secret and redirect URL in the Dataverse Connection Setup page.', Comment = 'Dataverse and Microsoft Entra are names of a Microsoft service and a Microsoft Azure resource and should not be translated.';
         IsInitialized: Boolean;
         IsSaaS: Boolean;
@@ -176,11 +177,13 @@ codeunit 139194 "CDS Connection Wizard Tests"
     procedure CDSConnectionWizardCheckModifyCDSConnectionURL()
     var
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Address: Text[250];
     begin
         // [FEATURE] [UT]
-        // [SCENARIO] CDS Connection URL should comply with rules
+        // [SCENARIO] CDS Connection URL should comply with SaaS rules
         Initialize();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
         // [GIVEN] Empty CDS Connection URL
         Address := '';
@@ -202,19 +205,26 @@ codeunit 139194 "CDS Connection Wizard Tests"
         // [THEN] Error message that security connection (https) is required
         Assert.ExpectedError(MustUseHttpsErr);
 
-        // [GIVEN] CDS Connection URL = 'http://test.com:555/myOrg'
-        Address := 'https://test2.com:555/myOrg';
+        // [GIVEN] CDS Connection URL = 'https://test2.dynamics.com:555/myOrg'
+        Address := 'https://test2.dynamics.com:555/myOrg';
         // [WHEN] The URL is checked
         CDSIntegrationImpl.CheckModifyConnectionURL(Address);
-        // [THEN] Error message that security connection (https) is required
-        Assert.AreEqual('https://test2.com:555/myOrg', Address, WrongConnectionStringErr);
+        // [THEN] The URL with a non-default port is unchanged
+        Assert.AreEqual('https://test2.dynamics.com:555/myOrg', Address, WrongConnectionStringErr);
 
-        // [GIVEN] CDS Connection URL = 'http://test.com:555/myOrg'
-        Address := 'https://test3.com/myOrg';
+        // [GIVEN] CDS Connection URL = 'https://test3.dynamics.com/myOrg'
+        Address := 'https://test3.dynamics.com/myOrg';
         // [WHEN] The URL is checked
         CDSIntegrationImpl.CheckModifyConnectionURL(Address);
-        // [THEN] Error message that security connection (https) is required
-        Assert.AreEqual('https://test3.com', Address, WrongConnectionStringErr);
+        // [THEN] The path is removed from the URL
+        Assert.AreEqual('https://test3.dynamics.com', Address, WrongConnectionStringErr);
+
+        // [GIVEN] CDS Connection URL does not use a Dataverse host
+        Address := 'https://test4.com';
+        // [WHEN] The URL is checked
+        asserterror CDSIntegrationImpl.CheckModifyConnectionURL(Address);
+        // [THEN] An error states that a Dataverse host is required
+        Assert.ExpectedError(InvalidHostSuffixErr);
     end;
 
     [Test]

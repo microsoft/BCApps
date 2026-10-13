@@ -388,6 +388,26 @@ codeunit 8063 "Sales Documents"
             end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnUpdateAssocOrderOnBeforeSalesOrderLineModify, '', false, false)]
+    local procedure CloseSalesOrderLineOnDropShipmentAssocOrderUpdate(var SalesOrderLine: Record "Sales Line")
+    begin
+        if not SalesLineShouldSkipInvoicing(SalesOrderLine) then
+            exit;
+
+        SetSubscriptionItemLineAsInvoiced(SalesOrderLine);
+    end;
+
+    local procedure SetSubscriptionItemLineAsInvoiced(var SalesLine: Record "Sales Line")
+    begin
+        SalesLine."Quantity Invoiced" := SalesLine."Quantity Shipped";
+        SalesLine."Qty. Invoiced (Base)" := SalesLine."Qty. Shipped (Base)";
+        SalesLine."Qty. Shipped Not Invoiced" := 0;
+        SalesLine."Qty. Shipped Not Invd. (Base)" := 0;
+        SalesLine."Shipped Not Invoiced" := 0;
+        SalesLine."Shipped Not Invoiced (LCY)" := 0;
+        SalesLine."Shipped Not Inv. (LCY) No VAT" := 0;
+    end;
+
 #if not CLEAN28
     [Obsolete('Use OnAfterPostItemJnlLine event subscriber to create Subscription Headers during item journal posting', '29.0')]
     procedure CreateServiceObjectFromSales(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line")
@@ -430,13 +450,7 @@ codeunit 8063 "Sales Documents"
         if not ShouldModifySalesLine then
             exit;
 
-        TempSalesLine."Quantity Invoiced" := TempSalesLine."Quantity Shipped";
-        TempSalesLine."Qty. Invoiced (Base)" := TempSalesLine."Qty. Shipped (Base)";
-        TempSalesLine."Qty. Shipped Not Invoiced" := 0;
-        TempSalesLine."Qty. Shipped Not Invd. (Base)" := 0;
-        TempSalesLine."Shipped Not Invoiced" := 0;
-        TempSalesLine."Shipped Not Invoiced (LCY)" := 0;
-        TempSalesLine."Shipped Not Inv. (LCY) No VAT" := 0;
+        SetSubscriptionItemLineAsInvoiced(TempSalesLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnInsertShipmentLineOnAfterInitQuantityFields, '', false, false)]
@@ -534,7 +548,7 @@ codeunit 8063 "Sales Documents"
             exit;
 
         if SerialNo = '' then
-            CreateServiceObject(ServiceObject, SalesHeader, SalesLine, SalesLine."Qty. to Ship", SerialNo, ItemLedgerEntryNo)
+            CreateServiceObject(ServiceObject, SalesHeader, SalesLine, QtyPerSerialNo = 0 ? SalesLine."Qty. to Ship" : QtyPerSerialNo, SerialNo, ItemLedgerEntryNo)
         else
             CreateServiceObject(ServiceObject, SalesHeader, SalesLine, QtyPerSerialNo, SerialNo, ItemLedgerEntryNo);
 

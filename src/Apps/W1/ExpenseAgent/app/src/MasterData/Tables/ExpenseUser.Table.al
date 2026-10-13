@@ -180,7 +180,9 @@ table 6923 "Expense User"
             ObsoleteState = Pending;
 #endif
             ObsoleteReason = 'Replaced by Welcome Email Status, which also tracks queued and failed sends.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
         }
 #endif
         field(55; "Welcome Email Sent At"; DateTime)
@@ -201,6 +203,39 @@ table 6923 "Expense User"
             Editable = false;
             ToolTip = 'Specifies the identifier used to correlate the welcome email with its delivery from the outbox.';
         }
+        field(60; "Approval Limit (LCY)"; Integer)
+        {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            Caption = 'Approval Limit (LCY)';
+            ToolTip = 'Specifies the maximum expense report amount this user can approve. Leave empty when Unlimited Approval is selected.';
+            BlankZero = true;
+
+            trigger OnValidate()
+            begin
+                if Rec."Approval Limit (LCY)" <> 0 then
+                    Rec.TestField("Can Approve", true);
+
+                if Rec."Unlimited Approval" and (Rec."Approval Limit (LCY)" <> 0) then
+                    Error(ConflictingApprovalsErr, Rec.FieldCaption("Approval Limit (LCY)"), Rec.FieldCaption("Unlimited Approval"));
+
+                if Rec."Approval Limit (LCY)" < 0 then
+                    Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit (LCY)"));
+            end;
+        }
+        field(61; "Unlimited Approval"; Boolean)
+        {
+            Caption = 'Unlimited Approval';
+            ToolTip = 'Specifies that this user can approve expense reports without a maximum amount.';
+
+            trigger OnValidate()
+            begin
+                if Rec."Unlimited Approval" then begin
+                    Rec.TestField("Can Approve", true);
+                    Rec."Approval Limit (LCY)" := 0;
+                end;
+            end;
+        }
     }
 
     keys
@@ -210,6 +245,9 @@ table 6923 "Expense User"
             Clustered = true;
         }
         key(WelcomeCorrelationKey; "Welcome Correlation Id")
+        {
+        }
+        key(EmployeeNo; "Employee No.")
         {
         }
     }
@@ -233,11 +271,16 @@ table 6923 "Expense User"
         WelcomeEmailsQueuedMsg: Label '%1 welcome email(s) have been queued. The expense agent will send them shortly.', Comment = '%1 = number of welcome emails queued';
         NoWelcomeEmailsQueuedMsg: Label 'No welcome emails were sent. The selected expense users have already received one or have one that is still being sent.';
         NoExpenseUsersWithEmailErr: Label 'There are no expense users to send welcome email.';
+        NoExpenseUsersForEmployeeCreationErr: Label 'There are no selected expense users eligible for employee creation.';
+        EmployeesFromExpenseUsersProgressTxt: Label 'Creating employees...\\Expense User: #1########################################\\Total: #2####\\Processed: #3####', Comment = '#1 = current expense user value, #2 = total selected expense users, #3 = number of processed expense users';
+        EmployeesCreatedFromExpenseUsersMsg: Label 'Employee creation completed for %1 expense user(s).', Comment = '%1 = number of processed expense users';
         AgentNotEnabledErr: Label 'Please make sure the Expense Agent is active.';
         CommunicationDisabledErr: Label 'Sending emails to users is turned off. Turn on communication for the Expense Agent before sending welcome emails.';
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending welcome emails.';
         CurrentBCUserHasNoAuthEmailErr: Label 'Your Business Central user account is not linked to an authentication email, so it cannot be matched to an Expense User. Ask your administrator to set the Authentication Email on your user record in Business Central.';
         CurrentBCUserNotMatchedToExpenseUserErr: Label 'No Expense User exists for the email %1 used by your Business Central account. Ask your administrator to create an Expense User with this email, or to update the email on the existing Expense User to match.', Comment = '%1 = authentication email of the current Business Central user';
+        ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
+        ConflictingApprovalsErr: Label 'You cannot have both a %1 and %2. ', Comment = '%1 = Approval Limit field caption, %2 = Unlimited Approval field caption';
 
     trigger OnDelete()
     var
@@ -570,6 +613,73 @@ table 6923 "Expense User"
         end;
 
         exit(CreateEmployee(EmployeeTempl, TemplateSelected));
+    end;
+
+    internal procedure CreateEmployeesFromExpenseUsers(var ExpenseUser: Record "Expense User")
+    var
+        EmployeeTempl: Record "Employee Templ.";
+        EmployeeTemplMgt: Codeunit "Employee Templ. Mgt.";
+        TemplateSelected: Boolean;
+        ProcessedCount: Integer;
+        TotalCount: Integer;
+        ProgressDialog: Dialog;
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup.TestField("Create Emp. for Expense Users");
+
+        ExpenseUser.SetRange("Employee No.", '');
+        ExpenseUser.SetFilter("Name", '<>%1', '');
+        ExpenseUser.SetFilter("E-mail", '<>%1', '');
+        if ExpenseUser.IsEmpty() then
+            Error(NoExpenseUsersForEmployeeCreationErr);
+
+        TotalCount := ExpenseUser.Count();
+
+        if EmployeeTemplMgt.IsEnabled() then begin
+            TemplateSelected := EmployeeTemplMgt.SelectEmployeeTemplateFromContact(EmployeeTempl);
+            if not TemplateSelected then
+                if EmployeeTemplMgt.TemplatesAreNotEmpty() then
+                    Error('');
+        end;
+
+        if GuiAllowed() then begin
+            ProgressDialog.Open(EmployeesFromExpenseUsersProgressTxt);
+            ProgressDialog.Update(1, '');
+            ProgressDialog.Update(2, TotalCount);
+            ProgressDialog.Update(3, 0);
+        end;
+
+        if ExpenseUser.FindSet() then
+            repeat
+                if GuiAllowed() then
+                    ProgressDialog.Update(1, ExpenseUser."No.");
+
+                ExpenseUser.CreateEmployeeFromExpenseUserWithTemplate(EmployeeTempl, TemplateSelected);
+                ProcessedCount += 1;
+                if GuiAllowed() then
+                    ProgressDialog.Update(3, ProcessedCount);
+            until ExpenseUser.Next() = 0;
+
+        if GuiAllowed() then
+            ProgressDialog.Close();
+
+        Message(EmployeesCreatedFromExpenseUsersMsg, ProcessedCount);
+    end;
+
+    internal procedure CreateEmployeeFromExpenseUserWithTemplate(EmployeeTempl: Record "Employee Templ."; TemplateSelected: Boolean)
+    var
+        ImportExpenseUser: Codeunit "Import Expense User";
+        EmployeeNo: Code[20];
+    begin
+        EmployeeNo := ImportExpenseUser.GetEmployeeNoFromEmail(Rec."E-mail");
+        if EmployeeNo = '' then begin
+            Rec.SetSkipOverwriteFromEmployee(true);
+            Rec.Validate("Employee No.", CreateEmployee(EmployeeTempl, TemplateSelected));
+            Rec.SetSkipOverwriteFromEmployee(false);
+        end else
+            Rec.Validate("Employee No.", EmployeeNo);
+
+        Rec.Modify();
     end;
 
     internal procedure CreateEmployee(EmployeeTempl: Record "Employee Templ."; TemplateSelected: Boolean): Code[20]

@@ -771,16 +771,16 @@ table 472 "Job Queue Entry"
         DummyErrorMessage: Record "Error Message";
     begin
         if not DummyJobQueueEntry.WritePermission() then
-            Error(NoPermissionsErr, DummyJobQueueEntry.TableName());
+            Error(NoPermissionsErr, DummyJobQueueEntry.TableCaption());
 
         if not DummyJobQueueLogEntry.WritePermission() then
-            Error(NoPermissionsErr, DummyJobQueueLogEntry.TableName());
+            Error(NoPermissionsErr, DummyJobQueueLogEntry.TableCaption());
 
         if not DummyErrorMessageRegister.WritePermission() then
-            Error(NoPermissionsErr, DummyErrorMessageRegister.TableName());
+            Error(NoPermissionsErr, DummyErrorMessageRegister.TableCaption());
 
         if not DummyErrorMessage.WritePermission() then
-            Error(NoPermissionsErr, DummyErrorMessage.TableName());
+            Error(NoPermissionsErr, DummyErrorMessage.TableCaption());
     end;
 
     procedure HasRequiredPermissions(): Boolean

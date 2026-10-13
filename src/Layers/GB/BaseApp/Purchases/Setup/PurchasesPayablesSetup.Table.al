@@ -340,19 +340,14 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Ignore Updated Addresses';
             ToolTip = 'Specifies if changes to addresses made on purchase documents are copied to the vendor card. By default, changes are copied to the vendor card.';
         }
-#if not CLEANSCHEMA29        
+#if not CLEANSCHEMA30
         field(57; "Create Item from Item No."; Boolean)
         {
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on purchase lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)

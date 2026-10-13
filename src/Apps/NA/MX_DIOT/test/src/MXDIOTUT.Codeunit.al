@@ -1,4 +1,6 @@
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 148041 "MX DIOT UT"
+#pragma warning restore AS0011
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -977,30 +979,26 @@ codeunit 148041 "MX DIOT UT"
     var
         DIOTDataMgmt: Codeunit "DIOT Data Management";
     begin
-        with DIOTReportVendorBuffer do begin
-            SetRange("Vendor No.", Vendor."No.");
-            SetRange("Type of Operation", DIOTTypeOfOperation);
-            FindFirst();
-            TestField("Type of Vendor Text", '05');
-            TestField("TAX Registration ID", Vendor."VAT Registration No.");
-            TestField("RFC Number", Vendor."RFC No.");
-            TestField("Vendor Name", Vendor.Name);
-            TestField("Country/Region Code", DIOTDataMgmt.ConvertToDIOTCountryCode(Vendor."Country/Region Code"));
-        end;
+        DIOTReportVendorBuffer.SetRange("Vendor No.", Vendor."No.");
+        DIOTReportVendorBuffer.SetRange("Type of Operation", DIOTTypeOfOperation);
+        DIOTReportVendorBuffer.FindFirst();
+        DIOTReportVendorBuffer.TestField("Type of Vendor Text", '05');
+        DIOTReportVendorBuffer.TestField("TAX Registration ID", Vendor."VAT Registration No.");
+        DIOTReportVendorBuffer.TestField("RFC Number", Vendor."RFC No.");
+        DIOTReportVendorBuffer.TestField("Vendor Name", Vendor.Name);
+        DIOTReportVendorBuffer.TestField("Country/Region Code", DIOTDataMgmt.ConvertToDIOTCountryCode(Vendor."Country/Region Code"));
     end;
 
     local procedure VerifyLocalVendorInfo(var DIOTReportVendorBuffer: Record "DIOT Report Vendor Buffer"; var Vendor: Record Vendor; DIOTTypeOfOperation: Option)
     begin
-        with DIOTReportVendorBuffer do begin
-            SetRange("Vendor No.", Vendor."No.");
-            SetRange("Type of Operation", DIOTTypeOfOperation);
-            FindFirst();
-            TestField("Type of Vendor Text", '04');
-            TestField("TAX Registration ID", '');
-            TestField("RFC Number", Vendor."RFC No.");
-            TestField("Vendor Name", '');
-            TestField("Country/Region Code", '');
-        end;
+        DIOTReportVendorBuffer.SetRange("Vendor No.", Vendor."No.");
+        DIOTReportVendorBuffer.SetRange("Type of Operation", DIOTTypeOfOperation);
+        DIOTReportVendorBuffer.FindFirst();
+        DIOTReportVendorBuffer.TestField("Type of Vendor Text", '04');
+        DIOTReportVendorBuffer.TestField("TAX Registration ID", '');
+        DIOTReportVendorBuffer.TestField("RFC Number", Vendor."RFC No.");
+        DIOTReportVendorBuffer.TestField("Vendor Name", '');
+        DIOTReportVendorBuffer.TestField("Country/Region Code", '');
     end;
 
     local procedure VerifyDIOTBufferAmount(var DIOTReportBuffer: Record "DIOT Report Buffer"; VendorNo: Code[20]; DIOTTypeOfOperation: Option; ConceptNo: Integer; Amount: Decimal)

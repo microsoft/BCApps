@@ -336,6 +336,18 @@ codeunit 8901 Email
         EmailImpl.GetMailFolders(EmailAccountId, EmailConnector, EmailFolders);
     end;
 
+    /// <summary>
+    /// Finds an email that was previously retrieved into the email inbox for the given account.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account the email was retrieved for.</param>
+    /// <param name="ExternalMessageId">The ID that the email provider uses to identify the email.</param>
+    /// <param name="EmailInbox">The record that collects the retrieved emails. Marks are set to the email that was found.</param>
+    /// <returns>Whether the email had already been retrieved.</returns>
+    procedure FindRetrievedEmail(EmailAccountId: Guid; ExternalMessageId: Text; var EmailInbox: Record "Email Inbox"): Boolean
+    begin
+        exit(EmailImpl.FindRetrievedEmail(EmailAccountId, ExternalMessageId, EmailInbox));
+    end;
+
     #endregion
 
     #region MarkAsRead

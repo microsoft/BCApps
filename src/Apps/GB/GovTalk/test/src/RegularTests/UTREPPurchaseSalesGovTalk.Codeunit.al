@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.VAT.GovTalk;
 
 using Microsoft.Finance.VAT.Reporting;
-using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 codeunit 144035 "UT REP Purchase Sales GovTalk"
@@ -81,21 +80,10 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
     end;
 
     local procedure Initialize()
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
         LibraryVariableStorage.Clear();
         DeleteObjectOptionsIfNeeded();
 
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
     end;
 
     local procedure DeleteObjectOptionsIfNeeded()
@@ -113,4 +101,3 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
     end;
 #endif
 }
-

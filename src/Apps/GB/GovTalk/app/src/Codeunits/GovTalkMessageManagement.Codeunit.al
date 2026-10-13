@@ -160,7 +160,7 @@ codeunit 10569 "GovTalk Message Management"
     procedure SendHttpRequest(var GovTalkMessageXMLNode: DotNet XmlNode; SubmitURL: Text; var SubmitResponseXMLNode: DotNet XmlNode): Boolean
     var
         WebRequestHelper: Codeunit "Web Request Helper";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        TempBlob: Codeunit "Temp Blob";
         XmlDoc: DotNet XmlDocument;
         HttpWebRequest: DotNet HttpWebRequest;
         HttpStatusCode: DotNet HttpStatusCode;
@@ -176,7 +176,7 @@ codeunit 10569 "GovTalk Message Management"
 
         XmlDoc := GovTalkMessageXMLNode.ParentNode;
 
-        HttpWebRequestMgt.CreateInstream(ResponseInStream);
+        TempBlob.CreateInStream(ResponseInStream);
         XmlDoc.Save(HttpWebRequest.GetRequestStream());
         if WebRequestHelper.GetWebResponse(HttpWebRequest, HttpWebResponse, ResponseInStream,
              HttpStatusCode, ResponseHeaders, true)

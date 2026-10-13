@@ -196,6 +196,8 @@ codeunit 139606 "Shpfy Shipping Test"
         ShippingHelper: Codeunit "Shpfy Shipping Helper";
         DeliveryMethodType: Enum "Shpfy Delivery Method Type";
         FulfillmentRequest: Text;
+        FulfillmentOrderReferenceA: Text;
+        FulfillmentOrderReferenceB: Text;
         FulfillmentRequests: List of [Text];
         AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
         ShopifyOrderId: BigInteger;
@@ -204,6 +206,7 @@ codeunit 139606 "Shpfy Shipping Test"
         LineItemId: BigInteger;
         VariantId: BigInteger;
         ProductId: BigInteger;
+        FulfillmentOrderReferenceTok: Label 'fulfillmentOrderId: \"gid://shopify/FulfillmentOrder/%1\"', Locked = true;
     begin
         // [SCENARIO] A shipment spanning two Shopify locations must produce separate fulfillment requests per location
         // [GIVEN] One item (qty 17) split across two locations: 10 at Location A, 7 at Location B
@@ -246,16 +249,18 @@ codeunit 139606 "Shpfy Shipping Test"
 
         // [THEN] Two separate requests are created, one per location
         LibraryAssert.AreEqual(2, FulfillmentRequests.Count, 'Should produce two fulfillment requests, one per location');
+        FulfillmentOrderReferenceA := StrSubstNo(FulfillmentOrderReferenceTok, FulfillmentOrderHeaderA."Shopify Fulfillment Order Id");
+        FulfillmentOrderReferenceB := StrSubstNo(FulfillmentOrderReferenceTok, FulfillmentOrderHeaderB."Shopify Fulfillment Order Id");
 
         // [THEN] First request contains only Location A's fulfillment order
         FulfillmentRequests.Get(1, FulfillmentRequest);
-        LibraryAssert.IsTrue(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'First request should contain Location A fulfillment order');
-        LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderB."Shopify Fulfillment Order Id")), 'First request should not contain Location B fulfillment order');
+        LibraryAssert.IsTrue(FulfillmentRequest.Contains(FulfillmentOrderReferenceA), 'First request should contain Location A fulfillment order');
+        LibraryAssert.IsFalse(FulfillmentRequest.Contains(FulfillmentOrderReferenceB), 'First request should not contain Location B fulfillment order');
 
         // [THEN] Second request contains only Location B's fulfillment order
         FulfillmentRequests.Get(2, FulfillmentRequest);
-        LibraryAssert.IsTrue(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderB."Shopify Fulfillment Order Id")), 'Second request should contain Location B fulfillment order');
-        LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'Second request should not contain Location A fulfillment order');
+        LibraryAssert.IsTrue(FulfillmentRequest.Contains(FulfillmentOrderReferenceB), 'Second request should contain Location B fulfillment order');
+        LibraryAssert.IsFalse(FulfillmentRequest.Contains(FulfillmentOrderReferenceA), 'Second request should not contain Location A fulfillment order');
     end;
 
     [Test]

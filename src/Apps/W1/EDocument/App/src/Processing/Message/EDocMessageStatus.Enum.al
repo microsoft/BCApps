@@ -19,4 +19,24 @@ enum 6429 "E-Doc. Message Status"
     {
         Caption = 'Sent';
     }
+    value(2; Queued)
+    {
+        Caption = 'Queued';
+    }
+    value(3; Error)
+    {
+        Caption = 'Error';
+    }
+    value(4; Received)
+    {
+        Caption = 'Received';
+    }
+    value(5; "Pending Response")
+    {
+        Caption = 'Pending response';
+    }
+    value(6; "Response Error")
+    {
+        Caption = 'Response error';
+    }
 }

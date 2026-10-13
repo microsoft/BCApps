@@ -609,7 +609,8 @@ table 5740 "Transfer Header"
 
                 Modify(true);
 
-                VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
+                if "Direct Transfer" then
+                    VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
                 UpdateTransLines(Rec, FieldNo("Direct Transfer"));
             end;
         }

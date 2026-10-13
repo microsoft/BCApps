@@ -732,35 +732,41 @@ codeunit 139685 "Contract Test Library"
 
     procedure CreateServiceObjectForGLAccountWithServiceCommitments(var ServiceObject: Record "Subscription Header"; var GLAccount: Record "G/L Account";
                                                                   NoOfCustomerServCommLinesToCreate: Integer; NoOfVendorServCommLinesToCreate: Integer; BillingBasePeriodText: Text; BillingRhythmText: Text)
+    begin
+        CreateServiceObjectForGLAccountWithServiceCommitments(ServiceObject, GLAccount, NoOfCustomerServCommLinesToCreate, NoOfVendorServCommLinesToCreate, BillingBasePeriodText, BillingRhythmText, WorkDate(), 0);
+    end;
+
+    procedure CreateServiceObjectForGLAccountWithServiceCommitments(var ServiceObject: Record "Subscription Header"; var GLAccount: Record "G/L Account";
+                                                                  NoOfCustomerServCommLinesToCreate: Integer; NoOfVendorServCommLinesToCreate: Integer; BillingBasePeriodText: Text; BillingRhythmText: Text;
+                                                                  SubscriptionLineStartDate: Date; CalculationBaseAmount: Decimal)
     var
-        ServiceCommitment: Record "Subscription Line";
         i: Integer;
     begin
         CreateServiceObjectForGLAccount(ServiceObject, GLAccount);
-        for i := 1 to NoOfCustomerServCommLinesToCreate do begin
-            ServiceCommitment.Init();
-            ServiceCommitment."Subscription Header No." := ServiceObject."No.";
-            ServiceCommitment."Entry No." := 0;
-            ServiceCommitment.Description := ServiceObject.Description;
-            ServiceCommitment."Invoicing via" := ServiceCommitment."Invoicing via"::Contract;
-            ServiceCommitment.Partner := ServiceCommitment.Partner::Customer;
-            ServiceCommitment.Validate("Subscription Line Start Date", WorkDate());
-            Evaluate(ServiceCommitment."Billing Base Period", BillingBasePeriodText);
-            Evaluate(ServiceCommitment."Billing Rhythm", BillingRhythmText);
-            ServiceCommitment.Insert(false);
+        for i := 1 to NoOfCustomerServCommLinesToCreate do
+            InsertSubscriptionLineForServiceObject(ServiceObject, Enum::"Service Partner"::Customer, BillingBasePeriodText, BillingRhythmText, SubscriptionLineStartDate, CalculationBaseAmount);
+        for i := 1 to NoOfVendorServCommLinesToCreate do
+            InsertSubscriptionLineForServiceObject(ServiceObject, Enum::"Service Partner"::Vendor, BillingBasePeriodText, BillingRhythmText, SubscriptionLineStartDate, CalculationBaseAmount);
+    end;
+
+    local procedure InsertSubscriptionLineForServiceObject(ServiceObject: Record "Subscription Header"; ServicePartner: Enum "Service Partner"; BillingBasePeriodText: Text; BillingRhythmText: Text; SubscriptionLineStartDate: Date; CalculationBaseAmount: Decimal)
+    var
+        ServiceCommitment: Record "Subscription Line";
+    begin
+        ServiceCommitment.Init();
+        ServiceCommitment."Subscription Header No." := ServiceObject."No.";
+        ServiceCommitment."Entry No." := 0;
+        ServiceCommitment.Description := ServiceObject.Description;
+        ServiceCommitment."Invoicing via" := ServiceCommitment."Invoicing via"::Contract;
+        ServiceCommitment.Partner := ServicePartner;
+        ServiceCommitment.Validate("Subscription Line Start Date", SubscriptionLineStartDate);
+        Evaluate(ServiceCommitment."Billing Base Period", BillingBasePeriodText);
+        Evaluate(ServiceCommitment."Billing Rhythm", BillingRhythmText);
+        if CalculationBaseAmount <> 0 then begin
+            ServiceCommitment.Validate("Calculation Base %", 100);
+            ServiceCommitment.Validate("Calculation Base Amount", CalculationBaseAmount);
         end;
-        for i := 1 to NoOfVendorServCommLinesToCreate do begin
-            ServiceCommitment.Init();
-            ServiceCommitment."Subscription Header No." := ServiceObject."No.";
-            ServiceCommitment."Entry No." := 0;
-            ServiceCommitment.Description := ServiceObject.Description;
-            ServiceCommitment."Invoicing via" := ServiceCommitment."Invoicing via"::Contract;
-            ServiceCommitment.Partner := ServiceCommitment.Partner::Vendor;
-            ServiceCommitment.Validate("Subscription Line Start Date", WorkDate());
-            Evaluate(ServiceCommitment."Billing Base Period", BillingBasePeriodText);
-            Evaluate(ServiceCommitment."Billing Rhythm", BillingRhythmText);
-            ServiceCommitment.Insert(false);
-        end;
+        ServiceCommitment.Insert(false);
     end;
 
     procedure CreateServiceObjectForItem(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20])
