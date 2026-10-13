@@ -8216,6 +8216,12 @@ codeunit 137072 "SCM Production Orders II"
         ItemLedgerEntry.TestField("Lot No.");
         LotNo := ItemLedgerEntry."Lot No.";
 
+        // [GIVEN] The alternate unit of measure is changed after posting.
+        ItemUnitOfMeasure.Get(Item."No.", UnitOfMeasure.Code);
+        ItemUnitOfMeasure.Validate("Qty. per Unit of Measure", QtyPerUnitOfMeasure + 100);
+        ItemUnitOfMeasure.Modify(true);
+        ItemUnitOfMeasure.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure + 100);
+
         // [WHEN] The production output entry is reversed.
         ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
         UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
