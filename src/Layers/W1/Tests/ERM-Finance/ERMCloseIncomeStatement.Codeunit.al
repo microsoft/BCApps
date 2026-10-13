@@ -759,6 +759,7 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
+        SelectedDimension: Record "Selected Dimension";
         GLAccountNo: Code[20];
         RetainedEarningsAccountNo: Code[20];
         SourceCurrencyCode: Code[10];
@@ -788,11 +789,26 @@ codeunit 134228 "ERM Close Income Statement"
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
         RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
+        SelectedDimension.SetRange("User ID", UserId);
+        SelectedDimension.SetRange("Object Type", 3);
+        SelectedDimension.SetRange("Object ID", REPORT::"Close Income Statement");
+        SelectedDimension.DeleteAll();
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, RetainedEarningsAccountNo,
             RetainedEarningsPosting, false, false, DocumentNo);
 
         if not UseAdditionalReportingCurrency then begin
+            if ClosingAmount = 0 then begin
+                GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+                GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+                GenJournalLine.SetRange("Document No.", DocumentNo);
+                GenJournalLine.SetRange("Account No.", GLAccountNo);
+                Assert.RecordCount(GenJournalLine, 1);
+                GenJournalLine.FindFirst();
+                Assert.AreEqual(-3, GenJournalLine."Source Curr. VAT Amount", 'Incorrect closing source currency VAT amount.');
+                GenJournalLine.Reset();
+            end;
+
             if ClosingAmount <> 0 then begin
                 GenJournalLine.SetRange("Document No.", DocumentNo);
                 if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then
@@ -808,14 +824,16 @@ codeunit 134228 "ERM Close Income Statement"
             LibraryERM.PostGeneralJnlLine(GenJournalLine);
         end;
 
-        GLEntry.SetRange("Document No.", DocumentNo);
-        GLEntry.SetRange("G/L Account No.", GLAccountNo);
-        Assert.RecordCount(GLEntry, 1);
-        GLEntry.FindFirst();
-        Assert.AreEqual(-ClosingAmount, GLEntry.Amount, 'Incorrect closing amount.');
-        Assert.AreEqual(-3, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+        if UseAdditionalReportingCurrency or (ClosingAmount <> 0) then begin
+            GLEntry.SetRange("Document No.", DocumentNo);
+            GLEntry.SetRange("G/L Account No.", GLAccountNo);
+            Assert.RecordCount(GLEntry, 1);
+            GLEntry.FindFirst();
+            Assert.AreEqual(-ClosingAmount, GLEntry.Amount, 'Incorrect closing amount.');
+            Assert.AreEqual(-3, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+        end;
 
-        if RetainedEarningsAccountNo <> '' then begin
+        if (RetainedEarningsAccountNo <> '') and (ClosingAmount <> 0) then begin
             GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
             if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
                 GLEntry.SetRange("Bal. Account No.", GLAccountNo);
