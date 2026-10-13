@@ -34,17 +34,17 @@ page 9886 "Effective Permissions Overview"
                 field(CompanyFilter; CompanyFilter)
                 {
                     Caption = 'Company';
+                    ToolTip = 'Specifies the company for which effective permissions for the chosen user will be shown.';
                     TableRelation = Company;
                     trigger OnValidate()
                     begin
-                        if CompanyFilter = '' then
-                            Error('TEMP CompanyFilter is empty');
                         ApplyFilters();
                     end;
                 }
                 field(UserFilter; UserFilter)
                 {
                     Caption = 'User';
+                    ToolTip = 'Specifies the user filter.';
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         User: Record User;
@@ -68,6 +68,7 @@ page 9886 "Effective Permissions Overview"
                 field(ObjTypeFilter; ObjTypeFilter)
                 {
                     Caption = 'Object Type';
+                    ToolTip = 'Specifies object type filter.';
                     OptionCaption = ' ,Table Data,Table,,Report,,Codeunit,XMLport,MenuSuite,Page,Query,System';
                     trigger OnValidate()
                     begin
@@ -77,12 +78,13 @@ page 9886 "Effective Permissions Overview"
                 field(ObjIDFilter; ObjIDFilter)
                 {
                     Caption = 'Object ID';
+                    ToolTip = 'Specifies object ID filter.';
                     TableRelation = AllObjWithCaption."Object ID";
 
                     trigger OnAssistEdit()
                     var
                         AllObjWithCaption: Record AllObjWithCaption;
-                        AllObjectsWithCaption: Page "All Objects with Caption";  // FIXME: Temp
+                        AllObjectsWithCaption: Page "All Objects with Caption";
                         RecRef: RecordRef;
                     begin
                         AllObjectsWithCaption.LookupMode(true);
@@ -102,6 +104,7 @@ page 9886 "Effective Permissions Overview"
                 field(ReadFilter; ReadFilter)
                 {
                     Caption = 'Read';
+                    ToolTip = 'Specifies whether permissions are filtered by read access.';
                     trigger OnValidate()
                     begin
                         ApplyFilters();
@@ -110,6 +113,7 @@ page 9886 "Effective Permissions Overview"
                 field(InsertFilter; InsertFilter)
                 {
                     Caption = 'Insert';
+                    ToolTip = 'Specifies whether permissions are filtered by insert access.';
                     trigger OnValidate()
                     begin
                         ApplyFilters();
@@ -118,6 +122,7 @@ page 9886 "Effective Permissions Overview"
                 field(ModifyFilter; ModifyFilter)
                 {
                     Caption = 'Modify';
+                    ToolTip = 'Specifies whether permissions are filtered by modify access.';
                     trigger OnValidate()
                     begin
                         ApplyFilters();
@@ -126,6 +131,7 @@ page 9886 "Effective Permissions Overview"
                 field(DeleteFilter; DeleteFilter)
                 {
                     Caption = 'Delete';
+                    ToolTip = 'Specifies whether permissions are filtered by delete access.';
                     trigger OnValidate()
                     begin
                         ApplyFilters();
@@ -153,24 +159,21 @@ page 9886 "Effective Permissions Overview"
                 field(ExecutePermission; Rec."Execute Permission") { }
             }
         }
-        // TODO: to be implemented later
-        // area(FactBoxes)
-        // {
-        //     part(YS_EffectivePermissionBySet; YS_EffectivePermissionBySet)
-        //     {
-
-        //     }
-        // }
+        area(FactBoxes)
+        {
+            part(EffectivePermissionBySet; "Effective Permissions By Set") { }
+        }
     }
 
     actions
     {
         area(Processing)
         {
-            action(Refresh)
+            action(Apply)
             {
                 ApplicationArea = All;
-                Caption = 'Refresh';
+                Caption = 'Apply Filters';
+                ToolTip = 'Refresh the data based on the current filters.';
                 Image = Refresh;
 
                 trigger OnAction()
@@ -185,7 +188,7 @@ page 9886 "Effective Permissions Overview"
         {
             group(Category_Process)
             {
-                actionref(Refresh_Promoted; Refresh) { }
+                actionref(Apply_Promoted; Apply) { }
             }
         }
     }
@@ -198,6 +201,7 @@ page 9886 "Effective Permissions Overview"
         ObjTypeFilter: Option " ","Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         ObjIDFilter: Text;
         ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Option " ",No,Yes,Indirect;
+        LoadDataMsg: Label 'Reading Permissions...@1@@@@@';
 
     trigger OnOpenPage()
     begin
@@ -208,7 +212,9 @@ page 9886 "Effective Permissions Overview"
 
     trigger OnAfterGetCurrRecord()
     begin
-        // CurrPage.YS_EffectivePermissionBySet.Page.SetSource(Rec);
+        if not IsNullGuid(Rec."User Security ID") then
+            CurrPage.EffectivePermissionBySet.Page.SetRecordAndRefresh(
+                Rec."User Security ID", Rec.Company, Rec."Object Type", Rec."Object ID");
     end;
 
     local procedure ApplyFilters()
@@ -217,8 +223,6 @@ page 9886 "Effective Permissions Overview"
     end;
 
     local procedure ApplyFilters(Update: Boolean)
-    var
-        AllObj: Record AllObj;
     begin
         Rec.SetFilter("User Name", UserFilter);
         Rec.SetFilter(Company, CompanyFilter);
@@ -243,24 +247,8 @@ page 9886 "Effective Permissions Overview"
             Rec.SetRange("Delete Permission")
         else
             Rec.SetRange("Delete Permission", DeleteFilter - 1);
-        if Update then begin
-            TempUser.Reset();
-            if not TempUser.IsEmpty() and (ObjTypeFilter <> ObjTypeFilter::" ") then begin
-                FilterAllObj(AllObj);
-                // 20000 entries can be processed relatively quickly
-                if TempUser.Count() * AllObj.Count() < 20000 then
-                    LoadData()
-
-                // TODO: else Notify to refresh manually
-            end;
+        if Update then
             CurrPage.Update(false);
-        end;
-    end;
-
-    local procedure FilterAllObj(var AllObj: Record AllObj)
-    begin
-        AllObj.SetRange("Object Type", ObjTypeFilter - 1);
-        AllObj.SetFilter("Object ID", ObjIDFilter);
     end;
 
     local procedure LoadUsers()
@@ -297,9 +285,8 @@ page 9886 "Effective Permissions Overview"
         Window: Dialog;
         ProcessCount, TotalCount : Integer;
         LastUpdateDateTime: DateTime;
-        ProcessingMsg: Label 'Reading Permissions...@1@@@@@';
     begin
-        Window.Open(ProcessingMsg);
+        Window.Open(LoadDataMsg);
 
         LoadUsers();
         TempUser.Reset();
@@ -344,5 +331,11 @@ page 9886 "Effective Permissions Overview"
         if Rec.FindFirst() then;
 
         Window.Close();
+    end;
+
+    local procedure FilterAllObj(var AllObj: Record AllObj)
+    begin
+        AllObj.SetRange("Object Type", ObjTypeFilter - 1);
+        AllObj.SetFilter("Object ID", ObjIDFilter);
     end;
 }
