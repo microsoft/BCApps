@@ -50,13 +50,8 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
     end;
 
     procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
     begin
-        if Feature <> Feature::BusinessIQ then
-            exit(false);
-        PayablesAgentSetup.GetSetup();
-        exit(PayablesAgentSetup."Use Business Central IQ");
+        exit(Feature = Feature::BusinessIQ);
     end;
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
@@ -231,7 +226,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
         Message := StrSubstNo(MessageLbl, EDocument."Entry No");
         AgentTaskTitle := CopyStr(StrSubstNo(TaskTitleLbl, LowerCase(EDocument."Source Details")), 1, MaxStrLen(AgentTaskTitle));
 
-        ExcludeBilling := false;
+        ExcludeBilling := IsBCIQDemoEDocument(EDocument);
         if PATrial.IsActive() then begin
             PATrial.IncrementTrialInvoiceCount();
             TelemetryDictionary := PayablesAgent.GetCustomDimensions();
@@ -253,6 +248,11 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
             .AddTaskMessage(AgentTaskMessageBuilder)
             .SetBillingContext(ExcludeBilling ? Enum::"Agent Task Billing Context"::Excluded : Enum::"Agent Task Billing Context"::Default)
             .Create();
+    end;
+
+    local procedure IsBCIQDemoEDocument(EDocument: Record "E-Document"): Boolean
+    begin
+        exit(CopyStr(EDocument."Source Details", 1, StrLen(BCIQDemoSourcePrefixTok)) = BCIQDemoSourcePrefixTok);
     end;
 
     internal procedure SetAgentTaskTitle(AgentTaskID: BigInteger; InvoiceNo: Text[50]; VendorName: Text[100])
@@ -359,4 +359,5 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
         PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
         PayablesAgentTelemetryTok: Label 'Payables Agent', Locked = true;
+        BCIQDemoSourcePrefixTok: Label 'BC IQ demo ', Locked = true;
 }

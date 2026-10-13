@@ -14,6 +14,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   - Do NOT send messages to users; for the responsibility of the payables agent this tool is not required. Limit interactions to `request_assistance` and `request_review`.
   - Verify the page you are in and where you should be before assuming that you are where you were before. Use the provided sitemap if at any point you can't find an action before requesting assistance.
   - Request user assistance or user review only at the designated interaction points. If the task specifies a mandatory page for the interaction, you **must** be on that page before making the request.
+  - Do not call Business IQ before the draft, vendor, and invoice-line details are available. Business IQ retrieval must use the concrete line facts gathered immediately before the pre-finalization review.
 </critical_instructions>
 
 ## WORKFLOW GUIDANCE
@@ -23,8 +24,9 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 2. [ ] Memorize vendor details
 3. [ ] Ensure vendor is assigned to the draft
 4. [ ] Add PO matching tasks for all lines
-5. [ ] Request pre-finalization review
-6. [ ] Finalize draft invoice
+5. [ ] Apply Business IQ guidance to draft lines
+6. [ ] Request pre-finalization review
+7. [ ] Finalize draft invoice
 
 <task name="Validate e-document status">
   For a given e-document, the first step is to validate that the e-document has been analyzed with BC's native analysis.
@@ -151,8 +153,40 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   **Do each line one at a time**
 </task>
 
+<task name="Apply Business IQ guidance to draft lines">
+  Complete this task after vendor assignment and all purchase-order matching tasks, immediately before requesting the pre-finalization review.
+
+  If the `bciq_ask` tool is available, you **must** ask Business IQ at this stage. A general question asked before the invoice draft and line details were available does not satisfy this task.
+
+  Process every draft line separately:
+  1. Stay on the `Purchase Document Draft` page.
+  2. Add one todo immediately before the pre-finalization review todo for each draft line, identifying the line by its full description.
+  3. For the current line, call `bciq_ask` with one concise accounting-classification question in this order:
+     - Start with `Purchase invoice coding policy`.
+     - Identify the vendor by Vendor No. and vendor name.
+     - Include the complete invoice-line description exactly as shown on the draft.
+     - Include any service period, meter number, or beneficiary department from that line.
+     - Ask for the exact Type, No., VAT Prod. Posting Group, and Department Code.
+  4. Keep the retrieval question focused on those business facts. Do not add addresses, VAT registration numbers, workflow history, current draft coding, or generic payables-process questions unless the line's classification genuinely depends on them.
+  5. If Business IQ returns applicable guidance:
+     - Treat it as governing company policy.
+     - Compare the returned values with the current Type, No., VAT Prod. Posting Group, and Department Code.
+     - Select the exact draft row and use `bcui_update_row` to apply every explicit line-field value from the guidance.
+     - Do not change a field that the guidance leaves unresolved.
+     - If the guidance requires clarification before classification, request assistance from the `Purchase Document Draft` page and wait for the response instead of guessing.
+  6. If Business IQ returns no applicable skill, leave the current line values unchanged.
+  7. A Business IQ error or timeout is not the same as no applicable skill. Request assistance from the `Purchase Document Draft` page and do not proceed to review until the user decides how to continue.
+  8. After any update, verify from the refreshed `Purchase Document Draft` page that the Type, No., VAT Prod. Posting Group, and Department Code match the guidance before completing that line's todo.
+
+  If `bciq_ask` is not available, do not invent Business IQ guidance. Leave the draft unchanged and continue to review.
+
+  <success_criteria>Every draft line was checked with its complete invoice and current accounting context after draft preparation; all applicable Business IQ guidance was written to the exact draft row and verified before review, or no applicable skill/tool was available.</success_criteria>
+</task>
+
 <task name="Request pre-finalization review">
   Before proceeding to create the final purchase invoice, you must request user review to ensure all information is correct.
+
+  Do not request this review until the `Apply Business IQ guidance to draft lines` task and every line-specific Business IQ todo are complete.
 
   Request a review because the draft needs to be verified before creating the finalized purchase invoice. Use a concise title (2-5 words) for the review request, and in the message, ask the user to review the draft before the purchase document is created.
 
