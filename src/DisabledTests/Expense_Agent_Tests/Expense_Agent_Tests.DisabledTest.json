@@ -77,6 +77,11 @@
   {
     "codeunitId": 148347,
     "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIRejectsRequestedForChange"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
     "method": "LegacySpendRequestsAPIAllowsUnchangedOwner"
   },
   {

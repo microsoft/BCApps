@@ -51,6 +51,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLineQuantityMismatchErr: Label 'Mismatch in Requisition Line Quantity';
         RequisitionLinesShouldBeEmptyErr: Label 'Requisition lines should be empty.';
         NotAllItemsWerePlannedMsg: Label 'Not all items were planned. A total of %1 items were not planned.', Comment = '%1 = Number of items not planned';
+        ProdBOMMustBeCertifiedErr: Label '%1 %2 %3 is not certified.', Comment = '%1 = Table caption, %2 = No. field caption, %3 = Production BOM number';
         PlanningParametersTakenFromItemCardTxt: Label 'Attention: No stockkeeping unit exists for Item %1 at Location %2. The item was planned using planning parameters from the Item Card, as configured by Missing SKU Planning Policy.', Comment = '%1: Item No., %2: Location Code';
         MinimalSupplyAttentionTxt: Label 'Attention: Missing stockkeeping unit. The item is planned to cover the exact demand.';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
@@ -1802,6 +1803,42 @@ codeunit 137088 "SCM Order Planning - III"
         ReservationEntry.SetSourceFilter('', 0);
         ReservationEntry.SetRange("Lot No.", LotNo);
         Assert.RecordIsNotEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromDropShipmentWithDefaultBin()
+    begin
+        // [SCENARIO] Creating a drop shipment purchase order leaves the bin blank despite an item's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromDropShipmentVariantWithDefaultBin()
+    begin
+        // [SCENARIO] Creating a drop shipment purchase order leaves the bin blank despite a variant's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromSalesWithDefaultBin()
+    begin
+        // [SCENARIO] Creating an ordinary purchase order retains the item's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromSalesVariantWithDefaultBin()
+    begin
+        // [SCENARIO] Creating an ordinary purchase order retains the variant's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(false, true);
     end;
 
     [Test]
@@ -4140,6 +4177,77 @@ codeunit 137088 "SCM Order Planning - III"
         VerifyPlanningErrorCount(Item."No.", 0);
     end;
 
+    [Test]
+    [HandlerFunctions('CapturePlanningFailureMessage,PlanningErrorLogModalPageHandler')]
+    procedure ItemCardMissingSKUReportsUncertifiedProductionBOM()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Planning] [Missing SKU]
+        // [SCENARIO] Item Card fallback preserves the actual production BOM certification error.
+        Initialize();
+
+        // [GIVEN] Item "I" has sales demand at location "L", no SKU, and an uncertified BOM "B".
+        CreateMissingSKUProductionDemand(Item, Location, ProductionBOMHeader, Location."Missing SKU Planning Policy"::"Item Card");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        // [WHEN] Calculate the plan with planning resiliency enabled.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] The certification error identifies "B", and no invalid planning line remains.
+        VerifyUncertifiedBOMPlanningFailure(Item, ProductionBOMHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure ItemCardMissingSKUPlansCertifiedProductionBOMWithoutErrors()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Planning] [Missing SKU]
+        // [SCENARIO] Item Card fallback plans a certified production BOM without a failure dialog or log.
+        Initialize();
+
+        // [GIVEN] Item "I" has sales demand of 50 at location "L", no SKU, and a certified BOM "B".
+        CreateMissingSKUProductionDemand(Item, Location, ProductionBOMHeader, Location."Missing SKU Planning Policy"::"Item Card");
+
+        // [WHEN] Calculate the plan with planning resiliency enabled.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] A production planning line covers demand using the item card and there are no planning errors.
+        VerifyCertifiedBOMPlanningSuccess(Item, Location);
+    end;
+
+    [Test]
+    [HandlerFunctions('CapturePlanningFailureMessage,PlanningErrorLogModalPageHandler')]
+    procedure MinimalMissingSKUReportsUncertifiedProductionBOM()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Planning] [Missing SKU]
+        // [SCENARIO] Minimal fallback continues to report the actual production BOM certification error.
+        Initialize();
+
+        // [GIVEN] Item "I" has sales demand at location "L", no SKU, and an uncertified BOM "B".
+        CreateMissingSKUProductionDemand(Item, Location, ProductionBOMHeader, Location."Missing SKU Planning Policy"::Minimal);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        // [WHEN] Calculate the plan with planning resiliency enabled.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] The certification error identifies "B", and no invalid planning line remains.
+        VerifyUncertifiedBOMPlanningFailure(Item, ProductionBOMHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4526,6 +4634,97 @@ codeunit 137088 "SCM Order Planning - III"
         JobPlanningLine.Validate("Usage Link", true);
         JobPlanningLine.Validate(Quantity, LibraryRandom.RandIntInRange(11, 20));
         JobPlanningLine.Modify(true);
+    end;
+
+    local procedure VerifyCreatePurchaseOrderWithDefaultBin(DropShipment: Boolean; WithVariant: Boolean)
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemJournalLine: Record "Item Journal Line";
+        Location: Record Location;
+        Bin: Record Bin;
+        BinContent: Record "Bin Content";
+        Purchasing: Record Purchasing;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesOrder: TestPage "Sales Order";
+        PurchaseOrder: TestPage "Purchase Order";
+        ExpectedBinCode: Code[20];
+        StockQuantity: Decimal;
+        ExpectedPurchaseQuantity: Decimal;
+    begin
+        // [GIVEN] A bin-mandatory warehouse and an item with stock in its default bin.
+        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, true);
+        Location.TestField("Directed Put-away and Pick", false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'B003', '', '');
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+        if WithVariant then
+            LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryWarehouse.CreateBinContent(
+            BinContent, Location.Code, '', Bin.Code, Item."No.", ItemVariant.Code, Item."Base Unit of Measure");
+        BinContent.Validate(Default, true);
+        BinContent.Modify(true);
+        StockQuantity := LibraryRandom.RandIntInRange(2, 10);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, Item."No.", Location.Code, Bin.Code, StockQuantity);
+        ItemJournalLine.Validate("Variant Code", ItemVariant.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A sales order for more than the stock, optionally marked as a drop shipment.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2 * StockQuantity);
+        SalesLine.Validate("Variant Code", ItemVariant.Code);
+        SalesLine.Validate("Location Code", Location.Code);
+        if DropShipment then begin
+            LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+            SalesLine.Validate("Purchasing Code", Purchasing.Code);
+        end;
+        SalesLine.Modify(true);
+        SalesLine.TestField("Drop Shipment", DropShipment);
+        if DropShipment then begin
+            SalesLine.TestField("Bin Code", '');
+            ExpectedPurchaseQuantity := SalesLine.Quantity;
+        end else begin
+            ExpectedBinCode := Bin.Code;
+            ExpectedPurchaseQuantity := SalesLine.Quantity - StockQuantity;
+        end;
+
+        // [WHEN] Create Purchase Orders is invoked; the handler checks the requisition line before accepting it.
+        LibraryVariableStorage.Enqueue(Item."No.");
+        LibraryVariableStorage.Enqueue(ItemVariant.Code);
+        LibraryVariableStorage.Enqueue(DropShipment);
+        LibraryVariableStorage.Enqueue(ExpectedBinCode);
+        LibraryVariableStorage.Enqueue(ExpectedPurchaseQuantity);
+        PurchaseOrder.Trap();
+        SalesOrder.OpenEdit();
+        SalesOrder.GoToRecord(SalesHeader);
+        SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [THEN] The purchase line has the expected bin, variant, quantity and drop shipment link.
+        FindPurchaseDocumentByItemNo(PurchaseHeader, PurchaseLine, Item."No.");
+        PurchaseHeader.TestField("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.TestField("Buy-from Vendor No.", Item."Vendor No.");
+        PurchaseLine.TestField("Location Code", Location.Code);
+        PurchaseLine.TestField("Variant Code", ItemVariant.Code);
+        PurchaseLine.TestField("Bin Code", ExpectedBinCode);
+        PurchaseLine.TestField("Drop Shipment", DropShipment);
+        PurchaseLine.TestField(Quantity, ExpectedPurchaseQuantity);
+        if DropShipment then begin
+            PurchaseLine.TestField("Sales Order No.", SalesHeader."No.");
+            PurchaseLine.TestField("Sales Order Line No.", SalesLine."Line No.");
+            SalesLine.Find();
+            SalesLine.TestField("Purchase Order No.", PurchaseLine."Document No.");
+            SalesLine.TestField("Purch. Order Line No.", PurchaseLine."Line No.");
+        end;
+        PurchaseOrder.Close();
+        SalesOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure CreatePurchaseOrderFromSalesOrder(SalesOrderNo: Code[20]; MakePurchOrders: Boolean)
@@ -5022,6 +5221,58 @@ codeunit 137088 "SCM Order Planning - III"
         Location.Modify(true);
     end;
 
+    local procedure CreateMissingSKUProductionDemand(var Item: Record Item; var Location: Record Location; var ProductionBOMHeader: Record "Production BOM Header"; MissingSKUPlanningPolicy: Enum "Missing SKU Planning Policy")
+    var
+        ComponentItem: Record Item;
+        SalesHeader: Record "Sales Header";
+    begin
+        LibraryManufacturing.SetComponentsAtLocation('');
+        CreateLocationWithMissingSKUPlanningPolicy(Location, MissingSKUPlanningPolicy);
+        LibraryInventory.CreateItem(ComponentItem);
+        CreateAndCertifyProductionBOM(ProductionBOMHeader, ComponentItem, '', 1);
+        CreateItem(Item, Item."Replenishment System"::"Prod. Order", '', ProductionBOMHeader."No.");
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Modify(true);
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 50, 50);
+        Item.SetRange("No.", Item."No.");
+        Item.SetRange("Location Filter", Location.Code);
+    end;
+
+    local procedure VerifyUncertifiedBOMPlanningFailure(Item: Record Item; ProductionBOMHeader: Record "Production BOM Header")
+    var
+        PlanningErrorLog: Record "Planning Error Log";
+    begin
+#pragma warning disable AA0210
+        PlanningErrorLog.SetRange("Item No.", Item."No.");
+#pragma warning restore AA0210
+        Assert.RecordCount(PlanningErrorLog, 1);
+        PlanningErrorLog.FindFirst();
+        Assert.AreEqual(
+            StrSubstNo(ProdBOMMustBeCertifiedErr, ProductionBOMHeader.TableCaption(), ProductionBOMHeader.FieldCaption("No."), ProductionBOMHeader."No."),
+            PlanningErrorLog."Error Description", 'Planning must report the production BOM certification error.');
+        Assert.AreEqual(Database::"Production BOM Header", PlanningErrorLog."Table ID", 'The error must refer to the production BOM.');
+        Assert.AreEqual(ProductionBOMHeader.GetPosition(), PlanningErrorLog."Table Position", 'The error must identify the uncertified BOM.');
+        Assert.AreEqual(StrSubstNo(NotAllItemsWerePlannedMsg, 1), LibraryVariableStorage.DequeueText(), 'Only the item with the uncertified BOM must fail planning.');
+        VerifyRecordCountAndQuantityInRequisitionLine(Item."No.", 0, 0);
+    end;
+
+    local procedure VerifyCertifiedBOMPlanningSuccess(Item: Record Item; Location: Record Location)
+    var
+        RequisitionLine: Record "Requisition Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        StockkeepingUnit.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(StockkeepingUnit);
+        VerifyPlanningErrorCount(Item."No.", 0);
+        RequisitionLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(RequisitionLine, 1);
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(Location.Code, RequisitionLine."Location Code", 'Planning must use the demand location.');
+        Assert.AreEqual(RequisitionLine."Replenishment System"::"Prod. Order", RequisitionLine."Replenishment System", 'Planning must use production replenishment.');
+        Assert.AreEqual(Item."Production BOM No.", RequisitionLine."Production BOM No.", 'Planning must use the item BOM.');
+        Assert.AreEqual(50, RequisitionLine.Quantity, RequisitionLineQuantityMismatchErr);
+    end;
+
     local procedure CreateMultipleItemWithReOrderPolicy(var Item: array[2] of Record Item; ReorderPoint: Integer; ReorderQuantity: Integer)
     begin
         LibraryInventory.CreateItem(Item[1]);
@@ -5117,7 +5368,9 @@ codeunit 137088 "SCM Order Planning - III"
     var
         PlanningErrorLog: Record "Planning Error Log";
     begin
+#pragma warning disable AA0210
         PlanningErrorLog.SetFilter("Item No.", ItemNoFilter);
+#pragma warning restore AA0210
         Assert.RecordCount(PlanningErrorLog, ExpectedCount);
     end;
 
@@ -5185,6 +5438,22 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [ModalPageHandler]
+    procedure PurchOrderFromSalesOrderVerifyBinModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", LibraryVariableStorage.DequeueText());
+        Assert.RecordCount(RequisitionLine, 1);
+        RequisitionLine.FindFirst();
+        RequisitionLine.TestField("Variant Code", LibraryVariableStorage.DequeueText());
+        RequisitionLine.TestField("Drop Shipment", LibraryVariableStorage.DequeueBoolean());
+        RequisitionLine.TestField("Bin Code", LibraryVariableStorage.DequeueText());
+        RequisitionLine.TestField(Quantity, LibraryVariableStorage.DequeueDecimal());
+        PurchOrderFromSalesOrder.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
     procedure PurchOrderFromSalesOrderWithVendorNoModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
     begin
         PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
@@ -5237,6 +5506,12 @@ codeunit 137088 "SCM Order Planning - III"
     [MessageHandler]
     procedure ErrorMessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [MessageHandler]
+    procedure CapturePlanningFailureMessage(Message: Text[1024])
+    begin
+        LibraryVariableStorage.Enqueue(Message);
     end;
 
     [MessageHandler]
