@@ -168,9 +168,11 @@ codeunit 10520 GovTalkMessageManagement
     begin
         CreateGovTalkHttpRequest(GovTalkMessageXMLNode, SubmitURL, RequestMessage);
 
-        ProcessingWindow.Open(ProcessingWindowMsg);
+        if GuiAllowed() then
+            ProcessingWindow.Open(ProcessingWindowMsg);
         RequestSent := Client.Send(RequestMessage, ResponseMessage);
-        ProcessingWindow.Close();
+        if GuiAllowed() then
+            ProcessingWindow.Close();
 
         if not RequestSent then
             exit(false);
