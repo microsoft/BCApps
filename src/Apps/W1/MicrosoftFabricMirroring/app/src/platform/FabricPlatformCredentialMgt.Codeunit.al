@@ -1,7 +1,6 @@
 namespace Microsoft.FabricExport;
 
 using System.Azure.Identity;
-using System.Azure.KeyVault;
 using System.Security.Authentication;
 #if not CLEAN29
 using System.Security.Encryption;
@@ -12,8 +11,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     Access = Internal;
 
     var
-        FabricMirroringAppIdSecretNameTok: Label 'FabricMirroringAppId', Locked = true;
-        FabricMirroringAppIdMissingErr: Label 'The Microsoft Fabric application ID could not be retrieved from Azure Key Vault.';
+        FabricMirroringAppIdTok: Label 'dcc80069-ba40-4ad9-ba8c-60001cea3497', Locked = true;
         AdminConsentUrlTok: Label 'https://login.microsoftonline.com/%1/adminconsent', Comment = '%1 = tenant ID', Locked = true;
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
@@ -59,19 +57,13 @@ codeunit 48524 "Fabric Platform Credential Mgt"
 #endif
 
     /// <summary>Returns the client ID of the active app: the Microsoft first-party app unless a custom app registration is enabled.</summary>
-    [NonDebuggable]
     internal procedure GetClientId(): Text
-    var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        ClientId: Text;
     begin
 #if not CLEAN29
         if IsCustomAppEnabled() then
             exit(GetCustomClientId());
 #endif
-        if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdSecretNameTok, ClientId) then
-            Error(FabricMirroringAppIdMissingErr);
-        exit(ClientId);
+        exit(FabricMirroringAppIdTok);
     end;
 
     internal procedure GetTenantId(): Text
