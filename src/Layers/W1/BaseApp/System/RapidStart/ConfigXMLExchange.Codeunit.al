@@ -2000,6 +2000,7 @@ codeunit 8614 "Config. XML Exchange"
         exit(GetElementName(NameIn));
     end;
 
+#if not CLEAN29
     [Obsolete('Replaced by procedure GetNodeValue', '29.0')]
     local procedure GetNodeValue(var RecordNode: DotNet XmlNode; FieldNodeName: Text[250]): Text
     var
@@ -2009,6 +2010,7 @@ codeunit 8614 "Config. XML Exchange"
         if not IsNull(FieldNode) then
             exit(FieldNode.InnerText);
     end;
+#endif
 
     local procedure GetNodeValue(var RecordNode: XmlNode; FieldNodeName: Text): Text
     var
@@ -2875,12 +2877,13 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnImportPackageXMLDocumentOnBeforeModifyConfigPackage', '29.0')]
     local procedure OnImportPackageXMLDocumentOnBeforeModify(var ConfigPackage: Record "Config. Package"; var DocumentElement: DotNet XmlElement)
     begin
     end;
 
-#if not CLEAN29
     [IntegrationEvent(false, false)]
     [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnBeforeModifyConfigPackageField', '29.0')]
     local procedure OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(var ConfigPackageField: Record "Config. Package Field"; var Value: Text; var FieldNode: DotNet XmlNode)
@@ -2958,8 +2961,11 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Temporary fallback to the DotNet based import. It is removed together with the DotNet based import.', '29.0')]
     local procedure OnImportPackageXMLFromClientOnBeforeImportPackage(var UseImportWithDotNet: Boolean)
     begin
     end;
+#endif
 }

@@ -2222,11 +2222,9 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackageTable: Record "Config. Package Table";
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
         TempBlob: Codeunit "Temp Blob";
-        TempBlobOld: Codeunit "Temp Blob";
         TempBlobInStream: InStream;
         PackageOutStream: OutStream;
         PackageOutput: Text;
-        PackageOutputOld: Text;
         SingleLine: Text;
     begin
         // [SCENARIO] Exporting a package to an OutStream.
