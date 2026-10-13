@@ -15,6 +15,7 @@ pageextension 6905 "Exp. Acc. Payable Admin RC Ext" extends "Acc. Payable Admini
             part("Expense Activities"; "Expense Activities")
             {
                 ApplicationArea = Basic, Suite;
+                AccessByPermission = tabledata "Expense Report Header" = R;
             }
         }
     }

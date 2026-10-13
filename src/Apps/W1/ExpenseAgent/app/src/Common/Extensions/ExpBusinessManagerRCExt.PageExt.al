@@ -15,6 +15,7 @@ pageextension 6906 "Exp. Business Manager RC Ext" extends "Business Manager Role
             part("Expense Activities"; "Expense Activities")
             {
                 ApplicationArea = Basic, Suite;
+                AccessByPermission = tabledata "Expense Report Header" = R;
             }
         }
     }

@@ -15,6 +15,7 @@ pageextension 6904 "Exp. Accountant RC Ext" extends "Accountant Role Center"
             part("Expense Activities"; "Expense Activities")
             {
                 ApplicationArea = Basic, Suite;
+                AccessByPermission = tabledata "Expense Report Header" = R;
             }
         }
     }
