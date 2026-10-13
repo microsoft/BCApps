@@ -32,8 +32,10 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
 
     trigger OnInstallAppPerCompany()
     var
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
         DemoSetupMgt: Codeunit "PA BC IQ Demo Mgt.";
     begin
+        AgentFeatureMgt.MigrateBusinessCentralIQSetting();
         if DemoSetupMgt.PreviousBusinessSkillsCanBeRefreshed() then
             DemoSetupMgt.RefreshBusinessSkills();
     end;
@@ -58,8 +60,12 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
     end;
 
     procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
+    var
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
     begin
-        exit(Feature = Feature::BusinessIQ);
+        if Feature <> Feature::BusinessIQ then
+            exit(false);
+        exit(AgentFeatureMgt.IsBusinessCentralIQEnabled(AgentUserId));
     end;
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
