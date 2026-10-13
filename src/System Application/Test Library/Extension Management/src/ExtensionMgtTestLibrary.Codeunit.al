@@ -55,6 +55,6 @@ codeunit 135109 "Extension Mgt. Test Library"
         if PreviewKey <> '' then
             TempExtensionInstallation.SetRange(PreviewKey, PreviewKey);
 
-        Page.RunModal(Page::"Extension Installation", TempExtensionInstallation);
+        Page.Run(Page::"Extension Installation", TempExtensionInstallation);
     end;
 }
