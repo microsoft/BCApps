@@ -346,6 +346,7 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractorPrice: Record "Subcontractor Price";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
+        FinalOrderDate: Date;
         FinalDatePrice: Decimal;
     begin
         // [SCENARIO 648535] An automatically calculated worksheet fallback is repriced when
@@ -362,13 +363,11 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
         SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
             RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
-        RequisitionLine.Validate("Order Date", WorkDate());
-        RequisitionLine.Modify(true);
+        FinalOrderDate := RequisitionLine."Order Date";
         FinalDatePrice := LibraryRandom.RandDecInRange(100, 200, 2);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
-            CalcDate('<-1M>', WorkDate()), Item."Base Unit of Measure", 0, '');
-        SubcontractorPrice.Validate("Ending Date", CalcDate('<-1D>', WorkDate()));
+            FinalOrderDate, Item."Base Unit of Measure", 0, '');
         SubcontractorPrice.Validate("Direct Unit Cost", FinalDatePrice);
         SubcontractorPrice.Modify(true);
 
@@ -376,9 +375,9 @@ codeunit 139982 "Subc. Pricing Test"
 
         SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(
             PurchaseLine, Item."No.", ProductionOrder."No.");
-        Assert.IsTrue(
-            PurchaseLine."Order Date" < WorkDate(),
-            'The final purchase-line Order Date must be in the price validity period.');
+        Assert.AreEqual(
+            FinalOrderDate, PurchaseLine."Order Date",
+            'The purchase-line Order Date must equal the final worksheet Order Date.');
         Assert.AreEqual(
             FinalDatePrice, PurchaseLine."Direct Unit Cost",
             'The price valid on the final purchase-line date must replace the automatic worksheet fallback.');
@@ -764,14 +763,14 @@ codeunit 139982 "Subc. Pricing Test"
         Clear(SubcontractorPrice);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", '', '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, Vendor."Currency Code");
         SubcontractorPrice."Direct Unit Cost" := PriceWithoutStdTask;
         SubcontractorPrice.Modify();
 
         Clear(SubcontractorPrice);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", StandardTask.Code, '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, Vendor."Currency Code");
         SubcontractorPrice."Direct Unit Cost" := PriceWithStdTask;
         SubcontractorPrice.Modify();
 
@@ -1401,6 +1400,8 @@ codeunit 139982 "Subc. Pricing Test"
         RefOrderType: Enum "Requisition Ref. Order Type";
     begin
         CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenter.Modify(true);
 
         Evaluate(VendorLeadTime, '<9D>');
         Vendor.Validate("Lead Time Calculation", VendorLeadTime);
