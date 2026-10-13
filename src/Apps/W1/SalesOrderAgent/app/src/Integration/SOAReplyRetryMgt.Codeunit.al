@@ -7,6 +7,7 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.Agents;
+using System.Telemetry;
 
 codeunit 4418 "SOA Reply Retry Mgt."
 {
@@ -17,7 +18,43 @@ codeunit 4418 "SOA Reply Retry Mgt."
 
     var
         ReplyNotAuthorizedErr: Label 'You are not authorized to send this reply.';
+        ReplyNotFailedErr: Label 'Only a reply that failed to be sent can be retried.';
+        TelemetryReplySendingRetriedLbl: Label 'Failed email reply was set back to Reviewed so that sending is retried.', Locked = true;
 
+    /// <summary>
+    /// Moves a failed output message back to Reviewed so that delivery is attempted again on the next agent run.
+    /// </summary>
+    internal procedure RetrySending(TaskId: BigInteger; MessageId: Guid)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        AgentMessage: Codeunit "Agent Message";
+        SOASetupCU: Codeunit "SOA Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        AgentTaskMessage.Get(TaskId, MessageId);
+        ValidateMessageAccess(AgentTaskMessage);
+
+        if (AgentTaskMessage.Type <> AgentTaskMessage.Type::Output) or (AgentTaskMessage.Status <> AgentTaskMessage.Status::Failed) then
+            Error(ReplyNotFailedErr);
+
+        ClearAttempts(TaskId, MessageId);
+        AgentMessage.SetStatusToReviewed(TaskId, MessageId);
+
+        TelemetryDimensions.Add('AgentTaskID', Format(TaskId));
+        TelemetryDimensions.Add('AgentTaskMessageID', MessageId);
+        FeatureTelemetry.LogUsage('0000V6L', SOASetupCU.GetFeatureName(), TelemetryReplySendingRetriedLbl, TelemetryDimensions);
+    end;
+
+    /// <summary>
+    /// Counts a failed delivery attempt for an output message.
+    /// </summary>
+    /// <remarks>
+    /// Terminal state lives on the message itself, as the Failed status. This table only counts the attempts that lead
+    /// up to it, because a single failure is not conclusive: transient mailbox errors such as a mailbox move in progress
+    /// resolve themselves, and failing such a reply terminally on the first error would lose a deliverable reply.
+    /// Rows are short lived and are removed as soon as the message is sent or moves to Failed.
+    /// </remarks>
     internal procedure RegisterFailedAttempt(TaskId: BigInteger; MessageId: Guid)
     var
         SOAReplyAttempt: Record "SOA Reply Attempt";
@@ -34,16 +71,6 @@ codeunit 4418 "SOA Reply Retry Mgt."
             SOAReplyAttempt."Attempt Count" := 1;
             SOAReplyAttempt.Insert();
         end;
-    end;
-
-    internal procedure ResetAttempts(TaskId: BigInteger; MessageId: Guid)
-    var
-        AgentTaskMessage: Record "Agent Task Message";
-    begin
-        AgentTaskMessage.Get(TaskId, MessageId);
-        ValidateMessageAccess(AgentTaskMessage);
-
-        ClearAttempts(TaskId, MessageId);
     end;
 
     internal procedure IsExhausted(TaskId: BigInteger; MessageId: Guid): Boolean
@@ -73,12 +100,10 @@ codeunit 4418 "SOA Reply Retry Mgt."
     var
         SOASetup: Record "SOA Setup";
     begin
-        ValidateMessageAccess(AgentTaskMessage, SOASetup);
-    end;
-
-    local procedure ValidateMessageAccess(AgentTaskMessage: Record "Agent Task Message"; var SOASetup: Record "SOA Setup")
-    begin
-        SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
+        // A setup that cannot be resolved means authorization cannot be established, which is reported as
+        // such rather than surfacing the internal "setup not found" error to the user.
+        if not SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", false) then
+            Error(ReplyNotAuthorizedErr);
         if not SOASetup.IsAuthorizedUserSecurityID(UserSecurityId()) then
             Error(ReplyNotAuthorizedErr);
     end;

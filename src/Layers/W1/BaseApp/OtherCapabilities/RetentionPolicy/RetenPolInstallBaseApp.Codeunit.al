@@ -26,7 +26,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
 {
     Subtype = Install;
     Access = Internal;
-    Permissions = tabledata "Retention Period" = ri, tabledata "Retention Policy Setup" = ri;
+    Permissions = tabledata "Retention Period" = ri, tabledata "Retention Policy Setup" = ri, tabledata "Retention Policy Setup Line" = r;
 
     trigger OnInstallAppPerCompany()
     begin
@@ -387,7 +387,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
         RetentionPolicySetup.Insert(true);
     end;
 
-    local procedure EnableRetentionPolicySetup(TableId: Integer)
+    internal procedure EnableRetentionPolicySetup(TableId: Integer)
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
         [SecurityFiltering(SecurityFilter::Ignored)]
@@ -405,8 +405,27 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
         if not RetentionPolicySetup.Get(TableId) then
             exit;
 
+        if not CanEnableRetentionPolicySetup(RetentionPolicySetup) then
+            exit;
+
         RetentionPolicySetup.Validate(Enabled, true);
         RetentionPolicySetup.Modify(true);
+    end;
+
+    // An existing setup may have been created by the user with incomplete data; enabling it would fail validation and block install/upgrade.
+    local procedure CanEnableRetentionPolicySetup(RetentionPolicySetup: Record "Retention Policy Setup"): Boolean
+    var
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+    begin
+        if RetentionPolicySetup.Enabled then
+            exit(false);
+
+        if RetentionPolicySetup."Apply to all records" then
+            exit(RetentionPolicySetup."Retention Period" <> '');
+
+        RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table Id");
+        RetentionPolicySetupLine.SetRange(Enabled, true);
+        exit(not RetentionPolicySetupLine.IsEmpty());
     end;
 
     local procedure GetRetenPolBaseAppTablesUpgradeTag(): Code[250]

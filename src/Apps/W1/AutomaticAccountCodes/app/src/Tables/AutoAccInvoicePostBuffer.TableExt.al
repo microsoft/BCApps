@@ -7,7 +7,9 @@ namespace Microsoft.Finance.AutomaticAccounts;
 
 using Microsoft.Finance.ReceivablesPayables;
 
+#pragma warning disable AL0520 // Accepted: the base table is obsolete but this extension must remain for upgrade compatibility.
 tableextension 4853 "AutoAcc. Invoice Post. Buffer" extends "Invoice Post. Buffer"
+#pragma warning restore AL0520
 {
     fields
     {

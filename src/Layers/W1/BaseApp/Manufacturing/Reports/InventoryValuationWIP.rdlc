@@ -19,37 +19,40 @@
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>0.6in</Width>
+                  <Width>0.55in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.6in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.8in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>1in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>0.6in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>1in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>0.9in</Width>
+                  <Width>1.45in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.85in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.85in</Width>
+                  <Width>0.6in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>0.8in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>0.95in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>0.8in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>0.7in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>0.8in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.9in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.9in</Width>
+                  <Width>1in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -385,6 +388,36 @@
                             </Paragraph>
                           </Paragraphs>
                           <ZIndex>17</ZIndex>
+                          <Style>
+                            <VerticalAlign>Bottom</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPCaption">
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!ExpensedWIPCaption.Value</Value>
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <ZIndex>24</ZIndex>
                           <Style>
                             <VerticalAlign>Bottom</VerticalAlign>
                             <PaddingLeft>5pt</PaddingLeft>
@@ -807,6 +840,43 @@
                         </Textbox>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPHeaderLine">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value />
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>ExpensedWIPHeaderLine</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>None</Style>
+                            </Border>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <VerticalAlign>Bottom</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
                 <TablixRow>
@@ -1149,6 +1219,37 @@
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>Textbox211</rd:DefaultName>
+                          <Style>
+                            <VerticalAlign>Bottom</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPSpacer3">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value />
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>ExpensedWIPSpacer3</rd:DefaultName>
                           <Style>
                             <VerticalAlign>Bottom</VerticalAlign>
                             <PaddingLeft>5pt</PaddingLeft>
@@ -1519,6 +1620,40 @@
                             </Paragraph>
                           </Paragraphs>
                           <ZIndex>6</ZIndex>
+                          <Style>
+                            <Border>
+                              <Style>None</Style>
+                            </Border>
+                            <VerticalAlign>Top</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPValue">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Last(Fields!ExpensedWIP.Value)</Value>
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <Format>=First(Fields!ExpensedWIPFormat.Value)</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <ZIndex>5</ZIndex>
                           <Style>
                             <Border>
                               <Style>None</Style>
@@ -1901,6 +2036,43 @@
                         </Textbox>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPSpacer5">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value />
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>ExpensedWIPSpacer5</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>None</Style>
+                            </Border>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <VerticalAlign>Top</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
                 <TablixRow>
@@ -2237,6 +2409,37 @@
                         </Textbox>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPSpacer6">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value />
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>ExpensedWIPSpacer6</rd:DefaultName>
+                          <Style>
+                            <VerticalAlign>Top</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
                 <TablixRow>
@@ -2555,12 +2758,45 @@
                         <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ExpensedWIPTotal">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Sum(Fields!ExpensedWIP.Value)</Value>
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontFamily>Segoe UI</FontFamily>
+                                    <FontSize>8pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Format>=First(Fields!ExpensedWIPFormat.Value)</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Right</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <ZIndex>25</ZIndex>
+                          <Style>
+                            <VerticalAlign>Top</VerticalAlign>
+                            <PaddingLeft>5pt</PaddingLeft>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
               </TablixRows>
             </TablixBody>
             <TablixColumnHierarchy>
               <TablixMembers>
+                <TablixMember />
                 <TablixMember />
                 <TablixMember />
                 <TablixMember />
@@ -2950,6 +3186,15 @@
       </DefaultValue>
       <Prompt>CostPostedToGLLbl</Prompt>
     </ReportParameter>
+    <ReportParameter Name="ExpensedWIPLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ExpensedWIPLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ExpensedWIPLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="AboutTheReportLbl">
       <DataType>String</DataType>
       <DefaultValue>
@@ -3179,6 +3424,9 @@ End Function
         <Field Name="ValueEntryCostPostedtoGLCaption">
           <DataField>ValueEntryCostPostedtoGLCaption</DataField>
         </Field>
+        <Field Name="ExpensedWIPCaption">
+          <DataField>ExpensedWIPCaption</DataField>
+        </Field>
         <Field Name="ValueOfMatConsumpCaption">
           <DataField>ValueOfMatConsumpCaption</DataField>
         </Field>
@@ -3248,41 +3496,53 @@ End Function
         <Field Name="LastWIPFormat">
           <DataField>LastWIPFormat</DataField>
         </Field>
-        <Field Name="Totals_LastWip">
-          <DataField>Totals_LastWip</DataField>
+        <Field Name="ExpensedWIP">
+          <DataField>ExpensedWIP</DataField>
         </Field>
-        <Field Name="Totals_LastWipFormat">
-          <DataField>Totals_LastWipFormat</DataField>
+        <Field Name="ExpensedWIPFormat">
+          <DataField>ExpensedWIPFormat</DataField>
         </Field>
-        <Field Name="Totals_ValueOfMatConsumption">
-          <DataField>Totals_ValueOfMatConsumption</DataField>
+        <Field Name="LatWipSum">
+          <DataField>LatWipSum</DataField>
         </Field>
-        <Field Name="Totals_ValueOfMatConsumptionFormat">
-          <DataField>Totals_ValueOfMatConsumptionFormat</DataField>
+        <Field Name="LatWipSumFormat">
+          <DataField>LatWipSumFormat</DataField>
         </Field>
-        <Field Name="Totals_ValueOfCap">
-          <DataField>Totals_ValueOfCap</DataField>
+        <Field Name="ValueOfMatConsumptionSum">
+          <DataField>ValueOfMatConsumptionSum</DataField>
         </Field>
-        <Field Name="Totals_ValueOfCapFormat">
-          <DataField>Totals_ValueOfCapFormat</DataField>
+        <Field Name="ValueOfMatConsumptionSumFormat">
+          <DataField>ValueOfMatConsumptionSumFormat</DataField>
         </Field>
-        <Field Name="Totals_ValueOfOutput">
-          <DataField>Totals_ValueOfOutput</DataField>
+        <Field Name="ValueOfCapSum">
+          <DataField>ValueOfCapSum</DataField>
         </Field>
-        <Field Name="Totals_ValueOfOutputFormat">
-          <DataField>Totals_ValueOfOutputFormat</DataField>
+        <Field Name="ValueOfCapSumFormat">
+          <DataField>ValueOfCapSumFormat</DataField>
         </Field>
-        <Field Name="Totals_AtLastDate">
-          <DataField>Totals_AtLastDate</DataField>
+        <Field Name="ValueOfOutputSum">
+          <DataField>ValueOfOutputSum</DataField>
         </Field>
-        <Field Name="Totals_AtLastDateFormat">
-          <DataField>Totals_AtLastDateFormat</DataField>
+        <Field Name="ValueOfOutputSumFormat">
+          <DataField>ValueOfOutputSumFormat</DataField>
         </Field>
-        <Field Name="Totals_ValueEntryCostPostedToGL">
-          <DataField>Totals_ValueEntryCostPostedToGL</DataField>
+        <Field Name="AtLastDateSum">
+          <DataField>AtLastDateSum</DataField>
         </Field>
-        <Field Name="Totals_ValueEntryCostPostedToGLFormat">
-          <DataField>Totals_ValueEntryCostPostedToGLFormat</DataField>
+        <Field Name="AtLastDateSumFormat">
+          <DataField>AtLastDateSumFormat</DataField>
+        </Field>
+        <Field Name="ExpensedWIPSum">
+          <DataField>ExpensedWIPSum</DataField>
+        </Field>
+        <Field Name="ExpensedWIPSumFormat">
+          <DataField>ExpensedWIPSumFormat</DataField>
+        </Field>
+        <Field Name="ValueEntryCostPostedToGLSum">
+          <DataField>ValueEntryCostPostedToGLSum</DataField>
+        </Field>
+        <Field Name="ValueEntryCostPostedToGLSumFormat">
+          <DataField>ValueEntryCostPostedToGLSumFormat</DataField>
         </Field>
       </Fields>
       <Query>

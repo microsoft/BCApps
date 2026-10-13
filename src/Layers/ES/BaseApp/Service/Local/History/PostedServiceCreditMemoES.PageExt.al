@@ -122,6 +122,32 @@ pageextension 10732 "Posted Service Credit Memo ES" extends "Posted Service Cred
                 end;
             }
         }
+        addlast(processing)
+        {
+            action("Mark As Accepted")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Mark As Accepted';
+                Image = Completed;
+                Enabled = SIIEnabled;
+                Visible = ShowAdvancedActions;
+                ToolTip = 'Mark the document as accepted in SII to correct an incorrect or pending status.';
+
+                trigger OnAction()
+                var
+                    SIIDocUploadState: Record "SII Doc. Upload State";
+                    FeedbackMessage: Text;
+                begin
+                    if SIIManagement.MarkDocumentAsAccepted(
+                         SIIDocUploadState."Document Source"::"Customer Ledger",
+                         SIIDocUploadState."Document Type"::"Credit Memo", Rec."No.", FeedbackMessage)
+                    then
+                        CurrPage.Update(false)
+                    else
+                        Message(FeedbackMessage);
+                end;
+            }
+        }
         addafter(ActivityLog)
         {
             action("Update Document")
@@ -147,6 +173,12 @@ pageextension 10732 "Posted Service Credit Memo ES" extends "Posted Service Cred
             {
             }
         }
+        addlast(Category_Process)
+        {
+            actionref("Mark As Accepted_Promoted"; "Mark As Accepted")
+            {
+            }
+        }
     }
 
     trigger OnAfterGetRecord()
@@ -162,11 +194,15 @@ pageextension 10732 "Posted Service Credit Memo ES" extends "Posted Service Cred
     trigger OnOpenPage()
     begin
         UpdateSIIFields();
+        SIIEnabled := SIIManagement.IsSIISetupEnabled();
+        ShowAdvancedActions := SIIManagement.IsShowAdvancedActionsEnabled();
     end;
 
     var
         SIIManagement: Codeunit "SII Management";
         DocHasMultipleRegimeCode: Boolean;
+        SIIEnabled: Boolean;
+        ShowAdvancedActions: Boolean;
         OperationDescription: Text[500];
         MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
 

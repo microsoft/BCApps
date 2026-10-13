@@ -126,8 +126,7 @@ codeunit 27022 "DIOT Subscribers"
 
     local procedure CheckWHTIsNotMoreThanVAT(VATPostingSetup: Record "VAT Posting Setup")
     begin
-        with VATPostingSetup do
-            if "DIOT WHT %" > "VAT %" then
-                Error(WHTMoreThanVATErr, FieldCaption("DIOT WHT %"), FieldCaption("VAT %"));
+        if VATPostingSetup."DIOT WHT %" > VATPostingSetup."VAT %" then
+            Error(WHTMoreThanVATErr, VATPostingSetup.FieldCaption("DIOT WHT %"), VATPostingSetup.FieldCaption("VAT %"));
     end;
 }
