@@ -90,7 +90,6 @@ codeunit 1294 "OCR Service Mgt."
         ApplicationXmlTok: Label 'application/xml', Locked = true;
         AcceptHeaderNameTok: Label 'Accept', Locked = true;
         ContentTypeHeaderNameTok: Label 'Content-Type', Locked = true;
-        CookieHeaderNameTok: Label 'Cookie', Locked = true;
         RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\%1', Comment = '%1 = The error message returned by the remote service';
         ConnectionErr: Label 'Connection to the remote service could not be established.\\';
         RemoteServerReturnedErrorErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
@@ -416,8 +415,11 @@ codeunit 1294 "OCR Service Mgt."
         HttpContentHeaders: HttpHeaders;
     begin
         HttpContent.GetHeaders(HttpContentHeaders);
-        if HttpContentHeaders.Contains(ContentTypeHeaderNameTok) then
-            HttpContentHeaders.Remove(ContentTypeHeaderNameTok);
+        if HttpContentHeaders.ContainsSecret(ContentTypeHeaderNameTok) then
+            HttpContentHeaders.Remove(ContentTypeHeaderNameTok)
+        else
+            if HttpContentHeaders.Contains(ContentTypeHeaderNameTok) then
+                HttpContentHeaders.Remove(ContentTypeHeaderNameTok);
         HttpContentHeaders.Add(ContentTypeHeaderNameTok, ContentType);
         HttpRequestMessage.Content(HttpContent);
     end;
@@ -518,8 +520,6 @@ codeunit 1294 "OCR Service Mgt."
     end;
 
     local procedure RsoAddCookie(var HttpRequestMessage: HttpRequestMessage)
-    var
-        HttpRequestHeaders: HttpHeaders;
     begin
         if AuthCookie.Name() = '' then
             if not Authenticate() then
@@ -528,8 +528,7 @@ codeunit 1294 "OCR Service Mgt."
             if not Authenticate() then
                 Error(GetLastErrorText);
 
-        HttpRequestMessage.GetHeaders(HttpRequestHeaders);
-        HttpRequestHeaders.TryAddWithoutValidation(CookieHeaderNameTok, StrSubstNo('%1=%2', AuthCookie.Name(), AuthCookie.Value()));
+        HttpRequestMessage.SetCookie(AuthCookie.Name(), AuthCookie.Value());
     end;
 
     local procedure IsAuthCookieExpired(): Boolean
