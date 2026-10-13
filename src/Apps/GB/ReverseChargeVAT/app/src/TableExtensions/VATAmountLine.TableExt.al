@@ -10,6 +10,7 @@ tableextension 10552 "VAT Amount Line" extends "VAT Amount Line"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(10507; "Reverse Charge GB"; Decimal)
         {
 #pragma warning disable AA0474 // the amount is FCY but currency code is not known and not relevant in VAT Ammount Line
@@ -27,6 +28,7 @@ tableextension 10552 "VAT Amount Line" extends "VAT Amount Line"
                 "VAT Difference" := "VAT Amount" - "Calculated VAT Amount";
             end;
         }
+#pragma warning restore AS0099
     }
 
     var
