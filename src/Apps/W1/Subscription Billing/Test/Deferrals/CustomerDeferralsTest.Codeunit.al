@@ -1542,8 +1542,13 @@ codeunit 139912 "Customer Deferrals Test"
     end;
 
     local procedure PostSalesCreditMemo()
+    var
+        ReasonCode: Record "Reason Code";
     begin
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
+        LibraryERM.CreateReasonCode(ReasonCode);
+        SalesCrMemoHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesCrMemoHeader.Modify(true);
         CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
     end;
 
