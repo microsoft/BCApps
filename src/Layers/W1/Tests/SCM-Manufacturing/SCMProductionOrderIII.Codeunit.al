@@ -8348,6 +8348,76 @@ codeunit 137079 "SCM Production Order III"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerWithoutValidation')]
+    procedure ReverseCapacityLedgerEntryIntermediateOperationWithoutOutputSerialTrackedItem()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemTrackingCode: Record "Item Tracking Code";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReversalCapacityLedgerEntry: Record "Capacity Ledger Entry";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 653339] Capacity ledger entry of an intermediate operation posted with run time but no output can be reversed for a serial-tracked item without a serial number.
+        Initialize();
+
+        // [GIVEN] Serial-tracked production item with a routing of two operations.
+        Item.Get(CreateItemSerialRoutingSeveralLines(2));
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, false);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Released production order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandIntInRange(2, 10), '', '');
+
+        // [GIVEN] Output journal posted only for the intermediate operation with run time and zero output quantity.
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetFilter("Next Operation No.", '<>%1', '');
+        ProdOrderRoutingLine.FindFirst();
+
+        CreateOutputJournalWithExplodeRouting(ItemJournalLine, ProductionOrder."No.");
+        ItemJournalLine.SetFilter("Operation No.", '<>%1', ProdOrderRoutingLine."Operation No.");
+        ItemJournalLine.DeleteAll(true);
+        ItemJournalLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        ItemJournalLine.FindFirst();
+        ItemJournalLine.Validate("Output Quantity", 0);
+        ItemJournalLine.Validate("Run Time", LibraryRandom.RandDecInRange(10, 20, 2));
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
+
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        CapacityLedgerEntry.FindFirst();
+
+        // [WHEN] Invoke "Reverse" action on the capacity ledger entry of the intermediate operation.
+        CapacityLedgerEntries.OpenEdit();
+        CapacityLedgerEntries.Filter.SetFilter("Entry No.", Format(CapacityLedgerEntry."Entry No."));
+        CapacityLedgerEntries.Reverse.Invoke();
+
+        // [THEN] The capacity ledger entry is reversed without requiring a serial number.
+        CapacityLedgerEntry.Get(CapacityLedgerEntry."Entry No.");
+        Assert.IsTrue(CapacityLedgerEntry.Reversed, StrSubstNo(ValueMustBeEqualErr, CapacityLedgerEntry.FieldCaption(Reversed), true, CapacityLedgerEntry.TableCaption()));
+        ReversalCapacityLedgerEntry.Get(CapacityLedgerEntry."Reversed by Entry No.");
+        Assert.AreEqual(
+            -CapacityLedgerEntry."Run Time", ReversalCapacityLedgerEntry."Run Time",
+            StrSubstNo(ValueMustBeEqualErr, ReversalCapacityLedgerEntry.FieldCaption("Run Time"), -CapacityLedgerEntry."Run Time", ReversalCapacityLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            -CapacityLedgerEntry.Quantity, ReversalCapacityLedgerEntry.Quantity,
+            StrSubstNo(ValueMustBeEqualErr, ReversalCapacityLedgerEntry.FieldCaption(Quantity), -CapacityLedgerEntry.Quantity, ReversalCapacityLedgerEntry.TableCaption()));
+
+        // [THEN] No output item ledger entry is posted.
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Production Order III");
