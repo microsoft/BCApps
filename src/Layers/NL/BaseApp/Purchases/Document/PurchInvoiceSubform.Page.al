@@ -1478,7 +1478,6 @@ page 55 "Purch. Invoice Subform"
     begin
         UpdateEditableOnRow();
         InsertExtendedText(false);
-
         if (Rec.Type = Rec.Type::"Charge (Item)") and (Rec."No." <> xRec."No.") and
            (xRec."No." <> '')
         then
