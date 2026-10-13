@@ -74,11 +74,6 @@ table 3322 "PA BC IQ Demo State"
             Caption = 'Setup Version';
             DataClassification = SystemMetadata;
         }
-        field(17; "Original Use BC IQ"; Boolean)
-        {
-            Caption = 'Original Use Business Central IQ';
-            DataClassification = SystemMetadata;
-        }
         field(18; "Account 8120 VAT Prod. Group"; Code[20])
         {
             Caption = 'Account 8120 Original VAT Product Posting Group';

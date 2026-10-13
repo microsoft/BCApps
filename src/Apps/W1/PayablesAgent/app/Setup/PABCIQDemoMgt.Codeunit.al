@@ -41,8 +41,9 @@ codeunit 3327 "PA BC IQ Demo Mgt."
                   tabledata "Gen. Business Posting Group" = r,
                   tabledata "Gen. Journal Line" = r,
                   tabledata "Gen. Product Posting Group" = r,
+                  tabledata "Business Skill" = r,
+                  tabledata "Business Skill Company" = r,
                   tabledata "PA BC IQ Demo State" = rimd,
-                  tabledata "Payables Agent Setup" = rimd,
                   tabledata "Payment Terms" = r,
                   tabledata "Purch. Inv. Header" = r,
                   tabledata "Purchase Header" = rimd,
@@ -72,11 +73,10 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         CreateVATPostingSetups();
         UpdateExistingVendors();
         CreateElectricityVendor();
-        CreateDefaultDimensions(DemoState);
+        CreateDefaultDimensions();
         CreateTextToAccountMappings(DemoState);
         CreateHistoryInvoices(DemoState);
         CreateBusinessSkills(DemoState);
-        SetPayablesAgentBusinessCentralIQEnabled(false);
 
         DemoState.Insert(true);
     end;
@@ -132,30 +132,41 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         RestoreExistingAccountVATDefaults(DemoState);
         DeleteVATProductPostingGroups();
         RestoreExistingVendors(DemoState);
-        SetBusinessCentralIQEnabled(DemoState."Original Use BC IQ");
         DemoState.Delete(true);
     end;
 
-    procedure SetBusinessCentralIQEnabled(Enabled: Boolean)
+    procedure RefreshBusinessSkills()
     var
         DemoState: Record "PA BC IQ Demo State";
     begin
         VerifyTargetCompany();
         if not DemoState.Get(StatePrimaryKeyTok) or (DemoState."Setup Version" <> 2) then
             Error(NotConfiguredErr);
+        if AreBusinessSkillsCurrent(DemoState) then
+            exit;
 
-        SetPayablesAgentBusinessCentralIQEnabled(Enabled);
+        VerifyPreviousBusinessSkills(DemoState);
+        DeletePreviousBusinessSkills(DemoState);
+        CreateBusinessSkills(DemoState);
+        DemoState.Modify(true);
     end;
 
-    local procedure SetPayablesAgentBusinessCentralIQEnabled(Enabled: Boolean)
+    procedure BusinessSkillsNeedRefresh(): Boolean
     var
-        PayablesAgentSetup: Record "Payables Agent Setup";
+        DemoState: Record "PA BC IQ Demo State";
     begin
-        PayablesAgentSetup.GetSetup();
-        if PayablesAgentSetup."Use Business Central IQ" = Enabled then
-            exit;
-        PayablesAgentSetup."Use Business Central IQ" := Enabled;
-        PayablesAgentSetup.Modify(true);
+        if not DemoState.Get(StatePrimaryKeyTok) or (DemoState."Setup Version" <> 2) then
+            exit(false);
+        exit(not AreBusinessSkillsCurrent(DemoState));
+    end;
+
+    procedure PreviousBusinessSkillsCanBeRefreshed(): Boolean
+    var
+        DemoState: Record "PA BC IQ Demo State";
+    begin
+        if not DemoState.Get(StatePrimaryKeyTok) or (DemoState."Setup Version" <> 2) then
+            exit(false);
+        exit(ArePreviousBusinessSkillsExact(DemoState));
     end;
 
     procedure IsConfigured(): Boolean
@@ -170,15 +181,6 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         DemoState: Record "PA BC IQ Demo State";
     begin
         exit(DemoState.Get(StatePrimaryKeyTok) and (DemoState."Setup Version" <> 2));
-    end;
-
-    procedure IsBusinessCentralIQEnabled(): Boolean
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
-    begin
-        if not PayablesAgentSetup.GetSetup(false) then
-            exit(false);
-        exit(PayablesAgentSetup."Use Business Central IQ");
     end;
 
     procedure GetHistoryInvoiceCount(): Integer
@@ -422,7 +424,6 @@ codeunit 3327 "PA BC IQ Demo Mgt."
     var
         DefaultDimension: Record "Default Dimension";
         GLAccount: Record "G/L Account";
-        PayablesAgentSetup: Record "Payables Agent Setup";
         Vendor: Record Vendor;
     begin
         DemoState.Init();
@@ -449,8 +450,6 @@ codeunit 3327 "PA BC IQ Demo Mgt."
             DemoState."Vendor 20000 Dept. Posting" := DefaultDimension."Value Posting";
         end;
 
-        PayablesAgentSetup.GetSetup();
-        DemoState."Original Use BC IQ" := PayablesAgentSetup."Use Business Central IQ";
     end;
 
     local procedure GetAccountVATProductPostingGroup(var GLAccount: Record "G/L Account"; GLAccountNo: Code[20]): Code[20]
@@ -606,7 +605,7 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         Vendor.Insert(true);
     end;
 
-    local procedure CreateDefaultDimensions(var DemoState: Record "PA BC IQ Demo State")
+    local procedure CreateDefaultDimensions()
     begin
         SetVendorDepartmentDefault(ConsultingVendorNoTok, SalesDepartmentTok);
         SetVendorDepartmentDefault(ElectricityVendorNoTok, AdministrationDepartmentTok);
@@ -732,6 +731,151 @@ codeunit 3327 "PA BC IQ Demo Mgt."
     var
         Instructions: TextBuilder;
     begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to purchase invoice lines from vendor 40000.');
+        Instructions.AppendLine('Replacement parts and repair materials: Type = G/L Account, No. = 8135, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
+        Instructions.AppendLine('Office paper and office consumables: Type = G/L Account, No. = 8215, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
+        Instructions.AppendLine('Maintenance labour or technician work without separately supplied materials: Type = G/L Account, No. = 8140, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
+        Instructions.AppendLine('Classify every line from the nature of the purchase, not merely from the VAT percentage.');
+        Instructions.AppendLine('Keep separately priced categories on separate lines.');
+        Instructions.AppendLine('If one charge combines categories without a price breakdown, request clarification.');
+        Instructions.AppendLine('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        Instructions.Append('If the supplier VAT differs from the valid configured calculation, request review instead of changing VAT setup.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure GetElectricityMeterSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to electricity purchase invoice lines from vendor GB-ELEC.');
+        Instructions.AppendLine('For a known meter: Type = G/L Account, No. = 8125, VAT Prod. Posting Group = GB20.');
+        Instructions.AppendLine('Read the meter number on every line.');
+        Instructions.AppendLine('Meter E26A001947: Department Code = PROD.');
+        Instructions.AppendLine('Meter E26A001948: Department Code = ADM.');
+        Instructions.AppendLine('Keep different meters on separate lines.');
+        Instructions.AppendLine('Do not apply one meter''s department to the entire invoice or infer it from vendor history.');
+        Instructions.AppendLine('If a meter is missing or unknown, request its department mapping instead of guessing.');
+        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure GetServiceClassificationSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to one-off consulting or employee-training purchase invoice lines from vendor 20000.');
+        Instructions.AppendLine('Employee training or learning workshops: Type = G/L Account, No. = 8650, VAT Prod. Posting Group = GB20, Department Code = the beneficiary department stated on the invoice line.');
+        Instructions.AppendLine('Purpose-specific one-off consulting: Type = G/L Account, No. = 8320, VAT Prod. Posting Group = GB20, Department Code = the beneficiary department stated on the invoice line.');
+        Instructions.AppendLine('Generic "Consulting services" without a purpose requires clarification before selecting an account or department.');
+        Instructions.AppendLine('Training without a beneficiary department requires clarification.');
+        Instructions.AppendLine('Do not apply this skill to monthly bookkeeping or accounting assistance with a dated service period; that work has its own effective-date policy.');
+        Instructions.AppendLine('Do not automatically assume SALES and do not use vendor history or another line to fill missing information.');
+        Instructions.AppendLine('Apply the rule separately to each line.');
+        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure GetEffectiveDateSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to monthly bookkeeping and accounting assistance purchase invoice lines from vendor 20000 when the line contains a service period.');
+        Instructions.AppendLine('Type = G/L Account, No. = 8630, VAT Prod. Posting Group = GB20.');
+        Instructions.AppendLine('Read the service period from the invoice line description.');
+        Instructions.AppendLine('A service period entirely before 1 October 2026 uses Department Code = SALES.');
+        Instructions.AppendLine('A service period starting on or after 1 October 2026 uses Department Code = ADM.');
+        Instructions.AppendLine('This rule overrides historical coding even when previous invoices for the same service used SALES.');
+        Instructions.AppendLine('Do not use the invoice date.');
+        Instructions.AppendLine('If the service period is missing or crosses the effective date ambiguously, request clarification.');
+        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure AreBusinessSkillsCurrent(DemoState: Record "PA BC IQ Demo State"): Boolean
+    begin
+        exit(
+            IsCompanySkillExact(DemoState."Line Classification Skill ID", LineClassificationSkillTitleLbl, LineClassificationSkillDescriptionLbl, GetLineClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, ElectricityMeterSkillDescriptionLbl, GetElectricityMeterSkillText()) and
+            IsCompanySkillExact(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, ServiceClassificationSkillDescriptionLbl, GetServiceClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Effective Date Skill ID", EffectiveDateSkillTitleLbl, EffectiveDateSkillDescriptionLbl, GetEffectiveDateSkillText()));
+    end;
+
+    local procedure IsCompanySkillExact(SkillId: BigInteger; ExpectedTitle: Text[250]; ExpectedDescription: Text[2048]; ExpectedText: Text): Boolean
+    var
+        BusinessSkill: Record "Business Skill";
+        BusinessSkillCompany: Record "Business Skill Company";
+    begin
+        if not BusinessSkill.Get(SkillId) then
+            exit(false);
+        if (BusinessSkill.Title <> ExpectedTitle) or
+           (BusinessSkill.Description <> ExpectedDescription) or
+           (BusinessSkill.GetText() <> ExpectedText) or
+           (BusinessSkill.Status <> BusinessSkill.Status::Active)
+        then
+            exit(false);
+
+        BusinessSkillCompany.SetRange("Skill ID", SkillId);
+        if BusinessSkillCompany.Count() <> 1 then
+            exit(false);
+        exit(BusinessSkillCompany.Get(SkillId, TargetCompanyNameTok));
+    end;
+
+    local procedure VerifyPreviousBusinessSkills(DemoState: Record "PA BC IQ Demo State")
+    begin
+        VerifyPreviousBusinessSkill(
+            DemoState."Line Classification Skill ID",
+            PreviousLineClassificationSkillTitleLbl,
+            PreviousLineClassificationSkillDescriptionLbl,
+            GetPreviousLineClassificationSkillText());
+        VerifyPreviousBusinessSkill(
+            DemoState."Electricity Meter Skill ID",
+            PreviousElectricityMeterSkillTitleLbl,
+            PreviousElectricityMeterSkillDescriptionLbl,
+            GetPreviousElectricityMeterSkillText());
+        VerifyPreviousBusinessSkill(
+            DemoState."Service Class. Skill ID",
+            PreviousServiceClassificationSkillTitleLbl,
+            PreviousServiceClassificationSkillDescriptionLbl,
+            GetPreviousServiceClassificationSkillText());
+        VerifyPreviousBusinessSkill(
+            DemoState."Effective Date Skill ID",
+            PreviousEffectiveDateSkillTitleLbl,
+            PreviousEffectiveDateSkillDescriptionLbl,
+            GetPreviousEffectiveDateSkillText());
+    end;
+
+    local procedure ArePreviousBusinessSkillsExact(DemoState: Record "PA BC IQ Demo State"): Boolean
+    begin
+        exit(
+            IsCompanySkillExact(DemoState."Line Classification Skill ID", PreviousLineClassificationSkillTitleLbl, PreviousLineClassificationSkillDescriptionLbl, GetPreviousLineClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Electricity Meter Skill ID", PreviousElectricityMeterSkillTitleLbl, PreviousElectricityMeterSkillDescriptionLbl, GetPreviousElectricityMeterSkillText()) and
+            IsCompanySkillExact(DemoState."Service Class. Skill ID", PreviousServiceClassificationSkillTitleLbl, PreviousServiceClassificationSkillDescriptionLbl, GetPreviousServiceClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Effective Date Skill ID", PreviousEffectiveDateSkillTitleLbl, PreviousEffectiveDateSkillDescriptionLbl, GetPreviousEffectiveDateSkillText()));
+    end;
+
+    local procedure VerifyPreviousBusinessSkill(SkillId: BigInteger; ExpectedTitle: Text[250]; ExpectedDescription: Text[2048]; ExpectedText: Text)
+    var
+        BusinessSkill: Record "Business Skill";
+        BusinessSkillLifecycle: Codeunit "Business Skill Lifecycle";
+    begin
+        BusinessSkillLifecycle.VerifyCompanySkill(SkillId, ExpectedTitle, ExpectedText, TargetCompanyNameTok);
+        BusinessSkill.Get(SkillId);
+        if BusinessSkill.Description <> ExpectedDescription then
+            Error(PreviousSkillChangedErr, SkillId);
+    end;
+
+    local procedure DeletePreviousBusinessSkills(DemoState: Record "PA BC IQ Demo State")
+    begin
+        DeleteBusinessSkill(DemoState."Line Classification Skill ID", PreviousLineClassificationSkillTitleLbl, GetPreviousLineClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", PreviousElectricityMeterSkillTitleLbl, GetPreviousElectricityMeterSkillText());
+        DeleteBusinessSkill(DemoState."Service Class. Skill ID", PreviousServiceClassificationSkillTitleLbl, GetPreviousServiceClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Effective Date Skill ID", PreviousEffectiveDateSkillTitleLbl, GetPreviousEffectiveDateSkillText());
+    end;
+
+    local procedure GetPreviousLineClassificationSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
         Instructions.AppendLine('Apply only in CRONUS W1 to invoices from vendor 40000.');
         Instructions.AppendLine('Replacement parts and materials used for repairs or maintenance map to G/L account 8135 - Repair Materials, General Product Posting Group MISC, and VAT Product Posting Group GB20-GOODS.');
         Instructions.AppendLine('Office paper and other office consumables map to G/L account 8215 - Office Consumables, General Product Posting Group MISC, and VAT Product Posting Group GB20-GOODS.');
@@ -744,7 +888,7 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         exit(Instructions.ToText());
     end;
 
-    local procedure GetElectricityMeterSkillText(): Text
+    local procedure GetPreviousElectricityMeterSkillText(): Text
     var
         Instructions: TextBuilder;
     begin
@@ -760,7 +904,7 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         exit(Instructions.ToText());
     end;
 
-    local procedure GetServiceClassificationSkillText(): Text
+    local procedure GetPreviousServiceClassificationSkillText(): Text
     var
         Instructions: TextBuilder;
     begin
@@ -775,7 +919,7 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         exit(Instructions.ToText());
     end;
 
-    local procedure GetEffectiveDateSkillText(): Text
+    local procedure GetPreviousEffectiveDateSkillText(): Text
     var
         Instructions: TextBuilder;
     begin
@@ -817,10 +961,9 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         VerifyCostTypeIsUnchangedAndUnused(MaintenanceLabourAccountNoTok, MaintenanceLabourAccountNameLbl, DemoState."Maintenance Cost Type Created");
         VerifyCostTypeIsUnchangedAndUnused(OfficeConsumablesAccountNoTok, OfficeConsumablesAccountNameLbl, DemoState."Office Cons. Cost Type Created");
         VerifyCostTypeIsUnchangedAndUnused(TrainingCostsAccountNoTok, TrainingCostsAccountNameLbl, DemoState."Training Cost Type Created");
-        VerifySkillIsUnchanged(DemoState."Line Classification Skill ID", LineClassificationSkillTitleLbl, GetLineClassificationSkillText());
-        VerifySkillIsUnchanged(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, GetElectricityMeterSkillText());
-        VerifySkillIsUnchanged(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, GetServiceClassificationSkillText());
-        VerifySkillIsUnchanged(DemoState."Effective Date Skill ID", EffectiveDateSkillTitleLbl, GetEffectiveDateSkillText());
+        if AreBusinessSkillsCurrent(DemoState) then
+            exit;
+        VerifyPreviousBusinessSkills(DemoState);
     end;
 
     local procedure VerifyUpdatedVendorIsUnchanged(VendorNo: Code[20]; ExpectedVATRegistrationNo: Text[20])
@@ -1118,6 +1261,11 @@ codeunit 3327 "PA BC IQ Demo Mgt."
 
     local procedure DeleteBusinessSkills(DemoState: Record "PA BC IQ Demo State")
     begin
+        if not AreBusinessSkillsCurrent(DemoState) then begin
+            VerifyPreviousBusinessSkills(DemoState);
+            DeletePreviousBusinessSkills(DemoState);
+            exit;
+        end;
         DeleteBusinessSkill(DemoState."Line Classification Skill ID", LineClassificationSkillTitleLbl, GetLineClassificationSkillText());
         DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, GetElectricityMeterSkillText());
         DeleteBusinessSkill(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, GetServiceClassificationSkillText());
@@ -1316,10 +1464,10 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         VerifyLegacyVATSetupIsUnchangedAndUnused();
         VerifyCostTypeIsUnchangedAndUnused(MaintenanceLabourAccountNoTok, MaintenanceLabourAccountNameLbl, DemoState."Maintenance Cost Type Created");
         VerifyCostTypeIsUnchangedAndUnused(TrainingCostsAccountNoTok, TrainingCostsAccountNameLbl, DemoState."Training Cost Type Created");
-        VerifySkillIsUnchanged(DemoState."Line Classification Skill ID", LineClassificationSkillTitleLbl, GetLegacyLineClassificationSkillText());
-        VerifySkillIsUnchanged(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, GetLegacyElectricityMeterSkillText());
-        VerifySkillIsUnchanged(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, GetLegacyServiceClassificationSkillText());
-        VerifySkillIsUnchanged(DemoState."Effective Date Skill ID", EffectiveDateSkillTitleLbl, GetLegacyEffectiveDateSkillText());
+        VerifySkillIsUnchanged(DemoState."Line Classification Skill ID", PreviousLineClassificationSkillTitleLbl, GetLegacyLineClassificationSkillText());
+        VerifySkillIsUnchanged(DemoState."Electricity Meter Skill ID", PreviousElectricityMeterSkillTitleLbl, GetLegacyElectricityMeterSkillText());
+        VerifySkillIsUnchanged(DemoState."Service Class. Skill ID", PreviousServiceClassificationSkillTitleLbl, GetLegacyServiceClassificationSkillText());
+        VerifySkillIsUnchanged(DemoState."Effective Date Skill ID", PreviousEffectiveDateSkillTitleLbl, GetLegacyEffectiveDateSkillText());
     end;
 
     local procedure VerifyLegacyVATSetupIsUnchangedAndUnused()
@@ -1348,10 +1496,10 @@ codeunit 3327 "PA BC IQ Demo Mgt."
 
     local procedure DeleteLegacyBusinessSkills(DemoState: Record "PA BC IQ Demo State")
     begin
-        DeleteBusinessSkill(DemoState."Line Classification Skill ID", LineClassificationSkillTitleLbl, GetLegacyLineClassificationSkillText());
-        DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, GetLegacyElectricityMeterSkillText());
-        DeleteBusinessSkill(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, GetLegacyServiceClassificationSkillText());
-        DeleteBusinessSkill(DemoState."Effective Date Skill ID", EffectiveDateSkillTitleLbl, GetLegacyEffectiveDateSkillText());
+        DeleteBusinessSkill(DemoState."Line Classification Skill ID", PreviousLineClassificationSkillTitleLbl, GetLegacyLineClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", PreviousElectricityMeterSkillTitleLbl, GetLegacyElectricityMeterSkillText());
+        DeleteBusinessSkill(DemoState."Service Class. Skill ID", PreviousServiceClassificationSkillTitleLbl, GetLegacyServiceClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Effective Date Skill ID", PreviousEffectiveDateSkillTitleLbl, GetLegacyEffectiveDateSkillText());
     end;
 
     local procedure GetLegacyLineClassificationSkillText(): Text
@@ -1481,16 +1629,25 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         JulyServiceDescriptionLbl: Label 'Monthly bookkeeping and accounting assistance - 01/07/2026 to 31/07/2026';
         AugustServiceDescriptionLbl: Label 'Monthly bookkeeping and accounting assistance - 01/08/2026 to 31/08/2026';
         SeptemberServiceDescriptionLbl: Label 'Monthly bookkeeping and accounting assistance - 01/09/2026 to 30/09/2026';
-        LineClassificationSkillTitleLbl: Label 'PA GB demo - line classification';
-        LineClassificationSkillDescriptionLbl: Label 'Overrides broad expense defaults with company-specific repair, consumable, and labour classifications.';
-        ElectricityMeterSkillTitleLbl: Label 'PA GB demo - electricity meter departments';
-        ElectricityMeterSkillDescriptionLbl: Label 'Overrides centralized utility defaults using account, VAT, and department rules for each meter.';
-        ServiceClassificationSkillTitleLbl: Label 'PA GB demo - professional services';
-        ServiceClassificationSkillDescriptionLbl: Label 'Overrides generic consulting defaults with company-specific service accounts and beneficiary departments.';
-        EffectiveDateSkillTitleLbl: Label 'PA GB demo - effective dated bookkeeping';
-        EffectiveDateSkillDescriptionLbl: Label 'Overrides repeated historical SALES coding from 1 October 2026 using the service period.';
+        LineClassificationSkillTitleLbl: Label 'Vendor 40000 repair, maintenance, and office supply invoice coding';
+        LineClassificationSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 40000. Classifies replacement parts, repair materials, office paper, office consumables, maintenance labour, and technician work to G/L accounts 8135, 8215, or 8140 with GB20 VAT.';
+        ElectricityMeterSkillTitleLbl: Label 'GB-ELEC electricity invoice coding by meter number';
+        ElectricityMeterSkillDescriptionLbl: Label 'Purchase invoice policy for vendor GB-ELEC. Uses meter E26A001947 for PROD and E26A001948 for ADM, with G/L account 8125 and GB20 VAT.';
+        ServiceClassificationSkillTitleLbl: Label 'Vendor 20000 employee training and one-off consulting invoice coding';
+        ServiceClassificationSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 20000 employee training, learning workshops, and purpose-specific one-off consulting. Uses the beneficiary department and excludes recurring monthly bookkeeping.';
+        EffectiveDateSkillTitleLbl: Label 'Vendor 20000 monthly bookkeeping department change from October 2026';
+        EffectiveDateSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 20000 monthly bookkeeping and accounting assistance with a service period. Use G/L account 8630 and GB20 VAT; SALES before 1 October 2026 and ADM from 1 October 2026.';
+        PreviousLineClassificationSkillTitleLbl: Label 'PA GB demo - line classification';
+        PreviousLineClassificationSkillDescriptionLbl: Label 'Overrides broad expense defaults with company-specific repair, consumable, and labour classifications.';
+        PreviousElectricityMeterSkillTitleLbl: Label 'PA GB demo - electricity meter departments';
+        PreviousElectricityMeterSkillDescriptionLbl: Label 'Overrides centralized utility defaults using account, VAT, and department rules for each meter.';
+        PreviousServiceClassificationSkillTitleLbl: Label 'PA GB demo - professional services';
+        PreviousServiceClassificationSkillDescriptionLbl: Label 'Overrides generic consulting defaults with company-specific service accounts and beneficiary departments.';
+        PreviousEffectiveDateSkillTitleLbl: Label 'PA GB demo - effective dated bookkeeping';
+        PreviousEffectiveDateSkillDescriptionLbl: Label 'Overrides repeated historical SALES coding from 1 October 2026 using the service period.';
         AlreadyConfiguredErr: Label 'The BC IQ Payables Agent demo setup is already configured in this company.';
         NotConfiguredErr: Label 'The BC IQ Payables Agent demo setup is not configured in this company.';
+        PreviousSkillChangedErr: Label 'Business skill %1 was changed after demo setup. Refresh stopped without replacing any skills.', Comment = '%1 = skill ID';
         UpgradeRequiredErr: Label 'The previous BC IQ Payables Agent demo setup is configured. Choose Upgrade Company before using the expanded demo.';
         UnsupportedSetupVersionErr: Label 'Demo setup version %1 is not supported.', Comment = '%1 = setup version';
         WrongCompanyErr: Label 'Run this setup only in company %1. The current company is %2.', Comment = '%1 = required company, %2 = current company';

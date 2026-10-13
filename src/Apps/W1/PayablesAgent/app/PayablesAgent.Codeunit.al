@@ -30,6 +30,14 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentE
         RegisterCapability();
     end;
 
+    trigger OnInstallAppPerCompany()
+    var
+        DemoSetupMgt: Codeunit "PA BC IQ Demo Mgt.";
+    begin
+        if DemoSetupMgt.PreviousBusinessSkillsCanBeRefreshed() then
+            DemoSetupMgt.RefreshBusinessSkills();
+    end;
+
     procedure GetSetupPageId(AgentUserId: Guid): Integer
     begin
         exit(Page::"Payables Agent Setup");

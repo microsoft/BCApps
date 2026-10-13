@@ -31,11 +31,6 @@ table 3323 "PA BC IQ Demo Batch"
             Caption = 'Submitted At';
             DataClassification = SystemMetadata;
         }
-        field(4; "BC IQ Enabled"; Boolean)
-        {
-            Caption = 'Business Central IQ Enabled';
-            DataClassification = SystemMetadata;
-        }
         field(5; "Expected Document Count"; Integer)
         {
             Caption = 'Expected Document Count';

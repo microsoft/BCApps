@@ -51,7 +51,6 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
         DemoBatch."Primary Key" := BatchPrimaryKeyTok;
         DemoBatch."Run ID" := CreateGuid();
         DemoBatch."Submitted At" := CurrentDateTime();
-        DemoBatch."BC IQ Enabled" := DemoSetupMgt.IsBusinessCentralIQEnabled();
         DemoBatch."Expected Document Count" := ResourceFiles.Count();
         DemoBatch.Status := DemoBatch.Status::Submitting;
         DemoBatch.Insert(true);
@@ -104,17 +103,6 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
     begin
         if HasBatch() then
             Error(CleanBatchFirstErr);
-    end;
-
-    procedure GetBatchModeText(): Text
-    var
-        DemoBatch: Record "PA BC IQ Demo Batch";
-    begin
-        if not DemoBatch.Get(BatchPrimaryKeyTok) then
-            exit(NotAvailableLbl);
-        if DemoBatch."BC IQ Enabled" then
-            exit(BCIQModeLbl);
-        exit(BaselineModeLbl);
     end;
 
     procedure GetBatchCountText(): Text
@@ -245,7 +233,7 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
         foreach FileName in ResourceFiles do begin
             ResourcePath := ResourceFolderTok + FileName;
             if not TryOpenResource(ResourcePath) then
-                Error(ResourceMissingErr, ResourcePath, ResourceJunctionPathTok);
+                Error(ResourceMissingErr, ResourcePath);
         end;
     end;
 
@@ -434,13 +422,12 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
         BatchPrimaryKeyTok: Label 'BATCH', Locked = true;
         TargetCompanyNameTok: Label 'CRONUS W1', Locked = true;
         ResourceFolderTok: Label 'BCIQDemoInvoices/', Locked = true;
-        ResourceJunctionPathTok: Label 'app\.resources\BCIQDemoInvoices', Locked = true;
         SourceDetailsLbl: Label 'BC IQ demo %1 | %2', Locked = true, Comment = '%1 = run ID, %2 = file name';
         DemoSetupRequiredErr: Label 'Configure the BC IQ Payables Agent demo before submitting invoices.';
         BatchExistsErr: Label 'A demo invoice batch already exists. Clean Submitted Invoices before creating another batch.';
         NoBatchErr: Label 'No submitted demo invoice batch exists.';
         CleanBatchFirstErr: Label 'Clean Submitted Invoices before cleaning the company demo setup.';
-        ResourceMissingErr: Label 'Demo resource %1 is not packaged. Create the local %2 junction before building and publishing Payables Agent.', Comment = '%1 = resource path, %2 = junction path';
+        ResourceMissingErr: Label 'Demo resource %1 is not packaged. Rebuild and publish Payables Agent with all BCIQDemoInvoices resources.', Comment = '%1 = resource path';
         ResourceSubmissionErr: Label 'Submitting %1 failed: %2', Comment = '%1 = file name, %2 = error';
         TaskNotCreatedErr: Label 'Payables Agent did not create a task for %1.', Comment = '%1 = file name';
         TasksStillActiveErr: Label 'One or more demo tasks are still pending or running. Use Stop all tasks in the Agent side panel, wait until they stop, and run Clean Submitted Invoices again.';
@@ -450,8 +437,6 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
         EDocumentRevertErr: Label 'E-Document %1 could not be moved to status %2 for cleanup.', Comment = '%1 = E-Document entry no., %2 = status';
         WrongCompanyErr: Label 'Run this action only in company %1. The current company is %2.', Comment = '%1 = required company, %2 = current company';
         NotAvailableLbl: Label 'Not available';
-        BCIQModeLbl: Label 'BC IQ';
-        BaselineModeLbl: Label 'Baseline';
         BatchCountLbl: Label '%1 of %2 submitted', Comment = '%1 = submitted count, %2 = expected count';
         TaskStatusLbl: Label '%1 active, %2 completed, %3 stopped, %4 missing', Comment = '%1 = active count, %2 = completed count, %3 = stopped count, %4 = missing count';
 }

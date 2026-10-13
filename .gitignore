@@ -323,9 +323,6 @@ TestResults.xml
 # AL code review output
 .bc-review/
 
-# Local BC IQ demo invoice resource junction
-src/Apps/W1/PayablesAgent/app/.resources/BCIQDemoInvoices/
-
 # A view metadata for W1 and country-specific layers
 src/Layers/*/.view/*
 

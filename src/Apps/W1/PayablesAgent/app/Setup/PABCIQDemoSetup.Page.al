@@ -38,12 +38,6 @@ page 3327 "PA BC IQ Demo Setup"
                     Editable = false;
                     MultiLine = true;
                 }
-                field(BusinessCentralIQMode; BusinessCentralIQModeText)
-                {
-                    Caption = 'Payables Agent BC IQ Mode';
-                    ToolTip = 'Specifies whether Payables Agent currently uses Business Central IQ skills.';
-                    Editable = false;
-                }
                 field(HistoryInvoices; HistoryInvoiceStatusText)
                 {
                     Caption = 'Scenario 4 History';
@@ -56,12 +50,6 @@ page 3327 "PA BC IQ Demo Setup"
                 Caption = 'Invoice testing tools';
                 InstructionalText = 'Submit the eight packaged scenario PDFs as one batch. Stop all tasks from the Agent side panel before cleaning the submitted batch.';
 
-                field(BatchMode; BatchModeText)
-                {
-                    Caption = 'Submitted Batch Mode';
-                    ToolTip = 'Specifies whether the active invoice batch was submitted with Business Central IQ enabled or disabled.';
-                    Editable = false;
-                }
                 field(BatchCount; BatchCountText)
                 {
                     Caption = 'Submitted Invoices';
@@ -116,32 +104,18 @@ page 3327 "PA BC IQ Demo Setup"
                     Message(UpgradeCompletedMsg);
                 end;
             }
-            action(EnableBusinessCentralIQ)
+            action(RefreshBusinessSkills)
             {
-                Caption = 'Enable BC IQ';
-                ToolTip = 'Let Payables Agent use the four active Business Central IQ skills for the policy comparison run.';
-                Image = Approve;
-                Enabled = SetupConfigured and not BusinessCentralIQEnabled;
+                Caption = 'Refresh Business Skills';
+                ToolTip = 'Replace the previous demo skills with the latest searchable titles, descriptions, and instructions after verifying that the existing skills were not edited.';
+                Image = Refresh;
+                Enabled = SetupConfigured and BusinessSkillsNeedRefresh;
 
                 trigger OnAction()
                 begin
-                    DemoSetupMgt.SetBusinessCentralIQEnabled(true);
+                    DemoSetupMgt.RefreshBusinessSkills();
                     RefreshStatus();
-                    Message(BusinessCentralIQEnabledMsg);
-                end;
-            }
-            action(DisableBusinessCentralIQ)
-            {
-                Caption = 'Disable BC IQ';
-                ToolTip = 'Run Payables Agent using standard mappings and defaults without applying Business Central IQ skills.';
-                Image = Cancel;
-                Enabled = SetupConfigured and BusinessCentralIQEnabled;
-
-                trigger OnAction()
-                begin
-                    DemoSetupMgt.SetBusinessCentralIQEnabled(false);
-                    RefreshStatus();
-                    Message(BusinessCentralIQDisabledMsg);
+                    Message(BusinessSkillsRefreshedMsg);
                 end;
             }
             action(SubmitInvoices)
@@ -199,10 +173,7 @@ page 3327 "PA BC IQ Demo Setup"
             actionref(UpgradeCompanyPromoted; UpgradeCompany)
             {
             }
-            actionref(EnableBusinessCentralIQPromoted; EnableBusinessCentralIQ)
-            {
-            }
-            actionref(DisableBusinessCentralIQPromoted; DisableBusinessCentralIQ)
+            actionref(RefreshBusinessSkillsPromoted; RefreshBusinessSkills)
             {
             }
             actionref(SubmitInvoicesPromoted; SubmitInvoices)
@@ -227,20 +198,13 @@ page 3327 "PA BC IQ Demo Setup"
         CurrentCompanyName := CompanyName();
         SetupConfigured := DemoSetupMgt.IsConfigured();
         UpgradeRequired := DemoSetupMgt.NeedsUpgrade();
-        BusinessCentralIQEnabled := SetupConfigured and DemoSetupMgt.IsBusinessCentralIQEnabled();
+        BusinessSkillsNeedRefresh := SetupConfigured and DemoSetupMgt.BusinessSkillsNeedRefresh();
         BatchExists := DemoBatchMgt.HasBatch();
         StatusText := DemoSetupMgt.GetStatusText();
-        if not SetupConfigured then begin
-            BusinessCentralIQModeText := NotAvailableLbl;
-            HistoryInvoiceStatusText := NotAvailableLbl;
-        end else begin
-            if BusinessCentralIQEnabled then
-                BusinessCentralIQModeText := EnabledLbl
-            else
-                BusinessCentralIQModeText := DisabledLbl;
+        if not SetupConfigured then
+            HistoryInvoiceStatusText := NotAvailableLbl
+        else
             HistoryInvoiceStatusText := StrSubstNo(HistoryInvoiceStatusLbl, DemoSetupMgt.GetHistoryInvoiceCount());
-        end;
-        BatchModeText := DemoBatchMgt.GetBatchModeText();
         BatchCountText := DemoBatchMgt.GetBatchCountText();
         BatchSubmittedAt := DemoBatchMgt.GetBatchSubmittedAt();
         BatchTaskStatusText := DemoBatchMgt.GetTaskStatusText();
@@ -252,27 +216,22 @@ page 3327 "PA BC IQ Demo Setup"
         DemoBatchMgt: Codeunit "PA BC IQ Demo Batch Mgt.";
         CurrentCompanyName: Text[30];
         StatusText: Text;
-        BusinessCentralIQModeText: Text;
         HistoryInvoiceStatusText: Text;
-        BatchModeText: Text;
         BatchCountText: Text;
         BatchTaskStatusText: Text;
         BatchSubmittedAt: DateTime;
         SetupConfigured: Boolean;
         UpgradeRequired: Boolean;
-        BusinessCentralIQEnabled: Boolean;
+        BusinessSkillsNeedRefresh: Boolean;
         BatchExists: Boolean;
-        SetupCompletedMsg: Label 'The GB Payables Agent comparison setup is ready with Business Central IQ disabled.';
-        UpgradeCompletedMsg: Label 'The GB Payables Agent demo was upgraded to the comparison setup with Business Central IQ disabled.';
+        SetupCompletedMsg: Label 'The GB Payables Agent comparison setup is ready.';
+        UpgradeCompletedMsg: Label 'The GB Payables Agent demo was upgraded to the comparison setup.';
         CleanupCompletedMsg: Label 'The GB Payables Agent demo setup was removed and the captured vendor fields were restored.';
-        BusinessCentralIQEnabledMsg: Label 'Business Central IQ is enabled for new Payables Agent tasks.';
-        BusinessCentralIQDisabledMsg: Label 'Business Central IQ is disabled for new Payables Agent tasks.';
+        BusinessSkillsRefreshedMsg: Label 'The four Business Central IQ demo skills were refreshed with the latest retrieval and accounting guidance.';
         InvoicesSubmittedMsg: Label 'The eight GB scenario invoices were submitted to Payables Agent.';
         SubmittedInvoicesCleanedMsg: Label 'The submitted demo invoice batch was cleaned.';
         CleanSubmittedInvoicesQst: Label 'Clean the submitted demo invoice batch? All tracked tasks must already be stopped or completed, and generated purchase invoices must remain unposted.';
         CleanupQst: Label 'Clean up the GB Payables Agent demo setup? Cleanup stops without deleting anything if a demo record was edited, used, or posted.';
-        EnabledLbl: Label 'Enabled - run policy comparison tasks';
-        DisabledLbl: Label 'Disabled - run baseline tasks';
         NotAvailableLbl: Label 'Not available';
         HistoryInvoiceStatusLbl: Label '%1 of 4 unposted invoices available', Comment = '%1 = invoice count';
 }
