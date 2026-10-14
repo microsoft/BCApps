@@ -3,6 +3,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

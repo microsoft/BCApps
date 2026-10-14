@@ -3,6 +3,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

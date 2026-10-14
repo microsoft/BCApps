@@ -1,6 +1,7 @@
 codeunit 139857 "APIV2 - InventoryPostGroup E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
     trigger OnRun()
     begin
