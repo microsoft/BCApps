@@ -174,6 +174,41 @@ Describe "ParallelTestExecution app-name resolution" {
         }
     }
 
+    It "ends only non-negative server sessions and continues when one cannot be ended" {
+        $global:ResetTenantRemovedSessions = [System.Collections.Generic.List[int]]::new()
+        $stubs = @{
+            'Get-NAVTenant'              = { [PSCustomObject]@{ State = 'Operational' } }
+            'Get-NAVServerSession'       = { @(-3947, 5, 0, 7) | ForEach-Object { [PSCustomObject]@{ SessionId = $_ } } }
+            'Remove-NAVServerSession'    = { param($ServerInstance, $Tenant, [ValidateRange(0, [int]::MaxValue)][int]$SessionId, [switch]$Force)
+                                             if ($SessionId -eq 5) { throw 'session busy' }
+                                             $global:ResetTenantRemovedSessions.Add($SessionId) }
+            'Dismount-NAVTenant'         = { }
+            'Get-NAVServerConfiguration' = { '' }
+            'Invoke-Sqlcmd'              = { }
+            'Copy-NAVDatabase'           = { }
+            'Mount-NAVTenant'            = { }
+        }
+        foreach ($name in $stubs.Keys) { Set-Item -Path "function:global:$name" -Value $stubs[$name] }
+        try {
+            InModuleScope ParallelTestExecution {
+                Mock Invoke-ScriptInBcContainer { & $scriptblock @argumentList }
+                Mock Write-Host { }
+
+                Reset-BcTestTenant -ContainerName 'bc' -Tenant 'tenant2' `
+                    -TenantDatabaseName 'tenant2' -TemplateDatabaseName 'default-test-template'
+
+                Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter {
+                    "$Object" -like "WARNING: Could not end server session 5 for tenant 'tenant2': session busy"
+                }
+                Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { "$Object" -like "Refreshed tenant 'tenant2'*" }
+            }
+            @($global:ResetTenantRemovedSessions) | Should -Be @(0, 7)
+        } finally {
+            foreach ($name in $stubs.Keys) { Remove-Item -Path "function:global:$name" -ErrorAction SilentlyContinue }
+            Remove-Variable -Name ResetTenantRemovedSessions -Scope Global -ErrorAction SilentlyContinue
+        }
+    }
+
     It "escapes the database name in the drop query" {
         InModuleScope ParallelTestExecution {
             $query = Get-BcTestTenantDatabaseDropQuery -DatabaseName "it's"
