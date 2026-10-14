@@ -3899,6 +3899,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
     procedure CreateTransfer_NonDirectedWithBins_DirectTransfer_Untracked()
     begin
@@ -3907,6 +3908,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
     procedure CreateTransferReport_BlankDestinationBin_UsesDefaultBin()
     begin
@@ -3915,6 +3917,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
     procedure CreateTransferReport_BlankDestinationBinWithoutDefault_CreatesTransfer()
     begin
@@ -3923,6 +3926,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
     procedure CreateTransferReport_WithoutRequestPage_BlankBinUsesDefaultBin()
     begin
