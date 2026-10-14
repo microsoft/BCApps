@@ -1513,6 +1513,7 @@ codeunit 137019 "SCM Correct Invoice"
         PrepaidSalesLine.TestField("Qty. to Ship", 0);
         PrepaidSalesLine.TestField("Qty. to Invoice", 0);
         PrepaidSalesLine.TestField("Prepmt Amt Deducted", 0);
+        PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 0);
 
         // [THEN] The released prepayment can be credited from the original order.
         SalesHeader.Find();
@@ -1933,4 +1934,3 @@ codeunit 137019 "SCM Correct Invoice"
         Reply := true;
     end;
 }
-

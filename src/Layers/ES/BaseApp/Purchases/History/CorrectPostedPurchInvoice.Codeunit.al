@@ -856,7 +856,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
                         UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
                     end;
 
-                    UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine, RestoreOrderQuantity);
+                    UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
 
                     if RestoreOrderQuantity then begin
                         UpdateReverseItemChargeAssignment(PurchaseLine, PurchInvLine.Quantity);
@@ -967,7 +967,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
             UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchCrMemoLine.Quantity, PurchCrMemoLine."Quantity (Base)");
         end;
 
-        UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine, RestoreOrderQuantity);
+        UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
 
         if RestoreOrderQuantity then
             if PurchInvLine.Type = PurchInvLine.Type::Item then begin
@@ -979,7 +979,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
             end;
     end;
 
-    local procedure UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine: Record "Purch. Inv. Line"; RestoreOrderQuantity: Boolean)
+    local procedure UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine: Record "Purch. Inv. Line")
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1010,13 +1010,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
                     PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
                     Currency."Amount Rounding Precision"));
 
-        if RestoreOrderQuantity then
-            PurchaseLine.Validate(
-                "Prepmt Amt to Deduct",
-                PurchaseLine."Prepmt Amt to Deduct" +
-                    Round(
-                        PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
-                        Currency."Amount Rounding Precision"));
+        PurchaseLine.CalcPrepaymentToDeduct();
 
         PurchaseLine.Modify(true);
     end;

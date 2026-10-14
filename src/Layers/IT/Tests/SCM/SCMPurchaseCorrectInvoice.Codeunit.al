@@ -1237,6 +1237,8 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Assert.AreEqual(0, PurchaseLine."Quantity Invoiced", QuantityMustBeRevertedErr);
         Assert.AreEqual(Quantity, PurchaseLine."Qty. to Receive", QuantityMustBeRestoredErr);
         Assert.AreEqual(Quantity, PurchaseLine."Qty. to Invoice", QuantityMustBeRestoredErr);
+        PurchaseLine.TestField("Prepmt Amt Deducted", 0);
+        PurchaseLine.TestField("Prepmt Amt to Deduct", PurchaseLine."Prepmt. Amt. Inv.");
     end;
 
     [Test]
@@ -1326,6 +1328,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PrepaidPurchaseLine.TestField("Qty. to Receive", 0);
         PrepaidPurchaseLine.TestField("Qty. to Invoice", 0);
         PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", 0);
+        PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 0);
 
         // [THEN] The released prepayment can be credited from the original order.
         PurchaseHeader.Find();
@@ -1785,4 +1788,3 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchaseCreditMemo.Close();
     end;
 }
-

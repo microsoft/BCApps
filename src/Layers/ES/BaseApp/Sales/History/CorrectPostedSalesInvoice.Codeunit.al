@@ -1075,7 +1075,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
             UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
         end;
 
-        UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine, RestoreOrderQuantity);
+        UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
 
         if RestoreOrderQuantity then
             if SalesLine.Type = SalesLine.Type::Item then begin
@@ -1156,7 +1156,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
                         UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesInvoiceLine.Quantity, SalesInvoiceLine."Quantity (Base)");
                     end;
 
-                    UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine, RestoreOrderQuantity);
+                    UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
 
                     if RestoreOrderQuantity then begin
                         if SalesLine."Qty. to Ship" = 0 then
@@ -1228,7 +1228,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
             Error(WMSLocationCancelCorrectErr, SalesInvoiceLine."Line No.");
     end;
 
-    local procedure UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine: Record "Sales Invoice Line"; RestoreOrderQuantity: Boolean)
+    local procedure UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine: Record "Sales Invoice Line")
     var
         CurrExchRate: Record "Currency Exchange Rate";
         SalesHeader: Record "Sales Header";
@@ -1303,13 +1303,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
                     SalesInvoiceLine.Quantity * (SalesLine."Prepmt. Line Amount" / SalesLine.Quantity),
                     Currency."Amount Rounding Precision"));
 
-        if RestoreOrderQuantity then
-            SalesLine.Validate(
-                "Prepmt Amt to Deduct",
-                SalesLine."Prepmt Amt to Deduct" +
-                    Round(
-                        SalesInvoiceLine.Quantity * (SalesLine."Prepmt. Line Amount" / SalesLine.Quantity),
-                        Currency."Amount Rounding Precision"));
+        SalesLine.CalcPrepaymentToDeduct();
 
         SalesLine.Modify(true);
     end;
