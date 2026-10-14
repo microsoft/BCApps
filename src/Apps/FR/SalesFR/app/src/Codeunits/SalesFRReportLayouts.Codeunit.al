@@ -9,6 +9,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using System.Environment.Configuration;
 using System.Reflection;
 using System.Upgrade;
 

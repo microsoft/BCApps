@@ -8,6 +8,7 @@ namespace Microsoft.Sales.SalesFR;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
