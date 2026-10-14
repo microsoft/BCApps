@@ -3,6 +3,7 @@ codeunit 139718 "APIV1 - Trial Balance E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
 
     trigger OnRun()
