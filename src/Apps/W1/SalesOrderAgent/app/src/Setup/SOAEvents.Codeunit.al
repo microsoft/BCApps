@@ -7,6 +7,7 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using Microsoft.Utilities;
+using System.Agents;
 using System.Environment.Configuration;
 using System.Media;
 
@@ -15,6 +16,7 @@ codeunit 4592 "SOA Events"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "SOA Attachment Transfer" = D;
 
     [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
     local procedure HandleOnAfterCreatedNewCompanyByCopyCompany(NewCompanyName: Text[30])
@@ -23,6 +25,7 @@ codeunit 4592 "SOA Events"
         SOAKPIEntry: Record "SOA KPI Entry";
         SOAKPISummary: Record "SOA KPI Summary";
         SOAEmail: Record "SOA Email";
+        SOAAttachmentTransfer: Record "SOA Attachment Transfer";
     begin
         SOASetup.ChangeCompany(NewCompanyName);
         SOASetup.DeleteAll();
@@ -35,6 +38,22 @@ codeunit 4592 "SOA Events"
 
         SOAEmail.ChangeCompany(NewCompanyName);
         SOAEmail.DeleteAll();
+
+        SOAAttachmentTransfer.ChangeCompany(NewCompanyName);
+        SOAAttachmentTransfer.DeleteAll();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Agent Task Message", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure DeleteAttachmentTransfersOnAfterDeleteAgentTaskMessage(var Rec: Record "Agent Task Message"; RunTrigger: Boolean)
+    var
+        SOAAttachmentTransfer: Record "SOA Attachment Transfer";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        SOAAttachmentTransfer.SetRange("Task ID", Rec."Task ID");
+        SOAAttachmentTransfer.SetRange("Task Message ID", Rec.ID);
+        SOAAttachmentTransfer.DeleteAll();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
