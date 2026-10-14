@@ -47,18 +47,6 @@ page 7449 "Expense Mgmt Activities"
                     DrillDownPageID = "Expense Reports";
                     ToolTip = 'Specifies the number of rejected expense reports.';
                 }
-
-                actions
-                {
-                    action("New Expense Report")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'New Expense Report';
-                        RunObject = Page "Expense Report";
-                        RunPageMode = Create;
-                        ToolTip = 'Create a new expense report.';
-                    }
-                }
             }
             cuegroup(Expenses)
             {
@@ -69,18 +57,6 @@ page 7449 "Expense Mgmt Activities"
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = Expenses;
                     ToolTip = 'Specifies the number of expenses that are not yet submitted.';
-                }
-
-                actions
-                {
-                    action("New Expense")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'New Expense';
-                        RunObject = Page Expense;
-                        RunPageMode = Create;
-                        ToolTip = 'Create a new expense.';
-                    }
                 }
             }
             cuegroup("Corporate Card")

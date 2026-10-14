@@ -52,12 +52,10 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardTrans.SetRange("Provider Code", CorpCardStatement."Provider Code");
         if not CorpCardTrans.FindSet() then
             Error(NoStatementTransactionsErr, CorpCardStatement."Statement No.");
-
         repeat
             ValidateTransaction(CorpCardStatement, CorpCardTrans, ValidatedCardIds);
             TransactionTotal += CorpCardTrans.Amount;
         until CorpCardTrans.Next() = 0;
-
         if TransactionTotal <> CorpCardStatement."Statement Total" then
             Error(StatementTotalMismatchErr, CorpCardStatement."Statement Total", TransactionTotal);
 
@@ -113,13 +111,11 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardTrans.SetRange("Provider Code", CorpCardStatement."Provider Code");
         if not CorpCardTrans.FindSet() then
             Error(NoStatementTransactionsErr, CorpCardStatement."Statement No.");
-
         repeat
             ValidateReconciledTransaction(CorpCardTrans, CorpCardSettlement);
             ReconciledTransactions += 1;
             ReconciledAmount += CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code");
         until CorpCardTrans.Next() = 0;
-
         if ReconciledAmount <> CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code") then
             Error(ReconciledAmountMismatchErr, ReconciledAmount, CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code"));
 
@@ -139,7 +135,6 @@ codeunit 7441 "EA Corp Card Statement Mgt"
             CorpCardStatement.Status::ReconciliationRequired])
         then
             exit;
-
         if CorpCardStatement.Status = CorpCardStatement.Status::Closed then begin
             CorpCardStatement."Prev. Reconciled Transactions" := CorpCardStatement."Reconciled Transactions";
             CorpCardStatement."Prev. Reconciled Amount" := CorpCardStatement."Reconciled Amount";
@@ -184,7 +179,6 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardTrans.SetRange("Provider Code", CorpCardStatement."Provider Code");
         if not CorpCardTrans.FindSet() then
             exit;
-
         repeat
             if IsTransactionReconciled(CorpCardTrans, CorpCardSettlement) then begin
                 ReconciledTransactions += 1;
@@ -241,7 +235,6 @@ codeunit 7441 "EA Corp Card Statement Mgt"
             CorpCard.TestField(Blocked, false);
             ValidatedCardIds.Add(Format(CorpCardTrans."Card Id"));
         end;
-
         if CorpCardTrans."Currency Code" <> CorpCardStatement."Currency Code" then
             Error(TransactionCurrencyMismatchErr, CorpCardTrans."Entry No.", CorpCardTrans."Currency Code", CorpCardStatement."Currency Code");
         if not ((CorpCardTrans."Trans Date" >= CorpCardStatement."Period Start Date") and
@@ -255,6 +248,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     local procedure ValidateReconciledTransaction(CorpCardTrans: Record "EA Corp Card Trans"; CorpCardSettlement: Record "EA Corp Card Settlement")
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        Counter: Integer;
     begin
         if CorpCardTrans.Status <> CorpCardTrans.Status::Posted then
             Error(TransactionNotPostedErr, CorpCardTrans."Entry No.", CorpCardTrans.Status);
@@ -262,11 +256,12 @@ codeunit 7441 "EA Corp Card Statement Mgt"
 
         BankAccountLedgerEntry.SetRange("EA Corp Card Trans Entry No.", CorpCardTrans."Entry No.");
         BankAccountLedgerEntry.SetRange(Reversed, false);
-        if not BankAccountLedgerEntry.FindFirst() then
+        if BankAccountLedgerEntry.IsEmpty() then
             Error(TransactionBankEntryMissingErr, CorpCardTrans."Entry No.");
-        if BankAccountLedgerEntry.Next() <> 0 then begin
+        Counter := BankAccountLedgerEntry.Count();
+        if Counter > 1 then begin
             BankAccountLedgerEntry.FindFirst();
-            Error(TransactionHasMultipleBankEntriesErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry.Count());
+            Error(TransactionHasMultipleBankEntriesErr, CorpCardTrans."Entry No.", Counter);
         end;
         if BankAccountLedgerEntry."Bank Account No." <> CorpCardSettlement."Corp Card Bank Account No." then
             Error(TransactionBankAccountMismatchErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry."Bank Account No.", CorpCardSettlement."Corp Card Bank Account No.");
@@ -281,6 +276,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     local procedure IsTransactionReconciled(CorpCardTrans: Record "EA Corp Card Trans"; CorpCardSettlement: Record "EA Corp Card Settlement"): Boolean
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        Counter: Integer;
     begin
         if CorpCardSettlement.Status <> CorpCardSettlement.Status::Posted then
             exit(false);
@@ -291,9 +287,10 @@ codeunit 7441 "EA Corp Card Statement Mgt"
 
         BankAccountLedgerEntry.SetRange("EA Corp Card Trans Entry No.", CorpCardTrans."Entry No.");
         BankAccountLedgerEntry.SetRange(Reversed, false);
-        if not BankAccountLedgerEntry.FindFirst() then
+        Counter := BankAccountLedgerEntry.Count();
+        if Counter = 0 then
             exit(false);
-        if BankAccountLedgerEntry.Next() <> 0 then
+        if Counter > 1 then
             exit(false);
         BankAccountLedgerEntry.FindFirst();
         exit(
