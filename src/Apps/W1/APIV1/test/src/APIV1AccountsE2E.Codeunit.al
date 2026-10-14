@@ -3,6 +3,7 @@ codeunit 139701 "APIV1 - Accounts E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
 
     trigger OnRun()

@@ -27,6 +27,7 @@ using System.Utilities;
 codeunit 139881 "E2E PowerBI Sales Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     Access = Internal;
     EventSubscriberInstance = Manual;
