@@ -1,6 +1,7 @@
 namespace Microsoft.FabricExport;
 
 using System.Azure.Identity;
+using System.Azure.KeyVault;
 using System.Security.Authentication;
 #if not CLEAN29
 using System.Security.Encryption;
@@ -11,7 +12,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     Access = Internal;
 
     var
-        FabricMirroringAppIdTok: Label 'dcc80069-ba40-4ad9-ba8c-60001cea3497', Locked = true;
+        FabricMirroringAppIdAKVSecretNameLbl: Label 'FabricMirroringAppId', Locked = true;
+        MissingClientIdTelemetryTxt: Label 'The Microsoft Fabric Mirroring client ID has not been initialized.', Locked = true;
         AdminConsentUrlTok: Label 'https://login.microsoftonline.com/%1/adminconsent', Comment = '%1 = tenant ID', Locked = true;
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
@@ -57,13 +59,22 @@ codeunit 48524 "Fabric Platform Credential Mgt"
 #endif
 
     /// <summary>Returns the client ID of the active app: the Microsoft first-party app unless a custom app registration is enabled.</summary>
+    [NonDebuggable]
     internal procedure GetClientId(): Text
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        FabricPlatformTelemetry: Codeunit "Fabric Platform Telemetry";
+        Dimensions: Dictionary of [Text, Text];
+        ClientId: Text;
     begin
 #if not CLEAN29
         if IsCustomAppEnabled() then
             exit(GetCustomClientId());
 #endif
-        exit(FabricMirroringAppIdTok);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
+            FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
+        else
+            exit(ClientId);
     end;
 
     internal procedure GetTenantId(): Text
@@ -218,6 +229,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         OAuth2: Codeunit OAuth2;
         LookupState: Codeunit "Fabric Platform Lookup State";
         AccessToken: SecretText;
+        RedirectUrl: Text;
         Scopes: List of [Text];
     begin
         // Test-injection seam: unit tests pre-seed a token to bypass the platform flow.
@@ -230,7 +242,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
 #endif
 
         Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
-        OAuth2.AcquireOnBehalfOfToken('', Scopes, AccessToken);
+        OAuth2.GetDefaultRedirectUrl(RedirectUrl);
+        OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
         if AccessToken.IsEmpty() then
             Error(FabricApiTokenErr);
         exit(AccessToken);
