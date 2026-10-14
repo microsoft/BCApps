@@ -193,9 +193,9 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeDraftInvoiceAndProformaReportLayouts();
 #if not CLEANSCHEMA33
         UpgradeStatutoryReportingSetupOfficialFullName();
-#endif
         UpgradeEETTaxpayerCertificateCode();
         UpgradeEETBusinessPremisesExtendedDescription();
+#endif
     end;
 
     local procedure UpgradeReplaceVATDateCZL()
@@ -874,7 +874,7 @@ codeunit 31017 "Upgrade Application CZL"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
     end;
-
+#if not CLEANSCHEMA33
     local procedure UpgradeEETTaxpayerCertificateCode()
     var
         EETServiceSetupCZL: Record "EET Service Setup CZL";
@@ -924,6 +924,7 @@ codeunit 31017 "Upgrade Application CZL"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetEETBusinessPremisesExtendedDescriptionUpgradeTag());
     end;
+#endif
 
     internal procedure IsReportLayoutSelectionCustomized(ReportId: Integer): Boolean
     var
