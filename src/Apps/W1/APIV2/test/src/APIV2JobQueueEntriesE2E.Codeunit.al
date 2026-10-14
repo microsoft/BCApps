@@ -1,6 +1,7 @@
 codeunit 139862 "APIV2JobQueueEntriesE2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 

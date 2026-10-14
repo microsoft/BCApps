@@ -18,6 +18,21 @@ codeunit 144583 "Ext. SP Account Table Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestDefaultRestBaseFolderPathFormatIsUrl()
+    var
+        Account: Record "Ext. SharePoint Account";
+    begin
+        Account.Init();
+        Account.Id := CreateGuid();
+        Account.Insert();
+
+        Assert.AreEqual(
+            Enum::"Ext. SharePoint Path Format"::URL, Account."REST Base Folder Path Format",
+            'New and upgraded accounts must default to the existing URL interpretation');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDefaultAuthTypeIsClientSecret()
     var
         Account: Record "Ext. SharePoint Account";
