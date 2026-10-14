@@ -421,8 +421,9 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
         ShouldSetAppliedEntryToAdjustForForwardAppliedCost(ItemLedgEntry, AppliedEntryToAdjust);
 
-        if not ItemLedgEntry.IsOutbndConsump() then
-            UpdateAppliedEntryToAdjustBuf(ItemLedgEntry, AppliedEntryToAdjust);
+        if AppliedEntryToAdjust then
+            if not ItemLedgEntry.IsOutbndConsump() then
+                UpdateAppliedEntryToAdjustBuf(ItemLedgEntry, AppliedEntryToAdjust);
 
         ItemLedgEntry.SetAppliedEntryToAdjust(false);
     end;
@@ -2229,15 +2230,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             if not ItemLedgEntryNos.Contains(ItemLedgerEntry."Entry No.") then
                 ItemLedgEntryNos.Add(ItemLedgerEntry."Entry No.");
             ItemLedgEntryToAdjust.Set(ItemLedgerEntry."Item No.", ItemLedgEntryNos);
-        end else
-            if ItemLedgEntryToAdjust.Get(ItemLedgerEntry."Item No.", ItemLedgEntryNos) then begin
-                if ItemLedgEntryNos.Contains(ItemLedgerEntry."Entry No.") then
-                    ItemLedgEntryNos.Remove(ItemLedgerEntry."Entry No.");
-                if ItemLedgEntryNos.Count() = 0 then
-                    ItemLedgEntryToAdjust.Remove(ItemLedgerEntry."Item No.")
-                else
-                    ItemLedgEntryToAdjust.Set(ItemLedgerEntry."Item No.", ItemLedgEntryNos);
-            end;
+        end;
     end;
 
     local procedure SetAppliedEntryToAdjustFromBuf(ItemNo: Code[20])
