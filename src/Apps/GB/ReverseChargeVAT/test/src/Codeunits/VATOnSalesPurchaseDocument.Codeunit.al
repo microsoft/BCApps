@@ -6,7 +6,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 codeunit 144013 "VAT On Sales/Purchase Document"
@@ -29,6 +31,13 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         LibraryERM: Codeunit "Library - ERM";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         isInitialized: Boolean;
+#if not CLEAN27
+        OriginalFeatureDataUpdateStatus: Record "Feature Data Update Status";
+        Assert: Codeunit Assert;
+        FeatureStatusExisted: Boolean;
+        FeatureStatusChanged: Boolean;
+        NotSubjectToReverseChargeErr: Label 'is not subjected to Reverse Charge';
+#endif
 
     [Test]
     procedure AddReverseChargeItemToSalesLine()
@@ -52,6 +61,9 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
         // [THEN] "Sales Line"."Reverse charge item"=TRUE
         SalesLine.TestField("Reverse Charge Item GB", true);
+#if not CLEAN27
+        RestoreReverseChargeFeatureStatus();
+#endif
     end;
 
     [Test]
@@ -77,6 +89,9 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
         // [THEN] "Sales Line"."Reverse charge item"=FALSE
         SalesLine.TestField("Reverse Charge Item GB", false);
+#if not CLEAN27
+        RestoreReverseChargeFeatureStatus();
+#endif
     end;
 
     [Test]
@@ -101,6 +116,9 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
         // [THEN] "Sales Line"."Reverse charge item"=FALSE
         SalesLine.TestField("Reverse Charge Item GB", false);
+#if not CLEAN27
+        RestoreReverseChargeFeatureStatus();
+#endif
     end;
 
     [Test]
@@ -135,6 +153,9 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
         // [THEN] VAT Entry created with "Reverse Charge VAT" posting setup
         VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
+#if not CLEAN27
+        RestoreReverseChargeFeatureStatus();
+#endif
     end;
 
     [Test]
@@ -159,13 +180,322 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
         // [THEN] "Sales Line"."Reverse charge item"=FALSE
         SalesLine.TestField("Reverse Charge Item GB", false);
+#if not CLEAN27
+        RestoreReverseChargeFeatureStatus();
+#endif
     end;
+
+#if not CLEAN27
+    [Test]
+    procedure PostSalesOrderWithGBOnlyReverseChargeItem()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 654053] A GB reverse-charge order posts when only the new item flag is set.
+        Initialize();
+        SetReverseChargeFeatureEnabled(true);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
+
+#pragma warning disable AL0432
+        SalesLine.TestField("Reverse Charge Item", false);
+#pragma warning restore AL0432
+        SalesLine.TestField("Reverse Charge Item GB", true);
+        PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
+
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure PostPartialSalesOrderWithGBOnlyReverseChargeItem()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 654053] A partial invoice at the threshold records only the invoiced reverse-charge amount.
+        Initialize();
+        SetReverseChargeFeatureEnabled(true);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Modify(true);
+
+        PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
+
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure PostGBReverseChargeOrderIgnoresLegacyPostingGroup()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesSetup: Record "Sales & Receivables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 654053] An existing line with both flags set uses only the new posting setup.
+        Initialize();
+        SetReverseChargeFeatureEnabled(true);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, true, true);
+#pragma warning disable AL0432
+        SalesLine.TestField("Reverse Charge Item", false);
+        SalesLine."Reverse Charge Item" := true;
+        SalesLine.Modify(true);
+        SalesSetup.Get();
+        SalesSetup."Reverse Charge VAT Posting Gr." := SalesHeader."VAT Bus. Posting Group";
+        SalesSetup.Modify(true);
+#pragma warning restore AL0432
+
+        PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
+
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure PostLegacyReverseChargeOrderWithFeatureDisabled()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedReverseCharge: Decimal;
+        InvoiceNo: Code[20];
+    begin
+        // [SCENARIO 654053] Disabling the new feature preserves legacy item copying and posting.
+        Initialize();
+        SetReverseChargeFeatureEnabled(false);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, true, false);
+#pragma warning disable AL0432
+        SalesLine.TestField("Reverse Charge Item", true);
+#pragma warning restore AL0432
+        SalesLine.TestField("Reverse Charge Item GB", false);
+        ExpectedReverseCharge := SalesLine."Amount Including VAT" - SalesLine.Amount;
+
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
+        SalesInvoiceLine.Get(InvoiceNo, SalesLine."Line No.");
+#pragma warning disable AL0432
+        SalesInvoiceLine.TestField("Reverse Charge", ExpectedReverseCharge);
+#pragma warning restore AL0432
+        SalesInvoiceLine.TestField("Reverse Charge GB", 0);
+        SalesInvoiceLine.TestField("Amount Including VAT", SalesInvoiceLine.Amount);
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure FeatureDisabledRejectsGBOnlyReverseChargeItem()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 654053] A populated GB flag does not bypass legacy validation when the feature is disabled.
+        Initialize();
+        SetReverseChargeFeatureEnabled(false);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
+        SalesLine."Reverse Charge Item GB" := true;
+
+        asserterror SalesLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+
+        Assert.ExpectedError(NotSubjectToReverseChargeErr);
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure FeatureEnabledRejectsLegacyOnlyReverseChargeItem()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 654053] A populated legacy flag does not bypass the new GB item validation.
+        Initialize();
+        SetReverseChargeFeatureEnabled(true);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, true, false);
+#pragma warning disable AL0432
+        SalesLine."Reverse Charge Item" := true;
+#pragma warning restore AL0432
+
+        asserterror SalesLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+
+        Assert.ExpectedError(NotSubjectToReverseChargeErr);
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure PostGBReverseChargeOrderBelowThreshold()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedAmountIncludingVAT: Decimal;
+        InvoiceNo: Code[20];
+    begin
+        // [SCENARIO 654053] A GB reverse-charge item below the threshold retains normal sales VAT.
+        Initialize();
+        SetReverseChargeFeatureEnabled(true);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
+        ExpectedAmountIncludingVAT := SalesLine."Amount Including VAT";
+
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
+        SalesInvoiceLine.Get(InvoiceNo, SalesLine."Line No.");
+        SalesInvoiceLine.TestField("Reverse Charge GB", 0);
+        SalesInvoiceLine.TestField("Amount Including VAT", ExpectedAmountIncludingVAT);
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    [Test]
+    procedure PostGBReverseChargeOrderWithZeroQuantityLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ZeroQuantitySalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 654053] A zero-quantity reverse-charge line does not divide by zero during posting.
+        Initialize();
+        SetReverseChargeFeatureEnabled(true);
+        CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
+        LibrarySales.CreateSalesLine(ZeroQuantitySalesLine, SalesHeader, ZeroQuantitySalesLine.Type::Item, SalesLine."No.", 0);
+        ZeroQuantitySalesLine.Validate("Unit Price", 1000);
+        ZeroQuantitySalesLine.Modify(true);
+        ZeroQuantitySalesLine.TestField("Reverse Charge Item GB", true);
+
+        PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
+
+        RestoreReverseChargeFeatureStatus();
+    end;
+
+    local procedure SetReverseChargeFeatureEnabled(FeatureEnabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        RestoreReverseChargeFeatureStatus();
+        FeatureKey.Get('VATReverseCharge');
+        FeatureStatusExisted := OriginalFeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName());
+        if not FeatureStatusExisted then begin
+            OriginalFeatureDataUpdateStatus.Init();
+            OriginalFeatureDataUpdateStatus."Feature Key" := FeatureKey.ID;
+            OriginalFeatureDataUpdateStatus."Company Name" :=
+                CopyStr(CompanyName(), 1, MaxStrLen(OriginalFeatureDataUpdateStatus."Company Name"));
+        end;
+        FeatureDataUpdateStatus := OriginalFeatureDataUpdateStatus;
+        if FeatureEnabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Complete
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        if FeatureStatusExisted then
+            FeatureDataUpdateStatus.Modify()
+        else
+            FeatureDataUpdateStatus.Insert();
+        FeatureStatusChanged := true;
+    end;
+
+    local procedure RestoreReverseChargeFeatureStatus()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        if not FeatureStatusChanged then
+            exit;
+
+        if FeatureStatusExisted then begin
+            FeatureDataUpdateStatus.Get(OriginalFeatureDataUpdateStatus."Feature Key", OriginalFeatureDataUpdateStatus."Company Name");
+            FeatureDataUpdateStatus."Feature Status" := OriginalFeatureDataUpdateStatus."Feature Status";
+            FeatureDataUpdateStatus.Modify();
+        end else
+            if FeatureDataUpdateStatus.Get(OriginalFeatureDataUpdateStatus."Feature Key", OriginalFeatureDataUpdateStatus."Company Name") then
+                FeatureDataUpdateStatus.Delete();
+        FeatureStatusChanged := false;
+    end;
+
+    local procedure CreateReverseChargeSalesOrder(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ReverseChargeVATPostingSetup: Record "VAT Posting Setup"; LegacyReverseChargeItem: Boolean; GBReverseChargeItem: Boolean)
+    var
+        Item: Record Item;
+        Customer: Record Customer;
+        GLSetup: Record "General Ledger Setup";
+        SalesSetup: Record "Sales & Receivables Setup";
+        DomesticVATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            DomesticVATPostingSetup, DomesticVATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        CreateVATPostingSetupReverseCharge(DomesticVATPostingSetup."VAT Prod. Posting Group", ReverseChargeVATPostingSetup);
+        ModifySalesSetupReverseCharge(
+            ReverseChargeVATPostingSetup."VAT Bus. Posting Group", DomesticVATPostingSetup."VAT Bus. Posting Group");
+        GLSetup.Get();
+        GLSetup."Threshold applies GB" := true;
+        GLSetup."Threshold Amount GB" := 1000;
+#pragma warning disable AL0432
+        GLSetup."Threshold applies" := true;
+        GLSetup."Threshold Amount" := GLSetup."Threshold Amount GB";
+#pragma warning restore AL0432
+        GLSetup.Modify(true);
+
+        SalesSetup.Get();
+#pragma warning disable AL0432
+        SalesSetup."Reverse Charge VAT Posting Gr." := ReverseChargeVATPostingSetup."VAT Bus. Posting Group";
+        SalesSetup."Domestic Customers" := DomesticVATPostingSetup."VAT Bus. Posting Group";
+#pragma warning restore AL0432
+        SalesSetup.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", DomesticVATPostingSetup."VAT Prod. Posting Group");
+        Item."Reverse Charge Applies GB" := GBReverseChargeItem;
+#pragma warning disable AL0432
+        Item."Reverse Charge Applies" := LegacyReverseChargeItem;
+#pragma warning restore AL0432
+        Item.Modify(true);
+
+        LibrarySales.CreateCustomerWithVATRegNo(Customer);
+        Customer.Validate("VAT Bus. Posting Group", DomesticVATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prices Including VAT", false);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
+        SalesLine.Validate("Unit Price", 1000);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure PostAndVerifyGBReverseChargeOrder(var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        ExpectedReverseCharge: Decimal;
+        InvoiceNo: Code[20];
+    begin
+        ExpectedReverseCharge :=
+            Round((SalesLine."Amount Including VAT" - SalesLine.Amount) *
+                SalesLine."Qty. to Invoice" / SalesLine.Quantity, LibraryERM.GetAmountRoundingPrecision());
+        Assert.IsTrue(ExpectedReverseCharge > 0, 'The domestic VAT amount must be positive before posting.');
+
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
+        SalesInvoiceLine.Get(InvoiceNo, SalesLine."Line No.");
+        SalesInvoiceLine.TestField(Quantity, SalesLine."Qty. to Invoice");
+        SalesInvoiceLine.TestField("Reverse Charge Item GB", true);
+        SalesInvoiceLine.TestField("Reverse Charge GB", ExpectedReverseCharge);
+        SalesInvoiceLine.TestField("Amount Including VAT", SalesInvoiceLine.Amount);
+    end;
+#endif
 
     local procedure Initialize()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
+#if not CLEAN27
+        SetReverseChargeFeatureEnabled(true);
+#endif
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
 
@@ -250,4 +580,3 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         VATEntry.TestField("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
     end;
 }
-
