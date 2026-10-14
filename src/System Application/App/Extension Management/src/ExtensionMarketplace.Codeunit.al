@@ -272,9 +272,10 @@ codeunit 2501 "Extension Marketplace"
     begin
         ExtensionInstallationImpl.CheckPermissions();
         AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
-        if not IsNullGuid(AppId) then
+        if not IsNullGuid(AppId) then begin
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
                 exit;
+        end;
 
         if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
@@ -297,9 +298,10 @@ codeunit 2501 "Extension Marketplace"
         MySessionSettings: SessionSettings;
     begin
         ExtensionInstallationImpl.CheckPermissions();
-        if not IsNullGuid(AppId) then
+        if not IsNullGuid(AppId) then begin
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
                 exit;
+        end;
 
         if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
