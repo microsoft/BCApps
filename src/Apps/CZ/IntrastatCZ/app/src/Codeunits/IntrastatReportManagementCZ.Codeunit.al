@@ -18,6 +18,7 @@ using Microsoft.Projects.Project.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -162,18 +163,21 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFromItemOnValidateItemNoOnAfterGetItem(var ItemJournalLine: Record "Item Journal Line"; Item: Record Item)
     begin
         ItemJournalLine."Statistic Indication CZ" := Item."Statistic Indication CZ";
+        ItemJournalLine."Country/Reg. of Orig. Code CZ" := Item."Country/Region of Origin Code";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Job Journal Line", 'OnAfterAssignItemValues', '', false, false)]
     local procedure CopyFromItemOnAfterAssignItemValuesJobJournalLine(var JobJournalLine: Record "Job Journal Line"; Item: Record Item)
     begin
         JobJournalLine."Statistic Indication CZ" := Item."Statistic Indication CZ";
+        JobJournalLine."Country/Reg. of Orig. Code CZ" := Item."Country/Region of Origin Code";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterAssignItemValues', '', false, false)]
     local procedure CopyFromItemOnAfterAssignItemValuesPurchLine(var PurchLine: Record "Purchase Line"; Item: Record Item; PurchHeader: Record "Purchase Header")
     begin
         PurchLine."Statistic Indication CZ" := Item."Statistic Indication CZ";
+        PurchLine."Country/Reg. of Orig. Code CZ" := Item."Country/Region of Origin Code";
         PurchLine."Physical Transfer CZ" := PurchHeader."Physical Transfer CZ";
     end;
 
@@ -187,6 +191,7 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFromItemOnAfterAssignItemValuesSalesLine(var SalesLine: Record "Sales Line"; Item: Record Item; SalesHeader: Record "Sales Header")
     begin
         SalesLine."Statistic Indication CZ" := Item."Statistic Indication CZ";
+        SalesLine."Country/Reg. of Orig. Code CZ" := Item."Country/Region of Origin Code";
         SalesLine."Physical Transfer CZ" := SalesHeader."Physical Transfer CZ";
     end;
 
@@ -200,6 +205,7 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFromItemOnAfterAssignItemValuesServiceLine(var ServiceLine: Record "Service Line"; Item: Record Item; ServiceHeader: Record "Service Header")
     begin
         ServiceLine."Statistic Indication CZ" := Item."Statistic Indication CZ";
+        ServiceLine."Country/Reg. of Orig. Code CZ" := Item."Country/Region of Origin Code";
         ServiceLine."Physical Transfer CZ" := ServiceHeader."Physical Transfer CZ";
     end;
 
@@ -207,18 +213,21 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFromItemOnAfterAssignItemValuesTransferLine(var TransferLine: Record "Transfer Line"; Item: Record Item)
     begin
         TransferLine."Statistic Indication CZ" := Item."Statistic Indication CZ";
+        TransferLine."Country/Reg. of Orig. Code CZ" := Item."Country/Region of Origin Code";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Direct Trans. Line", 'OnAfterCopyFromTransferLine', '', false, false)]
     local procedure CopyFieldsOnAfterCopyFromTransferLine(var DirectTransLine: Record "Direct Trans. Line"; TransferLine: Record "Transfer Line")
     begin
         DirectTransLine."Statistic Indication CZ" := TransferLine."Statistic Indication CZ";
+        DirectTransLine."Country/Reg. of Orig. Code CZ" := TransferLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", 'OnAfterCreateItemJnlLine', '', false, false)]
     local procedure CopyFieldsOnAfterCreateItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; DirectTransLine: Record "Direct Trans. Line")
     begin
         ItemJnlLine."Statistic Indication CZ" := DirectTransLine."Statistic Indication CZ";
+        ItemJnlLine."Country/Reg. of Orig. Code CZ" := DirectTransLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", 'OnInsertDirectTransHeaderOnBeforeDirectTransHeaderInsert', '', false, false)]
@@ -231,6 +240,7 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFieldsOnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
     begin
         NewItemLedgEntry."Statistic Indication CZ" := ItemJournalLine."Statistic Indication CZ";
+        NewItemLedgEntry."Country/Reg. of Orig. Code CZ" := ItemJournalLine."Country/Reg. of Orig. Code CZ";
         NewItemLedgEntry."Physical Transfer CZ" := ItemJournalLine."Physical Transfer CZ";
     end;
 
@@ -244,6 +254,7 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFieldsOnAfterCopyItemJnlLineFromSalesLine(var ItemJnlLine: Record "Item Journal Line"; SalesLine: Record "Sales Line")
     begin
         ItemJnlLine."Statistic Indication CZ" := SalesLine."Statistic Indication CZ";
+        ItemJnlLine."Country/Reg. of Orig. Code CZ" := SalesLine."Country/Reg. of Orig. Code CZ";
         ItemJnlLine."Physical Transfer CZ" := SalesLine."Physical Transfer CZ";
     end;
 
@@ -257,6 +268,7 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFieldsOnAfterCopyItemJnlLineFromPurchLine(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
     begin
         ItemJnlLine."Statistic Indication CZ" := PurchLine."Statistic Indication CZ";
+        ItemJnlLine."Country/Reg. of Orig. Code CZ" := PurchLine."Country/Reg. of Orig. Code CZ";
         ItemJnlLine."Physical Transfer CZ" := PurchLine."Physical Transfer CZ";
     end;
 
@@ -270,6 +282,7 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFieldsOnAfterCopyItemJnlLineFromServLine(var ItemJournalLine: Record "Item Journal Line"; ServiceLine: Record "Service Line")
     begin
         ItemJournalLine."Statistic Indication CZ" := ServiceLine."Statistic Indication CZ";
+        ItemJournalLine."Country/Reg. of Orig. Code CZ" := ServiceLine."Country/Reg. of Orig. Code CZ";
         ItemJournalLine."Physical Transfer CZ" := ServiceLine."Physical Transfer CZ";
     end;
 
@@ -277,54 +290,69 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFieldsOnBeforePostItemJournalLineOnPostReceipt(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line")
     begin
         ItemJournalLine."Statistic Indication CZ" := TransferLine."Statistic Indication CZ";
+        ItemJournalLine."Country/Reg. of Orig. Code CZ" := TransferLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", 'OnAfterCreateItemJnlLine', '', false, false)]
     local procedure CopyFieldsOnAfterCreateItemJnlLineOnPostShipment(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line")
     begin
         ItemJournalLine."Statistic Indication CZ" := TransferLine."Statistic Indication CZ";
+        ItemJournalLine."Country/Reg. of Orig. Code CZ" := TransferLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Shipment Line", 'OnAfterCopyToItemJnlLine', '', false, false)]
     local procedure CopyFieldsOnAfterCopyItemJnlLineFromServShptLine(var ItemJournalLine: Record "Item Journal Line"; ServiceShipmentLine: Record "Service Shipment Line")
     begin
         ItemJournalLine."Statistic Indication CZ" := ServiceShipmentLine."Statistic Indication CZ";
+        ItemJournalLine."Country/Reg. of Orig. Code CZ" := ServiceShipmentLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Shipment Line", 'OnAfterCopyToItemJnlLineUndo', '', false, false)]
     local procedure CopyFieldsOnAfterCopyItemJnlLineFromServShptLineUndo(var ItemJournalLine: Record "Item Journal Line"; ServiceShipmentLine: Record "Service Shipment Line")
     begin
         ItemJournalLine."Statistic Indication CZ" := ServiceShipmentLine."Statistic Indication CZ";
+        ItemJournalLine."Country/Reg. of Orig. Code CZ" := ServiceShipmentLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Transfer Line", 'OnAfterFromPlanningSalesLineToJnlLine', '', false, false)]
     local procedure CopyFieldsOnAfterFromPlanningSalesLineToJnlLine(var JobJnlLine: Record "Job Journal Line"; SalesLine: Record "Sales Line")
     begin
         JobJnlLine."Statistic Indication CZ" := SalesLine."Statistic Indication CZ";
+        JobJnlLine."Country/Reg. of Orig. Code CZ" := SalesLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Transfer Line", 'OnAfterFromPurchaseLineToJnlLine', '', false, false)]
     local procedure CopyFieldsOnAfterFromPurchaseLineToJnlLine(var JobJnlLine: Record "Job Journal Line"; PurchLine: Record "Purchase Line")
     begin
         JobJnlLine."Statistic Indication CZ" := PurchLine."Statistic Indication CZ";
+        JobJnlLine."Country/Reg. of Orig. Code CZ" := PurchLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Transfer Line", 'OnAfterFromJnlLineToLedgEntry', '', false, false)]
     local procedure CopyFieldsOnAfterFromJnlLineToLedgEntry(var JobLedgerEntry: Record "Job Ledger Entry"; JobJournalLine: Record "Job Journal Line")
     begin
         JobLedgerEntry."Statistic Indication CZ" := JobJournalLine."Statistic Indication CZ";
+        JobLedgerEntry."Country/Reg. of Orig. Code CZ" := JobJournalLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Line", 'OnAfterCopyFromTransferLine', '', false, false)]
     local procedure CopyFieldsOnAfterCopyFromTransferLineTransferReceipt(var TransferReceiptLine: Record "Transfer Receipt Line"; TransferLine: Record "Transfer Line")
     begin
         TransferReceiptLine."Statistic Indication CZ" := TransferLine."Statistic Indication CZ";
+        TransferReceiptLine."Country/Reg. of Orig. Code CZ" := TransferLine."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Line", 'OnAfterCopyFromTransferLine', '', false, false)]
     local procedure CopyFieldsOnAfterCopyFromTransferLineTransferShipment(var TransferShipmentLine: Record "Transfer Shipment Line"; TransferLine: Record "Transfer Line")
     begin
         TransferShipmentLine."Statistic Indication CZ" := TransferLine."Statistic Indication CZ";
+        TransferShipmentLine."Country/Reg. of Orig. Code CZ" := TransferLine."Country/Reg. of Orig. Code CZ";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ArchiveManagement, 'OnAfterTransferFromArchToSalesLine', '', false, false)]
+    local procedure CopyFieldsOnAfterTransferFromArchToSalesLine(var SalesLine: Record "Sales Line"; var SalesLineArchive: Record "Sales Line Archive")
+    begin
+        SalesLine."Country/Reg. of Orig. Code CZ" := SalesLineArchive."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnUpdatePurchLinesByChangedFieldName', '', false, false)]
@@ -510,6 +538,42 @@ codeunit 31302 IntrastatReportManagementCZ
         Direction := IntrastatReportSetup.GetRoundingDirectionCZ();
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Intrastat Report Line", 'OnBeforeGetCountryOfOriginCode', '', false, false)]
+    local procedure GetCountryOfOriginFromPostedEntryOnBeforeGetCountryOfOriginCode(var IntrastatReportLine: Record "Intrastat Report Line"; var CountryOfOriginCode: Code[10]; var IsHandled: Boolean)
+    var
+        IntrastatReportSetup: Record "Intrastat Report Setup";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        PostedCountryOfOriginCode: Code[10];
+    begin
+        if IsHandled then
+            exit;
+        if not (IntrastatReportLine."Source Type" in [IntrastatReportLine."Source Type"::"Item Entry", IntrastatReportLine."Source Type"::"Job Entry"]) then
+            exit;
+        if not IntrastatReportSetup.Get() then
+            exit;
+        if IntrastatReportSetup."Get Ctry/Reg. of Origin CZ" <> IntrastatReportSetup."Get Ctry/Reg. of Origin CZ"::"Posted Entries" then
+            exit;
+        case IntrastatReportLine."Source Type" of
+            IntrastatReportLine."Source Type"::"Item Entry":
+                begin
+                    ItemLedgerEntry.SetLoadFields("Country/Reg. of Orig. Code CZ");
+                    if ItemLedgerEntry.Get(IntrastatReportLine."Source Entry No.") then
+                        PostedCountryOfOriginCode := ItemLedgerEntry."Country/Reg. of Orig. Code CZ";
+                end;
+            IntrastatReportLine."Source Type"::"Job Entry":
+                begin
+                    JobLedgerEntry.SetLoadFields("Country/Reg. of Orig. Code CZ");
+                    if JobLedgerEntry.Get(IntrastatReportLine."Source Entry No.") then
+                        PostedCountryOfOriginCode := JobLedgerEntry."Country/Reg. of Orig. Code CZ";
+                end;
+        end;
+        if PostedCountryOfOriginCode = '' then
+            exit;
+        CountryOfOriginCode := PostedCountryOfOriginCode;
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Report, Report::"Intrastat Report Get Lines", 'OnBeforeInsertItemLedgerLine', '', false, false)]
     local procedure OnBeforeInsertItemLedgerLine(var IntrastatReportLine: Record "Intrastat Report Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
     var
@@ -537,7 +601,6 @@ codeunit 31302 IntrastatReportManagementCZ
             SpecificMovementCZ.GetOrCreate(SpecificMovementCZ.GetStandardCode());
             IntrastatReportLine."Specific Movement CZ" := SpecificMovementCZ.Code;
         end;
-
         if ItemLedgerEntry.GetDocumentCZ(TempSalesHeader) and (TempSalesHeader."Currency Code" <> '') then begin
             RoundingDirection := IntrastatReportSetup.GetRoundingDirectionCZ();
             IntrastatReportLine.Amount :=
@@ -555,7 +618,6 @@ codeunit 31302 IntrastatReportManagementCZ
                         TempSalesHeader."VAT Currency Factor CZL"),
                     1, RoundingDirection);
         end;
-
         if (IntrastatReportLine.Amount = 0) or (IntrastatReportLine.Quantity = 0) then
             exit;
 
@@ -595,7 +657,6 @@ codeunit 31302 IntrastatReportManagementCZ
         ServiceShipmentHeader: Record "Service Shipment Header";
     begin
         Clear(SalesHeader);
-
         case DocumentType of
             DocumentType::"Sales Shipment":
                 begin
@@ -1049,7 +1110,6 @@ codeunit 31302 IntrastatReportManagementCZ
     begin
         if not DataTypeManagement.GetRecordRef(Partner, PartnerRecRef) then
             exit;
-
         case PartnerRecRef.Number of
             Database::Customer:
                 begin
@@ -1062,7 +1122,6 @@ codeunit 31302 IntrastatReportManagementCZ
                     DefaultTransactionType := Vendor.GetDefaultTransactionTypeCZ(IsPhysicalTransfer, IsCreditDocType);
                 end;
         end;
-
         if DefaultTransactionType = '' then
             DefaultTransactionType := IntrastatReportSetup.GetDefaultTransactionTypeCZ(IsPhysicalTransfer, IsCreditDocType);
     end;
