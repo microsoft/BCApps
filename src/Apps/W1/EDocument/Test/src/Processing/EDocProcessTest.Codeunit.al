@@ -1392,7 +1392,7 @@ codeunit 139883 "E-Doc Process Test"
         // [THEN] The e-document is not processed, no credit memo is left behind and the error names the invoice
         EDocument.CalcFields("Import Processing Status");
         Assert.AreNotEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'A credit memo must not be applied to an invoice that is no longer open.');
-        Assert.IsTrue(HasErrorContaining(EDocument, 'PI-CN-3'), 'The error must name the invoice that cannot be applied to.');
+        Assert.IsTrue(HasErrorContaining(EDocument, '103033'), 'The error must name the invoice that cannot be applied to.');
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         Assert.RecordIsEmpty(PurchaseHeader);
     end;
@@ -1448,7 +1448,7 @@ codeunit 139883 "E-Doc Process Test"
         // [THEN] The e-document is not processed and the error names the reviewed invoice
         EDocument.CalcFields("Import Processing Status");
         Assert.AreNotEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'An ambiguous invoice must not be applied to.');
-        Assert.IsTrue(HasErrorContaining(EDocument, 'PI-CN-11'), 'The error must name the reviewed invoice.');
+        Assert.IsTrue(HasErrorContaining(EDocument, '103033'), 'The error must name the reviewed invoice.');
     end;
 
     [Test]
@@ -1576,6 +1576,37 @@ codeunit 139883 "E-Doc Process Test"
         ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
         ErrorMessage.SetFilter("Message", '@*' + ExpectedText + '*');
         exit(not ErrorMessage.IsEmpty());
+    end;
+
+    [Test]
+    procedure CreditNoteApplicationStatusStatesWhetherItWillBeApplied()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
+    begin
+        // [SCENARIO 650500] The draft states in one sentence whether the credit memo will be applied, so a reviewer never has to infer it from the invoice number
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A credit memo draft applied to open invoice PI-CN-14
+        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-14', '103033', 'XYZ', true);
+        PrepareCreditNoteDraft(EDocument);
+
+        // [THEN] The application status says the credit memo will be applied to the invoice the credit note states
+        Assert.IsTrue(StrPos(EDocPrepareCrMemoDraft.GetApplicationStatus(EDocument), 'Will be applied to invoice 103033') > 0,
+            'The status must state that the credit memo will be applied.');
+
+        // [WHEN] The credit note refers to several invoices
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        EDocumentPurchaseHeader."Vendor Invoice No." := '103033, 103044';
+        EDocumentPurchaseHeader.Modify();
+        EDocPrepareCrMemoDraft.RefreshInvoiceToApplyTo(EDocument);
+
+        // [THEN] The status says it will not be applied, and why
+        Assert.IsTrue(StrPos(EDocPrepareCrMemoDraft.GetApplicationStatus(EDocument), 'Will not be applied') > 0,
+            'The status must state that the credit memo will not be applied.');
+        Assert.IsTrue(StrPos(EDocPrepareCrMemoDraft.GetApplicationStatus(EDocument), 'several invoices') > 0,
+            'The status must state why the credit memo is not applied.');
     end;
 
     [Test]

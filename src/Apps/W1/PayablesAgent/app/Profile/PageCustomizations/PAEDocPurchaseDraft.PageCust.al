@@ -40,10 +40,9 @@ pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Dra
             Visible = true;
             Editable = false;
         }
-        modify("Applies-to Doc. No.")
+        modify(AppliesToStatus)
         {
             Visible = true;
-            Editable = false;
         }
         modify(Record)
         {

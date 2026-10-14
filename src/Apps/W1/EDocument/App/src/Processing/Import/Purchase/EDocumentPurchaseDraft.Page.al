@@ -164,7 +164,7 @@ page 6181 "E-Document Purchase Draft"
                     field("Applies-to Vendor Inv. No."; EDocumentPurchaseHeader."Vendor Invoice No.")
                     {
                         Caption = 'Applies-to Vendor Inv. No.';
-                        ToolTip = 'Specifies the vendor''s invoice number that this credit memo applies to, as stated on the credit note. You can also enter the posted invoice number.';
+                        ToolTip = 'Specifies the vendor''s invoice number that this credit memo applies to, as stated on the credit note. The credit memo is applied to it when it is an open posted invoice of the vendor; otherwise a warning explains why not. You can also enter the posted invoice number.';
                         Visible = IsCreditMemo;
                         Editable = PageEditable;
 
@@ -175,15 +175,17 @@ page 6181 "E-Document Purchase Draft"
                             EDocumentPurchaseHeader.Modify();
                             EDocPrepareCrMemoDraft.RefreshInvoiceToApplyTo(Rec);
                             EDocumentPurchaseHeader.GetFromEDocument(Rec);
+                            UpdateAppliesToStatus();
                             CurrPage.Update();
                         end;
                     }
-                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    field(AppliesToStatus; AppliesToStatusTxt)
                     {
-                        Caption = 'Applies-to Doc. No.';
-                        ToolTip = 'Specifies the posted purchase invoice that this credit memo is applied to. It is found from Applies-to Vendor Inv. No.';
+                        Caption = 'Application';
+                        ToolTip = 'Specifies whether the credit memo will be applied to the invoice stated on the credit note, and the reason when it will not.';
                         Visible = IsCreditMemo;
                         Editable = false;
+                        MultiLine = true;
                     }
                 }
                 field("Status"; Rec.Status)
@@ -578,6 +580,16 @@ page 6181 "E-Document Purchase Draft"
 
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
+        UpdateAppliesToStatus();
+    end;
+
+    local procedure UpdateAppliesToStatus()
+    var
+        EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
+    begin
+        Clear(AppliesToStatusTxt);
+        if IsCreditMemo then
+            AppliesToStatusTxt := EDocPrepareCrMemoDraft.GetApplicationStatus(Rec);
     end;
 
     local procedure SetPageCaption()
@@ -819,4 +831,5 @@ page 6181 "E-Document Purchase Draft"
         ApplyVATDiffEnabled: Boolean;
         FeedbackActionVisible: Boolean;
         AppliedVATAmountDiff: Decimal;
+        AppliesToStatusTxt: Text;
 }
