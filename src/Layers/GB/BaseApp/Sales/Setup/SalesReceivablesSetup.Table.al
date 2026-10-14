@@ -614,6 +614,7 @@ table 311 "Sales & Receivables Setup"
         field(70; "Restore Order Qty. on Return"; Boolean)
         {
             Caption = 'Restore Order quantities on Credit Memo or Return Order posting';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether posting a sales credit memo or sales return order restores quantities on the related sales order. When enabled, Qty. to Ship, Qty. to Invoice, and the shipped and invoiced quantities on the original sales order are updated based on the reversed quantity.';
             InitValue = true;
         }
