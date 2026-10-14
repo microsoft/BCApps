@@ -473,6 +473,32 @@ codeunit 148360 EACorpCardSettlementTests
         Assert.ExpectedError('must be posted before it can be reversed');
     end;
 
+    [Test]
+    procedure UnlinkedBankEntriesAreReportedForStatementPeriod()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        UnlinkedTrans: Record "EA Corp Card Trans";
+        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        UnlinkedAmount: Decimal;
+        UnlinkedEntries: Integer;
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-UNLINKED', 3000, CorpCardStatement.Status::Validated);
+        CorpCardStatement."Period Start Date" := WorkDate();
+        CorpCardStatement."Period End Date" := WorkDate();
+        CorpCardStatement.Modify();
+        CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 3000);
+        PostCorpCardExpenseBankEntry(CorpCardTrans, -3000);
+        UnlinkedTrans."Currency Code" := CorpCardTrans."Currency Code";
+        PostCorpCardExpenseBankEntry(UnlinkedTrans, -700);
+
+        CorpCardStatementMgt.GetUnlinkedBankEntrySummary(CorpCardStatement, UnlinkedEntries, UnlinkedAmount);
+
+        Assert.AreEqual(1, UnlinkedEntries, 'Only the bank entry without a corporate card transaction must be reported.');
+        Assert.AreEqual(-700, UnlinkedAmount, 'The amount of the unlinked bank entry must be reported.');
+    end;
+
     local procedure Initialize()
     var
         CorpCardBankAccount: Record "Bank Account";

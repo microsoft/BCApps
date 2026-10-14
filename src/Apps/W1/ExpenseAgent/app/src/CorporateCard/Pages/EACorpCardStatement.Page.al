@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Bank.Ledger;
+
 page 7444 "EA Corp Card Statement"
 {
     ApplicationArea = Basic, Suite;
@@ -127,6 +129,31 @@ page 7444 "EA Corp Card Statement"
                     AutoFormatExpression = "Currency Code";
                     Caption = 'Unreconciled Amount';
                     ToolTip = 'Specifies the amount represented by unreconciled statement transactions.';
+                }
+                field(UnlinkedBankEntries; UnlinkedBankEntries)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Caption = 'Bank Entries Without Transaction';
+                    ToolTip = 'Specifies the number of open bank account ledger entries on the corporate card bank account within the statement period that are not linked to any corporate card transaction or settlement. Choose the field to view them.';
+
+                    trigger OnDrillDown()
+                    var
+                        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+                        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+                    begin
+                        CorpCardStatementMgt.SetUnlinkedBankEntryFilters(Rec, BankAccountLedgerEntry);
+                        Page.Run(Page::"Bank Account Ledger Entries", BankAccountLedgerEntry);
+                    end;
+                }
+                field(UnlinkedBankAmount; UnlinkedBankAmount)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = "Currency Code";
+                    Caption = 'Bank Amount Without Transaction';
+                    ToolTip = 'Specifies the total amount of the bank account ledger entries that are not linked to any corporate card transaction or settlement.';
                 }
             }
             group(Reconciliation)
@@ -310,6 +337,7 @@ page 7444 "EA Corp Card Statement"
         CorpCardStatementMgt.GetReconciliationSummary(
             Rec, ReconciledTransactions, ReconciledAmount,
             UnreconciledTransactions, UnreconciledAmount, SettlementStatus2);
+        CorpCardStatementMgt.GetUnlinkedBankEntrySummary(Rec, UnlinkedBankEntries, UnlinkedBankAmount);
         CanCloseReconciliation := Rec.Status in [Rec.Status::Validated, Rec.Status::ReconciliationRequired];
         Rec.CalcFields("Settlement Entry No.");
         if Rec."Settlement Entry No." = 0 then
@@ -324,7 +352,9 @@ page 7444 "EA Corp Card Statement"
         NoSettlementErr: Label 'The statement is not included in a settlement.';
         ReconciledAmount: Decimal;
         UnreconciledAmount: Decimal;
+        UnlinkedBankAmount: Decimal;
         ReconciledTransactions: Integer;
+        UnlinkedBankEntries: Integer;
         UnreconciledTransactions: Integer;
         SettlementStatusText: Text[30];
 }

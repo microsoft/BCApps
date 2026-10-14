@@ -12,6 +12,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     Permissions =
         tabledata "Bank Account Ledger Entry" = r,
         tabledata "EA Corp Card" = r,
+        tabledata "EA Corp Card Provider" = r,
         tabledata "EA Corp Card Settlement" = r,
         tabledata "EA Corp Card Settlement Line" = r,
         tabledata "EA Corp Card Statement" = rimd,
@@ -192,6 +193,39 @@ codeunit 7441 "EA Corp Card Statement Mgt"
                 UnreconciledAmount += CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code");
             end;
         until CorpCardTrans.Next() = 0;
+    end;
+
+    internal procedure SetUnlinkedBankEntryFilters(CorpCardStatement: Record "EA Corp Card Statement"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+    begin
+        BankAccountLedgerEntry.Reset();
+        if not CorpCardProvider.Get(CorpCardStatement."Provider Code") then
+            exit;
+        if CorpCardProvider."Corp Card Bank Account No." = '' then
+            exit;
+
+        BankAccountLedgerEntry.SetRange("Bank Account No.", CorpCardProvider."Corp Card Bank Account No.");
+        BankAccountLedgerEntry.SetRange("Posting Date", CorpCardStatement."Period Start Date", CorpCardStatement."Period End Date");
+        BankAccountLedgerEntry.SetRange("EA Corp Card Trans Entry No.", 0);
+        BankAccountLedgerEntry.SetRange("EA Corp Card Settle Entry No.", 0);
+        BankAccountLedgerEntry.SetRange(Reversed, false);
+    end;
+
+    internal procedure GetUnlinkedBankEntrySummary(CorpCardStatement: Record "EA Corp Card Statement"; var UnlinkedEntries: Integer; var UnlinkedAmount: Decimal)
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+    begin
+        Clear(UnlinkedEntries);
+        Clear(UnlinkedAmount);
+
+        SetUnlinkedBankEntryFilters(CorpCardStatement, BankAccountLedgerEntry);
+        if BankAccountLedgerEntry.GetFilter("Bank Account No.") = '' then
+            exit;
+
+        UnlinkedEntries := BankAccountLedgerEntry.Count();
+        BankAccountLedgerEntry.CalcSums(Amount);
+        UnlinkedAmount := BankAccountLedgerEntry.Amount;
     end;
 
     local procedure ValidateTransaction(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans")

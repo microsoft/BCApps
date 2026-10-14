@@ -72,4 +72,52 @@ page 7446 "EA Corp Card Statement Trans"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(ShowNotPosted)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Not posted';
+                Image = FilterLines;
+                ToolTip = 'Shows only the statement transactions whose expense has not been posted yet, including transactions without an expense.';
+
+                trigger OnAction()
+                begin
+                    Rec.SetRange("Expense No.");
+                    Rec.SetFilter(Status, '<>%1', Rec.Status::Posted);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ShowWithoutExpense)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Without expense';
+                Image = FilterLines;
+                ToolTip = 'Shows only the statement transactions that are not linked to an expense yet.';
+
+                trigger OnAction()
+                begin
+                    Rec.SetRange(Status);
+                    Rec.SetRange("Expense No.", '');
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ShowAll)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Show all';
+                Image = ClearFilter;
+                ToolTip = 'Removes the filter and shows all statement transactions.';
+
+                trigger OnAction()
+                begin
+                    Rec.SetRange(Status);
+                    Rec.SetRange("Expense No.");
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+    }
 }
