@@ -10626,9 +10626,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
-    internal procedure RunOnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
+    internal procedure RunOnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextGLEntryNo: Integer; var IsHandled: Boolean)
     begin
-        OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextEntryNo, IsHandled);
+        OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextGLEntryNo, IsHandled);
     end;
 
     [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '30.0')]

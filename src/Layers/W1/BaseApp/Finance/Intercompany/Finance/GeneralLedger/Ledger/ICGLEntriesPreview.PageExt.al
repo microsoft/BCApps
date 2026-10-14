@@ -17,6 +17,7 @@ pageextension 8523 ICGLEntriesPreview extends "G/L Entries Preview"
             field("IC Partner Code"; Rec."IC Partner Code")
             {
                 ApplicationArea = Intercompany;
+                ToolTip = 'Specifies the code of the intercompany partner that the entry is related to.';
                 Visible = false;
             }
         }
