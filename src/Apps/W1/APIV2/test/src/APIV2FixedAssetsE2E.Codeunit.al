@@ -23,6 +23,8 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

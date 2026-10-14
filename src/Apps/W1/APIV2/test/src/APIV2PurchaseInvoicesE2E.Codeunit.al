@@ -3,6 +3,7 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -30,6 +31,7 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     [Test]
@@ -75,6 +77,8 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
         OrderIdValue: Text;
         OrderNoValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a Purchase Invoice from a Purchase Order and use GET method to retrieve them and check the orderId and orderNumber
         // [GIVEN] A purchase invoice created by posting a purchase order
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -444,6 +448,8 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can map systemId with Draft Invoice SystemId
 
         // [GIVEN] Posted purchase invoice exists

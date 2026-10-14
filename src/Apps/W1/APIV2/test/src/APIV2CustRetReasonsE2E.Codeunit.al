@@ -22,6 +22,8 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

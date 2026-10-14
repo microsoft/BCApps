@@ -23,6 +23,7 @@ codeunit 139708 "Tax Groups E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 
