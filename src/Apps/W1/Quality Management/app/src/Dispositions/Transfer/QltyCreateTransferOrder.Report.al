@@ -214,7 +214,6 @@ report 20410 "Qlty. Create Transfer Order"
                         ApplicationArea = All;
                         Caption = 'Bin';
                         ToolTip = 'Specifies the bin at the destination location where the inventory will be transferred.';
-                        ShowMandatory = ShowDestinationBin;
                         Enabled = ShowDestinationBin;
 
                         trigger OnLookup(var Text: Text): Boolean
@@ -303,7 +302,6 @@ report 20410 "Qlty. Create Transfer Order"
         InTransit: Code[10];
         DirectTransfer: Boolean;
         ShowDestinationBin: Boolean;
-        DestinationBinRequiredErr: Label 'Enter a destination bin for location %1.', Comment = '%1 = Location Code';
 
     trigger OnInitReport()
     begin
@@ -340,12 +338,13 @@ report 20410 "Qlty. Create Transfer Order"
         Bin: Record Bin;
         DestinationLocation: Record Location;
     begin
+        if DestinationBin = '' then
+            exit;
+
         if not DestinationLocation.Get(Destination) then
             exit;
         if not DestinationLocation."Bin Mandatory" or DestinationLocation."Directed Put-away and Pick" then
             exit;
-        if DestinationBin = '' then
-            Error(DestinationBinRequiredErr, Destination);
 
         Bin.Get(Destination, DestinationBin);
     end;
