@@ -34,7 +34,6 @@ codeunit 10811 "Generate File XML"
         FeatureTelemetry.LogUptake('0000V8T', FRGeneralLedgerXMLTok, Enum::"Feature Uptake Status"::"Set up");
 
         TempBlob.CreateOutStream(OutStream);
-        GLEntry.SetCurrentKey("Posting Date", "G/L Account No.", "Dimension Set ID");
         GLEntry.SetRange("Posting Date", StartingDate, EndingDate);
         ExportGLEntries.InitializeRequest(GLEntry, StartingDate, EndingDate);
         ExportGLEntries.SetDestination(OutStream);

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AuditFileExport;
 
+using Microsoft.CRM.Contact;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
 permissionset 10808 "XML Audit - Export"
@@ -15,6 +16,7 @@ permissionset 10808 "XML Audit - Export"
     IncludedPermissionSets = "XML - Objects",
                              "Audit Export - Edit";
 
-    Permissions = tabledata "G/L Entry" = r,
+    Permissions = tabledata Contact = r,
+                  tabledata "G/L Entry" = r,
                   table "G/L Entry" = X;
 }
