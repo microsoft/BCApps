@@ -14,10 +14,10 @@ using Microsoft.Intercompany.Outbox;
 codeunit 8495 "IC Batch Processing Mgt."
 {
     var
-        InterCompanyZipFileNamePatternTok: Label 'General Journal IC Batch - %1.zip', Comment = '%1 - today date, Sample: Sales IC Batch - 23-01-2024.zip';
 #if not CLEAN30
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
 #endif
+        InterCompanyZipFileNamePatternTok: Label 'General Journal IC Batch - %1.zip', Comment = '%1 - today date, Sample: Sales IC Batch - 23-01-2024.zip';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Batch Processing Mgt.", 'OnBatchProcessGenJnlLineOnAfterPost', '', false, false)]
     local procedure OnBatchProcessGenJnlLineOnAfterPost(var GenJournalLine: Record "Gen. Journal Line"; PostingResult: Boolean)

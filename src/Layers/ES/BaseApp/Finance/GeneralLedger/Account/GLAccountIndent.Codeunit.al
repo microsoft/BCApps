@@ -193,9 +193,9 @@ codeunit 3 "G/L Account-Indent"
     end;
 
 #if not CLEAN30
-    internal procedure RunOnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
+    internal procedure RunOnBeforeIndentICAccount(var GLAccount: Record "G/L Account"; var IsHandled: Boolean)
     begin
-        OnBeforeIndentICAccount(GLAcc, IsHandled);
+        OnBeforeIndentICAccount(GLAccount, IsHandled);
     end;
 
     /// <summary>
