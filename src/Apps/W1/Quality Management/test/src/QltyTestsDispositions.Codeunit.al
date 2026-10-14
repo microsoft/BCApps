@@ -4047,6 +4047,83 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('DestinationLocationChangeRequestPageHandler')]
+    procedure CreateTransferReport_ChangeDestinationLocation_ClearsSelectedBin()
+    var
+        Location: Record Location;
+        NewLocation: Record Location;
+        Bin: Record Bin;
+        NewBin: Record Bin;
+        RequestPageParameters: Text;
+    begin
+        // [SCENARIO] Changing the destination location clears a selected bin that does not exist at the new location
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] Two non-directed locations with mandatory bins, each with its own bin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateLocationWMS(NewLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(NewBin, NewLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+
+        // [WHEN] A destination bin is selected and the destination location is changed to the second location
+        LibraryVariableStorage.Enqueue(Location.Code);
+        LibraryVariableStorage.Enqueue(Bin.Code);
+        LibraryVariableStorage.Enqueue(NewLocation.Code);
+        Commit();
+        RequestPageParameters := Report.RunRequestPage(Report::"Qlty. Create Transfer Order");
+
+        // [THEN] Destination bin selection stays enabled and the selected bin is cleared
+        LibraryAssert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'Should keep bin selection enabled for a non-directed location with mandatory bins.');
+        LibraryAssert.AreEqual('', LibraryVariableStorage.DequeueText(), 'Should clear the destination bin on the request page.');
+        LibraryAssert.AreEqual('', RequestPageParameters, 'Should not return parameters from a cancelled request page.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('DestinationLocationChangeRequestPageHandler')]
+    procedure CreateTransferReport_DirectedDestination_DisablesBinSelection()
+    var
+        Location: Record Location;
+        DirectedLocation: Record Location;
+        Bin: Record Bin;
+        RequestPageParameters: Text;
+    begin
+        // [SCENARIO] A directed put-away and pick destination does not allow bin selection and clears a selected bin
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] A non-directed location with mandatory bins and a directed put-away and pick location
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateFullWMSLocation(DirectedLocation, 1);
+
+        // [WHEN] A destination bin is selected and the destination location is changed to the directed location
+        LibraryVariableStorage.Enqueue(Location.Code);
+        LibraryVariableStorage.Enqueue(Bin.Code);
+        LibraryVariableStorage.Enqueue(DirectedLocation.Code);
+        Commit();
+        RequestPageParameters := Report.RunRequestPage(Report::"Qlty. Create Transfer Order");
+
+        // [THEN] Destination bin selection is disabled and the selected bin is cleared
+        LibraryAssert.IsFalse(LibraryVariableStorage.DequeueBoolean(), 'Should disable bin selection for directed put-away and pick locations.');
+        LibraryAssert.AreEqual('', LibraryVariableStorage.DequeueText(), 'Should clear the destination bin on the request page.');
+        LibraryAssert.AreEqual('', RequestPageParameters, 'Should not return parameters from a cancelled request page.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [RequestPageHandler]
+    procedure DestinationLocationChangeRequestPageHandler(var QltyCreateTransferOrder: TestRequestPage "Qlty. Create Transfer Order")
+    begin
+        QltyCreateTransferOrder.ChooseDestinationLocation.SetValue(LibraryVariableStorage.DequeueText());
+        QltyCreateTransferOrder.ChooseDestinationBin.SetValue(LibraryVariableStorage.DequeueText());
+        QltyCreateTransferOrder.ChooseDestinationLocation.SetValue(LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.Enqueue(QltyCreateTransferOrder.ChooseDestinationBin.Enabled());
+        LibraryVariableStorage.Enqueue(QltyCreateTransferOrder.ChooseDestinationBin.Value());
+        QltyCreateTransferOrder.Cancel().Invoke();
+    end;
+
+    [Test]
     procedure CreateTransfer_NonDirectedWithBins_DirectTransfer_Untracked_ShouldPost()
     var
         Location: Record Location;
