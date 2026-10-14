@@ -849,6 +849,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         DeprBookCode := FALedgEntry."Depreciation Book Code";
         SetFAPostingType(FALedgEntry);
         FALedgEntry."Reclassification Entry" := true;
+        FALedgEntry."G/L Register No." := GLRegisterNo;
         FALedgEntry.Insert(true);
 
         InsertRegister("FA Register Called From"::"Fixed Asset", NextEntryNo);
