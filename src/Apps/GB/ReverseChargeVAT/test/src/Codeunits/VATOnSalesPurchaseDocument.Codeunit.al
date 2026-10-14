@@ -20,6 +20,7 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
     trigger OnRun()
     begin
+        // [FEATURE] [Sales] [Reverse Charge]
     end;
 
     var
@@ -195,6 +196,8 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] A GB reverse-charge order posts when only the new item flag is set.
         Initialize();
+
+        // [GIVEN] The GB feature is enabled and an order contains an item with only the GB reverse-charge flag.
         SetReverseChargeFeatureEnabled(true);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
 
@@ -202,6 +205,9 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         SalesLine.TestField("Reverse Charge Item", false);
 #pragma warning restore AL0432
         SalesLine.TestField("Reverse Charge Item GB", true);
+
+        // [WHEN] The order is shipped and invoiced.
+        // [THEN] The posted invoice records GB reverse charge and excludes VAT from the amount including VAT.
         PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
 
         RestoreReverseChargeFeatureStatus();
@@ -216,12 +222,17 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] A partial invoice at the threshold records only the invoiced reverse-charge amount.
         Initialize();
+
+        // [GIVEN] The GB feature is enabled and an order contains a GB reverse-charge item.
         SetReverseChargeFeatureEnabled(true);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
+        // [GIVEN] One of the two units is to be shipped and invoiced, reaching the reverse-charge threshold.
         SalesLine.Validate("Qty. to Ship", 1);
         SalesLine.Validate("Qty. to Invoice", 1);
         SalesLine.Modify(true);
 
+        // [WHEN] The order is partially shipped and invoiced.
+        // [THEN] The posted invoice records GB reverse charge for only the invoiced quantity.
         PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
 
         RestoreReverseChargeFeatureStatus();
@@ -237,8 +248,11 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] An existing line with both flags set uses only the new posting setup.
         Initialize();
+
+        // [GIVEN] The GB feature is enabled and an order contains an item with both reverse-charge flags.
         SetReverseChargeFeatureEnabled(true);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, true, true);
+        // [GIVEN] The existing line retains the legacy flag and the legacy posting group conflicts with the GB setup.
 #pragma warning disable AL0432
         SalesLine.TestField("Reverse Charge Item", false);
         SalesLine."Reverse Charge Item" := true;
@@ -248,6 +262,8 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         SalesSetup.Modify(true);
 #pragma warning restore AL0432
 
+        // [WHEN] The order is shipped and invoiced.
+        // [THEN] The posted invoice uses the GB reverse-charge posting setup, not the legacy posting group.
         PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
 
         RestoreReverseChargeFeatureStatus();
@@ -265,6 +281,8 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] Disabling the new feature preserves legacy item copying and posting.
         Initialize();
+
+        // [GIVEN] The GB feature is disabled and an order contains an item with only the legacy reverse-charge flag.
         SetReverseChargeFeatureEnabled(false);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, true, false);
 #pragma warning disable AL0432
@@ -273,8 +291,10 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         SalesLine.TestField("Reverse Charge Item GB", false);
         ExpectedReverseCharge := SalesLine."Amount Including VAT" - SalesLine.Amount;
 
+        // [WHEN] The order is shipped and invoiced.
         InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+        // [THEN] The invoice records legacy reverse charge, no GB reverse charge, and an amount including VAT equal to the amount.
         VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
         SalesInvoiceLine.Get(InvoiceNo, SalesLine."Line No.");
 #pragma warning disable AL0432
@@ -294,12 +314,16 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] A populated GB flag does not bypass legacy validation when the feature is disabled.
         Initialize();
+
+        // [GIVEN] The GB feature is disabled and a sales line has only the GB reverse-charge flag.
         SetReverseChargeFeatureEnabled(false);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
         SalesLine."Reverse Charge Item GB" := true;
 
+        // [WHEN] The reverse-charge VAT business posting group is validated on the line.
         asserterror SalesLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
 
+        // [THEN] The line is rejected as not subject to reverse charge.
         Assert.ExpectedError(NotSubjectToReverseChargeErr);
         RestoreReverseChargeFeatureStatus();
     end;
@@ -313,14 +337,18 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] A populated legacy flag does not bypass the new GB item validation.
         Initialize();
+
+        // [GIVEN] The GB feature is enabled and a sales line has only the legacy reverse-charge flag.
         SetReverseChargeFeatureEnabled(true);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, true, false);
 #pragma warning disable AL0432
         SalesLine."Reverse Charge Item" := true;
 #pragma warning restore AL0432
 
+        // [WHEN] The reverse-charge VAT business posting group is validated on the line.
         asserterror SalesLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
 
+        // [THEN] The line is rejected as not subject to reverse charge.
         Assert.ExpectedError(NotSubjectToReverseChargeErr);
         RestoreReverseChargeFeatureStatus();
     end;
@@ -337,6 +365,8 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] A GB reverse-charge item below the threshold retains normal sales VAT.
         Initialize();
+
+        // [GIVEN] The GB feature is enabled and a GB reverse-charge order is below the threshold.
         SetReverseChargeFeatureEnabled(true);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
         SalesLine.Validate("Unit Price", 100);
@@ -344,8 +374,10 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
         ExpectedAmountIncludingVAT := SalesLine."Amount Including VAT";
 
+        // [WHEN] The order is shipped and invoiced.
         InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+        // [THEN] The posted invoice retains normal VAT and has no GB reverse-charge amount.
         VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
         SalesInvoiceLine.Get(InvoiceNo, SalesLine."Line No.");
         SalesInvoiceLine.TestField("Reverse Charge GB", 0);
@@ -363,6 +395,8 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     begin
         // [SCENARIO 654053] A zero-quantity reverse-charge line does not divide by zero during posting.
         Initialize();
+
+        // [GIVEN] The GB feature is enabled and a GB reverse-charge order also contains a zero-quantity line.
         SetReverseChargeFeatureEnabled(true);
         CreateReverseChargeSalesOrder(SalesHeader, SalesLine, VATPostingSetup, false, true);
         LibrarySales.CreateSalesLine(ZeroQuantitySalesLine, SalesHeader, ZeroQuantitySalesLine.Type::Item, SalesLine."No.", 0);
@@ -370,6 +404,8 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         ZeroQuantitySalesLine.Modify(true);
         ZeroQuantitySalesLine.TestField("Reverse Charge Item GB", true);
 
+        // [WHEN] The order is shipped and invoiced.
+        // [THEN] The nonzero line posts its GB reverse charge without a division-by-zero error.
         PostAndVerifyGBReverseChargeOrder(SalesHeader, SalesLine, VATPostingSetup);
 
         RestoreReverseChargeFeatureStatus();
@@ -472,13 +508,16 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         ExpectedReverseCharge: Decimal;
         InvoiceNo: Code[20];
     begin
+        // [GIVEN] The sales line has a positive domestic VAT amount for the quantity to invoice.
         ExpectedReverseCharge :=
             Round((SalesLine."Amount Including VAT" - SalesLine.Amount) *
                 SalesLine."Qty. to Invoice" / SalesLine.Quantity, LibraryERM.GetAmountRoundingPrecision());
         Assert.IsTrue(ExpectedReverseCharge > 0, 'The domestic VAT amount must be positive before posting.');
 
+        // [WHEN] The order is shipped and invoiced.
         InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+        // [THEN] The invoice uses the GB reverse-charge posting setup and records reverse charge for the invoiced quantity.
         VerifyVATEntryVATPostingGroupsAndType(VATPostingSetup, InvoiceNo);
         SalesInvoiceLine.Get(InvoiceNo, SalesLine."Line No.");
         SalesInvoiceLine.TestField(Quantity, SalesLine."Qty. to Invoice");
