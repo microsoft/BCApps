@@ -14,7 +14,7 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
-
+#pragma warning disable AS0072
 page 6121 "E-Document"
 {
     ApplicationArea = Basic, Suite;
@@ -558,7 +558,6 @@ page 6121 "E-Document"
         HasErrorsOrWarnings := false;
         HasErrors := false;
         IsProcessed := false;
-
         if Rec."Entry No" <> 0 then
             Rec.SetRecFilter(); // Filter the record to only this instance to avoid navigation 
     end;
@@ -642,7 +641,6 @@ page 6121 "E-Document"
         EDocumentErrorHelper.ClearErrorMessages(Rec);
         if not EDocIntegrationManagement.Send(Rec, EDocService, SendContext, IsAsync) then
             exit;
-
         if IsAsync then
             EDocumentBackgroundjobs.ScheduleGetResponseJob();
     end;
@@ -692,3 +690,4 @@ page 6121 "E-Document"
         DocNotCreatedMsg: Label 'Failed to create new %1 from E-Document. Please review errors below.', Comment = '%1 - E-Document Document Type';
         RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
 }
+#pragma warning restore AS0072
