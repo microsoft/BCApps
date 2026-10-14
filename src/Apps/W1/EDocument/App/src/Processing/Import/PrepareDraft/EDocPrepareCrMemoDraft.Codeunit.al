@@ -82,7 +82,7 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         ErrorMessage: Record "Error Message";
         Status: TextBuilder;
         AppliedMsg: Label 'Will be applied to invoice %1.', Comment = '%1 = vendor invoice number';
-        NotAppliedMsg: Label 'Will not be applied to an invoice.';
+        NotAppliedMsg: Label 'Will not be applied to a specific invoice.';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then

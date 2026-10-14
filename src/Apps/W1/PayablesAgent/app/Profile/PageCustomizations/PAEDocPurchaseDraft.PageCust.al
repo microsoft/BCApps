@@ -44,6 +44,11 @@ pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Dra
         {
             Visible = true;
         }
+        modify("Amount Incl. VAT")
+        {
+            Visible = true;
+            Editable = false;
+        }
         modify(Record)
         {
             Visible = true;

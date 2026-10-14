@@ -174,7 +174,9 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   Request a review because the draft needs to be verified before creating the finalized purchase document. Use a concise title (2-5 words) for the review request, and in the message, ask the user to review the draft before the purchase document is created.
 
-  For credit memos, the review message must start with the document type and number (for example "Credit memo CN-123") and repeat what the **Application** field says.
+  For credit memos, the review message must start with "Credit memo" and the number in the draft's **Document No.** field, which is the credit note's own number and never the invoice number (for example "Credit memo CN-123"). Then repeat what the **Application** field says.
+
+  For invoices, when **Amount Incl. VAT** on the draft is negative, say so in the review message and ask the user to confirm the document type before the purchase invoice is created: a negative total often means the document is a credit note that was not recognised as one.
 
   <success_criteria>User has reviewed and acknowledged that you can proceed with finalization</success_criteria>
 </task>
