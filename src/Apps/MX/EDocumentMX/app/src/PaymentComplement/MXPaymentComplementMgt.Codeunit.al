@@ -46,8 +46,16 @@ codeunit 3357 "MX Payment Complement Mgt."
         Payload: Codeunit "Temp Blob";
     begin
         Complement.SetRange("Payment Entry No.", Payment."Entry No.");
-        if Complement.FindFirst() then
+        if Complement.FindFirst() then begin
+            // Idempotency: the occurrence may be retried after a failed task spawn.
+            // Re-queue the message if it never left Created state.
+            if (Complement."E-Document Message Entry No." <> 0) and
+               (MessageAPI.GetMessageStatus(Complement."E-Document Message Entry No.") = Enum::"E-Doc. Message Status"::Created) and
+               TaskScheduler.CanCreateTask()
+            then
+                TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
             exit;
+        end;
         if not FindParent(Payment, Parent) then
             exit;
         if not ResolveService(Parent) then
