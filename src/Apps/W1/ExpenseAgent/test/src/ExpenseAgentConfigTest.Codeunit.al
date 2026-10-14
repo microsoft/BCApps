@@ -246,7 +246,8 @@ codeunit 148361 "Expense Agent Config. Test"
         // [GIVEN] Disabled Entra app "EA" without permissions
         PrepareAadApplication(AadApplication, AadApplication.State::Disabled);
 
-        // [WHEN] Getting the service identity for E2E tests
+        // [WHEN] Enabling "EA" as activating the agent does, and getting the service identity for E2E tests
+        ExpenseTestHandlerAPI.EnableEntraApplication();
         ExpenseTestHandlerAPI.GetServiceIdentity(ServiceIdentity);
 
         // [THEN] "EA" is enabled with one current company Expense Agent permission
@@ -277,9 +278,11 @@ codeunit 148361 "Expense Agent Config. Test"
 
         // [GIVEN] Enabled Entra app "EA" whose service identity was already requested
         PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        ExpenseTestHandlerAPI.EnableEntraApplication();
         ExpenseTestHandlerAPI.GetServiceIdentity(FirstServiceIdentity);
 
-        // [WHEN] Getting the service identity again
+        // [WHEN] Enabling "EA" and getting the service identity again, as a repeated Configure does
+        ExpenseTestHandlerAPI.EnableEntraApplication();
         ExpenseTestHandlerAPI.GetServiceIdentity(SecondServiceIdentity);
 
         // [THEN] The same key is returned and "EA" keeps one current company Expense Agent permission
@@ -298,7 +301,7 @@ codeunit 148361 "Expense Agent Config. Test"
         ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
         ServiceIdentity: JsonObject;
     begin
-        // [SCENARIO] An enabled Entra app whose user ID does not exist, as in a prepared container database, still gives a service identity
+        // [SCENARIO] Enabling an Entra app whose user ID does not exist, as in a prepared container database, repairs its user
         Initialize();
 
         // [GIVEN] Enabled Entra app "EA" whose user ID does not refer to a user
@@ -306,7 +309,8 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication."User ID" := CreateGuid();
         AadApplication.Modify();
 
-        // [WHEN] Getting the service identity for E2E tests
+        // [WHEN] Enabling "EA" and getting the service identity for E2E tests
+        ExpenseTestHandlerAPI.EnableEntraApplication();
         ExpenseTestHandlerAPI.GetServiceIdentity(ServiceIdentity);
 
         // [THEN] "EA" is enabled for an existing application user, which is the returned identity

@@ -56,6 +56,8 @@ codeunit 148307 "Expense Test Handler API"
             ExpenseAgentSetup.CreateDefaultSettings();
             LibraryExpense.EnsureExpenseAgentEnabled();
         end;
+        // Outside the setup block, so databases set up before the Entra application was enabled here get it too.
+        EnableEntraApplication();
 
         GetServiceIdentity(ServiceIdentity);
         Response.Add('status', 'Configure completed');
@@ -65,10 +67,23 @@ codeunit 148307 "Expense Test Handler API"
     end;
 
     /// <summary>
-    /// Enables the Expense Agent Microsoft Entra application for the current company, as activating the agent does,
-    /// and returns a web service access key for its application user. On-premises, the Expense Agent service uses this
-    /// identity to call Business Central with the same least-privilege permissions it has as an S2S application in SaaS.
-    /// An unexpired key is reused, so services that already use it keep working when Configure is called again.
+    /// Enables the Expense Agent Microsoft Entra application for the current company, as activating the agent in the
+    /// setup wizard does. This creates its application user and grants it the Expense Agent permission set for the company.
+    /// </summary>
+    internal procedure EnableEntraApplication()
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        EnsureAadApplicationUser();
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        Commit();
+    end;
+
+    /// <summary>
+    /// Returns a web service access key for the enabled Expense Agent Microsoft Entra application user. On-premises,
+    /// the Expense Agent service uses this identity to call Business Central with the same least-privilege permissions
+    /// it has as an S2S application in SaaS. An unexpired key is reused, so services that already use it keep working
+    /// when Configure is called again.
     /// </summary>
     /// <param name="ServiceIdentity">Receives the userName, webServicesKey and expiresAt properties.</param>
     internal procedure GetServiceIdentity(var ServiceIdentity: JsonObject)
@@ -79,9 +94,6 @@ codeunit 148307 "Expense Test Handler API"
         ServiceUserId: Guid;
         WebServicesKey: Text;
     begin
-        ResetEnabledAadApplicationWithoutUser();
-        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
-        Commit();
         ServiceUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
         if not User.Get(ServiceUserId) then
             Error(GetServiceUserDiagnostics(ServiceUserId));
@@ -110,20 +122,22 @@ codeunit 148307 "Expense Test Handler API"
             ServiceUserId, AadApplication.State, AadApplication."User ID", ApplicationUsers, User.Count(), TenantId()));
     end;
 
-    local procedure ResetEnabledAadApplicationWithoutUser()
+    local procedure EnsureAadApplicationUser()
     var
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // A copied or prepared database can contain the enabled Entra app without its application user.
-        // Enabling only creates the user when the state changes, so reset the state without validation.
+        // Enabling the Entra app creates its user through the platform and then reads it in the same transaction,
+        // which fails in multitenant containers. Create the user and commit first; UserExists also repairs a stale user ID.
         if not AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId()) then
             exit;
-        if (AadApplication.State <> AadApplication.State::Enabled) or AadApplication.UserExists() then
+        if AadApplication.UserExists() then
             exit;
 
+        // An enabled app without its user must be disabled first, so enabling it again completes the setup.
         AadApplication.State := AadApplication.State::Disabled;
-        AadApplication.Modify();
+        AadApplication.CreateUserFromAADApplication();
+        Commit();
     end;
 
     local procedure GetOrCreateWebServicesKey(ServiceUserId: Guid; var ExpiresAt: DateTime): Text
