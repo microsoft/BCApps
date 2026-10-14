@@ -58,7 +58,6 @@ table 6900 Expense
                 ExpenseUser: Record "Expense User";
                 Employee: Record Employee;
             begin
-                TestStatusOpen();
                 if xRec."Expense User No." <> Rec."Expense User No." then
                     if Rec."Expense User No." = '' then
                         Rec.Validate("Expense Category", '')
@@ -67,7 +66,7 @@ table 6900 Expense
                         if not Employee.Get(ExpenseUser."Employee No.") then
                             Error(ExpenseUserMustBeLinkedToAnEmployeeErr, Rec."Expense User No.");
 
-                        ApplyRule(false, true);
+                        Employee.TestField("Employee Posting Group");
                     end;
 
                 CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
