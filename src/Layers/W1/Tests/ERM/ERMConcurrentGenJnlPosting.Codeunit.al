@@ -496,6 +496,124 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         Assert.AreEqual(1, GLRegister.Count(), 'Exactly one G/L Register should be created per batch posting');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostedGenJnlLinesLinkToCreatedRegisterWithConcurrentPosting()
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting] [Posted Gen. Journal Line]
+        // [SCENARIO] Posted Gen. Journal Lines reference the G/L Register created by the batch posting with "Use Concurrent Posting" = TRUE.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+
+        // [WHEN] A batch with "Copy to Posted Jnl. Lines" is posted
+        // [THEN] Posted Gen. Journal Lines and G/L Entries reference the created register
+        PostBatchAndVerifyRegisterLinks(0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostedGenJnlLinesLinkToCreatedRegisterWhenSequenceIsAhead()
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting] [Posted Gen. Journal Line]
+        // [SCENARIO] Posted Gen. Journal Lines reference the actual G/L Register even if other sessions already took higher register numbers from the sequence.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+
+        // [WHEN] Register numbers are consumed by other sessions and a batch with "Copy to Posted Jnl. Lines" is posted
+        // [THEN] Posted Gen. Journal Lines and G/L Entries reference the created register, not "last register no. + 1"
+        PostBatchAndVerifyRegisterLinks(3);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GLEntriesAreStampedWithTheirOwnRegisterWithConcurrentPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        LastGLRegisterNo: Integer;
+        FirstRegisterNo: Integer;
+        SecondRegisterNo: Integer;
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting] [G/L Register]
+        // [SCENARIO] Each posting stamps its G/L Entries with its own G/L Register No., so register filters do not mix entries.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [WHEN] Two journal lines are posted separately
+        CreateSimpleGLJournalLine(GenJournalLine);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CreateSimpleGLJournalLine(GenJournalLine);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Two registers are created and each has its own non-empty set of G/L Entries within its entry range
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.AreEqual(2, GLRegister.Count(), 'Two G/L Registers should have been created');
+        GLRegister.FindFirst();
+        FirstRegisterNo := GLRegister."No.";
+        GLRegister.Next();
+        SecondRegisterNo := GLRegister."No.";
+
+        GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetRange("G/L Register No.", SecondRegisterNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
+        GLEntry.SetFilter("Entry No.", '%1..%2', GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.RecordIsEmpty(GLEntry);
+    end;
+
+    local procedure PostBatchAndVerifyRegisterLinks(ConsumedRegisterNos: Integer)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLRegister: Record "G/L Register";
+        PostedGenJournalLine: Record "Posted Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        LastGLRegisterNo: Integer;
+        i: Integer;
+    begin
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        for i := 1 to ConsumedRegisterNos do
+            GLRegister.GetNextEntryNo();
+
+        CreateGenJnlBatch(GenJournalBatch);
+        GenJournalBatch."Copy to Posted Jnl. Lines" := true;
+        GenJournalBatch.Modify();
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.FindFirst();
+        GenJournalLine.ModifyAll("Document No.", GenJournalLine."Document No.");
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        GLRegister.Reset();
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.AreEqual(1, GLRegister.Count(), 'Exactly one G/L Register should be created per batch posting');
+        GLRegister.FindFirst();
+
+        PostedGenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        PostedGenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        Assert.AreEqual(2, PostedGenJournalLine.Count(), 'Both journal lines should be copied to posted journal lines');
+        PostedGenJournalLine.SetRange("G/L Register No.", GLRegister."No.");
+        Assert.AreEqual(2, PostedGenJournalLine.Count(), 'Posted journal lines must reference the created G/L Register');
+
+        GLEntry.SetRange("G/L Register No.", GLRegister."No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
