@@ -1821,18 +1821,44 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Derogatory Line';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';
+            ObsoleteReason = 'Use Delayed Unreal. VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10863; "Realize VAT"; Boolean)
         {
             Caption = 'Realize VAT';
+            ObsoleteReason = 'Use Realize Delayed VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10864; "Created from No."; Code[20])
         {
             Caption = 'Created from No.';
+            ObsoleteReason = 'Use Created From Pmt. Slip No. in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys

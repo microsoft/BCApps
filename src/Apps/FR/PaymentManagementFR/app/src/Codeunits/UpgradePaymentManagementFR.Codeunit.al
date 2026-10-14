@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN28
+using System.Environment.Configuration;
+#endif
 using System.Upgrade;
 
 codeunit 10840 "Upgrade Payment Management FR"
@@ -26,6 +29,7 @@ codeunit 10840 "Upgrade Payment Management FR"
             UpgradePayment();
 
         UpgradePaymentStepObjectIDs();
+        UpgradePaymentVATJournalFields(CurrentModuleInfo.AppVersion().Major() >= 31);
     end;
 
     local procedure UpgradePayment()
@@ -60,5 +64,24 @@ codeunit 10840 "Upgrade Payment Management FR"
         PaymentDataMigrationFR.RemapPaymentStepObjectIDs();
 
         UpgradeTag.SetUpgradeTag(UpgTagPayment.GetPaymentStepObjectIDsUpgradeTag());
+    end;
+
+    internal procedure UpgradePaymentVATJournalFields(ForceActivation: Boolean)
+    var
+        PaymentDataMigrationFR: Codeunit "Payment Data Migration FR";
+#if not CLEAN28
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
+    begin
+#if not CLEAN28
+        // Installation, upgrades and company initialization share this eligibility check.
+        // A disabled company must migrate its latest legacy journal values only when it activates.
+        // Version 31 forces activation even if the Feature Management status has not changed yet.
+        if not ForceActivation then
+            if not FeatureManagementFacade.IsEnabled('Payment') then
+                exit;
+#endif
+        // The original payment tag can already exist before these fields were moved to the app.
+        PaymentDataMigrationFR.MigratePaymentVATJournalFields();
     end;
 }
