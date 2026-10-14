@@ -19,93 +19,72 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         CurrentSaveValuesId: Integer;
 
-#pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
     procedure TransferFieldsCopiesNonEmptyGuid()
     var
-        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        GovTalkSetup: Record "Gov Talk Setup";
         GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
-        SourceRecRef: RecordRef;
-        SourceFieldRef: FieldRef;
-        PartId: Guid;
+        SourceGuid: Guid;
     begin
-        ECSLVATReportLine.DeleteAll();
-        ECSLVATReportLine."Report No." := 'GOVTALK-MIGRATION';
-        ECSLVATReportLine."Line No." := 1;
-        ECSLVATReportLine.Insert();
-        PartId := CreateGuid();
-        SourceRecRef.GetTable(ECSLVATReportLine);
-        SourceFieldRef := SourceRecRef.Field(10501);
-        SourceFieldRef.Value := PartId;
-        SourceRecRef.Modify();
-        SourceRecRef.Close();
+        GovTalkSetup.DeleteAll();
+        SourceGuid := CreateGuid();
+        GovTalkSetup.Id := 'GUID';
+        GovTalkSetup.Password := SourceGuid;
+        GovTalkSetup.Insert();
 
-        GovTalkHelperProcedures.TransferFields(Database::"ECSL VAT Report Line", 10501, ECSLVATReportLine.FieldNo("XML Part Id GB"));
+        GovTalkHelperProcedures.TransferFields(Database::"Gov Talk Setup", GovTalkSetup.FieldNo(Password), GovTalkSetup.FieldNo("Vendor ID"));
 
-        ECSLVATReportLine.FindFirst();
-        Assert.AreEqual(PartId, ECSLVATReportLine."XML Part Id GB", 'The legacy XML part ID must be migrated.');
+        GovTalkSetup.Get('GUID');
+        Assert.AreEqual(SourceGuid, GovTalkSetup."Vendor ID", 'A non-empty source GUID must be copied to the target field.');
     end;
-#pragma warning restore AL0432
 
-#pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
     procedure TransferFieldsSkipsEmptyGuid()
     var
-        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        GovTalkSetup: Record "Gov Talk Setup";
         GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
-        PartId: Guid;
+        TargetGuid: Guid;
     begin
-        ECSLVATReportLine.DeleteAll();
-        PartId := CreateGuid();
-        ECSLVATReportLine."Report No." := 'GOVTALK-MIGRATION';
-        ECSLVATReportLine."Line No." := 1;
-        ECSLVATReportLine."XML Part Id GB" := PartId;
-        ECSLVATReportLine.Insert();
+        GovTalkSetup.DeleteAll();
+        TargetGuid := CreateGuid();
+        GovTalkSetup.Id := 'GUID';
+        GovTalkSetup."Vendor ID" := TargetGuid;
+        GovTalkSetup.Insert();
 
-        GovTalkHelperProcedures.TransferFields(Database::"ECSL VAT Report Line", 10501, ECSLVATReportLine.FieldNo("XML Part Id GB"));
+        GovTalkHelperProcedures.TransferFields(Database::"Gov Talk Setup", GovTalkSetup.FieldNo(Password), GovTalkSetup.FieldNo("Vendor ID"));
 
-        ECSLVATReportLine.FindFirst();
-        Assert.AreEqual(PartId, ECSLVATReportLine."XML Part Id GB", 'An empty legacy XML part ID must not overwrite the target.');
+        GovTalkSetup.Get('GUID');
+        Assert.AreEqual(TargetGuid, GovTalkSetup."Vendor ID", 'An empty source GUID must not overwrite the target field.');
     end;
-#pragma warning restore AL0432
 
-#pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
     procedure TransferFieldsCopiesNonZeroIntegerAndSkipsZero()
     var
-        VATReportsConfiguration: Record "VAT Reports Configuration";
+        GovTalkMessage: Record "GovTalk Message";
         GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
-        SourceRecRef: RecordRef;
-        SourceFieldRef: FieldRef;
     begin
-        VATReportsConfiguration.DeleteAll();
-        VATReportsConfiguration."VAT Report Version" := 'NONZERO';
-        VATReportsConfiguration.Insert();
-        SourceRecRef.GetTable(VATReportsConfiguration);
-        SourceFieldRef := SourceRecRef.Field(10500);
-        SourceFieldRef.Value := 100;
-        SourceRecRef.Modify();
-        SourceRecRef.Close();
-        VATReportsConfiguration.Init();
-        VATReportsConfiguration."VAT Report Version" := 'ZERO';
-        VATReportsConfiguration."Content Max Lines GB" := 200;
-        VATReportsConfiguration.Insert();
+        GovTalkMessage.DeleteAll();
+        GovTalkMessage.ReportNo := 'NONZERO';
+        GovTalkMessage.PollInterval := 100;
+        GovTalkMessage.Insert();
+        GovTalkMessage.Init();
+        GovTalkMessage.ReportNo := 'ZERO';
+        GovTalkMessage."Polling Count" := 200;
+        GovTalkMessage.Insert();
 
-        GovTalkHelperProcedures.TransferFields(Database::"VAT Reports Configuration", 10500, VATReportsConfiguration.FieldNo("Content Max Lines GB"));
+        GovTalkHelperProcedures.TransferFields(Database::"GovTalk Message", GovTalkMessage.FieldNo(PollInterval), GovTalkMessage.FieldNo("Polling Count"));
 
-        VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type", 'NONZERO');
-        Assert.AreEqual(100, VATReportsConfiguration."Content Max Lines GB", 'The legacy content maximum lines must be migrated.');
-        VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type", 'ZERO');
-        Assert.AreEqual(200, VATReportsConfiguration."Content Max Lines GB", 'A zero legacy value must not overwrite the target.');
+        GovTalkMessage.Get(GovTalkMessage.ReportConfigCode, 'NONZERO');
+        Assert.AreEqual(100, GovTalkMessage."Polling Count", 'A non-zero source value must be copied to the target field.');
+        GovTalkMessage.Get(GovTalkMessage.ReportConfigCode, 'ZERO');
+        Assert.AreEqual(200, GovTalkMessage."Polling Count", 'A zero source value must not overwrite the target field.');
     end;
-#pragma warning restore AL0432
-
     [Test]
     [HandlerFunctions('ECSalesListReportRPH')]
     [Scope('OnPrem')]
