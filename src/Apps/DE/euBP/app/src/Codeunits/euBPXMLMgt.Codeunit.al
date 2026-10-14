@@ -41,7 +41,7 @@ codeunit 6545 "euBP XML Mgt."
     begin
         LohnPayload := EUBPSetup.GetLohnPayloadText();
         ValidateLohnPayload(LohnPayload);
-        exit(BuildTransportEnvelope(EUBPSetup, StartingDate, EndingDate, 'eubp:EntgeltDaten', LohnPayload));
+        exit(BuildTransportEnvelope(EUBPSetup, StartingDate, EndingDate, 'eubp:EntgeltDaten', GetPayloadRootElementXml(LohnPayload)));
     end;
 
     internal procedure GenerateFibuEnvelope(EUBPSetup: Record "euBP Setup"; StartingDate: Date; EndingDate: Date): Text
@@ -76,7 +76,8 @@ codeunit 6545 "euBP XML Mgt."
         GLEntry: Record "G/L Entry";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        Vendor: Record Vendor;
+        VendorNameByNo: Dictionary of [Code[20], Text];
+        VendorName: Text;
         TextBuilder: TextBuilder;
     begin
         CompanyInformation.Get();
@@ -138,8 +139,9 @@ codeunit 6545 "euBP XML Mgt."
             repeat
                 TextBuilder.Append('<VendorLedgerEntry>');
                 TextBuilder.Append('<VendorNo>' + EscapeXml(VendorLedgerEntry."Vendor No.") + '</VendorNo>');
-                if Vendor.Get(VendorLedgerEntry."Vendor No.") then
-                    TextBuilder.Append('<VendorName>' + EscapeXml(Vendor.Name) + '</VendorName>');
+                VendorName := GetVendorName(VendorLedgerEntry."Vendor No.", VendorNameByNo);
+                if VendorName <> '' then
+                    TextBuilder.Append('<VendorName>' + EscapeXml(VendorName) + '</VendorName>');
                 TextBuilder.Append('<PostingDate>' + FormatDateAsIso(VendorLedgerEntry."Posting Date") + '</PostingDate>');
                 TextBuilder.Append('<Amount>' + FormatDecimalAsInvariant(VendorLedgerEntry.Amount) + '</Amount>');
                 TextBuilder.Append('</VendorLedgerEntry>');
@@ -200,7 +202,8 @@ codeunit 6545 "euBP XML Mgt."
     local procedure AppendPayrollVendors(EUBPSetup: Record "euBP Setup"; StartingDate: Date; EndingDate: Date; var TextBuilder: TextBuilder)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        Vendor: Record Vendor;
+        VendorNameByNo: Dictionary of [Code[20], Text];
+        VendorName: Text;
     begin
         TextBuilder.Append('<PayrollVendors>');
         VendorLedgerEntry.SetRange("Posting Date", StartingDate, EndingDate);
@@ -210,12 +213,44 @@ codeunit 6545 "euBP XML Mgt."
             repeat
                 TextBuilder.Append('<PayrollVendor>');
                 TextBuilder.Append('<VendorNo>' + EscapeXml(VendorLedgerEntry."Vendor No.") + '</VendorNo>');
-                if Vendor.Get(VendorLedgerEntry."Vendor No.") then
-                    TextBuilder.Append('<Name>' + EscapeXml(Vendor.Name) + '</Name>');
+                VendorName := GetVendorName(VendorLedgerEntry."Vendor No.", VendorNameByNo);
+                if VendorName <> '' then
+                    TextBuilder.Append('<Name>' + EscapeXml(VendorName) + '</Name>');
                 TextBuilder.Append('<Amount>' + FormatDecimalAsInvariant(VendorLedgerEntry.Amount) + '</Amount>');
                 TextBuilder.Append('</PayrollVendor>');
             until VendorLedgerEntry.Next() = 0;
         TextBuilder.Append('</PayrollVendors>');
+    end;
+
+    local procedure GetPayloadRootElementXml(PayloadXml: Text): Text
+    var
+        PayloadDocument: XmlDocument;
+        RootNode: XmlNode;
+        RootElementXml: Text;
+    begin
+        XmlDocument.ReadFrom(PayloadXml, PayloadDocument);
+        if not PayloadDocument.SelectSingleNode('/*', RootNode) then
+            exit(PayloadXml);
+
+        RootNode.WriteTo(RootElementXml);
+        exit(RootElementXml);
+    end;
+
+    local procedure GetVendorName(VendorNo: Code[20]; var VendorNameByNo: Dictionary of [Code[20], Text]): Text
+    var
+        Vendor: Record Vendor;
+        VendorName: Text;
+    begin
+        if VendorNameByNo.Get(VendorNo, VendorName) then
+            exit(VendorName);
+
+        if Vendor.Get(VendorNo) then
+            VendorName := Vendor.Name
+        else
+            VendorName := '';
+
+        VendorNameByNo.Add(VendorNo, VendorName);
+        exit(VendorName);
     end;
 
     local procedure AssertNodeExists(var XmlDocument: XmlDocument; XPath: Text; NodeName: Text)

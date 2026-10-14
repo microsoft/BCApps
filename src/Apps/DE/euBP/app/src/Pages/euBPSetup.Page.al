@@ -25,11 +25,13 @@ page 6541 "euBP Setup"
                 field("Sender ID"; Rec."Sender ID")
                 {
                     ApplicationArea = Basic, Suite;
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the sender identifier used in the eXTra transport header.';
                 }
                 field("Receiver ID"; Rec."Receiver ID")
                 {
                     ApplicationArea = Basic, Suite;
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the receiver identifier used in the eXTra transport header.';
                 }
             }

@@ -10,5 +10,7 @@ permissionset 6547 "euBP - Read"
     Access = Public;
     Assignable = true;
 
+    IncludedPermissionSets = "euBP - Objects";
+
     Permissions = tabledata "euBP Setup" = R;
 }
