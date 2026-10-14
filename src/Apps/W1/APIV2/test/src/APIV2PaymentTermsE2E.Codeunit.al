@@ -3,7 +3,7 @@ codeunit 139804 "APIV2 - Payment Terms E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -49,6 +49,7 @@ codeunit 139804 "APIV2 - Payment Terms E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPaymentTerms()
     var
         PaymentTermCode: array[2] of Code[10];
@@ -90,6 +91,13 @@ codeunit 139804 "APIV2 - Payment Terms E2E"
           LibraryGraphMgt.GetObjectsFromJSONResponse(ResponseText, 'code', PaymentTermCode, PaymentTermCode,
             PaymentTermJSON, PaymentTermJSON), 'Could not find the payment term in JSON');
         LibraryGraphMgt.VerifyIDInJson(PaymentTermJSON);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

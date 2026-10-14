@@ -275,6 +275,16 @@ codeunit 130618 "Library - Graph Mgt"
         exit(TargetURL);
     end;
 
+    procedure IsLocalServerRequest(Request: TestHttpRequestMessage): Boolean
+    var
+        RequestUri: Codeunit Uri;
+        ServerUri: Codeunit Uri;
+    begin
+        RequestUri.Init(Request.Path);
+        ServerUri.Init(GetUrl(ClientType::Api));
+        exit(RequestUri.GetHost() = ServerUri.GetHost());
+    end;
+
     [Normal]
     procedure CreateQueryTargetURL(QueryNumber: Integer; ServiceNameTxt: Text): Text
     var
