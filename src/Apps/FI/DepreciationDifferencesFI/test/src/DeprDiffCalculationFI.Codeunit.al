@@ -1,6 +1,9 @@
 namespace Microsoft.FixedAssets.Depreciation;
 
+using Microsoft.DemoData.Finance;
 using Microsoft.DemoData.FixedAsset;
+using Microsoft.DemoTool;
+using Microsoft.DemoTool.Helpers;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
@@ -337,38 +340,54 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 #endif
 
     [Test]
-    procedure LegacyDemoGeneratorInitializesExtensionAccounts()
+    procedure ContosoDemoGeneratorInitializesExtensionAccounts()
     var
-        FAPostingGroup: Record "FA Posting Group";
-        CreateFAPostingGroup: Codeunit "Create FA Posting Group";
-        AccountNo: Code[20];
+        ContosoDemoToolPage: TestPage "Contoso Demo Tool";
         DeprDifferenceAccount: Code[20];
         DeprDifferenceBalAccount: Code[20];
-        FAPostingGroupCode: Code[10];
     begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Contoso setup generation initializes the extension accounts for all five FI posting groups.
         Initialize();
+        EnableFeature();
 
-        // [GIVEN] Existing G/L accounts and a new FA posting group code.
-        AccountNo := LibraryERM.CreateGLAccountNo();
-        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
-        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
-        FAPostingGroupCode :=
-            CopyStr(
-                LibraryUtility.GenerateRandomCode(FAPostingGroup.FieldNo(Code), Database::"FA Posting Group"),
-                1, MaxStrLen(FAPostingGroupCode));
+        // [GIVEN] FI accounts exist and fixed asset setup data has not been generated.
+        PrepareContosoFixedAssetSetup(ContosoDemoToolPage, DeprDifferenceAccount, DeprDifferenceBalAccount);
 
-        // [WHEN] The legacy DemoTool generator inserts the FA posting group.
-        CreateFAPostingGroup.InsertData(
-            FAPostingGroupCode, AccountNo, AccountNo, AccountNo, AccountNo, AccountNo, AccountNo,
-            AccountNo, AccountNo, DeprDifferenceAccount, DeprDifferenceBalAccount, AccountNo);
+        // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
+        ContosoDemoToolPage.GenerateSetup.Invoke();
+        ContosoDemoToolPage.Close();
 
-        // [THEN] The Depreciation Differences FI Demo Data subscriber initializes both extension accounts.
-        FAPostingGroup.Get(FAPostingGroupCode);
-        FAPostingGroup.TestField("Deprec. Difference Account", DeprDifferenceAccount);
-        FAPostingGroup.TestField("Deprec. Difference Bal Acct", DeprDifferenceBalAccount);
+        // [THEN] All five posting groups have extension accounts instead of legacy accounts.
+        VerifyContosoPostingGroupAccounts(DeprDifferenceAccount, DeprDifferenceBalAccount, true);
+        DisableFeature();
     end;
 
 #if not CLEAN30
+    [Test]
+    procedure ContosoDemoGeneratorInitializesLegacyAccountsWhenFeatureDisabled()
+    var
+        ContosoDemoToolPage: TestPage "Contoso Demo Tool";
+        DeprDifferenceAccount: Code[20];
+        DeprDifferenceBalAccount: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Contoso setup generation retains legacy FI accounts when the feature is disabled.
+        Initialize();
+        SetFeatureEnabled(false);
+
+        // [GIVEN] FI accounts exist and fixed asset setup data has not been generated.
+        PrepareContosoFixedAssetSetup(ContosoDemoToolPage, DeprDifferenceAccount, DeprDifferenceBalAccount);
+
+        // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
+        ContosoDemoToolPage.GenerateSetup.Invoke();
+        ContosoDemoToolPage.Close();
+
+        // [THEN] All five posting groups have legacy accounts and empty extension accounts.
+        VerifyContosoPostingGroupAccounts(DeprDifferenceAccount, DeprDifferenceBalAccount, false);
+        DisableFeature();
+    end;
+
     [Test]
     [Scope('OnPrem')]
     procedure CannotRunReportWhenFeatureIsDisabled()
@@ -886,6 +905,75 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         CalcAndPostDeprDifferenceRequestPage."Post Depreciation Difference".SetValue(Value);
 
         CalcAndPostDeprDifferenceRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    local procedure PrepareContosoFixedAssetSetup(var ContosoDemoToolPage: TestPage "Contoso Demo Tool"; var DeprDifferenceAccount: Code[20]; var DeprDifferenceBalAccount: Code[20])
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        ContosoDemoDataModule: Record "Contoso Demo Data Module";
+        FAPostingGroup: Record "FA Posting Group";
+        CreateGLAccountFI: Codeunit "Create FI GL Accounts";
+        ContosoGLAccount: Codeunit "Contoso GL Account";
+        PostingGroupCode: Code[20];
+    begin
+        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccountFI.Changeindepreciationreserve4Name(), DeprDifferenceAccount);
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccountFI.Depreciationdifference3Name(), DeprDifferenceBalAccount);
+
+        foreach PostingGroupCode in GetContosoPostingGroupCodes() do
+            if FAPostingGroup.Get(PostingGroupCode) then
+                FAPostingGroup.Delete(false);
+
+        ContosoDemoToolPage.OpenView();
+        ContosoCoffeeDemoDataSetup.Get();
+        ContosoCoffeeDemoDataSetup.Validate("Language ID", 0);
+        ContosoCoffeeDemoDataSetup.Modify(true);
+
+        ContosoDemoDataModule.ModifyAll("Data Level", Enum::"Contoso Demo Data Level"::"Setup Data");
+        ContosoDemoDataModule.Get(Enum::"Contoso Demo Data Module"::"Fixed Asset Module");
+        ContosoDemoDataModule.Validate("Data Level", Enum::"Contoso Demo Data Level"::" ");
+        ContosoDemoDataModule.Modify(true);
+        ContosoDemoToolPage.GoToRecord(ContosoDemoDataModule);
+    end;
+
+    local procedure GetContosoPostingGroupCodes() PostingGroupCodes: List of [Code[20]]
+    var
+        CreateFAPostingGroup: Codeunit "Create FA Posting Group";
+    begin
+        PostingGroupCodes.Add(CreateFAPostingGroup.Equipment());
+        PostingGroupCodes.Add(CreateFAPostingGroup.Goodwill());
+        PostingGroupCodes.Add(CreateFAPostingGroup.Plant());
+        PostingGroupCodes.Add(CreateFAPostingGroup.Property());
+        PostingGroupCodes.Add(CreateFAPostingGroup.Vehicles());
+    end;
+
+    local procedure VerifyContosoPostingGroupAccounts(DeprDifferenceAccount: Code[20]; DeprDifferenceBalAccount: Code[20]; UseExtensionFields: Boolean)
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        PostingGroupCode: Code[20];
+    begin
+        foreach PostingGroupCode in GetContosoPostingGroupCodes() do begin
+            FAPostingGroup.Get(PostingGroupCode);
+            if UseExtensionFields then begin
+                Assert.AreEqual(DeprDifferenceAccount, FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must be initialized.');
+                Assert.AreEqual(DeprDifferenceBalAccount, FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must be initialized.');
+            end else begin
+                Assert.AreEqual('', FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must remain empty.');
+                Assert.AreEqual('', FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must remain empty.');
+            end;
+#if not CLEAN30
+#pragma warning disable AL0432
+            if UseExtensionFields then begin
+                Assert.AreEqual('', FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must remain empty.');
+                Assert.AreEqual('', FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must remain empty.');
+            end else begin
+                Assert.AreEqual(DeprDifferenceAccount, FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must be initialized.');
+                Assert.AreEqual(DeprDifferenceBalAccount, FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must be initialized.');
+            end;
+#pragma warning restore AL0432
+#endif
+        end;
     end;
 
     local procedure CreateFixedAsset(var FixedAsset: Record "Fixed Asset"; FAPostingGroup: Code[20])
