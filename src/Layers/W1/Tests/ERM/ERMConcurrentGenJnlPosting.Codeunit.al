@@ -12,6 +12,8 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Payables;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
@@ -31,6 +33,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     var
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -568,6 +571,52 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         Assert.RecordIsNotEmpty(GLEntry);
         GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
         GLEntry.SetFilter("Entry No.", '%1..%2', GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.RecordIsEmpty(GLEntry);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostSalesInvoiceWithItemWithConcurrentPosting()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GLEntry: Record "G/L Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        GLRegister: Record "G/L Register";
+        LastGLEntryNo: Integer;
+        LastGLRegisterNo: Integer;
+    begin
+        // [FEATURE] [Sales] [Inventory] [Concurrent Posting]
+        // [SCENARIO] Posting an item sales invoice with "Use Concurrent Posting" = TRUE does not depend on the G/L Entry table lock and stamps all G/L entries with the created register.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [GIVEN] A sales invoice with an inventory item
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", LibraryRandom.RandInt(10), '', WorkDate());
+
+        // [WHEN] The invoice is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The item ledger entry is created
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+
+        // [THEN] All new G/L entries are stamped with a register created by this posting
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.RecordIsNotEmpty(GLRegister);
+
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetFilter("G/L Register No.", '<=%1', LastGLRegisterNo);
         Assert.RecordIsEmpty(GLEntry);
     end;
 

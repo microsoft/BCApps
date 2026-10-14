@@ -700,6 +700,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 NewVATEntry.Positive := NewVATEntry.Amount > 0;
                 NewVATEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVATEntry."User ID"));
                 NewVATEntry."Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                NewVATEntry."G/L Register No." := ReversalGLRegisterNo;
                 NewVATEntry."Reversed Entry No." := VATEntry."Entry No.";
                 NewVATEntry.Reversed := true;
                 // Reversal of Reversal
@@ -1104,6 +1105,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 NewVATEntry.Positive := NewVATEntry.Amount > 0;
                 NewVATEntry."User ID" := UserId;
                 NewVATEntry."Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                NewVATEntry."G/L Register No." := ReversalGLRegisterNo;
                 NewVATEntry."Reversed Entry No." := VATEntry."Entry No.";
                 NewVATEntry.Reversed := true;
                 // Reversal of Reversal
