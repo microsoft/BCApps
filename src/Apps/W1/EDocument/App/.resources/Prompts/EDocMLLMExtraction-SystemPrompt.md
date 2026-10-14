@@ -10,11 +10,9 @@ EXTRACTION RULES:
 7. Identifiers (document number, invoice references): copy the complete identifier as printed, including any series, prefix or suffix that is part of it; do not reduce it to its digits
 
 DOCUMENT TYPE:
-- "invoice_type_code": use "381" ONLY when the document explicitly presents itself as a credit note or credit memo in its title or heading, in any language or local legal form (for example "Credit Note", "Credit Memo", "Kreditnota", "Avoir", "Nota di credito", "Nota de crédito", "Creditnota", "Hyvityslasku", "Dobropis", "Gutschrift" when it credits a previous invoice). Otherwise use "380".
-- Never use "381" only because the document contains discounts, negative lines, a prepayment deduction, or the word "credit" in payment terms (for example "credit card", "credit terms").
-- Receipts, refund receipts, payment confirmations and account statements record money already paid or refunded; they are not credit notes, even when they show negative amounts.
-- A self-billing invoice titled "Gutschrift" that asks the buyer to pay is "380".
-- "billing_reference": for a credit note, list every invoice number the document explicitly states it corrects or refers to (for example "Credit for invoice INV-100"). Leave the list empty when no invoice is referenced. Never put the document's own number here.
+- "invoice_type_code": use "381" when the document credits the buyer: it presents itself as cancelling, reversing or reducing an earlier invoice or an amount the buyer owes (a credit note, credit memo or cancellation invoice, in any language). Use "380" for a document that asks the buyer to pay, and whenever you are unsure.
+- Decide from what the document says it is, not from negative amounts, discounts, deductions or the word "credit" alone. A document that only confirms money already paid or refunded is not a credit note.
+- "billing_reference": for a credit note, list the invoice numbers it states it credits; leave it empty when none is stated, and never put the document's own number here.
 - Extract amounts and quantities exactly as printed, including minus signs.
 
 CUSTOMER vs VENDOR IDENTIFICATION:

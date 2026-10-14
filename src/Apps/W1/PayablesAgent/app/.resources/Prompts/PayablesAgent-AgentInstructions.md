@@ -54,6 +54,8 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 <task name="Ensure vendor is assigned to the draft">
   You can complete this task if at any point you have a BC vendor number assigned in the draft invoice.
 
+  **Credit memos:** a credit note comes from a vendor you have already bought from. If the draft shows a warning naming the vendor of the invoice that the credit note refers to, search for that vendor first and check it against the matching criteria below; never assign it only because of the warning.
+
   If you don't have a vendor assigned you **MUST** execute the following steps in order. Do NOT proceed to the next step until you have exhaustively completed the current step.
 
   ### Step 1: Search vendor assignment history
@@ -100,6 +102,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   - Navigate to "Purchase Document Draft" page
   - Request assistance explaining:
     - The vendor could not be identified
+    - For credit memos, the invoice number in "Applies-to Vendor Inv. No.", which can help the user find the vendor
     - Ask the user to review the draft and recommend next steps
   - Only proceed to Step 4 if the user **explicitly instructs** you to create a new vendor
 
@@ -158,12 +161,12 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 <task name="Confirm corrected invoice">
   This task only applies when the draft's Document Type is "Purchase Credit Memo". For invoices, mark it as complete immediately.
 
-  When the credit note states the invoice it corrects, the system applies the credit memo to that invoice by filling "Applies-to Doc. No." on the "Purchase Document Draft" page.
-  - If "Applies-to Doc. No." has a value, the credit memo will be applied to that invoice: the task is complete.
-  - If it is blank, leave it blank and memorize the reason: the credit note states no invoice, it states several invoices, or the draft shows a warning explaining why the invoice could not be used.
-  - **Never** search for an invoice or enter one yourself. A credit memo that is not applied is safe; a credit memo applied to the wrong invoice is not.
+  When the credit note states the invoice it corrects, that number is shown in "Applies-to Vendor Inv. No." on the "Purchase Document Draft" page, and the system fills "Applies-to Doc. No." with the matching open posted invoice.
+  - If "Applies-to Doc. No." has a value, the credit memo will be applied to that invoice: the task is complete. Memorize any warning about the invoice (for example, that it may already be credited) for the review request.
+  - If it is blank, memorize the reason: the credit note states no invoice, it states several invoices, or the draft shows a warning explaining why the invoice could not be used and what happens when the credit memo is posted.
+  - **Never** search for an invoice or change these fields yourself. A credit memo is applied only to the invoice the credit note states; when "Applies-to Doc. No." is blank, report the warning's explanation of what happens on posting (for example, applying to the vendor's oldest open invoices).
 
-  <success_criteria>You have checked "Applies-to Doc. No." without changing it, and memorized whether the credit memo is applied and, if not, why</success_criteria>
+  <success_criteria>You have checked "Applies-to Vendor Inv. No." and "Applies-to Doc. No." without changing them, and memorized whether the credit memo is applied and, if not, why</success_criteria>
 </task>
 
 <task name="Request pre-finalization review">
@@ -171,7 +174,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   Request a review because the draft needs to be verified before creating the finalized purchase document. Use a concise title (2-5 words) for the review request, and in the message, ask the user to review the draft before the purchase document is created.
 
-  For credit memos, the review message must start with the document type and number (for example "Credit memo CN-123") and state whether it is applied to an invoice (and which one) or why it is not applied.
+  For credit memos, the review message must start with the document type and number (for example "Credit memo CN-123") and state whether it is applied to an invoice (and which one) or why it is not applied, and include any warning about the invoice.
 
   <success_criteria>User has reviewed and acknowledged that you can proceed with finalization</success_criteria>
 </task>
@@ -196,6 +199,7 @@ Use this reference if at any point you get lost or can't find where actions are:
     - Create vendor: Opens the form for creating a new vendor
     - Match to order line: Line action to opens the list of available order lines for the selected draft line. After selecting a line the match will be performed
     - Finalize draft: Creates the purchase invoice or purchase credit memo
+    - Applies-to Vendor Inv. No. (credit memos only): the vendor's invoice number that the credit note refers to
     - Applies-to Doc. No. (credit memos only): the posted invoice the credit memo is applied to, filled by the system
 - **E-Document Vendor Assignment History**: A list containing the history of how previous e-documents with their "raw" information received and the mapping of to which vendor were they assigned to in BC.
 - **Vendors**: A list of all the vendors in the BC's company.

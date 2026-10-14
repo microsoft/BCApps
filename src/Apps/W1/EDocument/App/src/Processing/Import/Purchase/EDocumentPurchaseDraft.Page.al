@@ -161,19 +161,29 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
-                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    field("Applies-to Vendor Inv. No."; EDocumentPurchaseHeader."Vendor Invoice No.")
                     {
-                        Caption = 'Applies-to Doc. No.';
-                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to. You can enter the posted invoice number or the vendor''s invoice number.';
+                        Caption = 'Applies-to Vendor Inv. No.';
+                        ToolTip = 'Specifies the vendor''s invoice number that this credit memo applies to, as stated on the credit note. You can also enter the posted invoice number.';
                         Visible = IsCreditMemo;
                         Editable = PageEditable;
 
                         trigger OnValidate()
+                        var
+                            EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
                         begin
-                            ValidateInvoiceToApplyTo();
                             EDocumentPurchaseHeader.Modify();
+                            EDocPrepareCrMemoDraft.RefreshInvoiceToApplyTo(Rec);
+                            EDocumentPurchaseHeader.GetFromEDocument(Rec);
                             CurrPage.Update();
                         end;
+                    }
+                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    {
+                        Caption = 'Applies-to Doc. No.';
+                        ToolTip = 'Specifies the posted purchase invoice that this credit memo is applied to. It is found from Applies-to Vendor Inv. No.';
+                        Visible = IsCreditMemo;
+                        Editable = false;
                     }
                 }
                 field("Status"; Rec.Status)
@@ -809,20 +819,4 @@ page 6181 "E-Document Purchase Draft"
         ApplyVATDiffEnabled: Boolean;
         FeedbackActionVisible: Boolean;
         AppliedVATAmountDiff: Decimal;
-
-    local procedure ValidateInvoiceToApplyTo()
-    var
-        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
-        PostedInvoiceNo: Code[20];
-        FailureReason: Text;
-    begin
-        if EDocumentPurchaseHeader."Applies-to Doc. No." = '' then
-            exit;
-        if not EDocPurchDocHelper.TryResolveOpenInvoice(
-            EDocPurchDocHelper.GetPayToVendorNo(EDocumentPurchaseHeader."[BC] Vendor No."), EDocumentPurchaseHeader."Currency Code",
-            EDocumentPurchaseHeader."Applies-to Doc. No.", PostedInvoiceNo, FailureReason)
-        then
-            Error(FailureReason);
-        EDocumentPurchaseHeader."Applies-to Doc. No." := PostedInvoiceNo;
-    end;
 }

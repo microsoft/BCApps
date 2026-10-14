@@ -238,21 +238,30 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     procedure NormalizeCreditNoteSigns(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary)
     var
         CreditedIsNegative: Boolean;
+        HasNegativeLine: Boolean;
         LineIsNegative: Boolean;
         LineAmount: Decimal;
         LinesNet: Decimal;
     begin
         // Credit memo amounts are positive. Which printed sign means "credited" comes from the lines when they have amounts:
         // many credit notes print negative lines under a total without a minus sign. Lines with the other sign (a restocking
-        // fee, for example) reduce the credit.
+        // fee, for example) reduce the credit. When lines and totals net to zero, negative lines are the credited ones.
         if TempLine.FindSet() then
             repeat
-                LinesNet += LineAmountOf(TempLine);
+                LineAmount := LineAmountOf(TempLine);
+                LinesNet += LineAmount;
+                HasNegativeLine := HasNegativeLine or (LineAmount < 0);
             until TempLine.Next() = 0;
-        if LinesNet <> 0 then
-            CreditedIsNegative := LinesNet < 0
-        else
-            CreditedIsNegative := (TempHeader.Total < 0) or ((TempHeader.Total = 0) and (TempHeader."Sub Total" < 0));
+        case true of
+            LinesNet <> 0:
+                CreditedIsNegative := LinesNet < 0;
+            TempHeader.Total <> 0:
+                CreditedIsNegative := TempHeader.Total < 0;
+            TempHeader."Sub Total" <> 0:
+                CreditedIsNegative := TempHeader."Sub Total" < 0;
+            else
+                CreditedIsNegative := HasNegativeLine;
+        end;
 
         TempHeader."Sub Total" := Abs(TempHeader."Sub Total");
         TempHeader."Total Discount" := Abs(TempHeader."Total Discount");
