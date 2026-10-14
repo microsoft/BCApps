@@ -664,7 +664,7 @@ codeunit 8614 "Config. XML Exchange"
         ToFile: Text[50];
         CompressedFileName: Text;
         PackageExportStartMsg: Label 'Export of RS package started.', Locked = true;
-        PackageExportFinishMsg: Label 'Export of RS package finished. Duration: %1 milliseconds.', Locked = true;
+        PackageExportFinishMsg: Label 'Export of RS package finished. Duration: %1 milliseconds.', Comment = '%1 = duration in milliseconds', Locked = true;
         DurationAsInt: BigInteger;
         StartTime: DateTime;
         ExecutionId: Guid;
@@ -898,7 +898,7 @@ codeunit 8614 "Config. XML Exchange"
         DocumentElementNode: XmlNode;
         LocXML: Text[1024];
         XmlText: Text;
-        PackageXmlTemplateTxt: Label '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><%1>%2</%1>', Locked = true;
+        PackageXmlTemplateTxt: Label '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><%1>%2</%1>', Comment = '%1 = package root element name, %2 = localization definition XML', Locked = true;
     begin
         FeatureTelemetry.LogUptake('0000E3X', 'Configuration packages', Enum::"Feature Uptake Status"::"Used");
         ConfigPackage.TestField(Code);
@@ -1263,7 +1263,7 @@ codeunit 8614 "Config. XML Exchange"
         OutStream: OutStream;
         Value: Text;
         PackageImportStartMsg: Label 'Import of RS package started.', Locked = true;
-        PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Locked = true;
+        PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Comment = '%1 = duration in milliseconds, %2 = file size in bytes', Locked = true;
         StartTime: DateTime;
         TableID: Integer;
         Confirmed: Boolean;
@@ -2433,7 +2433,7 @@ codeunit 8614 "Config. XML Exchange"
         RecordNode.AsXmlElement().Add(FieldNode);
     end;
 
-    procedure ImportTableFromXMLNode(var TableNode: XmlNode; var PackageCode: Code[20])
+    internal procedure ImportTableFromXMLNode(var TableNode: XmlNode; var PackageCode: Code[20])
     var
         ConfigPackageRecord: Record "Config. Package Record";
         ConfigPackageTable: Record "Config. Package Table";
