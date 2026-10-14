@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -301,7 +301,7 @@ codeunit 18320 "GST Journal Post"
         GenJnlLine.SetRange("GST Adjustment Entry", true);
         if GenJnlLine.FindSet() then
             repeat
-                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
             until GenJnlLine.Next() = 0;
     end;
 

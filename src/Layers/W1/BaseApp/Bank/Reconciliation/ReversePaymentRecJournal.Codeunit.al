@@ -369,19 +369,19 @@ codeunit 386 "Reverse Payment Rec. Journal"
                 begin
                     CustLedgerEntry.Get(PaymentRecRelatedEntry."Entry No.");
                     ErrorIfEntryIsNotReversable(CustLedgerEntry);
-                    ReversalEntry.ReverseTransaction(CustLedgerEntry."Transaction No.");
+                    ReversalEntry.ReverseTransactionBigInteger(CustLedgerEntry."Transaction No.");
                 end;
             PaymentRecRelatedEntry."Entry Type"::Vendor:
                 begin
                     VendorLedgerEntry.Get(PaymentRecRelatedEntry."Entry No.");
                     ErrorIfEntryIsNotReversable(VendorLedgerEntry);
-                    ReversalEntry.ReverseTransaction(VendorLedgerEntry."Transaction No.");
+                    ReversalEntry.ReverseTransactionBigInteger(VendorLedgerEntry."Transaction No.");
                 end;
             PaymentRecRelatedEntry."Entry Type"::Employee:
                 begin
                     EmployeeLedgerEntry.Get(PaymentRecRelatedEntry."Entry No.");
                     ErrorIfEntryIsNotReversable(EmployeeLedgerEntry);
-                    ReversalEntry.ReverseTransaction(EmployeeLedgerEntry."Transaction No.");
+                    ReversalEntry.ReverseTransactionBigInteger(EmployeeLedgerEntry."Transaction No.");
                 end;
         end;
         RefreshRelatedEntryReversalStatus(PaymentRecRelatedEntry);

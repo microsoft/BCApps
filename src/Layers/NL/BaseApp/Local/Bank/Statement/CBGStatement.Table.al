@@ -541,7 +541,7 @@ table 11400 "CBG Statement"
             until CBGStatementLine.Next() = 0;
             if GenJnlLine.Find('-') then
                 repeat
-                    GenJnlPostLine.RunWithCheck(GenJnlLine);
+                    GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                 until GenJnlLine.Next() = 0;
             GenJnlLine.DeleteAll(true);
         end;

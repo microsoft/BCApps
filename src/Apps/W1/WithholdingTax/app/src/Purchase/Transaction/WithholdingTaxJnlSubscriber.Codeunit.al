@@ -1729,7 +1729,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         if not GenJournalLineWHT.FindFirst() then
             exit;
 
-        GenJnlPostLine.RunWithCheck(GenJournalLineWHT);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLineWHT);
 
         GenJournalLineWHT.Delete();
     end;

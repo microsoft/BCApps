@@ -623,7 +623,7 @@ report 86 "Adjust Add. Reporting Currency"
 
             GLReg.LockTable();
             if GLReg.FindLast() then;
-            GLReg.Initialize(
+            GLReg.InitializeBigInteger(
                 GLReg."No." + 1, 0, 0, SourceCodeSetup."Adjust Add. Reporting Currency",
                 GenJnlBatch.Name, GenJnlBatch."Journal Template Name");
         end else
@@ -714,4 +714,3 @@ report 86 "Adjust Add. Reporting Currency"
     begin
     end;
 }
-

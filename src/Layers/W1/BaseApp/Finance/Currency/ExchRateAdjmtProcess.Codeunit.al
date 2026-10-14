@@ -1841,7 +1841,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         OnPostGenJnlLineOnBeforeGenJnlPostLineRun(GenJournalLine, ExchRateAdjmtParameters);
         GenJnlPostLine.Run(GenJournalLine);
         OnPostGenJnlLineOnAfterGenJnlPostLineRun(GenJournalLine, GenJnlPostLine);
-        exit(GenJnlPostLine.GetNextTransactionNo());
+        exit(GenJnlPostLine.GetNextTransactionNoBigInteger());
     end;
 
     local procedure SetPostingDimensions(var GenJournalLine: Record "Gen. Journal Line"; var DimensionSetEntry: Record "Dimension Set Entry")

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -689,7 +689,7 @@ codeunit 18391 "GST Transfer Order Shipment"
         InsertGSTLedgerEntryTransfer(
           TempGSTPostingBufferFinal,
           TransferHeader,
-          GenJnlPostLine.GetNextTransactionNo(),
+          GenJnlPostLine.GetNextTransactionNoBigInteger(),
           GenJournalLine."Document No.",
           SourceCodeSetup.Transfer,
           DocTransferType::"Transfer Shipment");
@@ -864,7 +864,7 @@ codeunit 18391 "GST Transfer Order Shipment"
 
     local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure GETGSTJurisdictionType(TransferHeader: Record "Transfer Header"): Enum "GST Jurisdiction Type"
@@ -1031,7 +1031,7 @@ codeunit 18391 "GST Transfer Order Shipment"
         TransferHeader.Get(TransLine."Document No.");
         Location.Get(TransferHeader."Transfer-from Code");
         if not Location."Bonded warehouse" then
-            InsertDetailedGSTLedgEntryTransfer(TransLine, TransferHeader, TransShptLine."Document No.", GenJnlPostLine.GetNextTransactionNo(), DocTransferType::"Transfer Shipment");
+            InsertDetailedGSTLedgEntryTransfer(TransLine, TransferHeader, TransShptLine."Document No.", GenJnlPostLine.GetNextTransactionNoBigInteger(), DocTransferType::"Transfer Shipment");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", 'OnRunOnBeforeCommit', '', false, false)]

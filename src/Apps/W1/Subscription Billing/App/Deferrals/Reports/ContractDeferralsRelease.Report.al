@@ -406,7 +406,7 @@ report 8051 "Contract Deferrals Release"
         GenJnlLine."VAT Bus. Posting Group" := '';
         GenJnlLine."VAT Prod. Posting Group" := '';
         OnBeforePostGenJnlLine(InputTempGenJournalLine, GenJnlLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
 
         GenJnlLine."Account No." := InputTempGenJournalLine."Bal. Account No.";
         GenJnlLine."Deferral Code" := '';
@@ -419,7 +419,7 @@ report 8051 "Contract Deferrals Release"
         GenJnlLine."VAT Prod. Posting Group" := '';
         GenJnlLine.Description := StrSubstNo(ReleasingOfContractNoTxt, Format(GenJnlLine."Posting Date", 0, '<Month Text> <Year4>'));
         OnBeforePostGenJnlLine(InputTempGenJournalLine, GenJnlLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     internal procedure SetRequestPageParameters(NewPostUntilDate: Date; NewPostingDate: Date)

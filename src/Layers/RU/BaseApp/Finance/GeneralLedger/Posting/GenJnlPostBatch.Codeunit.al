@@ -415,7 +415,9 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
         DeleteDimBalBatch(GenJnlLine, true);
 
-        OnBeforeCommit(GLRegNo, GenJnlLine, GenJnlPostLine);
+        if GLRegNo <= 2147483647 then
+            OnBeforeCommit(GLRegNo, GenJnlLine, GenJnlPostLine);
+        OnBeforeCommitBigInteger(GLRegNo, GenJnlLine, GenJnlPostLine);
 
         if not SuppressCommit then
             Commit();
@@ -1367,7 +1369,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             exit;
 
         GLReg.LockTable();
-        GLRegNo := GLReg.GetLastEntryNo() + 1;
+        GLRegNo := GLReg.GetLastEntryNoBigInteger() + 1;
     end;
 
     [Scope('OnPrem')]
@@ -2531,7 +2533,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     /// <param name="GenJournalLine">General journal line being committed</param>
     /// <param name="GenJnlPostLine">Posting codeunit handling the commit operation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCommit(GLRegNo: BigInteger; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnBeforeCommit(GLRegNo: Integer; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCommitBigInteger(GLRegNo: BigInteger; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 

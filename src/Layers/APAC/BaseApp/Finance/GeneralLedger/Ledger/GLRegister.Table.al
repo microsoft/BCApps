@@ -188,14 +188,25 @@ table 45 "G/L Register"
 
     procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
     begin
+        exit(GetLegacyIntegerRegisterNo(GetNextEntryNoBigInteger(UseLegacyPosting)));
+    end;
+
+    procedure GetNextEntryNoBigInteger(UseLegacyPosting: Boolean): BigInteger
+    begin
         if not UseLegacyPosting then
-            exit(GetNextEntryNo());
+            exit(GetNextEntryNoBigInteger());
         Rec.LockTable();
-        exit(GetLastEntryNo() + 1);
+        exit(GetLastEntryNoBigInteger() + 1);
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
-    procedure GetNextEntryNo(): BigInteger
+    procedure GetNextEntryNo(): Integer
+    begin
+        exit(GetLegacyIntegerRegisterNo(GetNextEntryNoBigInteger()));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
+    procedure GetNextEntryNoBigInteger(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -207,7 +218,17 @@ table 45 "G/L Register"
     /// </summary>
     /// <returns>Integer: The highest register number, or 0 if no registers exist.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
-    procedure GetLastEntryNo(): BigInteger;
+    procedure GetLastEntryNo(): Integer;
+    begin
+        exit(GetLegacyIntegerRegisterNo(GetLastEntryNoBigInteger()));
+    end;
+
+    /// <summary>
+    /// Retrieves the last register number as a BigInteger.
+    /// </summary>
+    /// <returns>The highest register number, or 0 if no registers exist.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
+    procedure GetLastEntryNoBigInteger(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -223,7 +244,12 @@ table 45 "G/L Register"
     /// <param name="SourceCode">Source code identifying the posting process.</param>
     /// <param name="BatchName">Journal batch name from the posting process.</param>
     /// <param name="TemplateName">Journal template name from the posting process.</param>
-    procedure Initialize(NextRegNo: BigInteger; FromEntryNo: BigInteger; FromVATEntryNo: BigInteger; SourceCode: Code[10]; BatchName: Code[10]; TemplateName: Code[10])
+    procedure Initialize(NextRegNo: Integer; FromEntryNo: Integer; FromVATEntryNo: Integer; SourceCode: Code[10]; BatchName: Code[10]; TemplateName: Code[10])
+    begin
+        InitializeBigInteger(NextRegNo, FromEntryNo, FromVATEntryNo, SourceCode, BatchName, TemplateName);
+    end;
+
+    procedure InitializeBigInteger(NextRegNo: BigInteger; FromEntryNo: BigInteger; FromVATEntryNo: BigInteger; SourceCode: Code[10]; BatchName: Code[10]; TemplateName: Code[10])
     begin
         Init();
         OnInitializeOnAfterGLRegisterInit(Rec, TemplateName);
@@ -234,6 +260,15 @@ table 45 "G/L Register"
         "From VAT Entry No." := FromVATEntryNo;
         "Journal Batch Name" := BatchName;
         "Journal Templ. Name" := TemplateName;
+    end;
+
+    local procedure GetLegacyIntegerRegisterNo(RegisterNo: BigInteger): Integer
+    var
+        RegisterNoExceedsIntegerRangeErr: Label 'G/L Register No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        if RegisterNo > 2147483647 then
+            Error(RegisterNoExceedsIntegerRangeErr, RegisterNo);
+        exit(RegisterNo);
     end;
 
     procedure UpdateGLEntriesWithRegisterNo()

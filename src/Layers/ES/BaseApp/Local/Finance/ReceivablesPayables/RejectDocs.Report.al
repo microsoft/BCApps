@@ -697,7 +697,7 @@ report 7000097 "Reject Docs."
         else
             repeat
                 GenJnlLine2 := GenJnlLine;
-                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
             until GenJnlLine.Next() = 0;
     end;
 

@@ -259,7 +259,7 @@ page 5641 "Maintenance Ledger Entries"
                         if Rec."Transaction No." = 0 then
                             Error(CannotUndoErr, Rec."Entry No.", Rec."Depreciation Book Code");
                         Rec.TestField("G/L Entry No.");
-                        ReversalEntry.ReverseTransaction(Rec."Transaction No.");
+                        ReversalEntry.ReverseTransactionBigInteger(Rec."Transaction No.");
                     end;
                 }
             }
@@ -334,4 +334,3 @@ page 5641 "Maintenance Ledger Entries"
         DimensionManagement.UseShortcutDims(Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible);
     end;
 }
-

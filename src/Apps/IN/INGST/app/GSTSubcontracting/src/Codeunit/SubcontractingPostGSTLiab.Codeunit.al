@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -281,8 +281,8 @@ codeunit 18468 "Subcontracting Post GST Liab."
         Clear(GenJournalLine."Tax ID");
         GenJournalLine.Insert();
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
-        TransactionNo := GenJnlPostLine.GetNextTransactionNo();
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
+        TransactionNo := GenJnlPostLine.GetNextTransactionNoBigInteger();
     end;
 
     local procedure InsertGSTLedgerEntry(

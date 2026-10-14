@@ -623,7 +623,7 @@ codeunit 110000 "Interface Basis Data"
                                 end;
                             end;
                     end;
-                GenJnlPostLine.RunWithoutCheck(GenJournalLine);
+                GenJnlPostLine.RunWithoutCheckBigInteger(GenJournalLine);
             until GenJournalLine.Next() = 0;
             GenJournalLine.DeleteAll();
         end;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -205,7 +205,7 @@ codeunit 18350 "Service Transfer Post"
             repeat
                 InsertDetailedGSTLedgEntryServiceTransfer(
                     ServiceTransferLine, ServiceTransferHeader,
-                    PostedServiceTransferShptDocNo, GenJnlPostLine.GetNextTransactionNo(),
+                    PostedServiceTransferShptDocNo, GenJnlPostLine.GetNextTransactionNoBigInteger(),
                     DocTransferType::"Service Transfer Shipment");
                 ServiceTransferLine.Shipped := true;
                 ServiceTransferLine.Modify();
@@ -286,7 +286,7 @@ codeunit 18350 "Service Transfer Post"
                 InsertDetailedGSTLedgEntryServiceTransfer(
                  ServiceTransferLine, ServiceTransferHeader,
                  PostedServiceTransferRcptDocNo,
-                 GenJnlPostLine.GetNextTransactionNo(), DocTransferType::"Service Transfer Receipt");
+                 GenJnlPostLine.GetNextTransactionNoBigInteger(), DocTransferType::"Service Transfer Receipt");
             until ServiceTransferLine.Next() = 0;
 
         ControlAccount := true;
@@ -610,7 +610,7 @@ codeunit 18350 "Service Transfer Post"
         GenJnlLine."Source Code" := SourceCode;
         GenJnlLine.Description := StrSubstNo(ServiceTranTxt, ServiceTransferHeader."No.");
         if GenJnlLine.Amount <> 0 then
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure DeleteOneServiceTransferOrder()
@@ -815,7 +815,7 @@ codeunit 18350 "Service Transfer Post"
             GenJnlLine."Posting Date" := ServiceTransferHeader."Shipment Date";
             InsertGSTLedgerEntryServiceTransfer(
               TempGSTPostingBufferFinal, ServiceTransferHeader,
-              GenJnlPostLine.GetNextTransactionNo(), Format(GenJnlLine."Document Type"), GenJnlLine."Document No.",
+              GenJnlPostLine.GetNextTransactionNoBigInteger(), Format(GenJnlLine."Document Type"), GenJnlLine."Document No.",
               GenJnlLine."Source Code", DocTransferType::"Service Transfer Shipment");
         end else begin
             GenJnlLine."Location Code" := ServiceTransferHeader."Transfer-to Code";
@@ -824,10 +824,10 @@ codeunit 18350 "Service Transfer Post"
             GenJnlLine."Posting Date" := ServiceTransferHeader."Receipt Date";
             InsertGSTLedgerEntryServiceTransfer(
                TempGSTPostingBufferFinal, ServiceTransferHeader,
-               GenJnlPostLine.GetNextTransactionNo(), Format(GenJnlLine."Document Type"), GenJnlLine."Document No.",
+               GenJnlPostLine.GetNextTransactionNoBigInteger(), Format(GenJnlLine."Document Type"), GenJnlLine."Document No.",
              GenJnlLine."Source Code", DocTransferType::"Service Transfer Receipt");
         end;
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure InsertGSTLedgerEntryServiceTransfer(
@@ -1023,7 +1023,7 @@ codeunit 18350 "Service Transfer Post"
             GenJnlLine."Document No." := PostedServiceTransferRcptDocNo;
             GenJnlLine."Posting Date" := ServiceTransferHeader."Receipt Date";
         end;
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure ReverseDetailedGSTEntryQtyAmt(var DetailedGSTLedgerEntry: Record "Detailed GST Ledger Entry")

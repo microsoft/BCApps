@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ codeunit 18390 "GST Transfer Order Receipt"
         GSTTransferOrderShipment.InsertDetailedGSTLedgEntryTransfer(TransLine,
             TransferHeader,
             TransRcptLine."Document No.",
-            GenJnlPostLine.GetNextTransactionNo(),
+            GenJnlPostLine.GetNextTransactionNoBigInteger(),
             DocTransferType::"Transfer Receipt");
     end;
 
@@ -943,7 +943,7 @@ codeunit 18390 "GST Transfer Order Receipt"
 
     local procedure RunGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line")
     begin
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 
     local procedure GSTPostingBufferforTransferDocument(CustomDutyBase: Boolean; TransferHeader: Record "Transfer Header")
@@ -1014,7 +1014,7 @@ codeunit 18390 "GST Transfer Order Receipt"
         GSTTransferOrderShipment.InsertGSTLedgerEntryTransfer(
             TempGSTPostingBufferFinal,
             TransferHeader,
-            GenJnlPostLine.GetNextTransactionNo(),
+            GenJnlPostLine.GetNextTransactionNoBigInteger(),
             GenJnlLine."Document No.",
             SourceCodeSetup.Transfer,
             DocTransferType::"Transfer Receipt");

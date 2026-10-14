@@ -337,7 +337,7 @@ codeunit 10288 "Serv-Documents Mgt. NA"
 #if not CLEAN28
                     ServPostingJournalsMgt.RunOnPostSalesTaxToGLOnBeforeGenJnlPostLineRunWithCheck(GenJnlLine, ServiceHeader, TempSalesTaxAmtLine);
 #endif
-                    GenJnlPostLine.RunWithCheck(GenJnlLine);
+                    GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                 end;
             until TempSalesTaxAmtLine.Next() = 0;
     end;

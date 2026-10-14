@@ -729,7 +729,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
     end;
@@ -806,7 +806,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPostBalancingEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         PurchPostInvoiceEvents.RunOnPostBalancingEntryOnAfterGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
     end;
@@ -858,7 +858,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): BigInteger
     begin
         PurchPostInvoiceEvents.RunOnBeforeRunGenJnlPostLine(GenJnlLine, GenJnlPostLine);
-        exit(GenJnlPostLine.RunWithCheck(GenJnlLine));
+        exit(GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine));
     end;
 
     local procedure GetAmountsForDeferral(PurchLine: Record "Purchase Line"; var AmtToDefer: Decimal; var AmtToDeferACY: Decimal; var DeferralAccount: Code[20])

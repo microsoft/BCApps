@@ -583,7 +583,7 @@ report 12113 "Close/Open Balance Sheet"
                 GenJnlLine.Validate(Amount, GenJnlLine."Source Currency Amount");
                 GenJnlLine."Source Currency Amount" := 0;
             end;
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
             OnAfterHandleGenJnlLineGenJnlPostLine(GenJnlLine, Integer.Number);
         end else
             GenJnlLine.Insert();

@@ -324,7 +324,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 
                 ServicePostInvoiceEvents.RunOnPostLinesOnBeforeGenJnlLinePost(
                     GenJnlLine, ServiceHeader, TempInvoicePostingBuffer, GenJnlPostLine, PreviewMode, SuppressCommit);
-                GLEntryNo := GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GLEntryNo := GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                 ServicePostInvoiceEvents.RunOnPostLinesOnAfterGenJnlLinePost(
                     GenJnlLine, ServiceHeader, TempInvoicePostingBuffer, GenJnlPostLine, PreviewMode, SuppressCommit, GLEntryNo);
             until TempInvoicePostingBuffer.Next(-1) = 0;
@@ -427,7 +427,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 
         ServicePostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, ServiceHeader, TotalServiceLine, TotalServiceLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine, InvoicePostingParameters);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         ServicePostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, ServiceHeader, TotalServiceLine, TotalServiceLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
     end;
@@ -481,7 +481,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 
         ServicePostInvoiceEvents.RunOnPostBalancingEntryOnBeforeGenJnlPostLine(
             GenJnlLine, ServiceHeader, TotalServiceLine, TotalServiceLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         ServicePostInvoiceEvents.RunOnPostBalancingEntryOnAfterGenJnlPostLine(
             GenJnlLine, ServiceHeader, TotalServiceLine, TotalServiceLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
     end;

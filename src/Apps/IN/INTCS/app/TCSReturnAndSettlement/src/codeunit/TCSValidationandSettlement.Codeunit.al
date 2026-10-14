@@ -115,7 +115,7 @@ codeunit 18869 "TCS Validation and Settlement"
                 NewTCSEntry."Rem. Total TCS Incl. SHE CESS" := -NewTCSEntry."Rem. Total TCS Incl. SHE CESS";
                 NewTCSEntry."Remaining TCS Amount" := -NewTCSEntry."Remaining TCS Amount";
                 NewTCSEntry."Remaining Surcharge Amount" := -NewTCSEntry."Remaining Surcharge Amount";
-                NewTCSEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+                NewTCSEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
                 NewTCSEntry."Reversed Entry No." := TCSEntry."Entry No.";
                 NewTCSEntry.Reversed := true;
                 if TCSEntry."Reversed Entry No." <> 0 then begin

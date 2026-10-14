@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ codeunit 31013 "VAT LCY Correction-Post CZL"
         CopyFromVATEntry(GenJournalLine, VATEntry);
         SetDefaultDimensions(GenJournalLine);
         OnPostCorrectionAmountOnBeforePostVATAccountLine(GenJournalLine);
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
         OnPostCorrectionAmountOnAfterPostVATAccountLine(GenJournalLine, GenJnlPostLine);
 
         // Post to VAT LCY Correction Rounding Account
@@ -131,7 +131,7 @@ codeunit 31013 "VAT LCY Correction-Post CZL"
         CopyFromVATEntry(GenJournalLine, VATEntry);
         SetDefaultDimensions(GenJournalLine);
         OnPostCorrectionAmountOnBeforePostRoundingAccountLine(GenJournalLine);
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
         OnPostCorrectionAmountOnAfterPostRoundingAccountLine(GenJournalLine, GenJnlPostLine);
     end;
 

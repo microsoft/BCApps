@@ -1342,7 +1342,7 @@ codeunit 90 "Purch.-Post"
         ItemLedgShptEntryNo := 0;
         if RemQtyToBeInvoiced <> 0 then
             ItemLedgShptEntryNo :=
-              PostItemJnlLine(
+              PostItemJnlLineBigInteger(
                 PurchHeader, PurchLine,
                 RemQtyToBeInvoiced, RemQtyToBeInvoicedBase,
                 RemQtyToBeInvoiced, RemQtyToBeInvoicedBase,
@@ -1352,7 +1352,7 @@ codeunit 90 "Purch.-Post"
         if PurchHeader.IsCreditDocType() then begin
             if Abs(PurchLine."Return Qty. to Ship") > Abs(RemQtyToBeInvoiced) then
                 ItemLedgShptEntryNo :=
-                  PostItemJnlLine(
+                  PostItemJnlLineBigInteger(
                     PurchHeader, PurchLine,
                     PurchLine."Return Qty. to Ship" - RemQtyToBeInvoiced,
                     PurchLine."Return Qty. to Ship (Base)" - RemQtyToBeInvoicedBase,
@@ -1360,7 +1360,7 @@ codeunit 90 "Purch.-Post"
         end else begin
             if Abs(PurchLine."Qty. to Receive") > Abs(RemQtyToBeInvoiced) then
                 ItemLedgShptEntryNo :=
-                  PostItemJnlLine(
+                  PostItemJnlLineBigInteger(
                     PurchHeader, PurchLine,
                     PurchLine."Qty. to Receive" - RemQtyToBeInvoiced,
                     PurchLine."Qty. to Receive (Base)" - RemQtyToBeInvoicedBase,
@@ -1388,7 +1388,7 @@ codeunit 90 "Purch.-Post"
             OnProcessAssocItemJnlLineOnAfterInitTempDropShptPostBuffer(PurchLine, TempDropShptPostBuffer);
 
             TempDropShptPostBuffer."Item Shpt. Entry No." :=
-              PostAssocItemJnlLine(PurchHeader, PurchLine, TempDropShptPostBuffer.Quantity, TempDropShptPostBuffer."Quantity (Base)");
+              PostAssocItemJnlLineBigInteger(PurchHeader, PurchLine, TempDropShptPostBuffer.Quantity, TempDropShptPostBuffer."Quantity (Base)");
             OnBeforeTempDropShptPostBufferInsert(TempDropShptPostBuffer, PurchLine, ItemLedgShptEntryNo);
             TempDropShptPostBuffer.Insert();
         end;
@@ -1515,7 +1515,20 @@ codeunit 90 "Purch.-Post"
     /// <param name="ItemChargeNo">Item Charge No. to be assigned to the Item Journal Line.</param>
     /// <param name="TrackingSpecification">Tracking Specification for the purchase line. This parameter is exposed through events, but isn't directly used in the procedure</param>
     /// <returns>The Item Shipment Entry No. assigned to the Item Journal Line.</returns>
-    procedure PostItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: BigInteger
+    procedure PostItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: Integer; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: Integer
+    var
+        BigIntegerResult: BigInteger;
+        EntryNoExceedsIntegerRangeErr: Label 'Entry No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        BigIntegerResult := PostItemJnlLineBigInteger(
+            PurchHeader, PurchLine, QtyToBeReceived, QtyToBeReceivedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
+            ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification);
+        if BigIntegerResult > 2147483647 then
+            Error(EntryNoExceedsIntegerRangeErr, BigIntegerResult);
+        exit(BigIntegerResult);
+    end;
+
+    procedure PostItemJnlLineBigInteger(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         OriginalItemJnlLine: Record "Item Journal Line";
@@ -1527,11 +1540,21 @@ codeunit 90 "Purch.-Post"
         CheckApplToItemEntry: Boolean;
         PostJobConsumptionBeforePurch: Boolean;
         IsHandled: Boolean;
+        LegacyResult: Integer;
+        LegacyItemLedgShptEntryNo: Integer;
     begin
         ClearRemAmt(PurchHeader);
 
         IsHandled := false;
+        if ItemLedgShptEntryNo <= 2147483647 then begin
+            LegacyItemLedgShptEntryNo := ItemLedgShptEntryNo;
         OnBeforePostItemJnlLine(
+          PurchHeader, PurchLine, QtyToBeReceived, QtyToBeReceivedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
+          LegacyItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, SuppressCommit, IsHandled, ItemJnlPostLine, LegacyResult, WhseRcptHeader);
+            ItemLedgShptEntryNo := LegacyItemLedgShptEntryNo;
+            Result := LegacyResult;
+        end;
+        OnBeforePostItemJnlLineBigInteger(
           PurchHeader, PurchLine, QtyToBeReceived, QtyToBeReceivedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
           ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, SuppressCommit, IsHandled, ItemJnlPostLine, Result, WhseRcptHeader);
         if IsHandled then
@@ -2101,7 +2124,7 @@ codeunit 90 "Purch.-Post"
               TempItemChargeAssgntPurch."Qty. to Assign", TempItemChargeAssgntPurch."Amount to Assign",
               Sign, PurchRcptLine."Indirect Cost %")
         else
-            PostItemCharge(PurchHeader, PurchLine,
+            PostItemChargeBigInteger(PurchHeader, PurchLine,
               PurchRcptLine."Item Rcpt. Entry No.", PurchRcptLine."Quantity (Base)",
               TempItemChargeAssgntPurch."Amount to Assign" * Sign,
               TempItemChargeAssgntPurch."Qty. to Assign",
@@ -2151,7 +2174,7 @@ codeunit 90 "Purch.-Post"
               TempItemChargeAssgntPurch."Qty. to Handle", Abs(TempItemChargeAssgntPurch."Amount to Handle"),
               Sign, ReturnShptLine."Indirect Cost %")
         else
-            PostItemCharge(PurchHeader, PurchLine,
+            PostItemChargeBigInteger(PurchHeader, PurchLine,
               ReturnShptLine."Item Shpt. Entry No.", -ReturnShptLine."Quantity (Base)",
               Abs(TempItemChargeAssgntPurch."Amount to Handle") * Sign,
               TempItemChargeAssgntPurch."Qty. to Handle",
@@ -2248,7 +2271,7 @@ codeunit 90 "Purch.-Post"
                         if TempItemChargeAssgntPurch."Document Type" in [TempItemChargeAssgntPurch."Document Type"::"Return Order", TempItemChargeAssgntPurch."Document Type"::"Credit Memo"] then
                             PurchLine2.Amount := -PurchLine2.Amount;
                         OnPostItemChargePerTransferOnBeforePostItemJnlLine(PurchHeader, PurchLine2, ItemApplnEntry, TransRcptLine, TempItemChargeAssgntPurch);
-                        PostItemJnlLine(
+                        PostItemJnlLineBigInteger(
                           PurchHeader, PurchLine2,
                           0, 0,
                           ItemApplnEntry.Quantity, ItemApplnEntry.Quantity,
@@ -2320,7 +2343,7 @@ codeunit 90 "Purch.-Post"
               PurchHeader, PurchLine, TempItemLedgEntry, -SalesShptLine."Quantity (Base)",
               TempItemChargeAssgntPurch."Qty. to Assign", TempItemChargeAssgntPurch."Amount to Assign", Sign, 0)
         else
-            PostItemCharge(PurchHeader, PurchLine,
+            PostItemChargeBigInteger(PurchHeader, PurchLine,
               SalesShptLine."Item Shpt. Entry No.", -SalesShptLine."Quantity (Base)",
               TempItemChargeAssgntPurch."Amount to Assign" * Sign,
               TempItemChargeAssgntPurch."Qty. to Assign", 0);
@@ -2370,7 +2393,7 @@ codeunit 90 "Purch.-Post"
               PurchHeader, PurchLine, TempItemLedgEntry, ReturnRcptLine."Quantity (Base)",
               TempItemChargeAssgntPurch."Qty. to Handle", TempItemChargeAssgntPurch."Amount to Assign", Sign, 0)
         else
-            PostItemCharge(PurchHeader, PurchLine,
+            PostItemChargeBigInteger(PurchHeader, PurchLine,
               ReturnRcptLine."Item Rcpt. Entry No.", ReturnRcptLine."Quantity (Base)",
               TempItemChargeAssgntPurch."Amount to Handle" * Sign,
               TempItemChargeAssgntPurch."Qty. to Handle", 0);
@@ -2409,14 +2432,14 @@ codeunit 90 "Purch.-Post"
                 AmountToAssign := Round(NonDistrAmountToAssign * Factor, GLSetup."Amount Rounding Precision");
                 OnPostDistributeItemChargeOnAfterCalcAmountToAssign(PurchLine, TempItemLedgEntry, QtyToAssign, AmountToAssign, Sign, Factor);
                 if Factor < 1 then begin
-                    PostItemCharge(PurchHeader, PurchLine,
+                    PostItemChargeBigInteger(PurchHeader, PurchLine,
                       TempItemLedgEntry."Entry No.", TempItemLedgEntry.Quantity,
                       AmountToAssign * Sign, QtyToAssign, IndirectCostPct);
                     NonDistrQuantity := NonDistrQuantity - TempItemLedgEntry.Quantity;
                     NonDistrQtyToAssign := NonDistrQtyToAssign - QtyToAssign;
                     NonDistrAmountToAssign := NonDistrAmountToAssign - AmountToAssign;
                 end else // the last time
-                    PostItemCharge(PurchHeader, PurchLine,
+                    PostItemChargeBigInteger(PurchHeader, PurchLine,
                       TempItemLedgEntry."Entry No.", TempItemLedgEntry.Quantity,
                       NonDistrAmountToAssign * Sign, NonDistrQtyToAssign, IndirectCostPct);
             until TempItemLedgEntry.Next() = 0
@@ -2424,7 +2447,18 @@ codeunit 90 "Purch.-Post"
             Error(RelatedItemLedgEntriesNotFoundErr)
     end;
 
-    procedure PostAssocItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): BigInteger
+    procedure PostAssocItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): Integer
+    var
+        BigIntegerResult: BigInteger;
+        EntryNoExceedsIntegerRangeErr: Label 'Entry No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        BigIntegerResult := PostAssocItemJnlLineBigInteger(PurchHeader, PurchLine, QtyToBeShipped, QtyToBeShippedBase);
+        if BigIntegerResult > 2147483647 then
+            Error(EntryNoExceedsIntegerRangeErr, BigIntegerResult);
+        exit(BigIntegerResult);
+    end;
+
+    procedure PostAssocItemJnlLineBigInteger(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TempHandlingSpecification2: Record "Tracking Specification" temporary;
@@ -4963,7 +4997,12 @@ codeunit 90 "Purch.-Post"
     /// <param name="AmountToAssign">Amount to be assigned. This value is used as "Amount" when posting</param>
     /// <param name="QtyToAssign">Quantity to to be assigned. This will is used in calculating line amount ant discounts.</param>
     /// <param name="IndirectCostPct">Indirect Cost percentage that will be assigned to purchase line field "Indirect Cost %" </param>
-    procedure PostItemCharge(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; ItemEntryNo: BigInteger; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal; IndirectCostPct: Decimal)
+    procedure PostItemCharge(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; ItemEntryNo: Integer; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal; IndirectCostPct: Decimal)
+    begin
+        PostItemChargeBigInteger(PurchHeader, PurchLine, ItemEntryNo, QuantityBase, AmountToAssign, QtyToAssign, IndirectCostPct);
+    end;
+
+    procedure PostItemChargeBigInteger(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; ItemEntryNo: BigInteger; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal; IndirectCostPct: Decimal)
     var
         DummyTrackingSpecification: Record "Tracking Specification";
         PurchLineToPost: Record "Purchase Line";
@@ -5024,7 +5063,7 @@ codeunit 90 "Purch.-Post"
 
             OnPostItemChargeOnBeforePostItemJnlLine(PurchLineToPost, PurchLine, QtyToAssign, TempItemChargeAssgntPurch, PurchInvHeader);
 
-            PostItemJnlLine(
+            PostItemJnlLineBigInteger(
               PurchHeader, PurchLineToPost, 0, 0, QuantityBase, QuantityBase,
               PurchLineToPost."Appl.-to Item Entry", TempItemChargeAssgntPurch."Item Charge No.", DummyTrackingSpecification);
         end;
@@ -5807,7 +5846,7 @@ codeunit 90 "Purch.-Post"
                 ICInboxOutboxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
                 ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
                 if TempICGenJnlLine.Amount <> 0 then
-                    GenJnlPostLine.RunWithCheck(TempICGenJnlLine);
+                    GenJnlPostLine.RunWithCheckBigInteger(TempICGenJnlLine);
             until TempICGenJnlLine.Next() = 0;
     end;
 
@@ -7737,7 +7776,7 @@ codeunit 90 "Purch.-Post"
                 OnPostItemTrackingForReceiptOnBeforePostItemTrackingForReceiptCondition(PurchInvHeader, PurchRcptLine, QtyToBeInvoiced, QtyToBeInvoicedBase);
 
                 if PostItemTrackingForReceiptCondition(PurchLine, PurchRcptLine) then
-                    PostItemJnlLine(
+                    PostItemJnlLineBigInteger(
                       PurchHeader, PurchLine, 0, 0, QtyToBeInvoiced, QtyToBeInvoicedBase,
                       ItemEntryRelation."Item Entry No.", '', TempTrackingSpecification);
 
@@ -7894,7 +7933,7 @@ codeunit 90 "Purch.-Post"
                   QtyToBeInvoiced, QtyToBeInvoicedBase);
 
                 if PostItemTrackingForShipmentCondition(PurchLine, ReturnShptLine) then
-                    PostItemJnlLine(
+                    PostItemJnlLineBigInteger(
                       PurchHeader, PurchLine, 0, 0, QtyToBeInvoiced, QtyToBeInvoicedBase,
                       ItemEntryRelation."Item Entry No.", '', TempTrackingSpecification);
 
@@ -9834,7 +9873,12 @@ codeunit 90 "Purch.-Post"
 
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJnlLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: Integer; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
+    local procedure OnBeforePostItemJnlLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: Integer; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostItemJnlLineBigInteger(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: BigInteger; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
     begin
     end;
 

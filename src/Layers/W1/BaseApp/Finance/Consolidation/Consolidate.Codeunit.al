@@ -1435,7 +1435,7 @@ codeunit 432 Consolidate
             repeat
                 Window.Update(3, TempGenJnlLine."Account No.");
                 OnBeforeGenJnlPostLine(TempGenJnlLine);
-                GenJnlPostLine.RunWithCheck(TempGenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(TempGenJnlLine);
             until TempGenJnlLine.Next() = 0;
     end;
 

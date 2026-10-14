@@ -1053,11 +1053,11 @@ codeunit 134043 "ERM Additional Currency"
         // [GIVEN] "Gen. Journal Line"[2] where Amount = -100 and "Additional-Currency Posting" = "Additional-Currency Amount Only"
         CreateGenJournalLineWithAdditionalCurrencyPosting(
           GenJournalLine, DocumentNo, Currency."Realized G/L Gains Account", DocumentAmount, Currency.Code);
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         CreateGenJournalLineWithAdditionalCurrencyPosting(
           GenJournalLine, DocumentNo, Currency."Realized G/L Losses Account", -DocumentAmount, Currency.Code);
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         // [WHEN] Both lines posted in the same system transaction
         Commit();

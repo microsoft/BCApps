@@ -170,6 +170,7 @@ codeunit 410 "Update Analysis View"
         IsHandled: Boolean;
         TableID: Integer;
         LastReportedEntryNo: BigInteger;
+        LegacyLastReportedEntryNo: Integer;
         Supported: Boolean;
     begin
         IsHandled := false;
@@ -205,7 +206,12 @@ codeunit 410 "Update Analysis View"
                     Updated := true;
                 end;
             else begin
-                OnBeforeUpdateOneUpdateEntries(AnalysisView, Which, LastReportedEntryNo, TableID, Supported);
+                if LastReportedEntryNo <= 2147483647 then begin
+                    LegacyLastReportedEntryNo := LastReportedEntryNo;
+                    OnBeforeUpdateOneUpdateEntries(AnalysisView, Which, LegacyLastReportedEntryNo, TableID, Supported);
+                    LastReportedEntryNo := LegacyLastReportedEntryNo;
+                end;
+                OnBeforeUpdateOneUpdateEntriesBigInteger(AnalysisView, Which, LastReportedEntryNo, TableID, Supported);
                 if not Supported then
                     Error(AccountSourceNotSupportedErr);
 
@@ -989,7 +995,12 @@ codeunit 410 "Update Analysis View"
     /// <param name="TableID">Table ID being processed</param>
     /// <param name="Supproted">Whether the operation is supported</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateOneUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: BigInteger; var TableID: Integer; var Supproted: Boolean)
+    local procedure OnBeforeUpdateOneUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: Integer; var TableID: Integer; var Supproted: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateOneUpdateEntriesBigInteger(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: BigInteger; var TableID: Integer; var Supproted: Boolean)
     begin
     end;
 
@@ -1029,4 +1040,3 @@ codeunit 410 "Update Analysis View"
     begin
     end;
 }
-

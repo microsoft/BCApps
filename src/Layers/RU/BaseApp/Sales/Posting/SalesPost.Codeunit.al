@@ -1395,7 +1395,7 @@ codeunit 80 "Sales-Post"
 
         if QtyToInvoice <> 0 then
             ItemLedgShptEntryNo :=
-              PostItemJnlLine(
+              PostItemJnlLineBigInteger(
                 SalesHeader, SalesLine,
                 QtyToInvoice, QtyToInvoiceBase,
                 QtyToInvoice, QtyToInvoiceBase,
@@ -1413,7 +1413,7 @@ codeunit 80 "Sales-Post"
             if SalesLineToShip.IsCreditDocType() then begin
                 if Abs(SalesLineToShip."Return Qty. to Receive") > Abs(QtyToInvoice) then
                     ItemLedgShptEntryNo :=
-                        PostItemJnlLine(
+                        PostItemJnlLineBigInteger(
                             SalesHeader, SalesLineToShip,
                             SalesLineToShip."Return Qty. to Receive" - QtyToInvoice,
                             SalesLineToShip."Return Qty. to Receive (Base)" - QtyToInvoiceBase,
@@ -1424,7 +1424,7 @@ codeunit 80 "Sales-Post"
                 if not IsHandled then
                     if Abs(SalesLineToShip."Qty. to Ship") > Abs(QtyToInvoice) + Abs(TempPostedATOLink."Assembled Quantity") then
                         ItemLedgShptEntryNo :=
-                            PostItemJnlLine(
+                            PostItemJnlLineBigInteger(
                                 SalesHeader, SalesLineToShip,
                                 SalesLineToShip."Qty. to Ship" - TempPostedATOLink."Assembled Quantity" - QtyToInvoice,
                                 SalesLineToShip."Qty. to Ship (Base)" - TempPostedATOLink."Assembled Quantity (Base)" - QtyToInvoiceBase,
@@ -1457,7 +1457,7 @@ codeunit 80 "Sales-Post"
             TempDropShptPostBuffer."Quantity (Base)" := -SalesLine."Qty. to Ship (Base)";
             OnProcessAssocItemJnlLineOnBeforePostAssocItemJnlLine(TempDropShptPostBuffer, SalesLine);
             TempDropShptPostBuffer."Item Shpt. Entry No." :=
-                PostAssocItemJnlLine(SalesHeader, SalesLine, TempDropShptPostBuffer.Quantity, TempDropShptPostBuffer."Quantity (Base)");
+                PostAssocItemJnlLineBigInteger(SalesHeader, SalesLine, TempDropShptPostBuffer.Quantity, TempDropShptPostBuffer."Quantity (Base)");
             OnProcessAssocItemJnlLineOnBeforeTempDropShptPostBufferInsert(TempDropShptPostBuffer, SalesLine);
             TempDropShptPostBuffer.Insert();
             SalesLine."Appl.-to Item Entry" := TempDropShptPostBuffer."Item Shpt. Entry No.";
@@ -1557,7 +1557,20 @@ codeunit 80 "Sales-Post"
     /// <param name="TrackingSpecification">Tracking Specification for the sales line. This parameter is exposed through events, but isn't directly used in the procedure</param>
     /// <param name="IsATO">A flag indicating whether the Item is Assemble-to-order.</param>
     /// <returns>The Item Shipment Entry No. assigned to the Item Journal Line.</returns>
-    procedure PostItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean) Result: BigInteger
+    procedure PostItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: Integer; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean) Result: Integer
+    var
+        BigIntegerResult: BigInteger;
+        EntryNoExceedsIntegerRangeErr: Label 'Entry No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        BigIntegerResult := PostItemJnlLineBigInteger(
+            SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
+            ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO);
+        if BigIntegerResult > 2147483647 then
+            Error(EntryNoExceedsIntegerRangeErr, BigIntegerResult);
+        exit(BigIntegerResult);
+    end;
+
+    procedure PostItemJnlLineBigInteger(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean) Result: BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TempWhseJnlLine: Record "Warehouse Journal Line" temporary;
@@ -1566,11 +1579,21 @@ codeunit 80 "Sales-Post"
         ItemShptEntryNo: BigInteger;
         PostWhseJnlLine: Boolean;
         IsHandled: Boolean;
+        LegacyResult: Integer;
+        LegacyItemLedgShptEntryNo: Integer;
         ShouldPostItemJnlLine: Boolean;
         ShouldPostItemJnlLineItemCharges: Boolean;
     begin
         IsHandled := false;
+        if ItemLedgShptEntryNo <= 2147483647 then begin
+            LegacyItemLedgShptEntryNo := ItemLedgShptEntryNo;
         OnBeforePostItemJnlLine(
+          SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
+          LegacyItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO, SuppressCommit, IsHandled, LegacyResult, TempTrackingSpecification, TempHandlingSpecification, TempValueEntryRelation, ItemJnlPostLine);
+            ItemLedgShptEntryNo := LegacyItemLedgShptEntryNo;
+            Result := LegacyResult;
+        end;
+        OnBeforePostItemJnlLineBigInteger(
           SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
           ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO, SuppressCommit, IsHandled, Result, TempTrackingSpecification, TempHandlingSpecification, TempValueEntryRelation, ItemJnlPostLine);
         if IsHandled then
@@ -1579,7 +1602,7 @@ codeunit 80 "Sales-Post"
         if SalesLine."No Ledger Entry" then
             exit;
 
-        PostItemJnlLinePrepareJournalLine(
+        PostItemJnlLinePrepareJournalLineBigInteger(
             ItemJnlLine, SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
             ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO);
 
@@ -1611,7 +1634,7 @@ codeunit 80 "Sales-Post"
             ShouldPostItemJnlLineItemCharges := (SalesLine.Type = SalesLine.Type::Item) and SalesHeader.Invoice;
             OnPostItemJnlLineOnAfterCalcShouldPostItemJnlLineItemCharges(SalesLine, SalesHeader, ShouldPostItemJnlLineItemCharges);
             if ShouldPostItemJnlLineItemCharges then
-                PostItemJnlLineItemCharges(SalesHeader, SalesLine, OriginalItemJnlLine, ItemJnlLine."Item Shpt. Entry No.");
+                PostItemJnlLineItemChargesBigInteger(SalesHeader, SalesLine, OriginalItemJnlLine, ItemJnlLine."Item Shpt. Entry No.");
         end;
 
         ItemShptEntryNo := ItemJnlLine."Item Shpt. Entry No.";
@@ -1634,7 +1657,12 @@ codeunit 80 "Sales-Post"
     /// <param name="ItemChargeNo">Item Charge No. to be assigned to the Item Journal Line.</param>
     /// <param name="TrackingSpecification">Tracking Specification for the sales line. This parameter is exposed through events, but isn't directly used in the procedure</param>
     /// <param name="IsATO">A flag indicating whether the Item is Assemble-to-order.</param>
-    procedure PostItemJnlLinePrepareJournalLine(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean)
+    procedure PostItemJnlLinePrepareJournalLine(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: Integer; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean)
+    begin
+        PostItemJnlLinePrepareJournalLineBigInteger(ItemJnlLine, SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase, ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO);
+    end;
+
+    procedure PostItemJnlLinePrepareJournalLineBigInteger(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean)
     var
         DummyItemTrackingSetup: Record "Item Tracking Setup";
         IsHandled: Boolean;
@@ -1878,7 +1906,12 @@ codeunit 80 "Sales-Post"
     /// <param name="SalesLine">The sales line of the document line that is being posted.</param>
     /// <param name="OriginalItemJnlLine">The original Item Journal Line that was posted for the sales line. It servers as the basis for Item Journal Lines that are created for Item Charges.</param>
     /// <param name="ItemShptEntryNo">Item Shipment Entry No. that is assigned to journal lines for Item Charges.</param>
-    procedure PostItemJnlLineItemCharges(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var OriginalItemJnlLine: Record "Item Journal Line"; ItemShptEntryNo: BigInteger)
+    procedure PostItemJnlLineItemCharges(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var OriginalItemJnlLine: Record "Item Journal Line"; ItemShptEntryNo: Integer)
+    begin
+        PostItemJnlLineItemChargesBigInteger(SalesHeader, SalesLine, OriginalItemJnlLine, ItemShptEntryNo);
+    end;
+
+    procedure PostItemJnlLineItemChargesBigInteger(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var OriginalItemJnlLine: Record "Item Journal Line"; ItemShptEntryNo: BigInteger)
     var
         ItemChargeSalesLine: Record "Sales Line";
         IsHandled: Boolean;
@@ -2250,7 +2283,7 @@ codeunit 80 "Sales-Post"
                     SalesHeader, SalesLine, TempItemLedgEntry, SalesShptLine."Quantity (Base)",
                     TempItemChargeAssgntSales."Qty. to Handle", TempItemChargeAssgntSales."Amount to Handle")
             else
-                PostItemCharge(
+                PostItemChargeBigInteger(
                     SalesHeader, SalesLine, SalesShptLine."Item Shpt. Entry No.", SalesShptLine."Quantity (Base)",
                     TempItemChargeAssgntSales."Amount to Handle", TempItemChargeAssgntSales."Qty. to Handle");
     end;
@@ -2314,7 +2347,7 @@ codeunit 80 "Sales-Post"
                     SalesHeader, SalesLine, TempItemLedgEntry, ReturnRcptLine."Quantity (Base)",
                     TempItemChargeAssgntSales."Qty. to Handle", TempItemChargeAssgntSales."Amount to Handle")
             else
-                PostItemCharge(
+                PostItemChargeBigInteger(
                     SalesHeader, SalesLine, ReturnRcptLine."Item Rcpt. Entry No.", ReturnRcptLine."Quantity (Base)",
                     TempItemChargeAssgntSales."Amount to Handle", TempItemChargeAssgntSales."Qty. to Handle")
     end;
@@ -2349,14 +2382,14 @@ codeunit 80 "Sales-Post"
                 QtyToAssign := NonDistrQtyToAssign * Factor;
                 AmountToAssign := Round(NonDistrAmountToAssign * Factor, GLSetup."Amount Rounding Precision");
                 if Factor < 1 then begin
-                    PostItemCharge(SalesHeader, SalesLine,
+                    PostItemChargeBigInteger(SalesHeader, SalesLine,
                       TempItemLedgEntry."Entry No.", -TempItemLedgEntry.Quantity,
                       AmountToAssign, QtyToAssign);
                     NonDistrQuantity := NonDistrQuantity + TempItemLedgEntry.Quantity;
                     NonDistrQtyToAssign := NonDistrQtyToAssign - QtyToAssign;
                     NonDistrAmountToAssign := NonDistrAmountToAssign - AmountToAssign;
                 end else // the last time
-                    PostItemCharge(SalesHeader, SalesLine,
+                    PostItemChargeBigInteger(SalesHeader, SalesLine,
                       TempItemLedgEntry."Entry No.", -TempItemLedgEntry.Quantity,
                       NonDistrAmountToAssign, NonDistrQtyToAssign);
             until TempItemLedgEntry.Next() = 0
@@ -2372,7 +2405,18 @@ codeunit 80 "Sales-Post"
     /// <param name="QtyToBeShipped">The quantity to be shipped.</param>
     /// <param name="QtyToBeShippedBase">The quantity to be shipped in base unit of measure.</param>
     /// <returns>The item shipment entry number, or 0 if tracking was handled.</returns>
-    procedure PostAssocItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): BigInteger
+    procedure PostAssocItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): Integer
+    var
+        BigIntegerResult: BigInteger;
+        EntryNoExceedsIntegerRangeErr: Label 'Entry No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        BigIntegerResult := PostAssocItemJnlLineBigInteger(SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase);
+        if BigIntegerResult > 2147483647 then
+            Error(EntryNoExceedsIntegerRangeErr, BigIntegerResult);
+        exit(BigIntegerResult);
+    end;
+
+    procedure PostAssocItemJnlLineBigInteger(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TempHandlingSpecification2: Record "Tracking Specification" temporary;
@@ -5087,7 +5131,12 @@ codeunit 80 "Sales-Post"
     /// <param name="QuantityBase">The quantity in base unit of measure.</param>
     /// <param name="AmountToAssign">The amount to assign.</param>
     /// <param name="QtyToAssign">The quantity to assign.</param>
-    procedure PostItemCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemLedgEntryNo: BigInteger; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal)
+    procedure PostItemCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemLedgEntryNo: Integer; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal)
+    begin
+        PostItemChargeBigInteger(SalesHeader, SalesLine, ItemLedgEntryNo, QuantityBase, AmountToAssign, QtyToAssign);
+    end;
+
+    procedure PostItemChargeBigInteger(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemLedgEntryNo: BigInteger; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal)
     var
         DummyTrackingSpecification: Record "Tracking Specification";
         SalesLineToPost: Record "Sales Line";
@@ -5139,7 +5188,7 @@ codeunit 80 "Sales-Post"
 
         OnPostItemChargeOnBeforePostItemJnlLine(SalesLineToPost, SalesLine, QtyToAssign, TempItemChargeAssgntSales);
 
-        PostItemJnlLine(
+        PostItemJnlLineBigInteger(
           SalesHeader, SalesLineToPost, 0, 0, -QuantityBase, -QuantityBase,
           SalesLineToPost."Appl.-to Item Entry", TempItemChargeAssgntSales."Item Charge No.", DummyTrackingSpecification, false);
 
@@ -6609,7 +6658,7 @@ codeunit 80 "Sales-Post"
             PostedATOLink."Assembled Quantity (Base)" := -PostedATOLink."Assembled Quantity (Base)";
             if Abs(RemQtyToBeInvoiced) >= Abs(PostedATOLink."Assembled Quantity") then begin
                 ItemLedgShptEntryNo :=
-                  PostItemJnlLine(
+                  PostItemJnlLineBigInteger(
                     SalesHeader, SalesLine,
                     PostedATOLink."Assembled Quantity", PostedATOLink."Assembled Quantity (Base)",
                     PostedATOLink."Assembled Quantity", PostedATOLink."Assembled Quantity (Base)",
@@ -6619,7 +6668,7 @@ codeunit 80 "Sales-Post"
             end else begin
                 if RemQtyToBeInvoiced <> 0 then
                     ItemLedgShptEntryNo :=
-                      PostItemJnlLine(
+                      PostItemJnlLineBigInteger(
                         SalesHeader, SalesLine,
                         RemQtyToBeInvoiced,
                         RemQtyToBeInvoicedBase,
@@ -6631,7 +6680,7 @@ codeunit 80 "Sales-Post"
                     SalesHeader, SalesLine, PostedATOLink, RemQtyToBeInvoiced, RemQtyToBeInvoicedBase, ItemLedgShptEntryNo);
 
                 ItemLedgShptEntryNo :=
-                  PostItemJnlLine(
+                  PostItemJnlLineBigInteger(
                     SalesHeader, SalesLine,
                     PostedATOLink."Assembled Quantity" - RemQtyToBeInvoiced,
                     PostedATOLink."Assembled Quantity (Base)" - RemQtyToBeInvoicedBase,
@@ -8809,7 +8858,7 @@ codeunit 80 "Sales-Post"
                   SalesCrMemoHeader, ReturnRcptLine, SalesLine, QtyToBeInvoiced, QtyToBeInvoicedBase);
 
                 if PostItemTrackingForReceiptCondition(SalesLine, ReturnRcptLine) then
-                    PostItemJnlLine(
+                    PostItemJnlLineBigInteger(
                       SalesHeader, SalesLine, 0, 0, QtyToBeInvoiced, QtyToBeInvoicedBase,
                       ItemEntryRelation."Item Entry No.", '', TempTrackingSpecification, false);
 
@@ -9001,7 +9050,7 @@ codeunit 80 "Sales-Post"
                   QtyToBeInvoiced, QtyToBeInvoicedBase);
 
                 if PostItemTrackingForShipmentCondition(SalesLine, SalesShptLine) then
-                    PostItemJnlLine(
+                    PostItemJnlLineBigInteger(
                       SalesHeader, SalesLine, 0, 0, QtyToBeInvoiced, QtyToBeInvoicedBase,
                       ItemEntryRelation."Item Entry No.", '', TempTrackingSpecification, false);
 
@@ -11096,7 +11145,12 @@ codeunit 80 "Sales-Post"
     /// <param name="TempValueEntryRelation">The temporary value entry relation.</param>
     /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
     [IntegrationEvent(true, false)]
-    local procedure OnBeforePostItemJnlLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
+    local procedure OnBeforePostItemJnlLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnBeforePostItemJnlLineBigInteger(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: BigInteger; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 

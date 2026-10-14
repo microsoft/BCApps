@@ -252,7 +252,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// </summary>
     /// <param name="GenJnlLine2">Return value: General Journal Line that is being be posted.</param>
     /// <returns>No. of the last General Ledger Entry that has been created.</returns>
-    procedure RunWithCheck(var GenJnlLine2: Record "Gen. Journal Line"): BigInteger
+    procedure RunWithCheck(var GenJnlLine2: Record "Gen. Journal Line"): Integer
+    begin
+        exit(ConvertBigIntegerEntryNoToInteger(RunWithCheckBigInteger(GenJnlLine2)));
+    end;
+
+    procedure RunWithCheckBigInteger(var GenJnlLine2: Record "Gen. Journal Line"): BigInteger
     var
         GenJnlLine: Record "Gen. Journal Line";
         IsHandled: Boolean;
@@ -278,7 +283,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// </summary>
     /// <param name="GenJnlLine2">Return value: General Journal Line that is being be posted.</param>
     /// <returns>No. of the last General Ledger Entry that has been created.</returns>
-    procedure RunWithoutCheck(var GenJnlLine2: Record "Gen. Journal Line"): BigInteger
+    procedure RunWithoutCheck(var GenJnlLine2: Record "Gen. Journal Line"): Integer
+    begin
+        exit(ConvertBigIntegerEntryNoToInteger(RunWithoutCheckBigInteger(GenJnlLine2)));
+    end;
+
+    procedure RunWithoutCheckBigInteger(var GenJnlLine2: Record "Gen. Journal Line"): BigInteger
     var
         GenJnlLine: Record "Gen. Journal Line";
         IsHandled: Boolean;
@@ -293,6 +303,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterRunWithoutCheck(GenJnlLine);
         GenJnlLine2 := GenJnlLine;
         exit(GLEntryNo);
+    end;
+
+    local procedure ConvertBigIntegerEntryNoToInteger(EntryNo: BigInteger): Integer
+    var
+        EntryNoExceedsIntegerRangeErr: Label 'Entry No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        if EntryNo > 2147483647 then
+            Error(EntryNoExceedsIntegerRangeErr, EntryNo);
+        exit(EntryNo);
     end;
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
@@ -2518,7 +2537,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="AmountAddCurr">Amount for the G/L entry in additional currency</param>
     /// <param name="VATEntry">Source VAT entry to copy posting details from</param>
     /// <returns>Entry number of the created G/L entry</returns>
-    procedure InitGLEntryVATCopy(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; BalAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"): BigInteger
+    procedure InitGLEntryVATCopy(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; BalAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"): Integer
+    begin
+        exit(ConvertBigIntegerEntryNoToInteger(InitGLEntryVATCopyBigInteger(GenJnlLine, AccNo, BalAccNo, Amount, AmountAddCurr, VATEntry)));
+    end;
+
+    procedure InitGLEntryVATCopyBigInteger(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; BalAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"): BigInteger
     var
         GLEntry: Record "G/L Entry";
     begin
@@ -4490,7 +4514,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             CalcAmountSrcCurr(GenJnlLine, ReceivableAccAmtLCY));
                         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
                         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
-                        UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
+                        UpdateGLEntryNoBigInteger(GLEntry."Entry No.", SaveEntryNo);
                         InsertGLEntry(GenJnlLine, GLEntry, true);
                     end;
         end;
@@ -4774,10 +4798,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             GenJnlLine, SalesVATUnrealAccount, SalesVATAccount, -VATAmount, -VATAmountAddCurr, false);
 
                     GLEntryNo :=
-                      InitGLEntryVATCopy(GenJnlLine, SalesVATAccount, SalesVATUnrealAccount, VATAmount, VATAmountAddCurr, VATEntry2);
+                      InitGLEntryVATCopyBigInteger(GenJnlLine, SalesVATAccount, SalesVATUnrealAccount, VATAmount, VATAmountAddCurr, VATEntry2);
 
                     OnCustUnrealizedVATOnBeforePostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo, VATPart);
-                    PostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo);
+                    PostUnrealVATEntryBigInteger(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo);
                 end;
             until VATEntry2.Next() = 0;
 
@@ -5672,7 +5696,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                 AmountSrcCurr);
                             GLEntry."Bal. Account Type" := GenJournalLine."Bal. Account Type";
                             GLEntry."Bal. Account No." := GenJournalLine."Bal. Account No.";
-                            UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
+                            UpdateGLEntryNoBigInteger(GLEntry."Entry No.", SaveEntryNo);
                             InsertGLEntry(GenJournalLine, GLEntry, true);
                         end else begin
                             IncrNextEntryNo();
@@ -6058,7 +6082,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     AmountSrcCurr);
                 GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
                 GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
-                UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
+                UpdateGLEntryNoBigInteger(GLEntry."Entry No.", SaveEntryNo);
                 InsertGLEntry(GenJnlLine, GLEntry, true);
             end;
 
@@ -6420,7 +6444,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         InitGLEntryVAT(
                           GenJnlLine, PurchReverseUnrealAccount, PurchReverseAccount, -VATAmount, -VATAmountAddCurr, false);
                         GLEntryNo :=
-                          InitGLEntryVATCopy(
+                          InitGLEntryVATCopyBigInteger(
                             GenJnlLine, PurchReverseAccount, PurchReverseUnrealAccount, VATAmount, VATAmountAddCurr, VATEntry2);
                     end else begin
                         IsHandled := false;
@@ -6429,7 +6453,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             InitGLEntryVAT(
                               GenJnlLine, PurchVATUnrealAccount, PurchVATAccount, -VATAmount, -VATAmountAddCurr, false);
                             GLEntryNo :=
-                              InitGLEntryVATCopy(GenJnlLine, PurchVATAccount, PurchVATUnrealAccount, VATAmount, VATAmountAddCurr, VATEntry2);
+                              InitGLEntryVATCopyBigInteger(GenJnlLine, PurchVATAccount, PurchVATUnrealAccount, VATAmount, VATAmountAddCurr, VATEntry2);
                         end;
                     end;
 
@@ -6440,11 +6464,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             InitGLEntryVAT(
                                 GenJnlLine, PurchReverseUnrealAccount, PurchReverseAccount, VATAmount, VATAmountAddCurr, false);
                             GLEntryNo :=
-                                InitGLEntryVATCopy(GenJnlLine, PurchReverseAccount, PurchReverseUnrealAccount, -VATAmount, -VATAmountAddCurr, VATEntry2);
+                                InitGLEntryVATCopyBigInteger(GenJnlLine, PurchReverseAccount, PurchReverseUnrealAccount, -VATAmount, -VATAmountAddCurr, VATEntry2);
                         end;
 
                     OnVendUnrealizedVATOnBeforePostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo, VATPart);
-                    PostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo);
+                    PostUnrealVATEntryBigInteger(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo);
                 end;
             until VATEntry2.Next() = 0;
 
@@ -6534,7 +6558,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="VATAmountAddCurr">VAT amount in additional currency</param>
     /// <param name="VATBaseAddCurr">VAT base amount in additional currency</param>
     /// <param name="GLEntryNo">Associated G/L entry number for cross-reference</param>
-    procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: BigInteger)
+    procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: Integer)
+    begin
+        PostUnrealVATEntryBigInteger(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo);
+    end;
+
+    procedure PostUnrealVATEntryBigInteger(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: BigInteger)
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
         VATEntry.LockTable();
@@ -8404,7 +8433,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// Returns next entry no. that should be used when creating ledger (i.e. general, customer, vendor, etc.) entries.
     /// </summary>
     /// <returns>Returns next entry no. to be used for posting</returns>
-    procedure GetNextEntryNo(): BigInteger
+    procedure GetNextEntryNo(): Integer
+    begin
+        exit(ConvertBigIntegerEntryNoToInteger(GetNextEntryNoBigInteger()));
+    end;
+
+    procedure GetNextEntryNoBigInteger(): BigInteger
     begin
         exit(NextEntryNo);
     end;
@@ -8413,7 +8447,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// Returns next transaction no. that should be used when creating ledger (i.e. general, customer, vendor, etc.) entries.
     /// </summary>
     /// <returns>Returns next transaction no. to be used for posting</returns>
-    procedure GetNextTransactionNo(): BigInteger
+    procedure GetNextTransactionNo(): Integer
+    begin
+        exit(ConvertBigIntegerEntryNoToInteger(GetNextTransactionNoBigInteger()));
+    end;
+
+    procedure GetNextTransactionNoBigInteger(): BigInteger
     begin
         exit(NextTransactionNo);
     end;
@@ -8422,7 +8461,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// Return next vat entry no. that should be used when creating next vat entry.
     /// </summary>
     /// <returns>Next vat entry no. to be used for posting</returns>
-    procedure GetNextVATEntryNo(): BigInteger
+    procedure GetNextVATEntryNo(): Integer
+    begin
+        exit(ConvertBigIntegerEntryNoToInteger(GetNextVATEntryNoBigInteger()));
+    end;
+
+    procedure GetNextVATEntryNoBigInteger(): BigInteger
     begin
         exit(NextVATEntryNo);
     end;
@@ -8612,7 +8656,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                   CalcAmountSrcCurr(GenJnlLine, DocAmountLCY));
                 GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
                 GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
-                UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
+                UpdateGLEntryNoBigInteger(GLEntry."Entry No.", SaveEntryNo);
                 InsertGLEntry(GenJnlLine, GLEntry, true);
                 OnMoveGenJournalLine(GenJnlLine, GLEntry.RecordId);
             end else
@@ -9243,7 +9287,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// </remarks>
     /// <param name="ExistingGLEntryNo">Existing value for g/l entry no.</param>
     /// <param name="SavedEntryNo">New value for g/l entry no.</param>
-    procedure UpdateGLEntryNo(var ExistingGLEntryNo: BigInteger; var SavedEntryNo: BigInteger)
+    procedure UpdateGLEntryNo(var ExistingGLEntryNo: Integer; var SavedEntryNo: Integer)
+    var
+        ExistingGLEntryNoBigInteger: BigInteger;
+        SavedEntryNoBigInteger: BigInteger;
+    begin
+        ExistingGLEntryNoBigInteger := ExistingGLEntryNo;
+        SavedEntryNoBigInteger := SavedEntryNo;
+        UpdateGLEntryNoBigInteger(ExistingGLEntryNoBigInteger, SavedEntryNoBigInteger);
+        ExistingGLEntryNo := ConvertBigIntegerEntryNoToInteger(ExistingGLEntryNoBigInteger);
+        SavedEntryNo := ConvertBigIntegerEntryNoToInteger(SavedEntryNoBigInteger);
+    end;
+
+    procedure UpdateGLEntryNoBigInteger(var ExistingGLEntryNo: BigInteger; var SavedEntryNo: BigInteger)
     begin
         if SavedEntryNo <> 0 then begin
             ExistingGLEntryNo := SavedEntryNo;
@@ -9340,7 +9396,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         HandleDtldAdjustment(GenJnlLine, GLEntry, AdjAmountBuf, Amount, AmountACY, GLAccNo);
         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
-        UpdateGLEntryNo(GLEntry."Entry No.", SavedEntryNo);
+        UpdateGLEntryNoBigInteger(GLEntry."Entry No.", SavedEntryNo);
 
         IsHandled := false;
         OnCreateGLEntryForTotalAmountsOnBeforeInsertGLEntry(GenJnlLine, GLEntry, IsHandled, TempGLEntryVATEntryLink);
@@ -10303,7 +10359,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// TempGLEntryBuf is a global temporary/buffer table used to accumulate all the g/l entries that will be posted
     /// </remarks>
     /// <param name="NewTempGLEntryBufEntryNo">New entry no.</param>
-    procedure SetTempGLEntryBufEntryNo(NewTempGLEntryBufEntryNo: BigInteger)
+    procedure SetTempGLEntryBufEntryNo(NewTempGLEntryBufEntryNo: Integer)
+    begin
+        SetTempGLEntryBufEntryNoBigInteger(NewTempGLEntryBufEntryNo);
+    end;
+
+    procedure SetTempGLEntryBufEntryNoBigInteger(NewTempGLEntryBufEntryNo: BigInteger)
     begin
         TempGLEntryBuf."Entry No." := NewTempGLEntryBufEntryNo;
     end;

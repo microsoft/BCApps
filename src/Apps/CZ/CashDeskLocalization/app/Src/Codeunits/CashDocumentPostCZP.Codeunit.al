@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ codeunit 11729 "Cash Document-Post CZP"
         TempGenJournalLine."VAT Registration No." := CashDocumentHeaderCZP."VAT Registration No.";
 
         OnBeforePostCashDocHeader(TempGenJournalLine, CashDocumentHeaderCZP, GenJnlPostLine);
-        GenJnlPostLine.RunWithCheck(TempGenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(TempGenJournalLine);
     end;
 
     local procedure PostLines()
@@ -211,7 +211,7 @@ codeunit 11729 "Cash Document-Post CZP"
                         Error(DimensionManagement.GetDimValuePostingErr());
                     end;
                     OnBeforePostCashDocLine(TempGenJournalLine, CashDocumentLineCZP, GenJnlPostLine);
-                    GLEntryNo := GenJnlPostLine.RunWithCheck(TempGenJournalLine);
+                    GLEntryNo := GenJnlPostLine.RunWithCheckBigInteger(TempGenJournalLine);
                     OnAfterPostCashDocLine(TempGenJournalLine, CashDocumentLineCZP, GLEntryNo, GenJnlPostLine);
                 end;
             until CashDocumentLineCZP.Next() = 0;

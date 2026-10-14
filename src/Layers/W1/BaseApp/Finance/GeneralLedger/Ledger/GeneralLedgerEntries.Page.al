@@ -553,7 +553,7 @@ page 20 "General Ledger Entries"
                             ReversalEntry.AlreadyReversedEntry(Rec.TableCaption, Rec."Entry No.");
                         CheckEntryPostedFromJournal();
                         Rec.TestField("Transaction No.");
-                        ReversalEntry.ReverseTransaction(Rec."Transaction No.")
+                        ReversalEntry.ReverseTransactionBigInteger(Rec."Transaction No.")
                     end;
                 }
                 group(IncomingDocument)

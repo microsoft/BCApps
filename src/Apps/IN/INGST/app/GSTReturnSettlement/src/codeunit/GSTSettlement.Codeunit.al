@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -697,7 +697,7 @@ codeunit 18318 "GST Settlement"
                                     false,
                                     TempGSTPostingBuffer1[1]."Dimension Set ID");
 
-                            GenJnlPostLine.RunWithCheck(GenJnlLine);
+                            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
 
                             if AccountNo2 <> '' then begin
                                 if GSTLiabilityAdjustment."Nature of Adjustment" = GSTLiabilityAdjustment."Nature of Adjustment"::Generate then
@@ -727,7 +727,7 @@ codeunit 18318 "GST Settlement"
                                         false,
                                         TempGSTPostingBuffer1[1]."Dimension Set ID");
 
-                                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                             end;
                         end;
                     until TempGSTPostingBuffer1[1].Next(-1) = 0;
@@ -1286,7 +1286,7 @@ codeunit 18318 "GST Settlement"
                       GSTCreditAdjustmentJournal."Adjust Document No.", TempGSTPostingBuffer[1]."GST Amount", GSTCreditAdjustmentJournal."Adjustment Posting Date",
                       GenJournalLine."Document Type"::Invoice, GSTCreditAdjustmentJournal."GST Jurisdiction Type", false, false,
                       TempGSTPostingBuffer[1]."Dimension Set ID");
-                EntryNo := GenJnlPostLine.RunWithCheck(GenJournalLine);
+                EntryNo := GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
             until TempGSTPostingBuffer[1].Next(-1) = 0;
     end;
 
@@ -2844,7 +2844,7 @@ codeunit 18318 "GST Settlement"
             GenJournalLine2."Shortcut Dimension 2 Code");
 
         TaxBaseLibrary.SetChequeNo(GenJournalLine2, ChequeNo, ChequeDate);
-        GenJnlPostLine.RunWithCheck(GenJournalLine2);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine2);
     end;
 
     local procedure GetComponentId(GSTGroupCode: Code[30]): Integer

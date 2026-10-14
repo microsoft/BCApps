@@ -1328,7 +1328,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="IsHandled">Set to true to skip standard dimension validation</param>
     /// <param name="DimensionManagement">Dimension management codeunit for validation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckDimComb(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
+    local procedure OnBeforeCheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
     begin
     end;
 

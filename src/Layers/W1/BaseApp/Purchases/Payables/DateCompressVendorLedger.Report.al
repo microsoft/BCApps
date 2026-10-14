@@ -356,7 +356,7 @@ report 398 "Date Compress Vendor Ledger"
     var
         NextRegNo: Integer;
     begin
-        GLReg.Initialize(GLReg.GetLastEntryNo() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress Vend. Ledger", '', '');
+        GLReg.InitializeBigInteger(GLReg.GetLastEntryNoBigInteger() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress Vend. Ledger", '', '');
         NextRegNo := DateComprReg.GetLastEntryNo() + 1;
 
         DateComprReg.InitRegister(
@@ -728,4 +728,3 @@ report 398 "Date Compress Vendor Ledger"
     begin
     end;
 }
-

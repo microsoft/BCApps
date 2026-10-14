@@ -235,7 +235,7 @@ codeunit 12172 "Customer Bill - Post + Print"
         GenJnlLine."Dimension Set ID" := CustLedgEntry."Dimension Set ID";
 
         OnBeforePostCustomerBillLine(GenJnlLine, CustomerBillHeader, CustomerBillLine, CustLedgEntry, GenJnlPostLine);
-        GenJnlPostLine.RunWithoutCheck(GenJnlLine);
+        GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine);
     end;
 
     [Scope('OnPrem')]
@@ -275,7 +275,7 @@ codeunit 12172 "Customer Bill - Post + Print"
         GenJnlLine."Shortcut Dimension 2 Code" := CustLedgEntry."Global Dimension 2 Code";
         GenJnlLine."Dimension Set ID" := CustLedgEntry."Dimension Set ID";
 
-        GenJnlPostLine.RunWithoutCheck(GenJnlLine);
+        GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine);
     end;
 
     local procedure UpdateCustLedgEntry(var CustLedgEntry: Record "Cust. Ledger Entry"; CustomerBillLine: Record "Customer Bill Line")

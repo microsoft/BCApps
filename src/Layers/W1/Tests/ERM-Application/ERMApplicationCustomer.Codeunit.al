@@ -1972,7 +1972,7 @@ codeunit 134010 "ERM Application Customer"
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
-        exit(GenJnlPostLine.RunWithCheck(GenJnlLine));
+        exit(GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine));
     end;
 
     local procedure VerifyCustomerEntriesClosed(var CustLedgerEntry: Record "Cust. Ledger Entry")

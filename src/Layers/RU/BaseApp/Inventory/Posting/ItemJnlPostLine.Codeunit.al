@@ -3794,6 +3794,7 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure CalcExpectedCost(var InvdValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger; InvoicedQty: Decimal; Quantity: Decimal; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal; CalcReminder: Boolean)
     var
         ValueEntry: Record "Value Entry";
+        LegacyItemLedgEntryNo: Integer;
     begin
         ExpectedCost := 0;
         ExpectedCostACY := 0;
@@ -3850,7 +3851,11 @@ codeunit 22 "Item Jnl.-Post Line"
                     end;
                 end;
 
-        OnAfterCalcExpectedCost(ValueEntry, ItemLedgEntryNo, ExpectedCost, ExpectedCostACY, ExpectedSalesAmt, ExpectedPurchAmt)
+        if ItemLedgEntryNo <= 2147483647 then begin
+            LegacyItemLedgEntryNo := ItemLedgEntryNo;
+            OnAfterCalcExpectedCost(ValueEntry, LegacyItemLedgEntryNo, ExpectedCost, ExpectedCostACY, ExpectedSalesAmt, ExpectedPurchAmt);
+        end;
+        OnAfterCalcExpectedCostBigInteger(ValueEntry, ItemLedgEntryNo, ExpectedCost, ExpectedCostACY, ExpectedSalesAmt, ExpectedPurchAmt);
     end;
 
     local procedure CalcExpCostToBalance(ExpectedCost: Decimal; InvoicedQty: Decimal; Quantity: Decimal; RoundPrecision: Decimal): Decimal
@@ -6695,7 +6700,12 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcExpectedCost(var ValueEntry: Record "Value Entry"; ItemLedgerEntryNo: BigInteger; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal)
+    local procedure OnAfterCalcExpectedCost(var ValueEntry: Record "Value Entry"; ItemLedgerEntryNo: Integer; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcExpectedCostBigInteger(var ValueEntry: Record "Value Entry"; ItemLedgerEntryNo: BigInteger; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal)
     begin
     end;
 

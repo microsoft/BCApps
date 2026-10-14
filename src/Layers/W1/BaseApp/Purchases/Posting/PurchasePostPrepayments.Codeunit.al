@@ -1326,7 +1326,7 @@ codeunit 444 "Purchase-Post Prepayments"
             GenJnlLine."Journal Template Name" := GenJournalTemplate.Name;
 
         OnBeforePostVendorEntry(GenJnlLine, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit, PurchHeader, DocumentType);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         OnAfterPostVendorEntry(GenJnlLine, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit);
     end;
 
@@ -1370,14 +1370,14 @@ codeunit 444 "Purchase-Post Prepayments"
             GenJnlLine."Journal Template Name" := GenJournalTemplate.Name;
 
         OnBeforePostBalancingEntry(GenJnlLine, VendLedgEntry, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         OnAfterPostBalancingEntry(GenJnlLine, VendLedgEntry, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit);
     end;
 
     local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
         OnBeforeRunGenJnlPostLine(GenJnlLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     procedure UpdatePrepmtAmountOnPurchLines(PurchHeader: Record "Purchase Header"; NewTotalPrepmtAmount: Decimal)

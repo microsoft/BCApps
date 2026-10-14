@@ -303,7 +303,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
                         SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                         AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
                     GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, true);
-                    VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                    VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                     OnPostAdvancePaymentVATOnAfterPost(
                         SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                         AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -382,7 +382,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
                 SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, VATPostingSetup,
                 AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
             GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-            VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+            VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
             OnPostAdvancePaymentVATUnlinkingOnAfterPost(
                 SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, VATPostingSetup,
                 AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -640,7 +640,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
                     SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                     AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
                 GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-                VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                 OnPostAdvanceCreditMemoVATOnAfterPost(
                     SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                     AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -868,7 +868,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
                 SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                 AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
             GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-            VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+            VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
             OnPostAdvanceLetterEntryVATUsageUnapplyingOnAfterPost(
                 SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                 AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -1031,7 +1031,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
             AdvancePostingParametersCZZ."Document No." :=
                 NoSeriesBatch.GetNextNo(
                     AdvanceLetterTemplateCZZ."Advance Letter Cr. Memo Nos.", AdvancePostingParametersCZZ."Posting Date");
-            NextEntryNo := GenJnlPostLine.GetNextEntryNo();
+            NextEntryNo := GenJnlPostLine.GetNextEntryNoBigInteger();
         end;
 
         if AdvancePostingParametersCZZ."Source Code" = '' then begin
@@ -1049,7 +1049,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
                     SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, GenJnlPostLine, AdvancePostingParametersCZZ);
             until SalesAdvLetterEntryCZZ.Next() = 0;
 
-        if GetDocNoFromNoSeries and (NextEntryNo <> GenJnlPostLine.GetNextEntryNo()) then
+        if GetDocNoFromNoSeries and (NextEntryNo <> GenJnlPostLine.GetNextEntryNoBigInteger()) then
             NoSeriesBatch.SaveState();
 
         SalesAdvLetterManagementCZZ.CancelInitEntry(SalesAdvLetterHeaderCZZ, AdvancePostingParametersCZZ."Posting Date", false);
@@ -1360,7 +1360,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
                     SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, VATPostingSetup,
                     AdvancePostingBufferCZZ, AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
                 GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-                VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                 OnReverseAdvancePaymentVATOnAfterPost(
                     SalesAdvLetterHeaderCZZ, SalesAdvLetterEntryCZZ, VATPostingSetup, AdvancePostingBufferCZZ,
                     AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -1982,7 +1982,7 @@ codeunit 31143 "Sales Adv. Letter-Post CZZ"
             BindSubscription(DocumentTypeHandlerCZZ);
         if ActivateGenJnlCheckLnHandler then
             BindSubscription(GenJnlCheckLnHandlerCZZ);
-        GLEntryNo := GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GLEntryNo := GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         if UseAdvLetterVATAccounts then
             UnbindSubscription(VATPostingSetupHandlerCZZ);
         if UseEmptyDocumentType then

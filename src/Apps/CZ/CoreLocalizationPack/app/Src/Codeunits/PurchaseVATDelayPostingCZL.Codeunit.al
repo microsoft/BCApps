@@ -96,7 +96,7 @@ codeunit 11760 "Purchase VAT Delay Posting CZL"
         GenJournalLine."EU 3-Party Trade" := PurchaseHeader."EU 3 Party Trade";
         GenJournalLine."EU 3-Party Intermed. Role CZL" := PurchaseHeader."EU 3-Party Intermed. Role CZL";
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 
     local procedure PostVATDelayDifference(PurchaseHeader: Record "Purchase Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; AmountType: Option Base,VAT; RecalcFactor: Decimal; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
@@ -124,7 +124,7 @@ codeunit 11760 "Purchase VAT Delay Posting CZL"
                 GenJournalLine."Account No." := Currency."Realized Losses Acc.";
         GenJournalLine.Amount := Amount - Round(Amount * RecalcFactor, Currency."Amount Rounding Precision");
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 
     local procedure InitGenJournalLine(PurchaseHeader: Record "Purchase Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJournalLine: Record "Gen. Journal Line")

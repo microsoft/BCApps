@@ -1488,7 +1488,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
                 GenJnlLine."Journal Template Name" := GenJournalTemplate.Name;
 
             OnBeforePostCustomerEntry(GenJnlLine, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit, SalesHeader, DocumentType);
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         end;
 
         OnAfterPostCustomerEntry(GenJnlLine, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit);
@@ -1533,14 +1533,14 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
         if GLSetup."Journal Templ. Name Mandatory" then
             GenJnlLine."Journal Template Name" := GenJournalTemplate.Name;
         OnPostBalancingEntryOnBeforeGenJnlPostLineRunWithCheck(GenJnlLine, CustLedgEntry, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit, SalesHeader, DocType);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         OnAfterPostBalancingEntry(GenJnlLine, CustLedgEntry, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, SuppressCommit, SalesHeader);
     end;
 
     local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
         OnBeforeRunGenJnlPostLine(GenJnlLine);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     /// <summary>

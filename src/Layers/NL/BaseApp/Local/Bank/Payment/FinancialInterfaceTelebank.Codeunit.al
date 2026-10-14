@@ -293,7 +293,7 @@ codeunit 11000001 "Financial Interface Telebank"
     begin
         if GenJournalLine.FindSet() then
             repeat
-                GenJnlPostLine.RunWithCheck(GenJournalLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
             until GenJournalLine.Next() = 0
     end;
 

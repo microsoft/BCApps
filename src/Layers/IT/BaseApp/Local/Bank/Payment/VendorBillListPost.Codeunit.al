@@ -215,7 +215,7 @@ codeunit 12173 "Vendor Bill List - Post"
         AmountLCY := GenJnlLine."Amount (LCY)";
 
         OnBeforePostVendorBillLine(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     [Scope('OnPrem')]
@@ -247,7 +247,7 @@ codeunit 12173 "Vendor Bill List - Post"
 
         GenJnlLine.CreateDimFromDefaultDim(GenJnlLine.FieldNo("Account No."));
         OnBeforePostBalanceAccount(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     [Scope('OnPrem')]
@@ -278,7 +278,7 @@ codeunit 12173 "Vendor Bill List - Post"
         end;
 
         OnBeforePostExpense(GenJnlLine, VendorBillHeader, VendLedgEntry);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     procedure PostTax(VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; Tax: Option " ",Withhold,"Free Lance",Company)
@@ -340,7 +340,7 @@ codeunit 12173 "Vendor Bill List - Post"
             GenJnlLine."Dimension Set ID" := VendorBillLine."Dimension Set ID";
 
         OnBeforePostWithholdingTax(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, VendorBillWithholdingTax);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     [Scope('OnPrem')]

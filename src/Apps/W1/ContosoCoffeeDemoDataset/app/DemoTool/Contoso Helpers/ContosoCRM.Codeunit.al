@@ -720,7 +720,12 @@ codeunit 5180 "Contoso CRM"
             Opportunity.Insert(true);
     end;
 
-    procedure InsertOpportunityEntry(EntryNo: BigInteger; OpportunityNo: Code[10]; SalesCycleStage: Integer; EstimatedCloseDate: Date; DateofChange: Date; Active: Boolean; DateClosed: Date; ActionTaken: Integer; EstimatedValueLCY: Decimal; CompletedPercent: Decimal; ChancesofSuccessPercent: Decimal; CloseOpportunityCode: Code[10]; PreviousSalesCycleStage: Integer)
+    procedure InsertOpportunityEntry(EntryNo: Integer; OpportunityNo: Code[10]; SalesCycleStage: Integer; EstimatedCloseDate: Date; DateofChange: Date; Active: Boolean; DateClosed: Date; ActionTaken: Integer; EstimatedValueLCY: Decimal; CompletedPercent: Decimal; ChancesofSuccessPercent: Decimal; CloseOpportunityCode: Code[10]; PreviousSalesCycleStage: Integer)
+    begin
+        InsertOpportunityEntryBigInteger(EntryNo, OpportunityNo, SalesCycleStage, EstimatedCloseDate, DateofChange, Active, DateClosed, ActionTaken, EstimatedValueLCY, CompletedPercent, ChancesofSuccessPercent, CloseOpportunityCode, PreviousSalesCycleStage);
+    end;
+
+    procedure InsertOpportunityEntryBigInteger(EntryNo: BigInteger; OpportunityNo: Code[10]; SalesCycleStage: Integer; EstimatedCloseDate: Date; DateofChange: Date; Active: Boolean; DateClosed: Date; ActionTaken: Integer; EstimatedValueLCY: Decimal; CompletedPercent: Decimal; ChancesofSuccessPercent: Decimal; CloseOpportunityCode: Code[10]; PreviousSalesCycleStage: Integer)
     var
         Opportunity: Record Opportunity;
         OpportunityEntry: Record "Opportunity Entry";

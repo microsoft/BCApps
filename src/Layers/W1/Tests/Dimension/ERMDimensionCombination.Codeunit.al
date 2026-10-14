@@ -240,7 +240,7 @@ codeunit 134479 "ERM Dimension Combination"
         MockGenJournalLineWithDim(GenJournalLine, DefaultDimension."No.", DimensionValue);
 
         // [WHEN] Invoke "Gen. Jnl.-Post Line".RunWithCheck
-        asserterror GenJnlPostLine.RunWithCheck(GenJournalLine);
+        asserterror GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         // [THEN] Error occurs "Dimensions X and Y can't be used concurrently."
         Assert.ExpectedError(

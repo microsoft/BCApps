@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ codeunit 31269 "Compensation - Post CZC"
                 GenJournalLine."Source Code" := SourceCodeSetup."Compensation CZC";
                 GenJournalLine."System-Created Entry" := true;
                 OnRunOnBeforeRunGenJnlPostLine(GenJournalLine, CompensationLineCZC, TempAmount);
-                GenJnlPostLine.RunWithCheck(GenJournalLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
                 CompensationLineCZC."Amount (LCY)" := TempAmount;
                 CompensationLineCZC.Modify();
 
@@ -108,7 +108,7 @@ codeunit 31269 "Compensation - Post CZC"
                 GenJournalLine."Source Code" := SourceCodeSetup."Compensation CZC";
                 GenJournalLine."System-Created Entry" := true;
                 OnRunOnBeforeRunBalanceGenJnlPostLine(GenJournalLine, CompensationLineCZC);
-                GenJnlPostLine.RunWithCheck(GenJournalLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
             end;
             if PreviewMode then
                 GenJnlPostPreview.ThrowError();
