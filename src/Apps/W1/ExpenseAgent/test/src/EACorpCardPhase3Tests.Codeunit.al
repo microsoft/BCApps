@@ -191,6 +191,7 @@ codeunit 148353 EACorpCardPhase3Tests
         Initialize();
         CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
         CreateCorpCard(CorpCard, CorpCardTrans."Card Id");
+        Commit();
 
         asserterror CorpCard.Delete(true);
 
@@ -230,6 +231,7 @@ codeunit 148353 EACorpCardPhase3Tests
         CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
         CorpCardTrans.MCC := CorpCardMCCMap.MCC;
         CorpCardTrans.Modify(true);
+        Commit();
 
         asserterror CorpCardMCCMap.Delete(true);
 
