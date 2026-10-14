@@ -12,7 +12,13 @@ codeunit 10810 "Upg. Tag Sales FR"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    var
+        CurrentModuleInfo: ModuleInfo;
     begin
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        if CurrentModuleInfo.AppVersion().Major() < 31 then
+            exit;
+
         PerCompanyUpgradeTags.Add(GetSalesFRUpgradeTag());
     end;
 

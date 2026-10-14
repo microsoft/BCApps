@@ -48,13 +48,8 @@ codeunit 10812 "Feature - Sales FR" implements "Feature Data Update"
 
     procedure AfterUpdate(FeatureDataUpdateStatus: Record "Feature Data Update Status")
     var
-        UpdateFeatureDataUpdateStatus: Record "Feature Data Update Status";
         SalesFR: Codeunit "Sales FR";
     begin
-        UpdateFeatureDataUpdateStatus.SetRange("Feature Key", FeatureDataUpdateStatus."Feature Key");
-        UpdateFeatureDataUpdateStatus.SetFilter("Company Name", '<>%1', FeatureDataUpdateStatus."Company Name");
-        UpdateFeatureDataUpdateStatus.ModifyAll("Feature Status", FeatureDataUpdateStatus."Feature Status");
-
         SetUpgradeTag();
         SalesFR.LogFeatureSetUp();
     end;

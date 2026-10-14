@@ -36,17 +36,17 @@ codeunit 10815 "Sales FR"
 
     procedure LogFeatureDiscovered()
     begin
-        FeatureTelemetry.LogUptake('', FeatureNameTok, Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000W22', FeatureNameTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 
     procedure LogFeatureSetUp()
     begin
-        FeatureTelemetry.LogUptake('', FeatureNameTok, Enum::"Feature Uptake Status"::"Set up");
+        FeatureTelemetry.LogUptake('0000W23', FeatureNameTok, Enum::"Feature Uptake Status"::"Set up");
     end;
 
     procedure LogFeatureUsed()
     begin
-        FeatureTelemetry.LogUptake('', FeatureNameTok, Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000W24', FeatureNameTok, Enum::"Feature Uptake Status"::Used);
     end;
 }
 #endif

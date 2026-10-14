@@ -17,7 +17,32 @@ pageextension 10808 "Posted Sales Invoice" extends "Posted Sales Invoice"
                 ApplicationArea = Basic, Suite;
                 Editable = false;
                 ToolTip = 'Specifies if the VAT was paid on debits for this document.';
+#if not CLEAN30
+                Visible = SalesFRFeatureEnabled;
+#endif
             }
         }
+#if not CLEAN30
+#pragma warning disable AL0432
+        modify("VAT Paid on Debits")
+        {
+            Visible = not SalesFRFeatureEnabled;
+        }
+#pragma warning restore AL0432
+#endif
     }
+#if not CLEAN30
+
+    var
+        SalesFRFeatureEnabled: Boolean;
+
+#pragma warning disable AL0432
+    trigger OnOpenPage()
+    var
+        SalesFR: Codeunit "Sales FR";
+    begin
+        SalesFRFeatureEnabled := SalesFR.IsEnabled();
+    end;
+#pragma warning restore AL0432
+#endif
 }
