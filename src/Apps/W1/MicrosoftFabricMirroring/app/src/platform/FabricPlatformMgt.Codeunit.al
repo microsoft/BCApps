@@ -535,7 +535,7 @@ codeunit 48520 "Fabric Platform Mgt"
         // A subscriber must explicitly confirm success; skipping the consent flow no longer implies it.
         if not IsSuccess then
             exit;
-        Telemetry.LogEvent('0000VNK', 'Fabric admin consent succeeded.');
+        Telemetry.LogEvent('0000VNN', 'Fabric admin consent succeeded.');
         if GuiAllowed() then
             Message(AdminConsentSuccessMsg);
     end;

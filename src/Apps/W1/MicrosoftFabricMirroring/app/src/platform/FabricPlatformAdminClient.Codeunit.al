@@ -217,7 +217,7 @@ codeunit 48526 "Fabric Platform Admin Client"
     end;
 
     /// <summary>Resolves the object ID of the service principal for the given application (client) ID from Microsoft Graph.</summary>
-    procedure GetServicePrincipalId(ClientId: Text; AccessToken: SecretText): Text
+    local procedure GetServicePrincipalId(ClientId: Text; AccessToken: SecretText): Text
     var
         HttpClient: Codeunit "Fabric Platform Http Client";
         RestClientResult: Codeunit "Rest Client";
