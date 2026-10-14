@@ -36,7 +36,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardProvider.Get(CorpCardStatement."Provider Code");
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
         if CorpCardProvider."Data Exch Def Code" = '' then
-            Error(FieldMustBeSetOnRecordErr, CorpCardProvider.FieldCaption("Data Exch Def Code"), CorpCardProvider.TableCaption(), CorpCardProvider.Code);
+            RaiseProviderSetupError(StrSubstNo(FieldMustBeSetOnRecordErr, CorpCardProvider.FieldCaption("Data Exch Def Code"), CorpCardProvider.TableCaption(), CorpCardProvider.Code), CorpCardProvider);
 
         DataExch.Init();
         DataExch."Data Exch. Def Code" := CorpCardProvider."Data Exch Def Code";

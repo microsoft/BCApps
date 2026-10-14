@@ -24,12 +24,18 @@ codeunit 7432 "EA Corp Card Import Orch"
 
     internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean)
     var
+        ImportErrorText: Text;
+    begin
+        RunProvider(CorpCardProvider, RaiseImportError, ImportErrorText);
+    end;
+
+    internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean; var ImportErrorText: Text): Boolean
+    var
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
         ImportErrorInfo: ErrorInfo;
-        ImportErrorText: Text;
         HasStructuredErrorInfo: Boolean;
     begin
         CorpCardStatement.Init();
@@ -55,7 +61,7 @@ codeunit 7432 "EA Corp Card Import Orch"
                     Error(ImportErrorInfo);
                 Error(ImportErrorText);
             end;
-            exit;
+            exit(false);
         end;
 
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
@@ -74,6 +80,7 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardProvider."Last Import DT" := CurrentDateTime();
         CorpCardProvider."Last Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardProvider.Modify();
+        exit(true);
     end;
 
     local procedure ProcessProviderImport(var CorpCardStatement: Record "EA Corp Card Statement")

@@ -17,45 +17,78 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
 
     var
         CorpCardTelemetryCategoryTok: Label 'Corporate Card', Locked = true;
-        ImportStartedMsg: Label 'Corp Card statement import started for provider %1. Statement Entry No. %2.', Locked = true;
-        ImportCompletedMsg: Label 'Corp Card statement import completed for provider %1. Statement Entry No. %2. Imported: %3, Exceptions: %4, Duplicates: %5.', Locked = true;
-        ImportFailedMsg: Label 'Corp Card statement import failed for provider %1. Statement Entry No. %2. Error: %3.', Locked = true;
-        MatchingCompletedMsg: Label 'Corp Card matching completed. Matched: %1, Unmatched: %2.', Locked = true;
-        DraftCreatedMsg: Label 'Corp Card draft created. Transaction: %1, Expense No.: %2.', Locked = true;
-        JobQueueScheduledMsg: Label 'Corp Card import job queue scheduled for provider %1 with frequency %2.', Locked = true;
+        ImportStartedMsg: Label 'Corp Card statement import started for a provider.', Locked = true;
+        ImportCompletedMsg: Label 'Corp Card statement import completed for a provider.', Locked = true;
+        ImportFailedMsg: Label 'Corp Card statement import failed for a provider.', Locked = true;
+        MatchingCompletedMsg: Label 'Corp Card matching completed.', Locked = true;
+        DraftCreatedMsg: Label 'Corp Card draft created.', Locked = true;
+        JobQueueScheduledMsg: Label 'Corp Card import job queue scheduled for a provider.', Locked = true;
         ReportCreatedMsg: Label 'Expense report created from corp card expenses.', Locked = true;
         ReportSubmittedMsg: Label 'Expense report submitted for approval.', Locked = true;
         ReportApprovedMsg: Label 'Expense report approved for posting.', Locked = true;
         ReportRejectedMsg: Label 'Expense report rejected.', Locked = true;
 
     internal procedure LogImportStarted(ProviderCode: Code[20]; StatementEntryNo: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UCS', StrSubstNo(ImportStartedMsg, ProviderCode, StatementEntryNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Dimensions.Add('Category', TelemetryCategory());
+        Dimensions.Add('ProviderCode', ProviderCode);
+        Dimensions.Add('StatementEntryNo', Format(StatementEntryNo));
+        Session.LogMessage('0000UCS', ImportStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogImportCompleted(ProviderCode: Code[20]; StatementEntryNo: Integer; Imported: Integer; Exceptions: Integer; Duplicates: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UCT', StrSubstNo(ImportCompletedMsg, ProviderCode, StatementEntryNo, Imported, Exceptions, Duplicates), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Dimensions.Add('Category', TelemetryCategory());
+        Dimensions.Add('ProviderCode', ProviderCode);
+        Dimensions.Add('StatementEntryNo', Format(StatementEntryNo));
+        Dimensions.Add('Imported', Format(Imported));
+        Dimensions.Add('Exceptions', Format(Exceptions));
+        Dimensions.Add('Duplicates', Format(Duplicates));
+        Session.LogMessage('0000UCT', ImportCompletedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogImportFailed(ProviderCode: Code[20]; StatementEntryNo: Integer; ErrorMsg: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UCU', StrSubstNo(ImportFailedMsg, ProviderCode, StatementEntryNo, CopyStr(ErrorMsg, 1, 250)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Dimensions.Add('Category', TelemetryCategory());
+        Dimensions.Add('ProviderCode', ProviderCode);
+        Dimensions.Add('StatementEntryNo', Format(StatementEntryNo));
+        Session.LogMessage('0000UCU', ImportFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogMatchingCompleted(Matched: Integer; Unmatched: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UCV', StrSubstNo(MatchingCompletedMsg, Matched, Unmatched), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Dimensions.Add('Category', TelemetryCategory());
+        Dimensions.Add('Matched', Format(Matched));
+        Dimensions.Add('Unmatched', Format(Unmatched));
+        Session.LogMessage('0000UCV', MatchingCompletedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogDraftCreated(TransEntryNo: Integer; ExpenseNo: Code[20])
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UCW', StrSubstNo(DraftCreatedMsg, TransEntryNo, ExpenseNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Dimensions.Add('Category', TelemetryCategory());
+        Dimensions.Add('TransactionEntryNo', Format(TransEntryNo));
+        Dimensions.Add('ExpenseNo', ExpenseNo);
+        Session.LogMessage('0000UCW', DraftCreatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogJobQueueScheduled(ProviderCode: Code[20]; Frequency: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UCX', StrSubstNo(JobQueueScheduledMsg, ProviderCode, Frequency), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Dimensions.Add('Category', TelemetryCategory());
+        Dimensions.Add('ProviderCode', ProviderCode);
+        Dimensions.Add('Frequency', Frequency);
+        Session.LogMessage('0000UCX', JobQueueScheduledMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogReportCreatedFromCorpCard()

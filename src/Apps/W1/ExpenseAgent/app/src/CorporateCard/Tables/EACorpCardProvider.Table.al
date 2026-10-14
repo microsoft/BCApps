@@ -23,7 +23,8 @@ table 7426 "EA Corp Card Provider"
         tabledata "EA Corp Card Trans" = rimd,
         tabledata "EA Corp Card Trans Detail" = rimd,
         tabledata "Data Exch." = rimd,
-        tabledata "EA Corp Card Provider" = rimd;
+        tabledata "EA Corp Card Provider" = rimd,
+        tabledata "Expense Agent Setup" = rm;
 
     fields
     {
@@ -312,10 +313,17 @@ table 7426 "EA Corp Card Provider"
         CorpCardSettlement: Record "EA Corp Card Settlement";
         CorpCardStatement: Record "EA Corp Card Statement";
         DataExch: Record "Data Exch.";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         JobQueueEntry: Record "Job Queue Entry";
     begin
         JobQueueEntry.SetRange("Record ID to Process", RecordId);
         JobQueueEntry.DeleteAll(true);
+
+        if ExpenseAgentSetup.Get() then
+            if ExpenseAgentSetup."Corp Card Default Provider" = Code then begin
+                ExpenseAgentSetup."Corp Card Default Provider" := '';
+                ExpenseAgentSetup.Modify();
+            end;
 
         DataExch.SetRange("Related Record", RecordId);
         DataExch.DeleteAll(true);
