@@ -319,6 +319,34 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure NoVATBusinessPostingGroupsDoesNotFailCountryVATRatesDefaults()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 653962] Sales Tax countries (CA/US) without VAT business posting groups can create country VAT rate defaults.
+        Initialize();
+
+        // [GIVEN] No VAT posting setup or VAT business posting group exists, a country with VAT defaults is set, and the expense default is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        SetUnsupportedCountryCode(CompanyInformation);
+        CompanyInformation."Country/Region Code" := 'CA';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] No error occurs, the default stays blank and VAT rates are marked as applied.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", ExpenseAgentSetup.FieldCaption("VAT Rates Applied"));
+    end;
+
+    [Test]
     procedure NoBeUpdatedInExpenseManuallyIfManualNosIsTrue()
     var
         Expense: Record Expense;

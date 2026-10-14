@@ -37,6 +37,11 @@ codeunit 6975 "Create Expense VAT Rates"
     var
         CompanyInfo: Record "Company Information";
     begin
+        // Sales Tax countries (e.g. CA, US) have no VAT business posting groups, so there are no VAT defaults to create.
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then
+            exit;
+
         CompanyInfo.Get();
         case CompanyInfo."Country/Region Code" of
             'AT':
@@ -173,7 +178,6 @@ codeunit 6975 "Create Expense VAT Rates"
             if VATPostingSetup.IsDirty() then
                 VATPostingSetup.Modify();
         end;
-
         if SubcategoryCode = '' then begin
             ExpenseCategory.Get(CategoryCode);
             ExpenseCategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
