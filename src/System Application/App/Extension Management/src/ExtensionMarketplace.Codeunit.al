@@ -275,7 +275,7 @@ codeunit 2501 "Extension Marketplace"
         if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
             exit;
 
-        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
+        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
@@ -285,7 +285,6 @@ codeunit 2501 "Extension Marketplace"
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
             end;
-        end;
     end;
 
     procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
