@@ -16,7 +16,7 @@ using System.TestLibraries.Utilities;
 codeunit 139972 "Qlty. Tests - Inspections API"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -59,6 +59,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     // region Qlty. Inspections API (page 20414) - GET Tests
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetInspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -83,6 +84,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetInspectionVerifiesKeyFields()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -108,6 +110,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetInspectionVerifiesSourceFields()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -133,6 +136,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetInspectionVerifiesStatusField()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -157,6 +161,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetMultipleInspections()
     var
         QltyInspectionHeader1: Record "Qlty. Inspection Header";
@@ -187,6 +192,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     // region Qlty. Inspections API (page 20414) - Action Tests
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure FinishInspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -214,6 +220,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure FinishInspectionSetsFinishedDate()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -240,6 +247,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ReopenFinishedInspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -270,6 +278,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateReinspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -305,6 +314,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure SetTestValue()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -342,6 +352,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignToUser()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -374,6 +385,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure SetTestValueAndFinishInspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -414,6 +426,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetInspectionAfterFinish()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -445,6 +458,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     // region Qlty. Create Inspection API (page 20415) - Action Tests
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateInspectionFromRecordIDWithTableNumber()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -483,6 +497,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateInspectionFromRecordIDWithTableName()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -517,6 +532,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateInspectionFromTableIDAndFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -558,6 +574,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateInspectionFromRecordIDWithInvalidSystemIdFails()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -620,4 +637,11 @@ codeunit 139972 "Qlty. Tests - Inspections API"
     end;
 
     // endregion
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        LibraryAssert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

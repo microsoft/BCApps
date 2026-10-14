@@ -33,7 +33,7 @@ using System.Utilities;
 codeunit 139878 "E2E PowerBI Manufacturing Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     Access = Internal;
     TestPermissions = Disabled;
@@ -53,6 +53,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         ResponseEmptyErr: Label 'Response should not be empty.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInventoryAdjmtEntries()
     var
         InventoryAdjmtEntry: Record "Inventory Adjmt. Entry (Order)";
@@ -123,6 +124,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCalendarEntries()
     var
         WorkCenter: Record "Work Center";
@@ -171,6 +173,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetMachineCenters()
     var
         WorkCenter: Record "Work Center";
@@ -212,6 +215,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetWorkCenters()
     var
         WorkCenterGroup: Record "Work Center Group";
@@ -259,6 +263,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderLines()
     var
         Item: Record Item;
@@ -333,6 +338,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderCompLines()
     var
         Item: Record Item;
@@ -407,6 +413,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderRoutingLines()
     var
         Item: Record Item;
@@ -485,7 +492,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
-    [HandlerFunctions('ProductionJournalModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ProductionJournalModalPageHandler,ConfirmHandler,MessageHandler,LocalServerRequestHandler')]
     procedure TestGetProdItemLedgerEntries()
     var
         Item: Record Item;
@@ -563,6 +570,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdItemLedgerEntriesOutsideFilter()
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -602,7 +610,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
-    [HandlerFunctions('ProductionJournalModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ProductionJournalModalPageHandler,ConfirmHandler,MessageHandler,LocalServerRequestHandler')]
     procedure TestCapacityLedgerEntry()
     var
         Item: Record Item;
@@ -692,6 +700,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestProdOrderCapNeeded()
     var
         Item: Record Item;
@@ -832,6 +841,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestManufacturingSetup()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -868,6 +878,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProductionOrders()
     var
         Item: Record Item;
@@ -931,6 +942,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetRoutingLinks()
     var
         RoutingLink: Record "Routing Link";
@@ -968,6 +980,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetRoutings()
     var
         RoutingHeader: Record "Routing Header";
@@ -1008,6 +1021,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetWorkCenterGroups()
     var
         WorkCenterGroup: Record "Work Center Group";
@@ -1046,6 +1060,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetManufacturingValueEntries()
     var
         Item: Record Item;
@@ -1133,4 +1148,10 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         Assert.AreEqual(Format(ValueEntry."Expected Cost" ? 'True' : 'False'), JsonMgt.GetValue('expectedCost'), 'Expected cost did not match.');
     end;
 
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

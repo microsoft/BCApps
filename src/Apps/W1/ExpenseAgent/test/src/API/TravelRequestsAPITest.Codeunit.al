@@ -19,7 +19,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -59,6 +59,7 @@ codeunit 148347 "Travel Requests API Test"
         ActualEndBeforeStartErr: Label 'Actual End Date and Time cannot be before Actual Start Date and Time.', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
     var
         Employee: Record Employee;
@@ -175,6 +176,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelersAPIRejectsEmployeeWithoutExpenseUser()
     var
         Employee: Record Employee;
@@ -210,6 +212,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateExpenseReportActionRecreatesDeletedReport()
     var
         ExpenseReportHeader: Record "Expense Report Header";
@@ -249,6 +252,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ApproveTravelRequestActionCreatesExpenseReport()
     var
         ApprovalSetup: Record "Expense Approval Setup";
@@ -289,6 +293,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPINormalizesCurrency()
     var
         ExpenseUser: Record "Expense User";
@@ -311,6 +316,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestDetailsAPINormalizesCurrency()
     var
         ExpenseUser: Record "Expense User";
@@ -336,6 +342,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIKeepsClientSuppliedId()
     var
         ExpenseUser: Record "Expense User";
@@ -373,6 +380,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIPreservesAndUpdatesDates()
     var
         ExpenseUser: Record "Expense User";
@@ -467,6 +475,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAreScopedByEmployeeNumber()
     var
         ExpenseUser: Record "Expense User";
@@ -525,6 +534,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ExpenseReportAPIExposesLinkedTravelRequest()
     var
         ExpenseUser: Record "Expense User";
@@ -573,6 +583,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestDetailsAPIExposesTypeAndCategory()
     var
         ExpenseUser: Record "Expense User";
@@ -614,6 +625,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ApproverViewReturnsOnlyAssignedTravelRequests()
     var
         ApprovalSetup: Record "Expense Approval Setup";
@@ -668,6 +680,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIAllowsOwnerOnInsertAndUnchangedPatch()
     var
         ExpenseUser: Record "Expense User";
@@ -728,6 +741,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIRejectsLifecycleFieldChanges()
     var
         ExpenseUser: Record "Expense User";
@@ -782,6 +796,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIRejectsRequestedForChange()
     var
         ExpenseUser: Record "Expense User";
@@ -825,6 +840,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIValidatesExpenseLocationOnSave()
     var
         ExpenseUser: Record "Expense User";
@@ -876,6 +892,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestsAPIValidatesActualDatesOnSave()
     var
         ExpenseUser: Record "Expense User";
@@ -935,6 +952,7 @@ codeunit 148347 "Travel Requests API Test"
 
 #if not CLEAN30
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure LegacySpendRequestsAPIAllowsUnchangedOwner()
     var
         ExpenseUser: Record "Expense User";
@@ -957,6 +975,7 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure LegacySpendRequestsAPIRejectsTravelRequestOwnerChange()
     var
         ExpenseUser: Record "Expense User";
@@ -1302,5 +1321,12 @@ codeunit 148347 "Travel Requests API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Travel Requests API Test");
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

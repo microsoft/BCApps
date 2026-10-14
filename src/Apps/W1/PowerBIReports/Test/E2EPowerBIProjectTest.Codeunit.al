@@ -22,7 +22,7 @@ using System.Utilities;
 codeunit 139879 "E2E PowerBI Project Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     Access = Internal;
 
@@ -40,6 +40,7 @@ codeunit 139879 "E2E PowerBI Project Test"
         ResponseEmptyErr: Label 'Response should not be empty.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobs()
     var
         Job: Record Job;
@@ -100,6 +101,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobTasks()
     var
         Job: Record Job;
@@ -146,6 +148,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobPlanningLines()
     var
         Job: Record Job;
@@ -206,7 +209,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler,LocalServerRequestHandler')]
     procedure TestGetJobLedgerEntries()
     var
         Job: Record Job;
@@ -275,6 +278,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOutstandingPOLines()
     var
         Job: Record Job;
@@ -327,6 +331,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOutstandingPurchOrderLineOutsideFilter()
     var
         PurchHeader: Record "Purchase Header";
@@ -390,7 +395,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler,LocalServerRequestHandler')]
     procedure TestGetRcvdNotInvdPOLines()
     var
         Job: Record Job;
@@ -480,5 +485,12 @@ codeunit 139879 "E2E PowerBI Project Test"
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

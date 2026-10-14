@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148318 "Expense Capabilities API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -27,6 +27,7 @@ codeunit 148318 "Expense Capabilities API Test"
         TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CapabilitiesProjectsEnabledViaAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -62,6 +63,7 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ActivityLogCapabilityEnabledViaAPI()
     var
         TargetURL: Text;
@@ -81,6 +83,7 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ApprovalConversationCapabilityEnabledViaAPI()
     var
         TargetURL: Text;
@@ -100,6 +103,7 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestCapabilityEnabledViaAPI()
     var
         TargetURL: Text;
@@ -121,6 +125,7 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CapabilitiesProjectsDisabledViaAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -154,6 +159,7 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -294,4 +300,10 @@ codeunit 148318 "Expense Capabilities API Test"
         exit(false);
     end;
 
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

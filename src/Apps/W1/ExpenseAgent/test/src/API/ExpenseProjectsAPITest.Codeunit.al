@@ -13,7 +13,7 @@ using Microsoft.Projects.Resources.Resource;
 codeunit 148331 "Expense Projects API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -33,6 +33,7 @@ codeunit 148331 "Expense Projects API Test"
         ScopeRequiredErrTxt: Label 'filter on expenseUserSystemId is required', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedByPersonResponsibleReturnsWholeProjectViaAPI()
     var
         Employee: Record Employee;
@@ -97,6 +98,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedByProjectManagerReturnsWholeProjectViaAPI()
     var
         Employee: Record Employee;
@@ -144,6 +146,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedByProjectLevelResourceReturnsWholeProjectViaAPI()
     var
         Employee: Record Employee;
@@ -192,6 +195,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedByTaskLevelResourceReturnsOnlyThatTaskViaAPI()
     var
         Employee: Record Employee;
@@ -232,6 +236,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedByPlanningLineReturnsOnlyThatTaskViaAPI()
     var
         Employee: Record Employee;
@@ -271,6 +276,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure WholeProjectSignalSupersedesTaskLevelViaAPI()
     var
         Employee: Record Employee;
@@ -307,6 +313,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure OverlappingSignalsForSameResourceAreDeduplicatedViaAPI()
     var
         Employee: Record Employee;
@@ -357,7 +364,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('MessageHandler,LocalServerRequestHandler')]
     procedure CompletedProjectExcludedEvenWhenAssignedViaAPI()
     var
         Employee: Record Employee;
@@ -387,6 +394,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure EmptyResourceUserMatchesNothingViaAPI()
     var
         Employee: Record Employee;
@@ -423,6 +431,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure BlankUserIdDoesNotMatchBlankProjectManagerViaAPI()
     var
         Employee: Record Employee;
@@ -460,6 +469,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ProjectManagerMatchWithBlankResourceReturnsProjectViaAPI()
     var
         Employee: Record Employee;
@@ -501,6 +511,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TasklessProjectExcludedViaAPI()
     var
         Employee: Record Employee;
@@ -532,6 +543,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure WholeProjectAndTaskLevelAcrossProjectsNoLeakageViaAPI()
     var
         Employee: Record Employee;
@@ -581,6 +593,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AllProjectsVisibilityReturnsAllProjectsViaAPI()
     var
         Employee: Record Employee;
@@ -621,7 +634,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('MessageHandler,LocalServerRequestHandler')]
     procedure AllProjectsVisibilityIncludesActiveStatusesAndPostingTasksViaAPI()
     var
         Employee: Record Employee;
@@ -683,6 +696,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedProjectsRequiresScopeFilterViaAPI()
     var
         TargetURL: Text;
@@ -699,6 +713,7 @@ codeunit 148331 "Expense Projects API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AssignedProjectsBlockedWhenProjectFieldsDisabledViaAPI()
     var
         ExpenseUser: Record "Expense User";
@@ -909,5 +924,12 @@ codeunit 148331 "Expense Projects API Test"
     begin
         // Swallow informational messages (e.g. "Ending Date is set to ...") raised when
         // a Job's Status is validated to Completed via Job.ChangeJobCompletionStatus.
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

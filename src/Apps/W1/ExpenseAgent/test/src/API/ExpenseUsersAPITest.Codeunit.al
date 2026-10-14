@@ -10,7 +10,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148315 "Expense Users API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -28,6 +28,7 @@ codeunit 148315 "Expense Users API Test"
         EmployeesServiceNameTok: Label 'employees', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure EmployeesAPICanFilterExpenseUsers()
     var
         LinkedExpenseUser: Record "Expense User";
@@ -62,6 +63,7 @@ codeunit 148315 "Expense Users API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure UnlinkedExpenseUserIsHiddenFromAPI()
     var
         LinkedExpenseUser: Record "Expense User";
@@ -144,5 +146,12 @@ codeunit 148315 "Expense Users API Test"
     begin
         Employee.Get(EmployeeNo);
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Format(Employee.SystemId))));
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

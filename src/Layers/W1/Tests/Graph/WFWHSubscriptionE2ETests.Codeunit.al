@@ -1,7 +1,7 @@
 codeunit 135528 "WFWH Subscription E2E Tests"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -61,6 +61,7 @@ codeunit 135528 "WFWH Subscription E2E Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure CanGetWorkflowWebhookSubscriptionNoWorkflow()
     var
@@ -85,6 +86,7 @@ codeunit 135528 "WFWH Subscription E2E Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure CanCreateWorkflowWebhookSubscriptionWithWorkflow()
     var
@@ -196,6 +198,7 @@ codeunit 135528 "WFWH Subscription E2E Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure CanUpdateWorkflowWebhookSubscriptionWithWorkflow_PostWithoutDelete()
     var
@@ -253,6 +256,7 @@ codeunit 135528 "WFWH Subscription E2E Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure CanUpdateWorkflowWebhookSubscriptionWithWorkflow_PostThenDelete()
     var
@@ -313,6 +317,7 @@ codeunit 135528 "WFWH Subscription E2E Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure CanUpdateWorkflowWebhookSubscriptionWithWorkflow_DeleteThenPost()
     var
@@ -1453,6 +1458,13 @@ codeunit 135528 "WFWH Subscription E2E Tests"
         String := DelStr(String, StrPos(String, ReplaceWhat)) +
           ReplaceWith + CopyStr(String, StrPos(String, ReplaceWhat) + StrLen(ReplaceWhat));
         exit(String);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

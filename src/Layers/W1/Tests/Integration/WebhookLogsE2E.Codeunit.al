@@ -1,7 +1,7 @@
 codeunit 135547 "Webhook Logs E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -16,6 +16,7 @@ codeunit 135547 "Webhook Logs E2E"
         ActivityLogContextLbl: Label 'APIWEBHOOK', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetWebhookLogsMany()
     var
@@ -36,6 +37,7 @@ codeunit 135547 "Webhook Logs E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetWebhookLogsSingle()
     var
@@ -57,6 +59,7 @@ codeunit 135547 "Webhook Logs E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPostWebhookLogsNotAllowed()
     var
@@ -77,6 +80,7 @@ codeunit 135547 "Webhook Logs E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPatchWebhookLogsNotAllowed()
     var
@@ -98,6 +102,7 @@ codeunit 135547 "Webhook Logs E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestDeleteWebhookLogsNotAllowed()
     var
@@ -152,6 +157,13 @@ codeunit 135547 "Webhook Logs E2E"
     begin
         ActivityLog.SetRange(Context, ActivityLogContextLbl);
         ActivityLog.DeleteAll();
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

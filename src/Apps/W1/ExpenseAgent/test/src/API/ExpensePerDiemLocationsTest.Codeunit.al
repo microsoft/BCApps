@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148349 "Expense PerDiem Locations Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -22,6 +22,7 @@ codeunit 148349 "Expense PerDiem Locations Test"
         IsInitialized: Boolean;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure PerDiemLocationsReturnsLinkedLocationViaAPI()
     var
         CategoryCode: Code[20];
@@ -54,6 +55,7 @@ codeunit 148349 "Expense PerDiem Locations Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure PerDiemLocationsExcludesNonPerDiemCategoryViaAPI()
     var
         CategoryCode: Code[20];
@@ -139,5 +141,12 @@ codeunit 148349 "Expense PerDiem Locations Test"
         ExpenseRuleHeader."Expense Location" := LocationCode;
         ExpenseRuleHeader."Effective Date" := WorkDate();
         ExpenseRuleHeader.Insert(false);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

@@ -13,11 +13,12 @@ using System.TestLibraries.Utilities;
 codeunit 135575 "E-Doc. API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetEDocument()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -45,6 +46,7 @@ codeunit 135575 "E-Doc. API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateEDocument()
     var
         EDocumentService: Record "E-Document Service";
@@ -160,5 +162,15 @@ codeunit 135575 "E-Doc. API Test"
         JSONRequest := LibraryGraphMgt.AddPropertytoJSON(JSONRequest, 'base64file', NavApp.GetResourceAsText('API/base64file.txt', TextEncoding::UTF8));
         JSONRequest := LibraryGraphMgt.AddPropertytoJSON(JSONRequest, 'fileName', 'test.xml');
         JSONRequest := LibraryGraphMgt.AddPropertytoJSON(JSONRequest, 'processDocument', 'false');
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Assert: Codeunit Assert;
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

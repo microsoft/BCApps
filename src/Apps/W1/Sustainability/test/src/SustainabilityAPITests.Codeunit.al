@@ -9,7 +9,7 @@ using Microsoft.Sustainability.Posting;
 codeunit 148185 "Sustainability API Tests"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -38,6 +38,7 @@ codeunit 148185 "Sustainability API Tests"
 
     #region GET methods
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSustainabilityCategory()
     var
         CategoryCode: array[2] of Code[20];
@@ -62,6 +63,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSustainabilitySubcategory()
     var
         CategoryCode: array[2] of Code[20];
@@ -86,6 +88,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSustainabilityAccounts()
     var
         CategoryCode: array[2] of Code[20];
@@ -112,6 +115,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSustainabilityJournalLines()
     var
         SustainabilityAccount: array[2] of Record "Sustainability Account";
@@ -142,6 +146,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSustainabilityEntries()
     var
         SustainabilityAccount: array[2] of Record "Sustainability Account";
@@ -178,6 +183,7 @@ codeunit 148185 "Sustainability API Tests"
 
     #region POST methods
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostSustainabilityCategory()
     var
         SustainAccountCategory: Record "Sustain. Account Category";
@@ -198,6 +204,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostSustainabilitySubcategory()
     var
         SustainAccountSubcategory: Record "Sustain. Account Subcategory";
@@ -223,6 +230,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostSustainabilityAccount()
     var
         SustainabilityAccount: Record "Sustainability Account";
@@ -244,6 +252,7 @@ codeunit 148185 "Sustainability API Tests"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostSustainabilityJournalLine()
     var
         SustainabilityJnlLine: Record "Sustainability Jnl. Line";
@@ -391,5 +400,12 @@ codeunit 148185 "Sustainability API Tests"
         LineJSON := LibraryGraphMgt.AddPropertytoJSON(LineJSON, JournalBatchNameLbl, SustainabilityJnlBatch.Name);
         LineJSON := LibraryGraphMgt.AddPropertytoJSON(LineJSON, LineNumberLbl, LineNo);
         exit(LineJSON);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

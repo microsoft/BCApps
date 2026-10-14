@@ -29,7 +29,7 @@ using System.Utilities;
 codeunit 139876 "E2E PowerBI Finance Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     Access = Internal;
 
@@ -51,6 +51,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
         ResponseEmptyErr: Label 'Response should not be empty.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetVendorLedgerEntry()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -140,6 +141,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCustomerLedgerEntry()
     var
         CustomerLedgerEntry: Record "Cust. Ledger Entry";
@@ -229,6 +231,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLAccount()
     var
         GLAccount: Record "G/L Account";
@@ -267,6 +270,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLAccountCategory()
     var
         GLAccountCategory: Record "G/L Account Category";
@@ -302,6 +306,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLBudgetName()
     var
         GLBudgetName: Record "G/L Budget Name";
@@ -336,6 +341,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLBudgetEntry()
     var
         GLBudgetName: Record "G/L Budget Name";
@@ -383,6 +389,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestIncomeStatementGLEntry()
     var
         PBISetup: Record "PowerBI Reports Setup";
@@ -433,6 +440,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestBalanceGLEntry()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -471,6 +479,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestBalanceSheetGLEntryOutsideFilter()
     var
         GLAccount: Record "G/L Account";
@@ -578,5 +587,12 @@ codeunit 139876 "E2E PowerBI Finance Test"
           GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Customer, LibSales.CreateCustomerNo(), GLAmount);
         GenJournalLine.Validate("Document No.", DocumentNo);
         GenJournalLine.Modify(true);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

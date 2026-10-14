@@ -24,7 +24,7 @@ using System.Utilities;
 codeunit 139880 "E2E PowerBI Purchases Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     Access = Internal;
 
@@ -45,6 +45,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         ResponseEmptyErr: Label 'Response should not be empty.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOutstandingPurchOrderLine()
     var
         PurchHeader: Record "Purchase Header";
@@ -80,6 +81,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOutstandingPurchOrderLineOutsideFilter()
     var
         PurchHeader: Record "Purchase Header";
@@ -144,6 +146,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchItemBudgetEntry()
     var
         ItemBudgetName: Record "Item Budget Name";
@@ -192,6 +195,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchItemBudgetEntryOutsideFilter()
     var
         ItemBudgetEntry: Record "Item Budget Entry";
@@ -220,6 +224,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchValueEntryV2()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -281,6 +286,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchValueEntryV2OutsideFilter()
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -322,6 +328,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReceivedNotInvoiced()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -378,6 +385,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReceivedNotInvoicedOutsideFilter()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -446,6 +454,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchaseLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -545,6 +554,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchaseInvoiceLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -622,6 +632,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchaseCreditLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -695,5 +706,12 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         Assert.AreEqual(PurchCrMemoHeader."No.", JsonMgt.GetValue('purchaseCreditMemoDocumentNo'), 'Purchase credit memo header no. does not match.');
         Assert.AreEqual(PurchCrMemoHeader."Campaign No.", JsonMgt.GetValue('campaignNo'), 'Purchase credit memo header campaign no. does not match.');
         Assert.AreEqual(PurchCrMemoHeader."Purchaser Code", JsonMgt.GetValue('purchaserCode'), 'Purchase credit memo header purchaser code does not match.');
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

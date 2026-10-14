@@ -10,7 +10,7 @@ using Microsoft.Finance.VAT.Setup;
 codeunit 148348 "Expense VAT Spec. API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -25,6 +25,7 @@ codeunit 148348 "Expense VAT Spec. API Test"
         ServiceNameTok: Label 'expenseVATSpecifications', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure AgentVATSpecificationIsInsertedThroughAPI()
     var
         Expense: Record Expense;
@@ -100,5 +101,12 @@ codeunit 148348 "Expense VAT Spec. API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
