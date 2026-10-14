@@ -572,7 +572,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     /// <summary>
-    /// Copies all the purchase lines to a temporary table, if they haven't been copied yet, to speed up later processing
+    /// Copies all the purchase lines to a temporary table, if they haven't been copied yet, to speed up later processing 
     /// </summary>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempPurchLine">Return value: The temp table that holds a copy of all purchase lines.</param>
@@ -11335,7 +11335,8 @@ codeunit 90 "Purch.-Post"
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
-}
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterClearAllVariables()
     begin
     end;
