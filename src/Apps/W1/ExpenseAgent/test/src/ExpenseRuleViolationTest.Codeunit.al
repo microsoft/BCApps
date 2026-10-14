@@ -489,7 +489,7 @@ codeunit 148312 "Expense Rule Violation Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ReleaseExpenseReport: Codeunit "Release Exp. Report Document";
-        ExpenseReportPost: Codeunit "Expense Report Post";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
         // [SCENARIO 645043] A missing employee posting group is checked at posting, not when releasing a report.
         Initialize();
