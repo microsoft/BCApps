@@ -282,7 +282,10 @@ codeunit 130618 "Library - Graph Mgt"
     begin
         RequestUri.Init(Request.Path);
         ServerUri.Init(GetUrl(ClientType::Api));
-        exit(RequestUri.GetHost() = ServerUri.GetHost());
+        exit(
+            (LowerCase(RequestUri.GetScheme()) = LowerCase(ServerUri.GetScheme())) and
+            (LowerCase(RequestUri.GetHost()) = LowerCase(ServerUri.GetHost())) and
+            (RequestUri.GetPort() = ServerUri.GetPort()));
     end;
 
     [Normal]
