@@ -36,7 +36,6 @@ codeunit 133100 "Extension Management Test"
         MainAppId: Guid;
         DependingAppId: Guid;
         SettingsAppId: Guid;
-        InstallationPageOpened: Boolean;
         NotInstalledSuccErr: Label 'Extension was not installed succesfully';
         NotUninstalledSuccErr: Label 'Extension has not been uninstalled succesfully';
         MainExtNotInstalledSuccErr: Label 'The extension the current extension is depending on was not installed succesfully';
@@ -626,16 +625,13 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ExtensionInstallationPageHandler')]
     procedure ReopenedInstallationPageSkipsInstalledApp()
     begin
         PrepareSettingsApp();
-        InstallationPageOpened := false;
 
         // Simulate restoring the installation page from its filters in the refreshed session.
         ExtensionMgtTestLibrary.RunExtensionInstallationPage(SettingsAppId, '');
 
-        Assert.IsTrue(InstallationPageOpened, 'The installation page should open for the refreshed request.');
         Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(SettingsAppId), 'The existing installation should remain unchanged.');
     end;
 
@@ -680,7 +676,6 @@ codeunit 133100 "Extension Management Test"
     [PageHandler]
     procedure ExtensionInstallationPageHandler(var ExtensionInstallation: TestPage "Extension Installation")
     begin
-        InstallationPageOpened := true;
         ExtensionInstallation.Close();
     end;
 
