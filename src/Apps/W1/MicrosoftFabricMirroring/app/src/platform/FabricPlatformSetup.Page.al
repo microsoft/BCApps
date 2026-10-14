@@ -160,9 +160,6 @@ page 48511 "Fabric Platform Setup"
                 field(UseCustomApp; UseCustomAppValue)
                 {
                     Caption = 'Use custom app registration';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
-                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies whether to authenticate with your own Microsoft Entra app registration instead of the Microsoft Business Central Fabric Export application. Leave this off unless your organization requires its own app registration.';
 
                     trigger OnValidate()
@@ -183,9 +180,6 @@ page 48511 "Fabric Platform Setup"
                     Caption = 'Client ID';
                     ShowMandatory = true;
                     Visible = UseCustomAppValue;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
-                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies the Microsoft Entra application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
                     trigger OnValidate()
@@ -204,9 +198,6 @@ page 48511 "Fabric Platform Setup"
                     ShowMandatory = true;
                     Visible = UseCustomAppValue;
                     ExtendedDatatype = Masked;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
-                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies the client secret of the Microsoft Entra application. Enter a new value to update the stored secret.';
 
                     trigger OnValidate()
