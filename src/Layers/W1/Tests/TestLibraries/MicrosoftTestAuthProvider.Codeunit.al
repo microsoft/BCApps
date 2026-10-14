@@ -76,11 +76,10 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
             exit;
         end;
 
-        // Test runners with test isolation do not allow background sessions. They roll back the test's
-        // changes when the test ends, including committed ones, so the key is committed in this session.
+        // EXPERIMENT: no Commit() in the isolated-runner fallback, to check whether the HTTP session
+        // sees the key created in the caller's uncommitted transaction.
         ClearLastError();
         APITestWebServiceKey.Run();
-        Commit();
     end;
 
     [TryFunction]
