@@ -18,6 +18,101 @@ codeunit 144583 "Ext. SP Account Table Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationContextBindsNamespaceAndGeneration()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempFileAccount: Record "File Account" temporary;
+        Storage: Codeunit "External File Storage";
+        Fingerprint: Text[64];
+        ChangedFingerprint: Text[64];
+        Generation: BigInteger;
+        ChangedGeneration: BigInteger;
+    begin
+        Account.Id := CreateGuid();
+        Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
+        Account."Base Relative Folder Path" := '/sites/test/Shared Documents';
+        Account.Insert();
+        TempFileAccount."Account Id" := Account.Id;
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::SharePoint;
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, Fingerprint, Generation), 'Context should be metadata-only and need no authentication');
+        Account."Base Relative Folder Path" := '/sites/test/Changed';
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Changed context should be readable');
+        Assert.AreNotEqual(Fingerprint, ChangedFingerprint, 'Base path must affect stable destination identity');
+        Account."Base Relative Folder Path" := '/sites/test/Shared Documents';
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Restored context should be readable');
+        Assert.AreEqual(Fingerprint, ChangedFingerprint, 'Restored destination has the same stable identity');
+        Assert.AreNotEqual(Generation, ChangedGeneration, 'Change-away-and-back must change the generation');
+        Account."Use legacy REST API" := true;
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'REST context should be readable');
+        Assert.AreNotEqual(Fingerprint, ChangedFingerprint, 'API/base-path interpretation must affect identity');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationDescriptorExcludesCredentialsAndBlocksDisabledAccount()
+    var
+        Account: Record "Ext. SharePoint Account";
+        Connector: Codeunit "Ext. SharePoint Connector Impl";
+        Provider: Interface "External File Storage Context";
+        Descriptor: Text;
+        Generation: BigInteger;
+    begin
+        Account.Id := CreateGuid();
+        Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
+        Account.Insert();
+        Account.SetClientSecret(SecretStrSubstNo('test-credential-must-not-be-described'));
+        Account.Modify();
+        Provider := Connector;
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Account should provide a descriptor');
+        Assert.IsFalse(Descriptor.Contains('test-credential-must-not-be-described'), 'Descriptor must not expose credentials');
+        Account.Disabled := true;
+        Account.Modify();
+        Assert.IsFalse(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Disabled account must not authorize cleanup');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationContextBindsRestPathFormatAndGeneration()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempFileAccount: Record "File Account" temporary;
+        Storage: Codeunit "External File Storage";
+        OriginalFingerprint: Text[64];
+        ChangedFingerprint: Text[64];
+        OriginalGeneration: BigInteger;
+        ChangedGeneration: BigInteger;
+    begin
+        Assert.AreEqual(0, Enum::"Ext. SharePoint Path Format"::URL.AsInteger(), 'The merged URL interpretation must remain value 0');
+        Assert.AreEqual(1, Enum::"Ext. SharePoint Path Format"::"Decoded Path".AsInteger(), 'The merged decoded interpretation must remain value 1');
+        Account.Id := CreateGuid();
+        Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
+        Account."Base Relative Folder Path" := '/sites/test/Shared%20Documents';
+        Account."Use legacy REST API" := true;
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::URL;
+        Account.Insert();
+        TempFileAccount."Account Id" := Account.Id;
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::SharePoint;
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, OriginalFingerprint, OriginalGeneration), 'Metadata context must not require a SharePoint request');
+
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::"Decoded Path";
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Changed path-format context must be available');
+        Assert.AreEqual('/sites/test/Shared%20Documents', Account."Base Relative Folder Path", 'The base text must be unchanged during the interpretation test');
+        Assert.AreNotEqual(OriginalFingerprint, ChangedFingerprint, 'URL and decoded modes must bind different destinations for the same raw base text');
+        Assert.AreNotEqual(OriginalGeneration, ChangedGeneration, 'Changing path format must advance the account generation');
+
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::URL;
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Restored path-format context must be available');
+        Assert.AreEqual(OriginalFingerprint, ChangedFingerprint, 'Restoring the same interpretation must restore stable destination identity');
+        Assert.AreNotEqual(OriginalGeneration, ChangedGeneration, 'Changing format away and back must not restore old upload authority');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDefaultRestBaseFolderPathFormatIsUrl()
     var
         Account: Record "Ext. SharePoint Account";

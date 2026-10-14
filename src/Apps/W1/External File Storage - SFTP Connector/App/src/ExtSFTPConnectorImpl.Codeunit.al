@@ -10,7 +10,7 @@ using System.SFTPClient;
 using System.Text;
 using System.Utilities;
 
-codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Connector"
+codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Connector", "External File Storage Context"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -23,6 +23,31 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InvalidFingerprintErr: Label 'Fingerprint must start with "sha256:".';
         MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported. Reconfigure this account with a SHA256 fingerprint.';
         PathSeparatorTok: Label '/', Locked = true;
+
+    procedure GetDestinationContext(AccountId: Guid; LockAccount: Boolean; var DestinationDescriptor: Text; var ChangeGeneration: BigInteger): Boolean
+    var
+        Account: Record "Ext. SFTP Account";
+        Descriptor: JsonObject;
+    begin
+        if LockAccount then
+            Account.ReadIsolation(IsolationLevel::UpdLock);
+        if not Account.Get(AccountId) then
+            exit(false);
+        if Account.Disabled then
+            exit(false);
+        Descriptor.Add('version', 1);
+        Descriptor.Add('service', 'SFTP');
+        Descriptor.Add('host', Account.Hostname);
+        Descriptor.Add('port', Account.Port);
+        Descriptor.Add('basePath', Account."Base Relative Folder Path");
+        Descriptor.Add('username', Account.Username);
+        Descriptor.Add('hostFingerprints', Account.Fingerprints);
+        Descriptor.Add('authenticationType', Account."Authentication Type".AsInteger());
+        Descriptor.Add('pathInterpretation', 'SFTPAccountBasePath-v1');
+        Descriptor.WriteTo(DestinationDescriptor);
+        ChangeGeneration := Account.SystemRowVersion;
+        exit(true);
+    end;
 
     /// <summary>
     /// Gets a List of Files stored on the provided account.

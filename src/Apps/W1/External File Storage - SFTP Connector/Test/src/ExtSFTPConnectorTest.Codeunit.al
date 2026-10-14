@@ -15,6 +15,39 @@ codeunit 144591 "Ext. SFTP Connector Test"
     TestPermissions = Disabled;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationContextTracksServerNamespaceAndUser()
+    var
+        Account: Record "Ext. SFTP Account";
+        Connector: Codeunit "Ext. SFTP Connector Impl";
+        Provider: Interface "External File Storage Context";
+        OriginalDescriptor: Text;
+        Descriptor: Text;
+        Generation: BigInteger;
+    begin
+        Account.Id := CreateGuid();
+        Account.Hostname := 'example.invalid';
+        Account.Port := 22;
+        Account."Base Relative Folder Path" := '/original';
+        Account.Username := 'originaluser';
+        Account.Insert();
+        Provider := Connector;
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, OriginalDescriptor, Generation), 'Context needs no SFTP authentication or transfer');
+        Account."Base Relative Folder Path" := '/changed';
+        Account.Modify();
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Changed context must be available');
+        Assert.AreNotEqual(OriginalDescriptor, Descriptor, 'Base path must affect identity');
+        Account."Base Relative Folder Path" := '/original';
+        Account.Username := 'changeduser';
+        Account.Modify();
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Changed user context must be available');
+        Assert.AreNotEqual(OriginalDescriptor, Descriptor, 'User-relative namespace must affect identity');
+        Account.Disabled := true;
+        Account.Modify();
+        Assert.IsFalse(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Disabled account cannot authorize cleanup');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('AccountRegisterPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]

@@ -24,6 +24,49 @@ codeunit 134752 "File Scenario Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SpecificAssignmentCheckDoesNotFallBackToDefault()
+    var
+        TempFileAccount: Record "File Account" temporary;
+    begin
+        PermissionsMock.Set('File Storage Admin');
+        Initialize();
+        FileConnectorMock.AddAccount(TempFileAccount);
+        FileScenario.SetDefaultFileAccount(TempFileAccount);
+
+        Assert.IsFalse(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempFileAccount, false), 'A matching default account must not substitute for a specific assignment');
+        Assert.IsFalse(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempFileAccount, true), 'Locked validation must not substitute the default account');
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Assignment validation must not retrieve remote content');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SpecificAssignmentCheckMatchesAccountAndConnector()
+    var
+        TempFileAccount: Record "File Account" temporary;
+        TempOtherAccount: Record "File Account" temporary;
+    begin
+        PermissionsMock.Set('File Storage Admin');
+        Initialize();
+        FileConnectorMock.AddAccount(TempFileAccount);
+        FileConnectorMock.AddAccount(TempOtherAccount);
+        FileScenario.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount);
+
+        Assert.IsTrue(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempFileAccount, false), 'The exact assignment must match');
+        Assert.IsTrue(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempFileAccount, true), 'The exact assignment must also match under update isolation');
+        Assert.IsFalse(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempOtherAccount, true), 'Another account must not match');
+        TempOtherAccount."Account Id" := TempFileAccount."Account Id";
+        TempOtherAccount.Connector := Enum::"Ext. File Storage Connector".FromInteger(0);
+        Assert.IsFalse(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempOtherAccount, true), 'The account ID alone must not match another connector');
+
+        FileScenario.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempOtherAccount);
+        Assert.IsFalse(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempFileAccount, false), 'An assignment change must reject the original account');
+        FileScenario.UnassignScenario(Enum::"File Scenario"::"Test File Scenario");
+        Assert.IsFalse(FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Test File Scenario", TempOtherAccount, true), 'An unassigned scenario must not match');
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Assignment checks must not retrieve remote content');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure GetFileAccountScenarioNotExistsTest()
     var
         TempFileAccount: Record "File Account" temporary;

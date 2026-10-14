@@ -11,7 +11,7 @@ using System.DataAdministration;
 using System.Text;
 using System.Utilities;
 
-codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage Connector"
+codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage Connector", "External File Storage Context"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -22,6 +22,29 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
         ConnectorDescriptionTxt: Label 'Use Azure File Share to store and retrieve files.';
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
         NotFoundTok: Label '404', Locked = true;
+
+    procedure GetDestinationContext(AccountId: Guid; LockAccount: Boolean; var DestinationDescriptor: Text; var ChangeGeneration: BigInteger): Boolean
+    var
+        Account: Record "Ext. File Share Account";
+        Descriptor: JsonObject;
+    begin
+        if LockAccount then
+            Account.ReadIsolation(IsolationLevel::UpdLock);
+        if not Account.Get(AccountId) then
+            exit(false);
+        if Account.Disabled then
+            exit(false);
+        Descriptor.Add('version', 1);
+        Descriptor.Add('service', 'AzureFileShare');
+        Descriptor.Add('endpointPolicy', 'AzureStorageDefault-v1');
+        Descriptor.Add('account', Account."Storage Account Name");
+        Descriptor.Add('share', Account."File Share Name");
+        Descriptor.Add('authorizationType', Account."Authorization Type".AsInteger());
+        Descriptor.Add('pathInterpretation', 'FileSharePath-v1');
+        Descriptor.WriteTo(DestinationDescriptor);
+        ChangeGeneration := Account.SystemRowVersion;
+        exit(true);
+    end;
 
     /// <summary>
     /// Gets a List of Files stored on the provided account.

@@ -57,6 +57,9 @@ page 8750 "DA External Storage Setup"
             group(UploadAndDeletePolicy)
             {
                 Caption = 'Upload and Delete Policy';
+                field("Automatic Verified Cleanup"; Rec."Automatic Verified Cleanup") { }
+                field("Cleanup Batch Size"; Rec."Cleanup Batch Size") { }
+                field("Cleanup Run Minutes"; Rec."Cleanup Run Minutes") { }
                 field("Delete from External Storage"; Rec."Delete from External Storage")
                 {
                     Enabled = false;
@@ -96,6 +99,20 @@ page 8750 "DA External Storage Setup"
                     Report.Run(Report::"DA External Storage Migration");
                 end;
             }
+            action(ScheduleInternalCleanup)
+            {
+                Caption = 'Schedule Pending Validation';
+                Image = Job;
+                ToolTip = 'Validate previously pending requests independently. Successful readback still leaves internal cleanup blocked, with references and content retained and no database storage reclamation.';
+
+                trigger OnAction()
+                var
+                    CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
+                begin
+                    CleanupManagement.ScheduleCleanup(Rec);
+                    Rec.Modify();
+                end;
+            }
         }
         area(Navigation)
         {
@@ -105,6 +122,13 @@ page 8750 "DA External Storage Setup"
                 Image = Document;
                 ToolTip = 'Open the document attachment list with information about the external storage.';
                 RunObject = page "Document Attachment - External";
+            }
+            action(InternalCleanupRequests)
+            {
+                Caption = 'Internal Cleanup Requests';
+                Image = Log;
+                ToolTip = 'View and manage pending, failed, and blocked internal cleanup requests.';
+                RunObject = page "DA Internal Cleanup Entries";
             }
         }
         area(Promoted)

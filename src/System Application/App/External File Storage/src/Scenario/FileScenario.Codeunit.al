@@ -44,6 +44,19 @@ codeunit 9452 "File Scenario"
     end;
 
     /// <summary>
+    /// Checks the exact account ID and connector assigned to a scenario, without account lookup or default fallback.
+    /// This checks the assignment only; it does not establish account availability or destination identity.
+    /// </summary>
+    /// <param name="Scenario">The specific scenario whose assignment is checked.</param>
+    /// <param name="TempFileAccount">The expected account ID and connector.</param>
+    /// <param name="LockAssignment">Acquire update isolation on the assignment until the caller's transaction ends. Use only in a short local transaction, never around a transfer.</param>
+    /// <returns>True if the specific assignment matches; otherwise false.</returns>
+    procedure IsSpecificFileAccountAssigned(Scenario: Enum "File Scenario"; TempFileAccount: Record "File Account" temporary; LockAssignment: Boolean): Boolean
+    begin
+        exit(FileScenarioImpl.IsSpecificFileAccountAssigned(Scenario, TempFileAccount, LockAssignment));
+    end;
+
+    /// <summary>
     /// Sets a default file account.
     /// </summary>
     /// <param name="TempFileAccount">The file account to use.</param>

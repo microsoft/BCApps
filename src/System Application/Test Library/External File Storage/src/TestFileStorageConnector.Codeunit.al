@@ -8,7 +8,7 @@ namespace System.TestLibraries.ExternalFileStorage;
 using System.ExternalFileStorage;
 using System.Utilities;
 
-codeunit 135814 "Test File Storage Connector" implements "External File Storage Connector"
+codeunit 135814 "Test File Storage Connector" implements "External File Storage Connector", "External File Storage Context"
 {
     SingleInstance = true;
 
@@ -32,8 +32,15 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         TempBlobStream: InStream;
         FileIndex: Integer;
     begin
+        GetFileCallCount += 1;
+        LastReadAccountId := AccountId;
+        LastReadPath := Path;
         if FailOnGetFile then
             Error(FailedToGetFileErr);
+        if HasReadbackStream then begin
+            ReadbackBlob.CreateInStream(Stream);
+            exit;
+        end;
 
         if not StoreFileContent then
             exit;
@@ -53,6 +60,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
     begin
+        CreateFileCallCount += 1;
         if not StoreFileContent then
             exit;
 
@@ -117,11 +125,78 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         FailOnGetFile := NewFailOnGetFile;
     end;
 
+    procedure GetDestinationContext(AccountId: Guid; LockAccount: Boolean; var DestinationDescriptor: Text; var ChangeGeneration: BigInteger): Boolean
+    var
+        Account: Record "Test File Account";
+        Descriptor: JsonObject;
+    begin
+        if not ContextEnabled then
+            exit(false);
+        if LockAccount then
+            Account.ReadIsolation(IsolationLevel::UpdLock);
+        if not Account.Get(AccountId) then
+            exit(false);
+        Descriptor.Add('version', 1);
+        Descriptor.Add('testAccount', Format(AccountId));
+        Descriptor.WriteTo(DestinationDescriptor);
+        ChangeGeneration := Account.SystemRowVersion;
+        exit(true);
+    end;
+
+    internal procedure ConfigureReadback(Content: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(ReadbackBlob);
+        ReadbackBlob.CreateOutStream(OutStream);
+        if Content <> '' then
+            OutStream.WriteText(Content);
+        HasReadbackStream := true;
+    end;
+
+    internal procedure EnableContext(Enabled: Boolean)
+    begin
+        ContextEnabled := Enabled;
+    end;
+
+    internal procedure ResetReadback()
+    begin
+        Clear(ReadbackBlob);
+        Clear(HasReadbackStream);
+        Clear(ContextEnabled);
+        Clear(GetFileCallCount);
+        Clear(CreateFileCallCount);
+        Clear(LastReadAccountId);
+        Clear(LastReadPath);
+    end;
+
+    internal procedure GetReadbackCallCount(): Integer
+    begin
+        exit(GetFileCallCount);
+    end;
+
+    internal procedure GetCreateFileCallCount(): Integer
+    begin
+        exit(CreateFileCallCount);
+    end;
+
+    internal procedure GetLastReadAccountId(): Guid
+    begin
+        exit(LastReadAccountId);
+    end;
+
+    internal procedure GetLastReadPath(): Text
+    begin
+        exit(LastReadPath);
+    end;
+
     internal procedure SetStoreFileContent(NewStoreFileContent: Boolean)
     begin
         StoreFileContent := NewStoreFileContent;
         Clear(StoredFileContents);
         Clear(StoredFileIndexes);
+        Clear(ReadbackBlob);
+        Clear(HasReadbackStream);
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
@@ -185,6 +260,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     var
         FileConnectorMock: Codeunit "File Connector Mock";
+        ReadbackBlob: Codeunit "Temp Blob";
         StoredFileContents: Codeunit "Temp Blob List";
         StoredFileIndexes: Dictionary of [Text, Integer];
         FailOnGetFile: Boolean;
@@ -192,6 +268,12 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         FileExistsCallCount: Integer;
         LastDeletedFilePath: Text;
         FailedToGetFileErr: Label 'Failed to get file.';
+        HasReadbackStream: Boolean;
+        ContextEnabled: Boolean;
+        GetFileCallCount: Integer;
+        CreateFileCallCount: Integer;
+        LastReadAccountId: Guid;
+        LastReadPath: Text;
         FailedToCreateFileErr: Label 'Failed to create file.';
         FileNotFoundErr: Label 'The file %1 does not exist.', Comment = '%1 = File path';
 }

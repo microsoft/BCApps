@@ -91,6 +91,44 @@ table 8750 "DA External Storage Setup"
             Editable = false;
             ToolTip = 'Specifies if files have been uploaded using this configuration.';
         }
+        field(30; "Automatic Verified Cleanup"; Boolean)
+        {
+            Caption = 'Record Automatic Cleanup Requests';
+            ToolTip = 'Specifies whether new automatic uploads record internal cleanup requests. Cleanup is blocked: internal references and content remain even after successful readback, with no database storage reclamation. Existing attachments are not backfilled.';
+
+            trigger OnValidate()
+            var
+                CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
+            begin
+                if "Automatic Verified Cleanup" then begin
+                    TestField(Enabled, true);
+                    if GuiAllowed() then
+                        Message(CleanupManagement.GetInternalReleaseBlockedReason());
+                end;
+            end;
+        }
+        field(31; "Cleanup Job Queue Entry ID"; Guid)
+        {
+            Caption = 'Cleanup Job Queue Entry ID';
+            Editable = false;
+            ToolTip = 'Specifies the job queue entry for validating previously pending requests. It cannot release internal references or reclaim database storage.';
+        }
+        field(32; "Cleanup Batch Size"; Integer)
+        {
+            Caption = 'Cleanup Batch Size';
+            InitValue = 100;
+            MinValue = 1;
+            MaxValue = 1000;
+            ToolTip = 'Specifies the finite maximum number of attachments attempted in one cleanup run.';
+        }
+        field(33; "Cleanup Run Minutes"; Integer)
+        {
+            Caption = 'Cleanup Run Budget (Minutes)';
+            InitValue = 5;
+            MinValue = 1;
+            MaxValue = 60;
+            ToolTip = 'Specifies the elapsed-work budget checked between files. It does not limit an individual connector transfer.';
+        }
     }
 
     keys

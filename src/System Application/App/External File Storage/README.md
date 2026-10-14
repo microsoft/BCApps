@@ -5,3 +5,13 @@ Provides an API that lets you connect external cloud storage accounts to Busines
 
 ### File Account
 A file account holds the information needed to access an external storage service from Business Central.
+
+## Optional destination context
+
+Connectors may implement `External File Storage Context` without changing the original connector interface. `External File Storage.GetDestinationContext` returns a fingerprint of the provider's versioned, secret-free descriptor and a persistent account change generation. Providers must describe every destination-affecting setting and interpretation, and must not authenticate or make network calls.
+
+`LockAccount = true` is only for a short local transaction. Never hold that lock across HTTP. The capability describes a configured namespace at a point in time; it does **not** provide an immutable remote object, resolved transport, conditional-delete operation, or a remote-deletion concurrency fence.
+
+`File Scenario.IsSpecificFileAccountAssigned` checks only an exact scenario-to-account-ID/connector assignment without account enumeration or default fallback. Its optional `LockAssignment` retains update isolation through the caller's short local transaction; it must not be used around a network transfer. Account availability and destination context require separate validation. The internal scenario table remains encapsulated.
+
+The SharePoint descriptor version 2 binds the merged `REST Base Folder Path Format` (`URL = 0`, `Decoded Path = 1`) along with the raw site/base text and API mode. It records the interpretation without decoding or normalizing configuration in the metadata provider. Changing the format with unchanged base text changes the fingerprint; changing away and back also changes the account generation. Descriptor versions are part of upload provenance, so prior versions are not silently rebound.
