@@ -313,6 +313,56 @@ codeunit 148357 EACorpCardTestLib
         CorpCardProvider.Modify(true);
     end;
 
+    internal procedure CreateSettlement(var CorpCardSettlement: Record "EA Corp Card Settlement"; ProviderCode: Code[20]; SettlementNo: Code[50]; CurrencyCode: Code[10]; SettlementAmount: Decimal)
+    begin
+        CorpCardSettlement.Init();
+        CorpCardSettlement.Validate("Provider Code", ProviderCode);
+        CorpCardSettlement."Settlement No." := SettlementNo;
+        CorpCardSettlement."Settlement Date" := WorkDate();
+        CorpCardSettlement."Currency Code" := CurrencyCode;
+        CorpCardSettlement."Settlement Amount" := SettlementAmount;
+        CorpCardSettlement.Insert(true);
+    end;
+
+    internal procedure CreateStatement(var CorpCardStatement: Record "EA Corp Card Statement"; ProviderCode: Code[20]; StatementNo: Code[50]; StatementAmount: Decimal; Status: Enum "EA Corp Card Stmt Status")
+    begin
+        Clear(CorpCardStatement);
+        CorpCardStatement.Init();
+        CorpCardStatement."Provider Code" := ProviderCode;
+        CorpCardStatement."Statement No." := StatementNo;
+        CorpCardStatement."Statement Date" := WorkDate();
+        CorpCardStatement."Currency Code" := 'USD';
+        CorpCardStatement."Statement Total" := StatementAmount;
+        CorpCardStatement.Status := Status;
+        CorpCardStatement.Insert(true);
+    end;
+
+    internal procedure AddStatementToSettlement(CorpCardSettlement: Record "EA Corp Card Settlement"; CorpCardStatement: Record "EA Corp Card Statement"; LineNo: Integer)
+    var
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+    begin
+        CorpCardSettlementLine.Init();
+        CorpCardSettlementLine."Settlement Entry No." := CorpCardSettlement."Settlement Entry No.";
+        CorpCardSettlementLine."Line No." := LineNo;
+        CorpCardSettlementLine.Validate("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        CorpCardSettlementLine.Insert(true);
+    end;
+
+    internal procedure CreatePostedTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCardStatement: Record "EA Corp Card Statement"; TransactionAmount: Decimal)
+    begin
+        CorpCardTrans.Init();
+        CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
+        CorpCardTrans."Provider Code" := CorpCardStatement."Provider Code";
+        CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
+        CorpCardTrans."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Card Id"));
+        CorpCardTrans."Trans Date" := WorkDate();
+        CorpCardTrans.Amount := TransactionAmount;
+        CorpCardTrans."Currency Code" := CorpCardStatement."Currency Code";
+        CorpCardTrans."Expense No." := 'EXP-POSTED';
+        CorpCardTrans."Posted Expense Report No." := 'PER-POSTED';
+        CorpCardTrans.Status := CorpCardTrans.Status::Posted;
+        CorpCardTrans.Insert(true);
+    end;
     local procedure EnsureCurrencyExchangeRate(CurrencyCode: Code[10])
     var
         Currency: Record Currency;

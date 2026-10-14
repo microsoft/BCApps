@@ -91,13 +91,7 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardTrans."Amount (LCY)" := 1800;
         CorpCardTrans.Modify(true);
 
-        CorpCardSettlement.Init();
-        CorpCardSettlement.Validate("Provider Code", 'TEST');
-        CorpCardSettlement."Settlement No." := 'SETTLEMENT-LCY';
-        CorpCardSettlement."Settlement Date" := WorkDate();
-        CorpCardSettlement."Currency Code" := '';
-        CorpCardSettlement."Settlement Amount" := 1800;
-        CorpCardSettlement.Insert(true);
+        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', 'SETTLEMENT-LCY', '', 1800);
         AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
 
         CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
@@ -537,55 +531,23 @@ codeunit 148360 EACorpCardSettlementTests
 
     local procedure CreateSettlement(var CorpCardSettlement: Record "EA Corp Card Settlement"; SettlementAmount: Decimal)
     begin
-        CorpCardSettlement.Init();
-        CorpCardSettlement.Validate("Provider Code", 'TEST');
-        CorpCardSettlement."Settlement No." := 'SETTLEMENT-001';
-        CorpCardSettlement."Settlement Date" := WorkDate();
-        CorpCardSettlement."Currency Code" := 'USD';
-        CorpCardSettlement."Settlement Amount" := SettlementAmount;
-        CorpCardSettlement.Insert(true);
+        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', 'SETTLEMENT-001', 'USD', SettlementAmount);
     end;
 
     local procedure CreateStatement(var CorpCardStatement: Record "EA Corp Card Statement"; StatementNo: Code[50]; StatementAmount: Decimal; Status: Enum "EA Corp Card Stmt Status")
     begin
-        Clear(CorpCardStatement);
-        CorpCardStatement.Init();
-        CorpCardStatement."Provider Code" := 'TEST';
-        CorpCardStatement."Statement No." := StatementNo;
-        CorpCardStatement."Statement Date" := WorkDate();
-        CorpCardStatement."Currency Code" := 'USD';
-        CorpCardStatement."Statement Total" := StatementAmount;
-        CorpCardStatement.Status := Status;
-        CorpCardStatement.Insert(true);
+        CorpCardTestLib.CreateStatement(CorpCardStatement, 'TEST', StatementNo, StatementAmount, Status);
     end;
 
     local procedure AddStatement(CorpCardSettlement: Record "EA Corp Card Settlement"; CorpCardStatement: Record "EA Corp Card Statement"; LineNo: Integer)
-    var
-        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
     begin
-        CorpCardSettlementLine.Init();
-        CorpCardSettlementLine."Settlement Entry No." := CorpCardSettlement."Settlement Entry No.";
-        CorpCardSettlementLine."Line No." := LineNo;
-        CorpCardSettlementLine.Validate("Statement Entry No.", CorpCardStatement."Statement Entry No.");
-        CorpCardSettlementLine.Insert(true);
+        CorpCardTestLib.AddStatementToSettlement(CorpCardSettlement, CorpCardStatement, LineNo);
     end;
 
     local procedure CreatePostedTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCardStatement: Record "EA Corp Card Statement"; TransactionAmount: Decimal)
     begin
-        CorpCardTrans.Init();
-        CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
-        CorpCardTrans."Provider Code" := CorpCardStatement."Provider Code";
-        CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-        CorpCardTrans."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Card Id"));
-        CorpCardTrans."Trans Date" := WorkDate();
-        CorpCardTrans.Amount := TransactionAmount;
-        CorpCardTrans."Currency Code" := CorpCardStatement."Currency Code";
-        CorpCardTrans."Expense No." := 'EXP-POSTED';
-        CorpCardTrans."Posted Expense Report No." := 'PER-POSTED';
-        CorpCardTrans.Status := CorpCardTrans.Status::Posted;
-        CorpCardTrans.Insert(true);
+        CorpCardTestLib.CreatePostedTransaction(CorpCardTrans, CorpCardStatement, TransactionAmount);
     end;
-
     local procedure PostCorpCardExpenseBankEntry(CorpCardTrans: Record "EA Corp Card Trans"; EntryAmount: Decimal)
     var
         GLAccount: Record "G/L Account";

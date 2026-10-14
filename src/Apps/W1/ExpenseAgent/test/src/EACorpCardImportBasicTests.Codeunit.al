@@ -21,6 +21,7 @@ codeunit 148356 EACorpCardImportBasicTests
         IsInitialized: Boolean;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CsvImportCreatesCompletedStatementAndTransactions()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -38,6 +39,7 @@ codeunit 148356 EACorpCardImportBasicTests
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CsvImportSecondRunCountsDuplicates()
     var
         FirstStatement: Record "EA Corp Card Statement";

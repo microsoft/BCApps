@@ -35,11 +35,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         tabledata "Expense Report Header" = rimd,
         tabledata "G/L Account" = rim;
 
-    trigger OnRun()
-    begin
-        CreateDefaults();
-    end;
-
     internal procedure CreateDefaults()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
@@ -1325,7 +1320,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardXmlDataExchDefNameLbl: Label 'Corporate Card XML Import';
         CorpCardCsvDataExchLineNameLbl: Label 'Transactions';
         CorpCardXmlDataExchLineNameLbl: Label 'Transactions';
-        CorpCardXmlDataLineTagLbl: Label '/CorporateCardTransactions/Transaction';
+        CorpCardXmlDataLineTagLbl: Label '/CorporateCardTransactions/Transaction', Locked = true;
         CorpCardDataExchMappingNameLbl: Label 'Corp Card Transaction Mapping';
         CorpCardCsvProviderDescriptionLbl: Label 'Corporate Card CSV Provider';
         CorpCardXmlProviderDescriptionLbl: Label 'Corporate Card XML Provider';

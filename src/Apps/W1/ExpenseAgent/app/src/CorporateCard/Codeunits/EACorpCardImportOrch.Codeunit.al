@@ -59,7 +59,7 @@ codeunit 7432 "EA Corp Card Import Orch"
             if RaiseImportError then begin
                 if HasStructuredErrorInfo then
                     Error(ImportErrorInfo);
-                Error(ImportErrorText);
+                Error(ImportFailedErr, ImportErrorText);
             end;
             exit(false);
         end;
@@ -131,4 +131,7 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardProvider."Last Statement Entry No." := StatementEntryNo;
         CorpCardProvider.Modify();
     end;
+
+    var
+        ImportFailedErr: Label 'Corporate card import failed: %1', Comment = '%1 = error detail returned by the import';
 }

@@ -21,6 +21,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
     var
         FieldMustBeSetOnRecordErr: Label '%1 must be set on %2 %3.', Comment = '%1 = field caption, %2 = table caption, %3 = record identifier';
+        DataExchImportFailedErr: Label 'Data Exchange import failed for provider %1 using definition %2.', Comment = '%1 = provider code, %2 = Data Exch Def Code';
         InvalidTransErr: Label 'Mandatory data is missing for provider transaction %1.', Comment = '%1 = Provider transaction ID';
         NoParsedLinesErr: Label 'No transaction lines were parsed from file %1 for provider %2. Verify Data Exchange definition %3 and mapping %4.', Comment = '%1 = file name, %2 = provider code, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
         NonCsvFallbackErr: Label 'No Data Exchange fields were parsed for non-CSV provider %1 (feed type %2). Verify Data Exchange definition %3 and line mapping %4.', Comment = '%1 = provider code, %2 = feed type, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
@@ -90,7 +91,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             CorpCardStatement.Status := CorpCardStatement.Status::Failed;
             CorpCardStatement.Rejected += 1;
             CorpCardStatement.Modify();
-            exit;
+            Error(DataExchImportFailedErr, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code");
         end;
         if HasParsedFields(DataExch) then
             MapDataExchToTrans(CorpCardStatement, CorpCardProvider, DataExch)
@@ -346,7 +347,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     var
         CorpCardTrans: Record "EA Corp Card Trans";
         DataExchField: Record "Data Exch. Field";
-        DataExchFieldPerLine: Record "Data Exch. Field";
         TempDataExchFieldMapping: Record "Data Exch. Field Mapping" temporary;
         TempFieldIdsToNegate: Record Integer temporary;
         ProcessDataExch: Codeunit "Process Data Exch.";
@@ -354,6 +354,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
         CorpCardRecRef: RecordRef;
         CurrentLineNo: Integer;
+        HasNextField: Boolean;
         SourcePayloadTxt: Text;
         ValidationReason: Text[250];
     begin
@@ -367,11 +368,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         if not IsStrictMappingProvider(CorpCardProvider) then
             SourcePayloadTxt := ReadSourcePayload(DataExch);
 
-        CurrentLineNo := -1;
         repeat
-            if CurrentLineNo = DataExchField."Line No." then
-                continue;
-
             CurrentLineNo := DataExchField."Line No.";
             TempFieldIdsToNegate.DeleteAll();
 
@@ -383,18 +380,13 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
             CorpCardRecRef.GetTable(CorpCardTrans);
 
-            DataExchFieldPerLine.Reset();
-            DataExchFieldPerLine.SetRange("Data Exch. No.", DataExch."Entry No.");
-            DataExchFieldPerLine.SetRange("Data Exch. Line Def Code", CorpCardProvider."Data Exch Map Code");
-            DataExchFieldPerLine.SetRange("Line No.", CurrentLineNo);
-            if DataExchFieldPerLine.FindSet() then
-                repeat
-                    if not FindFieldMapping(DataExchFieldPerLine."Column No.", TempDataExchFieldMapping) then
-                        continue;
-
-                    NormalizeMappedCurrencyCode(TempDataExchFieldMapping, DataExchFieldPerLine, CorpCardTrans, CorpCardValidateMgt);
-                    ProcessDataExch.SetField(CorpCardRecRef, TempDataExchFieldMapping, DataExchFieldPerLine, TempFieldIdsToNegate);
-                until DataExchFieldPerLine.Next() = 0;
+            repeat
+                if FindFieldMapping(DataExchField."Column No.", TempDataExchFieldMapping) then begin
+                    NormalizeMappedCurrencyCode(TempDataExchFieldMapping, DataExchField, CorpCardTrans, CorpCardValidateMgt);
+                    ProcessDataExch.SetField(CorpCardRecRef, TempDataExchFieldMapping, DataExchField, TempFieldIdsToNegate);
+                end;
+                HasNextField := DataExchField.Next() <> 0;
+            until not HasNextField or (DataExchField."Line No." <> CurrentLineNo);
 
             ProcessDataExch.NegateAmounts(CorpCardRecRef, TempFieldIdsToNegate);
             CorpCardRecRef.SetTable(CorpCardTrans);
@@ -428,7 +420,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
             CorpCardTrans.Insert(true);
             CorpCardStatement.Imported += 1;
-        until DataExchField.Next() = 0;
+        until not HasNextField;
 
         CorpCardStatement.Modify();
     end;
@@ -786,16 +778,19 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     end;
 
     [IntegrationEvent(false, false)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     local procedure OnAfterDownload(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch.")
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardStatement: Record "EA Corp Card Statement"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     local procedure OnAfterAck(StatementEntryNo: Integer)
     begin
     end;

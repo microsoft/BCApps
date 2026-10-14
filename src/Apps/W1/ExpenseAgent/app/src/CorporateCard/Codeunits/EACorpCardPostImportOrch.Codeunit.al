@@ -11,6 +11,7 @@ namespace Microsoft.ExpenseAgent;
 codeunit 7423 "EA Corp Card Post Import Orch"
 {
     Access = Internal;
+    Permissions = tabledata Expense = rm;
 
     internal procedure ProcessStatementPostImport(StatementEntryNo: Integer; ExpenseWriter: Interface "EA Corp Card Expense Writer")
     var
@@ -47,6 +48,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
                 AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.", DraftExpenseNo);
             end else
                 if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then begin
+                    LinkExpenseToTransaction(MatchedExpenseNo, CorpCardTrans."Entry No.");
                     CorpCardTrans.Status := CorpCardTrans.Status::Matched;
                     CorpCardTrans."Expense No." := MatchedExpenseNo;
                     MatchedCount += 1;
@@ -61,5 +63,14 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         until CorpCardTrans.Next() = 0;
 
         AuditSubscribers.LogMatchingCompleted(MatchedCount, UnmatchedCount);
+    end;
+
+    local procedure LinkExpenseToTransaction(ExpenseNo: Code[20]; CorpCardTransEntryNo: Integer)
+    var
+        Expense: Record Expense;
+    begin
+        Expense.Get(ExpenseNo);
+        Expense.Validate("Credit Card Feed No.", CorpCardTransEntryNo);
+        Expense.Modify(true);
     end;
 }

@@ -312,6 +312,7 @@ table 7426 "EA Corp Card Provider"
         CorpCard: Record "EA Corp Card";
         CorpCardSettlement: Record "EA Corp Card Settlement";
         CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
         DataExch: Record "Data Exch.";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         JobQueueEntry: Record "Job Queue Entry";
@@ -333,6 +334,9 @@ table 7426 "EA Corp Card Provider"
 
         CorpCardStatement.SetRange("Provider Code", Code);
         CorpCardStatement.DeleteAll(true);
+
+        CorpCardTrans.SetRange("Provider Code", Code);
+        CorpCardTrans.DeleteAll(true);
 
         CorpCard.SetRange("Provider Code", Code);
         CorpCard.DeleteAll(true);

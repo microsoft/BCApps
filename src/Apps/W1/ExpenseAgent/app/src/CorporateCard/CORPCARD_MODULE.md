@@ -45,7 +45,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ STAGE 3: TRANSACTION MATCHING                                       │
 │ - Strategy 1: Exact amount/date match (score 50-100)                │
 │ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-85%)    │
-│ - Strategy 3: Employee-only match as fallback (score 50)            │
+│ - No employee-only fallback: unmatched stays for manual review      │
 │ - Match type & score stored; transaction status updated             │
 │ - Codeunit: EACorpCardEnhancedMatchMgt (7426)                       │
 └─────────────────────────────────────────────────────────────────────┘
@@ -235,10 +235,7 @@ Provider.Ack()
    - Similarity: `1 - (EditDistance / MaxLen)`, threshold ≥ 0.70
    - Returns: Match Type=Expense
 
-3. **Employee-Only Match** (Score: 50)
-   - Query: Any first open expense for same user
-   - No scoring, manual review expected
-   - Returns: Match Type=Employee
+Transactions with no exact or fuzzy match are not linked to any expense; they remain unmatched for manual review (or draft creation).
 
 **Levenshtein Algorithm:**
 - Dynamic programming 2D matrix (max 100×100)

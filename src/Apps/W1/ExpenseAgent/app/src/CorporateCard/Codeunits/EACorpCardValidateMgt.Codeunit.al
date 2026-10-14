@@ -15,6 +15,7 @@ codeunit 7435 "EA Corp Card Validate Mgt"
         MissingCardIdErr: Label 'Card Id is missing.';
         MissingProviderTransIdErr: Label 'Provider Trans Id is missing.';
         MissingTransDateErr: Label 'Trans Date is missing.';
+        CardProviderMismatchErr: Label 'Card %1 belongs to provider %2, not provider %3.', Comment = '%1 = card id, %2 = card provider code, %3 = transaction provider code';
 
     internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"): Boolean
     var
@@ -39,6 +40,10 @@ codeunit 7435 "EA Corp Card Validate Mgt"
         end;
         CorpCard.Get(CorpCardTrans."Card Id");
         CorpCard.TestField(Blocked, false);
+        if CorpCard."Provider Code" <> CorpCardTrans."Provider Code" then begin
+            ValidationReason := CopyStr(StrSubstNo(CardProviderMismatchErr, CorpCardTrans."Card Id", CorpCard."Provider Code", CorpCardTrans."Provider Code"), 1, MaxStrLen(ValidationReason));
+            exit(false);
+        end;
         if CorpCardTrans."Provider Trans Id" = '' then begin
             ValidationReason := MissingProviderTransIdErr;
             exit(false);

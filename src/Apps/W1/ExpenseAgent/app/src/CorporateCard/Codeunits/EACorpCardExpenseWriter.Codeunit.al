@@ -48,9 +48,9 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
         Expense.Description := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense.Description));
         Expense."Merchant Name" := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense."Merchant Name"));
-        Expense."Expense Date" := CorpCardTrans."Trans Date";
-        Expense.Amount := CorpCardTrans.Amount;
-        Expense."Currency Code" := CorpCardTrans."Currency Code";
+        Expense.Validate("Expense Date", CorpCardTrans."Trans Date");
+        Expense.Validate("Currency Code", CorpCardTrans."Currency Code");
+        Expense.Validate(Amount, CorpCardTrans.Amount);
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
 
         Expense.Insert(true);

@@ -37,6 +37,9 @@ codeunit 7430 "EA Corp Card Feed Mgt"
         until CorpCardProvider.Next() = 0;
 
         if FirstImportErrorText <> '' then
-            Error(FirstImportErrorText);
+            Error(ProviderImportFailedErr, FirstImportErrorText);
     end;
+
+    var
+        ProviderImportFailedErr: Label 'One or more corporate card imports failed. First error: %1', Comment = '%1 = error detail of the first failed import';
 }

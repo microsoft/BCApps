@@ -25,7 +25,8 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
 
     /// <summary>
     /// Enhanced transaction matching with multiple strategies.
-    /// Tries receipt-based first, then fuzzy merchant matching.
+    /// Tries exact amount/date matching first, then fuzzy merchant matching.
+    /// Employee-only matches are not confirmed automatically; such transactions stay unmatched for manual review.
     /// </summary>
     internal procedure EnhancedMatchTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
     var
@@ -49,13 +50,6 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         if FuzzyMerchantMatch(CorpCardTrans, ExpenseUserNo, ExpenseNo, MatchScore) then begin
             CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Expense;
             CorpCardTrans."Match Score" := MatchScore;
-            exit(true);
-        end;
-
-        // Strategy 3: Employee-only match (lowest priority, requires manual review)
-        if EmployeeOnlyMatch(ExpenseUserNo, ExpenseNo) then begin
-            CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Employee;
-            CorpCardTrans."Match Score" := 50; // Manual review needed
             exit(true);
         end;
 
@@ -137,26 +131,6 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         if BestScore >= MediumScoreThreshold then begin
             MatchScore := BestScore * 100; // Convert to 0-100 scale
             ExpenseNo := BestExpenseNo;
-            exit(true);
-        end;
-
-        exit(false);
-    end;
-
-    /// <summary>
-    /// Employee-only match: matches to any Open expense for same user.
-    /// Requires manual review by user before posting.
-    /// </summary>
-    local procedure EmployeeOnlyMatch(ExpenseUserNo: Code[20]; var ExpenseNo: Code[20]): Boolean
-    var
-        Expense: Record Expense;
-    begin
-        Expense.SetRange("Expense User No.", ExpenseUserNo);
-        Expense.SetRange("Status", Expense."Status"::Open);
-        Expense.SetRange("Credit Card Feed No.", 0);
-
-        if Expense.FindFirst() then begin
-            ExpenseNo := Expense."No.";
             exit(true);
         end;
 

@@ -1019,10 +1019,13 @@ codeunit 6987 "Expense Report-Post"
     local procedure SetupCorpCardBankAccount(var GenJournalLine: Record "Gen. Journal Line"; CorpCardTransEntryNo: Integer)
     var
         BankAccount: Record "Bank Account";
+        CorpCard: Record "EA Corp Card";
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardTrans: Record "EA Corp Card Trans";
     begin
         CorpCardTrans.Get(CorpCardTransEntryNo);
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCard.TestField(Blocked, false);
         CorpCardProvider.Get(CorpCardTrans."Provider Code");
         CorpCardProvider.TestField("Corp Card Bank Account No.");
         BankAccount.Get(CorpCardProvider."Corp Card Bank Account No.");

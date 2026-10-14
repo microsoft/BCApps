@@ -318,11 +318,13 @@ table 7422 "EA Corp Card Statement"
 
     trigger OnModify()
     var
+        StoredStatement: Record "EA Corp Card Statement";
         ClosedStatementInvalidationAllowed: Boolean;
     begin
         ClosedStatementInvalidationAllowed := AllowClosedStatementInvalidation;
         Clear(AllowClosedStatementInvalidation);
-        if (xRec.Status = xRec.Status::Closed) and
+        StoredStatement.Get("Statement Entry No.");
+        if (StoredStatement.Status = StoredStatement.Status::Closed) and
            not (ClosedStatementInvalidationAllowed and (Status = Status::ReconciliationRequired))
         then
             Error(ClosedStatementCannotChangeErr, "Statement No.");

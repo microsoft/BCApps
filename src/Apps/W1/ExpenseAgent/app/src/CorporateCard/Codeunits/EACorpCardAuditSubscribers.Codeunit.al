@@ -108,7 +108,7 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
 
     internal procedure LogReportRejected()
     begin
-        Session.LogMessage('0000UD1', ReportRejectedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UD1', ReportRejectedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategory());
     end;
 
     internal procedure TelemetryCategory(): Text
