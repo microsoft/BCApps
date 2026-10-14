@@ -1,6 +1,7 @@
 codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
