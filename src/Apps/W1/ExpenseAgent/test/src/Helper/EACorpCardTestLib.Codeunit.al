@@ -327,14 +327,6 @@ codeunit 148357 EACorpCardTestLib
         CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
         CurrencyExchangeRate.DeleteAll();
 
-        CurrencyExchangeRate.Init();
-        CurrencyExchangeRate.Validate("Currency Code", CurrencyCode);
-        CurrencyExchangeRate.Validate("Starting Date", DMY2Date(1, 1, 2000));
-        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
-        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
-        CurrencyExchangeRate.Validate("Relational Currency Code", '');
-        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 1);
-        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 1);
-        CurrencyExchangeRate.Insert(true);
+        LibraryERM.CreateExchangeRate(CurrencyCode, DMY2Date(1, 1, 2000), 1, 1);
     end;
 }

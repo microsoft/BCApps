@@ -12,6 +12,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 {
     Access = Internal;
     Permissions = tabledata "Data Exch." = rimd,
+                  tabledata "Data Exch. Column Def" = r,
                   tabledata "Data Exch. Def" = rm,
                   tabledata "Data Exch. Mapping" = rimd,
                   tabledata "Data Exch. Field" = rimd,
@@ -26,6 +27,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         StrictLineValidationErr: Label 'Line %1 (provider %2): missing mapped field(s): %3. Verify Data Exchange definition %4 and mapping line %5.', Comment = '%1 = line no, %2 = provider code, %3 = field list, %4 = Data Exch Def Code, %5 = Data Exch Map Code';
         ProviderTransIdXmlTok: Label '<ProviderTransId>%1</ProviderTransId>', Locked = true, Comment = '%1 = Provider Trans Id';
         ShowItLbl: Label 'Show it';
+        ColumnNoByName: Dictionary of [Text, Integer];
 
     procedure Download(var CorpCardStatement: Record "EA Corp Card Statement")
     var
@@ -355,6 +357,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         SourcePayloadTxt: Text;
         ValidationReason: Text[250];
     begin
+        Clear(ColumnNoByName);
         LoadFieldMappings(CorpCardProvider, TempDataExchFieldMapping);
 
         DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
@@ -601,15 +604,33 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
     local procedure GetDataExchFieldValueByColumnName(DataExchNo: Integer; DataExchDefCode: Code[20]; LineDefCode: Code[20]; LineNo: Integer; ColumnName: Text): Text
     var
-        DataExchColumnDef: Record "Data Exch. Column Def";
+        ColumnNo: Integer;
     begin
+        ColumnNo := GetColumnNoByName(DataExchDefCode, LineDefCode, ColumnName);
+        if ColumnNo = 0 then
+            exit('');
+
+        exit(GetDataExchFieldValue(DataExchNo, LineDefCode, LineNo, ColumnNo));
+    end;
+
+    local procedure GetColumnNoByName(DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnName: Text): Integer
+    var
+        DataExchColumnDef: Record "Data Exch. Column Def";
+        CacheKey: Text;
+        ColumnNo: Integer;
+    begin
+        CacheKey := DataExchDefCode + '|' + LineDefCode + '|' + ColumnName;
+        if ColumnNoByName.Get(CacheKey, ColumnNo) then
+            exit(ColumnNo);
+
         DataExchColumnDef.SetRange("Data Exch. Def Code", DataExchDefCode);
         DataExchColumnDef.SetRange("Data Exch. Line Def Code", LineDefCode);
         DataExchColumnDef.SetRange(Name, ColumnName);
-        if not DataExchColumnDef.FindFirst() then
-            exit('');
+        if DataExchColumnDef.FindFirst() then
+            ColumnNo := DataExchColumnDef."Column No.";
 
-        exit(GetDataExchFieldValue(DataExchNo, LineDefCode, LineNo, DataExchColumnDef."Column No."));
+        ColumnNoByName.Add(CacheKey, ColumnNo);
+        exit(ColumnNo);
     end;
 
     local procedure ReadSourcePayload(DataExch: Record "Data Exch."): Text

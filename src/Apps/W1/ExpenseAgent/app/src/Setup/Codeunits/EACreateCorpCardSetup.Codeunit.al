@@ -1332,11 +1332,11 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
         CorpCardSampleFirstTransIdTok: Label 'TXN00001', MaxLength = 50, Locked = true;
-        CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT-%1', MaxLength = 50, Locked = true;
-        CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-STATEMENT-%1', MaxLength = 50, Locked = true;
-        CorpCardSampleCardIdTok: Label 'CORPCARD-%1', MaxLength = 50, Locked = true;
+        CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT-%1', Comment = '%1 = settlement sequence number', MaxLength = 50, Locked = true;
+        CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-STATEMENT-%1', Comment = '%1 = statement sequence number', MaxLength = 50, Locked = true;
+        CorpCardSampleCardIdTok: Label 'CORPCARD-%1', Comment = '%1 = card sequence number', MaxLength = 50, Locked = true;
         CorpCardSampleCurrencyCodeTok: Label 'USD', MaxLength = 10, Locked = true;
-        CorpCardSampleCsvLineTok: Label 'TXN%1,CORPCARD-%2,%3,%3,%4,USD,%5,%6,US,Sample transaction %7', Locked = true;
+        CorpCardSampleCsvLineTok: Label 'TXN%1,CORPCARD-%2,%3,%3,%4,USD,%5,%6,US,Sample transaction %7', Comment = '%1 = transaction sequence number, %2 = card sequence number, %3 = transaction and posting date, %4 = amount, %5 = merchant name, %6 = merchant category code, %7 = sample transaction number', Locked = true;
         CorpCardBankAccountTok: Label 'CORPCARD', Locked = true;
         CorpCardBankAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
         CorpCardBankAccountNoTok: Label '99-55-000', Locked = true;

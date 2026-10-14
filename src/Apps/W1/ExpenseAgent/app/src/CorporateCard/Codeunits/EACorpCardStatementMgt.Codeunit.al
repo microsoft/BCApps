@@ -262,11 +262,12 @@ codeunit 7441 "EA Corp Card Statement Mgt"
 
         BankAccountLedgerEntry.SetRange("EA Corp Card Trans Entry No.", CorpCardTrans."Entry No.");
         BankAccountLedgerEntry.SetRange(Reversed, false);
-        if BankAccountLedgerEntry.Count() = 0 then
+        if not BankAccountLedgerEntry.FindFirst() then
             Error(TransactionBankEntryMissingErr, CorpCardTrans."Entry No.");
-        if BankAccountLedgerEntry.Count() > 1 then
+        if BankAccountLedgerEntry.Next() <> 0 then begin
+            BankAccountLedgerEntry.FindFirst();
             Error(TransactionHasMultipleBankEntriesErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry.Count());
-        BankAccountLedgerEntry.FindFirst();
+        end;
         if BankAccountLedgerEntry."Bank Account No." <> CorpCardSettlement."Corp Card Bank Account No." then
             Error(TransactionBankAccountMismatchErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry."Bank Account No.", CorpCardSettlement."Corp Card Bank Account No.");
         if BankAccountLedgerEntry."Currency Code" <> CorpCardSettlement."Currency Code" then
@@ -290,7 +291,9 @@ codeunit 7441 "EA Corp Card Statement Mgt"
 
         BankAccountLedgerEntry.SetRange("EA Corp Card Trans Entry No.", CorpCardTrans."Entry No.");
         BankAccountLedgerEntry.SetRange(Reversed, false);
-        if BankAccountLedgerEntry.Count() <> 1 then
+        if not BankAccountLedgerEntry.FindFirst() then
+            exit(false);
+        if BankAccountLedgerEntry.Next() <> 0 then
             exit(false);
         BankAccountLedgerEntry.FindFirst();
         exit(

@@ -34,7 +34,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Imported);
 
-        if not CorpCardTrans.FindSet() then
+        if not CorpCardTrans.FindSet(true) then
             exit;
 
         EnhancedMatchMgt.InitializeCardCache();
