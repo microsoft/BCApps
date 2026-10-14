@@ -76,10 +76,9 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         exit(MCCMgt.GetExpenseCategoryForMCC(MCC));
     end;
 
-    local procedure CreateVatSpecificationsFromTransDetails(CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
+    local procedure CreateVatSpecificationsFromTransDetails(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
     var
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
-        CorpCardTransForUpdate: Record "EA Corp Card Trans";
         ExpenseVATSpecification: Record "Expense VAT Specification";
         BaseAmount: Decimal;
         VatAmount: Decimal;
@@ -119,13 +118,10 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
             ExpenseVATSpecification.Insert(true);
         until CorpCardTransDetail.Next() = 0;
 
-        if CorpCardTransForUpdate.Get(CorpCardTrans."Entry No.") then begin
-            if Round(TotalFromDetails, 0.01) <> Round(CorpCardTrans.Amount, 0.01) then
-                CorpCardTransForUpdate."Reject Reason" := CopyStr(StrSubstNo(Level3ReconcileWarnLbl, Format(Round(TotalFromDetails, 0.01)), Format(Round(CorpCardTrans.Amount, 0.01))), 1, MaxStrLen(CorpCardTransForUpdate."Reject Reason"))
-            else
-                if CorpCardTransForUpdate."Reject Reason" <> '' then
-                    CorpCardTransForUpdate."Reject Reason" := '';
-            CorpCardTransForUpdate.Modify(true);
-        end;
+        if Round(TotalFromDetails, 0.01) <> Round(CorpCardTrans.Amount, 0.01) then
+            CorpCardTrans."Reject Reason" := CopyStr(StrSubstNo(Level3ReconcileWarnLbl, Format(Round(TotalFromDetails, 0.01)), Format(Round(CorpCardTrans.Amount, 0.01))), 1, MaxStrLen(CorpCardTrans."Reject Reason"))
+        else
+            if CorpCardTrans."Reject Reason" <> '' then
+                CorpCardTrans."Reject Reason" := '';
     end;
 }
