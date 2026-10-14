@@ -3,6 +3,7 @@ codeunit 139714 "Payment Methods E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 

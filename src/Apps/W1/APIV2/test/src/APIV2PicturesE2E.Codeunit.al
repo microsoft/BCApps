@@ -1,6 +1,7 @@
 codeunit 139842 "APIV2 - Pictures E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
