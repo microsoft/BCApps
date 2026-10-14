@@ -8357,7 +8357,6 @@ codeunit 137079 "SCM Production Order III"
         ItemJournalLine: Record "Item Journal Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
         ItemTrackingCode: Record "Item Tracking Code";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
         ReversalCapacityLedgerEntry: Record "Capacity Ledger Entry";
         CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
@@ -8365,8 +8364,8 @@ codeunit 137079 "SCM Production Order III"
         // [SCENARIO 653339] Capacity ledger entry of an intermediate operation posted with run time but no output can be reversed for a serial-tracked item without a serial number.
         Initialize();
 
-        // [GIVEN] Serial-tracked production item with a routing of two operations.
-        Item.Get(CreateItemSerialRoutingSeveralLines(2));
+        // [GIVEN] Serial-tracked production item with a routing of three operations.
+        Item.Get(CreateItemSerialRoutingSeveralLines(3));
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, false);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
@@ -8374,25 +8373,23 @@ codeunit 137079 "SCM Production Order III"
         // [GIVEN] Released production order.
         CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandIntInRange(2, 10), '', '');
 
-        // [GIVEN] Output journal posted only for the intermediate operation with run time and zero output quantity.
-        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderRoutingLine.SetFilter("Next Operation No.", '<>%1', '');
-        ProdOrderRoutingLine.FindFirst();
-
+        // [GIVEN] Output journal with exploded routing: the first operation has run time and output, the second has run time and no output, the last (final) operation line is removed.
         CreateOutputJournalWithExplodeRouting(ItemJournalLine, ProductionOrder."No.");
-        ItemJournalLine.SetFilter("Operation No.", '<>%1', ProdOrderRoutingLine."Operation No.");
+        UpdateOutputJournalLine(ItemJournalLine, ProductionOrder.Quantity, LibraryRandom.RandDecInRange(10, 20, 2));
+        ItemJournalLine.Next();
+        UpdateOutputJournalLine(ItemJournalLine, 0, LibraryRandom.RandDecInRange(100, 200, 2));
+        ItemJournalLine.SetFilter("Line No.", '>%1', ItemJournalLine."Line No.");
         ItemJournalLine.DeleteAll(true);
-        ItemJournalLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
-        ItemJournalLine.FindFirst();
-        ItemJournalLine.Validate("Output Quantity", 0);
-        ItemJournalLine.Validate("Run Time", LibraryRandom.RandDecInRange(10, 20, 2));
-        ItemJournalLine.Modify(true);
+        ItemJournalLine.SetRange("Line No.");
+        Assert.RecordCount(ItemJournalLine, 2);
         LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
 
+        // [GIVEN] Capacity ledger entry with run time and no output quantity.
         CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
         CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        CapacityLedgerEntry.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        CapacityLedgerEntry.SetRange("Output Quantity", 0);
+        CapacityLedgerEntry.SetFilter(Quantity, '<>0');
+        Assert.RecordCount(CapacityLedgerEntry, 1);
         CapacityLedgerEntry.FindFirst();
 
         // [WHEN] Invoke "Reverse" action on the capacity ledger entry of the intermediate operation.
@@ -8785,6 +8782,15 @@ codeunit 137079 "SCM Production Order III"
           ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ItemNo, LibraryRandom.RandInt(100));
         ProductionBOMLine.Validate("Routing Link Code", RoutingLine."Routing Link Code");
         ProductionBOMLine.Modify(true);
+    end;
+
+    local procedure UpdateOutputJournalLine(var ItemJournalLine: Record "Item Journal Line"; OutputQuantity: Decimal; RunTime: Decimal)
+    begin
+        ItemJournalLine.Validate("Output Quantity", OutputQuantity);
+        ItemJournalLine.Validate("Setup Time", 0);
+        ItemJournalLine.Validate("Scrap Quantity", 0);
+        ItemJournalLine.Validate("Run Time", RunTime);
+        ItemJournalLine.Modify(true);
     end;
 
     local procedure CreateOutputJournalWithExplodeRouting(var ItemJournalLine: Record "Item Journal Line"; ProductionOrderNo: Code[20])
