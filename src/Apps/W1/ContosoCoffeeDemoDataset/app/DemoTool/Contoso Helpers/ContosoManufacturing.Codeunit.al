@@ -22,7 +22,16 @@ codeunit 4763 "Contoso Manufacturing"
         tabledata "Production BOM Header" = rim,
         tabledata "Production BOM Line" = rim,
         tabledata "Routing Header" = rim,
+        tabledata "Routing Comment Line" = rimd,
         tabledata "Routing Line" = rim,
+        tabledata "Routing Personnel" = rimd,
+        tabledata "Routing Quality Measure" = rimd,
+        tabledata "Routing Tool" = rimd,
+        tabledata "Standard Task" = rim,
+        tabledata "Standard Task Description" = rim,
+        tabledata "Standard Task Personnel" = r,
+        tabledata "Standard Task Quality Measure" = r,
+        tabledata "Standard Task Tool" = r,
         tabledata "Work Center" = rim,
         tabledata "Work Center Group" = rim,
         tabledata "Machine Center" = rim,
@@ -186,6 +195,11 @@ codeunit 4763 "Contoso Manufacturing"
     end;
 
     procedure InsertRoutingLine(RoutingNo: Code[20]; VersionCode: Code[20]; OperationNo: Code[10]; NextOperationNo: Code[10]; Type: Enum "Capacity Type Routing"; No: Code[20]; Description: Text[30]; SetupTime: Decimal; RunTime: Decimal; ConcurrentCapacity: Decimal; SendAheadQty: Decimal; RoutingLinkCode: Code[10]; UnitCostPer: Decimal)
+    begin
+        InsertRoutingLine(RoutingNo, VersionCode, OperationNo, NextOperationNo, Type, No, Description, SetupTime, RunTime, ConcurrentCapacity, SendAheadQty, RoutingLinkCode, UnitCostPer, '');
+    end;
+
+    procedure InsertRoutingLine(RoutingNo: Code[20]; VersionCode: Code[20]; OperationNo: Code[10]; NextOperationNo: Code[10]; Type: Enum "Capacity Type Routing"; No: Code[20]; Description: Text[30]; SetupTime: Decimal; RunTime: Decimal; ConcurrentCapacity: Decimal; SendAheadQty: Decimal; RoutingLinkCode: Code[10]; UnitCostPer: Decimal; StandardTaskCode: Code[10])
     var
         RoutingLine: Record "Routing Line";
         Exists: Boolean;
@@ -193,8 +207,10 @@ codeunit 4763 "Contoso Manufacturing"
         if RoutingLine.Get(RoutingNo, VersionCode, OperationNo) then begin
             Exists := true;
 
-            if not OverwriteData then
+            if not OverwriteData then begin
+                AssignStandardTaskToExistingRoutingLine(RoutingLine, StandardTaskCode);
                 exit;
+            end;
         end;
 
         RoutingLine.Validate("Routing No.", RoutingNo);
@@ -203,6 +219,10 @@ codeunit 4763 "Contoso Manufacturing"
         RoutingLine.Validate("Next Operation No.", NextOperationNo);
         RoutingLine.Validate(Type, Type);
         RoutingLine.Validate("No.", No);
+        // Validate the Standard Task Code before the Description so the explicit
+        // operation description below is not overwritten by the standard task's description.
+        if StandardTaskCode <> '' then
+            RoutingLine.Validate("Standard Task Code", StandardTaskCode);
         RoutingLine.Validate(Description, Description);
         RoutingLine.Validate("Setup Time", SetupTime);
         RoutingLine.Validate("Run Time", RunTime);
@@ -215,6 +235,80 @@ codeunit 4763 "Contoso Manufacturing"
             RoutingLine.Modify(true)
         else
             RoutingLine.Insert(true);
+    end;
+
+    local procedure AssignStandardTaskToExistingRoutingLine(var RoutingLine: Record "Routing Line"; StandardTaskCode: Code[10])
+    var
+        RoutingHeader: Record "Routing Header";
+        ExistingDescription: Text[100];
+        ExistingDescription2: Text[50];
+        WasCertified: Boolean;
+    begin
+        if (StandardTaskCode = '') or (RoutingLine."Standard Task Code" <> '') then
+            exit;
+
+        ExistingDescription := RoutingLine.Description;
+        ExistingDescription2 := RoutingLine."Description 2";
+
+        RoutingHeader.Get(RoutingLine."Routing No.");
+        WasCertified := RoutingHeader.Status = RoutingHeader.Status::Certified;
+        if WasCertified then begin
+            RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+            RoutingHeader.Modify(true);
+        end;
+
+        RoutingLine.Validate("Standard Task Code", StandardTaskCode);
+        RoutingLine.Description := ExistingDescription;
+        RoutingLine."Description 2" := ExistingDescription2;
+        RoutingLine.Modify(true);
+
+        if WasCertified then begin
+            RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+            RoutingHeader.Modify(true);
+        end;
+    end;
+
+    procedure InsertStandardTask(StandardTaskCode: Code[10]; Description: Text[100])
+    var
+        StandardTask: Record "Standard Task";
+        Exists: Boolean;
+    begin
+        if StandardTask.Get(StandardTaskCode) then begin
+            Exists := true;
+
+            if not OverwriteData then
+                exit;
+        end;
+
+        StandardTask.Validate(Code, StandardTaskCode);
+        StandardTask.Validate(Description, Description);
+
+        if Exists then
+            StandardTask.Modify(true)
+        else
+            StandardTask.Insert(true);
+    end;
+
+    procedure InsertStandardTaskDescription(StandardTaskCode: Code[10]; LineNo: Integer; DescriptionText: Text[50])
+    var
+        StandardTaskDescription: Record "Standard Task Description";
+        Exists: Boolean;
+    begin
+        if StandardTaskDescription.Get(StandardTaskCode, LineNo) then begin
+            Exists := true;
+
+            if not OverwriteData then
+                exit;
+        end;
+
+        StandardTaskDescription.Validate("Standard Task Code", StandardTaskCode);
+        StandardTaskDescription.Validate("Line No.", LineNo);
+        StandardTaskDescription.Validate(Text, DescriptionText);
+
+        if Exists then
+            StandardTaskDescription.Modify(true)
+        else
+            StandardTaskDescription.Insert(true);
     end;
 
     procedure InsertWorkCenter(No: Code[20]; Name: Text[30]; WorkCenterGroupCode: Code[10]; DirectUnitCost: Decimal; CapUnitOfMeasureCode: Text[10]; Capacity: Decimal; ShopCalendarCode: Code[10]; UnitCostCalc: Option Time,Units; GenProdPostGrp: Code[20]; SubcontractorNo: Code[20])

@@ -114,10 +114,12 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
 
     local procedure CreateLetterOfAttorneyAndPrint(Preview: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         LetterOfAttorneyHeader: Record "Letter of Attorney Header";
         Employee: Record Employee;
         LetterOfAttorneyM2A: Report "Letter of Attorney M-2A";
     begin
+        BindSubscription(RUReportDownloadHandler);
         CreateAttHeader(LetterOfAttorneyHeader);
 
         Employee.Get(LetterOfAttorneyHeader."Employee No.");
@@ -127,6 +129,7 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
         LetterOfAttorneyM2A.SetTableView(LetterOfAttorneyHeader);
         LetterOfAttorneyM2A.UseRequestPage(false);
         LetterOfAttorneyM2A.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateAttHeader(var LetterOfAttorneyHeader: Record "Letter of Attorney Header")

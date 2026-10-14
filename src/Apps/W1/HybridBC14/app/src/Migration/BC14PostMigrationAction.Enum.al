@@ -20,4 +20,9 @@ enum 46884 "BC14 Post Migration Action" implements "BC14 Post Migration Action"
         Caption = 'Journal Post';
         Implementation = "BC14 Post Migration Action" = "BC14 Journal Post Action";
     }
+    value(1; "Item Journal Post")
+    {
+        Caption = 'Item Journal Post';
+        Implementation = "BC14 Post Migration Action" = "BC14 Item Journal Post Action";
+    }
 }

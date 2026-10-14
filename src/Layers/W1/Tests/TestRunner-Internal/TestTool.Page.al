@@ -16,7 +16,6 @@ page 130021 "Test Tool"
             group(Suite)
             {
                 ShowCaption = false;
-                ShowAsTree = true;
                 field(CurrentSuiteName; CurrentSuiteName)
                 {
                     ApplicationArea = All;

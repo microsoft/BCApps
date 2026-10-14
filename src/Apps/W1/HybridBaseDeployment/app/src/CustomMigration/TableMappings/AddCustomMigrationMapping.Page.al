@@ -183,7 +183,7 @@ page 40016 "Add Custom Migration Mapping"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         HybridCompany: Record "Hybrid Company";
-        TempCustomMigrationTableBuffer: Record "Custom Migration Table Buffer";
+        CustomMigrationTableBuffer: Record "Custom Migration Table Buffer";
         NewCompanyName: Text[30];
         NewSourceTableName: Text[128];
         NewDestinationTableName: Text[128];
@@ -206,10 +206,10 @@ page 40016 "Add Custom Migration Mapping"
                 NewDestinationTableName := DestinationTableName.Replace(AllCompaniesTok, HybridCompany.Name);
                 NewCompanyName := HybridCompany.Name;
 #pragma warning restore AA0139
-                TempCustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, NewSourceTableName, NewDestinationTableName, TargetTableName, NewCompanyName, DataPerCompany, GlobalPreserveCloudData);
+                CustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, NewSourceTableName, NewDestinationTableName, TargetTableName, NewCompanyName, DataPerCompany, GlobalPreserveCloudData);
             until HybridCompany.Next() = 0;
         end else
-            TempCustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, SourceTableName, DestinationTableName, TargetTableName, CompanyName, DataPerCompany, GlobalPreserveCloudData);
+            CustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, SourceTableName, DestinationTableName, TargetTableName, CompanyName, DataPerCompany, GlobalPreserveCloudData);
 
         exit(true);
     end;

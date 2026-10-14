@@ -2,38 +2,50 @@
 
 ## Overview
 
-Processing owns two major flows: outbound export (posting a BC document into an E-Document and handing it to the Integration layer) and inbound order matching (reconciling imported e-document lines against purchase order lines). The export flow is event-driven and largely automatic; order matching is interactive with optional AI assistance. Error handling throughout uses the `Commit(); if not Codeunit.Run()` pattern -- every interface call is isolated so a failure logs an error without rolling back the surrounding transaction.
+*Updated: 2026-07-29 -- added purchase order export, sales order response messaging, and current error-handling boundaries.*
+
+Processing owns the outbound export flow, the parent entry point for inbound processing, interactive V1 purchase order matching, E-Document message responses, attachment handling, and shared AI tooling. The export flow is event-driven and now covers both posted documents and released purchase orders. Inbound sales and purchase draft creation is delegated to `Import/`; this parent doc only calls out the boundaries where Processing dispatches into that pipeline or reacts after a draft creates a BC document.
+
+Error handling throughout still uses the `Commit(); if not Codeunit.Run()` pattern -- every interface call is isolated so a failure logs an error without rolling back the surrounding transaction. Page actions that retry incoming processing now surface a message when processing leaves errors on the E-Document, and document cleanup clears linked error messages with the rest of the E-Document-owned data.
 
 ## Export flow
 
-The outbound pipeline starts when a BC document is posted and ends when the E-Document is queued for sending.
+*Updated: 2026-07-29 -- added released purchase orders and PEPPOL purchase order export.*
+
+The outbound pipeline starts from a document event and ends when the E-Document is queued for sending.
 
 ```mermaid
 flowchart TD
-    A[BC document posted] --> B{Document Sending Profile = Extended E-Document Service Flow?}
-    B -- No --> Z[No E-Document created]
-    B -- Yes --> C[EDocExport.CreateEDocument]
-    C --> D[Create E-Document record with Status = In Progress]
-    D --> E{For each service in workflow}
-    E --> F{IExportEligibilityEvaluator.ShouldExport?}
-    F -- No --> E
-    F -- Yes --> G{Service uses batch processing?}
-    G -- Yes --> H[Set status = Created, wait for batch job]
-    G -- No --> I[MapEDocument + format.Create = TempBlob]
-    I --> J{Export succeeded?}
-    J -- No --> K[Status = Export Error, log error]
-    J -- Yes --> L[Status = Exported, store blob in log]
-    L --> M[StartEDocumentCreatedFlow -- enqueue background job]
-    M --> N[Workflow evaluates -- triggers Send / Email / Approval]
-    H --> O[Recurrent batch job collects pending-batch docs]
-    O --> P[ExportEDocumentBatch + SendBatch]
+    A[BC document event] --> B{Event source}
+    B -- Posted sales, service, finance charge, reminder, transfer, or shipment --> C{Document Sending Profile = Extended E-Document Service Flow?}
+    B -- Purchase Order released --> C
+    C -- No --> Z[No E-Document created]
+    C -- Yes --> D[EDocExport.CreateEDocument]
+    D --> E[Resolve enabled workflow services]
+    E --> F{Service supports document type and eligibility evaluator allows it?}
+    F -- No supported services --> Z
+    F -- Yes --> G[Create or re-export E-Document with service status Created]
+    G --> H{Service uses batch processing?}
+    H -- Yes --> I[Leave status Created for recurrent batch job]
+    H -- No --> J[MapEDocument + format.Create = TempBlob]
+    J --> K{Export succeeded?}
+    K -- No --> L[Status = Export Error, log error]
+    K -- Yes --> M[Status = Exported, store blob in log]
+    M --> N[StartEDocumentCreatedFlow -- enqueue background job]
+    N --> O[Workflow evaluates -- triggers Send / Email / Approval]
+    I --> P[Recurrent batch job groups pending docs]
+    P --> Q[ExportEDocumentBatch + SendBatch]
 ```
 
 Key decision points in the flow:
 
-- **Document Sending Profile.** The subscriber checks whether the customer/vendor has a profile with `"Electronic Document" = "Extended E-Document Service Flow"` and a valid, enabled workflow. If not, no E-Document is created.
+- **Document Sending Profile.** The subscriber checks whether the customer, vendor, or location has a profile with `"Electronic Document" = "Extended E-Document Service Flow"` and a valid, enabled workflow. If not, no E-Document is created. The page action for manual creation validates this setup before it calls the subscriber path.
 
-- **Export eligibility.** Each service in the workflow is checked individually via `IExportEligibilityEvaluator.ShouldExport()`. The default implementation allows all documents, but extensions can filter by document type, amount, customer attributes, or any other criteria. The service's `"E-Doc. Service Supported Type"` table is also checked before the evaluator runs.
+- **Purchase order send path.** `EDocumentSubscribers.OnAfterReleasePurchaseDoc()` handles released purchase orders, not posted purchase invoices. It resolves the vendor's electronic profile, then calls `CreateEDocumentFromPostedDocument()` with `"Purchase Order"` and `AllowReExport = true`. `EDocExport.GetLines()` reads `Purchase Line` records for the order, and `IsDocumentTypeSupported()` accepts a service that supports either Purchase Order or Purchase Invoice for this source type.
+
+- **PEPPOL format boundary.** The core `"E-Document Format"` enum still contains `"PEPPOL BIS 3.0"` and binds it to `EDoc PEPPOL BIS 3.0`. That codeunit is a bridge: for purchase orders it calls PEPPOL app code such as `Export Purchase Order PEPPOL30`, using the PEPPOL setup's purchase format. Do not describe the Processing module as owning the PEPPOL XML builders themselves.
+
+- **Export eligibility.** Each service in the workflow is checked individually via `IExportEligibilityEvaluator.ShouldExport()`. The default implementation allows all documents, but extensions can filter by document type, amount, customer/vendor attributes, or any other criteria. The service's `"E-Doc. Service Supported Type"` table is also checked before the evaluator runs.
 
 - **Batch vs. immediate.** If the service has `"Use Batch Processing"` enabled, the document gets status `Created` and is not exported inline. A recurrent job queue entry (`"E-Doc. Recurrent Batch Send"`) picks up all pending-batch documents at the configured interval, groups them by document type, exports them as a single batch blob, and sends the batch.
 
@@ -41,29 +53,55 @@ Key decision points in the flow:
 
 - **Error isolation.** `EDocumentCreate.Codeunit.al` is a runner codeunit invoked with `Codeunit.Run()`. If the format interface throws, `GetLastErrorText()` is captured and logged against the E-Document without aborting the caller.
 
+## E-Document message responses
+
+*Updated: 2026-07-29 -- documented PEPPOL Order Response handling and response message storage.*
+
+Processing stores lifecycle messages separately from the parent E-Document. The first built-in message type is `"PEPPOL Order Response"`, used when an inbound order becomes a sales order and BC needs to send an acceptance or rejection response back through the service flow.
+
+```mermaid
+flowchart TD
+    A[Incoming E-Document] --> B[V2 import pipeline in Import]
+    B --> C{Draft process creates which BC document?}
+    C -- Sales Order --> D[Sales Header linked to E-Document]
+    C -- Purchase document or journal --> X[Handled by Import docs]
+    D --> E{Sales Order released?}
+    E -- Yes --> F[EDocumentSubscribers.OnAfterReleaseSalesDoc]
+    E -- User rejects inbound order --> G[EDocumentProcessing.SendOrderRejection]
+    F --> H[Ask document format through IEDocResponseProvider]
+    G --> H
+    H --> I{Response message type returned?}
+    I -- Unknown --> Z[No message]
+    I -- PEPPOL Order Response --> J[IEDocMessageBuilder.BuildMessage]
+    J --> K[E-Doc. PEPPOL Msg. Builder delegates XML to PEPPOL app]
+    K --> L[E-Doc. Message Mgt. creates E-Document Message + Data Storage]
+```
+
+Key points:
+
+- `IEDocResponseProvider` is implemented by the document format enum value, so a format can decide whether the current E-Document should emit a response message. The PEPPOL handler returns the PEPPOL Order Response message type for applicable inbound sales orders.
+
+- `IEDocMessageBuilder` is implemented by the message type enum value. Core's PEPPOL builder reads the E-Document sales draft header and passes only primitive values to the standalone PEPPOL app's `PEPPOL Order Resp. Builder`.
+
+- Accepted responses are created automatically after the linked sales order is released. Rejected responses are created by the E-Document page's Reject Order action through `SendOrderRejection()`.
+
+- Messages are child records. `E-Document Message` stores message type, direction, response type, service, status, and a pointer to the XML blob in `E-Doc. Data Storage`; the messages factbox lets users download the raw XML.
+
 ## Order matching (two separate systems)
+
+*Updated: 2026-07-29 -- narrowed this parent section to boundaries and pointed V2 details to Import docs.*
 
 There are two distinct order matching systems in the codebase. They serve different purposes and use different data models. Do not confuse them.
 
-### V2 import pipeline PO matching (automatic, during Prepare Draft)
+### V2 import pipeline PO matching (automatic, during Prepare draft)
 
-This is the **newer** system, part of the V2.0 import pipeline in `Import/Purchase/PurchaseOrderMatching/`. It runs automatically during the "Prepare draft" stage when an incoming e-document references a purchase order number.
+This is the newer system, part of the V2.0 import pipeline in `Import/Purchase/PurchaseOrderMatching/`. It runs automatically during the Prepare draft and Finish draft stages when an incoming e-document references a purchase order number.
 
-The flow:
-1. During Prepare Draft, `PreparePurchaseEDocDraft` calls `IPurchaseOrderProvider.GetPurchaseOrder()` to look up a PO by order number from the e-document header.
-2. If found, `EDocPOMatching.MatchPOLinesToEDocumentLine()` matches e-document purchase lines to PO lines.
-3. After matching, `CalculatePOMatchWarnings()` generates warnings for over-receipt, under-receipt, quantity mismatches, etc.
-4. During Finish Draft, `SuggestReceiptsForMatchedOrderLines()` proposes receipt lines, and `TransferPOMatchesFromEDocumentToInvoice()` writes matches to the created purchase invoice.
-
-**Key data:** Matches are stored in `"E-Doc. Purchase Line PO Match"` (table 6114) -- a junction table linking e-document lines to PO lines and receipt lines via SystemIds. Warnings go in `"E-Doc. PO Match Warning"` (table 6115). Receipt behavior is configurable per vendor in `"E-Doc. PO Matching Setup"` (Always Ask / Always Receive / Never Receive).
-
-**Main codeunit:** `EDocPOMatching.Codeunit.al` (codeunit 6196) in `Import/Purchase/PurchaseOrderMatching/`.
-
-**Extensibility:** Override `IPurchaseOrderProvider.GetPurchaseOrder()` to customize how POs are looked up (e.g., match by vendor + date range instead of order number).
+This parent Processing doc should not duplicate the V2 matching details. See the Import docs for the stage flow, PO match tables, warnings, receipt suggestion behavior, and `IPurchaseOrderProvider` customization point. From this level, the important boundary is that `EDocImport.Codeunit.al` drives the configured import steps toward the desired processing status, while `Import/` owns the actual draft preparation and PO match data model.
 
 ### V1 interactive order matching (user-driven, post-import)
 
-This is the **older** system in `OrderMatching/`. It applies after the import pipeline has linked an E-Document to a purchase order (status `"Order Linked"`). The goal is to interactively reconcile imported e-document lines with PO lines so that `"Qty. to Invoice"` is set correctly before posting.
+This is the older system in `OrderMatching/`. It applies after the import pipeline has linked an E-Document to a purchase order (status `"Order Linked"`). The goal is to interactively reconcile imported e-document lines with PO lines so that `"Qty. to Invoice"` is set correctly before posting.
 
 **Automatic matching** (`EDocLineMatching.MatchAutomatically`) filters PO lines to those with the same unit of measure, direct unit cost, and line discount as the imported line, then applies three matching strategies in order:
 
@@ -75,27 +113,37 @@ Each successful match creates an `"E-Doc. Order Match"` record linking the e-doc
 
 **Manual matching** lets users select one or more imported lines and one or more PO lines on the `"E-Doc. Order Line Matching"` page. The framework validates that all selected lines share the same unit cost, discount, and UOM before creating the match.
 
-**Learn matching rule.** When a match is accepted with the "Learn" flag, the framework creates an Item Reference (for items) or a Text-to-Account Mapping (for G/L accounts) so future automatic matching will recognize the same pattern.
+**Learn matching rule.** When a match is accepted with the Learn flag, the framework creates an Item Reference for items or a Text-to-Account Mapping for G/L accounts so future automatic matching will recognize the same pattern.
 
 **Apply to purchase order.** `ApplyToPurchaseOrder()` validates that all imported lines are fully matched, then writes the matched unit costs and discounts to the actual PO lines and links the purchase header to the E-Document via `"E-Document Link"`.
 
 ### Common gotcha: which matching system applies?
 
-If you are working on the V2.0 import pipeline (Prepare Draft / Finish Draft stages, `"E-Doc. Purchase Line PO Match"` table), you are in the **new** system. If you are working with `"E-Doc. Order Match"` records or the `"E-Doc. Order Line Matching"` page, you are in the **old** system. The two do not share data models, codeunits, or flow paths. Code changes to one should not be applied to the other without understanding which pipeline the document is going through.
+If you are working on the V2.0 import pipeline (Prepare Draft / Finish Draft stages, `"E-Doc. Purchase Line PO Match"` table), you are in the new system. If you are working with `"E-Doc. Order Match"` records or the `"E-Doc. Order Line Matching"` page, you are in the old system. The two do not share data models, codeunits, or flow paths. Code changes to one should not be applied to the other without understanding which pipeline the document is going through.
 
 ## Copilot PO matching
 
-When automatic matching (V1 interactive system) leaves unmatched lines, users can invoke Copilot from the matching page. `EDocPOCopilotMatching.MatchWithCopilot()` builds a prompt containing imported line and PO line descriptions, sends it to Azure OpenAI (GPT-4.1 via the `"E-Document Matching Assistance"` Copilot capability), and interprets the response through function-calling tools.
+*Updated: 2026-07-29 -- marked the matching-page Copilot path obsolete and hidden.*
 
-The Copilot result is **grounded** before being shown: the framework verifies that proposed matches respect the cost difference threshold configured in `"Purchases & Payables Setup"."E-Document Matching Difference"`. Proposals that exceed the threshold are discarded. Accepted proposals are surfaced on a proposal page where the user reviews and confirms.
+The V1 matching-page Copilot path is obsolete behind `#if not CLEAN29`. The Match with Copilot action and promoted action are hidden, and the obsolete reason points developers to import-time AI matching in `E-Doc. AI Tool Processor`. The old code still exists for compatibility until cleanup, including prompt building and grounding against purchase line cost and quantity, but it is not the place for new matching work.
 
 ## AI tools for import processing
 
-`EDocAIToolProcessor` is a reusable Copilot orchestrator used during import processing (not order matching). It configures Azure OpenAI with a system prompt, registers tools from `IEDocAISystem` implementations, and executes function calls from the model's response. The `Tools/` subfolder provides four tools:
+*Updated: 2026-07-29 -- refreshed current model, capability registration, and historical matching behavior.*
 
-- **Historical matching** -- suggests line mappings based on previously accepted matches for the same vendor.
-- **G/L account matching** -- proposes G/L accounts based on description similarity to the chart of accounts.
+`EDocAIToolProcessor` is a reusable Copilot orchestrator used during import processing. It registers the E-Document Matching Assistance capability in SaaS, checks that the capability is active, configures Azure OpenAI with the latest GPT-4.1 chat deployment, and registers tools from `IEDocAISystem` implementations. The `Tools/` subfolder provides four tools:
+
+- **Historical matching** -- first tries direct history for the same vendor and product history; if unresolved lines remain, it builds a bounded historical candidate set and asks the model to choose matches.
+- **G/L account matching** -- proposes G/L accounts using company/vendor context, posting accounts, and line descriptions.
 - **Deferral matching** -- suggests deferral codes for lines that appear to represent recurring charges.
 - **Similar descriptions** -- finds items or G/L accounts with descriptions similar to the imported line text.
 
-Each tool implements the `IEDocAISystem` interface and registers via the `OnAfterRegister*` event pattern. The `EDocAIToolProcessor.Process()` method handles token counting (125k input limit), API error handling, and function call dispatch.
+Each tool implements the `IEDocAISystem` interface and registers via the `OnAfterRegister*` event pattern. The `EDocAIToolProcessor.Process()` method handles language-aware system prompts, token counting (125k input limit), API error handling, function call dispatch, and telemetry.
+
+## Attachment and cleanup handling
+
+*Updated: 2026-07-29 -- added Digital Voucher attachment context and E-Document cleanup behavior.*
+
+Attachments created against an E-Document are stamped with `"E-Document Attachment"` and `"E-Document Entry No."` by `EDocAttachmentProcessor`. The same codeunit helps the document attachment factbox recover the E-Document record when the normal record reference is missing, which is important for Digital Voucher and factbox attachment flows. During import finalization, attachments can be moved from the E-Document to the created purchase document; during cleanup, only attachments tied to the E-Document entry are deleted.
+
+E-Document cleanup is intentionally broad because the E-Document is the owner of processing artifacts. It clears Error Message records, logs, integration logs, service statuses, E-Document messages, mapping logs, imported lines, E-Document attachments, and V2 draft data through the configured process draft implementation. This keeps deleted or orphaned E-Documents from leaving stale processing state behind.

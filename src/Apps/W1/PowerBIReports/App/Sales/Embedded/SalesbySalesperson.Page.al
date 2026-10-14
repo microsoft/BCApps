@@ -11,8 +11,8 @@ page 37006 "Sales by Salesperson"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales by Salesperson';
-    AboutTitle = 'About Sales by Salesperson';
+    Caption = 'Sales by Salesperson (Power BI)';
+    AboutTitle = 'About Sales by Salesperson (Power BI)';
     AboutText = 'The Sales by Salesperson report breaks down salesperson performance by customer and item. Highlighting metrics such as Sales Amount, Sales Quantity, Gross Profit and Gross Profit Margin.';
 
     layout

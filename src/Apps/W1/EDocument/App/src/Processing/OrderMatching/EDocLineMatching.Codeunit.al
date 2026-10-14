@@ -48,6 +48,14 @@ codeunit 6164 "E-Doc. Line Matching"
         EDocOrderLineMatching.Run();
     end;
 
+#if not CLEAN29
+    [Obsolete('Deprecated functionality', '29.0')]
+    procedure RunMatching(var EDocument: Record "E-Document"; WithCopilot: Boolean)
+    begin
+        RunMatching(EDocument);
+    end;
+
+#endif
     procedure ApplyToPurchaseOrder(var EDocument: Record "E-Document"; var TempEDocumentImportedLine: Record "E-Doc. Imported Line" temporary)
     var
         PurchaseLine: Record "Purchase Line";
@@ -68,7 +76,7 @@ codeunit 6164 "E-Doc. Line Matching"
         RecordRef.Get(EDocument."Document Record ID");
         RecordRef.SetTable(PurchaseHeader);
         PurchaseHeader.Validate("Document Date", EDocument."Document Date");
-        PurchaseHeader.Validate("Vendor Invoice No.", EDocument."Incoming E-Document No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", CopyStr(EDocument."Incoming E-Document No.", 1, MaxStrLen(PurchaseHeader."Vendor Invoice No.")));
         if PurchaseHeader.IsLinkedToEDoc(EDocument) then
             Error(PurchaseHeaderAlreadyLinkedErr);
         PurchaseHeader.Validate("E-Document Link", EDocument.SystemId);

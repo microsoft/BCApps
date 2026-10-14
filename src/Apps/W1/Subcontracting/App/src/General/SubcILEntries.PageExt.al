@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Ledger;
 
-pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
+pageextension 20501 "Subc. ILEntries" extends "Item Ledger Entries"
 {
     layout
     {

@@ -25,6 +25,7 @@ report 10092 "Open Purchase Invoices by Job"
             column(FORMAT_TODAY_0_4_; Format(Today, 0, 4))
             {
             }
+
             column(TIME; Time)
             {
             }
@@ -169,7 +170,7 @@ report 10092 "Open Purchase Invoices by Job"
                         if not AlreadyDisplayedMessage then begin
                             Message(Text000 + ' ' +
                               Text001,
-                              TableName, FieldCaption("Job No."), FieldCaption("Document No."));
+                              TableCaption, FieldCaption("Job No."), FieldCaption("Document No."));
                             AlreadyDisplayedMessage := true;
                         end;
                     end;

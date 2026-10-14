@@ -42,6 +42,9 @@ query 18030 GSTR1HSNQuery
             {
                 SqlJoinType = InnerJoin;
                 DataItemLink = "Entry No." = Detailed_GST_Ledger_Entry."Entry No.";
+                filter(Nature_of_Supply; "Nature of Supply")
+                {
+                }
                 column(UOM; UOM)
                 {
                 }

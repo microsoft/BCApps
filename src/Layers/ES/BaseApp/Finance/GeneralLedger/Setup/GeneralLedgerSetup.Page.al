@@ -228,6 +228,10 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number series used to generate autocredit memos for purchases.';
                 }
+                field("Spend Request No. Series"; Rec."Spend Request No. Series")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Bill-to/Sell-to VAT Calc."; Rec."Bill-to/Sell-to VAT Calc.")
                 {
                     ApplicationArea = Basic, Suite;

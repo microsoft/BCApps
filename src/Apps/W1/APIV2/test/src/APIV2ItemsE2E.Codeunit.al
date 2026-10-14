@@ -3,6 +3,7 @@ codeunit 139800 "APIV2 - Items E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -624,7 +625,8 @@ codeunit 139800 "APIV2 - Items E2E"
 
         // [WHEN] GETting the item with this relations expanded
         TargetURL := LibraryGraphMgt.CreateTargetURL(ItemGUID, Page::"APIV2 - Items", ServiceNameTxt);
-        TargetURL += '?$expand=generalProductPostingGroup,inventoryPostingGroup';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$expand=generalProductPostingGroup,inventoryPostingGroup');
         LibraryGraphMgt.GetFromWebService(Response, TargetURL);
 
         // [THEN] the response should include them as properties

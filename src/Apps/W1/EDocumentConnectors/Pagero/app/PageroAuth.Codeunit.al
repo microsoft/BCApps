@@ -8,6 +8,7 @@ using System.Azure.KeyVault;
 using System.Environment;
 using System.Privacy;
 using System.Security.Authentication;
+using System.Utilities;
 
 codeunit 6364 "Pagero Auth."
 {
@@ -47,6 +48,42 @@ codeunit 6364 "Pagero Auth."
             EDocExtConnectionSetup.Validate("Redirect URL", CopyStr(RedirectUrl, 1, MaxStrLen(EDocExtConnectionSetup."Redirect URL")));
             EDocExtConnectionSetup.Modify();
         end;
+    end;
+
+    internal procedure GetAuthenticationURL(): Text
+    var
+        EDocExtConnectionSetup: Record "E-Doc. Ext. Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if EDocExtConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(EDocExtConnectionSetup."Authentication URL", AuthURLTxt));
+    end;
+
+    internal procedure GetFileAPIURL(): Text
+    var
+        EDocExtConnectionSetup: Record "E-Doc. Ext. Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if EDocExtConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(EDocExtConnectionSetup."FileAPI URL", FileAPITxt));
+    end;
+
+    internal procedure GetFilepartsURL(): Text
+    var
+        EDocExtConnectionSetup: Record "E-Doc. Ext. Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if EDocExtConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(EDocExtConnectionSetup."Fileparts URL", FilepartAPITxt));
+    end;
+
+    internal procedure GetDocumentAPIURL(): Text
+    var
+        EDocExtConnectionSetup: Record "E-Doc. Ext. Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if EDocExtConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(EDocExtConnectionSetup."DocumentAPI URL", DocumentAPITxt));
     end;
 
     [NonDebuggable]
@@ -121,7 +158,7 @@ codeunit 6364 "Pagero Auth."
         OAuth20Setup.Code := GetAuthSetupCode();
         OAuth20Setup."Client ID" := CreateGuid();
         OAuth20Setup."Client Secret" := CreateGuid();
-        OAuth20Setup."Service URL" := EDocExtConnectionSetup."Authentication URL";
+        OAuth20Setup."Service URL" := CopyStr(GetAuthenticationURL(), 1, MaxStrLen(OAuth20Setup."Service URL"));
         OAuth20Setup.Description := 'Pagero Online';
         OAuth20Setup."Redirect URL" := EDocExtConnectionSetup."Redirect URL";
         OAuth20Setup.Scope := 'all';

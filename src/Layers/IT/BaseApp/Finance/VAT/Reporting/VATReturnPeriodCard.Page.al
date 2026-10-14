@@ -55,6 +55,11 @@ page 738 "VAT Return Period Card"
                 Image = RefreshLines;
                 ToolTip = 'Receive the VAT returns that have been submitted.';
                 Visible = false;
+
+                trigger OnAction()
+                begin
+                    exit;
+                end;
             }
             action("Create VAT Return")
             {
@@ -64,6 +69,11 @@ page 738 "VAT Return Period Card"
                 Image = RefreshLines;
                 ToolTip = 'Create a new VAT return from this VAT return period.';
                 Visible = false;
+
+                trigger OnAction()
+                begin
+                    exit;
+                end;
             }
         }
         area(navigation)
@@ -76,6 +86,11 @@ page 738 "VAT Return Period Card"
                 Image = ShowList;
                 ToolTip = 'Open the VAT return card for this VAT return period.';
                 Visible = false;
+
+                trigger OnAction()
+                begin
+                    exit;
+                end;
             }
         }
         area(Promoted)

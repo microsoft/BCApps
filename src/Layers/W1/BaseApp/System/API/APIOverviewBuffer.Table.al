@@ -19,8 +19,8 @@ table 812 "API Overview Buffer"
         field(3; "Object Type"; Option)
         {
             Caption = 'Type';
-            OptionMembers = ,Page,Query;
-            OptionCaption = ' ,Page,Query';
+            OptionMembers = ,Page,Query,Codeunit;
+            OptionCaption = ' ,Page,Query,Codeunit';
         }
         field(4; "Object ID"; Integer)
         {

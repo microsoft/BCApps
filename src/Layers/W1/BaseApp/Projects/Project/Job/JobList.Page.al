@@ -610,7 +610,6 @@ page 89 "Job List"
                     Caption = 'Create Project &Sales Invoice';
                     Image = JobSalesInvoice;
                     RunObject = Report "Job Create Sales Invoice";
-                    ToolTip = 'Use a batch job to help you create project sales invoices for the involved project planning lines.';
                 }
                 group(Action7)
                 {
@@ -700,7 +699,6 @@ page 89 "Job List"
                 Caption = 'Project Actual to Budget';
                 Image = "Report";
                 RunObject = Report "Job Actual To Budget";
-                ToolTip = 'Compare budgeted and usage amounts for selected projects. All lines of the selected project show quantity, total cost, and line amount.';
             }
             action("Job Analysis")
             {
@@ -708,7 +706,6 @@ page 89 "Job List"
                 Caption = 'Project Analysis';
                 Image = "Report";
                 RunObject = Report "Job Analysis";
-                ToolTip = 'Analyze the project, such as the budgeted prices, usage prices, and contract prices, and then compares the three sets of prices.';
             }
             action("Job - Planning Lines")
             {
@@ -716,7 +713,6 @@ page 89 "Job List"
                 Caption = 'Project - Planning Lines';
                 Image = "Report";
                 RunObject = Report "Job - Planning Lines";
-                ToolTip = 'View all planning lines for the project. You use this window to plan what items, resources, and general ledger expenses that you expect to use on a project (budget) or you can specify what you actually agreed with your customer that he should pay for the project (billable).';
             }
             action("Job - Suggested Billing")
             {
@@ -724,7 +720,6 @@ page 89 "Job List"
                 Caption = 'Project - Suggested Billing';
                 Image = "Report";
                 RunObject = Report "Job Suggested Billing";
-                ToolTip = 'View a list of all projects, grouped by customer, how much the customer has already been invoiced, and how much remains to be invoiced, that is, the suggested billing.';
             }
             action("Jobs per Customer")
             {
@@ -734,7 +729,6 @@ page 89 "Job List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Jobs per Customer";
-                ToolTip = 'Run the Projects per Customer report.';
             }
             action("Items per Job")
             {
@@ -744,7 +738,6 @@ page 89 "Job List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Items per Job";
-                ToolTip = 'View which items are used for a specific project.';
             }
             action("Jobs per Item")
             {
@@ -754,7 +747,6 @@ page 89 "Job List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Jobs per Item";
-                ToolTip = 'Run the Projects per item report.';
             }
             action("Report Job Quote")
             {
@@ -808,7 +800,6 @@ page 89 "Job List"
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Job WIP To G/L";
-                    ToolTip = 'View the value of work in process on the projects that you select compared to the amount that has been posted in the general ledger.';
                 }
             }
             group(Action23)
@@ -823,7 +814,6 @@ page 89 "Job List"
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Job - Transaction Detail";
-                    ToolTip = 'View all postings with entries for a selected project for a selected period, which have been charged to a certain project. At the end of each project list, the amounts are totaled separately for the Sales and Usage entry types.';
                 }
                 action("Job Register")
                 {
@@ -833,7 +823,6 @@ page 89 "Job List"
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Job Register";
-                    ToolTip = 'View one or more selected project registers. By using a filter, you can select only those register entries that you want to see. If you do not set a filter, the report can be impractical because it can contain a large amount of information. On the project journal template, you can indicate that you want the report to print when you post.';
                 }
             }
         }

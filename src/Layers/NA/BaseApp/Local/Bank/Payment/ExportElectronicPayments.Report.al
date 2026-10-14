@@ -317,7 +317,7 @@ report 10083 "Export Electronic Payments"
                             ValidExchRate: Boolean;
                         begin
                             ValidExchRate := true;
-                            CalcFields("Remaining Amount");
+                            CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                             if ("Pmt. Discount Date" >= "Gen. Journal Line"."Document Date") and
                                ("Remaining Pmt. Disc. Possible" <> 0) and
                                ((-ExportAmount - TotalAmountPaid) - "Remaining Pmt. Disc. Possible" >= -"Amount to Apply")

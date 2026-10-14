@@ -14,6 +14,15 @@ interfaces handle mapping strategy, name formatting, and county resolution.
   which Customer Template is selected for a given country code. OnBefore can
   set Handled to bypass the default template lookup.
 
+*Updated: 2026-07-29 -- creation hooks may receive a fallback address when no
+default Shopify address exists*
+
+When customer creation is triggered by order-time by-email/phone mapping, the
+Customer Address passed into these hooks is the Shopify default address when
+available, otherwise the first address for that Shopify customer. Extensions
+that require the Shopify default address should check the address `Default`
+flag themselves.
+
 ## Customizing customer mapping
 
 - `OnBeforeFindMapping` -- fires before the default email/phone matching in
@@ -54,6 +63,13 @@ enum on the Shop.
 **ICounty** -- converts a stored Shopify address record's province data to a
 BC County string. Two implementations: `ShpfyCountyCode` (province code) and
 `ShpfyCountyName` (province name). Selected via the "County Source" enum.
+
+Customer and company export now filter `Shpfy Tax Area` with Shopify's ISO
+country code before applying the county source. Custom tax-area records used by
+export should therefore be keyed by ISO code.
+
+*Updated: 2026-07-29 -- tax-area filtering during export uses ISO country
+codes*
 
 **ICountyFromJson** -- same as ICounty but operates on a raw JSON address
 object during API response parsing. Implementations:

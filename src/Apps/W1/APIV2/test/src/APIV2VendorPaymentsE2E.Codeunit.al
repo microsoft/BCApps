@@ -1,6 +1,7 @@
 codeunit 139843 "APIV2 - Vendor Payments E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -16,6 +17,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         Assert: Codeunit Assert;
         GraphMgtVendorPayments: Codeunit "Graph Mgt - Vendor Payments";
         LibraryGraphJournalLines: Codeunit "Library - Graph Journal Lines";
+        LibraryERM: Codeunit "Library - ERM";
         GraphMgtJournal: Codeunit "Graph Mgt - Journal";
         ServiceNameTxt: Label 'vendorPaymentJournals';
         ServiceSubpageNameTxt: Label 'vendorPayments';
@@ -34,7 +36,6 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         PurchInvHeader: Record "Purch. Inv. Header";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
-        LibraryERM: Codeunit "Library - ERM";
         PurchInvAggregator: Codeunit "Purch. Inv. Aggregator";
         JournalName: Code[10];
         Amount: Decimal;
@@ -783,6 +784,103 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
           LibraryGraphMgt.CreateTargetURLWithSubpage(
             GetJournalID(JournalName), Page::"APIV2 - Vendor Paym. Journals", ServiceNameTxt, ServiceSubpageNameTxt);
         asserterror LibraryGraphMgt.PostToWebService(TargetURL, LineJSON, ResponseText);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetVendorPaymentWithoutInvoiceApplicationIsVisible()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JournalName: Code[10];
+        BlankGUID: Guid;
+        VendorPaymentGUID: Guid;
+        VendorNo: Code[20];
+        LineNo: Integer;
+        LineNoInJSON: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO 644954] A vendor payment that is not applied to an invoice is still returned by the API
+        Initialize();
+        LibraryGraphJournalLines.Initialize();
+
+        // [GIVEN] a vendor payments journal
+        JournalName := LibraryGraphJournalLines.CreateVendorPaymentsJournal();
+
+        // [GIVEN] a vendor
+        VendorNo := LibraryGraphJournalLines.CreateVendor();
+
+        // [GIVEN] a vendor payment line that is not applied to any document (blank Applies-to Doc. Type and Applies-to ID), like a line created in the Payment Journal
+        LineNo := LibraryGraphJournalLines.CreateVendorPayment(JournalName, VendorNo, BlankGUID, '', BlankGUID, 0, '');
+        GenJournalLine.Get(GraphMgtJournal.GetDefaultVendorPaymentsTemplateName(), JournalName, LineNo);
+        GenJournalLine."Applies-to Doc. Type" := GenJournalLine."Applies-to Doc. Type"::" ";
+        GenJournalLine.Modify();
+        VendorPaymentGUID := GenJournalLine.SystemId;
+        Commit();
+
+        // [WHEN] we GET the line from the web service
+        TargetURL :=
+          LibraryGraphMgt.CreateTargetURLWithSubpage(
+            GetJournalID(JournalName), Page::"APIV2 - Vendor Paym. Journals", ServiceNameTxt, GetVendorPaymentURL(VendorPaymentGUID));
+        LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+
+        // [THEN] the line is returned (it was hidden before the applied-only filter was removed)
+        LibraryGraphMgt.VerifyIDFieldInJsonWithoutIntegrationRecord(ResponseText, 'id');
+        Assert.IsTrue(
+          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, LineNumberNameTxt, LineNoInJSON),
+          'Could not find the ' + LineNumberNameTxt + ' in the JSON');
+        Assert.AreEqual(Format(LineNo), LineNoInJSON, 'The response JSON does not contain the correct Line No');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestAppliesToInvoiceNumberEmptyForNonInvoiceApplication()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JournalName: Code[10];
+        BlankGUID: Guid;
+        VendorPaymentGUID: Guid;
+        VendorNo: Code[20];
+        LineNo: Integer;
+        LineNoInJSON: Text;
+        AppliesToInvoiceNumberValue: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] appliesToInvoiceNumber is empty when the vendor payment is applied to a non-invoice document
+        Initialize();
+        LibraryGraphJournalLines.Initialize();
+
+        // [GIVEN] a vendor payments journal
+        JournalName := LibraryGraphJournalLines.CreateVendorPaymentsJournal();
+
+        // [GIVEN] a vendor
+        VendorNo := LibraryGraphJournalLines.CreateVendor();
+
+        // [GIVEN] a vendor payment line applied to a credit memo (Applies-to Doc. Type <> Invoice) with a document number
+        LineNo := LibraryGraphJournalLines.CreateVendorPayment(JournalName, VendorNo, BlankGUID, '', BlankGUID, 0, '');
+        GenJournalLine.Get(GraphMgtJournal.GetDefaultVendorPaymentsTemplateName(), JournalName, LineNo);
+        GenJournalLine."Applies-to Doc. Type" := GenJournalLine."Applies-to Doc. Type"::"Credit Memo";
+        GenJournalLine."Applies-to Doc. No." := 'CM-TEST-01';
+        GenJournalLine.Modify();
+        VendorPaymentGUID := GenJournalLine.SystemId;
+        Commit();
+
+        // [WHEN] we GET the line from the web service
+        TargetURL :=
+          LibraryGraphMgt.CreateTargetURLWithSubpage(
+            GetJournalID(JournalName), Page::"APIV2 - Vendor Paym. Journals", ServiceNameTxt, GetVendorPaymentURL(VendorPaymentGUID));
+        LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+
+        // [THEN] the correct line is returned
+        Assert.IsTrue(
+          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, LineNumberNameTxt, LineNoInJSON),
+          'Could not find the ' + LineNumberNameTxt + ' in the JSON');
+        Assert.AreEqual(Format(LineNo), LineNoInJSON, 'The response JSON does not contain the correct Line No');
+
+        // [THEN] appliesToInvoiceNumber is empty because the application is not to an invoice
+        LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, AppliesToDocNoNameTxt, AppliesToInvoiceNumberValue);
+        Assert.AreEqual('', AppliesToInvoiceNumberValue, 'appliesToInvoiceNumber should be empty for a non-invoice application');
     end;
 
     local procedure Initialize()

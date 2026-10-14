@@ -70,6 +70,11 @@ page 737 "VAT Return Period List"
                 Image = GetLines;
                 ToolTip = 'Load the VAT return periods that are set up in the system.';
                 Visible = false;
+
+                trigger OnAction()
+                begin
+                    exit;
+                end;
             }
             action("Create VAT Return")
             {
@@ -79,6 +84,11 @@ page 737 "VAT Return Period List"
                 Image = RefreshLines;
                 ToolTip = 'Create a new VAT return from the selected VAT return period.';
                 Visible = false;
+
+                trigger OnAction()
+                begin
+                    exit;
+                end;
             }
         }
         area(navigation)
@@ -91,6 +101,11 @@ page 737 "VAT Return Period List"
                 Image = ShowList;
                 ToolTip = 'Open the VAT return card for the selected VAT return period.';
                 Visible = false;
+
+                trigger OnAction()
+                begin
+                    exit;
+                end;
             }
         }
         area(Promoted)

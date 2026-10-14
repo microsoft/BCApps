@@ -269,7 +269,7 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
 
     local procedure SaveChangesInGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
-        if GenJnlLine."Line No." <> 0 then
+        if (GenJnlLine."Line No." <> 0) and (GenJnlLine."Job Queue Status" = GenJnlLine."Job Queue Status"::" ") then
             if GenJnlLine.Modify(true) then;
     end;
 

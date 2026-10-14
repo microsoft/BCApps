@@ -11,8 +11,8 @@ page 37030 "Inventory by Serial No."
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory by Serial No.';
-    AboutTitle = 'About Inventory by Serial No.';
+    Caption = 'Inventory by Serial No. (Power BI)';
+    AboutTitle = 'About Inventory by Serial No. (Power BI)';
     AboutText = 'The Inventory by Serial report displays inventory quantities categorized by serial number. The decomposition tree enhances this report by allowing users to drill down into inventory data, breaking down quantities by various dimensions such as location, item category, or vendor.';
 
     layout

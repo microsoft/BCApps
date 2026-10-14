@@ -101,7 +101,6 @@ page 5105 Teams
                 Caption = 'Team - Tasks';
                 Image = "Report";
                 RunObject = Report "Team - Tasks";
-                ToolTip = 'View the list of marketing tasks that exist for the team.';
             }
             action("Salesperson - Tasks")
             {
@@ -109,7 +108,6 @@ page 5105 Teams
                 Caption = 'Salesperson - Tasks';
                 Image = "Report";
                 RunObject = Report "Salesperson - Tasks";
-                ToolTip = 'View the list of marketing tasks that exist for the salesperson.';
             }
             action("Salesperson - Opportunities")
             {
@@ -119,7 +117,6 @@ page 5105 Teams
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Salesperson - Opportunities";
-                ToolTip = 'View information about the opportunities handled by one or several salespeople.';
             }
         }
         area(Promoted)

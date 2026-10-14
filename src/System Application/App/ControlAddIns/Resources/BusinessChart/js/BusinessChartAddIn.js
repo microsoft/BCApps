@@ -4,6 +4,8 @@
 var chart = null,
   stackIndex;
 
+var TURBO_THRESHOLD = 5000;
+
 // Taken from https://api.highcharts.com/highcharts/series.line.marker
 var DEFAULT_MARKER_RADIUS = 4;
 var HOVER_MARKER_RADIUS = DEFAULT_MARKER_RADIUS + 2;
@@ -118,6 +120,18 @@ function validateChartData(chartData) {
     return false;
   }
 
+  if (!validateDataPointCount(chartData)) {
+    return false;
+  }
+
+  return true;
+}
+
+function validateDataPointCount(chartData) {
+  if (chartData.DataTable.length > TURBO_THRESHOLD) {
+    createMessage(chartData.Resources.TooManyDataPoints);
+    return false;
+  }
   return true;
 }
 
@@ -445,7 +459,7 @@ function getSeries(chartData, xAxisType) {
       lineWidth: getSerieLineWidth(chartData, measure),
       marker: getSerieMarker(chartData, measure),
       name: measure,
-      turboThreshold: 5000,
+      turboThreshold: TURBO_THRESHOLD,
       stack: stack,
       step: getSerieLineStep(chartData, measure),
       type: getSerieType(chartData, measure),

@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Vendor;
 
-pageextension 99001517 "Subc. Vendor List" extends "Vendor List"
+pageextension 20517 "Subc. Vendor List" extends "Vendor List"
 {
     actions
     {

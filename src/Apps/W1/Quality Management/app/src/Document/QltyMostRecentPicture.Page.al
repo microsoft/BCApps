@@ -95,6 +95,9 @@ page 20431 "Qlty. Most Recent Picture"
         SetEditableOnPictureActions();
     end;
 
+    /// <summary>
+    /// Enables picture export and deletion when the current inspection has a picture.
+    /// </summary>
     local procedure SetEditableOnPictureActions()
     begin
         DeleteExportEnabled := Rec."Most Recent Picture".HasValue();

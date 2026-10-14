@@ -880,7 +880,7 @@ table 297 "Issued Reminder Header"
     /// descriptions are preserved.
     /// </summary>
     /// <returns>The interaction log description text.</returns>
-    internal procedure GetLogInteractionDescription(): Text[100]
+    procedure GetLogInteractionDescription(): Text[100]
     var
         ReminderHeader: Record "Reminder Header";
     begin

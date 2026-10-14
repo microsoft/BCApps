@@ -1,6 +1,7 @@
 codeunit 139882 "APIV2 - Salesperson/Purch E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
 
     var

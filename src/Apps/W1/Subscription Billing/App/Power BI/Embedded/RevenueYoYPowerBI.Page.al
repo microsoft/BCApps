@@ -7,8 +7,8 @@ page 8107 "Revenue YoY Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue YoY';
-    AboutTitle = 'About Revenue YoY';
+    Caption = 'Revenue YoY (Power BI)';
+    AboutTitle = 'About Revenue YoY (Power BI)';
     AboutText = 'The Revenue YoY report compares Monthly Recurring Revenue performance across a year-over-year period.';
 
     layout

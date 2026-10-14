@@ -658,6 +658,7 @@ table 167 Job
         {
             CalcFormula = exist("Job WIP Entry" where("Job No." = field("No.")));
             Caption = 'WIP Entries Exist';
+            ToolTip = 'Specifies whether WIP entries exist for the project, indicating that Calculate WIP has been run.';
             FieldClass = FlowField;
         }
         field(1008; "WIP Posting Date"; Date)
@@ -772,7 +773,7 @@ table 167 Job
                                                                         "Job Complete" = const(false),
                                                                         Type = filter("Accrued Sales" | "Applied Sales" | "Recognized Sales")));
             Caption = 'Total WIP Sales Amount';
-            ToolTip = 'Specifies the total WIP sales amount that was last calculated for the project. It is calculated as the value in the WIP Sales field minus the value in the Recognized Sales field in the Project WIP Entries window. For projects that use the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
+            ToolTip = 'Specifies the total WIP sales amount that was last calculated for the project. It is calculated as the value in the WIP Sales field minus the value in the Recognized Sales field in the Project WIP Entries page. For projects that use the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -785,7 +786,7 @@ table 167 Job
                                                                             "Job Complete" = const(false),
                                                                             Type = filter("Accrued Sales" | "Applied Sales" | "Recognized Sales")));
             Caption = 'Total WIP Sales G/L Amount';
-            ToolTip = 'Specifies the total WIP sales amount that was last posted to the general ledger for the project. The WIP sales amount is the value in the WIP Sales Project WIP G/L Entries window minus the value in the Recognized Sales Project WIP G/L Entries window. For projects with the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
+            ToolTip = 'Specifies the total WIP sales amount that was last posted to the general ledger for the project. The WIP sales amount is the value in the WIP Sales Project WIP G/L Entries page minus the value in the Recognized Sales Project WIP G/L Entries page. For projects with the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -794,6 +795,7 @@ table 167 Job
             CalcFormula = exist("Job WIP Entry" where("Job No." = field("No."),
                                                        "Job Complete" = const(true)));
             Caption = 'WIP Completion Calculated';
+            ToolTip = 'Specifies whether the final WIP calculation has been performed with the project marked as complete.';
             FieldClass = FlowField;
         }
         field(1024; "Next Invoice Date"; Date)
@@ -896,7 +898,7 @@ table 167 Job
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Costs")));
             Caption = 'Applied Costs G/L Amount';
-            ToolTip = 'Specifies the sum of all applied costs that is based on to the selected project in the general ledger.';
+            ToolTip = 'Specifies the sum of all applied costs posted to the general ledger that are related to the project.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -958,6 +960,7 @@ table 167 Job
             CalcFormula = exist("Job WIP G/L Entry" where("Job No." = field("No."),
                                                            "Job Complete" = const(true)));
             Caption = 'WIP Completion Posted';
+            ToolTip = 'Specifies whether the final WIP completion entries have been posted to the general ledger.';
             FieldClass = FlowField;
         }
         field(1035; "Over Budget"; Boolean)

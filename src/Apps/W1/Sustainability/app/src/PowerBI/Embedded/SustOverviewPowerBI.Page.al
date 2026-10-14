@@ -7,8 +7,8 @@ page 6279 "Sust. Overview Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sustainability Overview';
-    AboutTitle = 'About Sustainability Overview';
+    Caption = 'Sustainability Overview (Power BI)';
+    AboutTitle = 'About Sustainability Overview (Power BI)';
     AboutText = 'The Sustainability Overview gives you a high-level view of all the key sustainability metrics.';
 
     layout
@@ -48,13 +48,7 @@ page 6279 "Sust. Overview Power BI"
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sustainability Report ID"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }
 

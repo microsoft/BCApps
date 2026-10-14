@@ -97,7 +97,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 Caption = 'Vendor - &Balance to date';
                 Image = "Report";
                 RunObject = Report "Vendor - Balance to Date";
-                ToolTip = 'View, print, or save a detail balance to date for selected vendors.';
                 Visible = false;
             }
 #if not CLEAN28
@@ -132,7 +131,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 Caption = 'Vendor - &Purchase List';
                 Image = "Report";
                 RunObject = Report "Vendor - Purchase List";
-                ToolTip = 'View a list of your purchases in a period, for example, to report purchase activity to customs and tax authorities.';
             }
 #if not CLEAN28
             action("Pa&yments on Hold")
@@ -153,7 +151,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 Caption = 'P&urchase Statistics';
                 Image = "Report";
                 RunObject = Report "Purchase Statistics";
-                ToolTip = 'View a list of amounts for purchases, invoice discount and payment discount in $ for each vendor.';
             }
             action("Items Received & Not Invoiced")
             {
@@ -173,7 +170,6 @@ page 9002 "Acc. Payables Coordinator RC"
                     Caption = 'Vendor - Balance to date';
                     Image = "Report";
                     RunObject = Report "Vendor - Balance to Date";
-                    ToolTip = 'Open a report that shows the balance to date for each vendor.';
                 }
 #if not CLEAN28
                 action("Vendor - Summary Aging")

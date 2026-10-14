@@ -209,6 +209,10 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the bank reconciliation adjustment document number for general ledger setup. You can select the document number from the No. Series table.';
                 }
+                field("Spend Request No. Series"; Rec."Spend Request No. Series")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Bill-to/Sell-to VAT Calc."; Rec."Bill-to/Sell-to VAT Calc.")
                 {
                     ApplicationArea = Basic, Suite;

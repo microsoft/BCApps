@@ -13,6 +13,7 @@ report 709 "Inventory Purchase Orders"
 {
     ApplicationArea = Suite;
     Caption = 'Inventory Purchase Orders';
+    ToolTip = 'View a list of items on order from vendors. It also shows the expected receipt date and the quantity and amount on back orders. The report can be used, for example, to see when items should be received and whether a reminder of a back order should be issued.';
     DefaultRenderingLayout = Word;
     UsageCategory = ReportsAndAnalysis;
 

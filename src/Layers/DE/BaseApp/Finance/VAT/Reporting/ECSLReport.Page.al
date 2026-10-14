@@ -224,6 +224,7 @@ page 321 "ECSL Report"
                     trigger OnAction()
                     begin
                         // MESSAGE('Show errors');
+                        exit;
                     end;
                 }
                 action(Release)
@@ -237,6 +238,7 @@ page 321 "ECSL Report"
                     trigger OnAction()
                     begin
                         // MESSAGE('Release');
+                        exit;
                     end;
                 }
                 action(Reopen)
@@ -250,6 +252,7 @@ page 321 "ECSL Report"
                     trigger OnAction()
                     begin
                         // MESSAGE('Reopen');
+                        exit;
                     end;
                 }
             }

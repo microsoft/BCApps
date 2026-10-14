@@ -10,6 +10,7 @@ using System.Utilities;
 report 93 "Create Fiscal Year"
 {
     Caption = 'Create Fiscal Year';
+    ToolTip = 'Open a new fiscal year and define its accounting periods so you can start posting documents.';
     ProcessingOnly = true;
 
     dataset

@@ -17,6 +17,7 @@ report 1131 "Cost Allocation"
 {
     ApplicationArea = CostAccounting;
     Caption = 'Allocate Costs';
+    ToolTip = 'Specifies the cost allocation options.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
@@ -485,6 +486,7 @@ report 1131 "Cost Allocation"
         TempCostJnlLine."Allocation ID" := AllocID;
         TempCostJnlLine."Source Code" := SourceCodeSetup."Cost Allocation";
         TempCostJnlLine."Budget Name" := CostBudgetName.Name;
+        OnWriteJournalLineOnBeforeInsertTempCostJournalLine(TempCostJnlLine, "Cost Allocation Source");
         TempCostJnlLine.Insert();
 
         if TempCostJnlLine.Amount > 0 then
@@ -529,6 +531,11 @@ report 1131 "Cost Allocation"
         AllocDate := NewAllocDate;
         AllocVariant := NewAllocVariant;
         CostBudgetName.Name := NewCostBudgetName;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnWriteJournalLineOnBeforeInsertTempCostJournalLine(var TempCostJournalLine: Record "Cost Journal Line" temporary; CostAllocationSource: Record "Cost Allocation Source")
+    begin
     end;
 }
 

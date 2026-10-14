@@ -23,7 +23,6 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
         FilesExist: Dictionary of [Text, Boolean];
         FilesContent: Dictionary of [Text, List of [Text]];
         FingerprintsSHA256: List of [Text];
-        FingerprintsMD5: List of [Text];
 
     procedure SetShouldFailConnect(NewShouldFailConnect: Boolean)
     begin
@@ -49,11 +48,6 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
     procedure SetSHA256Fingerprints(FingerPrints: List of [Text])
     begin
         FingerprintsSHA256 := FingerPrints;
-    end;
-
-    procedure SetMD5Fingerprints(FingerPrints: List of [Text])
-    begin
-        FingerprintsMD5 := FingerPrints;
     end;
 
     procedure AddFile(Path: Text; Content: Text)

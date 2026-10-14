@@ -6,7 +6,7 @@ This document covers the main processing flows in E-Document Core, the decision 
 
 ### Trigger: posting a BC document
 
-`EDocumentSubscribers.Codeunit.al` subscribes to posting events across Sales-Post, Purch.-Post, Service-Post, and Gen. Jnl.-Post Line. When a sales invoice is posted, for example, `OnAfterPostSalesDoc` fires. The subscriber also hooks into release events (`OnBeforeReleaseSalesDoc`, etc.) to run pre-flight checks before the user commits to posting.
+`EDocumentSubscribers.Codeunit.al` subscribes to posting events across Sales-Post, Purch.-Post, Service-Post, and Gen. Jnl.-Post Line. When a sales invoice is posted, for example, `OnAfterPostSalesDoc` fires. The subscriber also hooks into release events (`OnBeforeReleaseSalesDoc`, etc.) to run pre-flight checks before the user commits to posting. Purchase orders are special: when a released purchase order uses an electronic document sending profile, Core can create the outbound E-Document at release time so the PEPPOL ordering send path does not wait for posting.
 
 The subscriber resolves the Document Sending Profile for the document and, if it specifies `"Extended E-Document Service Flow"`, delegates to `EDocExport.Codeunit.al`.
 
@@ -16,7 +16,7 @@ The outbound process has four distinct phases, orchestrated by `EDocExport` and 
 
 ```mermaid
 flowchart TD
-    A[BC document posted] --> B[EDocumentSubscribers catches event]
+    A[BC document posted or purchase order released] --> B[EDocumentSubscribers catches event]
     B --> C{Document Sending Profile?}
     C -->|Not E-Doc| D[Skip]
     C -->|Extended E-Document Service Flow| E["EDocExport.CheckEDocument()"]
@@ -59,7 +59,7 @@ Errors during export or send do not crash the posting transaction. Every interfa
 
 `EDocImport.ReceiveAndProcessAutomatically()` is the entry point, typically triggered by a recurrent import Job Queue Entry (configured via `"Auto Import"` on the service). It calls `EDocIntegrationManagement.ReceiveDocuments()`, which invokes `IDocumentReceiver.ReceiveDocuments()` to get a list of document metadata blobs, then for each document calls `DownloadDocument()` to fetch the actual content. If the receiver also implements `IReceivedDocumentMarker`, the framework calls `MarkFetched()` after download so the service knows the document was consumed.
 
-Each successfully downloaded document gets an E-Document record (Direction = Incoming, Status = Imported), with the raw content stored in `"E-Doc. Data Storage"` and linked via `"Unstructured Data Entry No."`.
+Each successfully downloaded document gets an E-Document record (Direction = Incoming, Status = Imported), with the raw content stored in `"E-Doc. Data Storage"` and linked via `"Unstructured Data Entry No."`. New services default to `"Import Process" = "Version 2.0"`; users can still select Version 1.0 on the service card when they need the legacy path.
 
 ### Import pipeline stages
 
@@ -68,30 +68,86 @@ After receiving, each document goes through the V2.0 pipeline managed by `Import
 ```mermaid
 flowchart TD
     A[Unprocessed] -->|"Structure received data"| B[Readable]
-    B -->|"Read into Draft"| C["Ready for draft"]
-    C -->|"Prepare draft"| D["Draft Ready"]
-    D -->|"Finish draft"| E[Processed]
-    E -.->|Undo| D
-    D -.->|Undo| C
-    C -.->|Undo| B
+    B -->|"Read into Draft"| C{Draft kind}
+    C -->|Purchase Invoice or Credit Memo| D[Purchase staging tables]
+    C -->|Sales Order| E[Sales staging tables]
+    C -->|Order Response| F[Store lifecycle message and stop import]
+    D -->|"Prepare draft"| G["Draft Ready"]
+    E -->|"Prepare draft"| G
+    G -->|"Finish draft"| H[Processed]
+    H -.->|Undo| G
+    G -.->|Undo| B
     B -.->|Undo| A
 ```
 
+*Updated: 2026-07-29 -- reflected the V2.0 draft split for purchase documents, sales orders, and lifecycle messages.*
+
 **Structure received data** (`ImportEDocumentProcess.StructureReceivedData()`): Converts the raw blob into a structured format. The implementation is determined by `"Structure Data Impl."` on the E-Document, which defaults to the preferred implementation for the file format (e.g., PDFs default to Azure Document Intelligence processing). The `IStructureReceivedEDocument` interface returns an `IStructuredDataType` that contains the structured content and specifies how to read it. For already-structured documents (XML), this is a passthrough -- the structured entry number just points to the same storage as the unstructured one.
 
-**Read into Draft** (`ImportEDocumentProcess.ReadIntoDraft()`): The `IStructuredFormatReader.ReadIntoDraft()` method parses the structured data and populates the E-Document Purchase Header/Line staging tables. It returns the `"E-Doc. Process Draft"` enum value that determines which `IProcessStructuredData` implementation runs next.
+**Read into Draft** (`ImportEDocumentProcess.ReadIntoDraft()`): The `IStructuredFormatReader.ReadIntoDraft()` method parses the structured data and populates draft staging tables. Purchase invoices and credit memos use E-Document Purchase Header/Line; inbound orders use E-Document Sales Header/Line. The reader returns the `"E-Doc. Process Draft"` enum value that determines which `IProcessStructuredData` implementation runs next. After this step, the service's document format can also provide a lifecycle response message, such as a PEPPOL Order Response acknowledgement for an inbound sales order.
 
-**Prepare draft** (`ImportEDocumentProcess.PrepareDraft()`): `IProcessStructuredData.PrepareDraft()` resolves BC entities from the parsed data -- finding the vendor, matching items, resolving units of measure, assigning GL accounts. This uses a chain of provider interfaces (`IVendorProvider`, `IItemProvider`, `IUnitOfMeasureProvider`, `IPurchaseLineProvider`, `IPurchaseOrderProvider`). The result is a draft with BC-specific field values filled in.
+**Prepare draft** (`ImportEDocumentProcess.PrepareDraft()`): `IProcessStructuredData.PrepareDraft()` resolves BC entities from the parsed data. Purchase drafts find the vendor, match items, resolve units of measure, assign G/L accounts, resolve VAT product posting groups from extracted VAT rates, and compute any allowed VAT amount difference. Vendor resolution records whether the vendor came from an existing assignment, provider lookup, historical assignment, or no match in `E-Doc. Imp. Session Telemetry`. Sales drafts resolve the customer, units of measure, and sales line entities through the sales provider interfaces. The result is a draft with BC-specific field values filled in.
 
-**Finish draft** (`ImportEDocumentProcess.FinishDraft()`): `IEDocumentFinishDraft.ApplyDraftToBC()` creates the actual BC document (Purchase Invoice, Purchase Credit Memo, etc.) from the staging tables. It returns the RecordId of the created document, which is stored in `"Document Record ID"` on the E-Document.
+**Finish draft** (`ImportEDocumentProcess.FinishDraft()`): `IEDocumentFinishDraft.ApplyDraftToBC()` creates the actual BC document from the staging tables. Current Core implementations create Purchase Invoices, Purchase Credit Memos, and Sales Orders. The method returns the RecordId of the created document, which is stored in `"Document Record ID"` on the E-Document.
+
+### Message handling
+
+Lifecycle messages are payloads related to an existing E-Document, not BC source documents of their own. Their payload is stored in `"E-Doc. Data Storage"` and the `"E-Document Message"` record tracks the parent E-Document, message type, direction, response type, service, status, external identifiers, and retry information.
+
+The V2.0 import pipeline can create messages while reading a document. `ReadIntoDraft()` asks the selected document format for a response message type after the draft reader has populated `"Process Draft Impl."`. For PEPPOL sales orders, Core builds an outgoing `"PEPPOL Order Response"` message. If an inbound PEPPOL `OrderResponse` arrives through the document import pipeline, the PEPPOL reader finds the matching outgoing E-Document by order reference, stores the incoming message on that E-Document, deletes the temporary inbound carrier, and stops the import pipeline.
+
+Connectors can also use `EDocumentMessageAPI.Codeunit.al` directly. An outgoing message is created with status `Created` and can be sent immediately or queued in the background. `IMessageSender.SendMessage()` must set the message context to `Sent` or `"Pending Response"`. Pending responses are polled after a five-minute delay through `IMessageResponseHandler.GetResponse()` until the connector reports `Sent`. Each communication attempt writes an integration log; scheduling or connector failures set the message to `Error` or `"Response Error"` and retain the last error and retry count for an explicit retry.
+
+For incoming connector messages, the connector first registers the external document ID returned when the parent E-Document was sent. `CreateIncomingMessage()` then resolves that external document ID, stores the payload against the parent E-Document, and records the message as `Received`. The pair `(Service, External Message ID)` provides idempotency: receiving the same external message again returns the existing message instead of inserting a duplicate.
+
+*Updated: 2026-09-23 -- expanded lifecycle message transport, response, and incoming-message behavior.*
 
 ### Reversibility
 
-Each step can be undone via `UndoProcessingStep()`. Undoing "Finish draft" calls `IEDocumentFinishDraft.RevertDraftActions()`, which de-links the BC document from the E-Document (clears the `"E-Document Link"` field), transfers PO matches and attachments back to the E-Document, but does **not** delete the BC document itself -- it must be handled separately. Undoing "Prepare draft" clears the BC-resolved fields and resets the document type. Undoing "Structure received data" clears the structured data reference. This lets users go back to an earlier stage, correct data, and re-process.
+Each step can be undone via `UndoProcessingStep()`. Undoing "Finish draft" calls `IEDocumentFinishDraft.RevertDraftActions()`, which de-links the BC document from the E-Document (clears the `"E-Document Link"` field), transfers PO matches and attachments back to the E-Document, but does **not** delete the BC document itself -- it must be handled separately. Undoing "Prepare draft" clears the BC-resolved fields and resets the document type. Sales order drafts use the same rewind model through their sales staging tables. Undoing "Structure received data" clears the structured data reference. This lets users go back to an earlier stage, correct data, and re-process.
 
 ### Automatic vs. manual processing
 
 The `"Automatic Import Processing"` field on the service controls whether received documents are automatically processed through the full pipeline or stop at the `Unprocessed` state for manual review. The `GetDefaultImportParameters()` method on the service table produces the appropriate parameters.
+
+## Payment-related flows
+
+Payment occurrences and remittance advice E-Documents solve different problems. A payment occurrence notifies dependent apps that a customer payment was applied to or unapplied from an outgoing sales invoice. A remittance advice is a normal outgoing E-Document that tells a vendor which documents a vendor payment settles.
+
+### Customer payment occurrences
+
+`E-Doc. Payment Occurrence Mgt.` subscribes to customer detailed ledger entry creation during general journal posting. When a payment is applied to an invoice, it resolves the posted sales invoice and finds every outgoing Sales Invoice E-Document linked to it. For each match it inserts an immutable `"E-Doc. Payment Occurrence"` of type `Applied`, containing the amount, currency, posting date, detailed ledger entry, and source entry SystemId.
+
+Unapplying the payment creates a separate `Reversed` occurrence for every matching applied occurrence. The reversal carries the opposite amount and links back through `"Original Occurrence Entry No."`; the original occurrence is not modified or deleted. The unique `(E-Document Entry No., Source Occurrence ID, Type)` key prevents the same ledger event from being captured twice.
+
+```mermaid
+flowchart TD
+    A[Customer payment is posted] --> B{Applied to a sales invoice?}
+    B -->|No| C[No payment occurrence]
+    B -->|Yes| D[Find outgoing Sales Invoice E-Documents]
+    D --> E[Insert Applied occurrence]
+    E --> F[Background dispatcher publishes occurrence]
+    F -->|Subscriber succeeds| G[Status: Processed]
+    F -->|Subscriber fails| H[Status: Error]
+    H -->|Five-minute retry delay| F
+    I[Payment is unapplied] --> J[Find original Applied occurrences]
+    J --> K[Insert linked Reversed occurrences]
+    K --> F
+```
+
+A recurrent dispatcher installed with the app picks up `Pending`, retryable `Error`, and stale `Processing` occurrences. Processing raises `OnAfterCreatePaymentOccurrence`, which localization and format apps subscribe to when they need to report the payment event externally. Successful publication sets the occurrence to `Processed`. A failure stores the error, increments `"Retry Count"`, and schedules another attempt after five minutes. Core records and publishes the occurrence but does not itself build or transmit a payment message.
+
+For existing companies, dispatcher provisioning is protected by a dedicated per-company upgrade tag. Later upgrades do not recreate a dispatcher job that was removed after provisioning; new installations still provision the dispatcher directly.
+
+### Vendor remittance advice
+
+Remittance advice starts from either unposted vendor payment journal lines or posted Vendor Ledger Entry payments. The **Remittance Advice - Journal** and **Remittance Advice - Entries** reports expose a **Create E-Documents** option. Journal lines are grouped by journal template, batch, vendor account, and document number; the lowest-numbered vendor line is used as the stable anchor for the group's E-Document.
+
+Before export, Core verifies that the source is a vendor payment and that at least one document is applied. It also requires the vendor's selected Document Sending Profile to use `"Extended E-Document Service Flow"`. `E-Doc. Remit. Advice Export` then calls the normal `EDocExport.CreateEDocument()` path with document type `"Remittance Advice"`. The configured format creates the payload, and the normal workflow and service integration handle sending. If no service in the workflow supports Remittance Advice, no E-Document is created.
+
+After a journal payment group is exported, every line in the group is marked `"Remit. Advice E-Doc. Created"` to prevent accidental duplicates. The Payment Journal can open the related E-Document or void it before it reaches `Sent`, `Approved`, or `"Pending Response"`. Voiding cancels its service statuses and clears the group flags so the advice can be recreated; after sending, users must use the E-Document cancellation action instead. Both journal and posted-payment report paths ask for confirmation before re-exporting an existing advice.
+
+*Updated: 2026-09-23 -- documented customer payment occurrences and vendor remittance advice.*
 
 ## Clearance model
 
@@ -108,7 +164,11 @@ Beyond send and receive, the framework supports arbitrary actions on documents v
 - **E-Document Status is derived**: The overall `E-Document Status` is derived from the service statuses. `EDocumentProcessing.ModifyEDocumentStatus()` computes it after every service status change using the `IEDocumentStatus` interface on the enum values.
 - **Import Processing Status is a FlowField**: On the E-Document table, `"Import Processing Status"` is a FlowField that reads from `"E-Document Service Status"`. You must call `CalcFields` before reading it.
 - **V1.0 and V2.0 coexistence**: The `"Import Process"` field on the service determines which path runs; new services default to Version 2.0, and the version is selectable on the service card. V1.0 collapses everything into a single "Finish draft" step that calls the old `V1_ProcessEDocument` logic. The pipeline state machine still runs, but only the last step does anything for V1.0 documents.
-- **Selecting the V2.0 draft format**: For Version 2.0 services the `"Read into Draft Impl."` field (shown as "Draft Format" on the service card) selects how the inbound structured e-document is read into a draft. For already-structured formats such as PEPPOL XML the structuring step returns `Unspecified`, so the read step falls back to the service's `"Read into Draft Impl."`; if that is also `Unspecified`, the `E-Doc. Unspecified Impl.` runs and import errors with "No method to read the e-document has been provided." PDF services (e.g. Azure Document Intelligence) resolve the reader automatically during structuring, so their format field can stay `Unspecified`.
+- **Selecting the V2.0 draft format**: For Version 2.0 services the `"Read into Draft Impl."` field (shown as "Draft Format" on the service card) selects how the inbound structured e-document is read into a draft. For already-structured formats such as PEPPOL, Data Exchange Purchase, OIOUBL, or XRechnung XML the structuring step can return `Unspecified`, so the read step falls back to the service's `"Read into Draft Impl."`; if that is also `Unspecified`, the `E-Doc. Unspecified Impl.` runs and import errors with "No method to read the e-document has been provided." PDF services (for example Azure Document Intelligence or MLLM) resolve the reader automatically during structuring, so their format field can stay `Unspecified`.
+- **Duplicate detection uses document date**: `E-Document.IsDuplicate()` checks for matching `"Incoming E-Document No."`, `"Bill-to/Pay-to No."`, and `"Document Date"`. V2.0 Prepare draft copies Document Date and Due Date from the purchase staging header back to the E-Document before this matters, and purchase document creation validates those dates onto the created invoice or credit memo. Duplicates can be deleted without confirmation; unique documents require explicit user confirmation.
+- **Posting date default for purchase drafts**: Purchase invoice and credit memo creation can use Purchases & Payables Setup `"E-Doc. Def. Posting Date" = "Document Date"` to validate the created purchase document's Posting Date from the draft Document Date; otherwise the normal BC default remains in control.
+
+*Updated: 2026-07-29 -- added date propagation, VAT handling, sales drafts, and message gotchas.*
 
 ## Inbound flow (V1.0 pipeline)
 
@@ -144,4 +204,3 @@ flowchart TD
 ### Why V1.0 is deprecated
 
 V1.0 has no staging tables, no user review step, and no reversibility. Format implementations must know how to produce complete purchase documents, violating separation of concerns. The V2.0 pipeline splits this into discrete, undoable stages with provider interfaces for entity resolution.
-- **Duplicate detection**: `E-Document.IsDuplicate()` checks for matching `"Incoming E-Document No."`, `"Bill-to/Pay-to No."`, and `"Document Date"`. Duplicates can be deleted without confirmation; unique documents require explicit user confirmation.

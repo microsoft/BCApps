@@ -750,9 +750,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Exchange Folder" = R,
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
-#if not CLEAN28
                   tabledata "Exchange Sync" = R,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = R,
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,
@@ -1364,6 +1362,9 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Source Code" = R,
                   tabledata "Source Code Setup" = R,
                   tabledata "Special Equipment" = R,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request" = R,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = R,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = R,
                   tabledata "Standard Address" = R,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet" = R,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet Name" = R,

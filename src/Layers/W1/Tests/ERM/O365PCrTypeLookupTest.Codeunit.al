@@ -106,9 +106,9 @@ codeunit 134651 "O365 P. Cr. Type Lookup Test"
         PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the Purchase Line to co
-        PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatType(), 1, 2));
+        PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -127,12 +127,12 @@ codeunit 134651 "O365 P. Cr. Type Lookup Test"
         // [WHEN] Setting the Subtype on the Purchase Line to ' '
         PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
 
         // [WHEN] Setting the Subtype on the Purchase Line to ''
         PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseCreditMemo.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
     end;
 
     [Test]

@@ -46,6 +46,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Encryption;
 using System.Security.User;
@@ -141,7 +142,9 @@ codeunit 31017 "Upgrade Application CZL"
                   tabledata "Gen. Journal Template" = m,
                   tabledata "VAT Entry" = m,
                   tabledata "Report Selections" = m,
-                  tabledata "G/L Entry" = m;
+                  tabledata "G/L Entry" = m,
+                  tabledata "Report Layout Selection" = im,
+                  tabledata "Tenant Report Layout Selection" = im;
 
     var
         DataUpgradeMgt: Codeunit "Data Upgrade Mgt.";
@@ -149,6 +152,8 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeTagDefinitionsCZL: Codeunit "Upgrade Tag Definitions CZL";
         InstallApplicationsMgtCZL: Codeunit "Install Applications Mgt. CZL";
         AppInfo: ModuleInfo;
+        DraftInvoiceReportLayoutNameTok: Label 'StdSalesDraftInvoice.rdl CZL', Locked = true;
+        ProformaReportLayoutNameTok: Label 'StdSalesProFormaInv.rdl CZL', Locked = true;
 
     trigger OnUpgradePerDatabase()
     begin
@@ -187,6 +192,10 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeUseVATReturnPeriodInsteadOfVATPeriod();
 #endif
         UpgradeOriginalVATAmountsACYInVATEntries();
+        UpgradeDraftInvoiceAndProformaReportLayouts();
+#if not CLEANSCHEMA33
+        UpgradeStatutoryReportingSetupOfficialFullName();
+#endif
     end;
 
     local procedure UpgradeReplaceVATDateCZL()
@@ -228,12 +237,10 @@ codeunit 31017 "Upgrade Application CZL"
         GLEntry.Reset();
         TotalRows := GLEntry.Count();
         ToNo := 0;
-
         while ToNo < TotalRows do begin
             // Batch size 5 million
             FromNo := ToNo + 1;
             ToNo := FromNo + 5000000;
-
             if ToNo > TotalRows then
                 ToNo := TotalRows;
 
@@ -348,7 +355,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetReplaceVATDateCZLServiceUpgradeTag()) then
             exit;
-
         if not (ServiceHeader.WritePermission() and ServiceInvoiceHeader.WritePermission() and ServiceCrMemoHeader.WritePermission()) then
             exit;
 
@@ -380,13 +386,11 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetReplaceVATDateCZLSetupUpgradeTag()) then
             exit;
-
         if GeneralLedgerSetup.Get() then begin
             if GeneralLedgerSetup."Use VAT Date CZL" then
                 GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::"Enabled (Prevent modification)"
             else
                 GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
-
             if PurchasesPayablesSetup.Get() then
                 case PurchasesPayablesSetup."Def. Orig. Doc. VAT Date CZL" of
                     PurchasesPayablesSetup."Def. Orig. Doc. VAT Date CZL"::Blank:
@@ -541,7 +545,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetStatutoryReportingSetupCityUpgradeTag()) then
             exit;
-
         if not CompanyInformation.Get() then
             exit;
         if not StatutoryReportingSetupCZL.Get() then
@@ -562,7 +565,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetSubstCustVendPostingGroupUpgradeTag()) then
             exit;
-
         if SubstCustPostingGroupCZL.FindSet() then
             repeat
                 if not AltCustomerPostingGroup.Get(SubstCustPostingGroupCZL."Parent Customer Posting Group", SubstCustPostingGroupCZL."Customer Posting Group") then begin
@@ -573,7 +575,6 @@ codeunit 31017 "Upgrade Application CZL"
                     AltCustomerPostingGroup.Insert(false, true);
                 end;
             until SubstCustPostingGroupCZL.Next() = 0;
-
         if SubstVendPostingGroupCZL.FindSet() then
             repeat
                 if not AltVendorPostingGroup.Get(SubstVendPostingGroupCZL."Parent Vendor Posting Group", SubstVendPostingGroupCZL."Vendor Posting Group") then begin
@@ -610,7 +611,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetAllowVATPostingUpgradeTag()) then
             exit;
-
         if GeneralLedgerSetup.Get() then begin
             if not VATSetup.Get() then begin
                 VATSetup.Init();
@@ -663,6 +663,24 @@ codeunit 31017 "Upgrade Application CZL"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetOriginalVATAmountsACYInVATEntriesUpgradeTag());
     end;
+#if not CLEANSCHEMA33
+
+    local procedure UpgradeStatutoryReportingSetupOfficialFullName()
+    var
+        StatutoryReportingSetupCZL: Record "Statutory Reporting Setup CZL";
+        StatutoryReportingSetupDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetStatutoryReportingSetupOfficialFullNameUpgradeTag()) then
+            exit;
+
+        StatutoryReportingSetupDataTransfer.SetTables(Database::"Statutory Reporting Setup CZL", Database::"Statutory Reporting Setup CZL");
+        StatutoryReportingSetupDataTransfer.AddSourceFilter(StatutoryReportingSetupCZL.FieldNo("Official Name"), '<>%1', '');
+        StatutoryReportingSetupDataTransfer.AddFieldValue(StatutoryReportingSetupCZL.FieldNo("Official Name"), StatutoryReportingSetupCZL.FieldNo("Official Full Name"));
+        StatutoryReportingSetupDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetStatutoryReportingSetupOfficialFullNameUpgradeTag());
+    end;
+#endif
 
     local procedure UpgradeEnableNonDeductibleVATCZ()
     var
@@ -695,7 +713,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetVATReportUpgradeTag()) then
             exit;
-
         if not VATReportsConfiguration.Get(VATReportsConfiguration."VAT Report Type"::"VAT Return", VATReportVersionTok) then begin
             VATReportsConfiguration.Init();
             VATReportsConfiguration.Validate("VAT Report Type", VATReportsConfiguration."VAT Report Type"::"VAT Return");
@@ -706,7 +723,6 @@ codeunit 31017 "Upgrade Application CZL"
             VATReportsConfiguration.Validate("Submission Codeunit ID", Codeunit::"VAT Report Submit CZL");
             if VATReportsConfiguration.Insert(true) then;
         end;
-
         if not VATReportSetup.Get() then begin
             VATReportSetup.Init();
             if VATReportSetup.Insert() then;
@@ -714,7 +730,6 @@ codeunit 31017 "Upgrade Application CZL"
 
         VATReportSetup."Report Version" := VATReportVersionTok;
         if VATReportSetup.Modify() then;
-
         if VATAttributeCodeCZL.FindSet() then
             repeat
                 IsModified := true;
@@ -729,7 +744,6 @@ codeunit 31017 "Upgrade Application CZL"
                     else
                         IsModified := false;
                 end;
-
                 if IsModified then
                     if VATAttributeCodeCZL.Modify() then;
             until VATAttributeCodeCZL.Next() = 0;
@@ -744,7 +758,6 @@ codeunit 31017 "Upgrade Application CZL"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.SetEnableNonDeductibleVATCZUpgradeTag()) then
             exit;
-
         if not NonDeductibleVATSetupCZL.IsEmpty() then
             if VATSetup.Get() then
                 if VATSetup."Enable Non-Deductible VAT" then begin
@@ -845,6 +858,120 @@ codeunit 31017 "Upgrade Application CZL"
         exit(CalcDate('<+25D>', EndDate));
     end;
 #endif
+
+    local procedure UpgradeDraftInvoiceAndProformaReportLayouts()
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag()) then
+            exit;
+        if GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then
+            if not IsReportLayoutSelectionCustomized(Report::"Standard Sales - Draft Invoice") then
+                SetDefaultReportLayout(ReportLayoutList);
+        if GetProformaReportLayoutCZ(ReportLayoutList) then
+            if not IsReportLayoutSelectionCustomized(Report::"Standard Sales - Pro Forma Inv") then
+                SetDefaultReportLayout(ReportLayoutList);
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
+    end;
+
+    internal procedure IsReportLayoutSelectionCustomized(ReportId: Integer): Boolean
+    var
+        DefaultMetadataReportLayoutName: Text[100];
+        DefaultSelectionReportLayoutName: Text[250];
+    begin
+        DefaultMetadataReportLayoutName := GetDefaultMetadataReportLayoutName(ReportId);
+        DefaultSelectionReportLayoutName := GetDefaultSelectionReportLayoutName(ReportId);
+        exit((DefaultSelectionReportLayoutName <> '') and (DefaultSelectionReportLayoutName <> DefaultMetadataReportLayoutName));
+    end;
+
+    local procedure GetDefaultMetadataReportLayoutName(ReportId: Integer): Text[100]
+    var
+        ReportMetadata: Record "Report Metadata";
+    begin
+        if ReportMetadata.Get(ReportId) then
+            exit(ReportMetadata."DefaultLayoutName");
+        exit('');
+    end;
+
+    local procedure GetDefaultSelectionReportLayoutName(ReportId: Integer): Text[250]
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        if TenantReportLayoutSelection.Get(ReportId, CompanyName(), EmptyGuid) then
+            exit(TenantReportLayoutSelection."Layout Name");
+        exit('');
+    end;
+
+    internal procedure GetDraftInvoiceReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
+    begin
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Draft Invoice");
+        ReportLayoutList.SetRange("Name", DraftInvoiceReportLayoutNameTok);
+        ReportLayoutList.SetRange("Application ID", AppInfo.Id);
+        exit(ReportLayoutList.FindFirst());
+    end;
+
+    internal procedure GetProformaReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
+    begin
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Pro Forma Inv");
+        ReportLayoutList.SetRange("Name", ProformaReportLayoutNameTok);
+        ReportLayoutList.SetRange("Application ID", AppInfo.Id);
+        exit(ReportLayoutList.FindFirst());
+    end;
+
+    internal procedure SetDefaultReportLayout(ReportLayoutList: Record "Report Layout List")
+    var
+        ReportLayoutSelection: Record "Report Layout Selection";
+    begin
+        // Add to TenantReportLayoutSelection table with an Empty Guid.
+        AddLayoutSelection(ReportLayoutList);
+
+        // Add to the report layout selection table
+        if ReportLayoutSelection.Get(ReportLayoutList."Report ID", CompanyName()) then begin
+            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(ReportLayoutList);
+            ReportLayoutSelection.Modify(false);
+        end else begin
+            ReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
+            ReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ReportLayoutSelection."Company Name"));
+            ReportLayoutSelection."Custom Report Layout Code" := '';
+            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(ReportLayoutList);
+            ReportLayoutSelection.Insert(false);
+        end;
+    end;
+
+    local procedure AddLayoutSelection(ReportLayoutList: Record "Report Layout List"): Boolean
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayoutSelection.Init();
+        TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
+        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
+        TenantReportLayoutSelection."Layout Name" := ReportLayoutList."Name";
+        TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
+        TenantReportLayoutSelection."User ID" := EmptyGuid;
+        if not TenantReportLayoutSelection.Insert(false) then
+            TenantReportLayoutSelection.Modify(false);
+    end;
+
+    local procedure GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList: Record "Report Layout List"): Integer
+    begin
+        case SelectedReportLayoutList."Layout Format" of
+            SelectedReportLayoutList."Layout Format"::RDLC:
+                exit(0);
+            SelectedReportLayoutList."Layout Format"::Word:
+                exit(1);
+            SelectedReportLayoutList."Layout Format"::Excel:
+                exit(3);
+            SelectedReportLayoutList."Layout Format"::Custom:
+                exit(4);
+        end
+    end;
 
     local procedure InsertRepSelection(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10];
                                                         ReportID: Integer)

@@ -555,7 +555,6 @@ page 9309 "Purchase Credit Memos"
                     Caption = 'Vendor - Purchase List';
                     Image = "Report";
                     RunObject = Report "Vendor - Purchase List";
-                    ToolTip = 'View a list of your purchases in a period, for example, to report purchase activity to customs and tax authorities.';
                 }
                 action("<Report Puchase Statistics>")
                 {
@@ -576,7 +575,6 @@ page 9309 "Purchase Credit Memos"
                     Caption = 'Vendor - Balance to Date';
                     Image = "Report";
                     RunObject = Report "Vendor - Balance to Date";
-                    ToolTip = 'View, print, or save vendors'' balances on a certain date, for example, to extract your total expenses at the close of an accounting period or fiscal year.';
                 }
                 action("<Report Vendor - Trial Balance")
                 {
@@ -584,7 +582,6 @@ page 9309 "Purchase Credit Memos"
                     Caption = 'Vendor - Trial Balance';
                     Image = "Report";
                     RunObject = Report "Vendor - Trial Balance";
-                    ToolTip = 'View the beginning and ending balance for vendors with entries within a specified period. The report can be used to verify that the balance for a vendor posting group is equal to the balance on the corresponding general ledger account on a certain date.';
                 }
                 action("<Report Vendor - Detail Trial ")
                 {
@@ -592,7 +589,6 @@ page 9309 "Purchase Credit Memos"
                     Caption = 'Vendor - Detail. Trial Balance';
                     Image = "Report";
                     RunObject = Report "Vendor - Detail Trial Balance";
-                    ToolTip = 'View the balance for vendors with balances on a specified date, for example, at the close of an accounting period or for an audit.';
                 }
 #if not CLEAN28
                 action("<Report Aged Accounts Payables")
@@ -613,7 +609,6 @@ page 9309 "Purchase Credit Memos"
                     Caption = 'Vendor - Payment Receipt';
                     Image = "Report";
                     RunObject = Report "Vendor - Payment Receipt";
-                    ToolTip = 'View a document showing which vendor ledger entries that a payment has been applied to.';
                 }
             }
         }

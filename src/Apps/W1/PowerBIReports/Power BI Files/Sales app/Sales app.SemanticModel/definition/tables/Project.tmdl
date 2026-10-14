@@ -25,6 +25,20 @@ table Project
 
 		annotation SummarizationSetBy = Automatic
 
+	column 'Project Sell to Customer No.'
+		dataType: string
+		lineageTag: 51838373-d0d1-43a7-bec8-da4955ea592b
+		summarizeBy: none
+		sourceColumn: Project Sell to Customer No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sell-to Customer Name' = LOOKUPVALUE(Customer[Customer Name], Customer[Customer No.], Project[Project Sell to Customer No.])
+		lineageTag: 6fa0bf9d-3449-4a12-94b3-c6cb8885f797
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
 	column 'Project Creation Date'
 		dataType: dateTime
 		formatString: Long Date
@@ -124,6 +138,7 @@ table Project
 				            {"projectManager", "Project Project Manager"},
 				            {"no", "Project No."},
 				            {"billToCustomerNo", "Project Bill to Customer No."},
+				            {"sellToCustomerNo", "Project Sell to Customer No."},
 				            {"status", "Project Status"},
 				            {"description", "Project Description"},
 				            {"complete", "Project Complete"},
@@ -140,4 +155,3 @@ table Project
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
-

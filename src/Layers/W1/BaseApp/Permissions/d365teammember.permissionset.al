@@ -755,9 +755,7 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Exchange Folder" = RM,
                   tabledata "Exchange Object" = RM,
                   tabledata "Exchange Service Setup" = RM,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RM,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = RM,
                   tabledata "Experience Tier Buffer" = RM,
                   tabledata "Experience Tier Setup" = RM,
@@ -1373,6 +1371,9 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Source Code" = RM,
                   tabledata "Source Code Setup" = RM,
                   tabledata "Special Equipment" = RM,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request" = Rimd,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = Rimd,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = Rimd,
                   tabledata "Standard Address" = Rm,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet" = RM,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet Name" = RM,

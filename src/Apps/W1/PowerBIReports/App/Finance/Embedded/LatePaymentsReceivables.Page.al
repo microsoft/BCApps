@@ -11,8 +11,8 @@ page 37113 "Late Payments (Receivables)"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Late Payments (Receivables)';
-    AboutTitle = 'About Late Payments (Receivables)';
+    Caption = 'Late Payments (Receivables) (Power BI)';
+    AboutTitle = 'About Late Payments (Receivables) (Power BI)';
     AboutText = 'The Late Payments (Receivables) report analyzes the behaviours of late paying customers, providing insights into amounts, payment times and the financial impacts on the business.';
 
     layout

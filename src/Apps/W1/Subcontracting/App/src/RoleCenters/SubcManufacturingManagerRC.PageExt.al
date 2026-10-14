@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.RoleCenters;
 
-pageextension 99001536 "Subc. Manufacturing Manager RC" extends "Manufacturing Manager RC"
+pageextension 20536 "Subc. Manufacturing Manager RC" extends "Manufacturing Manager RC"
 {
     actions
     {

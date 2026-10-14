@@ -250,7 +250,6 @@ page 1100 "Chart of Cost Types"
                 Caption = 'Cost Acctg. P/L Statement';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Statement";
-                ToolTip = 'View the cost accounting P/L statement.';
             }
             action("Cost Acctg. P/L Statement per Period")
             {
@@ -258,7 +257,6 @@ page 1100 "Chart of Cost Types"
                 Caption = 'Cost Acctg. P/L Statement per Period';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Stmt. per Period";
-                ToolTip = 'View profit and loss for cost types over two periods with the comparison as a percentage.';
             }
             action("Cost Acctg. P/L Statement with Budget")
             {
@@ -268,7 +266,6 @@ page 1100 "Chart of Cost Types"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Cost Acctg. Statement/Budget";
-                ToolTip = 'View a comparison of the balance to the budget figures and calculates the variance and the percent variance in the current accounting period, the accumulated accounting period, and the fiscal year.';
             }
             action("Cost Acctg. Analysis")
             {
@@ -276,7 +273,6 @@ page 1100 "Chart of Cost Types"
                 Caption = 'Cost Acctg. Analysis';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Analysis";
-                ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
             }
             action("Account Details")
             {
@@ -286,7 +282,6 @@ page 1100 "Chart of Cost Types"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Cost Types Details";
-                ToolTip = 'View cost entries for each cost type. You can review the transactions for each cost type.';
             }
         }
         area(Promoted)

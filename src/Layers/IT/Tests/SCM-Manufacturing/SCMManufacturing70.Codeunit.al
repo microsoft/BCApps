@@ -344,8 +344,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
         // Exercise: Run Planning Worksheet.
         LibraryPlanning.CalcRegenPlanForPlanWksh(ParentItem, WorkDate(), WorkDate());
 
-        // Verify: Verify Quantity and Dates in Requisition line.
-        VerifyValueInRequisitionLine(ParentItem, SalesLine.Quantity, SalesHeader."Order Date");
+        // Verify: Verify Quantity in Requisition line.
+        VerifyQuantityInRequisitionLine(ParentItem, SalesLine.Quantity);
 
         // Exercise: Run Carry Out Action Messages to create a Production Order.
         CarryOutActionMsgForItem(ParentItem."No.");
@@ -2477,6 +2477,111 @@ codeunit 137063 "SCM Manufacturing 7.0"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ProductionBOMAndRoutingHeadersInheritVersionNoSeriesFromManufacturingSetup()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ProductionBOMVersionNos: Code[20];
+        RoutingVersionNos: Code[20];
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] New production BOM and routing headers inherit version number series from Manufacturing Setup.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has default production BOM and routing version number series
+        ProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        RoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        SetManufacturingVersionNoSeries(ProductionBOMVersionNos, RoutingVersionNos);
+
+        // [WHEN] Production BOM and routing headers are inserted without explicit version number series
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both headers inherit their respective defaults
+        Assert.AreEqual(ProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(RoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExplicitHeaderVersionNoSeriesTakePrecedenceOverManufacturingSetup()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ExplicitProductionBOMVersionNos: Code[20];
+        ExplicitRoutingVersionNos: Code[20];
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Explicit header version number series take precedence over Manufacturing Setup defaults.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has default version number series and both headers have explicit series
+        SetManufacturingVersionNoSeries(LibraryERM.CreateNoSeriesCode(), LibraryERM.CreateNoSeriesCode());
+        ExplicitProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        ExplicitRoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        ProductionBOMHeader.Validate("Version Nos.", ExplicitProductionBOMVersionNos);
+        RoutingHeader.Validate("Version Nos.", ExplicitRoutingVersionNos);
+
+        // [WHEN] The headers are inserted
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both explicit series are retained
+        Assert.AreEqual(ExplicitProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(ExplicitRoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BlankManufacturingSetupLeavesHeaderVersionNoSeriesBlank()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Blank Manufacturing Setup defaults preserve blank header version number series.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has no default version number series
+        SetManufacturingVersionNoSeries('', '');
+
+        // [WHEN] Production BOM and routing headers are inserted
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both header version number series remain blank
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ManufacturingSetupVersionNoSeriesDoNotBackfillExistingHeaders()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Configuring Manufacturing Setup does not backfill existing headers.
+        Initialize();
+
+        // [GIVEN] Production BOM and routing headers were inserted while the setup defaults were blank
+        SetManufacturingVersionNoSeries('', '');
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [WHEN] Default version number series are configured in Manufacturing Setup
+        SetManufacturingVersionNoSeries(LibraryERM.CreateNoSeriesCode(), LibraryERM.CreateNoSeriesCode());
+        ProductionBOMHeader.Get(ProductionBOMHeader."No.");
+        RoutingHeader.Get(RoutingHeader."No.");
+
+        // [THEN] The existing header version number series remain blank
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ReValidatingUnitOfMeasureCodeOnProdBOMLine()
     var
         ProductionBOMLine: Record "Production BOM Line";
@@ -3033,11 +3138,11 @@ codeunit 137063 "SCM Manufacturing 7.0"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [WHEN] Run Calculation Plan from Req Worksheet for created Item
-        CalculatePlanForReqWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        CalculatePlanForReqWksh(Item, WorkDate(), CalcDate('<CY>', WorkDate()));
 
         // [THEN] Verify Order Date in Requisition line is calculated correctly
         FindRequisitionLine(RequisitionLine, Item."No.");
-        RequisitionLine.TestField("Order Date", CalcDate('<-CY>', WorkDate()));
+        RequisitionLine.TestField("Order Date", WorkDate());
     end;
 
 #if not CLEAN28
@@ -3626,7 +3731,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
     end;
 
     [Test]
-    [HandlerFunctions('ChangeStatusOnProdOrderToFinished,ErrorMessageHandler')]
+    [HandlerFunctions('ChangeStatusOnProdOrderToFinished')]
     procedure ChangeProductionOrderStatusWithoutVariantCode()
     var
         ProductionOrder: array[4] of Record "Production Order";
@@ -3662,7 +3767,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
             ProductionOrder[1]."Source Type"::Item, Item[1]."No.", LibraryRandom.RandInt(5));
 
         // [GIVEN] Refresh Production Order "X".
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], false, true, true, true, false);
+        AssertError LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], false, true, true, true, false);
+        Assert.ExpectedTestFieldError(ProductionOrder[1].FieldCaption("Variant Code"), '');
 
         // [GIVEN] Create Production Order "Y".
         LibraryManufacturing.CreateProductionOrder(
@@ -3790,6 +3896,110 @@ codeunit 137063 "SCM Manufacturing 7.0"
         // [THEN] The production order line routing number also matches the SKU routing
         FindProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.");
         Assert.AreEqual(SKURoutingHeader."No.", ProdOrderLine."Routing No.", ProductionRoutingErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RefreshProdOrderWithoutCalcLinesSkipsHeaderVariantCheck()
+    var
+        Item: Record Item;
+        Item2: Record Item;
+        Item3: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO 633092] Refreshing a Released Production Order with Calc. Lines = No does not require a header
+        // Variant Code even when the source item has "Variant Mandatory if Exists" = Yes, because the existing lines
+        // carry their own variant codes (fashion/apparel pattern with a blank header variant and variant-specific lines).
+        Initialize();
+
+        // [GIVEN] Create Work Center.
+        CreateWorkCenter(WorkCenter);
+
+        // [GIVEN] Create a manufactured Item and its component items.
+        CreateMultipleItems(
+          Item, Item2, Item3, Item."Replenishment System"::"Prod. Order", Item3."Replenishment System"::"Prod. Order",
+          Item."Reordering Policy"::Order, false);
+        UpdateItem(Item, Item.FieldNo("Manufacturing Policy"), Item."Manufacturing Policy"::"Make-to-Order");
+
+        // [GIVEN] Create Production BOM and Routing and assign them to the Item.
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, Item2."No.", 1);
+        CreateRoutingWithMultipleRoutingLine(RoutingHeader, WorkCenter."No.", RoutingHeader.Type::Serial, RoutingLine.Type::"Work Center");
+        UpdateItem(Item, Item.FieldNo("Production BOM No."), ProductionBOMHeader."No.");
+        UpdateItem(Item, Item.FieldNo("Routing No."), RoutingHeader."No.");
+
+        // [GIVEN] A variant exists for the Item and the variant is mandatory.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        UpdateItem(Item, Item.FieldNo("Variant Mandatory if Exists"), Item."Variant Mandatory if Exists"::Yes);
+
+        // [GIVEN] Create a Released Production Order for the Item with a blank header Variant Code.
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 100);
+
+        // [GIVEN] Create a Prod. Order Line carrying the specific Variant Code is added manually.
+        LibraryManufacturing.CreateProdOrderLine(
+          ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", ItemVariant.Code, '', 100);
+
+        // [WHEN] Refresh with Calc. Lines = No, Calc. Routings = Yes, Calc. Components = Yes.
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
+
+        // [THEN] Verify no error is raised and components are generated for the variant-specific line.
+        FindProdOrderComponent(ProdOrderComponent, ProductionOrder, Item2."No.");
+        Assert.RecordIsNotEmpty(ProdOrderComponent);
+    end;
+
+    [Test]
+    procedure RefreshProdOrderWithCalcLinesRequiresHeaderVariantCheck()
+    var
+        Item: Record Item;
+        Item2: Record Item;
+        Item3: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO 633092] Refreshing a Released Production Order with Calc. Lines = Yes still requires a header
+        // Variant Code when the source item has "Variant Mandatory if Exists" = Yes, because the lines are calculated
+        // from the header and would otherwise be created without a mandatory variant.
+        Initialize();
+
+        // [GIVEN] Create Work Center.
+        CreateWorkCenter(WorkCenter);
+
+        // [GIVEN] Create a manufactured Item and its component items.
+        CreateMultipleItems(
+          Item, Item2, Item3, Item."Replenishment System"::"Prod. Order", Item3."Replenishment System"::"Prod. Order",
+          Item."Reordering Policy"::Order, false);
+        UpdateItem(Item, Item.FieldNo("Manufacturing Policy"), Item."Manufacturing Policy"::"Make-to-Order");
+
+        // [GIVEN] Create Production BOM and Routing and assign them to the Item.
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, Item2."No.", 1);
+        CreateRoutingWithMultipleRoutingLine(RoutingHeader, WorkCenter."No.", RoutingHeader.Type::Serial, RoutingLine.Type::"Work Center");
+        UpdateItem(Item, Item.FieldNo("Production BOM No."), ProductionBOMHeader."No.");
+        UpdateItem(Item, Item.FieldNo("Routing No."), RoutingHeader."No.");
+
+        // [GIVEN] A variant exists for the Item and the variant is mandatory.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        UpdateItem(Item, Item.FieldNo("Variant Mandatory if Exists"), Item."Variant Mandatory if Exists"::Yes);
+
+        // [GIVEN] Create a Released Production Order for the Item with a blank header Variant Code.
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 100);
+
+        // [WHEN] Refresh with Calc. Lines = Yes, Calc. Routings = Yes, Calc. Components = Yes.
+        asserterror LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [THEN] Verify an error is raised because the mandatory header Variant Code is blank.
+        Assert.ExpectedTestFieldError(ProductionOrder.FieldCaption("Variant Code"), '');
     end;
 
     local procedure Initialize()
@@ -4054,8 +4264,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
     begin
         // Just refresh production order in order to create lines
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
-        if not ViaReport then // Calculate it again
-            begin
+        // Calculate it again
+        if not ViaReport then begin
             ProdOrderLine.SetRange(Status, ProductionOrder.Status);
             ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
             if ProdOrderLine.Find('-') then
@@ -5246,6 +5456,16 @@ codeunit 137063 "SCM Manufacturing 7.0"
         ManufacturingSetup.Modify(true);
     end;
 
+    local procedure SetManufacturingVersionNoSeries(ProductionBOMVersionNos: Code[20]; RoutingVersionNos: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Production BOM Version Nos.", ProductionBOMVersionNos);
+        ManufacturingSetup.Validate("Routing Version Nos.", RoutingVersionNos);
+        ManufacturingSetup.Modify(true);
+    end;
+
     local procedure CreateMultipleStockKeepingUnit(ItemNo: Code[20]; LocationCode: Code[10]; LocationCode2: Code[10])
     var
         Item: Record Item;
@@ -5487,16 +5707,12 @@ codeunit 137063 "SCM Manufacturing 7.0"
           "Due Date", CalcDate(InventorySetup."Default Safety Lead Time", CalcDate(Item."Lead Time Calculation", WorkDate())));
     end;
 
-    local procedure VerifyValueInRequisitionLine(Item: Record Item; Quantity: Decimal; OrderDate: Date)
+    local procedure VerifyQuantityInRequisitionLine(Item: Record Item; Quantity: Decimal)
     var
         RequisitionLine: Record "Requisition Line";
     begin
         FindRequisitionLine(RequisitionLine, Item."No.");
         RequisitionLine.TestField(Quantity, Quantity);
-        RequisitionLine.TestField("Due Date", CalcDate(Item."Lead Time Calculation", WorkDate()));
-        InventorySetup.Get();
-        RequisitionLine.TestField(
-          "Order Date", CalcDate('<' + '-' + Format(InventorySetup."Default Safety Lead Time") + '>', OrderDate));
     end;
 
     local procedure VerifyPlanningRoutingLine(RoutingHeader: Record "Routing Header"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20]; Quantity: Integer)

@@ -48,10 +48,22 @@ table 323 "VAT Business Posting Group"
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(13400; "Print on Invoice"; Boolean)
         {
             Caption = 'Print on Invoice';
+            ObsoleteReason = 'The Print VAT Information on Invoices functionality is discontinued and this setting is no longer used.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys

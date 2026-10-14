@@ -7,6 +7,7 @@ namespace Microsoft.Finance.AdvancePayments;
 using Microsoft.Finance.Currency;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
 report 31029 "Create Purch. Adv. Letter CZZ"
@@ -243,8 +244,13 @@ report 31029 "Create Purch. Adv. Letter CZZ"
     end;
 
     procedure SetPurchHeader(var NewPurchaseHeader: Record "Purchase Header")
+    var
+        Vendor: Record Vendor;
     begin
         NewPurchaseHeader.TestField("Document Type", NewPurchaseHeader."Document Type"::Order);
+        Vendor.Get(NewPurchaseHeader."Pay-to Vendor No.");
+        Vendor.CheckBlockedVendOnAdvanceLettersCZZ(false);
+
         PurchaseHeader := NewPurchaseHeader;
         PurchPost.GetPurchLines(PurchaseHeader, TempPurchaseLine, 0);
         TempPurchaseLine.CalcSums("Amount Including VAT");

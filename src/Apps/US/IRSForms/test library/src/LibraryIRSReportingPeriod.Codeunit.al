@@ -65,4 +65,14 @@ codeunit 148000 "Library IRS Reporting Period"
             exit(CalcDate('<1Y>', GLEntry."Posting Date"));
         exit(WorkDate());
     end;
+
+    /// <summary>
+    /// Copies IRS reporting period setup from one period to another.
+    /// </summary>
+    procedure CopyPeriodSetup(FromPeriodNo: Code[20]; ToPeriodNo: Code[20])
+    var
+        IRSReportingPeriod: Codeunit "IRS Reporting Period";
+    begin
+        IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo);
+    end;
 }

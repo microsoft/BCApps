@@ -11,8 +11,8 @@ page 37018 "Purchases by Vendor"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases by Vendor';
-    AboutTitle = 'About Purchases by Vendor';
+    Caption = 'Purchases by Vendor (Power BI)';
+    AboutTitle = 'About Purchases by Vendor (Power BI)';
     AboutText = 'The Purchases by Vendor report shows purchase amounts and quantities by vendor. Featuring a Treemap for item spending contributions and a bar chart for purchase amounts by item category, offering a clear view of vendor performance and spending patterns.';
 
     layout

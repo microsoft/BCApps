@@ -37,7 +37,9 @@ codeunit 18161 "e-Invoice Management for Ser."
     var
         GSTSetup: Record "GST Setup";
     begin
-        GSTSetup.Get();
+        if not GSTSetup.Get() then
+            exit;
+
         if not (GSTSetup."Generate E-Inv. on Ser. Post" and GuiAllowed) then
             exit;
 

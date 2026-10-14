@@ -98,6 +98,7 @@ table 31004 "Sales Adv. Letter Header CZZ"
 
                 GetCustomer("Bill-to Customer No.");
                 Customer.TestField("Customer Posting Group");
+                Customer.CheckBlockedCustOnAdvanceLettersCZZ(false);
 
                 SetBillToCustomerAddressFieldsFromCustomer(Customer);
 
@@ -1731,6 +1732,8 @@ table 31004 "Sales Adv. Letter Header CZZ"
 
     procedure CheckSalesAdvanceLetterPostRestrictions()
     begin
+        Customer.Get("Bill-to Customer No.");
+        Customer.CheckBlockedCustOnAdvanceLettersCZZ(true);
         OnCheckSalesAdvanceLetterPostRestrictions();
     end;
 

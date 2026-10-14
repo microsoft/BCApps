@@ -11,8 +11,8 @@ page 37115 "Vendor Quality Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Vendor Quality Analysis';
-    AboutTitle = 'About Vendor Quality Analysis';
+    Caption = 'Vendor Quality Analysis (Power BI)';
+    AboutTitle = 'About Vendor Quality Analysis (Power BI)';
     AboutText = 'The Vendor Quality Analysis report analyzes vendor performance, showcasing vendor quality, reliance, and purchase discount trends. Key measures include Purchase (LCY), No. of Single-Supplier Items, Discount % and Discount Amount.';
 
     layout

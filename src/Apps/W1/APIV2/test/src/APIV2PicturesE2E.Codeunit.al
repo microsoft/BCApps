@@ -1,6 +1,7 @@
 codeunit 139842 "APIV2 - Pictures E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -1050,7 +1051,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
     var
         TargetURL: Text;
     begin
-        TargetURL := GeneratePictureSubPageURL(APIName, APIPageNumber, ID) + '/pictureContent';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            GeneratePictureSubPageURL(APIName, APIPageNumber, ID), '/pictureContent');
         exit(TargetURL);
     end;
 

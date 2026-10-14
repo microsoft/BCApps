@@ -37,7 +37,12 @@ page 20441 "Qlty. Edit Large Text"
     var
         ContentText: Text;
 
-    internal procedure RunModalWith(var ExistingText: Text) ResultAction: Action
+    /// <summary>
+    /// Opens the page modally and updates the supplied text when the dialog is accepted.
+    /// </summary>
+    /// <param name="ExistingText">The text to edit and update when the dialog is accepted.</param>
+    /// <returns>The action used to close the modal page.</returns>
+    procedure RunModalWith(var ExistingText: Text) ResultAction: Action
     begin
         ContentText := ExistingText;
         ResultAction := CurrPage.RunModal();

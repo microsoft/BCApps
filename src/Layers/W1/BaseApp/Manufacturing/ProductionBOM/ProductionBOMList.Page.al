@@ -200,7 +200,6 @@ page 99000787 "Production BOM List"
                 Caption = 'Where-Used (Top Level)';
                 Image = "Report";
                 RunObject = Report "Where-Used (Top Level)";
-                ToolTip = 'View where and in what quantities the item is used in the product structure. The report only shows information for the top-level item. For example, if item "A" is used to produce item "B", and item "B" is used to produce item "C", the report will show item B if you run this report for item A. If you run this report for item B, then item C will be shown as where-used.';
             }
             action("Quantity Explosion of BOM")
             {
@@ -208,23 +207,7 @@ page 99000787 "Production BOM List"
                 Caption = 'Quantity Explosion of BOM';
                 Image = "Report";
                 RunObject = Report "Quantity Explosion of BOM";
-                ToolTip = 'View an indented BOM listing for the item or items that you specify in the filters. The production BOM is completely exploded for all levels.';
             }
-#if not CLEAN27
-            action("Compare List")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Compare List (Obsolete)';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Compare List";
-                ToolTip = 'View a comparison of components for two items. The printout compares the components, their unit cost, cost share and cost per component.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the "Compare Production Cost Shares" report and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             action("Compare Production Cost Shares")
             {
                 ApplicationArea = Manufacturing;

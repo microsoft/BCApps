@@ -11,8 +11,8 @@ page 37042 "PowerBI Work Center Load"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Work Center Load';
-    AboutTitle = 'About Work Center Load';
+    Caption = 'Work Center Load (Power BI)';
+    AboutTitle = 'About Work Center Load (Power BI)';
     AboutText = 'View the percentage of production order time assigned vs. Available Capacity for each Work Centre Group and/or Work Centre in a specified period. Allows you to determine if a Work Centre is overloaded and requires rescheduling.';
 
     layout

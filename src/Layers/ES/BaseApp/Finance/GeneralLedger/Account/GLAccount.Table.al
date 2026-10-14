@@ -16,6 +16,7 @@ using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Enums;
@@ -75,7 +76,7 @@ table 15 "G/L Account"
                 if (xRec."No." <> '') then
                     if (StrLen("No.") > 5) <> (StrLen(xRec."No.") > 5) then
                         Error(Text1100001,
-                          FieldName("Account Type"));
+                          FieldCaption("Account Type"));
                 Evaluate(TestNo, CopyStr("No.", 1, 1));
                 if TestNo in [6 .. 7] then
                     "Income/Balance" := "Income/Balance"::"Income Statement"
@@ -1066,6 +1067,15 @@ table 15 "G/L Account"
             DataClassification = CustomerContent;
         }
         /// <summary>
+        /// Specifies whether a spend request is required before expenses can be posted to this account.
+        /// </summary>
+        field(90; "Spend Request Required"; Enum "Spend Request Required")
+        {
+            Caption = 'Spend Request Required';
+            ToolTip = 'Specifies whether a spend request is required before expenses can be posted to this account.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Filter for dimension set ID to restrict balance calculations to specific dimension combinations.
         /// </summary>
         field(400; "Dimension Set ID Filter"; Integer)
@@ -1118,7 +1128,7 @@ table 15 "G/L Account"
                 if (GLEntry.Find('-')) and (Balance <> 0) then
                     if xRec."Ignore in 347 Report" <> "Ignore in 347 Report" then
                         Message(Text1100002 + Text1100003
-                          , FieldName(Balance));
+                          , FieldCaption(Balance));
             end;
         }
         field(10702; "Ignore Discounts"; Boolean)

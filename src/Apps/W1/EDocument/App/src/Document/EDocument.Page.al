@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
@@ -218,6 +219,12 @@ page 6121 "E-Document"
                 Enabled = Rec.Direction = Rec.Direction::Outgoing;
                 Visible = Rec.Direction = Rec.Direction::Outgoing;
             }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                Caption = 'Messages';
+                SubPageLink = "E-Document Entry No." = field("Entry No");
+                ShowFilter = false;
+            }
         }
     }
     actions
@@ -303,6 +310,24 @@ page 6121 "E-Document"
                         end
                     end;
                 }
+#if not CLEAN29
+                action(RejectOrder)
+                {
+                    Caption = 'Reject Order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Reject;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Reject order action in the Incoming group.';
+                    ObsoleteTag = '29.0';
+
+                    trigger OnAction()
+                    begin
+                        EDocumentHelper.SendOrderRejection(Rec);
+                    end;
+                }
+#endif
                 action(ViewFile)
                 {
                     ApplicationArea = Basic, Suite;
@@ -319,6 +344,23 @@ page 6121 "E-Document"
             group(Incoming)
             {
                 Caption = 'Incoming';
+                action(RejectInboundOrder)
+                {
+                    Caption = 'Reject order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Reject;
+                    Visible = IsIncomingDoc;
+
+                    trigger OnAction()
+                    var
+                        ConfirmManagement: Codeunit "Confirm Management";
+                    begin
+                        if not ConfirmManagement.GetResponseOrDefault(RejectOrderQst, false) then
+                            exit;
+                        EDocumentHelper.SendOrderRejection(Rec);
+                    end;
+                }
                 action(GetBasicInfo)
                 {
                     Caption = 'Get Basic Info';
@@ -498,6 +540,13 @@ page 6121 "E-Document"
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
                 ObsoleteTag = '29.0';
+
+                trigger OnAction()
+                var
+                    EDocOrderMatch: Codeunit "E-Doc. Line Matching";
+                begin
+                    EDocOrderMatch.RunMatching(Rec);
+                end;
             }
 #endif
         }
@@ -641,4 +690,5 @@ page 6121 "E-Document"
         ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;
         EDocHasErrorOrWarningMsg: Label 'Errors or warnings found for E-Document. Please review below in "Error Messages" section.';
         DocNotCreatedMsg: Label 'Failed to create new %1 from E-Document. Please review errors below.', Comment = '%1 - E-Document Document Type';
+        RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
 }

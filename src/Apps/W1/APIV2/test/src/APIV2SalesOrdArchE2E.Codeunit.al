@@ -3,6 +3,7 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

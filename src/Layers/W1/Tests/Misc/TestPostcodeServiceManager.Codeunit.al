@@ -118,6 +118,37 @@ codeunit 139090 "Test Postcode Service Manager"
         // Assertion is done in the handler
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure TestConfigurationPageShowsConfiguredProviderAndOKKeepsIt()
+    var
+        PostcodeServiceConfig: Record "Postcode Service Config";
+        PostcodeConfigurationPageW1: TestPage "Postcode Configuration Page W1";
+    begin
+        // [SCENARIO] Reopening the configuration page with a configured provider shows that provider, and closing it with OK keeps it.
+        // AutoCommit: the page's OK path calls Commit.
+
+        // [GIVEN] The dummy service is the stored, configured provider
+        Initialize();
+        PostcodeServiceConfig.FindFirst();
+        PostcodeServiceConfig.SaveServiceKey('Dummy Service');
+        LibraryLowerPermissions.SetO365BusFull();
+
+        // [WHEN] The configuration page is opened
+        PostcodeConfigurationPageW1.OpenEdit();
+
+        // [THEN] It shows the stored provider
+        Assert.AreEqual('Dummy Service', PostcodeConfigurationPageW1.SelectedService.Value, 'The configured provider should be shown when the page is opened.');
+
+        // [WHEN] The page is closed with OK
+        PostcodeConfigurationPageW1.OK().Invoke();
+
+        // [THEN] The stored provider is kept
+        PostcodeServiceConfig.FindFirst();
+        Assert.AreEqual('Dummy Service', PostcodeServiceConfig.GetServiceKey(), 'Closing the page with OK should keep the stored provider.');
+    end;
+
     [Scope('OnPrem')]
     procedure Initialize()
     var

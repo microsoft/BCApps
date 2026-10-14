@@ -602,7 +602,7 @@ page 143 "Posted Sales Invoices"
                 }
                 action(CFDIRelationDocuments)
                 {
-                    ApplicationArea = BasicMX, Suite;
+                    ApplicationArea = Suite, BasicMX;
                     Caption = 'CFDI Relation Documents';
                     Image = Allocations;
                     RunObject = Page "CFDI Relation Documents";

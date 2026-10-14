@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
+pageextension 20505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
 {
     actions
     {

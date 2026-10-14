@@ -13,6 +13,7 @@ report 99000780 "Capacity Task List"
     DefaultRenderingLayout = ExcelLayout;
     ApplicationArea = Manufacturing;
     Caption = 'Capacity Task List';
+    ToolTip = 'View the production orders that are waiting to be processed at the work centers and machine centers. Printouts are made for the capacity of the work center or machine center. The report includes information such as starting and ending time, date per production order and input quantity.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Prod. Order Routing Line Group";
 
@@ -242,17 +243,6 @@ report 99000780 "Capacity Task List"
             LayoutFile = './Manufacturing/Reports/CapacityTaskList.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLCLayout)
-        {
-            Type = RDLC;
-            LayoutFile = './Manufacturing/Reports/CapacityTaskList.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels

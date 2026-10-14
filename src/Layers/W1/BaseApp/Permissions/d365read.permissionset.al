@@ -719,9 +719,7 @@ permissionset 1044 "D365 READ"
                   tabledata "Exchange Folder" = R,
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
-#if not CLEAN28
                   tabledata "Exchange Sync" = R,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = R,
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,
@@ -1336,6 +1334,9 @@ permissionset 1044 "D365 READ"
                   tabledata "Source Code" = R,
                   tabledata "Source Code Setup" = R,
                   tabledata "Special Equipment" = R,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request" = R,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = R,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = R,
                   tabledata "Standard Address" = R,
                   tabledata "Standard Customer Sales Code" = R,
                   tabledata "Standard General Journal" = R,

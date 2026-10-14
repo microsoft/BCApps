@@ -111,8 +111,10 @@ codeunit 144708 "ERM Act Items Receipt M-7"
 
     local procedure PrintM7PurchOrder(var PurchaseHeader: Record "Purchase Header"; LineQty: Integer)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         ActItemsReceiptM7: Report "Act Items Receipt M-7";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         CreatePurchDocument(PurchaseHeader, LineQty);
@@ -124,13 +126,16 @@ codeunit 144708 "ERM Act Items Receipt M-7"
         ActItemsReceiptM7.SetFileNameSilent(LibraryReportValidation.GetFileName());
         ActItemsReceiptM7.UseRequestPage(false);
         ActItemsReceiptM7.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintM7ItemDocumentReceipt(LineQty: Integer): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         InvtDocumentHeader: Record "Invt. Document Header";
         ActItemsReceiptM7: Report "Act Items Receipt M-7";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         CreateItemDocumentReceipt(InvtDocumentHeader, LineQty);
@@ -143,14 +148,17 @@ codeunit 144708 "ERM Act Items Receipt M-7"
         ActItemsReceiptM7.UseRequestPage(false);
         ActItemsReceiptM7.Run();
 
+        UnbindSubscription(RUReportDownloadHandler);
         exit(InvtDocumentHeader."No.");
     end;
 
     local procedure PrintM7ItemReceipt(LineQty: Integer) DocumentNo: Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         ItemReceiptHeader: Record "Invt. Receipt Header";
         ActItemsReceiptM7: Report "Act Items Receipt M-7";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         DocumentNo := CreateAndPostItemDocument(LineQty);
@@ -162,6 +170,7 @@ codeunit 144708 "ERM Act Items Receipt M-7"
         ActItemsReceiptM7.SetFileNameSilent(LibraryReportValidation.GetFileName());
         ActItemsReceiptM7.UseRequestPage(false);
         ActItemsReceiptM7.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreatePurchDocument(var PurchaseHeader: Record "Purchase Header"; LineQty: Integer)
