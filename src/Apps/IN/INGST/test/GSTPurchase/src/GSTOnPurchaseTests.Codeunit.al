@@ -123,6 +123,7 @@ codeunit 18131 "GST On Purchase Tests"
 
         // [GIVEN] An import purchase order with custom duty is partially received.
         InitializeShareStep(true, false, false);
+        SetupPurchaseOrderNoSeries();
         EnsureGSTSetup();
         CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
         SetupCustomDutyComponent();
@@ -165,6 +166,7 @@ codeunit 18131 "GST On Purchase Tests"
 
         // [GIVEN] An import purchase order with custom duty is received in two postings.
         InitializeShareStep(true, false, false);
+        SetupPurchaseOrderNoSeries();
         EnsureGSTSetup();
         CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
         SetupCustomDutyComponent();
@@ -1890,6 +1892,12 @@ codeunit 18131 "GST On Purchase Tests"
         if (GSTSetup."Cess Tax Type" = '') and TaxType.Get(GSTCessTaxTypeLbl) then
             GSTSetup."Cess Tax Type" := GSTCessTaxTypeLbl;
         GSTSetup.Modify();
+    end;
+
+    local procedure SetupPurchaseOrderNoSeries()
+    begin
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
     end;
 
     local procedure SetupCustomDutyComponent()
