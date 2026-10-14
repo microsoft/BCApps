@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using System.AI;
+using System.TestLibraries.Environment;
 
 codeunit 148299 "Expense Consumption Test"
 {
@@ -305,8 +306,14 @@ codeunit 148299 "Expense Consumption Test"
     local procedure Initialize()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Consumption Test");
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InstallExpenseAgentSetup.RegisterCapability();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+
         ExpenseAgentEnvConsumption.DeleteAll();
         if IsInitialized then
             exit;
