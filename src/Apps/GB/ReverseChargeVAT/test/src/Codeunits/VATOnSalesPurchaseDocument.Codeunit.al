@@ -6,9 +6,13 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+#if not CLEAN27
 using Microsoft.Sales.History;
+#endif
 using Microsoft.Sales.Setup;
+#if not CLEAN27
 using System.Environment.Configuration;
+#endif
 using System.TestLibraries.Utilities;
 
 codeunit 144013 "VAT On Sales/Purchase Document"
@@ -24,6 +28,9 @@ codeunit 144013 "VAT On Sales/Purchase Document"
     end;
 
     var
+#if not CLEAN27
+        OriginalFeatureDataUpdateStatus: Record "Feature Data Update Status";
+#endif
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -31,10 +38,11 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+#if not CLEAN27
+        Assert: Codeunit Assert;
+#endif
         isInitialized: Boolean;
 #if not CLEAN27
-        OriginalFeatureDataUpdateStatus: Record "Feature Data Update Status";
-        Assert: Codeunit Assert;
         FeatureStatusExisted: Boolean;
         FeatureStatusChanged: Boolean;
         NotSubjectToReverseChargeErr: Label 'is not subjected to Reverse Charge';
