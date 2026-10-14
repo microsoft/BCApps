@@ -22,7 +22,8 @@ codeunit 133100 "Extension Management Test"
     // The tests script will therefore publish the two extensions separately so the tests in this codeunit can execute and complete succesfully.
 
     Subtype = Test;
-    Permissions = tabledata "NAV App Setting" = rimd;
+    Permissions = tabledata "Extension Pending Setup" = rimd,
+                  tabledata "NAV App Setting" = rimd;
 
     trigger OnRun()
     begin
@@ -601,6 +602,7 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('AlreadyInstalledMessageHandler')]
     procedure InstalledMarketplaceRequestDoesNotReopenWizard()
     begin
         PrepareSettingsApp();
@@ -615,11 +617,17 @@ codeunit 133100 "Extension Management Test"
     [Test]
     [Scope('OnPrem')]
     procedure InstalledAppsourceRequestDoesNotReopenWizard()
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
     begin
         PrepareSettingsApp();
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        ExtensionPendingSetup.SetRange("App Id", SettingsAppId);
+        ExtensionPendingSetup.DeleteAll();
 
         ExtensionMgtTestLibrary.InstallAppsourceExtensionWithRefreshSession('PAPPID.' + Format(SettingsAppId));
 
+        Assert.IsFalse(ExtensionPendingSetup.FindFirst(), 'An already-installed app should not trigger pending setup or a session refresh.');
         Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(SettingsAppId), 'The existing installation should be unchanged.');
     end;
 
@@ -676,6 +684,12 @@ codeunit 133100 "Extension Management Test"
     begin
         MarketplaceExtnDeployment.Continue.Invoke();
         Assert.IsTrue(MarketplaceExtnDeployment.PreviewInfo.Visible(), 'Preview requests should retain the preview installation flow.');
+    end;
+
+    [MessageHandler]
+    procedure AlreadyInstalledMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, 'is already installed.') > 0, 'The installed-app request should report that the app is already installed.');
     end;
 
     [MessageHandler]
