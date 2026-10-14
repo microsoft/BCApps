@@ -2,6 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Setup;
+using System.TestLibraries.Utilities;
+
 codeunit 134085 "ERM FR Feature Bugs"
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
@@ -36,7 +47,7 @@ codeunit 134085 "ERM FR Feature Bugs"
         TaxDepreciationBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Tax depreciation book value is zero at the depreciation ending date
+        // [SCENARIO 617319] Tax depreciation book value is zero at the depreciation ending date
         Initialize();
 
         // [GIVEN] FA "FA" with normal and tax depreciation books and a posted acquisition cost
@@ -69,7 +80,7 @@ codeunit 134085 "ERM FR Feature Bugs"
         TaxDepreciationBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Derogatory amount is recorded in the tax depreciation book
+        // [SCENARIO 617319] Derogatory amount is recorded in the tax depreciation book
         Initialize();
 
         // [GIVEN] FA "FA" with normal and tax depreciation books and calculated depreciation
@@ -103,7 +114,7 @@ codeunit 134085 "ERM FR Feature Bugs"
         TaxDepreciationBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] FA ledger entries contain acquisition, derogatory, and depreciation amounts
+        // [SCENARIO 617319] FA ledger entries contain acquisition, derogatory, and depreciation amounts
         Initialize();
 
         // [GIVEN] FA "FA" with normal and tax depreciation books and calculated depreciation
@@ -138,7 +149,7 @@ codeunit 134085 "ERM FR Feature Bugs"
         TaxDepreciationBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] FA ledger entries retain their FA posting dates
+        // [SCENARIO 617319] FA ledger entries retain their FA posting dates
         Initialize();
 
         // [GIVEN] FA "FA" with normal and tax depreciation books and calculated depreciation

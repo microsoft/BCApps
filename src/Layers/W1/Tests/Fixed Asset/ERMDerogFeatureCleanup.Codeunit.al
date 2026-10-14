@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Test;
+
+#if not CLEAN30
+using Microsoft.FixedAssets.Depreciation;
+#endif
+using System.Environment.Configuration;
+
 codeunit 144151 "ERM Derog. Feature Cleanup"
 {
     SingleInstance = true;
@@ -9,7 +16,7 @@ codeunit 144151 "ERM Derog. Feature Cleanup"
     var
         PreviousFeatureStatus: Enum "Feature Status";
         CapturedFeatureKey: Text[50];
-        CapturedCompanyName: Text[30];
+        CapturedCompanyName: Text;
         FeatureStateCaptured: Boolean;
         FeatureStatusRecordExisted: Boolean;
 
@@ -37,7 +44,7 @@ codeunit 144151 "ERM Derog. Feature Cleanup"
 #endif
     end;
 
-    procedure CaptureFeatureState(FeatureKey: Text[50]; CompanyNameToCapture: Text[30])
+    procedure CaptureFeatureState(FeatureKey: Text[50]; CompanyNameToCapture: Text)
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin

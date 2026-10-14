@@ -1741,11 +1741,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
-        FAAutomaticEntry: Codeunit "FA Automatic Entry";
 #if not CLEAN30
         FAJnlLine: Record "FA Journal Line";
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
+        FAAutomaticEntry: Codeunit "FA Automatic Entry";
         ShortcutDim1Code: Code[20];
         ShortcutDim2Code: Code[20];
         OriginalGLAccNo: Code[20];

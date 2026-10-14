@@ -1,3 +1,31 @@
+namespace Microsoft.FixedAssets.Test;
+
+#if not CLEAN30
+using Microsoft.Bank.Payment;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+#endif
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Depreciation;
+#if not CLEAN30
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Setup;
+#endif
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.ProductionBOM;
+#if not CLEAN30
+using Microsoft.Purchases.Vendor;
+#endif
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using System.TestLibraries.Utilities;
+
 codeunit 144015 "ERM FR Feature Bugs"
 {
     //

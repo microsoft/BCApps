@@ -1,4 +1,15 @@
 #if not CLEAN30
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Reports;
+using Microsoft.Foundation.AuditCodes;
+
 codeunit 144028 "ERM FA Derogatory Depreciation"
 {
     // // [FEATURE] [Fixed Asset] [Derogatory]
@@ -59,12 +70,12 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        GroupTotalsCap: Label 'GroupTotals';
+        GroupTotalsTok: Label 'GroupTotals', Locked = true;
         DeprBookInfo1Cap: Label 'DeprBookInfo1';
         DeprBookInfo2Cap: Label 'DeprBookInfo2';
-        NoFixedAssetCap: Label 'No_FixedAsset';
-        NetChangeAmt1Cap: Label 'NetChangeAmt1';
-        BookValueAtEndingDateCap: Label 'BookValueAtEndingDate';
+        NoFixedAssetTok: Label 'No_FixedAsset', Locked = true;
+        NetChangeAmt1Tok: Label 'NetChangeAmt1', Locked = true;
+        BookValueAtEndingDateTok: Label 'BookValueAtEndingDate', Locked = true;
         NoFATxt: Label 'No_FA';
         GroupTotalsTxt: Label 'Group Totals: %1', Comment = '%1 = Field Caption';
         GroupTotalTxt: Label 'Group Total:';
@@ -110,7 +121,7 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
 
         // Verify: Verify values on Report - Fixed Asset - Book Value 02 with FA Posting Group.
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsCap, Format(GroupTotals::"FA Posting Group"));
+        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsTok, Format(GroupTotals::"FA Posting Group"));
         LibraryReportDataset.AssertElementWithValueExists(
           'GroupNetChangeAmt1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
     end;
@@ -132,9 +143,9 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
 
         // Verify: Verify values on Report - Fixed Asset - Book Value 02 with FA Posting Group and Print Details.
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(NoFixedAssetCap, FADepreciationBook."FA No.");
+        LibraryReportDataset.AssertElementWithValueExists(NoFixedAssetTok, FADepreciationBook."FA No.");
         LibraryReportDataset.AssertElementWithValueExists(
-          NetChangeAmt1Cap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
+          NetChangeAmt1Tok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
     end;
 
     [Test]
@@ -157,7 +168,7 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertElementWithValueExists(DeprBookInfo1Cap, FADepreciationBook."Depreciation Book Code");
         LibraryReportDataset.AssertElementWithValueExists(DeprBookInfo2Cap, Format(FADepreciationBook."Depreciation Method"));
         LibraryReportDataset.AssertElementWithValueExists(
-          NetChangeAmt1Cap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
+          NetChangeAmt1Tok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
     end;
 
     [Test]
@@ -203,11 +214,11 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
         // Verify: Verify values on Report - Fixed Asset - Book Value 01 with FA Posting Group.
         FADepreciationBook.CalcFields("Book Value");
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsCap, Format(GroupTotals::"FA Posting Group"));
+        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsTok, Format(GroupTotals::"FA Posting Group"));
         LibraryReportDataset.AssertElementWithValueExists(
           'GroupNetChangeAmounts1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
         LibraryReportDataset.AssertElementWithValueExists(
-          BookValueAtEndingDateCap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory) +
+          BookValueAtEndingDateTok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory) +
           FADepreciationBook."Book Value");
     end;
 
@@ -233,7 +244,7 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertElementWithValueExists(
           'NetChangeAmounts1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
         LibraryReportDataset.AssertElementWithValueExists(
-          BookValueAtEndingDateCap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory) +
+          BookValueAtEndingDateTok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory) +
           FADepreciationBook."Book Value");
     end;
 
@@ -260,7 +271,7 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertElementWithValueExists(
           'TotalNetChangeAmounts1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
         LibraryReportDataset.AssertElementWithValueExists(
-          BookValueAtEndingDateCap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory) +
+          BookValueAtEndingDateTok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory) +
           FADepreciationBook."Book Value");
     end;
 

@@ -907,7 +907,9 @@ table 5612 "FA Depreciation Book"
             ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
         }
 #if not CLEANSCHEMA33
+#pragma warning disable AA0232
         field(10800; Derogatory; Decimal)
+#pragma warning restore AA0232
         {
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();

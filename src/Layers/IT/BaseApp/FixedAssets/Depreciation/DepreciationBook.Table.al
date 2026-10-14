@@ -573,13 +573,13 @@ table 5611 "Depreciation Book"
         GLIntegration[9] := false; // Salvage Value
     end;
 
-    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
+    procedure IndexGLIntegration(var IntegrationFlags: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
     var
         LegacyGLIntegration: array[9] of Boolean;
     begin
         IndexGLIntegration(LegacyGLIntegration);
-        CopyArray(GLIntegration, LegacyGLIntegration, 1, 9);
-        GLIntegration[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
+        CopyArray(IntegrationFlags, LegacyGLIntegration, 1, 9);
+        IntegrationFlags[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
     end;
 
     procedure CheckIntegrationFields()

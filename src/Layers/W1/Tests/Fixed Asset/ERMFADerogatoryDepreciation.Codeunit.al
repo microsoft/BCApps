@@ -1,3 +1,16 @@
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Reports;
+using Microsoft.Foundation.AuditCodes;
+using System.Environment;
+using System.IO;
+
 codeunit 134111 "ERM FA Derogatory Depreciation"
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
@@ -21,10 +34,10 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         IsInitialized: Boolean;
         BookValue02Contract: Boolean;
-        GroupTotalsCap: Label 'GroupTotals';
-        NoFixedAssetCap: Label 'No_FixedAsset';
-        NetChangeAmt1Cap: Label 'NetChangeAmt1';
-        BookValueAtEndingDateCap: Label 'BookValueAtEndingDate';
+        GroupTotalsTok: Label 'GroupTotals', Locked = true;
+        NoFixedAssetTok: Label 'No_FixedAsset', Locked = true;
+        NetChangeAmt1Tok: Label 'NetChangeAmt1', Locked = true;
+        BookValueAtEndingDateTok: Label 'BookValueAtEndingDate', Locked = true;
         NoFATxt: Label 'No_FA';
         GroupTotalsTxt: Label 'Group Totals: %1', Comment = '%1 = Field Caption';
         GroupTotalTxt: Label 'Group Total:';
@@ -47,7 +60,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 02 shows derogatory values without details
+        // [SCENARIO 617319] Fixed Asset - Book Value 02 shows derogatory values without details
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -73,7 +86,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 02 groups values by FA posting group
+        // [SCENARIO 617319] Fixed Asset - Book Value 02 groups values by FA posting group
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -84,7 +97,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [THEN] The report shows the group and its acquisition cost
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsCap, Format(GroupTotals::"FA Posting Group"));
+        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsTok, Format(GroupTotals::"FA Posting Group"));
         LibraryReportDataset.AssertElementWithValueExists(
           'GroupNetChangeAmt1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
     end;
@@ -98,7 +111,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FALedgerEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 02 shows detailed fixed asset values
+        // [SCENARIO 617319] Fixed Asset - Book Value 02 shows detailed fixed asset values
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -109,9 +122,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [THEN] The report shows the fixed asset and its acquisition cost
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(NoFixedAssetCap, FADepreciationBook."FA No.");
+        LibraryReportDataset.AssertElementWithValueExists(NoFixedAssetTok, FADepreciationBook."FA No.");
         LibraryReportDataset.AssertElementWithValueExists(
-          NetChangeAmt1Cap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
+          NetChangeAmt1Tok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
     end;
 
     [Test]
@@ -124,7 +137,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FALedgerEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 02 includes FA setup information
+        // [SCENARIO 617319] Fixed Asset - Book Value 02 includes FA setup information
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -138,7 +151,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.LoadDataSetFile();
         VerifyBookValue02SetupMetadata(FADepreciationBook, DerogatoryFADepreciationBook);
         LibraryReportDataset.AssertElementWithValueExists(
-          NetChangeAmt1Cap, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
+          NetChangeAmt1Tok, FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
     end;
 
     [Test]
@@ -151,7 +164,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 01 shows derogatory values without details
+        // [SCENARIO 617319] Fixed Asset - Book Value 01 shows derogatory values without details
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -178,7 +191,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 01 groups values by FA posting group
+        // [SCENARIO 617319] Fixed Asset - Book Value 01 groups values by FA posting group
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -190,11 +203,11 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         // [THEN] The report shows the group, acquisition cost, and ending book value
         FADepreciationBook.CalcFields("Book Value");
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsCap, Format(GroupTotals::"FA Posting Group"));
+        LibraryReportDataset.AssertElementWithValueExists(GroupTotalsTok, Format(GroupTotals::"FA Posting Group"));
         LibraryReportDataset.AssertElementWithValueExists(
           'GroupNetChangeAmounts1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
         LibraryReportDataset.AssertElementWithValueExists(
-          BookValueAtEndingDateCap, FADepreciationBook."Book Value");
+          BookValueAtEndingDateTok, FADepreciationBook."Book Value");
     end;
 
     [Test]
@@ -206,7 +219,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FALedgerEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 01 shows detailed fixed asset values
+        // [SCENARIO 617319] Fixed Asset - Book Value 01 shows detailed fixed asset values
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -222,7 +235,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertElementWithValueExists(
           'NetChangeAmounts1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
         LibraryReportDataset.AssertElementWithValueExists(
-          BookValueAtEndingDateCap, FADepreciationBook."Book Value");
+          BookValueAtEndingDateTok, FADepreciationBook."Book Value");
     end;
 
     [Test]
@@ -235,7 +248,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FALedgerEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset - Book Value 01 includes FA setup information
+        // [SCENARIO 617319] Fixed Asset - Book Value 01 includes FA setup information
         Initialize();
 
         // [GIVEN] FA "FA" with posted acquisition cost and derogatory entries
@@ -252,7 +265,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertElementWithValueExists(
           'TotalNetChangeAmounts1', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::"Acquisition Cost"));
         LibraryReportDataset.AssertElementWithValueExists(
-          BookValueAtEndingDateCap, FADepreciationBook."Book Value");
+          BookValueAtEndingDateTok, FADepreciationBook."Book Value");
     end;
 
     [Test]
@@ -265,7 +278,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 suppresses derogatory amounts without a linked book
+        // [SCENARIO 617319] Fixed Asset Book Value 01 suppresses derogatory amounts without a linked book
         Initialize();
 
         // [GIVEN] FA "FA" has a derogatory entry but its accounting book has no linked derogatory book
@@ -293,7 +306,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 suppresses derogatory amounts without a linked book
+        // [SCENARIO 617319] Fixed Asset Book Value 02 suppresses derogatory amounts without a linked book
         Initialize();
 
         // [GIVEN] FA "FA" has a derogatory entry but its accounting book has no linked derogatory book
@@ -321,7 +334,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 clears derogatory values after an eligible asset
+        // [SCENARIO 617319] Fixed Asset Book Value 01 clears derogatory values after an eligible asset
         Initialize();
 
         // [GIVEN] Eligible FA "FA1" followed by ineligible FA "FA2" in the same linked accounting book
@@ -348,7 +361,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 clears derogatory and reclassification values after an eligible asset
+        // [SCENARIO 617319] Fixed Asset Book Value 02 clears derogatory and reclassification values after an eligible asset
         Initialize();
 
         // [GIVEN] Eligible FA "FA1" followed by ineligible FA "FA2" in the same linked accounting book
@@ -375,7 +388,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 isolates derogatory values in reverse asset order
+        // [SCENARIO 617319] Fixed Asset Book Value 01 isolates derogatory values in reverse asset order
         Initialize();
 
         // [GIVEN] Eligible and ineligible FAs in the same linked accounting book
@@ -402,7 +415,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 isolates derogatory values in reverse asset order
+        // [SCENARIO 617319] Fixed Asset Book Value 02 isolates derogatory values in reverse asset order
         Initialize();
 
         // [GIVEN] Eligible and ineligible FAs in the same linked accounting book
@@ -429,7 +442,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 hides empty derogatory rows in every section
+        // [SCENARIO 617319] Fixed Asset Book Value 02 hides empty derogatory rows in every section
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with acquisition cost but no derogatory movements
@@ -459,7 +472,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 identifies an asset without linked-book setup
+        // [SCENARIO 617319] Fixed Asset Book Value 01 identifies an asset without linked-book setup
         Initialize();
 
         // [GIVEN] Eligible and ineligible FAs in the same linked accounting book
@@ -492,7 +505,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 identifies an asset without linked-book setup
+        // [SCENARIO 617319] Fixed Asset Book Value 02 identifies an asset without linked-book setup
         Initialize();
 
         // [GIVEN] Eligible and ineligible FAs in the same linked accounting book
@@ -529,7 +542,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 reports derogatory movements at detail, group, and grand-total levels
+        // [SCENARIO 617319] Fixed Asset Book Value 01 reports derogatory movements at detail, group, and grand-total levels
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with an opening derogatory balance and in-period increase and decrease
@@ -577,7 +590,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 reports derogatory and reclassification movements at all levels
+        // [SCENARIO 617319] Fixed Asset Book Value 02 reports derogatory and reclassification movements at all levels
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with opening, increase, decrease, and reclassified derogatory entries
@@ -758,7 +771,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 renders derogatory movements and distinct setup rows
+        // [SCENARIO 617319] Fixed Asset Book Value 01 renders derogatory movements and distinct setup rows
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with distinct accounting and derogatory setup and movements
@@ -808,7 +821,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         AcquisitionAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 01 hides derogatory columns when no linked book exists
+        // [SCENARIO 617319] Fixed Asset Book Value 01 hides derogatory columns when no linked book exists
         Initialize();
 
         // [GIVEN] FA "FA" in an accounting book without a linked derogatory book
@@ -840,7 +853,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         AcquisitionAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 renders accounting and derogatory setup on distinct rows
+        // [SCENARIO 617319] Fixed Asset Book Value 02 renders accounting and derogatory setup on distinct rows
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with distinct accounting and derogatory setup
@@ -875,7 +888,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 renders derogatory and reclassification totals
+        // [SCENARIO 617319] Fixed Asset Book Value 02 renders derogatory and reclassification totals
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with opening, decrease, and reclassified derogatory movements
@@ -924,7 +937,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         AcquisitionAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fixed Asset Book Value 02 hides zero-valued derogatory rows
+        // [SCENARIO 617319] Fixed Asset Book Value 02 hides zero-valued derogatory rows
         Initialize();
 
         // [GIVEN] Eligible FA "FA" with an acquisition but no derogatory movements
@@ -1115,7 +1128,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     var
         DepreciationBook: Record "Depreciation Book";
     begin
+#pragma warning disable AA0210
         DepreciationBook.SetRange("Derogatory Calc.", DepreciationBookCode);
+#pragma warning restore AA0210
         DepreciationBook.FindFirst();
         exit(DepreciationBook.Code);
     end;
@@ -1261,8 +1276,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     local procedure VerifyBookValue02SetupMetadata(FADepreciationBook: Record "FA Depreciation Book"; DerogatoryFADepreciationBook: Record "FA Depreciation Book")
     begin
-        LibraryReportDataset.SetRange(NoFixedAssetCap, FADepreciationBook."FA No.");
-        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FADepreciationBook."FA No."));
+        LibraryReportDataset.SetRange(NoFixedAssetTok, FADepreciationBook."FA No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetTok, FADepreciationBook."FA No."));
         VerifySetupMetadata(FADepreciationBook, DerogatoryFADepreciationBook);
     end;
 
@@ -1327,8 +1342,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     local procedure VerifyIneligibleBookValue02Row(FANo: Code[20])
     begin
-        LibraryReportDataset.SetRange(NoFixedAssetCap, FANo);
-        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FANo));
+        LibraryReportDataset.SetRange(NoFixedAssetTok, FANo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetTok, FANo));
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', false);
         VerifyZeroDerogatoryRow();
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryReclassOpeningAmt'), 0);
@@ -1374,21 +1389,21 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', true);
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDecreaseAmount'), DerogatoryAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryClosingAmount'), DerogatoryAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, AccountingBookValue);
+        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateTok, AccountingBookValue);
         VerifyIneligibleBookValue01Row(IneligibleFADepreciationBook."FA No.");
         LibraryReportDataset.Reset();
         LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupDecreaseAmount'), DerogatoryAmount);
-        LibraryReportDataset.AssertElementWithValueExists(BookValueAtEndingDateCap, AccountingBookValue);
+        LibraryReportDataset.AssertElementWithValueExists(BookValueAtEndingDateTok, AccountingBookValue);
     end;
 
     local procedure VerifyMixedBookValue02Amounts(EligibleFADepreciationBook: Record "FA Depreciation Book"; IneligibleFADepreciationBook: Record "FA Depreciation Book"; DerogatoryAmount: Decimal; AccountingBookValue: Decimal)
     begin
-        LibraryReportDataset.SetRange(NoFixedAssetCap, EligibleFADepreciationBook."FA No.");
-        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, EligibleFADepreciationBook."FA No."));
+        LibraryReportDataset.SetRange(NoFixedAssetTok, EligibleFADepreciationBook."FA No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetTok, EligibleFADepreciationBook."FA No."));
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', true);
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDecreaseAmount'), DerogatoryAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryClosingAmount'), DerogatoryAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, AccountingBookValue);
+        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateTok, AccountingBookValue);
         VerifyIneligibleBookValue02Row(IneligibleFADepreciationBook."FA No.");
         LibraryReportDataset.Reset();
         LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupDecreaseAmount'), DerogatoryAmount);
@@ -1402,7 +1417,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.SetRange(NoFATxt, FANo);
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFATxt, FANo));
         VerifyDerogatoryRow(OpeningAmount, IncreaseAmount, DecreaseAmount, ClosingAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, BookValue);
+        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateTok, BookValue);
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', false);
         LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupOpeningAmount'), OpeningAmount);
         LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupIncreaseAmount'), IncreaseAmount);
@@ -1411,11 +1426,11 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     local procedure VerifyBookValue02DerogatoryAmounts(FANo: Code[20]; OpeningAmount: Decimal; IncreaseAmount: Decimal; DecreaseAmount: Decimal; ClosingAmount: Decimal; BookValue: Decimal)
     begin
-        LibraryReportDataset.SetRange(NoFixedAssetCap, FANo);
-        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FANo));
+        LibraryReportDataset.SetRange(NoFixedAssetTok, FANo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetTok, FANo));
         VerifyDerogatoryRow(OpeningAmount, IncreaseAmount, DecreaseAmount, ClosingAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryReclassIncreaseAmt'), IncreaseAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, BookValue);
+        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateTok, BookValue);
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', false);
         LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('ShowDerogatoryDetail'), true);
         LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryGroup'), true);

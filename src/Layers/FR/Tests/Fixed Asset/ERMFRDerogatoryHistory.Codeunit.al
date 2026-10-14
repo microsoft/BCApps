@@ -1,3 +1,11 @@
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Maintenance;
+using System.Environment.Configuration;
+
 codeunit 144048 "ERM FR Derogatory History"
 {
     Subtype = Test;
@@ -24,7 +32,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A marked FA source without historical candidates cannot be reversed.
+        // [SCENARIO 617319] A marked FA source without historical candidates cannot be reversed.
         Initialize();
 
         // [GIVEN] A marked source "S" has no historical counterpart.
@@ -63,7 +71,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Two matching historical FA candidates are ambiguous.
+        // [SCENARIO 617319] Two matching historical FA candidates are ambiguous.
         Initialize();
 
         // [GIVEN] A marked source "S" has two matching historical counterparts.
@@ -104,7 +112,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unlinked competing FA source prevents historical matching.
+        // [SCENARIO 617319] An unlinked competing FA source prevents historical matching.
         Initialize();
 
         // [GIVEN] Two unlinked sources "S1" and "S2" match the same historical counterpart.
@@ -145,7 +153,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A zero-transaction FA candidate cannot disambiguate sources across transactions.
+        // [SCENARIO 617319] A zero-transaction FA candidate cannot disambiguate sources across transactions.
         Initialize();
 
         // [GIVEN] Sources "S1" and "S2" in different transactions match a zero-transaction counterpart.
@@ -188,7 +196,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Already reversed FA history is not an available candidate.
+        // [SCENARIO 617319] Already reversed FA history is not an available candidate.
         Initialize();
 
         // [GIVEN] The historical counterpart of marked source "S" is already reversed.
@@ -228,7 +236,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A reversal chain must not fall back to unrelated unlinked FA history.
+        // [SCENARIO 617319] A reversal chain must not fall back to unrelated unlinked FA history.
         Initialize();
 
         // [GIVEN] Marked source "S" is itself a reversal without a persisted counterpart link.
@@ -267,7 +275,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A marked maintenance source without historical candidates cannot be reversed.
+        // [SCENARIO 617319] A marked maintenance source without historical candidates cannot be reversed.
         Initialize();
 
         // [GIVEN] A marked source "S" has no historical counterpart.
@@ -306,7 +314,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Two matching historical maintenance candidates are ambiguous.
+        // [SCENARIO 617319] Two matching historical maintenance candidates are ambiguous.
         Initialize();
 
         // [GIVEN] A marked source "S" has two matching historical counterparts.
@@ -347,7 +355,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unlinked competing maintenance source prevents historical matching.
+        // [SCENARIO 617319] An unlinked competing maintenance source prevents historical matching.
         Initialize();
 
         // [GIVEN] Two unlinked sources "S1" and "S2" match the same historical counterpart.
@@ -388,7 +396,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A zero-transaction maintenance candidate cannot disambiguate sources across transactions.
+        // [SCENARIO 617319] A zero-transaction maintenance candidate cannot disambiguate sources across transactions.
         Initialize();
 
         // [GIVEN] Sources "S1" and "S2" in different transactions match a zero-transaction counterpart.
@@ -431,7 +439,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Already reversed maintenance history is not an available candidate.
+        // [SCENARIO 617319] Already reversed maintenance history is not an available candidate.
         Initialize();
 
         // [GIVEN] The historical counterpart of marked source "S" is already reversed.
@@ -471,7 +479,7 @@ codeunit 144048 "ERM FR Derogatory History"
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A reversal chain must not fall back to unrelated unlinked maintenance history.
+        // [SCENARIO 617319] A reversal chain must not fall back to unrelated unlinked maintenance history.
         Initialize();
 
         // [GIVEN] Marked source "S" is itself a reversal without a persisted counterpart link.

@@ -2,6 +2,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Maintenance;
+using Microsoft.FixedAssets.Posting;
+
 codeunit 134166 "UT TAB FA Derogatory Depr."
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
@@ -23,6 +33,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         IsInitialized: Boolean;
         DialogErr: Label 'Dialog';
+        CompatibilityFieldMismatchErr: Label 'The compatibility delegate must copy field %1 before returning false.', Comment = '%1 = field number';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -32,7 +43,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         TaxDepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A depreciation book accepts its first derogatory relationship
+        // [SCENARIO 617319] A depreciation book accepts its first derogatory relationship
         Initialize();
 
         // [GIVEN] Normal and tax depreciation books without a derogatory relationship
@@ -54,7 +65,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         TaxDepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory relationship can be assigned before the depreciation book code
+        // [SCENARIO 617319] A derogatory relationship can be assigned before the depreciation book code
         Initialize();
 
         // [GIVEN] A normal depreciation book
@@ -80,7 +91,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         OtherTaxDepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A tax book cannot change its relationship to a normal book already in use
+        // [SCENARIO 617319] A tax book cannot change its relationship to a normal book already in use
         Initialize();
 
         // [GIVEN] Two normal books with separate tax-book relationships
@@ -109,7 +120,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An imported ambiguous derogatory relationship cannot be resolved
+        // [SCENARIO 617319] An imported ambiguous derogatory relationship cannot be resolved
         Initialize();
 
         // [GIVEN] Two imported tax books related to the same normal book
@@ -137,7 +148,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA ledger link requires an existing source entry
+        // [SCENARIO 617319] An FA ledger link requires an existing source entry
         Initialize();
 
         // [GIVEN] A counterpart that references a missing source entry
@@ -162,7 +173,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA source entry cannot have duplicate derogatory counterparts
+        // [SCENARIO 617319] An FA source entry cannot have duplicate derogatory counterparts
         Initialize();
 
         // [GIVEN] A source entry with an existing derogatory counterpart
@@ -195,7 +206,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A maintenance entry cannot link to a counterpart for another fixed asset
+        // [SCENARIO 617319] A maintenance entry cannot link to a counterpart for another fixed asset
         Initialize();
 
         // [GIVEN] A source and counterpart maintenance entry for different fixed assets
@@ -224,7 +235,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DerogatoryDepreciationBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A generated mirror cannot generate another derogatory counterpart
+        // [SCENARIO 617319] A generated mirror cannot generate another derogatory counterpart
         Initialize();
 
         // [GIVEN] A configured normal-to-tax depreciation book relationship
@@ -255,7 +266,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         PostedSourceAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A general journal counterpart uses the posted source amount
+        // [SCENARIO 617319] A general journal counterpart uses the posted source amount
         Initialize();
 
         // [GIVEN] An eligible general journal source and a posted amount
@@ -293,7 +304,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The FA journal compatibility delegate builds an eligible counterpart
+        // [SCENARIO 617319] The FA journal compatibility delegate builds an eligible counterpart
         Initialize();
 
         // [GIVEN] An FA journal source with a configured derogatory book
@@ -322,7 +333,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The FA journal compatibility delegate preserves an ineligible source
+        // [SCENARIO 617319] The FA journal compatibility delegate preserves an ineligible source
         Initialize();
 
         // [GIVEN] An FA journal source without a derogatory-book relationship
@@ -354,7 +365,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook3: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A normal book cannot be assigned to multiple derogatory depreciation books
+        // [SCENARIO 617319] A normal book cannot be assigned to multiple derogatory depreciation books
         Initialize();
 
         // [GIVEN] A normal book already assigned to a derogatory depreciation book
@@ -379,7 +390,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A depreciation book cannot be its own derogatory calculation book
+        // [SCENARIO 617319] A depreciation book cannot be its own derogatory calculation book
         Initialize();
 
         // [GIVEN] A depreciation book
@@ -401,7 +412,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook3: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot become the normal book in another relationship
+        // [SCENARIO 617319] A derogatory book cannot become the normal book in another relationship
         Initialize();
 
         // [GIVEN] A book already acting as a derogatory depreciation book
@@ -427,7 +438,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook3: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An accounting book cannot become a derogatory depreciation book
+        // [SCENARIO 617319] An accounting book cannot become a derogatory depreciation book
         Initialize();
 
         // [GIVEN] An accounting book already used by a derogatory depreciation book
@@ -451,7 +462,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate acquisition cost with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate acquisition cost with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with acquisition-cost integration enabled
@@ -467,7 +478,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate depreciation with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate depreciation with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with depreciation integration enabled
@@ -483,7 +494,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate write-downs with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate write-downs with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with write-down integration enabled
@@ -499,7 +510,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate appreciation with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate appreciation with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with appreciation integration enabled
@@ -515,7 +526,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate custom type 1 with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate custom type 1 with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with custom type 1 integration enabled
@@ -531,7 +542,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate custom type 2 with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate custom type 2 with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with custom type 2 integration enabled
@@ -547,7 +558,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate disposal with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate disposal with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with disposal integration enabled
@@ -563,7 +574,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate maintenance with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate maintenance with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with maintenance integration enabled
@@ -579,7 +590,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory book cannot integrate derogatory postings with the general ledger
+        // [SCENARIO 617319] A derogatory book cannot integrate derogatory postings with the general ledger
         Initialize();
 
         // [GIVEN] A depreciation book with derogatory integration enabled
@@ -598,7 +609,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A derogatory relationship requires zero existing derogatory amounts
+        // [SCENARIO 617319] A derogatory relationship requires zero existing derogatory amounts
         Initialize();
 
         // [GIVEN] A prospective derogatory book with an existing derogatory ledger amount
@@ -625,7 +636,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] FA date types include the last derogatory date
+        // [SCENARIO 617319] FA date types include the last derogatory date
         Initialize();
 
         // [GIVEN] The derogatory FA date type entry number
@@ -647,7 +658,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] FA matrix posting types include the derogatory amount
+        // [SCENARIO 617319] FA matrix posting types include the derogatory amount
         Initialize();
 
         // [GIVEN] The derogatory FA matrix posting type entry number
@@ -667,7 +678,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] G/L integration preserves the published array and supports including or excluding additional posting types
+        // [SCENARIO 617319] G/L integration preserves the published array and supports including or excluding additional posting types
         Initialize();
 
         // [GIVEN] Book "B" integrates acquisition, depreciation, and derogatory postings
@@ -689,7 +700,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         LastFADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A relationship can be removed when every asset has zero derogatory balance
+        // [SCENARIO 617319] A relationship can be removed when every asset has zero derogatory balance
         Initialize();
 
         // [GIVEN] Book "B" has two assets without derogatory amounts
@@ -711,7 +722,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FALedgerEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A nonzero balance on a later asset still prevents changing the relationship
+        // [SCENARIO 617319] A nonzero balance on a later asset still prevents changing the relationship
         Initialize();
 
         // [GIVEN] Only the last asset of book "B" has a derogatory balance
@@ -759,7 +770,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
             ActualFieldRef := ActualRecordRef.Field(ExpectedFieldRef.Number());
             Assert.AreEqual(
                 Format(ExpectedFieldRef.Value()), Format(ActualFieldRef.Value()),
-                StrSubstNo('The compatibility delegate must copy field %1 before returning false.', ExpectedFieldRef.Number()));
+                StrSubstNo(CompatibilityFieldMismatchErr, ExpectedFieldRef.Number()));
         end;
     end;
 

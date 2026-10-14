@@ -31,6 +31,9 @@ codeunit 5632 "FA Jnl.-Post Line"
         FADeprBook: Record "FA Depreciation Book";
         FALedgEntry: Record "FA Ledger Entry";
         MaintenanceLedgEntry: Record "Maintenance Ledger Entry";
+        InsertedFALedgEntry: Record "FA Ledger Entry";
+        LastSourceFALedgEntry: Record "FA Ledger Entry";
+        InsertedMaintenanceLedgEntry: Record "Maintenance Ledger Entry";
         FAInsertLedgEntry: Codeunit "FA Insert Ledger Entry";
         FAJnlCheckLine: Codeunit "FA Jnl.-Check Line";
         DuplicateDeprBook: Codeunit "Duplicate Depr. Book";
@@ -41,9 +44,6 @@ codeunit 5632 "FA Jnl.-Post Line"
         MakeMaintenanceLedgEntry: Codeunit "Make Maintenance Ledger Entry";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
-        InsertedFALedgEntry: Record "FA Ledger Entry";
-        LastSourceFALedgEntry: Record "FA Ledger Entry";
-        InsertedMaintenanceLedgEntry: Record "Maintenance Ledger Entry";
         CurrentPostingRole: Enum "Derogatory Posting Role";
         CurrentDerogatorySourceEntryNo: Integer;
         SourceUntilDateCustom1EntryNo: Integer;
@@ -255,10 +255,10 @@ codeunit 5632 "FA Jnl.-Post Line"
         OnAfterPostFixedAsset(FA, FALedgEntry);
     end;
 
-    procedure InsertBalAcc(var FALedgEntry: Record "FA Ledger Entry")
+    procedure InsertBalAcc(var FALedgerEntry: Record "FA Ledger Entry")
     begin
         FAInsertLedgEntry.SetOrgGenJnlLine(true);
-        FAInsertLedgEntry.InsertBalAcc(FALedgEntry);
+        FAInsertLedgEntry.InsertBalAcc(FALedgerEntry);
         FAInsertLedgEntry.SetOrgGenJnlLine(false);
     end;
 
@@ -503,41 +503,41 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; FAPostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
+    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
     begin
         case Type of
             Type::UntilDate:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         exit(SourceUntilDateCustom1EntryNo);
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         exit(SourceUntilDateDepreciationEntryNo);
                 end;
             Type::AcqCost:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         exit(SourceAcqCostCustom1EntryNo);
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         exit(SourceAcqCostDepreciationEntryNo);
                 end;
         end;
     end;
 
-    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; FAPostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
+    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
     begin
         case Type of
             Type::UntilDate:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         SourceUntilDateCustom1EntryNo := EntryNo;
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         SourceUntilDateDepreciationEntryNo := EntryNo;
                 end;
             Type::AcqCost:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         SourceAcqCostCustom1EntryNo := EntryNo;
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         SourceAcqCostDepreciationEntryNo := EntryNo;
                 end;
         end;
@@ -806,14 +806,14 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: Integer; DeprBookCode: Code[10]): Integer
+    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: Integer; DepreciationBookCode: Code[10]): Integer
     var
         FALedgerEntry: Record "FA Ledger Entry";
     begin
         FALedgerEntry.SetLoadFields("Entry No.");
         FALedgerEntry.SetCurrentKey("Entry No.");
         FALedgerEntry.SetFilter("Entry No.", '>%1', FromEntryNo);
-        FALedgerEntry.SetRange("Depreciation Book Code", DeprBookCode);
+        FALedgerEntry.SetRange("Depreciation Book Code", DepreciationBookCode);
 #pragma warning disable AA0210
         FALedgerEntry.SetRange(Amount, -SourceFAJournalLine.Amount);
 #pragma warning restore AA0210

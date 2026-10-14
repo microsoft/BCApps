@@ -1,3 +1,21 @@
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Insurance;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Maintenance;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
+
 codeunit 134149 "ERM Derogatory Depr. Posting"
 {
     // // [FEATURE] [Fixed Asset] [Derogatory]
@@ -54,6 +72,8 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         MultipleDerogatoryCounterpartsTok: Label 'More than one derogatory counterpart references source entry';
         InvalidDerogatoryLinkTok: Label 'cannot be linked to depreciation book';
         SimulatedFeatureBodyFailureErr: Label 'Simulated composed-French test-body failure.';
+        MonthOffsetFormulaTok: Label '<%1M>', Locked = true;
+        PreviousMonthOffsetFormulaTok: Label '<-%1M>', Locked = true;
         EventInvocationCountErr: Label 'The event invocation count did not match the expected value.';
         EventBookOrderErr: Label 'The depreciation-book event order did not match the expected value.';
         EventTypeOrderErr: Label 'The depreciation event type did not match the expected value.';
@@ -80,7 +100,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         DerogatoryAmt: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Derogatory With Modified FAPosting Date
+        // [SCENARIO 617319] Derogatory With Modified FAPosting Date
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -102,7 +122,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         PreviousFeatureState: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Explicit cleanup restores feature state after a successful committed operation
+        // [SCENARIO 617319] Explicit cleanup restores feature state after a successful committed operation
         Initialize(false);
 
         // [GIVEN] Feature "F" has a captured initial state and a committed status change
@@ -125,7 +145,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         PreviousFeatureState: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Explicit cleanup restores feature state after a failed committed operation
+        // [SCENARIO 617319] Explicit cleanup restores feature state after a failed committed operation
         Initialize(false);
 
         // [GIVEN] Feature "F" has a captured initial state and a committed status change
@@ -154,7 +174,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         InvoiceNo: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Post Purch Invoice With FALine
+        // [SCENARIO 617319] Post Purch Invoice With FALine
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -176,7 +196,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDeprBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Post FAJournal Line
+        // [SCENARIO 617319] Post FAJournal Line
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -202,7 +222,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDeprBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] General Journal Acquisition Creates Single Linked Counterpart
+        // [SCENARIO 617319] General Journal Acquisition Creates Single Linked Counterpart
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -229,7 +249,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDeprBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Maintenance Posting Creates Single Linked Counterpart
+        // [SCENARIO 617319] Maintenance Posting Creates Single Linked Counterpart
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -256,7 +276,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         AcquisitionCostAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Missing Tax Book Asset Does Not Create Counterpart
+        // [SCENARIO 617319] Missing Tax Book Asset Does Not Create Counterpart
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -299,7 +319,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         DerogatoryAmt: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Book Value Amounts In Normal Book With Derogatory
+        // [SCENARIO 617319] Book Value Amounts In Normal Book With Derogatory
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -325,7 +345,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         DerogatoryAmt: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Book Value Amounts In Tax Book With Derogatory
+        // [SCENARIO 617319] Book Value Amounts In Tax Book With Derogatory
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -351,7 +371,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDeprBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Calculate Depreciation Without GLIntegration
+        // [SCENARIO 617319] Calculate Depreciation Without GLIntegration
         Initialize();
 
         // Check derogatory line created in FA Journal after depreciation calculation without G/L integration
@@ -381,7 +401,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDeprBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Final Depreciation With Negative Derogatory
+        // [SCENARIO 617319] Final Depreciation With Negative Derogatory
         Initialize();
 
         // Checks posting final Depreciation with Negative Deroagatory
@@ -416,7 +436,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         EndingDate: Date;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Check Book Value For Depreciation With Derogatory
+        // [SCENARIO 617319] Check Book Value For Depreciation With Derogatory
         Initialize();
 
         // Checks posting for Calculation of Depreciation and Derogatory for Negative Book Value.
@@ -454,7 +474,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Amount2: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Additional acquisition cost for already depreciated FA with "Depr. Acquisition Cost" = Yes via FA journal w/o G/L integration
+        // [SCENARIO 617319] Additional acquisition cost for already depreciated FA with "Depr. Acquisition Cost" = Yes via FA journal w/o G/L integration
         Initialize();
 
         // [GIVEN] A Fixed asset with a normal and tax depreciation book without G/L integration
@@ -509,7 +529,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDeprBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Error when Additional acquisition cost for already depreciated FA with "Depr. Acquisition Cost" = Yes via
+        // [SCENARIO 617319] Error when Additional acquisition cost for already depreciated FA with "Depr. Acquisition Cost" = Yes via
         Initialize();
 
         // FA journal w/ G/L integration for Derogatory only
@@ -567,7 +587,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Amount2: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Additional acquisition cost for already depreciated FA with "Depr. Acquisition Cost" = Yes via FA journal w/ G/L integration
+        // [SCENARIO 617319] Additional acquisition cost for already depreciated FA with "Depr. Acquisition Cost" = Yes via FA journal w/ G/L integration
         Initialize();
 
         // [GIVEN] A Fixed asset with a normal and tax depreciation book with G/L integration
@@ -622,7 +642,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         ExpectedDerogatory: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Cancel Additional acquisition cost's derogatory entry FA journal w/o G/L integration
+        // [SCENARIO 617319] Cancel Additional acquisition cost's derogatory entry FA journal w/o G/L integration
         Initialize();
 
         // [GIVEN] A Fixed asset with a normal and tax depreciation book without G/L integration
@@ -680,7 +700,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         LastFALedgerEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Reverse an additional acquisition for FA with G/L integration
+        // [SCENARIO 617319] Reverse an additional acquisition for FA with G/L integration
         Initialize();
 
         // [GIVEN] A Fixed asset with a normal and tax depreciation book with G/L integration
@@ -749,7 +769,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TransactionNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Reverse the depreciation+derogatory for the first depreciation of a fixed asset
+        // [SCENARIO 617319] Reverse the depreciation+derogatory for the first depreciation of a fixed asset
         Initialize();
 
         // [GIVEN] A Fixed asset with a normal and tax depreciation book with G/L integration
@@ -964,7 +984,9 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         SourceFALedgerEntry.SetRange("FA No.", FANo);
         SourceFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
         SourceFALedgerEntry.SetRange("FA Posting Date", FAPostingDate);
+#pragma warning disable AA0210
         SourceFALedgerEntry.SetRange("Automatic Entry", true);
+#pragma warning restore AA0210
         SourceFALedgerEntry.FindSet();
         repeat
             AutomaticSourceCount += 1;
@@ -1000,7 +1022,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         ExpectedInsuranceAmount: Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Generated Mirror Does Not Run Configured Duplication
+        // [SCENARIO 617319] Generated Mirror Does Not Run Configured Duplication
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -1067,7 +1089,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxBookMaintenanceLedgerEntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Returning Insertion Overloads Return Inserted Identities
+        // [SCENARIO 617319] Returning Insertion Overloads Return Inserted Identities
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -1163,7 +1185,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxDepreciationBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Final Link Validation Runs After Posting Event
+        // [SCENARIO 617319] Final Link Validation Runs After Posting Event
         Initialize();
 
         // [GIVEN] FA "FA" has the posting setup and entries required by the scenario
@@ -1782,7 +1804,9 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Assert.AreEqual(true, SourceSalvageFALedgerEntry.Reversed, SourceSalvageFALedgerEntry.FieldCaption(Reversed));
         Assert.AreEqual(true, CounterpartSalvageFALedgerEntry.Reversed, CounterpartSalvageFALedgerEntry.FieldCaption(Reversed));
         ReversingSalvageFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
+#pragma warning disable AA0210
         ReversingSalvageFALedgerEntry.SetRange("Reversed Entry No.", SourceSalvageFALedgerEntry."Entry No.");
+#pragma warning restore AA0210
         ReversingSalvageFALedgerEntry.FindFirst();
         FindLinkedFAEntry(
             CounterpartSalvageReversal, ReversingSalvageFALedgerEntry."Entry No.", TaxDeprBookCode);
@@ -2229,7 +2253,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         TaxBookCode: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Posting in fixture-owned journals leaves other batches unchanged.
+        // [SCENARIO 617319] Posting in fixture-owned journals leaves other batches unchanged.
         Initialize();
 
         // [GIVEN] FA "A" has owned journals, with unrelated rows in other batches of the same templates.
@@ -2326,7 +2350,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         exit(NewTaxDeprBookCode);
     end;
 
-    local procedure CheckFALedgerEntries(FANo: Code[20]; DeprBookCode: Code[20])
+    local procedure CheckFALedgerEntries(FANo: Code[20]; DeprBookCode: Code[10])
     var
         FALedgEntry: Record "FA Ledger Entry";
     begin
@@ -2360,7 +2384,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             SourceFADepreciationBook."Depreciation Starting Date", SourceFADepreciationBook."Depreciation Ending Date");
     end;
 
-    local procedure CreateAndPostPurchaseInvoice(FANo: Code[20]; DeprBookCode: Code[20]): Code[20]
+    local procedure CreateAndPostPurchaseInvoice(FANo: Code[20]; DeprBookCode: Code[10]): Code[20]
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2578,7 +2602,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         LibraryERM.PostGeneralJnlLine(GenJnlLine);
     end;
 
-    local procedure CreatePurchaseInvoiceAndPost(FANo: Code[20]; DeprBookCode: Code[20]; Quantity: Decimal; Price: Decimal; PostingDate: Date): Code[20]
+    local procedure CreatePurchaseInvoiceAndPost(FANo: Code[20]; DeprBookCode: Code[10]; Quantity: Decimal; Price: Decimal; PostingDate: Date): Code[20]
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2736,7 +2760,8 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     local procedure PrepareDirectFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")
     begin
         FALedgerEntry."Entry No." := 0;
-        FALedgerEntry."Document No." := LibraryRandom.RandText(MaxStrLen(FALedgerEntry."Document No."));
+        FALedgerEntry."Document No." :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(FALedgerEntry."Document No.")), 1, MaxStrLen(FALedgerEntry."Document No."));
         FALedgerEntry."Journal Batch Name" := '';
         FALedgerEntry."Derogatory Source Entry No." := 0;
         FALedgerEntry.Reversed := false;
@@ -2748,7 +2773,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     begin
         MaintenanceLedgerEntry."Entry No." := 0;
         MaintenanceLedgerEntry."Document No." :=
-            LibraryRandom.RandText(MaxStrLen(MaintenanceLedgerEntry."Document No."));
+            CopyStr(LibraryRandom.RandText(MaxStrLen(MaintenanceLedgerEntry."Document No.")), 1, MaxStrLen(MaintenanceLedgerEntry."Document No."));
         MaintenanceLedgerEntry."Journal Batch Name" := '';
         MaintenanceLedgerEntry."Derogatory Source Entry No." := 0;
         MaintenanceLedgerEntry.Reversed := false;
@@ -2817,13 +2842,13 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     begin
         RunCalculateDepreciationReportAndPostJournalLines(FANo, NormalDeprBookCode, DepreciationEndingDate, true);
         RunCalculateDepreciationReportAndPostJournalLines(
-          FANo, NormalDeprBookCode, CalcDate(StrSubstNo('<%1M>', LibraryRandom.RandInt(3)), DepreciationEndingDate), true);
+          FANo, NormalDeprBookCode, CalcDate(StrSubstNo(MonthOffsetFormulaTok, LibraryRandom.RandInt(3)), DepreciationEndingDate), true);
     end;
 
     local procedure UpdateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; FANo: Code[20]; TaxDeprBookCode: Code[10]; EndingDate: Date)
     begin
         FADepreciationBook.Get(FANo, TaxDeprBookCode);
-        FADepreciationBook.Validate("Depreciation Ending Date", CalcDate(StrSubstNo('<-%1M>', LibraryRandom.RandIntInRange(5, 7)), EndingDate));
+        FADepreciationBook.Validate("Depreciation Ending Date", CalcDate(StrSubstNo(PreviousMonthOffsetFormulaTok, LibraryRandom.RandIntInRange(5, 7)), EndingDate));
         FADepreciationBook.Modify(true);
     end;
 
@@ -2944,7 +2969,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     begin
         FAJournalLine.SetRange("FA No.", FANo);
         FAJournalLine.SetRange("FA Posting Type", FAJournalLine."FA Posting Type"::Derogatory);
-        Assert.IsTrue(FAJournalLine.FindFirst(), WrongJournalUsedErr);
+        Assert.IsFalse(FAJournalLine.IsEmpty(), WrongJournalUsedErr);
     end;
 
     local procedure VerifyFAPostingDate(FANo: Code[20])

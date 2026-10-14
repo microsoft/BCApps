@@ -17,9 +17,6 @@ codeunit 5639 "FA Get Journal"
 
     var
         DeprBook: Record "Depreciation Book";
-#if not CLEAN30
-        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
-#endif
         FAJnlSetup: Record "FA Journal Setup";
         FAJnlTemplate: Record "FA Journal Template";
         FAJnlBatch: Record "FA Journal Batch";
@@ -27,6 +24,9 @@ codeunit 5639 "FA Get Journal"
         GenJnlBatch: Record "Gen. Journal Batch";
         InsuranceJnlTempl: Record "Insurance Journal Template";
         InsuranceJnlBatch: Record "Insurance Journal Batch";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         TemplateName2: Code[10];
         BatchName2: Code[10];
 
@@ -158,4 +158,3 @@ codeunit 5639 "FA Get Journal"
     begin
     end;
 }
-

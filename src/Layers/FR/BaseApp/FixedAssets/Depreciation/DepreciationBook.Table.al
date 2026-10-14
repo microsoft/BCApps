@@ -636,29 +636,29 @@ table 5611 "Depreciation Book"
     protected var
         FAPostingTypeSetup: Record "FA Posting Type Setup";
 
-    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean)
+    procedure IndexGLIntegration(var IntegrationFlags: array[13] of Boolean)
     begin
-        IndexGLIntegration(GLIntegration, true);
+        IndexGLIntegration(IntegrationFlags, true);
     end;
 
-    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
+    procedure IndexGLIntegration(var IntegrationFlags: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
     begin
-        GLIntegration[1] := "G/L Integration - Acq. Cost";
-        GLIntegration[2] := "G/L Integration - Depreciation";
-        GLIntegration[3] := "G/L Integration - Write-Down";
-        GLIntegration[4] := "G/L Integration - Appreciation";
-        GLIntegration[5] := "G/L Integration - Custom 1";
-        GLIntegration[6] := "G/L Integration - Custom 2";
-        GLIntegration[7] := "G/L Integration - Disposal";
-        GLIntegration[8] := "G/L Integration - Maintenance";
-        GLIntegration[9] := false; // Salvage Value
+        IntegrationFlags[1] := "G/L Integration - Acq. Cost";
+        IntegrationFlags[2] := "G/L Integration - Depreciation";
+        IntegrationFlags[3] := "G/L Integration - Write-Down";
+        IntegrationFlags[4] := "G/L Integration - Appreciation";
+        IntegrationFlags[5] := "G/L Integration - Custom 1";
+        IntegrationFlags[6] := "G/L Integration - Custom 2";
+        IntegrationFlags[7] := "G/L Integration - Disposal";
+        IntegrationFlags[8] := "G/L Integration - Maintenance";
+        IntegrationFlags[9] := false; // Salvage Value
 #if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
-            GLIntegration[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory"
+            IntegrationFlags[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory"
         else
-            GLIntegration[13] := IncludeAdditionalPostingTypes and "G/L Integration - Derogatory";
+            IntegrationFlags[13] := IncludeAdditionalPostingTypes and "G/L Integration - Derogatory";
 #else
-        GLIntegration[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
+        IntegrationFlags[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
 #endif
     end;
 

@@ -22,6 +22,8 @@ codeunit 134049 "ERM Date Compression FA"
         FARegisterErr: Label 'FA Register must be deleted for Journal Batch Name %1 .', Comment = '%1 = Journal Batch Name';
         DateLockedErr: Label 'The accounting periods for the period you wish to date compress must be Date Locked.';
         LinkedEntryDateCompressionErr: Label 'belongs to a derogatory depreciation pair';
+        UnlinkedFAEntryErr: Label 'Unlinked FA entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.', Comment = '%1 = unlinked entry number, %2 = source entry number, %3 = counterpart entry number, %4 = depreciation book code, %5 = posting date';
+        UnlinkedMaintenanceEntryErr: Label 'Unlinked maintenance entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.', Comment = '%1 = unlinked entry number, %2 = source entry number, %3 = counterpart entry number, %4 = depreciation book code, %5 = posting date';
 
     [Test]
     [Scope('OnPrem')]
@@ -219,7 +221,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the FA source book cannot orphan its counterpart
+        // [SCENARIO 617319] Compressing only the FA source book cannot orphan its counterpart
         Initialize();
 
         // [GIVEN] A linked FA pair and an unlinked entry
@@ -240,7 +242,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the FA counterpart book cannot remove a persisted link
+        // [SCENARIO 617319] Compressing only the FA counterpart book cannot remove a persisted link
         Initialize();
 
         // [GIVEN] A linked FA pair and an unlinked entry
@@ -261,7 +263,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "Maintenance Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the maintenance source book cannot orphan its counterpart
+        // [SCENARIO 617319] Compressing only the maintenance source book cannot orphan its counterpart
         Initialize();
 
         // [GIVEN] A linked maintenance pair and an unlinked entry
@@ -282,7 +284,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "Maintenance Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the maintenance counterpart book cannot remove a persisted link
+        // [SCENARIO 617319] Compressing only the maintenance counterpart book cannot remove a persisted link
         Initialize();
 
         // [GIVEN] A linked maintenance pair and an unlinked entry
@@ -299,7 +301,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresFALinksOutsideDateFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA pair outside the date filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] An FA pair outside the date filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked FA entry on another date
@@ -313,7 +315,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresFALinksOutsideBookFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA pair outside the book filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] An FA pair outside the book filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked FA entry in another book
@@ -327,7 +329,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresMaintenanceLinksOutsideDateFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A maintenance pair outside the date filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] A maintenance pair outside the date filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked maintenance entry on another date
@@ -341,7 +343,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresMaintenanceLinksOutsideBookFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A maintenance pair outside the book filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] A maintenance pair outside the book filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked maintenance entry in another book
@@ -849,7 +851,7 @@ codeunit 134049 "ERM Date Compression FA"
         Assert.AreEqual(0, SourceEntry."Derogatory Source Entry No.", 'The source must not be a counterpart.');
         Assert.AreEqual(SourceEntry."Entry No.", CounterpartEntry."Derogatory Source Entry No.", 'The counterpart must reference the source.');
         Assert.AreEqual(0, UnlinkedEntry."Derogatory Source Entry No.",
-            StrSubstNo('Unlinked FA entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.',
+            StrSubstNo(UnlinkedFAEntryErr,
                 UnlinkedEntry."Entry No.", SourceEntry."Entry No.", CounterpartEntry."Entry No.",
                 UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date"));
         SelectedEntry.SetRange("Derogatory Source Entry No.", UnlinkedEntry."Entry No.");
@@ -873,7 +875,7 @@ codeunit 134049 "ERM Date Compression FA"
         Assert.AreEqual(0, SourceEntry."Derogatory Source Entry No.", 'The source must not be a counterpart.');
         Assert.AreEqual(SourceEntry."Entry No.", CounterpartEntry."Derogatory Source Entry No.", 'The counterpart must reference the source.');
         Assert.AreEqual(0, UnlinkedEntry."Derogatory Source Entry No.",
-            StrSubstNo('Unlinked maintenance entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.',
+            StrSubstNo(UnlinkedMaintenanceEntryErr,
                 UnlinkedEntry."Entry No.", SourceEntry."Entry No.", CounterpartEntry."Entry No.",
                 UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date"));
         SelectedEntry.SetRange("Derogatory Source Entry No.", UnlinkedEntry."Entry No.");

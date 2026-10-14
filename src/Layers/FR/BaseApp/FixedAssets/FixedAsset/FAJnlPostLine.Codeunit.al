@@ -518,41 +518,41 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; FAPostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
+    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
     begin
         case Type of
             Type::UntilDate:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         exit(SourceUntilDateCustom1EntryNo);
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         exit(SourceUntilDateDepreciationEntryNo);
                 end;
             Type::AcqCost:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         exit(SourceAcqCostCustom1EntryNo);
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         exit(SourceAcqCostDepreciationEntryNo);
                 end;
         end;
     end;
 
-    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; FAPostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
+    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
     begin
         case Type of
             Type::UntilDate:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         SourceUntilDateCustom1EntryNo := EntryNo;
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         SourceUntilDateDepreciationEntryNo := EntryNo;
                 end;
             Type::AcqCost:
-                case FAPostingType of
-                    FAPostingType::"Custom 1":
+                case PostingType of
+                    PostingType::"Custom 1":
                         SourceAcqCostCustom1EntryNo := EntryNo;
-                    FAPostingType::Depreciation:
+                    PostingType::Depreciation:
                         SourceAcqCostDepreciationEntryNo := EntryNo;
                 end;
         end;

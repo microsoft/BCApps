@@ -219,7 +219,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the FA source book cannot orphan its counterpart
+        // [SCENARIO 617319] Compressing only the FA source book cannot orphan its counterpart
         Initialize();
 
         // [GIVEN] A linked FA pair and an unlinked entry
@@ -240,7 +240,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "FA Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the FA counterpart book cannot remove a persisted link
+        // [SCENARIO 617319] Compressing only the FA counterpart book cannot remove a persisted link
         Initialize();
 
         // [GIVEN] A linked FA pair and an unlinked entry
@@ -261,7 +261,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "Maintenance Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the maintenance source book cannot orphan its counterpart
+        // [SCENARIO 617319] Compressing only the maintenance source book cannot orphan its counterpart
         Initialize();
 
         // [GIVEN] A linked maintenance pair and an unlinked entry
@@ -282,7 +282,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry: Record "Maintenance Ledger Entry";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Compressing only the maintenance counterpart book cannot remove a persisted link
+        // [SCENARIO 617319] Compressing only the maintenance counterpart book cannot remove a persisted link
         Initialize();
 
         // [GIVEN] A linked maintenance pair and an unlinked entry
@@ -299,7 +299,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresFALinksOutsideDateFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA pair outside the date filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] An FA pair outside the date filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked FA entry on another date
@@ -313,7 +313,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresFALinksOutsideBookFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA pair outside the book filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] An FA pair outside the book filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked FA entry in another book
@@ -327,7 +327,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresMaintenanceLinksOutsideDateFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A maintenance pair outside the date filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] A maintenance pair outside the date filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked maintenance entry on another date
@@ -341,7 +341,7 @@ codeunit 134049 "ERM Date Compression FA"
     procedure DateCompressionIgnoresMaintenanceLinksOutsideBookFilter()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A maintenance pair outside the book filter does not prevent compressing unlinked history
+        // [SCENARIO 617319] A maintenance pair outside the book filter does not prevent compressing unlinked history
         Initialize();
 
         // [GIVEN] A linked pair and an unlinked maintenance entry in another book

@@ -1,4 +1,12 @@
 #if not CLEAN30
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Budget;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
+using System.TestLibraries.Utilities;
+
 codeunit 144026 "UT REP FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.

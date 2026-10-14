@@ -552,7 +552,7 @@ table 5601 "FA Ledger Entry"
             SumIndexFields = Amount;
             IncludedFields = Amount;
         }
-        key(Key3; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date", "Part of Book Value", "Reclassification Entry")
+        key(Key3; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date", "Part of Book Value", "Reclassification Entry", "Derogatory Excluded")
         {
             SumIndexFields = Amount, "Debit Amount", "Credit Amount";
         }

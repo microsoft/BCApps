@@ -740,6 +740,8 @@ codeunit 5600 "FA Insert Ledger Entry"
                 exit;
             if not IsAutomaticSalvageCompanion(OriginalSalvageFALedgerEntry, OriginalAcquisitionFALedgerEntry) then
                 exit;
+            AutomaticSalvageFALedgerEntry.SetRange("FA No.", OriginalSalvageFALedgerEntry."FA No.");
+            AutomaticSalvageFALedgerEntry.SetRange("Depreciation Book Code", OriginalSalvageFALedgerEntry."Depreciation Book Code");
             AutomaticSalvageFALedgerEntry.SetRange("Reversed Entry No.", OriginalSalvageFALedgerEntry."Entry No.");
             if not AutomaticSalvageFALedgerEntry.FindFirst() then
                 exit;

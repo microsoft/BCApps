@@ -592,7 +592,7 @@ report 5605 "Fixed Asset - Book Value 01"
         FANo: Text[50];
         FADescription: Text[100];
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
-        HeadLineText: array[14] of Text[50];
+        HeadLineText: array[14] of Text;
         StartAmounts: array[7] of Decimal;
         NetChangeAmounts: array[7] of Decimal;
         DisposalAmounts: array[7] of Decimal;

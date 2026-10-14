@@ -461,6 +461,8 @@ report 5692 "Calculate Depreciation"
 
     trigger OnPreReport()
     begin
+        ErrorNo := 0;
+        Custom1ErrorNo := 0;
         ActivateErrorMessageHandling("Fixed Asset");
 
         GeneralLedgerSetup.Get();

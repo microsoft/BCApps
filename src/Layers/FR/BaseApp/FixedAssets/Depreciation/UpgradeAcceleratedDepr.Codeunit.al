@@ -21,14 +21,8 @@ codeunit 5868 "Upgrade Accelerated Depr."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
 
     trigger OnUpgradePerCompany()
-    var
-        CurrentModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() < 33 then
-            exit;
-
-        UpgradeAcceleratedDepr();
+        RunMandatoryUpgrade();
     end;
 
     internal procedure UpgradeAcceleratedDepr()
@@ -54,6 +48,17 @@ codeunit 5868 "Upgrade Accelerated Depr."
         TransferFields(Database::"FA Reclass. Journal Line", 10800, FAReclassJournalLine.FieldNo("Reclass. Derogatory"));
 
         UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag());
+    end;
+
+    local procedure RunMandatoryUpgrade()
+    var
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        if CurrentModuleInfo.AppVersion().Major() < 33 then
+            exit;
+
+        UpgradeAcceleratedDepr();
     end;
 
     local procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer)

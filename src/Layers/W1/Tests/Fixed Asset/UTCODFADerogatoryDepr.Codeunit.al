@@ -2,6 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.Foundation.AuditCodes;
+
 codeunit 134150 "UT COD FA Derogatory Depr."
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
@@ -28,7 +39,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
     procedure OnRunGenJnlPostBatchFAPostingTypeError()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] General journal batch posting rejects FA acquisition cost in a general journal
+        // [SCENARIO 617319] General journal batch posting rejects FA acquisition cost in a general journal
         Initialize();
 
         // [GIVEN] A general journal line with an FA acquisition-cost posting type
@@ -42,7 +53,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
     procedure OnRunGenJnlPostBatchDocumentNoError()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] General journal batch posting requires a document number
+        // [SCENARIO 617319] General journal batch posting requires a document number
         Initialize();
 
         // [GIVEN] A general journal line without a document number
@@ -59,7 +70,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         CalculateDisposal: Codeunit "Calculate Disposal";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Calculate Disposal maps reverse type 5 to derogatory
+        // [SCENARIO 617319] Calculate Disposal maps reverse type 5 to derogatory
         Initialize();
 
         // [GIVEN] The derogatory reverse-type index
@@ -76,7 +87,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         CalculateDisposal: Codeunit "Calculate Disposal";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Calculate Disposal maps category 15 to the default ledger posting category
+        // [SCENARIO 617319] Calculate Disposal maps category 15 to the default ledger posting category
         Initialize();
 
         // [GIVEN] The derogatory posting-category index
@@ -93,7 +104,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         CalculateDisposal: Codeunit "Calculate Disposal";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Calculate Disposal maps posting type 15 to derogatory
+        // [SCENARIO 617319] Calculate Disposal maps posting type 15 to derogatory
         Initialize();
 
         // [GIVEN] The derogatory posting-type index
@@ -111,7 +122,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         EntryAmounts: array[15] of Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Disposal reversal amounts include the negated derogatory amount
+        // [SCENARIO 617319] Disposal reversal amounts include the negated derogatory amount
         Initialize();
 
         // [GIVEN] An FA depreciation book with derogatory ledger and posting setup
@@ -134,7 +145,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         EntryAmounts: array[15] of Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Disposal gain or loss includes the negated derogatory amount
+        // [SCENARIO 617319] Disposal gain or loss includes the negated derogatory amount
         Initialize();
 
         // [GIVEN] An FA depreciation book with derogatory ledger and posting setup
@@ -155,7 +166,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         FADepreciationBook: Record "FA Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Published disposal APIs retain their original array contracts and results
+        // [SCENARIO 617319] Published disposal APIs retain their original array contracts and results
         Initialize();
 
         // [GIVEN] FA "F" has normal and derogatory amounts
@@ -176,7 +187,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         ExcludedAmounts: array[15] of Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The generic gain/loss overload can exclude additional posting types without changing legacy results
+        // [SCENARIO 617319] The generic gain/loss overload can exclude additional posting types without changing legacy results
         Initialize();
 
         // [GIVEN] FA "F" has a derogatory amount and a reused result buffer
@@ -203,7 +214,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         ExcludedAmounts: array[5] of Decimal;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The generic reversal overload can exclude additional posting types without changing legacy results
+        // [SCENARIO 617319] The generic reversal overload can exclude additional posting types without changing legacy results
         Initialize();
 
         // [GIVEN] FA "F" has a derogatory amount and a reused result buffer

@@ -1399,7 +1399,7 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         ExtendedNumbers: array[14] of Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Russian low-value disposal keeps its original arrays and input amount
+        // [SCENARIO 617319] Russian low-value disposal keeps its original arrays and input amount
         Initialize();
 
         // [GIVEN] FA "F" has a non-integrated book and a disposal amount

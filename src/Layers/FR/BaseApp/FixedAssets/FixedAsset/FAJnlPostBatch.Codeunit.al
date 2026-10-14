@@ -328,12 +328,12 @@ codeunit 5633 "FA Jnl.-Post Batch"
     end;
 #endif
 
-    procedure MakeDerogatoryFAJnlLine(var NewFAJnlLine: Record "FA Journal Line"; FAJnlLine: Record "FA Journal Line"): Boolean
+    procedure MakeDerogatoryFAJnlLine(var NewFAJnlLine: Record "FA Journal Line"; SourceFAJournalLine: Record "FA Journal Line"): Boolean
     var
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
-        NewFAJnlLine.Copy(FAJnlLine);
-        exit(DerogatoryPostingMgt.MakeDerogatoryJournalLine(NewFAJnlLine, FAJnlLine, Enum::"Derogatory Posting Role"::Source));
+        NewFAJnlLine.Copy(SourceFAJournalLine);
+        exit(DerogatoryPostingMgt.MakeDerogatoryJournalLine(NewFAJnlLine, SourceFAJournalLine, Enum::"Derogatory Posting Role"::Source));
     end;
 
     local procedure CreateAndPostDerogEntry(SourceFAJournalLine: Record "FA Journal Line")

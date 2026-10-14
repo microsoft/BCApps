@@ -2,6 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Budget;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
+using System.TestLibraries.Utilities;
+
 codeunit 134153 "UT REP FA Derogatory Depr."
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
@@ -29,7 +37,7 @@ codeunit 134153 "UT REP FA Derogatory Depr."
     procedure OnPreReportCalculateDepreciationError()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Calculate Depreciation rejects a derogatory depreciation book
+        // [SCENARIO 617319] Calculate Depreciation rejects a derogatory depreciation book
         Initialize();
 
         // [GIVEN] A depreciation book configured as derogatory
@@ -49,7 +57,7 @@ codeunit 134153 "UT REP FA Derogatory Depr."
     procedure OnPreReportCancelFALedgerEntriesError()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Cancel FA Ledger Entries rejects a derogatory depreciation book
+        // [SCENARIO 617319] Cancel FA Ledger Entries rejects a derogatory depreciation book
         Initialize();
 
         // [GIVEN] A derogatory depreciation book and disposal disabled
@@ -70,7 +78,7 @@ codeunit 134153 "UT REP FA Derogatory Depr."
     procedure OnPreReportCancelDisposalFALedgerEntriesError()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Cancel FA Ledger Entries rejects disposal for a derogatory depreciation book
+        // [SCENARIO 617319] Cancel FA Ledger Entries rejects disposal for a derogatory depreciation book
         Initialize();
 
         // [GIVEN] A derogatory depreciation book and disposal enabled
@@ -96,7 +104,7 @@ codeunit 134153 "UT REP FA Derogatory Depr."
         GLBudgetName: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Copy FA Entries to G/L Budget uses the derogatory account
+        // [SCENARIO 617319] Copy FA Entries to G/L Budget uses the derogatory account
         Initialize();
 
         // [GIVEN] FA "FA" with a derogatory ledger entry and G/L budget "B"

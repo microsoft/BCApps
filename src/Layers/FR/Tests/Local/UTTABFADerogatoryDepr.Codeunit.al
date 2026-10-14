@@ -1,4 +1,10 @@
 #if not CLEAN30
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Posting;
+
 codeunit 144025 "UT TAB FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.

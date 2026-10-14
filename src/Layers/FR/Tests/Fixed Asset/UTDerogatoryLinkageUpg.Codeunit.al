@@ -2,6 +2,25 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Maintenance;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.Foundation.AuditCodes;
+#if not CLEAN30
+using System.Environment;
+using System.Environment.Configuration;
+#endif
+using System.Reflection;
+using System.TestLibraries.Upgrade;
+using System.Upgrade;
+
 codeunit 144047 "UT Derogatory Linkage Upg."
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
@@ -23,6 +42,10 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         TestBodyCompletedErr: Label 'The test body ran to completion.';
         AmbiguousHistoricalCounterpartErr: Label 'The historical derogatory counterpart for source entry %1 cannot be identified uniquely.', Comment = '%1 - source entry number';
         SimulatedMigrationFailureErr: Label 'Simulated failure after accelerated depreciation migration.';
+        SqlRowBudgetExceededErr: Label 'Matching %1 assets read %2 SQL rows; the linear budget is %3.', Comment = '%1 = number of assets, %2 = number of SQL rows read, %3 = allowed SQL row count';
+        FALinkNotPreservedErr: Label 'FA entry %1 must respect the preserved source and reversal-chain links.', Comment = '%1 = entry number';
+        MaintenanceLinkNotPreservedErr: Label 'Maintenance entry %1 must respect the preserved source and reversal-chain links.', Comment = '%1 = entry number';
+        CompanyNameTooLongErr: Label 'The company name exceeds the %1 characters supported by the upgrade-tag test library.', Comment = '%1 = maximum company name length';
 #if not CLEAN30
         SimulatedBodyFailureErr: Label 'Simulated failure after the test body toggled the French feature state.';
 #endif
@@ -35,7 +58,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Disabled central routing uses only the legacy FA journal relationship
+        // [SCENARIO 617319] Disabled central routing uses only the legacy FA journal relationship
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -59,7 +82,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Enabled central routing uses only the central FA journal relationship
+        // [SCENARIO 617319] Enabled central routing uses only the central FA journal relationship
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -83,7 +106,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] CLEAN30 FA journal posting uses the central relationship
+        // [SCENARIO 617319] CLEAN30 FA journal posting uses the central relationship
         Initialize();
 
         // [GIVEN] The current feature compatibility state
@@ -107,7 +130,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The FA reversal compatibility overload creates a linked counterpart
+        // [SCENARIO 617319] The FA reversal compatibility overload creates a linked counterpart
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -131,7 +154,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The maintenance reversal compatibility overload creates a linked counterpart
+        // [SCENARIO 617319] The maintenance reversal compatibility overload creates a linked counterpart
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -155,7 +178,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A generated mirror does not invoke the duplicate-book dispatcher
+        // [SCENARIO 617319] A generated mirror does not invoke the duplicate-book dispatcher
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -186,7 +209,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The public derogatory builder rejects an ambiguous book relationship
+        // [SCENARIO 617319] The public derogatory builder rejects an ambiguous book relationship
         Initialize();
 
         // [GIVEN] Two tax books related to the same normal depreciation book
@@ -215,7 +238,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Disabled central routing tracks temporary FA reversal consistency entries
+        // [SCENARIO 617319] Disabled central routing tracks temporary FA reversal consistency entries
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -239,7 +262,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Normal book value excludes the derogatory counterpart entry
+        // [SCENARIO 617319] Normal book value excludes the derogatory counterpart entry
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -263,7 +286,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A salvage counterpart reversal keeps its reversal source code
+        // [SCENARIO 617319] A salvage counterpart reversal keeps its reversal source code
         Initialize();
 
         // [GIVEN] The current accelerated depreciation feature state
@@ -290,7 +313,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         BaselineFeatureStatus: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A failed test body restores the accelerated depreciation feature state
+        // [SCENARIO 617319] A failed test body restores the accelerated depreciation feature state
         Initialize();
 
         // [GIVEN] A captured feature state and a disabled feature baseline
@@ -325,7 +348,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A unique FA ledger pair is linked
+        // [SCENARIO 617319] A unique FA ledger pair is linked
         Initialize();
 
         // [GIVEN] One matching source and derogatory FA ledger entry
@@ -354,7 +377,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Consistent reversed FA ledger pairs are linked
+        // [SCENARIO 617319] Consistent reversed FA ledger pairs are linked
         Initialize();
 
         // [GIVEN] Matching FA ledger entries in a reversal chain
@@ -386,7 +409,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] FA reversals of reversals retain their derogatory linkage
+        // [SCENARIO 617319] FA reversals of reversals retain their derogatory linkage
         Initialize();
 
         // [GIVEN] Matching FA entries whose reversal references point to later entries
@@ -415,7 +438,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Crossed FA reversal chains are not linked
+        // [SCENARIO 617319] Crossed FA reversal chains are not linked
         Initialize();
 
         // [GIVEN] Shape-compatible FA entries from different reversal chains
@@ -446,7 +469,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Equidistant FA counterparts mark the source as ambiguous
+        // [SCENARIO 617319] Equidistant FA counterparts mark the source as ambiguous
         Initialize();
 
         // [GIVEN] One FA source with two equally distant matching counterparts
@@ -476,7 +499,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An FA source without a counterpart remains unlinked
+        // [SCENARIO 617319] An FA source without a counterpart remains unlinked
         Initialize();
 
         // [GIVEN] An FA source entry without a derogatory counterpart
@@ -504,7 +527,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A unique maintenance ledger pair is linked
+        // [SCENARIO 617319] A unique maintenance ledger pair is linked
         Initialize();
 
         // [GIVEN] One matching source and derogatory maintenance entry
@@ -532,7 +555,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Crossed maintenance reversal chains are not linked
+        // [SCENARIO 617319] Crossed maintenance reversal chains are not linked
         Initialize();
 
         // [GIVEN] Shape-compatible maintenance entries from different reversal chains
@@ -563,7 +586,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Reprocessing does not change an established FA link
+        // [SCENARIO 617319] Reprocessing does not change an established FA link
         Initialize();
 
         // [GIVEN] An FA source and counterpart with an established link
@@ -599,7 +622,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MaintenanceLedgerEntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Repeated linkage execution makes no further ledger changes
+        // [SCENARIO 617319] Repeated linkage execution makes no further ledger changes
         Initialize();
 
         // [GIVEN] Unlinked FA and maintenance source-counterpart pairs
@@ -663,7 +686,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MaintenanceLedgerEntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Linkage changes no FA or maintenance accounting amounts
+        // [SCENARIO 617319] Linkage changes no FA or maintenance accounting amounts
         Initialize();
 
         // [GIVEN] FA and maintenance pairs with captured amounts and row counts
@@ -717,7 +740,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] RISK-005 Two sources competing for one counterpart are both ambiguous
+        // [SCENARIO 617319] RISK-005 Two sources competing for one counterpart are both ambiguous
         Initialize();
 
         // [GIVEN] Two otherwise-identical sources that match the same counterpart
@@ -753,7 +776,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Maintenance code distinguishes otherwise identical counterparts
+        // [SCENARIO 617319] Maintenance code distinguishes otherwise identical counterparts
         Initialize();
 
         // [GIVEN] A closer counterpart with the wrong code and a farther counterpart with the matching code
@@ -784,7 +807,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Automatic depreciation links despite an acquisition-cost sibling
+        // [SCENARIO 617319] Automatic depreciation links despite an acquisition-cost sibling
         Initialize();
 
         // [GIVEN] An automatic depreciation source, acquisition sibling, and matching counterpart
@@ -813,7 +836,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A canceled asset identity links to its original FA counterpart
+        // [SCENARIO 617319] A canceled asset identity links to its original FA counterpart
         Initialize();
 
         // [GIVEN] A source entry and a counterpart canceled from the source fixed asset
@@ -843,7 +866,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A partial rerun preserves established links and links new pairs
+        // [SCENARIO 617319] A partial rerun preserves established links and links new pairs
         Initialize();
 
         // [GIVEN] One unique pair and one ambiguous source processed on the first pass
@@ -893,7 +916,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unresolved source still competes for a transaction-zero counterpart on retry
+        // [SCENARIO 617319] An unresolved source still competes for a transaction-zero counterpart on retry
         Initialize();
 
         // [GIVEN] Source S1 matches both T1 in transaction 100 and T0 in transaction zero
@@ -942,7 +965,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unresolved maintenance source still competes for a transaction-zero counterpart on retry
+        // [SCENARIO 617319] An unresolved maintenance source still competes for a transaction-zero counterpart on retry
         Initialize();
 
         // [GIVEN] Source S1 matches both T1 in transaction 100 and T0 in transaction zero
@@ -986,7 +1009,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Standalone linkage waits for accelerated depreciation migration
+        // [SCENARIO 617319] Standalone linkage waits for accelerated depreciation migration
         Initialize();
 
         // [GIVEN] A configured unlinked pair without the accelerated depreciation migration tag
@@ -1004,10 +1027,10 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'Standalone linkage must not set the original tag before accelerated depreciation migration.');
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()),
             'Standalone linkage must not set the corrective tag before accelerated depreciation migration.');
     end;
 
@@ -1024,7 +1047,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Standalone linkage ignores a partially migrated target configuration
+        // [SCENARIO 617319] Standalone linkage ignores a partially migrated target configuration
         Initialize();
 
         // [GIVEN] One W1 relationship and another relationship present only in the legacy field
@@ -1049,10 +1072,10 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         SecondDerogatoryFALedgerEntry.Get(4);
         SecondDerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'A partial target configuration must not set the original linkage tag.');
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()),
             'A partial target configuration must not set the corrective linkage tag.');
     end;
 
@@ -1066,7 +1089,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Sequenced linkage repairs an existing original tag
+        // [SCENARIO 617319] Sequenced linkage repairs an existing original tag
         Initialize();
 
         // [GIVEN] An unlinked pair with only the original linkage tag
@@ -1083,7 +1106,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()),
             'Sequenced linkage must route an existing original tag through corrective recovery.');
     end;
 
@@ -1097,7 +1120,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Relationship-transfer linkage links entries and sets its upgrade tag
+        // [SCENARIO 617319] Relationship-transfer linkage links entries and sets its upgrade tag
         Initialize();
 
         // [GIVEN] An unlinked FA pair without the linkage upgrade tag
@@ -1114,7 +1137,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'The linkage upgrade tag must be set after a successful run.');
     end;
 
@@ -1131,7 +1154,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A feature administrator with only indirect ledger modification can migrate history
+        // [SCENARIO 617319] A feature administrator with only indirect ledger modification can migrate history
         Initialize();
 
         // [GIVEN] Legacy relationship and exclusion data with unlinked FA and maintenance pairs
@@ -1177,7 +1200,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Feature enablement migrates relationships before linking history
+        // [SCENARIO 617319] Feature enablement migrates relationships before linking history
         Initialize();
 
         // [GIVEN] A legacy relationship, matching history, and no migration tags
@@ -1201,13 +1224,13 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag()),
             'Feature enablement must set the accelerated depreciation migration tag after success.');
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'Feature enablement must set the original linkage tag after success.');
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()),
             'The completed standalone recovery state must remain set on repeated execution.');
     end;
 #else
@@ -1222,7 +1245,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] CLEAN30 migrates relationships before linking history
+        // [SCENARIO 617319] CLEAN30 migrates relationships before linking history
         Initialize();
 
         // [GIVEN] A legacy relationship, matching history, and no migration tags
@@ -1243,10 +1266,10 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag()),
             'CLEAN30 migration must set the accelerated depreciation migration tag after success.');
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'CLEAN30 migration must set the original linkage tag after success.');
     end;
 #endif
@@ -1263,7 +1286,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A feature-enable failure rolls back relationship transfer and first linkage
+        // [SCENARIO 617319] A feature-enable failure rolls back relationship transfer and first linkage
         Initialize();
 
         // [GIVEN] A legacy relationship, matching history, and no migration tags
@@ -1287,10 +1310,10 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag()),
             'A failed feature migration must leave the accelerated depreciation tag clear.');
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'A failed feature migration must roll back the original linkage tag.');
     end;
 #endif
@@ -1306,7 +1329,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Relationship-transfer linkage waits for a configured relationship
+        // [SCENARIO 617319] Relationship-transfer linkage waits for a configured relationship
         Initialize();
 
         // [GIVEN] An FA pair without a configured derogatory book relationship
@@ -1323,7 +1346,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()),
             'The linkage upgrade tag must not be set when no relationship is configured yet, so a later run can still process it.');
     end;
 
@@ -1339,7 +1362,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] RISK-005 Corrective upgrade rebuilds stale links from configured book pairs
+        // [SCENARIO 617319] RISK-005 Corrective upgrade rebuilds stale links from configured book pairs
         Initialize();
 
         // [GIVEN] A stale greedy link where one of two valid sources claimed the counterpart
@@ -1365,7 +1388,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         SecondSourceFALedgerEntry.Get(2);
         SecondSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
         Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()),
             'A successful atomic rebuild must set the corrective upgrade tag.');
     end;
 
@@ -1374,9 +1397,9 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure CorrectiveUpgradePreservesAllLedgerInvariants()
     var
         FALedgerEntry: Record "FA Ledger Entry";
-        BeforeFALedgerEntry: Record "FA Ledger Entry" temporary;
+        TempBeforeFALedgerEntry: Record "FA Ledger Entry" temporary;
         MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
-        BeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary;
+        TempBeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary;
         GLEntry: Record "G/L Entry";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
         FALedgerEntryCount: Integer;
@@ -1384,7 +1407,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         GLEntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Corrective upgrade preserves all FA, maintenance, and G/L ledger invariants
+        // [SCENARIO 617319] Corrective upgrade preserves all FA, maintenance, and G/L ledger invariants
         Initialize();
 
         // [GIVEN] Established links, new linkable pairs, and snapshots of all ledger data
@@ -1413,8 +1436,8 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FALedgerEntryCount := FALedgerEntry.Count();
         MaintenanceLedgerEntryCount := MaintenanceLedgerEntry.Count();
         GLEntryCount := GLEntry.Count();
-        SnapshotFALedgerEntriesForComparison(FALedgerEntry, BeforeFALedgerEntry);
-        SnapshotMaintenanceLedgerEntriesForComparison(MaintenanceLedgerEntry, BeforeMaintenanceLedgerEntry);
+        SnapshotFALedgerEntriesForComparison(FALedgerEntry, TempBeforeFALedgerEntry);
+        SnapshotMaintenanceLedgerEntriesForComparison(MaintenanceLedgerEntry, TempBeforeMaintenanceLedgerEntry);
         EnsureDerogatoryLinkageUpgradeTagIsSet();
 
         // [WHEN] The corrective upgrade runs
@@ -1424,8 +1447,8 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         Assert.AreEqual(FALedgerEntryCount, FALedgerEntry.Count(), 'The corrective upgrade must not change the FA ledger row count.');
         Assert.AreEqual(MaintenanceLedgerEntryCount, MaintenanceLedgerEntry.Count(), 'The corrective upgrade must not change the maintenance ledger row count.');
         Assert.AreEqual(GLEntryCount, GLEntry.Count(), 'The corrective upgrade must not create or remove G/L entries.');
-        AssertFALedgerInvariants(BeforeFALedgerEntry);
-        AssertMaintenanceLedgerInvariants(BeforeMaintenanceLedgerEntry);
+        AssertFALedgerInvariants(TempBeforeFALedgerEntry);
+        AssertMaintenanceLedgerInvariants(TempBeforeMaintenanceLedgerEntry);
 
         FALedgerEntry.Get(2);
         FALedgerEntry.TestField("Derogatory Source Entry No.", 1);
@@ -1449,7 +1472,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A second corrective upgrade run makes no further changes
+        // [SCENARIO 617319] A second corrective upgrade run makes no further changes
         Initialize();
 
         // [GIVEN] A completed corrective run followed by a manual link correction
@@ -1484,7 +1507,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A failed corrective upgrade rolls back cleared links and its upgrade tag
+        // [SCENARIO 617319] A failed corrective upgrade rolls back cleared links and its upgrade tag
         Initialize();
 
         // [GIVEN] An established link and an ambiguous depreciation book relationship
@@ -1512,7 +1535,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
         Assert.IsFalse(
-            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()),
             'A failed atomic rebuild must roll back the corrective upgrade tag with the cleared links.');
     end;
 
@@ -1521,7 +1544,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure MigrationCopiesAllNonDefaultValues()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Every legacy field, including Date and Boolean values, reaches its W1 destination
+        // [SCENARIO 617319] Every legacy field, including Date and Boolean values, reaches its W1 destination
         Initialize();
 
         // [GIVEN] Legacy values differ from all destination values
@@ -1535,7 +1558,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure MigrationCopiesDefaultValues()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Blank codes, zero dates and false flags overwrite stale destination values
+        // [SCENARIO 617319] Blank codes, zero dates and false flags overwrite stale destination values
         Initialize();
 
         // [GIVEN] Default legacy values and nondefault destination values
@@ -1551,7 +1574,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         DepreciationBook: Record "Depreciation Book";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Retrying a completed migration cannot replace subsequent W1 setup changes
+        // [SCENARIO 617319] Retrying a completed migration cannot replace subsequent W1 setup changes
         Initialize();
 
         // [GIVEN] A completed migration followed by a W1 relationship change
@@ -1580,7 +1603,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         PerCompanyUpgradeTags: List of [Code[250]];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Creating a company while legacy posting remains available does not complete migration
+        // [SCENARIO 617319] Creating a company while legacy posting remains available does not complete migration
         Initialize();
 
         // [GIVEN] Company initialization asks for the tags to prepopulate
@@ -1602,7 +1625,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         LastErrorCode: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Completing company A leaves company B pending with untouched setup
+        // [SCENARIO 617319] Completing company A leaves company B pending with untouched setup
         Initialize();
 
         // [GIVEN] A separate empty test company
@@ -1634,7 +1657,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A repeated preflight refreshes its counts and cannot pre-complete later legacy data
+        // [SCENARIO 617319] A repeated preflight refreshes its counts and cannot pre-complete later legacy data
         Initialize();
 
         // [GIVEN] A first nonempty preflight followed by an empty company
@@ -1669,7 +1692,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Corrective linkage does not commit an enclosing feature or CLEAN30 migration
+        // [SCENARIO 617319] Corrective linkage does not commit an enclosing feature or CLEAN30 migration
         Initialize();
 
         // [GIVEN] Legacy setup and history with only the original linkage tag
@@ -1710,7 +1733,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         OldTag: Code[250];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Tags preseeded by the unreleased implementation cannot skip real migration
+        // [SCENARIO 617319] Tags preseeded by the unreleased implementation cannot skip real migration
         Initialize();
 
         // [GIVEN] Old development completion tags followed by legacy data
@@ -1751,7 +1774,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A primary automatic derogatory adjustment links and reverses its historical counterpart
+        // [SCENARIO 617319] A primary automatic derogatory adjustment links and reverses its historical counterpart
         Initialize();
 
         // [GIVEN] An automatic adjustment with an acquisition sibling and an unlinked tax entry
@@ -1792,7 +1815,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unrelated automatic entry is not classified as an acquisition adjustment
+        // [SCENARIO 617319] An unrelated automatic entry is not classified as an acquisition adjustment
         Initialize();
 
         // [GIVEN] Matching automatic entries but no acquisition sibling
@@ -1821,7 +1844,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A marked automatic depreciation source cannot silently skip an ambiguous counterpart
+        // [SCENARIO 617319] A marked automatic depreciation source cannot silently skip an ambiguous counterpart
         Initialize();
 
         // [GIVEN] Automatic source S has an acquisition sibling and two historical counterparts
@@ -1843,7 +1866,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A marked automatic Custom 1 source cannot silently skip an ambiguous counterpart
+        // [SCENARIO 617319] A marked automatic Custom 1 source cannot silently skip an ambiguous counterpart
         Initialize();
 
         // [GIVEN] Automatic source S has an acquisition sibling and two historical counterparts
@@ -1866,7 +1889,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A marked automatic depreciation source reverses its now-unique historical counterpart
+        // [SCENARIO 617319] A marked automatic depreciation source reverses its now-unique historical counterpart
         Initialize();
 
         // [GIVEN] Previously ambiguous source S now has only one available counterpart T
@@ -1891,7 +1914,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A marked automatic Custom 1 source reverses its now-unique historical counterpart
+        // [SCENARIO 617319] A marked automatic Custom 1 source reverses its now-unique historical counterpart
         Initialize();
 
         // [GIVEN] Previously ambiguous source S now has only one available counterpart T
@@ -1919,7 +1942,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unrelated book with the same document and amount cannot win legacy fallback
+        // [SCENARIO 617319] An unrelated book with the same document and amount cannot win legacy fallback
         Initialize();
 
         // [GIVEN] A unique tax counterpart plus an unrelated-book entry
@@ -1952,7 +1975,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Two sources sharing one candidate remain ambiguous during reversal
+        // [SCENARIO 617319] Two sources sharing one candidate remain ambiguous during reversal
         Initialize();
 
         // [GIVEN] One candidate is also a match for another unlinked source
@@ -1981,7 +2004,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         NewEntryNo: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Multiple equally valid candidates stop legacy reversal
+        // [SCENARIO 617319] Multiple equally valid candidates stop legacy reversal
         Initialize();
 
         // [GIVEN] Two indistinguishable unlinked tax entries
@@ -2003,7 +2026,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure LegacyMaintenanceReversalMatchesCodeAndAmount()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Fallback excludes different maintenance codes and amounts
+        // [SCENARIO 617319] Fallback excludes different maintenance codes and amounts
         Initialize();
 
         // [GIVEN] One exact candidate and mismatched maintenance entries
@@ -2017,7 +2040,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure LegacyMaintenanceReversalRejectsMissingCandidate()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Mismatched, already linked and already reversed entries are not usable candidates
+        // [SCENARIO 617319] Mismatched, already linked and already reversed entries are not usable candidates
         Initialize();
 
         // [GIVEN] No available exact candidate
@@ -2037,7 +2060,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Without an original historical cutoff corrective execution cannot clear authoritative links
+        // [SCENARIO 617319] Without an original historical cutoff corrective execution cannot clear authoritative links
         Initialize();
 
         // [GIVEN] An established pair and a competing candidate but no original tag
@@ -2074,7 +2097,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         HistoricalCutoff: DateTime;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Corrective recovery cannot discard authoritative links posted after original migration
+        // [SCENARIO 617319] Corrective recovery cannot discard authoritative links posted after original migration
         Initialize();
 
         // [GIVEN] A completed historical pass and a newer linked pair with a competing candidate
@@ -2110,7 +2133,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         BodyErrorCode: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Migration links legacy automatic salvage so acquisition reversal reverses both books
+        // [SCENARIO 617319] Migration links legacy automatic salvage so acquisition reversal reverses both books
         Initialize();
 
         // [GIVEN] The original company feature state
@@ -2144,7 +2167,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Automatic salvage with an acquisition sibling still requires a mutually unique counterpart
+        // [SCENARIO 617319] Automatic salvage with an acquisition sibling still requires a mutually unique counterpart
         Initialize();
 
         // [GIVEN] An acquisition pair with one normal and two tax salvage companions
@@ -2183,7 +2206,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A canceled asset's acquisition cannot qualify another asset's automatic salvage
+        // [SCENARIO 617319] A canceled asset's acquisition cannot qualify another asset's automatic salvage
         Initialize();
 
         // [GIVEN] Matching canceled salvage without its own acquisition, and another asset's canceled acquisition
@@ -2223,7 +2246,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Corrective recovery preserves former-book links while rebuilding the current relationship
+        // [SCENARIO 617319] Corrective recovery preserves former-book links while rebuilding the current relationship
         Initialize();
 
         // [GIVEN] Historical linked FA and maintenance pairs and a tax book reassigned to a new source
@@ -2267,7 +2290,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Operational repair cannot complete linkage against partially transferred relationships
+        // [SCENARIO 617319] Operational repair cannot complete linkage against partially transferred relationships
         Initialize();
 
         // [GIVEN] One transferred relationship and a second relationship present only in the legacy field
@@ -2316,7 +2339,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The operational runner still repairs historical linkage after the prerequisite completes
+        // [SCENARIO 617319] The operational runner still repairs historical linkage after the prerequisite completes
         Initialize();
 
         // [GIVEN] Completed field migration followed by an original-tag-only historical linkage state
@@ -2357,7 +2380,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         SqlRowsRead: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Matching identical posting signatures across active and canceled assets has a linear row-read budget
+        // [SCENARIO 617319] Matching identical posting signatures across active and canceled assets has a linear row-read budget
         Initialize();
 
         // [GIVEN] Eighty assets covering all active/canceled source and counterpart combinations
@@ -2375,7 +2398,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         VerifyBulkFAIdentityPairs(AssetCount);
         Assert.IsTrue(
             SqlRowsRead <= 20 * AssetCount + 100,
-            StrSubstNo('Matching %1 assets read %2 SQL rows; the linear budget is %3.', AssetCount, SqlRowsRead, 20 * AssetCount + 100));
+            StrSubstNo(SqlRowBudgetExceededErr, AssetCount, SqlRowsRead, 20 * AssetCount + 100));
     end;
 
     [Test]
@@ -2385,7 +2408,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Former counterparts neither become sources nor compete after their book changes role
+        // [SCENARIO 617319] Former counterparts neither become sources nor compete after their book changes role
         Initialize();
 
         // [GIVEN] Book B formerly mirrored A and now supplies C, with preserved links in both ledgers
@@ -2412,7 +2435,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure ReversalLinkageRejectsOriginalLinkedToAnotherSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A reversal cannot match through an original already linked to another source
+        // [SCENARIO 617319] A reversal cannot match through an original already linked to another source
         Initialize();
 
         // [GIVEN] Matching reversals S and C whose candidate original belongs to another source
@@ -2437,7 +2460,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure ReversalLinkageRejectsOriginalWithAnotherCounterpart()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unlinked candidate original cannot replace the source original's preserved counterpart
+        // [SCENARIO 617319] An unlinked candidate original cannot replace the source original's preserved counterpart
         Initialize();
 
         // [GIVEN] Matching reversals S and C whose source original already has a different counterpart
@@ -2462,7 +2485,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure OriginalLinkageRejectsReversalLinkedToAnotherSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An original cannot match through a reversal already linked to another source
+        // [SCENARIO 617319] An original cannot match through a reversal already linked to another source
         Initialize();
 
         // [GIVEN] Matching originals S and C whose candidate reversal belongs to another source
@@ -2487,7 +2510,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure OriginalLinkageRejectsReversalWithAnotherCounterpart()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An unlinked candidate reversal cannot replace the source reversal's preserved counterpart
+        // [SCENARIO 617319] An unlinked candidate reversal cannot replace the source reversal's preserved counterpart
         Initialize();
 
         // [GIVEN] Matching originals S and C whose source reversal already has a different counterpart
@@ -2512,7 +2535,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure ReversalLinkageAcceptsConsistentOriginalLink()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A preserved original pair still allows its matching reversals to link
+        // [SCENARIO 617319] A preserved original pair still allows its matching reversals to link
         Initialize();
 
         // [GIVEN] Matching reversals S and C with correctly linked originals
@@ -2537,7 +2560,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     procedure OriginalLinkageAcceptsConsistentReversalLink()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A preserved reversal pair still allows its matching originals to link
+        // [SCENARIO 617319] A preserved reversal pair still allows its matching originals to link
         Initialize();
 
         // [GIVEN] Matching originals S and C with correctly linked reversals
@@ -2788,7 +2811,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FALedgerEntry.Insert();
     end;
 
-    local procedure CreateFAReversalWithoutCounterpart(var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; SourceFALedgerEntry: Record "FA Ledger Entry"; var CounterpartFALedgerEntry: Record "FA Ledger Entry"; var ReversingFALedgerEntry: Record "FA Ledger Entry"; var TaxDepreciationBook: Record "Depreciation Book"; SourceDepreciationBookCode: Code[10])
+    local procedure CreateFAReversalWithoutCounterpart(var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; SourceFALedgerEntry: Record "FA Ledger Entry"; var CounterpartFALedgerEntry: Record "FA Ledger Entry"; var ReversingFALedgerEntry: Record "FA Ledger Entry"; var TaxDepreciationBook: Record "Depreciation Book"; SourceBookCode: Code[10])
     var
         NewSourceReversalEntryNo: Integer;
     begin
@@ -2799,7 +2822,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FAInsertLedgerEntry.InsertReverseEntry(
             0, 1, SourceFALedgerEntry."Entry No.", NewSourceReversalEntryNo, 0);
         ReversingFALedgerEntry.Get(NewSourceReversalEntryNo);
-        TaxDepreciationBook.Validate("Derogatory Calc.", SourceDepreciationBookCode);
+        TaxDepreciationBook.Validate("Derogatory Calc.", SourceBookCode);
         TaxDepreciationBook.Modify(true);
         CounterpartFALedgerEntry."Derogatory Source Entry No." := SourceFALedgerEntry."Entry No.";
         CounterpartFALedgerEntry.Modify();
@@ -2946,7 +2969,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MaintenanceLedgerEntry.Modify();
     end;
 
-    local procedure CreateMaintenanceReversalWithoutCounterpart(var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var TaxDepreciationBook: Record "Depreciation Book"; SourceDepreciationBookCode: Code[10])
+    local procedure CreateMaintenanceReversalWithoutCounterpart(var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var TaxDepreciationBook: Record "Depreciation Book"; SourceBookCode: Code[10])
     var
         NewSourceReversalEntryNo: Integer;
     begin
@@ -2957,7 +2980,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FAInsertLedgerEntry.InsertReverseEntry(
             0, 2, SourceMaintenanceLedgerEntry."Entry No.", NewSourceReversalEntryNo, 0);
         ReversingMaintenanceLedgerEntry.Get(NewSourceReversalEntryNo);
-        TaxDepreciationBook.Validate("Derogatory Calc.", SourceDepreciationBookCode);
+        TaxDepreciationBook.Validate("Derogatory Calc.", SourceBookCode);
         TaxDepreciationBook.Modify(true);
         CounterpartMaintenanceLedgerEntry."Derogatory Source Entry No." := SourceMaintenanceLedgerEntry."Entry No.";
         CounterpartMaintenanceLedgerEntry.Modify();
@@ -3008,7 +3031,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         AssignLedgerFixtureAsset();
     end;
 
-    local procedure AssertFALedgerInvariants(var BeforeFALedgerEntry: Record "FA Ledger Entry" temporary)
+    local procedure AssertFALedgerInvariants(var TempBeforeFALedgerEntry: Record "FA Ledger Entry" temporary)
     var
         FALedgerEntry: Record "FA Ledger Entry";
         TempFieldToIgnore: Record Field temporary;
@@ -3021,18 +3044,18 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         TempFieldToIgnore."No." := FALedgerEntry.FieldNo("Legacy Derogatory Ambiguous");
         TempFieldToIgnore.Insert();
 
-        if BeforeFALedgerEntry.FindSet() then
+        if TempBeforeFALedgerEntry.FindSet() then
             repeat
-                FALedgerEntry.Get(BeforeFALedgerEntry."Entry No.");
-                BeforeRecordRef.GetTable(BeforeFALedgerEntry);
+                FALedgerEntry.Get(TempBeforeFALedgerEntry."Entry No.");
+                BeforeRecordRef.GetTable(TempBeforeFALedgerEntry);
                 AfterRecordRef.GetTable(FALedgerEntry);
                 Assert.RecordsAreEqualExceptCertainFields(
                     BeforeRecordRef, AfterRecordRef, TempFieldToIgnore,
                     'The corrective upgrade may change only FA linkage metadata.');
-            until BeforeFALedgerEntry.Next() = 0;
+            until TempBeforeFALedgerEntry.Next() = 0;
     end;
 
-    local procedure AssertMaintenanceLedgerInvariants(var BeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary)
+    local procedure AssertMaintenanceLedgerInvariants(var TempBeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary)
     var
         MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         TempFieldToIgnore: Record Field temporary;
@@ -3045,15 +3068,15 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         TempFieldToIgnore."No." := MaintenanceLedgerEntry.FieldNo("Legacy Derogatory Ambiguous");
         TempFieldToIgnore.Insert();
 
-        if BeforeMaintenanceLedgerEntry.FindSet() then
+        if TempBeforeMaintenanceLedgerEntry.FindSet() then
             repeat
-                MaintenanceLedgerEntry.Get(BeforeMaintenanceLedgerEntry."Entry No.");
-                BeforeRecordRef.GetTable(BeforeMaintenanceLedgerEntry);
+                MaintenanceLedgerEntry.Get(TempBeforeMaintenanceLedgerEntry."Entry No.");
+                BeforeRecordRef.GetTable(TempBeforeMaintenanceLedgerEntry);
                 AfterRecordRef.GetTable(MaintenanceLedgerEntry);
                 Assert.RecordsAreEqualExceptCertainFields(
                     BeforeRecordRef, AfterRecordRef, TempFieldToIgnore,
                     'The corrective upgrade may change only maintenance linkage metadata.');
-            until BeforeMaintenanceLedgerEntry.Next() = 0;
+            until TempBeforeMaintenanceLedgerEntry.Next() = 0;
     end;
 
     local procedure AssignLedgerFixtureAsset()
@@ -3275,14 +3298,26 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     end;
 #endif
 
+    local procedure GetCurrentCompanyNameForUpgradeTag(): Code[30]
+    var
+        CurrentCompanyName: Text;
+        CompanyNameCode: Code[30];
+    begin
+        CurrentCompanyName := CompanyName();
+        Assert.IsTrue(
+            StrLen(CurrentCompanyName) <= MaxStrLen(CompanyNameCode),
+            StrSubstNo(CompanyNameTooLongErr, MaxStrLen(CompanyNameCode)));
+        exit(CopyStr(CurrentCompanyName, 1, MaxStrLen(CompanyNameCode)));
+    end;
+
     local procedure EnsureAcceleratedDepreciationUpgradeTagIsCleared()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
-        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag(), CompanyName()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag(), CompanyName());
+        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag(), GetCurrentCompanyNameForUpgradeTag());
     end;
 
     local procedure EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared()
@@ -3291,8 +3326,8 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
-        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName());
+        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), GetCurrentCompanyNameForUpgradeTag());
     end;
 
     local procedure EnsureDerogatoryLinkageUpgradeTagIsCleared()
@@ -3301,8 +3336,8 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
-        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName());
+        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), GetCurrentCompanyNameForUpgradeTag());
     end;
 
     local procedure EnsureDerogatoryLinkageUpgradeTagIsSet()
@@ -3310,7 +3345,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
     begin
-        if not UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()) then
+        if not UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag()) then
             UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag());
     end;
 
@@ -3752,7 +3787,9 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         // Every reversal entry, including the tax-book salvage counterpart, must carry the reversal source code.
         SourceCodeSetup.Get();
         ReversalFALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+#pragma warning disable AA0210
         ReversalFALedgerEntry.SetFilter("Reversed Entry No.", '<>%1', 0);
+#pragma warning restore AA0210
         Assert.AreEqual(4, ReversalFALedgerEntry.Count(), 'Both books must reverse the acquisition and its salvage companion.');
         ReversalFALedgerEntry.FindSet();
         repeat
@@ -3773,7 +3810,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         MaintenanceLedgerEntry.Modify();
     end;
 
-    local procedure SetLegacyDerogatoryCalculation(DepreciationBookCode: Code[10]; SourceDepreciationBookCode: Code[10])
+    local procedure SetLegacyDerogatoryCalculation(DepreciationBookCode: Code[10]; SourceBookCode: Code[10])
     var
         DepreciationBookRecordRef: RecordRef;
         CodeFieldRef: FieldRef;
@@ -3784,7 +3821,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         CodeFieldRef.SetRange(DepreciationBookCode);
         DepreciationBookRecordRef.FindFirst();
         LegacyRelationshipFieldRef := DepreciationBookRecordRef.Field(10800);
-        LegacyRelationshipFieldRef.Value := SourceDepreciationBookCode;
+        LegacyRelationshipFieldRef.Value := SourceBookCode;
         DepreciationBookRecordRef.Modify(false);
     end;
 
@@ -3810,21 +3847,21 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     end;
 #endif
 
-    local procedure SnapshotFALedgerEntriesForComparison(var FALedgerEntry: Record "FA Ledger Entry"; var BeforeFALedgerEntry: Record "FA Ledger Entry" temporary)
+    local procedure SnapshotFALedgerEntriesForComparison(var FALedgerEntry: Record "FA Ledger Entry"; var TempBeforeFALedgerEntry: Record "FA Ledger Entry" temporary)
     begin
         if FALedgerEntry.FindSet() then
             repeat
-                BeforeFALedgerEntry := FALedgerEntry;
-                BeforeFALedgerEntry.Insert();
+                TempBeforeFALedgerEntry := FALedgerEntry;
+                TempBeforeFALedgerEntry.Insert();
             until FALedgerEntry.Next() = 0;
     end;
 
-    local procedure SnapshotMaintenanceLedgerEntriesForComparison(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var BeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary)
+    local procedure SnapshotMaintenanceLedgerEntriesForComparison(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var TempBeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary)
     begin
         if MaintenanceLedgerEntry.FindSet() then
             repeat
-                BeforeMaintenanceLedgerEntry := MaintenanceLedgerEntry;
-                BeforeMaintenanceLedgerEntry.Insert();
+                TempBeforeMaintenanceLedgerEntry := MaintenanceLedgerEntry;
+                TempBeforeMaintenanceLedgerEntry.Insert();
             until MaintenanceLedgerEntry.Next() = 0;
     end;
 
@@ -3948,11 +3985,11 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FALedgerEntry.Get(EntryNo);
         Assert.AreEqual(
             ExpectedSourceEntryNo, FALedgerEntry."Derogatory Source Entry No.",
-            StrSubstNo('FA entry %1 must respect the preserved source and reversal-chain links.', EntryNo));
+            StrSubstNo(FALinkNotPreservedErr, EntryNo));
         MaintenanceLedgerEntry.Get(EntryNo);
         Assert.AreEqual(
             ExpectedSourceEntryNo, MaintenanceLedgerEntry."Derogatory Source Entry No.",
-            StrSubstNo('Maintenance entry %1 must respect the preserved source and reversal-chain links.', EntryNo));
+            StrSubstNo(MaintenanceLinkNotPreservedErr, EntryNo));
     end;
 
     local procedure VerifyLegacyMaintenanceFallback(NoUsableCandidate: Boolean)
