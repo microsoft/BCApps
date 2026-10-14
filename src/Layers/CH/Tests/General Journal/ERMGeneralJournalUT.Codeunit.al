@@ -1,6 +1,7 @@
 codeunit 134920 "ERM General Journal UT"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
