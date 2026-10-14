@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148345 "Policies To Evaluate API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;

@@ -10,6 +10,7 @@ using Microsoft.Finance.VAT.Setup;
 codeunit 148348 "Expense VAT Spec. API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

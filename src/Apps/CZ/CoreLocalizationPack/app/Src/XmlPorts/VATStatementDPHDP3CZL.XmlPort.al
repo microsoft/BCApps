@@ -1398,7 +1398,7 @@ xmlport 11766 "VAT Statement DPHDP3 CZL"
 
         zast_kod := StatutoryReportingSetupCZL."Official Code";
         zast_typ := VATStmtXMLExportHelperCZL.ConvertSubjectType(StatutoryReportingSetupCZL."Official Type");
-        zast_nazev := StatutoryReportingSetupCZL."Official Name";
+        zast_nazev := StatutoryReportingSetupCZL."Official Full Name";
         zast_jmeno := StatutoryReportingSetupCZL."Official First Name";
         zast_prijmeni := StatutoryReportingSetupCZL."Official Surname";
         zast_dat_nar := FormatDate(StatutoryReportingSetupCZL."Official Birth Date");
