@@ -1288,6 +1288,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
 
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
         PurchaseHeader.Validate("Prepayment %", 50);
+        PurchaseHeader.Validate("Prepayment Due Date", WorkDate());
         PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(PrepaidPurchaseLine, PurchaseHeader, PrepaidPurchaseLine.Type::Item, Item."No.", 1);
         PrepaidPurchaseLine.Validate("Direct Unit Cost", 100);
@@ -1308,6 +1309,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
             PurchasePrepaymentInvoiceHeader."Amount Including VAT");
 
         // [GIVEN] The prepaid line is received and invoiced, and quantity restoration is disabled.
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Validate(Receive, true);
         PurchaseHeader.Validate(Invoice, true);
         PurchaseHeader.Modify(true);

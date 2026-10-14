@@ -1466,9 +1466,12 @@ codeunit 137019 "SCM Correct Invoice"
         // [GIVEN] A Sales Order with a paid 50% prepayment on the line that will be posted.
         LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
         LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
         LibraryERM.CreateVATPostingSetupWithAccounts(
             VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
         SetupSalesPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+        VATPostingSetup."Sales Prepayments Account" := GeneralPostingSetup."Sales Prepayments Account";
+        VATPostingSetup.Modify(true);
 
         LibraryInventory.CreateItem(Item);
         Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
