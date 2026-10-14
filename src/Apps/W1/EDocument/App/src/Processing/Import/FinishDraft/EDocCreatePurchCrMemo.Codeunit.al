@@ -69,16 +69,17 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
     begin
         ReviewedInvoiceNo := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(ReviewedInvoiceNo));
         if ReviewedInvoiceNo = '' then begin
-            EDocImpSessionTelemetry.SetText('Applies-to Source', 'None');
+            EDocImpSessionTelemetry.SetText(EDocPurchaseDocumentHelper.GetAppliesToResolutionTok(), 'NotApplied');
             exit;
         end;
 
         if not EDocPurchaseDocumentHelper.ResolveInvoiceToApplyTo(EDocumentPurchaseHeader, FailureReason) then
             Error(CannotApplyToInvoiceErr, EDocumentPurchaseHeader."Vendor Invoice No.", FailureReason);
-        if EDocumentPurchaseHeader."Applies-to Doc. No." <> ReviewedInvoiceNo then
+        if EDocumentPurchaseHeader."Applies-to Doc. No." <> ReviewedInvoiceNo then begin
+            EDocImpSessionTelemetry.SetText(EDocPurchaseDocumentHelper.GetAppliesToResolutionTok(), 'Changed');
             Error(CannotApplyToInvoiceErr, EDocumentPurchaseHeader."Vendor Invoice No.", InvoiceNoLongerMatchesErr);
+        end;
 
-        EDocImpSessionTelemetry.SetText('Applies-to Source', 'Draft');
         PurchaseHeader."Applies-to Doc. Type" := PurchaseHeader."Applies-to Doc. Type"::Invoice;
         PurchaseHeader."Applies-to Doc. No." := ReviewedInvoiceNo;
     end;

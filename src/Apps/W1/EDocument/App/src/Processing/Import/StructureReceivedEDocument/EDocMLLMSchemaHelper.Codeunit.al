@@ -198,12 +198,29 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     end;
 #pragma warning restore AA0139
 
-    procedure IsCreditNote(SourceJsonObject: JsonObject): Boolean
+    procedure GetDocumentTypeCode(SourceJsonObject: JsonObject): Text
     var
         TypeCode: Text;
     begin
         GetString(SourceJsonObject, 'invoice_type_code', 10, TypeCode);
-        exit(DelChr(TypeCode, '<>', ' ') = CreditNoteTypeCodeTok);
+        exit(DelChr(TypeCode, '<>', ' '));
+    end;
+
+    procedure IsCreditNote(SourceJsonObject: JsonObject): Boolean
+    begin
+        exit(GetDocumentTypeCode(SourceJsonObject) = CreditNoteTypeCodeTok);
+    end;
+
+    procedure GetDocumentTypeCodeForTelemetry(SourceJsonObject: JsonObject): Text
+    var
+        TypeCode: Text;
+    begin
+        TypeCode := GetDocumentTypeCode(SourceJsonObject);
+        if TypeCode in [InvoiceTypeCodeTok, CreditNoteTypeCodeTok] then
+            exit(TypeCode);
+        if TypeCode = '' then
+            exit('None');
+        exit('Other');
     end;
 
     procedure GetInvoiceReferences(SourceJsonObject: JsonObject; OwnDocumentNo: Text) InvoiceReferences: List of [Text]
@@ -235,33 +252,12 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                 end;
     end;
 
-    procedure NormalizeCreditNoteSigns(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary)
+    procedure NormalizeCreditNoteSigns(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary) LineSignsChanged: Boolean
     var
         CreditedIsNegative: Boolean;
-        HasNegativeLine: Boolean;
-        LineIsNegative: Boolean;
         LineAmount: Decimal;
-        LinesNet: Decimal;
     begin
-        // Credit memo amounts are positive. Which printed sign means "credited" comes from the lines when they have amounts:
-        // many credit notes print negative lines under a total without a minus sign. Lines with the other sign (a restocking
-        // fee, for example) reduce the credit. When lines and totals net to zero, negative lines are the credited ones.
-        if TempLine.FindSet() then
-            repeat
-                LineAmount := LineAmountOf(TempLine);
-                LinesNet += LineAmount;
-                HasNegativeLine := HasNegativeLine or (LineAmount < 0);
-            until TempLine.Next() = 0;
-        case true of
-            LinesNet <> 0:
-                CreditedIsNegative := LinesNet < 0;
-            TempHeader.Total <> 0:
-                CreditedIsNegative := TempHeader.Total < 0;
-            TempHeader."Sub Total" <> 0:
-                CreditedIsNegative := TempHeader."Sub Total" < 0;
-            else
-                CreditedIsNegative := HasNegativeLine;
-        end;
+        CreditedIsNegative := CreditedDirectionIsNegative(TempHeader, TempLine);
 
         TempHeader."Sub Total" := Abs(TempHeader."Sub Total");
         TempHeader."Total Discount" := Abs(TempHeader."Total Discount");
@@ -273,18 +269,40 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
             exit;
         repeat
             LineAmount := LineAmountOf(TempLine);
-            LineIsNegative := LineAmount < 0;
 
             TempLine.Quantity := Abs(TempLine.Quantity);
             TempLine."Unit Price" := Abs(TempLine."Unit Price");
             TempLine."Total Discount" := Abs(TempLine."Total Discount");
             TempLine."Sub Total" := Abs(TempLine."Sub Total");
-            if (LineAmount <> 0) and (LineIsNegative <> CreditedIsNegative) then begin
+            if (LineAmount <> 0) and ((LineAmount < 0) <> CreditedIsNegative) then begin
                 TempLine.Quantity := -TempLine.Quantity;
                 TempLine."Sub Total" := -TempLine."Sub Total";
+                LineSignsChanged := true;
             end;
             TempLine.Modify();
         until TempLine.Next() = 0;
+    end;
+
+    local procedure CreditedDirectionIsNegative(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary): Boolean
+    var
+        HasNegativeLine: Boolean;
+        LineAmount: Decimal;
+        LinesNet: Decimal;
+    begin
+        if TempLine.FindSet() then
+            repeat
+                LineAmount := LineAmountOf(TempLine);
+                LinesNet += LineAmount;
+                HasNegativeLine := HasNegativeLine or (LineAmount < 0);
+            until TempLine.Next() = 0;
+
+        if LinesNet <> 0 then
+            exit(LinesNet < 0);
+        if TempHeader.Total <> 0 then
+            exit(TempHeader.Total < 0);
+        if TempHeader."Sub Total" <> 0 then
+            exit(TempHeader."Sub Total" < 0);
+        exit(HasNegativeLine);
     end;
 
     local procedure LineAmountOf(TempLine: Record "E-Document Purchase Line" temporary): Decimal
@@ -409,4 +427,5 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
     var
         CreditNoteTypeCodeTok: Label '381', Locked = true;
+        InvoiceTypeCodeTok: Label '380', Locked = true;
 }

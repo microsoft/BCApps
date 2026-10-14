@@ -162,7 +162,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   This task only applies when the draft's Document Type is "Purchase Credit Memo". For invoices, mark it as complete immediately.
 
   When the credit note states the invoice it corrects, that number is shown in "Applies-to Vendor Inv. No." on the "Purchase Document Draft" page. The **Application** field on the same page states what will happen when the credit memo is created, and why.
-  - Read the **Application** field and memorize it word for word. It says either "Will be applied to invoice X." or "Will not be applied to an invoice.", followed by the reason and what happens when the credit memo is posted.
+  - Read the **Application** field and memorize it word for word. It says either "Will be applied to invoice X." or "Will not be applied to a specific invoice.", followed by the reason and what happens when the credit memo is posted.
   - Report exactly what that field says. Never conclude that the credit memo is applied because "Applies-to Vendor Inv. No." has a value: a credit note that refers to several invoices, or whose invoice is not an open posted invoice, is not applied.
   - **Never** search for an invoice or change these fields yourself.
 

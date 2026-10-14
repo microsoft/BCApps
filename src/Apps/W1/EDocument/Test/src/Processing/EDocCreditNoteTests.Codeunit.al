@@ -17,7 +17,6 @@ codeunit 135649 "EDoc Credit Note Tests"
 
     var
         Assert: Codeunit Assert;
-        LibraryRandom: Codeunit "Library - Random";
 
     #region Document type
 
@@ -305,11 +304,13 @@ codeunit 135649 "EDoc Credit Note Tests"
     local procedure CreateVendor(PayToVendorNo: Code[20]): Code[20]
     var
         Vendor: Record Vendor;
+        LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        Vendor.Init();
-        Vendor."No." := CopyStr('CN' + Format(LibraryRandom.RandIntInRange(10000000, 99999999)), 1, MaxStrLen(Vendor."No."));
-        Vendor."Pay-to Vendor No." := PayToVendorNo;
-        Vendor.Insert();
+        LibraryPurchase.CreateVendor(Vendor);
+        if PayToVendorNo <> '' then begin
+            Vendor."Pay-to Vendor No." := PayToVendorNo;
+            Vendor.Modify();
+        end;
         exit(Vendor."No.");
     end;
 

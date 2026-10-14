@@ -284,6 +284,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     var
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
         EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         InStream: InStream;
         SourceJsonObject: JsonObject;
         LinesToken: JsonToken;
@@ -294,6 +295,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         InStream.Read(BlobAsText);
         SourceJsonObject.ReadFrom(BlobAsText);
 
+        EDocImpSessionTelemetry.SetText('MLLM Document Type Code', EDocMLLMSchemaHelper.GetDocumentTypeCodeForTelemetry(SourceJsonObject));
         IsCreditNote := EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject);
         EDocMLLMSchemaHelper.MapHeaderFromJson(SourceJsonObject, TempEDocPurchaseHeader);
         TempEDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
@@ -306,7 +308,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         if not IsCreditNote then
             exit;
-        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocImpSessionTelemetry.SetBool('Credit Note Line Signs Changed', EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempEDocPurchaseHeader, TempEDocPurchaseLine));
         TempEDocPurchaseHeader."Vendor Invoice No." := CopyStr(
             EDocPurchaseDraftUtility.JoinInvoiceReferences(EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJsonObject, TempEDocPurchaseHeader."Sales Invoice No.")),
             1, MaxStrLen(TempEDocPurchaseHeader."Vendor Invoice No."));

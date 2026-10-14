@@ -247,6 +247,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         CandidateEntryNos: List of [Integer];
         CandidateEntryNo: Integer;
         CurrencyMismatchInvoiceNo: Code[20];
@@ -258,10 +259,13 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         Clear(PostedInvoiceNo);
         Clear(FailureReason);
         Reference := DelChr(Reference, '<>', ' ');
-        if Reference = '' then
+        if Reference = '' then begin
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'NotStated');
             exit(false);
+        end;
         if PayToVendorNo = '' then begin
             FailureReason := VendorNotSetErr;
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'VendorMissing');
             exit(false);
         end;
 
@@ -289,6 +293,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
                 if PostedInvoiceNo <> '' then begin
                     Clear(PostedInvoiceNo);
                     FailureReason := StrSubstNo(InvoiceAmbiguousErr, Reference, PayToVendorNo);
+                    EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'Ambiguous');
                     exit(false);
                 end;
                 PostedInvoiceNo := VendorLedgerEntry."Document No.";
@@ -296,13 +301,23 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
                 CurrencyMismatchInvoiceNo := VendorLedgerEntry."Document No.";
         end;
 
-        if PostedInvoiceNo <> '' then
+        if PostedInvoiceNo <> '' then begin
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'Resolved');
             exit(true);
-        if CurrencyMismatchInvoiceNo <> '' then
-            FailureReason := StrSubstNo(CurrencyNotApplicableErr, CurrencyMismatchInvoiceNo)
-        else
+        end;
+        if CurrencyMismatchInvoiceNo <> '' then begin
+            FailureReason := StrSubstNo(CurrencyNotApplicableErr, CurrencyMismatchInvoiceNo);
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'CurrencyMismatch');
+        end else begin
             FailureReason := StrSubstNo(InvoiceNotFoundErr, Reference, PayToVendorNo);
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'NotFound');
+        end;
         exit(false);
+    end;
+
+    internal procedure GetAppliesToResolutionTok(): Text
+    begin
+        exit('Applies-to Resolution');
     end;
 
     local procedure AddCandidateEntryNos(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var CandidateEntryNos: List of [Integer])
@@ -332,15 +347,19 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
     procedure ResolveInvoiceToApplyTo(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var FailureReason: Text): Boolean
     var
         EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         PostedInvoiceNo: Code[20];
         SeveralInvoicesReferencedErr: Label 'The credit note refers to several invoices (%1).', Comment = '%1 = list of invoice numbers';
     begin
         Clear(FailureReason);
         EDocumentPurchaseHeader."Applies-to Doc. No." := '';
-        if EDocumentPurchaseHeader."Vendor Invoice No." = '' then
+        if EDocumentPurchaseHeader."Vendor Invoice No." = '' then begin
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'NotStated');
             exit(false);
+        end;
         if EDocPurchaseDraftUtility.ReferencesSeveralInvoices(EDocumentPurchaseHeader."Vendor Invoice No.") then begin
             FailureReason := StrSubstNo(SeveralInvoicesReferencedErr, EDocumentPurchaseHeader."Vendor Invoice No.");
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'SeveralReferenced');
             exit(false);
         end;
         if not TryResolveOpenInvoice(

@@ -85,6 +85,8 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         NotAppliedMsg: Label 'Will not be applied to a specific invoice.';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        if EDocumentPurchaseHeader."E-Document Entry No." = 0 then
+            exit('');
         if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
             Status.Append(StrSubstNo(AppliedMsg, EDocumentPurchaseHeader."Vendor Invoice No."))
         else
