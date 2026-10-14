@@ -141,7 +141,7 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
             OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(IsHandled);
 #endif
             OnBeforeSetSEPAInstructionPriority(PaymentExportData, TempGenJnlLine, IsHandled);
-            if notIsHandled then
+            if not IsHandled then
                 PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
 
             PaymentExportData.Validate(PaymentExportData."SEPA Payment Method", PaymentExportData."SEPA Payment Method"::TRF);
