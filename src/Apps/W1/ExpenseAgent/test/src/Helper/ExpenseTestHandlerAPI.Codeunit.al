@@ -95,31 +95,13 @@ codeunit 148307 "Expense Test Handler API"
         WebServicesKey: Text;
     begin
         ServiceUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
-        if not User.Get(ServiceUserId) then
-            Error(GetServiceUserDiagnostics(ServiceUserId));
+        User.Get(ServiceUserId);
         WebServicesKey := GetOrCreateWebServicesKey(ServiceUserId, ExpiresAt);
 
         Clear(ServiceIdentity);
         ServiceIdentity.Add('userName', User."User Name");
         ServiceIdentity.Add('webServicesKey', WebServicesKey);
         ServiceIdentity.Add('expiresAt', ExpiresAt);
-    end;
-
-    local procedure GetServiceUserDiagnostics(ServiceUserId: Guid): Text
-    var
-        AadApplication: Record "AAD Application";
-        User: Record User;
-        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
-        ApplicationUsers: Integer;
-    begin
-        // TEMPORARY E2E diagnostics; remove before review.
-        AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId());
-        User.SetRange("Application ID", AadApplication."Client Id");
-        ApplicationUsers := User.Count();
-        User.Reset();
-        exit(StrSubstNo(
-            'DIAG service user %1 missing after enable; app state %2, app user id %3, users with application id %4, all users %5, tenant %6',
-            ServiceUserId, AadApplication.State, AadApplication."User ID", ApplicationUsers, User.Count(), TenantId()));
     end;
 
     local procedure EnsureAadApplicationUser()
