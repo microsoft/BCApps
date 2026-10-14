@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
@@ -3605,6 +3605,9 @@
                                   <Group Name="GroupOnSalesLineComments">
                                     <GroupExpressions>
                                       <GroupExpression>=Fields!Sales_Comment_Line_Document_Type.Value</GroupExpression>
+                                      <GroupExpression>=Fields!Sales_Comment_Line_No_.Value</GroupExpression>
+                                      <GroupExpression>=Fields!Sales_Comment_Line_Document_Line_No_.Value</GroupExpression>
+                                      <GroupExpression>=Fields!Sales_Comment_Line_Line_No_.Value</GroupExpression>
                                     </GroupExpressions>
                                   </Group>
                                   <SortExpressions>
