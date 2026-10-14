@@ -20,7 +20,6 @@ permissionset 7422 EACorpCardRead
         page "EA Corp Card Settlement" = X,
         page "EA Corp Card Settlement Lines" = X,
         page "EA Corp Card Settlements" = X,
-        codeunit "EA Create Corp Card Setup" = X,
         codeunit "EA Corp Card DE Noop" = X,
         tabledata "EA Corp Card Provider" = R,
         tabledata "EA Corp Card" = R,

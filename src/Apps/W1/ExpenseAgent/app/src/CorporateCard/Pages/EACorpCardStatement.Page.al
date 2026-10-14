@@ -274,7 +274,7 @@ page 7444 "EA Corp Card Statement"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Close reconciliation';
-                Enabled = Rec.Status = Rec.Status::Validated;
+                Enabled = Rec.Status in [Rec.Status::Validated, Rec.Status::ReconciliationRequired];
                 Image = ClosePeriod;
                 ToolTip = 'Verifies every statement transaction and the posted settlement entries, then closes the statement period.';
 
@@ -293,9 +293,9 @@ page 7444 "EA Corp Card Statement"
         }
         area(Promoted)
         {
-            group(Category_Process)
+            group(Category_Home)
             {
-                Caption = 'Process';
+                Caption = 'Home';
 
                 group(Category_Validation)
                 {
