@@ -284,9 +284,8 @@ codeunit 48520 "Fabric Platform Mgt"
             if CredMgt.IsCustomAppEnabled() then
 #pragma warning restore AL0432
                 EnableExportWithCustomApp(CredMgt)
-            else
+            else begin
 #endif
-            begin
                 CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
                 FabricExportManager.EnableFabricExport();
             end;
