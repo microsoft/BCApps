@@ -11,6 +11,7 @@ using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using System.Agents;
+using System.Security.AccessControl;
 
 codeunit 148307 "Expense Test Handler API"
 {
@@ -28,26 +29,86 @@ codeunit 148307 "Expense Test Handler API"
     end;
 
     /// <summary>
-    /// Explicitly provisions and enables Expense Agent setup for E2E tests.
+    /// Explicitly provisions and enables Expense Agent setup for E2E tests, and returns the identity
+    /// that the Expense Agent service must use to call Business Central.
+    /// Example: curl.exe -X POST "http://localhost:7047/Navision_NAV/ODataV4/ExpenseTestHandler_Configure?company=4d77b30a-3dc5-f011-9c12-7ced8d9e45e7" -u username:password -H "Content-Type: application/json" -H "Accept: application/json" -d "{}"
     /// </summary>
-    /// <returns>A completion message after the Expense Agent setup is configured.</returns>
+    /// <returns>
+    /// A JSON object with the completion status and a serviceIdentity object. The serviceIdentity holds
+    /// the user name and web service access key of the Expense Agent Microsoft Entra application user.
+    /// </returns>
     [ServiceEnabled]
-    procedure Configure(): Text[30]
+    procedure Configure(): Text
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
         CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
         LibraryExpense: Codeunit "Library - Expense";
+        Response: JsonObject;
+        ServiceIdentity: JsonObject;
+        ResponseText: Text;
     begin
-        if ExpenseAgentSetupIsComplete() then
-            exit('Configure completed');
+        if not ExpenseAgentSetupIsComplete() then begin
+            CreateExpenseAgentSetup.Run();
+            CreateExpenseGLAccount.Run();
+            ExpenseAgentSetup.Get();
+            ExpenseAgentSetup.CreateDefaultSettings();
+            LibraryExpense.EnsureExpenseAgentEnabled();
+        end;
 
-        CreateExpenseAgentSetup.Run();
-        CreateExpenseGLAccount.Run();
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup.CreateDefaultSettings();
-        LibraryExpense.EnsureExpenseAgentEnabled();
-        exit('Configure completed');
+        GetServiceIdentity(ServiceIdentity);
+        Response.Add('status', 'Configure completed');
+        Response.Add('serviceIdentity', ServiceIdentity);
+        Response.WriteTo(ResponseText);
+        exit(ResponseText);
+    end;
+
+    /// <summary>
+    /// Enables the Expense Agent Microsoft Entra application for the current company, as activating the agent does,
+    /// and returns a web service access key for its application user. On-premises, the Expense Agent service uses this
+    /// identity to call Business Central with the same least-privilege permissions it has as an S2S application in SaaS.
+    /// An unexpired key is reused, so services that already use it keep working when Configure is called again.
+    /// </summary>
+    /// <param name="ServiceIdentity">Receives the userName, webServicesKey and expiresAt properties.</param>
+    internal procedure GetServiceIdentity(var ServiceIdentity: JsonObject)
+    var
+        User: Record User;
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        ExpiresAt: DateTime;
+        ServiceUserId: Guid;
+        WebServicesKey: Text;
+    begin
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        ServiceUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
+        User.Get(ServiceUserId);
+        WebServicesKey := GetOrCreateWebServicesKey(ServiceUserId, ExpiresAt);
+
+        Clear(ServiceIdentity);
+        ServiceIdentity.Add('userName', User."User Name");
+        ServiceIdentity.Add('webServicesKey', WebServicesKey);
+        ServiceIdentity.Add('expiresAt', ExpiresAt);
+    end;
+
+    local procedure GetOrCreateWebServicesKey(ServiceUserId: Guid; var ExpiresAt: DateTime): Text
+    var
+        IdentityManagement: Codeunit "Identity Management";
+        WebServicesKey: Text;
+    begin
+        ExpiresAt := IdentityManagement.GetWebServiceExpiryDate(ServiceUserId);
+        if ExpiresAt > CurrentDateTime() + WebServicesKeyRenewalMarginMs() then begin
+            WebServicesKey := IdentityManagement.GetWebServicesKey(ServiceUserId);
+            if WebServicesKey <> '' then
+                exit(WebServicesKey);
+        end;
+
+        ExpiresAt := CreateDateTime(CalcDate('<+30D>', Today()), Time());
+        exit(IdentityManagement.CreateWebServicesKey(ServiceUserId, ExpiresAt));
+    end;
+
+    local procedure WebServicesKeyRenewalMarginMs(): BigInteger
+    begin
+        // Renew a key that expires within a day, so a test run never starts with a key that is about to expire.
+        exit(24 * 60 * 60 * 1000);
     end;
 
     local procedure ExpenseAgentSetupIsComplete(): Boolean
