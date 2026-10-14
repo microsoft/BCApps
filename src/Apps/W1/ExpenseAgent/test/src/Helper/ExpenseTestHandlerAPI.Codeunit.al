@@ -11,6 +11,7 @@ using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using System.Agents;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 
 codeunit 148307 "Expense Test Handler API"
@@ -78,15 +79,51 @@ codeunit 148307 "Expense Test Handler API"
         ServiceUserId: Guid;
         WebServicesKey: Text;
     begin
+        ResetEnabledAadApplicationWithoutUser();
         ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        Commit();
         ServiceUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
-        User.Get(ServiceUserId);
+        if not User.Get(ServiceUserId) then
+            Error(GetServiceUserDiagnostics(ServiceUserId));
         WebServicesKey := GetOrCreateWebServicesKey(ServiceUserId, ExpiresAt);
 
         Clear(ServiceIdentity);
         ServiceIdentity.Add('userName', User."User Name");
         ServiceIdentity.Add('webServicesKey', WebServicesKey);
         ServiceIdentity.Add('expiresAt', ExpiresAt);
+    end;
+
+    local procedure GetServiceUserDiagnostics(ServiceUserId: Guid): Text
+    var
+        AadApplication: Record "AAD Application";
+        User: Record User;
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        ApplicationUsers: Integer;
+    begin
+        // TEMPORARY E2E diagnostics; remove before review.
+        AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId());
+        User.SetRange("Application ID", AadApplication."Client Id");
+        ApplicationUsers := User.Count();
+        User.Reset();
+        exit(StrSubstNo(
+            'DIAG service user %1 missing after enable; app state %2, app user id %3, users with application id %4, all users %5, tenant %6',
+            ServiceUserId, AadApplication.State, AadApplication."User ID", ApplicationUsers, User.Count(), TenantId()));
+    end;
+
+    local procedure ResetEnabledAadApplicationWithoutUser()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // A copied or prepared database can contain the enabled Entra app without its application user.
+        // Enabling only creates the user when the state changes, so reset the state without validation.
+        if not AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId()) then
+            exit;
+        if (AadApplication.State <> AadApplication.State::Enabled) or AadApplication.UserExists() then
+            exit;
+
+        AadApplication.State := AadApplication.State::Disabled;
+        AadApplication.Modify();
     end;
 
     local procedure GetOrCreateWebServicesKey(ServiceUserId: Guid; var ExpiresAt: DateTime): Text

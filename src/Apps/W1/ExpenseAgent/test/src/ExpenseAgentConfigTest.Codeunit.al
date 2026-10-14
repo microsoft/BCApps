@@ -290,6 +290,33 @@ codeunit 148361 "Expense Agent Config. Test"
         VerifyPermissionCount(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName(), 1);
     end;
 
+    [Test]
+    procedure ServiceIdentityRepairsEnabledApplicationWithoutUser()
+    var
+        AadApplication: Record "AAD Application";
+        User: Record User;
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        ServiceIdentity: JsonObject;
+    begin
+        // [SCENARIO] An enabled Entra app whose user ID does not exist, as in a prepared container database, still gives a service identity
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" whose user ID does not refer to a user
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        AadApplication."User ID" := CreateGuid();
+        AadApplication.Modify();
+
+        // [WHEN] Getting the service identity for E2E tests
+        ExpenseTestHandlerAPI.GetServiceIdentity(ServiceIdentity);
+
+        // [THEN] "EA" is enabled for an existing application user, which is the returned identity
+        VerifyAadApplicationState(AadApplication.State::Enabled);
+        AadApplication.Get(AadApplication."Client Id");
+        User.Get(AadApplication."User ID");
+        Assert.AreEqual(User."User Name", GetJsonText(ServiceIdentity, 'userName'), 'The service user name is incorrect.');
+        VerifyPermissionCount(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName(), 1);
+    end;
+
     local procedure GetJsonText(JsonObject: JsonObject; PropertyName: Text): Text
     var
         JsonToken: JsonToken;
