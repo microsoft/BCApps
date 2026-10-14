@@ -58,6 +58,7 @@ table 6900 Expense
                 ExpenseUser: Record "Expense User";
                 Employee: Record Employee;
             begin
+                TestStatusOpen();
                 if xRec."Expense User No." <> Rec."Expense User No." then
                     if Rec."Expense User No." = '' then
                         Rec.Validate("Expense Category", '')
