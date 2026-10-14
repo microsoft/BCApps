@@ -627,7 +627,7 @@ codeunit 133100 "Extension Management Test"
 
         ExtensionMgtTestLibrary.InstallAppsourceExtensionWithRefreshSession('PAPPID.' + Format(SettingsAppId));
 
-        Assert.IsFalse(ExtensionPendingSetup.FindFirst(), 'An already-installed app should not trigger pending setup or a session refresh.');
+        Assert.IsTrue(ExtensionPendingSetup.IsEmpty(), 'An already-installed app should not trigger pending setup or a session refresh.');
         Assert.IsTrue(ExtensionManagement.IsInstalledByAppId(SettingsAppId), 'The existing installation should be unchanged.');
     end;
 
