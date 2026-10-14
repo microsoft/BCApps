@@ -3,7 +3,7 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -19,6 +19,7 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
         ReceiptServiceNameTxt: Label 'purchaseReceipts';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchaseReceipts()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -49,6 +50,7 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDimensions()
     var
         PurchRcptHeader: Record "Purch. Rcpt. Header";
@@ -106,5 +108,12 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
             TargetURL := TargetURL + '?' + UrlFilter;
 
         exit(TargetURL);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

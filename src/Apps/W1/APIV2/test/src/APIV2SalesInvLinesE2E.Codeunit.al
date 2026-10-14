@@ -3,7 +3,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -44,6 +44,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestFailsOnIDAbsense()
     var
         ResponseText: Text;
@@ -66,6 +67,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceLineDirectly()
     var
         SalesLine: Record "Sales Line";
@@ -98,6 +100,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceLines()
     var
         SalesLine: Record "Sales Line";
@@ -134,6 +137,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceLinesDirectlyWithDocumentIdFilter()
     var
         SalesLine: Record "Sales Line";
@@ -165,6 +169,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedInvoiceLines()
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -200,6 +205,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLines()
     var
         Item: Record "Item";
@@ -243,6 +249,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLineWithSequence()
     var
         Item: Record "Item";
@@ -289,6 +296,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLinesWithUoM()
     var
         Item: Record "Item";
@@ -335,6 +343,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceLine()
     var
         SalesHeader: Record "Sales Header";
@@ -382,6 +391,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceLineFailsOnSequenceIdOrDocumentIdChange()
     var
         SalesHeader: Record "Sales Header";
@@ -425,6 +435,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceLineWithUoM()
     var
         SalesHeader: Record "Sales Header";
@@ -483,6 +494,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteInvoiceLine()
     var
         SalesHeader: Record "Sales Header";
@@ -522,6 +534,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedInvoiceLine()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -557,6 +570,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateLineThroughPageAndAPI()
     var
         SalesHeader: Record "Sales Header";
@@ -632,6 +646,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineUpdatesInvoiceDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -671,6 +686,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineUpdatesInvoiceDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -717,6 +733,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineMovesInvoiceDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -765,6 +782,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineRemovesInvoiceDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -807,6 +825,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineKeepsInvoiceDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -840,6 +859,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineKeepsInvoiceDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -882,6 +902,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineKeepsInvoiceDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -913,6 +934,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGettingLinesWithDifferentTypes()
     var
         SalesHeader: Record "Sales Header";
@@ -943,6 +965,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingBlankLineDefaultsToCommentType()
     var
         SalesHeader: Record "Sales Header";
@@ -978,6 +1001,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingCommentLine()
     var
         SalesHeader: Record "Sales Header";
@@ -1016,6 +1040,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToAccountChangesLineType()
     var
         SalesHeader: Record "Sales Header";
@@ -1056,6 +1081,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToItemChangesLineType()
     var
         SalesHeader: Record "Sales Header";
@@ -1101,6 +1127,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheTypeBlanksIds()
     var
         SalesHeader: Record "Sales Header";
@@ -1137,6 +1164,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLinesWithItemVariant()
     var
         Item: Record "Item";
@@ -1184,6 +1212,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLinesWithWrongItemVariant()
     var
         Item1: Record "Item";
@@ -1514,5 +1543,12 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
         Assert.IsTrue(LibraryGraphMgt.GetPropertyValueFromJSON(JSONObjectTxt, UoMCodeTxt, UoMCodeValue),
           'Could not find the UnitOfMeasure code in' + JSONObjectTxt);
         Assert.AreEqual(UnitOfMeasure.Code, UoMCodeValue, 'UnitOfMeasure code complex type should not be null in ' + JSONObjectTxt);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

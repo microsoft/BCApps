@@ -3,7 +3,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -45,6 +45,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPaymentMethods()
     var
         PaymentMethodCode: array[2] of Text;
@@ -71,6 +72,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePaymentMethods()
     var
         PaymentMethod: Record "Payment Method";
@@ -98,6 +100,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyPaymentMethods()
     var
         PaymentMethod: Record "Payment Method";
@@ -128,6 +131,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePaymentMethods()
     var
         PaymentMethod: Record "Payment Method";
@@ -215,6 +219,13 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
         LibraryGraphMgt.VerifyIDInJson(PaymentMethodJSON);
         VerifyPropertyInJSON(PaymentMethodJSON, 'code', PaymentMethod.Code);
         VerifyPropertyInJSON(PaymentMethodJSON, 'displayName', PaymentMethod.Description);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

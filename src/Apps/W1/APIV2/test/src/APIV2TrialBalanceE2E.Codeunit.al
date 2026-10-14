@@ -3,7 +3,7 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -20,6 +20,7 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
         ServiceNameTxt: Label 'trialBalance';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTrialBalanceRecords()
     var
         ResponseText: Text;
@@ -38,6 +39,7 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateTrialBalanceRecord()
     var
         TempTrialBalanceEntityBuffer: Record "Trial Balance Entity Buffer" temporary;
@@ -77,6 +79,13 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
             TrialBalanceEntityBuffer.Name := LibraryUtility.GenerateGUID();
         TrialBalanceJSON := LibraryGraphMgt.AddPropertytoJSON('', 'number', TrialBalanceEntityBuffer."No.");
         TrialBalanceJSON := LibraryGraphMgt.AddPropertytoJSON(TrialBalanceJSON, 'display', TrialBalanceEntityBuffer.Name);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

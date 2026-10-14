@@ -3,7 +3,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -19,6 +19,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         ServiceNameTxt: Label 'transferOrders', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTransferOrders()
     var
         TransferHeader: Record "Transfer Header";
@@ -43,6 +44,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTransferOrderById()
     var
         TransferHeader: Record "Transfer Header";
@@ -68,6 +70,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDimensionSetLines()
     var
         TransferHeader: Record "Transfer Header";
@@ -97,6 +100,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandAttachments()
     var
         TransferHeader: Record "Transfer Header";
@@ -126,6 +130,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDocumentAttachments()
     var
         TransferHeader: Record "Transfer Header";
@@ -155,6 +160,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandPdfDocument()
     var
         TransferHeader: Record "Transfer Header";
@@ -184,6 +190,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandLines()
     var
         TransferHeader: Record "Transfer Header";
@@ -217,5 +224,12 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

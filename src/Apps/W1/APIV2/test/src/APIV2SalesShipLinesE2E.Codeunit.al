@@ -3,7 +3,7 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -20,6 +20,7 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         ShipmentServiceLinesNameTxt: Label 'salesShipmentLines';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetLineDirectly()
     var
         SalesShipmentLine: Record "Sales Shipment Line";
@@ -52,6 +53,7 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetShipmentLines()
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
@@ -94,6 +96,7 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetShipmentLinesDirectlyWithDocumentIdFilter()
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
@@ -131,6 +134,7 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDimensions()
     var
         SalesShipmentLine: Record "Sales Shipment Line";
@@ -256,4 +260,11 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         exit(TargetURL);
     end;
 
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

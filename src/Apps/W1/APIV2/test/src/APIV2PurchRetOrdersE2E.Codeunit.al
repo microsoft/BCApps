@@ -3,7 +3,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -19,6 +19,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         ServiceNameTxt: Label 'purchaseReturnOrders', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchaseReturnOrders()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -39,6 +40,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchaseReturnOrderById()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -60,6 +62,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDimensionSetLines()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -86,6 +89,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandAttachments()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -112,6 +116,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDocumentAttachments()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -138,6 +143,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandPdfDocument()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -164,6 +170,7 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandLines()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -194,5 +201,12 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

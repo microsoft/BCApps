@@ -3,7 +3,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -31,6 +31,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         CreditMemoStatusErr: Label 'The credit memo status is incorrect.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemos()
     var
         CreditMemoNo1: Text;
@@ -59,6 +60,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemos()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -104,6 +106,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoWithCurrency()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -146,6 +149,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoWithVendorCreditMemoNo()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -185,18 +189,21 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemos()
     begin
         TestMultipleModifyCreditMemos(false, false);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyCreditMemos()
     begin
         TestMultipleModifyCreditMemos(true, false);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyCreditMemos()
     begin
         TestMultipleModifyCreditMemos(false, true);
@@ -269,6 +276,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCreditMemo()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -294,6 +302,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCreditMemoThroughPageAndAPI()
     var
         PagePurchaseHeader: Record "Purchase Header";
@@ -332,6 +341,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemoSetManualDiscount()
     var
         Vendor: Record Vendor;
@@ -378,6 +388,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestClearingManualDiscounts()
     var
         Vendor: Record Vendor;
@@ -428,6 +439,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionPostCreditMemo()
     var
@@ -464,6 +476,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelNonCorrectiveCreditMemo()
     var
@@ -492,6 +505,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelCorrectiveCreditMemo()
     var
@@ -714,6 +728,13 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         PurchCrMemoEntityBuffer.SetRange(Id, DocumentId);
         Assert.IsTrue(PurchCrMemoEntityBuffer.FindFirst(), CannotFindPostedCreditMemoErr);
         Assert.AreEqual(Status, PurchCrMemoEntityBuffer.Status, CreditMemoStatusErr);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

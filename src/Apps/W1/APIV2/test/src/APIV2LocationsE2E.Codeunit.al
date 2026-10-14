@@ -3,7 +3,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     // version Test,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -33,6 +33,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetLocation()
     var
         Location: Record Location;
@@ -54,6 +55,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateLocation()
     var
         Location: Record Location;
@@ -79,6 +81,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSalesOrderLineWithLocation()
     var
         Location: Record Location;
@@ -122,6 +125,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyLocationWithAddress()
     var
         Location: Record Location;
@@ -154,6 +158,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteLocation()
     var
         Location: Record Location;
@@ -268,5 +273,12 @@ codeunit 139868 "APIV2 - Locations E2E"
     local procedure FormatGuid(Value: Guid): Text
     begin
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Format(Value, 0, 9))));
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

@@ -3,7 +3,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -41,6 +41,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuoteLineDirectly()
     var
         SalesLine: Record "Sales Line";
@@ -73,6 +74,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuoteLines()
     var
         SalesLine: Record "Sales Line";
@@ -109,6 +111,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuoteLinesDirectlyWithDocumentIdFilter()
     var
         SalesLine: Record "Sales Line";
@@ -140,6 +143,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostQuoteLines()
     var
         Item: Record "Item";
@@ -182,6 +186,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyQuoteLines()
     var
         SalesHeader: Record "Sales Header";
@@ -226,6 +231,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyQuoteLineFailsOnSequenceIdOrDocumentIdChange()
     var
         SalesHeader: Record "Sales Header";
@@ -269,6 +275,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteQuoteLine()
     var
         SalesHeader: Record "Sales Header";
@@ -307,6 +314,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineUpdatesQuoteDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -346,6 +354,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineUpdatesQuoteDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -392,6 +401,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineMovesQuoteDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -441,6 +451,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineRemovesQuoteDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -484,6 +495,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineKeepsQuoteDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -517,6 +529,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineKeepsQuoteDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -560,6 +573,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineKeepsQuoteDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -593,6 +607,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingBlankLineDefaultsToCommentType()
     var
         SalesHeader: Record "Sales Header";
@@ -629,6 +644,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingCommentLine()
     var
         SalesHeader: Record "Sales Header";
@@ -667,6 +683,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheTypeBlanksIds()
     var
         SalesHeader: Record "Sales Header";
@@ -704,6 +721,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostQuoteLinesWithItemVariant()
     var
         Item: Record "Item";
@@ -751,6 +769,7 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostQuoteLinesWithWrongItemVariant()
     var
         Item1: Record "Item";
@@ -928,6 +947,13 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
     begin
         NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

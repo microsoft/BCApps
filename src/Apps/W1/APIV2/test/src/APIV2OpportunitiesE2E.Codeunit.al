@@ -3,7 +3,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -24,6 +24,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         ContactNoCannotBeChangedWonLostErr: Label 'The "contactNumber of a Won or Lost Opportunity cannot be changed', Comment = 'contactNumber is a field name and should not be translated';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOpportunities()
     var
         Opportunity: Record Opportunity;
@@ -54,6 +55,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateOpportunity()
     var
         OpportunityDescription: Text[100];
@@ -76,6 +78,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateOpportunityContactNo()
     var
         Opportunity: Record Opportunity;
@@ -118,6 +121,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateOpportunityWrongContactNo()
     var
         ContactNo: Code[20];
@@ -139,6 +143,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateOpportunityWrongSPNo()
     var
         SalespersonNo: Code[20];
@@ -160,6 +165,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchOpportunity()
     var
         Opportunity: Record Opportunity;
@@ -190,6 +196,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCannotPatchContactNoOfWonOpportunity()
     var
         Opportunity: Record Opportunity;
@@ -218,6 +225,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCannotPatchSPCodeOfWonOpportunity()
     var
         Opportunity: Record Opportunity;
@@ -247,6 +255,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCannotPatchContactNoOfStartedOpportunityToADifferentCompany()
     var
         Opportunity: Record Opportunity;
@@ -408,5 +417,12 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         Assert.AreEqual(ExpectedDesc, DescriptionValue, 'Description does not match');
         Opportunity.SetRange(Description, DescriptionValue);
         Assert.IsFalse(Opportunity.IsEmpty(), 'Opportunity does not exist');
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

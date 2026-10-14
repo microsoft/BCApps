@@ -3,7 +3,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -48,6 +48,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemos()
     var
         CreditMemoNo1: Text;
@@ -76,6 +77,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemos()
     var
         SalesHeader: Record "Sales Header";
@@ -122,6 +124,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoWithCurrency()
     var
         SalesHeader: Record "Sales Header";
@@ -164,18 +167,21 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemos()
     begin
         TestMultipleModifyCreditMemos(false, false);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyCreditMemos()
     begin
         TestMultipleModifyCreditMemos(true, false);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyCreditMemos()
     begin
         TestMultipleModifyCreditMemos(false, true);
@@ -247,6 +253,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCreditMemo()
     var
         SalesHeader: Record "Sales Header";
@@ -272,6 +279,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCreditMemoThroughPageAndAPI()
     var
         PageSalesHeader: Record "Sales Header";
@@ -310,6 +318,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemosAppliesDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -338,6 +347,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemosRedistributesDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -376,6 +386,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemoSetManualDiscount()
     var
         Customer: Record "Customer";
@@ -422,6 +433,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestClearingManualDiscounts()
     var
         Customer: Record "Customer";
@@ -472,6 +484,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionPostCreditMemo()
     var
@@ -525,6 +538,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionPostAndSendCreditMemo()
     var
@@ -565,6 +579,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelNonCorrectiveCreditMemo()
     var
@@ -593,6 +608,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelCorrectiveCreditMemo()
     var
@@ -625,6 +641,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelAndSendCorrectiveCreditMemo()
     var
@@ -661,6 +678,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendPostedCreditMemo()
     var
@@ -693,6 +711,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendDraftCreditMemo()
     var
@@ -722,6 +741,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendCancelledCreditMemo()
     var
@@ -1043,6 +1063,13 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     begin
         while JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, CodeunitID) do
             JobQueueEntry.Cancel();
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 
