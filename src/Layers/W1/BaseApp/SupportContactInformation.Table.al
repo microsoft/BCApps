@@ -5,7 +5,7 @@
 namespace Microsoft;
 
 using System.Email;
-using System.Integration;
+using System.Utilities;
 
 table 9165 "Support Contact Information"
 {
@@ -44,10 +44,13 @@ table 9165 "Support Contact Information"
             ExtendedDatatype = URL;
 
             trigger OnValidate()
+            var
+                Uri: Codeunit Uri;
             begin
                 if URL <> '' then
-                    if not WebRequestHelper.IsValidUriWithoutProtocol(URL) then
-                        Error(InvalidUriErr);
+                    if not Uri.IsValidUri(URL) then
+                        if not Uri.IsValidUri('http://' + URL) then
+                            Error(InvalidUriErr);
             end;
         }
     }
@@ -66,7 +69,6 @@ table 9165 "Support Contact Information"
 
     var
         MailManagement: Codeunit "Mail Management";
-        WebRequestHelper: Codeunit "Web Request Helper";
         InvalidUriErr: Label 'The specified value is not a valid URL. You must specify a link to your website, such as https://mycompany.com/support.', Comment = 'The URL to include must be an example URL. The aim is to help the user understand what kind of input is expected from them. It should not be an existing web page. ';
 }
 
