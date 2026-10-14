@@ -1,7 +1,7 @@
 codeunit 139859 "APIV2 - Accounting Periods E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
 
     var
@@ -10,6 +10,7 @@ codeunit 139859 "APIV2 - Accounting Periods E2E"
         ServiceNameTxt: Label 'accountingPeriods', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAccountingPeriods()
     var
         AccountingPeriods: array[10] of Record "Accounting Period";
@@ -75,4 +76,10 @@ codeunit 139859 "APIV2 - Accounting Periods E2E"
         AccountingPeriod.Insert(true);
     end;
 
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

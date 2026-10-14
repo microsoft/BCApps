@@ -3,7 +3,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
     // version Test,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -23,6 +23,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCustomerContactsInformation()
     var
         CompanyContact: Record Contact;
@@ -54,6 +55,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCustomerContactInformation()
     var
         Contact: Record Contact;
@@ -85,6 +87,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetVendorContactsInformation()
     var
         CompanyContact: Record Contact;
@@ -116,6 +119,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetVendorContactInformation()
     var
         Contact: Record Contact;
@@ -177,5 +181,12 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         LibraryMarketing.CreatePersonContact(Contact);
         Contact.Validate("Company No.", CompanyNo);
         Contact.Modify(true);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

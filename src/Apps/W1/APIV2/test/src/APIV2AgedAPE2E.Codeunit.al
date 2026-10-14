@@ -3,7 +3,7 @@ codeunit 139819 "APIV2 - Aged AP E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -20,6 +20,7 @@ codeunit 139819 "APIV2 - Aged AP E2E"
         ServiceNameTxt: Label 'agedAccountsPayable';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAgedAPRecords()
     var
         ResponseText: Text;
@@ -38,6 +39,7 @@ codeunit 139819 "APIV2 - Aged AP E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateAgedAPRecord()
     var
         TempAgedReportEntity: Record "Aged Report Entity" temporary;
@@ -74,6 +76,13 @@ codeunit 139819 "APIV2 - Aged AP E2E"
             AgedReportEntity."No." := LibraryUtility.GenerateRandomCode(AgedReportEntity.FieldNo("No."), Database::"Aged Report Entity");
 
         AgedReportEntityJSON := LibraryGraphMgt.AddPropertytoJSON('', 'vendorNumber', AgedReportEntity."No.");
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

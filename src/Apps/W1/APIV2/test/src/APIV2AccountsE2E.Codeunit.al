@@ -3,7 +3,7 @@ codeunit 139801 "APIV2 - Accounts E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -51,6 +51,7 @@ codeunit 139801 "APIV2 - Accounts E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAccounts()
     var
         AccountNo: array[2] of Text;
@@ -97,6 +98,13 @@ codeunit 139801 "APIV2 - Accounts E2E"
           LibraryGraphMgt.GetObjectsFromJSONResponse(ResponseText, 'number', AccountNo, AccountNo, AccountJSON, AccountJSON),
           'Could not find the account in JSON');
         LibraryGraphMgt.VerifyIDInJson(AccountJSON);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

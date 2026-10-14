@@ -3,7 +3,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -13,6 +13,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithItemId()
     var
         Item: Record Item;
@@ -37,6 +38,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithNonExistingItemId()
     var
         ItemId: Text;
@@ -58,6 +60,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithItemNumber()
     var
         Item: Record Item;
@@ -82,6 +85,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithNonExistingItemNumber()
     var
         ItemVariant: Record "Item Variant";
@@ -104,6 +108,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithItemNumberAndItemId()
     var
         Item: Record Item;
@@ -128,6 +133,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithMismatchingItemNumberAndItemId()
     var
         Item1: Record Item;
@@ -152,6 +158,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemVariantWithExistingItemNumberAndCode()
     var
         Item: Record Item;
@@ -175,6 +182,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemVariant()
     var
         Item: Record Item;
@@ -197,6 +205,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemVariant()
     var
         Item: Record "Item";
@@ -228,6 +237,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemVariantItemId()
     var
         Item1: Record "Item";
@@ -261,6 +271,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemVariantItemNumber()
     var
         Item1: Record "Item";
@@ -294,6 +305,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteItemVariant()
     var
         Item: Record "Item";
@@ -319,6 +331,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteInUse()
     var
         Item: Record "Item";
@@ -440,5 +453,12 @@ codeunit 139839 "APIV2 - Item Variants E2E"
             exit(IncStr(Item."No."));
 
         exit(CopyStr('GRAPHITEM' + '00001', 1, 20));
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

@@ -3,7 +3,7 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -40,6 +40,7 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemLedgerEntries()
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -106,6 +107,13 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
         CountryRegion.SetFilter("Intrastat Code", '<>''''');
         CountryRegion.FindFirst();
         exit(CountryRegion.Code);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

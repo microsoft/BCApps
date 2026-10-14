@@ -3,7 +3,7 @@ codeunit 139816 "APIV2 - Income Statement E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -22,6 +22,7 @@ codeunit 139816 "APIV2 - Income Statement E2E"
         ServiceNameTxt: Label 'incomeStatement';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetIncomeStatementRecords()
     var
         TargetURL: Text;
@@ -40,6 +41,7 @@ codeunit 139816 "APIV2 - Income Statement E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateIncomeStatementRecord()
     var
         TempAccScheduleLineEntity: Record "Acc. Schedule Line Entity" temporary;
@@ -79,6 +81,13 @@ codeunit 139816 "APIV2 - Income Statement E2E"
 
         IncomeStatementJSON := LibraryGraphMgt.AddPropertytoJSON('', 'lineNumber', AccScheduleLineEntity."Line No.");
         IncomeStatementJSON := LibraryGraphMgt.AddPropertytoJSON(IncomeStatementJSON, 'display', AccScheduleLineEntity.Description);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

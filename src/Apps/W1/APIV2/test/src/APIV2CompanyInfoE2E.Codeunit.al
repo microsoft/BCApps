@@ -3,7 +3,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
     // Tests set up data that must be committed so the web service session can read and lock Company Information.
@@ -35,6 +35,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
@@ -56,6 +57,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCompanyAndEnvironmentDescriptions()
     var
         CompanyInformation: Record "Company Information";
@@ -96,6 +98,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
@@ -126,6 +129,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyValidExperinceTier()
     var
         CompanyInformation: Record "Company Information";
@@ -160,6 +164,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvalidExperinceTier()
     var
         CompanyInformation: Record "Company Information";
@@ -261,5 +266,12 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
         DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
         exit(DescriptionBuilder.ToText());
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

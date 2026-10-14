@@ -3,7 +3,7 @@ codeunit 139866 "APIV2 - Contacts E2E"
     // version Test,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -31,6 +31,7 @@ codeunit 139866 "APIV2 - Contacts E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSimpleContact()
     var
         Contact: Record "Contact";
@@ -54,6 +55,7 @@ codeunit 139866 "APIV2 - Contacts E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetContactWithAddressAndSpecialCharacters()
     var
         Contact: Record "Contact";
@@ -104,6 +106,7 @@ codeunit 139866 "APIV2 - Contacts E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyContactWithAddress()
     var
         Contact: Record "Contact";
@@ -137,6 +140,7 @@ codeunit 139866 "APIV2 - Contacts E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteContact()
     var
         Contact: Record "Contact";
@@ -259,4 +263,10 @@ codeunit 139866 "APIV2 - Contacts E2E"
         exit(MarketingSetup."Contact Nos.");
     end;
 
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

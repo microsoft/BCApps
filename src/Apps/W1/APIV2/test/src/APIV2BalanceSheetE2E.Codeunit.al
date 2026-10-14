@@ -3,7 +3,7 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -22,6 +22,7 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
         IsInitialized: Boolean;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetBalanceSheetRecords()
     var
         ResponseText: Text;
@@ -40,6 +41,7 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateBalanceSheetRecord()
     var
         TempBalanceSheetBuffer: Record "Balance Sheet Buffer" temporary;
@@ -79,6 +81,13 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
 
         BalanceSheetJSON := LibraryGraphMgt.AddPropertytoJSON('', 'lineNumber', BalanceSheetBuffer."Line No.");
         BalanceSheetJSON := LibraryGraphMgt.AddPropertytoJSON(BalanceSheetJSON, 'display', BalanceSheetBuffer.Description);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

@@ -1,7 +1,7 @@
 codeunit 139862 "APIV2JobQueueEntriesE2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -20,6 +20,7 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         JobQueueLogEntryDescriptionLbl: Label 'JobQueueLogEntry Description for test Job Queue Entry API';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobQueueEntry()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -45,6 +46,7 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCorrespondingJobQueueLogEntryFromSubPage()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -73,6 +75,7 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCorrespondingJobQueueLogEntryFromExpand()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -100,6 +103,7 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRescheduleJobQueueEntry()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -201,5 +205,12 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
             Index := Index + 1;
         until (Index = LibraryGraphMgt.GetCollectionCountFromJSON(JobQueueLogEntryJSON));
         Assert.AreEqual(Count, Index, 'The number of Job Queue Log Entries is wrong.');
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

@@ -3,7 +3,7 @@ codeunit 139906 "APIV2 - FA Locations E2E"
     // version Test,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -30,6 +30,7 @@ codeunit 139906 "APIV2 - FA Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetFALocation()
     var
         FALocation: Record "FA Location";
@@ -51,6 +52,7 @@ codeunit 139906 "APIV2 - FA Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateFALocation()
     var
         FALocation: Record "FA Location";
@@ -76,6 +78,7 @@ codeunit 139906 "APIV2 - FA Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyFALocation()
     var
         FALocation: Record "FA Location";
@@ -106,6 +109,7 @@ codeunit 139906 "APIV2 - FA Locations E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteFALocation()
     var
         FALocation: Record "FA Location";
@@ -158,5 +162,12 @@ codeunit 139906 "APIV2 - FA Locations E2E"
         LibraryGraphMgt.VerifyIDInJSON(JSON);
         LibraryGraphMgt.VerifyPropertyInJSON(JSON, 'code', FALocation.Code);
         LibraryGraphMgt.VerifyPropertyInJSON(JSON, 'displayName', FALocation.Name);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

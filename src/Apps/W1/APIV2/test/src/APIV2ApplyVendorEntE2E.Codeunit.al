@@ -1,7 +1,7 @@
 codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -26,6 +26,7 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetApplyVendorEntriesReturnsOpenEntries()
     var
         JournalName: Code[10];
@@ -74,6 +75,7 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetApplyVendorEntriesFailsWhenNoVendor()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -107,6 +109,7 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestApplyVendorEntryAppliesPayment()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -208,5 +211,12 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 1000, 2));
         PurchaseLine.Modify(true);
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

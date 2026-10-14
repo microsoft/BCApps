@@ -3,7 +3,7 @@ codeunit 139824 "APIV2 - Dimensions E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -44,6 +44,7 @@ codeunit 139824 "APIV2 - Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensions()
     var
         Dimension: Record "Dimension";
@@ -88,6 +89,7 @@ codeunit 139824 "APIV2 - Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionValues()
     var
         Dimension: Record "Dimension";
@@ -124,6 +126,13 @@ codeunit 139824 "APIV2 - Dimensions E2E"
           LibraryGraphMgt.GetObjectsFromJSONResponse(ResponseText, 'code', DimensionCode, DimensionCode, DimensionJSON, DimensionJSON),
           'Could not find the dimension in JSON');
         LibraryGraphMgt.VerifyIDInJson(DimensionJSON);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

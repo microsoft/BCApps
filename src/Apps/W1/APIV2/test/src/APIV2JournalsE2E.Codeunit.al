@@ -3,7 +3,7 @@ codeunit 139827 "APIV2 - Journals E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -41,6 +41,7 @@ codeunit 139827 "APIV2 - Journals E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournal()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -72,6 +73,7 @@ codeunit 139827 "APIV2 - Journals E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJournals()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -106,6 +108,7 @@ codeunit 139827 "APIV2 - Journals E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyJournal()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -146,6 +149,7 @@ codeunit 139827 "APIV2 - Journals E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteJournal()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -175,6 +179,7 @@ codeunit 139827 "APIV2 - Journals E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestActionPostGenJournalBatch()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -271,6 +276,13 @@ codeunit 139827 "APIV2 - Journals E2E"
         GenJournalBatch.Validate("Bal. Account Type", BalAccountType);
         GenJournalBatch.Validate("Bal. Account No.", BalAccountNo);
         GenJournalBatch.Modify(true);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

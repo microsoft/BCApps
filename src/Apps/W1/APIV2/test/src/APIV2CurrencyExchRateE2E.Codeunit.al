@@ -1,7 +1,7 @@
 codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
 
     var
         LibraryERM: Codeunit "Library - ERM";
@@ -11,6 +11,7 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
         ServiceNameTxt: Label 'currencyExchangeRates', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCurrencyExchangeRates()
     var
         Currencies: array[10] of Record Currency;
@@ -35,6 +36,7 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestSingleGetCurrencyExchangeRate()
     var
         Currencies: array[10] of Record Currency;
@@ -110,5 +112,12 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
     begin
         Currency.DeleteAll();
         CurrencyExchangeRate.DeleteAll();
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
