@@ -89,6 +89,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         Text028: Label 'The Balance and Reversing Balance recurring methods can be used only with Allocations.';
 #pragma warning restore AA0074
         ConfirmManualCheckTxt: Label 'A balancing account is not specified for one or more lines. If you print checks without specifying balancing accounts you will not be able to void the checks, if needed. Do you want to continue?';
+        GLRegisterNoOutOfRangeErr: Label 'G/L Register No. %1 cannot be assigned to the journal line because it exceeds %2.';
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlBatch: Record "Gen. Journal Batch";
         GenJnlLine2: Record "Gen. Journal Line";
@@ -300,11 +301,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             if not GLReg.FindLast() or (GLReg."No." <> GLRegNo) then
                 GLRegNo := 0;
 
+        if GLRegNo > 2147483647 then
+            Error(GLRegisterNoOutOfRangeErr, GLRegNo, 2147483647);
+
         GenJnlLine.Init();
-        if GLRegNo <= 2147483647 then
-            GenJnlLine."Line No." := GLRegNo
-        else
-            GenJnlLine."Line No." := 2147483647;
+        GenJnlLine."Line No." := GLRegNo;
 
         OnProcessLinesOnAfterAssignGLNegNo(GenJnlLine, GLReg, GLRegNo);
 
