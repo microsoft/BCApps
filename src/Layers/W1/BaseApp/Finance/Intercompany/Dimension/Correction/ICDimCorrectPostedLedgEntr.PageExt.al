@@ -14,7 +14,6 @@ pageextension 8530 "ICDimCorrectPostedLedgEntr" extends "Dim Correct Posted Ledg
             {
                 ApplicationArea = Intercompany;
                 Editable = false;
-                ToolTip = 'Specifies the code of the intercompany partner that the entry is related to.';
                 Visible = false;
             }
         }

@@ -14,7 +14,6 @@ pageextension 8529 "ICDimCorrectLedgerEntries" extends "Dim. Correct Ledger Entr
             {
                 ApplicationArea = Intercompany;
                 Editable = false;
-                ToolTip = 'Specifies the code of the intercompany partner that the entry is related to.';
                 Visible = false;
             }
         }

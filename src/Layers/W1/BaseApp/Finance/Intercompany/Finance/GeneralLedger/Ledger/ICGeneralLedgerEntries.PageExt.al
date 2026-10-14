@@ -18,7 +18,6 @@ pageextension 8522 ICGeneralLedgerEntries extends "General Ledger Entries"
             {
                 ApplicationArea = Intercompany;
                 Editable = false;
-                ToolTip = 'Specifies the code of the intercompany partner that the entry is related to.';
                 Visible = false;
             }
         }
