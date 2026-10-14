@@ -147,8 +147,10 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the latest AOAI deployment model of GPT-5.5 chat.
     /// </summary>
     /// <returns>The deployment name.</returns>
+#pragma warning disable AS0072 // this change is backported to 29.x
     [Obsolete('GPT-5.5 chat deployment name is no longer supported from 11 September 2026. Use GetGPT56CeresLatest instead (or GetGPT56CeresPreview for testing upcoming versions).', '29.1')]
     procedure GetGPT55ChatLatest(): Text
+#pragma warning restore AS0072
     var
         CallerModuleInfo: ModuleInfo;
     begin
@@ -161,8 +163,10 @@ codeunit 7768 "AOAI Deployments"
     /// </summary>
     /// <remarks>Use GetGPT56CeresPreview when the chat messages contain file content parts.</remarks>
     /// <returns>The deployment name.</returns>
+#pragma warning disable AS0072 // this change is backported to 29.x
     [Obsolete('GPT-5.5 chat deployment name is no longer supported from 11 September 2026. Use GetGPT56CeresLatest instead (or GetGPT56CeresPreview for testing upcoming versions).', '29.1')]
     procedure GetGPT55ChatPreview(): Text
+#pragma warning restore AS0072
     var
         CallerModuleInfo: ModuleInfo;
     begin
