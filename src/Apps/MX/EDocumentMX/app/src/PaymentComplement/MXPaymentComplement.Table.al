@@ -58,6 +58,11 @@ table 3354 "MX Payment Complement"
             DataClassification = CustomerContent;
             Caption = 'Stamped UUID';
         }
+        field(9; "PAC Response XML"; Blob)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'PAC Response XML';
+        }
     }
     keys
     {

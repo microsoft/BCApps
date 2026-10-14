@@ -52,7 +52,6 @@ codeunit 3355 "Interfactura Processing"
         RequestType: Option "Request Stamp",Cancel,CancelRequest;
     begin
         RequestTxt := GetRequestText(TempBlob);
-
         if RequestTxt = '' then begin
             ErrorText := EmptyRequestLbl;
             exit;
@@ -69,21 +68,21 @@ codeunit 3355 "Interfactura Processing"
 
     internal procedure SendPaymentComplement(var TempBlob: Codeunit "Temp Blob"; MessageContext: Codeunit "E-Doc. Message Context")
     var
-        MXPaymentComplement: Record "MX Payment Complement";
+        MXPaymentResponseMgt: Codeunit "MX Payment Response Mgt.";
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
         RequestTxt: Text;
         ResponseTxt: Text;
         ErrorText: Text;
-        UUID: Text[50];
         RequestType: Option "Request Stamp",Cancel,CancelRequest;
     begin
+        MXPaymentResponseMgt.ClearResponse(MessageContext.GetMessageEntryNo());
         RequestTxt := GetRequestText(TempBlob);
         if RequestTxt = '' then
             Error(EmptyRequestLbl);
         RequestType := RequestType::"Request Stamp";
         Session.LogMessage('0000QX6', PaymentStampRequestedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
-        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, false) then begin
             Session.LogMessage('0000QX7', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Error(ErrorText);
         end;
@@ -95,13 +94,7 @@ codeunit 3355 "Interfactura Processing"
             Error(ErrorText);
         end;
         Session.LogMessage('0000QX8', PaymentStampSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
-        if TryGetStampedUUIDFromResponse(ResponseTxt, UUID) then begin
-            MXPaymentComplement.SetRange("E-Document Message Entry No.", MessageContext.GetMessageEntryNo());
-            if MXPaymentComplement.FindFirst() then begin
-                MXPaymentComplement."Stamped UUID" := UUID;
-                MXPaymentComplement.Modify();
-            end;
-        end;
+        MXPaymentResponseMgt.CacheResponse(MessageContext.GetMessageEntryNo(), ResponseTxt);
         MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
@@ -121,27 +114,23 @@ codeunit 3355 "Interfactura Processing"
     begin
         if not IsAdvanceSettleSalesInvoice(EDocument, SalesInvoiceHeader) then
             exit;
-
         if EDocument."Clearance Date" = 0DT then
             exit;
 
         AdvanceUUID := FindPrepaymentUUID(SalesInvoiceHeader);
         if AdvanceUUID = '' then
             exit;
-
         if not EnsureAdvanceReverseDocument(CFDIDocuments, SalesInvoiceHeader, AdvanceUUID) then
             exit;
-
         if CFDIDocuments."Electronic Document Sent" then
             exit;
-
         if not ExportInterfacturaMX.CreateAdvanceReverseSignedXML(SalesInvoiceHeader, AdvanceUUID, ReverseSignedXmlTxt) then
             exit;
 
         SaveTextBlobToCFDIDocuments(CFDIDocuments, CFDIDocuments.FieldNo("Signed Document XML"), ReverseSignedXmlTxt);
 
         RequestType := RequestType::"Request Stamp";
-        if not InvokeSoapRequestCore(ReverseSignedXmlTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+        if not InvokeSoapRequestCore(ReverseSignedXmlTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true) then begin
             if ErrorText <> '' then begin
                 CFDIDocuments."Error Description" := CopyStr(ErrorText, 1, MaxStrLen(CFDIDocuments."Error Description"));
                 CFDIDocuments.Modify();
@@ -174,13 +163,10 @@ codeunit 3355 "Interfactura Processing"
     begin
         if EDocument."Document Record ID".TableNo <> Database::"Sales Invoice Header" then
             exit(false);
-
         if not SalesInvoiceHeader.Get(EDocument."Document Record ID") then
             exit(false);
-
         if SalesInvoiceHeader."Prepayment Invoice" then
             exit(false);
-
         if SalesInvoiceHeader."Prepayment Order No." = '' then
             exit(false);
 
@@ -270,7 +256,7 @@ codeunit 3355 "Interfactura Processing"
         exit(Detail);
     end;
 
-    local procedure TryGetStampedUUIDFromResponse(ResponseText: Text; var UUID: Text[50]): Boolean
+    internal procedure TryGetStampedUUIDFromResponse(ResponseText: Text; var UUID: Text[50]): Boolean
     var
         XmlDoc: XmlDocument;
         WrappedXmlDoc: XmlDocument;
@@ -292,7 +278,6 @@ codeunit 3355 "Interfactura Processing"
         NamespaceManager.NameTable(WrappedXmlDoc.NameTable());
         NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
         NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-
         if not WrappedXmlDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager, TimbreNode) then
             exit(false);
 
@@ -307,7 +292,7 @@ codeunit 3355 "Interfactura Processing"
         ResponseTxt: Text;
     begin
         HttpRequest := SendContext.Http().GetHttpRequestMessage();
-        if not InvokeSoapRequestCore(RequestText, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+        if not InvokeSoapRequestCore(RequestText, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true) then begin
             SendContext.Http().SetHttpRequestMessage(HttpRequest);
             SendContext.Http().SetHttpResponseMessage(HttpResponse);
             exit(false);
@@ -315,13 +300,12 @@ codeunit 3355 "Interfactura Processing"
 
         SendContext.Http().SetHttpRequestMessage(HttpRequest);
         SendContext.Http().SetHttpResponseMessage(HttpResponse);
-
         if not ParseResponse(EDocument, ResponseTxt, SendContext, ErrorText) then
             exit(false);
         exit(true);
     end;
 
-    local procedure InvokeSoapRequestCore(RequestText: Text; RequestType: Option "Request Stamp",Cancel,CancelRequest; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var ResponseTxt: Text; var ErrorText: Text): Boolean
+    local procedure InvokeSoapRequestCore(RequestText: Text; RequestType: Option "Request Stamp",Cancel,CancelRequest; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var ResponseTxt: Text; var ErrorText: Text; CommitBeforeRequest: Boolean): Boolean
     var
         EInvoiceCommunication: Codeunit "EInvoice Communication";
         CertificateManagement: Codeunit "Certificate Management";
@@ -335,12 +319,10 @@ codeunit 3355 "Interfactura Processing"
             ErrorText := ConnectionSetupErr;
             exit(false);
         end;
-
         if not InterfacturaSetup.Enabled then begin
             ErrorText := ConnectionSetupErr;
             exit(false);
         end;
-
         if not MXPACWebServiceDetail.Get(InterfacturaSetup.Id, RequestType) then begin
             ErrorText := StrSubstNo(MissingPACWebServiceDetailErr, Format(RequestType));
             exit(false);
@@ -351,8 +333,8 @@ codeunit 3355 "Interfactura Processing"
 
         WebServiceUrl := MXPACWebServiceDetail.Address;
         Session.LogMessage('0000QXE', StrSubstNo(BatchSoapRequestMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
-
-        Commit();
+        if CommitBeforeRequest then
+            Commit();
 
         InterfacturaSetup.TestField("PAC Certificate");
         if not IsolatedCertificate.Get(InterfacturaSetup."PAC Certificate") then begin
@@ -382,7 +364,6 @@ codeunit 3355 "Interfactura Processing"
 
         HttpRequest.Content.WriteFrom(RequestText);
         HttpResponse.Content.WriteFrom(ResponseTxt);
-
         if ResponseTxt = '' then begin
             Session.LogMessage('0000QWY', NoResponseTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             ErrorText := NoResponseErr;
@@ -404,12 +385,10 @@ codeunit 3355 "Interfactura Processing"
             Session.LogMessage('0000QX1', EmptyRequestLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             exit(false);
         end;
-
         if not TryReadXml(ResponseText, XmlDoc) then begin
             ErrorText := ParseErr;
             exit(false);
         end;
-
         if not TryGetResultNode(XmlDoc, ResultNode) then begin
             ErrorText := ParseErr;
             exit(false);
@@ -433,7 +412,6 @@ codeunit 3355 "Interfactura Processing"
 
             SaveStampedCFDI(EDocument, StampedXml);
         end;
-
         if ErrorText <> '' then begin
             Session.LogMessage('0000QX3', StrSubstNo(StampFailedMsg, EDocument."Entry No", ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditPACRejectedTxt, EDocument."Entry No", ErrorText), AuditCategory::CustomerFacing);
@@ -482,7 +460,6 @@ codeunit 3355 "Interfactura Processing"
         XmlNamespaceManager.NameTable(XmlDoc.NameTable());
         XmlNamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
         XmlNamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-
         if not XmlDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', XmlNamespaceManager, TimbreNode) then
             exit(false);
 
@@ -536,7 +513,6 @@ codeunit 3355 "Interfactura Processing"
         EDocument."Last Clearance Request Time" := CurrentDateTime();
         EDocument."Clearance Date" := ClearanceDateTime;
         EDocument.Modify();
-
         if IsCleared then
             EDocumentServiceStatus := "E-Document Service Status"::Cleared
         else
@@ -559,7 +535,6 @@ codeunit 3355 "Interfactura Processing"
     begin
         if EDocument."Clearance Date" <> 0DT then
             exit(true);
-
         if EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code) then
             if EDocumentServiceStatus.Status = EDocumentServiceStatus.Status::Cleared then
                 exit(true);
@@ -594,19 +569,16 @@ codeunit 3355 "Interfactura Processing"
         CancelDateTimeTxt: Text[50];
     begin
         EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
-
         if not IsStatusValidForCancellation(EDocumentServiceStatus.Status) then begin
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(InvalidStatusForCancellationErr, EDocumentServiceStatus.Status));
             Status := EDocumentServiceStatus.Status;
             exit(false);
         end;
-
         if not GetStampedCFDIData(EDocument, UUID, DateTimeStampedTxt) then begin
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, MissingStampedDataErr);
             Status := EDocumentServiceStatus.Status;
             exit(false);
         end;
-
         if not ConfirmCancellationReason(CancellationReasonCode, SubstitutionUUID) then begin
             Status := EDocumentServiceStatus.Status;
             exit(false);
@@ -624,7 +596,7 @@ codeunit 3355 "Interfactura Processing"
         RequestType := RequestType::Cancel;
         Session.LogMessage('0000QX9', StrSubstNo(CancelRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditCancelRequestedTxt, EDocument."Entry No"), AuditCategory::CustomerFacing);
-        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true) then begin
             if ErrorText <> '' then
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
             Status := EDocumentServiceStatus.Status;
@@ -643,7 +615,7 @@ codeunit 3355 "Interfactura Processing"
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentServiceStatus: Record "E-Document Service Status";
         TempBlob: Codeunit "Temp Blob";
-        RequestType: Option "Request Stamp", Cancel, CancelRequest;
+        RequestType: Option "Request Stamp",Cancel,CancelRequest;
         RequestTxt, ResponseTxt, ErrorText : Text;
     begin
         EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
@@ -658,7 +630,7 @@ codeunit 3355 "Interfactura Processing"
 
         RequestType := RequestType::CancelRequest;
         Session.LogMessage('0000QXH', StrSubstNo(CheckCancellationStatusMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
-        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true) then begin
             if ErrorText <> '' then
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
             exit(false);
@@ -674,14 +646,12 @@ codeunit 3355 "Interfactura Processing"
     begin
         UUID := '';
         DateTimeStampedTxt := '';
-
         if EDocument."Document Record ID".TableNo = 0 then
             exit(false);
 
         UUID := CopyStr(CFDIWriteBackMX.GetUUIDForDocument(EDocument."Document Record ID"), 1, MaxStrLen(UUID));
         if UUID = '' then
             exit(false);
-
         if EDocument."Clearance Date" <> 0DT then
             DateTimeStampedTxt := CopyStr(Format(EDocument."Clearance Date", 0, 9), 1, MaxStrLen(DateTimeStampedTxt))
         else
@@ -709,5 +679,4 @@ codeunit 3355 "Interfactura Processing"
         SubstitutionUUID := CancelReasonDlg.GetSubstitutionUUID();
         exit(true);
     end;
-
 }

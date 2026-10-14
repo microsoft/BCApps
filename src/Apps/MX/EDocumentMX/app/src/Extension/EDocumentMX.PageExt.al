@@ -26,6 +26,16 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
     {
         addlast(Processing)
         {
+            action(ViewPaymentOccurrences)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Payment Complement Occurrences';
+                ToolTip = 'Shows the CFDI payment complement occurrences linked to this e-document.';
+                Image = Payment;
+                Visible = Rec.Direction = Rec.Direction::Outgoing;
+                RunObject = page "E-Doc. Payment Occurrences MX";
+                RunPageLink = "E-Document Entry No." = field("Entry No");
+            }
             action(PrintCFDI)
             {
                 ApplicationArea = Basic, Suite;

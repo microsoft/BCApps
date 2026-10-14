@@ -41,7 +41,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
     begin
         Clear(TempErrorMessage);
         CheckSATCatalogs();
-
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
                 begin
@@ -165,7 +164,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
     begin
         Clear(TempErrorMessage);
         CheckSATCatalogs();
-
         case SourceDocumentHeader.Number of
             Database::"Service Header":
                 begin
@@ -417,10 +415,8 @@ codeunit 3363 "EDoc CFDI Validation MX"
     begin
         if SourceCode = '' then
             exit;
-
         if not SourceCodeSetup.Get() then
             exit;
-
         if SourceCode = SourceCodeSetup."Deleted Document" then
             TempErrorMessage.LogMessage(SourceCodeSetup, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(DeletedDocumentSourceCodeErr, SourceCode));
     end;
@@ -431,12 +427,10 @@ codeunit 3363 "EDoc CFDI Validation MX"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         Clear(TempErrorMessage);
-
         if SourceDocumentHeader.Number <> Database::"Cust. Ledger Entry" then
             Error(SourceDocumentNotSupportedErr, SourceDocumentHeader.Caption());
 
         SourceDocumentHeader.SetTable(CustLedgerEntry);
-
         if CustLedgerEntry."Document Type" <> CustLedgerEntry."Document Type"::Payment then
             Error(PaymentDocumentTypeErr, CustLedgerEntry."Document Type");
 
@@ -445,7 +439,7 @@ codeunit 3363 "EDoc CFDI Validation MX"
         CheckPaymentCustomerFields(CustLedgerEntry."Customer No.");
         TempErrorMessage.LogIfEmpty(CustLedgerEntry, CustLedgerEntry.FieldNo("Payment Method Code"), TempErrorMessage."Message Type"::Error);
         CheckPaymentMethodMapping(CustLedgerEntry."Payment Method Code");
-        TempErrorMessage.LogIfEmpty(CustLedgerEntry, CustLedgerEntry.FieldNo("Currency Code"), TempErrorMessage."Message Type"::Error);
+        //TempErrorMessage.LogIfEmpty(CustLedgerEntry, CustLedgerEntry.FieldNo("Currency Code"), TempErrorMessage."Message Type"::Error);
 
         GeneralLedgerSetup.Get();
         if CustLedgerEntry."Currency Code" <> GeneralLedgerSetup."LCY Code" then
@@ -481,7 +475,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
     begin
         if EDocService."Service Integration V2" <> EDocService."Service Integration V2"::"Interfactura Service" then
             exit;
-
         if not MXConnectionSetup.Get() then
             Error(MXConnectionSetupMissingErr);
 
@@ -699,11 +692,9 @@ codeunit 3363 "EDoc CFDI Validation MX"
         CFDIRelationDocument.SetRange("Document Table ID", DocumentTableId);
         CFDIRelationDocument.SetRange("Document Type", DocumentType);
         CFDIRelationDocument.SetRange("Document No.", DocumentNo);
-
         if CFDIRelationDocument.FindSet() then begin
             if CFDIRelation = '' then
                 TempErrorMessage.LogMessage(CFDIRelationDocument, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(CFDIRelationHeaderMissingErr, DocumentNo));
-
             repeat
                 TempErrorMessage.LogIfEmpty(CFDIRelationDocument, CFDIRelationDocument.FieldNo("Fiscal Invoice Number PAC"), TempErrorMessage."Message Type"::Error);
             until CFDIRelationDocument.Next() = 0;
@@ -757,26 +748,27 @@ codeunit 3363 "EDoc CFDI Validation MX"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
     begin
-        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        // DCLE_A: Cust. Ledger Entry No. = Invoice, Applied = Payment → the entries we want.
+        // DCLE_B: Cust. Ledger Entry No. = Payment (self-referential) → must be excluded.
+        DetailedCustLedgEntry.SetRange("Applied Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
-        DetailedCustLedgEntry.SetFilter("Applied Cust. Ledger Entry No.", '<>%1', CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.SetRange(Unapplied, false);
+        DetailedCustLedgEntry.SetFilter("Cust. Ledger Entry No.", '<>%1', CustLedgerEntry."Entry No.");
         if not DetailedCustLedgEntry.FindSet() then begin
             TempErrorMessage.LogMessage(CustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentAppliedDocumentMissingErr, CustLedgerEntry."Entry No."));
             exit;
         end;
 
         HasAppliedDocuments := false;
-
         repeat
-            if not AppliedCustLedgerEntry.Get(DetailedCustLedgEntry."Applied Cust. Ledger Entry No.") then
+            if not AppliedCustLedgerEntry.Get(DetailedCustLedgEntry."Cust. Ledger Entry No.") then
                 continue;
 
             HasAppliedDocuments := true;
             TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo(Amount), TempErrorMessage."Message Type"::Error);
-            TempErrorMessage.LogIfEmpty(AppliedCustLedgerEntry, AppliedCustLedgerEntry.FieldNo("Currency Code"), TempErrorMessage."Message Type"::Error);
+            // Empty Currency Code is valid — BC uses blank for LCY (MXN); the builder converts it via ConvertCurrency.
             if AppliedCustLedgerEntry."Currency Code" <> CustLedgerEntry."Currency Code" then
                 TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo("Remaining Pmt. Disc. Possible"), TempErrorMessage."Message Type"::Error);
-
             case AppliedCustLedgerEntry."Document Type" of
                 AppliedCustLedgerEntry."Document Type"::Invoice:
                     begin
@@ -804,7 +796,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
                     end;
             end;
         until DetailedCustLedgEntry.Next() = 0;
-
         if not HasAppliedDocuments then
             TempErrorMessage.LogMessage(CustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentAppliedDocumentMissingErr, CustLedgerEntry."Entry No."));
     end;
@@ -830,7 +821,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
             DetailedCustLedgEntry."Entry Type"::"Correction of Remaining Amount");
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.SetRange("Initial Document Type", DetailedCustLedgEntry."Initial Document Type"::Payment);
-
         if not DetailedCustLedgEntry.FindFirst() then begin
             TempErrorMessage.LogMessage(CustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentEntryDetailsMissingErr, CustLedgerEntry."Entry No."));
             exit;
@@ -893,7 +883,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
             Session.LogMessage(
               '0000QX4', StrSubstNo(NegativeQuantityWithoutRetentionTelemetryMsg, LineTableCaption, DocumentNo, LineNo),
               Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CFDIValidationTelemetryCategoryTxt);
-
         if (RetentionAttachedToLineNo <> 0) and (RetentionVATPercent = 0) then
             Session.LogMessage(
               '0000QX5', StrSubstNo(MissingRetentionVATTelemetryMsg, LineTableCaption, DocumentNo, LineNo),

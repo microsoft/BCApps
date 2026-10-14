@@ -6,10 +6,11 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.History;
+using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
 codeunit 3357 "MX Payment Complement Mgt."
@@ -49,6 +50,8 @@ codeunit 3357 "MX Payment Complement Mgt."
             exit;
         if not FindParent(Payment, Parent) then
             exit;
+        if not ResolveService(Parent) then
+            exit;
         PaymentRef.GetTable(Payment);
         Validation.CheckPaymentDocument(PaymentRef);
         Complement.Init();
@@ -60,7 +63,8 @@ codeunit 3357 "MX Payment Complement Mgt."
         Builder.Build(Payment, Payload);
         Complement."E-Document Message Entry No." := MessageAPI.CreateMessage(Parent, "E-Document Message Type"::"MX CFDI Payment Complement", "E-Doc. Response Type"::None, Payload);
         Complement.Modify();
-        MessageAPI.QueueMessage(Complement."E-Document Message Entry No.");
+        if TaskScheduler.CanCreateTask() then
+            TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
     end;
 
     local procedure MarkReversed(PaymentEntryNo: Integer)
@@ -79,9 +83,15 @@ codeunit 3357 "MX Payment Complement Mgt."
         Candidate: Record "Cust. Ledger Entry";
     begin
         if Candidate.Get(Detail."Cust. Ledger Entry No.") then
-            if Candidate."Document Type" = Candidate."Document Type"::Payment then begin Payment := Candidate; exit(true); end;
+            if Candidate."Document Type" = Candidate."Document Type"::Payment then begin
+                Payment := Candidate;
+                exit(true);
+            end;
         if Candidate.Get(Detail."Applied Cust. Ledger Entry No.") then
-            if Candidate."Document Type" = Candidate."Document Type"::Payment then begin Payment := Candidate; exit(true); end;
+            if Candidate."Document Type" = Candidate."Document Type"::Payment then begin
+                Payment := Candidate;
+                exit(true);
+            end;
     end;
 
     local procedure FindParent(Payment: Record "Cust. Ledger Entry"; var Parent: Record "E-Document"): Boolean
@@ -94,13 +104,37 @@ codeunit 3357 "MX Payment Complement Mgt."
         Detail.SetRange("Applied Cust. Ledger Entry No.", Payment."Entry No.");
         Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
         Detail.SetRange(Unapplied, false);
+        Detail.SetFilter("Cust. Ledger Entry No.", '<>%1', Payment."Entry No.");
         if Detail.FindSet() then
             repeat
                 if Applied.Get(Detail."Cust. Ledger Entry No.") and (Applied."Document Type" = Applied."Document Type"::Invoice) then begin
-                    if SalesInvoice.Get(Applied."Document No.") then if FindClearedEDocument(SalesInvoice.RecordId(), Parent) then exit(true);
-                    if ServiceInvoice.Get(Applied."Document No.") then if FindClearedEDocument(ServiceInvoice.RecordId(), Parent) then exit(true);
+                    if SalesInvoice.Get(Applied."Document No.") then
+                        if FindClearedEDocument(SalesInvoice.RecordId(), Parent) then
+                            exit(true);
+                    if ServiceInvoice.Get(Applied."Document No.") then
+                        if FindClearedEDocument(ServiceInvoice.RecordId(), Parent) then
+                            exit(true);
                 end;
             until Detail.Next() = 0;
+    end;
+
+    local procedure ResolveService(var EDocument: Record "E-Document"): Boolean
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+    begin
+        if EDocumentService.Get(EDocument.Service) and (EDocumentService."Service Integration V2" = Enum::"Service Integration"::"Interfactura Service") then
+            exit(true);
+
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                if EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code") then
+                    if EDocumentService."Service Integration V2" = Enum::"Service Integration"::"Interfactura Service" then begin
+                        EDocument.Service := EDocumentService.Code;
+                        exit(true);
+                    end;
+            until EDocumentServiceStatus.Next() = 0;
     end;
 
     local procedure FindClearedEDocument(DocumentId: RecordId; var Parent: Record "E-Document"): Boolean

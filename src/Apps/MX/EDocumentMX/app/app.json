@@ -1,8 +1,8 @@
 {
   "id": "756dc920-0b1d-4afd-810d-536055c89bbd",
-  "name": "E-Document for Mexico",
+  "name": "E-Document for Mexico (Preview)",
   "publisher": "Microsoft",
-  "brief": "E-Document formats for Mexico.",
+  "brief": "E-Document formats for Mexico (Preview).",
   "description": "This app provides support for various e-document formats used in Mexican localization, for example CFDI. It integrates with E-documents app to meet Mexican business requirements.",
   "version": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

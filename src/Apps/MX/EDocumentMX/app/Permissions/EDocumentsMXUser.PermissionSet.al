@@ -16,6 +16,8 @@ permissionset 3352 "E-Documents MX User"
         codeunit "Interfactura Processing" = X,
         codeunit "MX Payment Complement Builder" = X,
         codeunit "MX Payment Complement Mgt." = X,
+        codeunit "MX Payment Response Mgt." = X,
+        codeunit "MX Payment Compl. Dispatcher" = X,
         codeunit "Digital Sign MX" = X,
         codeunit "CFDI Cancellation MX" = X,
         codeunit "CFDI Write-Back MX" = X,

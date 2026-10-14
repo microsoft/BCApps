@@ -8,12 +8,14 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Bank.BankAccount;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.History;
+using System.Reflection;
 using System.Security.Encryption;
 using System.Utilities;
 using System.Xml;
@@ -75,8 +77,12 @@ codeunit 3356 "MX Payment Complement Builder"
         Helper.AddElementCFDI(Node, Name, '', Child);
         Helper.AddAttribute(Child, 'Rfc', RFC);
         Helper.AddAttribute(Child, 'Nombre', PartyName);
-        Helper.AddAttribute(Child, 'RegimenFiscal', Regime);
-        if Name = 'Receptor' then begin Helper.AddAttribute(Child, 'DomicilioFiscalReceptor', PostCode); Helper.AddAttribute(Child, 'RegimenFiscalReceptor', Regime); Helper.AddAttribute(Child, 'UsoCFDI', 'CP01'); end;
+        if Name = 'Receptor' then begin
+            Helper.AddAttribute(Child, 'DomicilioFiscalReceptor', PostCode);
+            Helper.AddAttribute(Child, 'RegimenFiscalReceptor', Regime);
+            Helper.AddAttribute(Child, 'UsoCFDI', 'CP01');
+        end else
+            Helper.AddAttribute(Child, 'RegimenFiscal', Regime);
     end;
 
     local procedure AddConcept(Root: XmlElement; Helper: Codeunit "CFDI XML Helper MX")
@@ -122,9 +128,8 @@ codeunit 3356 "MX Payment Complement Builder"
         Dom.AddElementWithPrefix(Complement, 'Pagos', '', 'pago20', PagosNamespaceTok, Pagos);
         Helper.AddAttribute(Pagos, 'Version', '2.0');
         Dom.AddElementWithPrefix(Pagos, 'Totales', '', 'pago20', PagosNamespaceTok, Totals);
-        Helper.AddAttribute(Totals, 'MontoTotalPagos', Helper.FormatAmount(Abs(Payment."Amount (LCY)")));
         Dom.AddElementWithPrefix(Pagos, 'Pago', '', 'pago20', PagosNamespaceTok, Pago);
-        Helper.AddAttribute(Pago, 'FechaPago', FormatDateTime(Payment."Posting Date"));
+        Helper.AddAttribute(Pago, 'FechaPago', FormatPaymentDateTime(Payment));
         Helper.AddAttribute(Pago, 'FormaDePagoP', GetSATMethod(Payment."Payment Method Code"));
         Helper.AddAttribute(Pago, 'MonedaP', Currency(Payment."Currency Code", LCY));
         if Currency(Payment."Currency Code", LCY) <> LCY then
@@ -140,6 +145,7 @@ codeunit 3356 "MX Payment Complement Builder"
         Detail.SetRange("Applied Cust. Ledger Entry No.", Payment."Entry No.");
         Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
         Detail.SetRange(Unapplied, false);
+        Detail.SetFilter("Cust. Ledger Entry No.", '<>%1', Payment."Entry No.");
         if Detail.FindSet() then
             repeat
                 if Applied.Get(Detail."Cust. Ledger Entry No.") then begin
@@ -148,9 +154,11 @@ codeunit 3356 "MX Payment Complement Builder"
                     Helper.AddAttribute(Related, 'IdDocumento', GetUUID(Applied, WriteBack));
                     Helper.AddAttribute(Related, 'MonedaDR', Currency(Applied."Currency Code", LCY));
                     Helper.AddAttributeSimple(Related, 'Folio', Applied."Document No.");
-                    EquivalenciaDR := GetEquivalenciaDR(Detail, Payment, Applied, LCY);
-                    if EquivalenciaDR <> 1 then
+                    if Currency(Applied."Currency Code", LCY) <> Currency(Payment."Currency Code", LCY) then begin
+                        EquivalenciaDR := GetEquivalenciaDR(Detail, Payment, Applied, LCY);
                         Helper.AddAttribute(Related, 'EquivalenciaDR', FormatDecimal(EquivalenciaDR, 10));
+                    end else
+                        Helper.AddAttribute(Related, 'EquivalenciaDR', '1');
                     GetPartialPaymentData(Applied, Detail, BalanceBefore, PartialNo);
                     BalanceAfter := BalanceBefore - Abs(Detail.Amount);
                     if BalanceAfter < 0 then
@@ -163,9 +171,10 @@ codeunit 3356 "MX Payment Complement Builder"
                         AddRelatedTaxes(Related, Applied, Abs(Detail.Amount) / BalanceBefore, Helper, Dom, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt)
                     else
                         Helper.AddAttribute(Related, 'ObjetoImpDR', '01');
-                end until Detail.Next() = 0;
+                end
+            until Detail.Next() = 0;
         AddPaymentTaxes(Pago, Helper, Dom, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt);
-        AddTotals(Totals, Helper, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt);
+        AddTotals(Totals, Helper, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt, Abs(Payment."Amount (LCY)"));
     end;
 
     local procedure AddRelatedTaxes(Related: XmlNode; Applied: Record "Cust. Ledger Entry"; Ratio: Decimal; Helper: Codeunit "CFDI XML Helper MX"; Dom: Codeunit "XML DOM Management"; var Base16: Decimal; var Tax16: Decimal; var Base8: Decimal; var Tax8: Decimal; var Base0: Decimal; var Tax0: Decimal; var BaseExempt: Decimal)
@@ -263,12 +272,23 @@ codeunit 3356 "MX Payment Complement Builder"
         end;
     end;
 
-    local procedure AddTotals(Totals: XmlNode; Helper: Codeunit "CFDI XML Helper MX"; Base16: Decimal; Tax16: Decimal; Base8: Decimal; Tax8: Decimal; Base0: Decimal; Tax0: Decimal; BaseExempt: Decimal)
+    local procedure AddTotals(Totals: XmlNode; Helper: Codeunit "CFDI XML Helper MX"; Base16: Decimal; Tax16: Decimal; Base8: Decimal; Tax8: Decimal; Base0: Decimal; Tax0: Decimal; BaseExempt: Decimal; MontoTotalPagos: Decimal)
     begin
-        if Base16 <> 0 then begin Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA16', FormatDecimal(Base16, 2)); Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA16', FormatDecimal(Tax16, 2)); end;
-        if Base8 <> 0 then begin Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA8', FormatDecimal(Base8, 2)); Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA8', FormatDecimal(Tax8, 2)); end;
-        if Base0 <> 0 then begin Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA0', FormatDecimal(Base0, 2)); Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA0', FormatDecimal(Tax0, 2)); end;
-        if BaseExempt <> 0 then Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVAExento', FormatDecimal(BaseExempt, 2));
+        if Base16 <> 0 then begin
+            Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA16', FormatDecimal(Base16, 2));
+            Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA16', FormatDecimal(Tax16, 2));
+        end;
+        if Base8 <> 0 then begin
+            Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA8', FormatDecimal(Base8, 2));
+            Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA8', FormatDecimal(Tax8, 2));
+        end;
+        if Base0 <> 0 then begin
+            Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA0', FormatDecimal(Base0, 2));
+            Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA0', FormatDecimal(Tax0, 2));
+        end;
+        if BaseExempt <> 0 then
+            Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVAExento', FormatDecimal(BaseExempt, 2));
+        Helper.AddAttribute(Totals, 'MontoTotalPagos', Helper.FormatAmount(MontoTotalPagos));
     end;
 
     local procedure GetEquivalenciaDR(Detail: Record "Detailed Cust. Ledg. Entry"; Payment: Record "Cust. Ledger Entry"; Applied: Record "Cust. Ledger Entry"; LCY: Code[10]): Decimal
@@ -324,17 +344,20 @@ codeunit 3356 "MX Payment Complement Builder"
         SVI: Record "Service Invoice Header";
     begin
         if SI.Get(Applied."Document No.") then begin
-            if WriteBack.GetUUIDForDocument(SI.RecordId()) <> '' then exit(WriteBack.GetUUIDForDocument(SI.RecordId()));
+            if WriteBack.GetUUIDForDocument(SI.RecordId()) <> '' then
+                exit(WriteBack.GetUUIDForDocument(SI.RecordId()));
         end;
         if SVI.Get(Applied."Document No.") then begin
-            if WriteBack.GetUUIDForDocument(SVI.RecordId()) <> '' then exit(WriteBack.GetUUIDForDocument(SVI.RecordId()));
+            if WriteBack.GetUUIDForDocument(SVI.RecordId()) <> '' then
+                exit(WriteBack.GetUUIDForDocument(SVI.RecordId()));
         end;
         Error(AppliedDocumentNotStampedErr, Applied."Document No.");
     end;
 
     local procedure Currency(Code: Code[10]; LCY: Code[10]): Code[10]
     begin
-        if Code = '' then exit(LCY);
+        if Code = '' then
+            exit(LCY);
         exit(Code);
     end;
 
@@ -344,6 +367,23 @@ codeunit 3356 "MX Payment Complement Builder"
     begin
         M.Get(Code);
         exit(M."SAT Method of Payment");
+    end;
+
+    local procedure FormatPaymentDateTime(Payment: Record "Cust. Ledger Entry"): Text
+    var
+        Customer: Record Customer;
+        PostCode: Record "Post Code";
+        TypeHelper: Codeunit "Type Helper";
+        LocalDT: DateTime;
+        TimeZone: Text;
+    begin
+        // Use current datetime in the company's local timezone so FechaPago is never in the future
+        // (hardcoding noon with the posting date fails PAC validation when noon CST > current UTC)
+        Customer.Get(Payment."Customer No.");
+        if PostCode.Get(Customer."Post Code", Customer.City) then
+            TimeZone := PostCode."Time Zone";
+        LocalDT := TypeHelper.ConvertDateTimeFromUTCToTimeZone(TypeHelper.GetCurrentDateTimeInUserTimeZone(), TimeZone);
+        exit(Format(LocalDT, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 
     local procedure FormatDateTime(D: Date): Text
@@ -367,6 +407,6 @@ codeunit 3356 "MX Payment Complement Builder"
 
     var
         PagosNamespaceTok: Label 'http://www.sat.gob.mx/Pagos20', Locked = true;
-        XmlHeaderTok: Label '<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:pago20="http://www.sat.gob.mx/Pagos20"/>', Locked = true;
+        XmlHeaderTok: Label '<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:pago20="http://www.sat.gob.mx/Pagos20" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/Pagos20 http://www.sat.gob.mx/sitio_internet/cfd/Pagos/Pagos20.xsd"/>', Locked = true;
         AppliedDocumentNotStampedErr: Label 'Applied document %1 is not stamped.', Comment = '%1 = document number';
 }
