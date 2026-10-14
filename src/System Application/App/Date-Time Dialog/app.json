@@ -19,6 +19,6 @@
       "to": 684
     }
   ],
-  "target": "OnPrem",
+  "target": "Cloud",
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
 }
