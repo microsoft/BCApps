@@ -19,6 +19,7 @@ codeunit 148756 "Carta Porte Fields Tests"
     var
         Document: XmlDocument;
         RootNode: XmlElement;
+        RootXmlNode: XmlNode;
         CartaPorteXmlNode: XmlNode;
         CartaPorteElement: XmlElement;
     begin
@@ -29,7 +30,8 @@ codeunit 148756 "Carta Porte Fields Tests"
         // [GIVEN] A CartaPorte XML node
         RootNode := XmlElement.Create('Complemento');
         Document.Add(RootNode.AsXmlNode());
-        CFDIXMLHelper.AddElementCartaPorte(RootNode.AsXmlNode(), 'CartaPorte', '', '', CartaPorteXmlNode);
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelper.AddElementCartaPorte(RootXmlNode, 'CartaPorte', '', '', CartaPorteXmlNode);
 
         // [WHEN] ISTMO attributes are added using AddAttributeSimple
         CFDIXMLHelper.AddAttributeSimple(CartaPorteXmlNode, 'RegistroISTMO', 'Sí');
@@ -48,6 +50,7 @@ codeunit 148756 "Carta Porte Fields Tests"
     var
         Document: XmlDocument;
         RootNode: XmlElement;
+        RootXmlNode: XmlNode;
         CartaPorteXmlNode: XmlNode;
         CartaPorteElement: XmlElement;
         Attribute: XmlAttribute;
@@ -59,7 +62,8 @@ codeunit 148756 "Carta Porte Fields Tests"
         // [GIVEN] A CartaPorte XML node with no ISTMO attributes added
         RootNode := XmlElement.Create('Complemento');
         Document.Add(RootNode.AsXmlNode());
-        CFDIXMLHelper.AddElementCartaPorte(RootNode.AsXmlNode(), 'CartaPorte', '', '', CartaPorteXmlNode);
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelper.AddElementCartaPorte(RootXmlNode, 'CartaPorte', '', '', CartaPorteXmlNode);
 
         // [WHEN] Only non-ISTMO attributes are added (SAT ISTMO = false scenario)
         CFDIXMLHelper.AddAttributeSimple(CartaPorteXmlNode, 'Version', '3.1');
@@ -76,6 +80,7 @@ codeunit 148756 "Carta Porte Fields Tests"
     var
         Document: XmlDocument;
         RootNode: XmlElement;
+        RootXmlNode: XmlNode;
         CartaPorteXmlNode: XmlNode;
         CartaPorteElement: XmlElement;
     begin
@@ -86,7 +91,8 @@ codeunit 148756 "Carta Porte Fields Tests"
         // [GIVEN] A CartaPorte XML node
         RootNode := XmlElement.Create('Complemento');
         Document.Add(RootNode.AsXmlNode());
-        CFDIXMLHelper.AddElementCartaPorte(RootNode.AsXmlNode(), 'CartaPorte', '', '', CartaPorteXmlNode);
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelper.AddElementCartaPorte(RootXmlNode, 'CartaPorte', '', '', CartaPorteXmlNode);
 
         // [WHEN] ViaEntradaSalida is set to Transporte Marítimo (02)
         CFDIXMLHelper.AddAttributeSimple(CartaPorteXmlNode, 'ViaEntradaSalida', '02');
@@ -101,6 +107,7 @@ codeunit 148756 "Carta Porte Fields Tests"
     var
         Document: XmlDocument;
         RootNode: XmlElement;
+        RootXmlNode: XmlNode;
         CartaPorteXmlNode: XmlNode;
         CartaPorteElement: XmlElement;
         DefaultTransportType: Code[10];
@@ -112,7 +119,8 @@ codeunit 148756 "Carta Porte Fields Tests"
         // [GIVEN] A CartaPorte XML node
         RootNode := XmlElement.Create('Complemento');
         Document.Add(RootNode.AsXmlNode());
-        CFDIXMLHelper.AddElementCartaPorte(RootNode.AsXmlNode(), 'CartaPorte', '', '', CartaPorteXmlNode);
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelper.AddElementCartaPorte(RootXmlNode, 'CartaPorte', '', '', CartaPorteXmlNode);
 
         // [WHEN] ViaEntradaSalida is set using the default value (SAT Transport Type = '')
         DefaultTransportType := GetDefaultTransportType('');
@@ -128,6 +136,7 @@ codeunit 148756 "Carta Porte Fields Tests"
     var
         Document: XmlDocument;
         RootNode: XmlElement;
+        RootXmlNode: XmlNode;
         CartaPorteXmlNode: XmlNode;
         XmlText: Text;
     begin
@@ -138,7 +147,8 @@ codeunit 148756 "Carta Porte Fields Tests"
         // [GIVEN] A CartaPorte XML node
         RootNode := XmlElement.Create('Complemento');
         Document.Add(RootNode.AsXmlNode());
-        CFDIXMLHelper.AddElementCartaPorte(RootNode.AsXmlNode(), 'CartaPorte', '', '', CartaPorteXmlNode);
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelper.AddElementCartaPorte(RootXmlNode, 'CartaPorte', '', '', CartaPorteXmlNode);
 
         // [WHEN] RegistroISTMO is written with the accented value 'Sí'
         CFDIXMLHelper.AddAttributeSimple(CartaPorteXmlNode, 'RegistroISTMO', 'Sí');
