@@ -13,6 +13,9 @@ using System.Threading;
 codeunit 7425 "EA Corp Card JQ Mgt"
 {
     Access = Internal;
+    Permissions =
+        tabledata "Job Queue Entry" = rimd,
+        tabledata "Job Queue Category" = rim;
 
     var
         CorpCardImportTxt: Label 'Corp Card import - %1', Comment = '%1 = Provider code';

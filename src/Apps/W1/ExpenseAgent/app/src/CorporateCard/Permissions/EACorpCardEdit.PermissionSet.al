@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.IO;
+using System.Threading;
+
 permissionset 7421 EACorpCardEdit
 {
     Access = Internal;
@@ -27,6 +30,12 @@ permissionset 7421 EACorpCardEdit
         codeunit "EA Corp Card Statement Mgt" = X,
         codeunit "EA Corp Card Settlement Mgt" = X,
         codeunit "EA Corp Card DE Noop" = X,
+        codeunit "EA Corp Card Feed Mgt" = X,
+        codeunit "EA Corp Card Import Orch" = X,
+        codeunit "EA Corp Card Post Import Orch" = X,
+        codeunit "EA Corp Card Data Exch Prov" = X,
+        codeunit "EA Corp Card JQ Mgt" = X,
+        codeunit "EA Corp Card JQ Runner" = X,
         tabledata "EA Corp Card Provider" = IM,
         tabledata "EA Corp Card" = IM,
         tabledata "EA Corp Card Trans" = IM,
@@ -37,5 +46,9 @@ permissionset 7421 EACorpCardEdit
         tabledata "EA Corp Card Exception" = IM,
         tabledata "EA Corp Card MCC Map" = IM,
         tabledata "EA Corp Card Merchant Rule" = IM,
-        tabledata "Expense Agent Setup" = IM;
+        tabledata "Expense Agent Setup" = IM,
+        tabledata "Job Queue Entry" = RIMD,
+        tabledata "Job Queue Category" = RIM,
+        tabledata "Data Exch." = RIMD,
+        tabledata "Data Exch. Field" = RIMD;
 }
