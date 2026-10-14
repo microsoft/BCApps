@@ -491,12 +491,19 @@ function Reset-BcTestTenant {
         $mountedTenant = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -ErrorAction SilentlyContinue
         if ($mountedTenant) {
             # End the tenant's server sessions first so none of them keeps the database in use.
+            # Internal sessions report negative IDs, which Remove-NAVServerSession rejects.
             try {
-                Get-NAVServerSession -ServerInstance $ServerInstance -Tenant $tenant -ErrorAction SilentlyContinue | ForEach-Object {
-                    Remove-NAVServerSession -ServerInstance $ServerInstance -Tenant $tenant -SessionId $_.SessionId -Force -ErrorAction SilentlyContinue
-                }
+                $serverSessions = @(Get-NAVServerSession -ServerInstance $ServerInstance -Tenant $tenant -ErrorAction SilentlyContinue | Where-Object { $_.SessionId -ge 0 })
             } catch {
-                Write-Host "WARNING: Could not end server sessions for tenant '$tenant': $($_.Exception.Message)"
+                Write-Host "WARNING: Could not list server sessions for tenant '$tenant': $($_.Exception.Message)"
+                $serverSessions = @()
+            }
+            foreach ($serverSession in $serverSessions) {
+                try {
+                    Remove-NAVServerSession -ServerInstance $ServerInstance -Tenant $tenant -SessionId $serverSession.SessionId -Force -ErrorAction Stop
+                } catch {
+                    Write-Host "WARNING: Could not end server session $($serverSession.SessionId) for tenant '$tenant': $($_.Exception.Message)"
+                }
             }
             Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -Force | Out-Null
         }
