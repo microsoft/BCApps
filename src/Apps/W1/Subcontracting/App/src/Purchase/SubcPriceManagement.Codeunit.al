@@ -511,9 +511,7 @@ codeunit 20508 "Subc. Price Management"
         end;
     end;
 
-    internal procedure GetAutomaticSubcCostForReqLine(RequisitionLine: Record "Requisition Line"): Decimal
-    var
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    internal procedure GetAutomaticSubcCostForReqLine(RequisitionLine: Record "Requisition Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
     begin
         GetProdOrderRtngLine(
             RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",

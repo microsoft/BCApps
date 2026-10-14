@@ -62,6 +62,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine, '', false, false)]
     local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
 #if not CLEAN29
@@ -73,7 +74,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
             exit;
 
-	    if not SubcPriceManagement.IsAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine) then
+        if not SubcPriceManagement.IsAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine) then
             exit;
 
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine);
