@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Foundation.Navigate;
+
 page 7447 "EA Corp Card Settlement"
 {
     ApplicationArea = Basic, Suite;
@@ -246,6 +248,23 @@ page 7447 "EA Corp Card Settlement"
                     CurrPage.Update(false);
                 end;
             }
+            action(FindEntries)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Find entries...';
+                Enabled = Rec."Posted Document No." <> '';
+                Image = Navigate;
+                ShortCutKey = 'Ctrl+Alt+Q';
+                ToolTip = 'Find entries and documents that exist for the document number and posting date of the posted settlement.';
+
+                trigger OnAction()
+                var
+                    Navigate: Page Navigate;
+                begin
+                    Navigate.SetDoc(Rec."Posted Date", Rec."Posted Document No.");
+                    Navigate.Run();
+                end;
+            }
         }
         area(Promoted)
         {
@@ -275,6 +294,14 @@ page 7447 "EA Corp Card Settlement"
                     actionref(ReverseSettlement_Promoted; ReverseSettlement)
                     {
                     }
+                }
+            }
+            group(Category_Navigate)
+            {
+                Caption = 'Navigate';
+
+                actionref(FindEntries_Promoted; FindEntries)
+                {
                 }
             }
         }

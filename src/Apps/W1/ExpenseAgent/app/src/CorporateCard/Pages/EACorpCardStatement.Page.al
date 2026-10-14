@@ -92,24 +92,28 @@ page 7444 "EA Corp Card Statement"
                 field(SettlementStatus; SettlementStatusText)
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     Caption = 'Settlement Status';
                     ToolTip = 'Specifies the current status of the settlement that includes this statement.';
                 }
                 field(ReconciledTransactions; ReconciledTransactions)
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     Caption = 'Reconciled Transactions';
                     ToolTip = 'Specifies the number of statement transactions matched to valid corporate card bank account ledger entries.';
                 }
                 field(UnreconciledTransactions; UnreconciledTransactions)
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     Caption = 'Unreconciled Transactions';
                     ToolTip = 'Specifies the number of statement transactions without a valid corporate card bank account ledger entry.';
                 }
                 field(ReconciledAmount; ReconciledAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     AutoFormatType = 1;
                     AutoFormatExpression = "Currency Code";
                     Caption = 'Reconciled Amount';
@@ -118,6 +122,7 @@ page 7444 "EA Corp Card Statement"
                 field(UnreconciledAmount; UnreconciledAmount)
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     AutoFormatType = 1;
                     AutoFormatExpression = "Currency Code";
                     Caption = 'Unreconciled Amount';
