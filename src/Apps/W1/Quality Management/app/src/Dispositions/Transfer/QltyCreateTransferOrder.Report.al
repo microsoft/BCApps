@@ -214,7 +214,7 @@ report 20410 "Qlty. Create Transfer Order"
                         ApplicationArea = All;
                         Caption = 'Bin';
                         ToolTip = 'Specifies the bin at the destination location where the inventory will be transferred.';
-                        ShowMandatory = true;
+                        ShowMandatory = ShowDestinationBin;
                         Enabled = ShowDestinationBin;
 
                         trigger OnLookup(var Text: Text): Boolean
