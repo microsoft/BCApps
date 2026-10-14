@@ -22,6 +22,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     var
         DuplicateStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
+        ValidatedCardIds: List of [Text];
         TransactionTotal: Decimal;
     begin
         if CorpCardStatement.Status <> CorpCardStatement.Status::Imported then
@@ -53,7 +54,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
             Error(NoStatementTransactionsErr, CorpCardStatement."Statement No.");
 
         repeat
-            ValidateTransaction(CorpCardStatement, CorpCardTrans);
+            ValidateTransaction(CorpCardStatement, CorpCardTrans, ValidatedCardIds);
             TransactionTotal += CorpCardTrans.Amount;
         until CorpCardTrans.Next() = 0;
 
@@ -228,15 +229,18 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         UnlinkedAmount := BankAccountLedgerEntry.Amount;
     end;
 
-    local procedure ValidateTransaction(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans")
+    local procedure ValidateTransaction(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans"; var ValidatedCardIds: List of [Text])
     var
         CorpCard: Record "EA Corp Card";
     begin
         CorpCardTrans.TestField("Provider Trans Id");
         CorpCardTrans.TestField("Card Id");
         CorpCardTrans.TestField("Trans Date");
-        CorpCard.Get(CorpCardTrans."Card Id");
-        CorpCard.TestField(Blocked, false);
+        if not ValidatedCardIds.Contains(Format(CorpCardTrans."Card Id")) then begin
+            CorpCard.Get(CorpCardTrans."Card Id");
+            CorpCard.TestField(Blocked, false);
+            ValidatedCardIds.Add(Format(CorpCardTrans."Card Id"));
+        end;
 
         if CorpCardTrans."Currency Code" <> CorpCardStatement."Currency Code" then
             Error(TransactionCurrencyMismatchErr, CorpCardTrans."Entry No.", CorpCardTrans."Currency Code", CorpCardStatement."Currency Code");
