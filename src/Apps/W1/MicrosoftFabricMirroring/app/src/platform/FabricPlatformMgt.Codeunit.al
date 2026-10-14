@@ -32,7 +32,7 @@ codeunit 48520 "Fabric Platform Mgt"
         TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         AdminConsentSuccessMsg: Label 'Admin consent was granted. The Microsoft Business Central Fabric Export application is now available in your Microsoft Entra tenant.';
-#if not CLEAN29
+#if not CLEAN27
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling mirroring.';
@@ -279,7 +279,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then begin
-#if not CLEAN29
+#if not CLEAN27
 #pragma warning disable AL0432
             if CredMgt.IsCustomAppEnabled() then
 #pragma warning restore AL0432
@@ -298,7 +298,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(EnableRequestedMsg);
     end;
 
-#if not CLEAN29
+#if not CLEAN27
 #pragma warning disable AL0432
     local procedure EnableExportWithCustomApp(var CredMgt: Codeunit "Fabric Platform Credential Mgt")
     var

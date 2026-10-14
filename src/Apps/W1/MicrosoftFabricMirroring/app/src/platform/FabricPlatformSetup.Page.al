@@ -155,7 +155,7 @@ page 48511 "Fabric Platform Setup"
             {
                 Caption = 'Authentication';
 
-#if not CLEAN29
+#if not CLEAN27
 #pragma warning disable AL0432
                 field(UseCustomApp; UseCustomAppValue)
                 {
@@ -227,7 +227,7 @@ page 48511 "Fabric Platform Setup"
                 field(PrincipalId; PrincipalIdValue)
                 {
                     Caption = 'Principal ID';
-#if not CLEAN29
+#if not CLEAN27
                     ShowMandatory = UseCustomAppValue;
 #endif
                     ToolTip = 'Specifies the object ID of the Microsoft Entra service principal. Used to grant the service principal Contributor access on the Fabric workspace. With the default Microsoft application it is looked up automatically; enter it manually only if your tenant does not allow reading service principals.';
@@ -264,7 +264,7 @@ page 48511 "Fabric Platform Setup"
                 {
                     Caption = 'Grant admin consent';
                     ApplicationArea = All;
-#if not CLEAN29
+#if not CLEAN27
                     Visible = not UseCustomAppValue;
 #endif
                     Image = Approve;
@@ -478,7 +478,7 @@ page 48511 "Fabric Platform Setup"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
     begin
         FabricPlatformMgt.EnsureSetup(Rec);
-#if not CLEAN29
+#if not CLEAN27
 #pragma warning disable AL0432
         ClientIdValue := CopyStr(CredMgt.GetCustomClientId(), 1, MaxStrLen(ClientIdValue));
         UseCustomAppValue := CredMgt.IsCustomAppEnabled();
@@ -487,7 +487,7 @@ page 48511 "Fabric Platform Setup"
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
         OpenMirroringNameValue := CopyStr(CredMgt.GetOpenMirroringDatabaseName(), 1, MaxStrLen(OpenMirroringNameValue));
         WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
-#if not CLEAN29
+#if not CLEAN27
 #pragma warning disable AL0432
         if CredMgt.IsClientSecretSet() then
             ClientSecretValue := ClientSecretSetLbl;
@@ -525,14 +525,14 @@ page 48511 "Fabric Platform Setup"
     var
         NamespaceEditable: Boolean;
         EnableActionEnabled: Boolean;
-#if not CLEAN29
+#if not CLEAN27
         UseCustomAppValue: Boolean;
         ClientIdValue: Text[250];
 #endif
         PrincipalIdValue: Text[250];
         OpenMirroringNameValue: Text[250];
         WorkspaceNameValue: Text[250];
-#if not CLEAN29
+#if not CLEAN27
         [NonDebuggable]
         ClientSecretValue: Text[250];
         ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;

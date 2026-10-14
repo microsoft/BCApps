@@ -202,7 +202,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         FabricPrivacyNotice.EnsureApproved();
 
         PrincipalId := CredMgt.GetPrincipalId();
-#if not CLEAN29
+#if not CLEAN27
 #pragma warning disable AL0432
         if (PrincipalId = '') and not CredMgt.IsCustomAppEnabled() then begin
 #pragma warning restore AL0432
