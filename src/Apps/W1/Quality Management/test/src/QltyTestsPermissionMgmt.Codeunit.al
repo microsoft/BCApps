@@ -6,6 +6,7 @@ namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.QualityManagement.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
+using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Utilities;
 
 codeunit 139957 "Qlty. Tests - Permission Mgmt."
@@ -20,6 +21,28 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryAssert: Codeunit "Library Assert";
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
+        InspectorRoleIDTok: Label 'QltyMgmt - Inspector', Locked = true;
+        BinLookupRoleIDTok: Label 'QltyMgmt - Bin View', Locked = true;
+
+    [Test]
+    procedure VerifyCanSelectDestinationBin_Inspector()
+    begin
+        // [SCENARIO] A quality inspector can select destination bins with the additional bin lookup role.
+        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+
+        VerifyCanSelectDestinationBin();
+    end;
+
+    [Test]
+    procedure VerifyCanSelectDestinationBin_Admin()
+    begin
+        // [SCENARIO] A quality supervisor can select destination bins with the additional bin lookup role.
+        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+
+        VerifyCanSelectDestinationBin();
+    end;
 
     [Test]
     procedure VerifyCanCreateManualInspection_ShouldError()
@@ -273,6 +296,16 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [THEN] The function returns true
 
         LibraryAssert.IsTrue(QltyInspectionUtility.CanEditLineComments(), 'everyone with permission to modify record links is allowed');
+    end;
+
+    local procedure VerifyCanSelectDestinationBin()
+    var
+        Bin: Record Bin;
+        BinList: TestPage "Bin List";
+    begin
+        LibraryAssert.IsTrue(Bin.ReadPermission(), 'The bin lookup role should grant read permission on bins.');
+        BinList.OpenView();
+        BinList.Close();
     end;
 
     local procedure CheckQltyInspectionHeaderWritePermission(): Boolean
