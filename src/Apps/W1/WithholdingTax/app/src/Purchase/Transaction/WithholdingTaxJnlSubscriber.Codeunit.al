@@ -1650,7 +1650,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         WHTGenJournalLine.SetFilter("Line No.", '>%1', LastTaxLineNo);
         if WHTGenJournalLine.FindSet() then
             repeat
-                sender.PostGenJournalLines(WHTGenJournalLine, GenJournalLine, CurrentICPartner, ICTransactionNo);
+                sender.PostGenJournalLines(WHTGenJournalLine, GenJournalLine);
                 LastTaxLineNo := WHTGenJournalLine."Line No.";
             until WHTGenJournalLine.Next() = 0;
     end;
