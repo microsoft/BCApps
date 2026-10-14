@@ -3,7 +3,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -33,6 +33,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         DimValueBlockedErr: Label '%1 %2 - %3 is blocked.', Comment = '%1 = Dimension Value table caption, %2 = Dim Code, %3 = Dim Value';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionWithDimensionCodeOnCustomer()
     var
         Customer: Record "Customer";
@@ -46,6 +47,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionWithDimensionCodeOnVendor()
     var
         Vendor: Record "Vendor";
@@ -59,6 +61,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionWithDimensionCodeOnItem()
     var
         Item: Record "Item";
@@ -85,6 +88,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionOnCustomer()
     var
         Customer: Record "Customer";
@@ -98,6 +102,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionOnVendor()
     var
         Vendor: Record "Vendor";
@@ -111,6 +116,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionOnItem()
     var
         Item: Record "Item";
@@ -137,6 +143,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithoutDimensionOnCustomer()
     var
         Customer: Record "Customer";
@@ -150,6 +157,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithoutDimensionOnVendor()
     var
         Vendor: Record "Vendor";
@@ -163,6 +171,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithoutDimensionOnItem()
     var
         Item: Record "Item";
@@ -189,6 +198,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithMismatchingDimensionsOnCustomer()
     var
         Customer: Record "Customer";
@@ -202,6 +212,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithMismatchingDimensionsOnVendor()
     var
         Vendor: Record "Vendor";
@@ -215,6 +226,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithMismatchingDimensionsOnItem()
     var
         Item: Record "Item";
@@ -241,6 +253,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithBlockedDimensionOnCustomer()
     var
         Customer: Record "Customer";
@@ -254,6 +267,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithBlockedDimensionOnVendor()
     var
         Vendor: Record "Vendor";
@@ -267,6 +281,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithBlockedDimensionOnItem()
     var
         Item: Record "Item";
@@ -293,6 +308,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithBlockedDimensionValueOnCustomer()
     var
         Customer: Record "Customer";
@@ -306,6 +322,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithBlockedDimensionValueOnVendor()
     var
         Vendor: Record "Vendor";
@@ -319,6 +336,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDefaultDimensionFailsWithBlockedDimensionValueOnItem()
     var
         Item: Record "Item";
@@ -345,6 +363,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDefaultDimensionOnCustomer()
     var
         Customer: Record "Customer";
@@ -358,6 +377,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDefaultDimensionOnVendor()
     var
         Vendor: Record "Vendor";
@@ -371,6 +391,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDefaultDimensionOnItem()
     var
         Item: Record "Item";
@@ -397,6 +418,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDefaultDimensionOnCustomer()
     var
         Customer: Record "Customer";
@@ -410,6 +432,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDefaultDimensionOnVendor()
     var
         Vendor: Record "Vendor";
@@ -423,6 +446,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDefaultDimensionOnItem()
     var
         Item: Record "Item";
@@ -449,6 +473,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionOnCustomer()
     var
         Customer: Record "Customer";
@@ -462,6 +487,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionOnVendor()
     var
         Vendor: Record "Vendor";
@@ -475,6 +501,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionOnItem()
     var
         Item: Record "Item";
@@ -501,6 +528,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionFailsWithBlockedValueOnCustomer()
     var
         Customer: Record "Customer";
@@ -514,6 +542,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionFailsWithBlockedValueOnVendor()
     var
         Vendor: Record "Vendor";
@@ -527,6 +556,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionFailsWithBlockedValueOnItem()
     var
         Item: Record "Item";
@@ -553,6 +583,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionFailsWhenChangingDimensionCodeOnCustomer()
     var
         Customer: Record "Customer";
@@ -566,6 +597,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionFailsWhenChangingDimensionCodeOnVendor()
     var
         Vendor: Record "Vendor";
@@ -579,6 +611,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchDefaultDimensionFailsWhenChangingDimensionCodeOnItem()
     var
         Item: Record "Item";
@@ -1032,6 +1065,13 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
                 EXIT(EmployeeServiceNameTxt);
         END;
         EXIT('');
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

@@ -3,7 +3,7 @@ codeunit 139705 "APIV1 - Shipment Methods E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -53,6 +53,7 @@ codeunit 139705 "APIV1 - Shipment Methods E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetShipmentMethods()
     var
         ShipmentMethod: Record "Shipment Method";
@@ -98,6 +99,13 @@ codeunit 139705 "APIV1 - Shipment Methods E2E"
             Description := DescriptionTxt;
             INSERT(TRUE);
         END;
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

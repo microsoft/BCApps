@@ -3,7 +3,7 @@ codeunit 139710 "Countries/Regions E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -45,6 +45,7 @@ codeunit 139710 "Countries/Regions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCountriesRegions()
     var
         CountryRegionCode: array[2] of Text;
@@ -71,6 +72,7 @@ codeunit 139710 "Countries/Regions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCountriesRegions()
     var
         CountryRegion: Record "Country/Region";
@@ -98,6 +100,7 @@ codeunit 139710 "Countries/Regions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCountriesRegions()
     var
         CountryRegion: Record "Country/Region";
@@ -128,6 +131,7 @@ codeunit 139710 "Countries/Regions E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCountriesRegions()
     var
         CountryRegion: Record "Country/Region";
@@ -217,6 +221,13 @@ codeunit 139710 "Countries/Regions E2E"
         VerifyPropertyInJSON(CountryRegionJSON, 'code', CountryRegion.Code);
         VerifyPropertyInJSON(CountryRegionJSON, 'displayName', CountryRegion.Name);
         VerifyPropertyInJSON(CountryRegionJSON, 'addressFormat', FORMAT(CountryRegion."Address Format"));
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

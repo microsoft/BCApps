@@ -3,7 +3,7 @@ codeunit 139706 "APIV1 - Company Info. E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -31,6 +31,7 @@ codeunit 139706 "APIV1 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCompanyInformationWithComplexType()
     var
         CompanyInformation: Record "Company Information";
@@ -52,6 +53,7 @@ codeunit 139706 "APIV1 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
@@ -82,6 +84,7 @@ codeunit 139706 "APIV1 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCompanyInformationWithComplexType()
     var
         CompanyInformation: Record "Company Information";
@@ -111,6 +114,7 @@ codeunit 139706 "APIV1 - Company Info. E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRemoveComplexTypeFromCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
@@ -193,6 +197,13 @@ codeunit 139706 "APIV1 - Company Info. E2E"
             GraphMgtComplexTypes.GetPostalAddressJSON(Address, "Address 2", City, County, "Country/Region Code", "Post Code", AddressJSON);
 
         JSON := LibraryGraphMgt.AddComplexTypetoJSON(JSON, 'address', AddressJSON);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

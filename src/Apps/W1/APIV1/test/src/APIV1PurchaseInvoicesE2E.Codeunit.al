@@ -3,7 +3,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -38,6 +38,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoices()
     var
         InvoiceID1: Text;
@@ -67,6 +68,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoices()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -117,6 +119,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostPurchaseInvoiceWithCurrency()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -160,18 +163,21 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoices()
     begin
         TestMultipleModifyInvoices(FALSE, FALSE);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyInvoices()
     begin
         TestMultipleModifyInvoices(TRUE, FALSE);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyInvoices()
     begin
         TestMultipleModifyInvoices(FALSE, TRUE);
@@ -246,6 +252,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteInvoice()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -277,6 +284,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateInvoiceThroughPageAndAPI()
     var
         PagePurchaseHeader: Record "Purchase Header";
@@ -340,6 +348,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceFailsWithoutVendorNoOrId()
     var
         Currency: Record "Currency";
@@ -365,6 +374,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionPostPurchaseInvoice()
     var
@@ -403,6 +413,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPurchaseInvoiceWithPaymentDiscount()
     var
         PaymentTerms: Record "Payment Terms";
@@ -553,5 +564,12 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         PaymentTerms.Validate("Discount Date Calculation", DateCalculation);
         PaymentTerms.Validate("Discount %", 2);
         PaymentTerms.Modify(true);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

@@ -3,7 +3,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -39,6 +39,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetEmployee()
     var
         Employee: Record "Employee";
@@ -63,6 +64,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateEmployee()
     var
         Employee: Record "Employee";
@@ -90,6 +92,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyEmployee()
     var
         Employee: Record "Employee";
@@ -123,6 +126,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteEmployee()
     var
         Employee: Record "Employee";
@@ -182,6 +186,13 @@ codeunit 139722 "APIV1 - Employees E2E"
             Employee."First Name" := Employee."No.";
         EmployeeJSON := LibraryGraphMgt.AddPropertytoJSON('', 'number', Employee."No.");
         EmployeeJSON := LibraryGraphMgt.AddPropertytoJSON(EmployeeJSON, 'givenName', Employee."First Name");
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

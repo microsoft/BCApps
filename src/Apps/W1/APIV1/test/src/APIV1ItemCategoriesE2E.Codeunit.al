@@ -3,7 +3,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -45,6 +45,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemCategories()
     var
         ItemCategoryCode: array[2] of Text;
@@ -71,6 +72,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemCategory()
     var
         ItemCategory: Record "Item Category";
@@ -98,6 +100,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemCategory()
     var
         ItemCategory: Record "Item Category";
@@ -128,6 +131,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteItemCategory()
     var
         ItemCategory: Record "Item Category";
@@ -215,6 +219,13 @@ codeunit 139707 "APIV1 - Item Categories E2E"
         LibraryGraphMgt.VerifyIDInJson(ItemCategoryJSON);
         VerifyPropertyInJSON(ItemCategoryJSON, 'code', ItemCategory.Code);
         VerifyPropertyInJSON(ItemCategoryJSON, 'displayName', ItemCategory.Description);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

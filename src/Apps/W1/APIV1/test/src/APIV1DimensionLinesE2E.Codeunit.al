@@ -3,7 +3,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -32,6 +32,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDimensionLine()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -80,6 +81,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDimensionLineFailsWithoutParentId()
     var
         Dimension: Record "Dimension";
@@ -105,6 +107,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDoesntWorkWithAlreadyExistingCode()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -215,6 +218,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionLinesOfJournalLines()
     var
         Dimension: Record "Dimension";
@@ -269,6 +273,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionLinesFailsWithoutFilter()
     var
         GLAccount: Record "G/L Account";
@@ -291,6 +296,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionLinesFailsWithNonSupportedEntity()
     var
         ResponseText: Text;
@@ -308,6 +314,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyDimensionLine()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -371,6 +378,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOfDimensionCodeDoesntWork()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -432,6 +440,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDimensionLine()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -572,6 +581,13 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         DimensionSetEntry.SetRange("Dimension Value Code", DimensionValueCode);
 
         EXIT(not DimensionSetEntry.IsEmpty());
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

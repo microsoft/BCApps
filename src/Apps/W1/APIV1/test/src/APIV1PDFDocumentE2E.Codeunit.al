@@ -1,7 +1,7 @@
 codeunit 139744 "APIV1 - PDF Document E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -42,6 +42,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPDFSalesInvoice()
     var
@@ -93,6 +94,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPDFSalesCreditMemo()
     var
@@ -146,6 +148,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPDFSalesQuote()
     var
@@ -178,6 +181,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPDFPurchaseInvoice()
     var
@@ -278,6 +282,13 @@ codeunit 139744 "APIV1 - PDF Document E2E"
         LibrarySales.CreateSalesQuoteForCustomerNo(SalesHeader, CustomerNo);
         QuoteID1 := SalesHeader."No.";
         Commit();
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

@@ -3,7 +3,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -34,6 +34,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSimpleVendor()
     var
         Vendor: Record "Vendor";
@@ -55,6 +56,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetVendorWithComplexType()
     var
         Vendor: Record "Vendor";
@@ -80,6 +82,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSimpleVendor()
     var
         Vendor: Record "Vendor";
@@ -107,6 +110,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateVendorWithComplexType()
     var
         Vendor: Record "Vendor";
@@ -133,6 +137,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateVendorWithTemplate()
     var
         ConfigTmplSelectionRules: Record "Config. Tmpl. Selection Rules";
@@ -183,6 +188,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyVendor()
     var
         Vendor: Record "Vendor";
@@ -213,6 +219,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestVendorModifyWithComplexTypes()
     var
         Vendor: Record "Vendor";
@@ -246,6 +253,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRemoveComplexTypeFromVendor()
     var
         Vendor: Record "Vendor";
@@ -274,6 +282,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteVendor()
     var
         Vendor: Record "Vendor";
@@ -379,6 +388,13 @@ codeunit 139703 "APIV1 - Vendors E2E"
         WITH Vendor DO
             GraphMgtComplexTypes.GetPostalAddressJSON(Address, "Address 2", City, County, "Country/Region Code", "Post Code", AddressJson);
         Json := LibraryGraphMgt.AddComplexTypetoJSON(Json, 'address', AddressJson);
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

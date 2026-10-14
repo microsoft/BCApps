@@ -3,7 +3,7 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -22,6 +22,7 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
         IsInitialized: Boolean;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRetainedEarningsStatementRecords()
     var
         ResponseText: Text;
@@ -40,6 +41,7 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateRetainedEarningsStatementRecord()
     var
         TempAccScheduleLineEntity: Record "Acc. Schedule Line Entity" temporary;
@@ -87,6 +89,13 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
         JSONManagement.AddJPropertyToJObject("Newtonsoft.Json.Linq.JObject", 'display', AccScheduleLineEntity.Description);
 
         IncomeStatementJSON := JSONManagement.WriteObjectToString();
+    end;
+
+    [HttpClientHandler]
+    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 
