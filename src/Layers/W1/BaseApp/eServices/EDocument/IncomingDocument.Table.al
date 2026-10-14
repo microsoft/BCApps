@@ -17,7 +17,6 @@ using Microsoft.Sales.Archive;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Utilities;
-using System;
 using System.Automation;
 using System.Environment.Configuration;
 using System.IO;
@@ -1488,10 +1487,10 @@ table 130 "Incoming Document"
     procedure ResetOriginalOCRData()
     var
         OCRServiceMgt: Codeunit "OCR Service Mgt.";
-        OriginalXMLRootNode: DotNet XmlNode;
+        OriginalXmlRootNode: XmlNode;
     begin
-        OCRServiceMgt.GetOriginalOCRXMLRootNode(Rec, OriginalXMLRootNode);
-        OCRServiceMgt.UpdateIncomingDocWithOCRData(Rec, OriginalXMLRootNode);
+        OCRServiceMgt.GetOriginalOCRXMLRootNode(Rec, OriginalXmlRootNode);
+        OCRServiceMgt.UpdateIncomingDocWithOCRData(Rec, OriginalXmlRootNode);
     end;
 
     [Scope('OnPrem')]

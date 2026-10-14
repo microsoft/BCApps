@@ -733,7 +733,7 @@ codeunit 132547 "Test Data Exch.Import - XML"
         asserterror CODEUNIT.Run(DataExchDef."Reading/Writing Codeunit", DataExch);
 
         // Verify
-        Assert.ExpectedError('System.Xml.XmlDocument.Load failed');
+        Assert.ExpectedError('Root element is missing');
         DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
         Assert.IsTrue(DataExchField.IsEmpty, 'No line should be imported.');
     end;
