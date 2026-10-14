@@ -17,7 +17,8 @@ codeunit 377 "G/L Reg.-Bank Account Ledger"
     trigger OnRun()
     begin
         BankAccLedgEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
-        PAGE.Run(PAGE::"Bank Account Ledger Entries", BankAccLedgEntry);
+                BankAccLedgEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+                PAGE.Run(PAGE::"Bank Account Ledger Entries", BankAccLedgEntry);
     end;
 
     var
