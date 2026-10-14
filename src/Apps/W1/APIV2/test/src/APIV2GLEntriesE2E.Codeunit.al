@@ -3,6 +3,7 @@ codeunit 139830 "APIV2 - GLEntries E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -14,9 +15,9 @@ codeunit 139830 "APIV2 - GLEntries E2E"
     var
         Assert: Codeunit "Assert";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         IsInitialized: Boolean;
+        JournalTemplateName: Code[10];
         ServiceNameTxt: Label 'generalLedgerEntries';
 
     local procedure Initialize()
@@ -89,7 +90,7 @@ codeunit 139830 "APIV2 - GLEntries E2E"
         CreateGeneralJournalBatch(GenJournalBatch);
 
         // Create General Journal Line.
-        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
+        JournalTemplateName := GenJournalBatch."Journal Template Name";
         GeneralJournal.TRAP();
         GeneralJournal.OPENEDIT();
         GeneralJournal."Account Type".SetValue(GenJournalLine."Account Type"::"G/L Account");
@@ -119,7 +120,6 @@ codeunit 139830 "APIV2 - GLEntries E2E"
 
     local procedure UpdateAmountOnGenJournalLine(GenJournalBatch: Record "Gen. Journal Batch"; var GeneralJournal: TestPage "General Journal")
     begin
-        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         LibraryERM.UpdateAmountOnGenJournalLine(GenJournalBatch, GeneralJournal);
     end;
 
@@ -145,7 +145,7 @@ codeunit 139830 "APIV2 - GLEntries E2E"
     [ModalPageHandler]
     procedure GeneralJournalTemplateHandler(var GeneralJournalTemplateList: TestPage 250)
     begin
-        GeneralJournalTemplateList.FILTER.SetFilter(Name, LibraryVariableStorage.DequeueText());
+        GeneralJournalTemplateList.FILTER.SetFilter(Name, JournalTemplateName);
         GeneralJournalTemplateList.OK().INVOKE();
     end;
 }

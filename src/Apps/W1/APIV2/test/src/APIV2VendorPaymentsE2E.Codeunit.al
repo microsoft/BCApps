@@ -1,6 +1,7 @@
 codeunit 139843 "APIV2 - Vendor Payments E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -16,6 +17,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         Assert: Codeunit Assert;
         GraphMgtVendorPayments: Codeunit "Graph Mgt - Vendor Payments";
         LibraryGraphJournalLines: Codeunit "Library - Graph Journal Lines";
+        LibraryERM: Codeunit "Library - ERM";
         GraphMgtJournal: Codeunit "Graph Mgt - Journal";
         ServiceNameTxt: Label 'vendorPaymentJournals';
         ServiceSubpageNameTxt: Label 'vendorPayments';
@@ -34,7 +36,6 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         PurchInvHeader: Record "Purch. Inv. Header";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
-        LibraryERM: Codeunit "Library - ERM";
         PurchInvAggregator: Codeunit "Purch. Inv. Aggregator";
         JournalName: Code[10];
         Amount: Decimal;

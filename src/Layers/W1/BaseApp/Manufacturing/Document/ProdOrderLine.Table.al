@@ -276,13 +276,8 @@ table 5406 "Prod. Order Line"
             ToolTip = 'Specifies a standard task.';
             TableRelation = "Standard Task";
             ObsoleteReason = 'This field is not required anymore. The standard task code is now defined on the routing line.';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
         field(40; Quantity; Decimal)

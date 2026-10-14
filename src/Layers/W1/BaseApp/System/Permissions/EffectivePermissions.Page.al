@@ -1,6 +1,7 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Foundation.Company;
+using System.Azure.Identity;
 using System.Environment;
 using System.Security.User;
 using System.Telemetry;
@@ -279,6 +280,7 @@ page 9852 "Effective Permissions"
     local procedure FillByObject()
     var
         UserProperty: Record "User Property";
+        AzureADUserManagement: Codeunit "Azure AD User Management";
         EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
         EnvironmentInfo: Codeunit "Environment Information";
     begin
@@ -290,9 +292,12 @@ page 9852 "Effective Permissions"
         then
             exit;
 
+        // Delegated admins and helpdesk users have no Authentication Object ID in the customer tenant;
+        // their entitlements are resolved by the platform from their directory roles instead.
         if EnvironmentInfo.IsSaaS() then
-            if (not UserProperty.Get(CurrentUserID)) or (UserProperty."Authentication Object ID" = '') then
-                Error(OnlyAadUsersAllowedErr);
+            if not AzureADUserManagement.IsUserDelegated(CurrentUserID) then
+                if (not UserProperty.Get(CurrentUserID)) or (UserProperty."Authentication Object ID" = '') then
+                    Error(OnlyAadUsersAllowedErr);
 
         EffectivePermissionsMgt.PopulateEffectivePermissionsBuffer(Rec,
           CurrentUserID, CurrentCompanyName, CurrentObjectType, CurrentObjectId, ShowAllObjects);

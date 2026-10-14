@@ -47,6 +47,26 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
+    /// Checks whether the URI uses the secure HTTP scheme (https).
+    /// </summary>
+    /// <remarks>Call Init first. The comparison is case-insensitive because the scheme of a URI is always normalized to lowercase.</remarks>
+    /// <returns>True if the scheme of the URI is https; otherwise, false.</returns>
+    procedure IsSecureHttpUrl(): Boolean
+    begin
+        exit(Uri.Scheme = 'https');
+    end;
+
+    /// <summary>
+    /// Checks whether the URI uses an HTTP scheme (http or https).
+    /// </summary>
+    /// <remarks>Call Init first. The comparison is case-insensitive because the scheme of a URI is always normalized to lowercase.</remarks>
+    /// <returns>True if the scheme of the URI is http or https; otherwise, false.</returns>
+    procedure IsHttpUrl(): Boolean
+    begin
+        exit((Uri.Scheme = 'http') or (Uri.Scheme = 'https'));
+    end;
+
+    /// <summary>
     /// Gets the host name of the URI.
     /// </summary>
     /// <remarks>Visit https://learn.microsoft.com/dotnet/api/system.uri.host for more information.</remarks>
@@ -193,17 +213,36 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
-    /// Validates integration URI host from setup table field is the same as the hardcoded integration URI host, returns the hardcoded integration URI if validation fails.
+    /// Validates that the integration URI from a setup table field has the same host and scheme as the hardcoded integration URI, returns the hardcoded integration URI if validation fails.
     /// </summary>
     /// <param name="FieldValueURL">The integration URL from the setup table field.</param>
     /// <param name="HardcodedIntegrationURL">The hardcoded integration URL to validate.</param>
-    /// <returns>The integration URL from the setup table if it has the same host; otherwise, the provided integration URL.</returns>
+    /// <returns>The integration URL from the setup table if it has the same host and scheme; otherwise, the provided integration URL.</returns>
     procedure ValidateIntegrationURL(FieldValueURL: Text; HardcodedIntegrationURL: Text): Text
     begin
-        if AreURIsHaveSameHost(FieldValueURL, HardcodedIntegrationURL) then
+        if AreURIsHaveSameHost(FieldValueURL, HardcodedIntegrationURL) and AreURIsHaveSameScheme(FieldValueURL, HardcodedIntegrationURL) then
             exit(FieldValueURL)
         else
             exit(HardcodedIntegrationURL);
+    end;
+
+    /// <summary>
+    /// Verifies whether two URIs have the same scheme (e.g., both https://example.com and https://other.com use the https scheme). Used to reject a transport downgrade (for example from https to http) on an otherwise trusted host.
+    /// </summary>
+    /// <param name="UriString1">The first URI string.</param>
+    /// <param name="UriString2">The second URI string.</param>
+    /// <returns>True if both URIs have the same scheme; otherwise, false.</returns>
+    procedure AreURIsHaveSameScheme(UriString1: Text; UriString2: Text): Boolean
+    var
+        Uri1, Uri2, UriFactory : DotNet Uri;
+        UriKindHelper: DotNet UriKind;
+    begin
+        if not UriFactory.TryCreate(UriString1.ToLower(), UriKindHelper.Absolute, Uri1) then
+            exit(false);
+        if not UriFactory.TryCreate(UriString2.ToLower(), UriKindHelper.Absolute, Uri2) then
+            exit(false);
+
+        exit(Uri1.Scheme = Uri2.Scheme);
     end;
 
     /// <summary>
@@ -214,10 +253,13 @@ codeunit 3060 Uri
     /// <returns>True if both URIs have the same host; otherwise, false.</returns>
     procedure AreURIsHaveSameHost(UriString1: Text; UriString2: Text): Boolean
     var
-        Uri1, Uri2 : DotNet Uri;
+        Uri1, Uri2, UriFactory : DotNet Uri;
+        UriKindHelper: DotNet UriKind;
     begin
-        Uri1 := Uri1.Uri(UriString1.ToLower());
-        Uri2 := Uri2.Uri(UriString2.ToLower());
+        if not UriFactory.TryCreate(UriString1.ToLower(), UriKindHelper.Absolute, Uri1) then
+            exit(false);
+        if not UriFactory.TryCreate(UriString2.ToLower(), UriKindHelper.Absolute, Uri2) then
+            exit(false);
 
         exit(Uri1.Host = Uri2.Host);
     end;
