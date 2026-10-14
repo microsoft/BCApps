@@ -16,6 +16,7 @@ codeunit 134085 "Concurrent Seq. No. Runner"
         GLRegister: Record "G/L Register";
         AllocationIndex: Integer;
         TimeoutAt: DateTime;
+        BarrierTimedOutErr: Label 'The concurrent sequence allocation barrier timed out.';
     begin
         Rec.Ready := true;
         Rec.Modify();
@@ -28,7 +29,7 @@ codeunit 134085 "Concurrent Seq. No. Runner"
         while (ConcurrentSeqTestBuffer.Count() < 2) and (CurrentDateTime() < TimeoutAt) do
             Sleep(100);
         if ConcurrentSeqTestBuffer.Count() < 2 then
-            Error('The concurrent sequence allocation barrier timed out.');
+            Error(BarrierTimedOutErr);
         for AllocationIndex := 1 to Rec.GetNoOfAllocationsPerSession() do begin
             ConcurrentSeqTestBuffer.Init();
             ConcurrentSeqTestBuffer."Run ID" := Rec."Run ID";

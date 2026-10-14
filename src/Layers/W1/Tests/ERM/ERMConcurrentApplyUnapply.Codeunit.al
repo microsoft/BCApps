@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Test;
 
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.AuditCodes;
 
 codeunit 134081 "ERM Concurrent Apply Unapply"
 {
@@ -742,9 +742,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, DocumentType, DocumentNo);
         LibraryERM.SetApplyCustomerEntry(CustLedgerEntry, AmountToApply);
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry2, DocumentType2, DocumentNo2);
+        CustLedgerEntry2.SetAutoCalcFields("Remaining Amount");
         CustLedgerEntry2.FindSet();
         repeat
-            CustLedgerEntry2.CalcFields("Remaining Amount");
             CustLedgerEntry2.Validate("Amount to Apply", CustLedgerEntry2."Remaining Amount");
             CustLedgerEntry2.Modify(true);
         until CustLedgerEntry2.Next() = 0;
@@ -792,9 +792,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         VendorLedgerEntry.CalcFields("Remaining Amount");
         LibraryERM.SetApplyVendorEntry(VendorLedgerEntry, VendorLedgerEntry."Remaining Amount");
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry2, DocumentType2, DocumentNo2);
+        VendorLedgerEntry2.SetAutoCalcFields("Remaining Amount");
         VendorLedgerEntry2.FindSet();
         repeat
-            VendorLedgerEntry2.CalcFields("Remaining Amount");
             VendorLedgerEntry2.Validate("Amount to Apply", VendorLedgerEntry2."Remaining Amount");
             VendorLedgerEntry2.Modify(true);
         until VendorLedgerEntry2.Next() = 0;
@@ -858,9 +858,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         EmployeeLedgerEntry.CalcFields("Remaining Amount");
         LibraryERM.SetApplyEmployeeEntry(EmployeeLedgerEntry, EmployeeLedgerEntry."Remaining Amount");
         LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry2, DocumentType2, DocumentNo2);
+        EmployeeLedgerEntry2.SetAutoCalcFields("Remaining Amount");
         EmployeeLedgerEntry2.FindSet();
         repeat
-            EmployeeLedgerEntry2.CalcFields("Remaining Amount");
             EmployeeLedgerEntry2.Validate("Amount to Apply", EmployeeLedgerEntry2."Remaining Amount");
             EmployeeLedgerEntry2.Modify(true);
         until EmployeeLedgerEntry2.Next() = 0;

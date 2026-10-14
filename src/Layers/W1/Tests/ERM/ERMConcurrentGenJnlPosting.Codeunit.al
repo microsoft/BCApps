@@ -12,10 +12,10 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Receivables;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 
 codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 {

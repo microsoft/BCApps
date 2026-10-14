@@ -194,6 +194,14 @@ table 45 "G/L Register"
         exit(GetLastEntryNo() + 1);
     end;
 
+#if not CLEAN30
+    [Obsolete('Use GetNextRegisterNo instead.', '30.0')]
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+    begin
+        exit(GetNextRegisterNo(UseLegacyPosting));
+    end;
+#endif
+
     /// <summary>
     /// Retrieves the next sequential register number from the G/L Register table.
     /// </summary>

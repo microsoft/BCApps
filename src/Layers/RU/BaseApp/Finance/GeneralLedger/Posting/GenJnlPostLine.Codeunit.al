@@ -2010,6 +2010,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         BankAccLedgEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         BankAccLedgEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
         BankAccLedgEntry."Agreement No." := GenJnlLine."Agreement No.";
+        BankAccLedgEntry."G/L Register No." := GLReg."No.";
         OnPostBankAccOnBeforeBankAccLedgEntryInsert(BankAccLedgEntry, GenJnlLine, BankAcc, TempGLEntryBuf, NextTransactionNo, GLReg, Balancing);
         BankAccLedgEntry.Insert(true);
         OnPostBankAccOnAfterBankAccLedgEntryInsert(BankAccLedgEntry, GenJnlLine, BankAcc);

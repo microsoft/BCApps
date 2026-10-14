@@ -1767,6 +1767,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         BankAccLedgEntry.Positive := BankAccLedgEntry.Amount > 0;
         OnBeforeBankAccLedgEntryUpdateAmounts(BankAccLedgEntry, GenJnlLine, BankAcc, TaxAmount, TaxAmountLCY);
         BankAccLedgEntry.UpdateDebitCredit(GenJnlLine.Correction);
+        BankAccLedgEntry."G/L Register No." := GLReg."No.";
         OnPostBankAccOnBeforeBankAccLedgEntryInsert(BankAccLedgEntry, GenJnlLine, BankAcc, TempGLEntryBuf, NextTransactionNo, GLReg, Balancing);
         BankAccLedgEntry.Insert(true);
         OnPostBankAccOnAfterBankAccLedgEntryInsert(BankAccLedgEntry, GenJnlLine, BankAcc);
