@@ -25,7 +25,7 @@ codeunit 8446 "IC Purchase Line"
         if PurchaseHeader."Send IC Document" and
            (PurchaseLine."IC Partner Ref. Type" = PurchaseLine."IC Partner Ref. Type"::"Vendor Item No.")
         then
-            PurchaseLine."IC Partner Reference" := PurchaseLine."Vendor Item No.";
+            PurchaseLine."IC Partner Reference" := CopyStr(PurchaseLine."Vendor Item No.", 1, MaxStrLen(PurchaseLine."IC Partner Reference"));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeGetJnlTemplateName', '', false, false)]

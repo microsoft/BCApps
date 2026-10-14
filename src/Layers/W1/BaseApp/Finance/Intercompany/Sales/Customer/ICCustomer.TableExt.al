@@ -47,7 +47,7 @@ tableextension 8469 ICCustomer extends Customer
                     AccountingPeriod.SetRange(Closed, false);
                     if AccountingPeriod.FindFirst() then begin
                         CustLedgEntry.SetFilter("Posting Date", '>=%1', AccountingPeriod."Starting Date");
-                        if CustLedgEntry.FindFirst() then
+                        if not CustLedgEntry.IsEmpty() then
                             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(EntriesInOpenPeriodQst, TableCaption), true) then
                                 "IC Partner Code" := xRec."IC Partner Code";
                     end;

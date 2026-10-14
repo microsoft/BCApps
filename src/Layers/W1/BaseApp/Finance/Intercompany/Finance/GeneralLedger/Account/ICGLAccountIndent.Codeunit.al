@@ -45,6 +45,7 @@ codeunit 8432 "IC G/L Account-Indent"
         if IsHandled then
             exit;
 
+        i := 0;
         Window.Open(IndentingProgressMsg);
         if ICGLAcc.Find('-') then
             repeat
