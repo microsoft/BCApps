@@ -3,6 +3,7 @@ codeunit 139705 "APIV1 - Shipment Methods E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
 
     trigger OnRun()

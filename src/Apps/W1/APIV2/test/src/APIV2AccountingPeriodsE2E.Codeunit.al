@@ -1,6 +1,7 @@
 codeunit 139859 "APIV2 - Accounting Periods E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
 
     var
