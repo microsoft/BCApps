@@ -38,7 +38,7 @@
     }
   ],
   "platform": "30.0.0.0",
-  "target": "OnPrem",
+  "target": "Cloud",
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,
