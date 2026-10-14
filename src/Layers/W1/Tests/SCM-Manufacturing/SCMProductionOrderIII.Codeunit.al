@@ -8388,9 +8388,10 @@ codeunit 137079 "SCM Production Order III"
         CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
         CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         CapacityLedgerEntry.SetRange("Output Quantity", 0);
-        CapacityLedgerEntry.SetFilter(Quantity, '<>0');
-        Assert.RecordCount(CapacityLedgerEntry, 1);
-        CapacityLedgerEntry.FindFirst();
+        repeat
+            if (CapacityLedgerEntry."Output Quantity" = 0) and (CapacityLedgerEntry.Quantity <> 0) then
+                break;
+        until CapacityLedgerEntry.Next() = 0;
 
         // [WHEN] Invoke "Reverse" action on the capacity ledger entry of the intermediate operation.
         CapacityLedgerEntries.OpenEdit();
