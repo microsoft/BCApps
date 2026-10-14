@@ -625,6 +625,7 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('ExtensionInstallationPageHandler')]
     procedure ReopenedInstallationPageSkipsInstalledApp()
     begin
         PrepareSettingsApp();
@@ -635,7 +636,7 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('MarketplacePreviewDeploymentModalHandler')]
+    [HandlerFunctions('ExtensionInstallationPageHandler,MarketplacePreviewDeploymentModalHandler')]
     procedure InstalledAppPreviewRequestStillOpensWizard()
     begin
         PrepareSettingsApp();
@@ -669,6 +670,12 @@ codeunit 133100 "Extension Management Test"
         MarketplaceExtnDeployment.Continue.Invoke();
         Assert.IsTrue(MarketplaceExtnDeployment.PreviewInfo.Visible(), 'Preview requests should retain the preview installation flow.');
         MarketplaceExtnDeployment.Close();
+    end;
+
+    [PageHandler]
+    procedure ExtensionInstallationPageHandler(var ExtensionInstallation: TestPage "Extension Installation")
+    begin
+        ExtensionInstallation.Close();
     end;
 
     [MessageHandler]
