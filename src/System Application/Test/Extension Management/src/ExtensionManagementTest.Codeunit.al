@@ -602,7 +602,6 @@ codeunit 133100 "Extension Management Test"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('AlreadyInstalledMessageHandler')]
     procedure InstalledMarketplaceRequestDoesNotReopenWizard()
     begin
         PrepareSettingsApp();
@@ -684,12 +683,6 @@ codeunit 133100 "Extension Management Test"
     begin
         MarketplaceExtnDeployment.Continue.Invoke();
         Assert.IsTrue(MarketplaceExtnDeployment.PreviewInfo.Visible(), 'Preview requests should retain the preview installation flow.');
-    end;
-
-    [MessageHandler]
-    procedure AlreadyInstalledMessageHandler(Message: Text[1024])
-    begin
-        Assert.IsTrue(StrPos(Message, 'is already installed.') > 0, 'The installed-app request should report that the app is already installed.');
     end;
 
     [MessageHandler]
