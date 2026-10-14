@@ -563,7 +563,7 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Default G/L Account Quantity';
             ToolTip = 'Specifies that Quantity is set to 1 on lines of type G/L Account.';
         }
-#if not CLEANSCHEMA29
+#if not CLEANSCHEMA30
         /// <summary>
         /// Contains a discontinued setting that previously controlled item creation from item numbers on sales lines.
         /// </summary>
@@ -572,15 +572,8 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on sales lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>

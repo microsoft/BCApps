@@ -3,6 +3,7 @@ codeunit 139868 "APIV2 - Locations E2E"
     // version Test,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

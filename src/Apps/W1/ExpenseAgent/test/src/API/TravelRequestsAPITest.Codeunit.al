@@ -19,6 +19,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;

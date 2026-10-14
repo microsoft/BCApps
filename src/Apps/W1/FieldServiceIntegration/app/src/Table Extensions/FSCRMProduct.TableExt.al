@@ -10,6 +10,7 @@ tableextension 6617 "FS CRM Product" extends "CRM Product"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(12000; FieldServiceProductType; Option)
         {
             Caption = 'Field Service Product Type';
@@ -29,5 +30,6 @@ tableextension 6617 "FS CRM Product" extends "CRM Product"
             ExternalType = 'Boolean';
             DataClassification = SystemMetadata;
         }
+#pragma warning restore AS0099
     }
 }

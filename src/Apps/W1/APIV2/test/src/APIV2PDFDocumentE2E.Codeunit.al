@@ -1,6 +1,7 @@
 codeunit 139841 "APIV2 - PDF Document E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
