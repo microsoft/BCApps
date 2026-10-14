@@ -327,60 +327,6 @@ page 9883 "Permissions Overview"
         }
     }
 
-    views
-    {
-        view(ReadDirect)
-        {
-            Caption = 'Read - Direct';
-            Filters = where("Read Permission" = const(Yes));
-        }
-        view(ReadIndirect)
-        {
-            Caption = 'Read - Indirect';
-            Filters = where("Read Permission" = const(Indirect));
-        }
-        view(InsertDirect)
-        {
-            Caption = 'Insert - Direct';
-            Filters = where("Insert Permission" = const(Yes));
-        }
-        view(InsertIndirect)
-        {
-            Caption = 'Insert - Indirect';
-            Filters = where("Insert Permission" = const(Indirect));
-        }
-        view(ModifyDirect)
-        {
-            Caption = 'Modify - Direct';
-            Filters = where("Modify Permission" = const(Yes));
-        }
-        view(ModifyIndirect)
-        {
-            Caption = 'Modify - Indirect';
-            Filters = where("Modify Permission" = const(Indirect));
-        }
-        view(DeleteDirect)
-        {
-            Caption = 'Delete - Direct';
-            Filters = where("Delete Permission" = const(Yes));
-        }
-        view(DeleteIndirect)
-        {
-            Caption = 'Delete - Indirect';
-            Filters = where("Delete Permission" = const(Indirect));
-        }
-        view(ExecuteDirect)
-        {
-            Caption = 'Execute - Direct';
-            Filters = where("Execute Permission" = const(Yes));
-        }
-        view(ExecuteIndirect)
-        {
-            Caption = 'Execute - Indirect';
-            Filters = where("Execute Permission" = const(Indirect));
-        }
-    }
-
     trigger OnAfterGetRecord()
     begin
         Clear(AppName);
