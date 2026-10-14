@@ -1,6 +1,7 @@
 codeunit 139860 "APIV2 - G/L Setup E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
 
     var
         Assert: Codeunit "Assert";

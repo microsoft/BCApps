@@ -714,6 +714,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         RequisitionLine."Variant Code" := ProdOrderLine."Variant Code";
 
         RequisitionLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        SubcontractingManagement.SetSubcontractingOrderDate(RequisitionLine, ProdOrderRoutingLine."Starting Date");
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";

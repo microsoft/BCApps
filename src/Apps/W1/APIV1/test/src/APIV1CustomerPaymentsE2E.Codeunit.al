@@ -1,6 +1,7 @@
 codeunit 139743 "APIV1 - Customer Payments E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
