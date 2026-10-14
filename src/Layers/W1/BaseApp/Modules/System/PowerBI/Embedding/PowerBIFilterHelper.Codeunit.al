@@ -124,7 +124,7 @@ codeunit 6320 "Power BI Filter Helper"
         DecimalVariable: Decimal;
         BooleanVariable: Boolean;
         IntegerVariable: Integer;
-        BigIntegerVariable: Integer;
+        BigIntegerVariable: BigInteger;
     begin
         case true of
             InputSelectionVariant.IsText,
