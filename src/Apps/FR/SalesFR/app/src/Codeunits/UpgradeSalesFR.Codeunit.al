@@ -22,6 +22,7 @@ codeunit 10809 "Upgrade Sales FR"
 
     trigger OnUpgradePerCompany()
     var
+        SalesFRReportLayouts: Codeunit "Sales FR Report Layouts";
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
@@ -29,6 +30,7 @@ codeunit 10809 "Upgrade Sales FR"
             exit;
 
         UpgradeSalesFR();
+        SalesFRReportLayouts.SetDefaultReportLayouts();
     end;
 
     local procedure UpgradeSalesFR()

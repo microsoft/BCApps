@@ -26,4 +26,10 @@ codeunit 10810 "Upg. Tag Sales FR"
     begin
         exit('MS-615861-SalesFRUpgradeTag-20251222');
     end;
+
+    internal procedure GetSalesFRReportLayoutsUpgradeTag(): Code[250]
+    begin
+        // Do not pre-register this tag; new companies still need their layout defaults initialized.
+        exit('MS-615861-SalesFRReportLayouts-20261014');
+    end;
 }

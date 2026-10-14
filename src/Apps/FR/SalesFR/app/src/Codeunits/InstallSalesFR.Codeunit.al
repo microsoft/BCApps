@@ -22,6 +22,7 @@ codeunit 10814 "Install Sales FR"
 
     trigger OnInstallAppPerCompany()
     var
+        SalesFRReportLayouts: Codeunit "Sales FR Report Layouts";
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
@@ -29,6 +30,7 @@ codeunit 10814 "Install Sales FR"
             exit;
 
         InstallSalesFR();
+        SalesFRReportLayouts.SetDefaultReportLayouts();
     end;
 
     local procedure InstallSalesFR()
