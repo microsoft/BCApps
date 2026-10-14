@@ -1349,7 +1349,7 @@ codeunit 8614 "Config. XML Exchange"
         TableNodes := DocumentElement.GetChildElements();
         if not HideDialog then
             ConfigProgressBar.Init(TableNodes.Count(), 1, ImportPackageTxt);
-        foreach TableNode in TableNodes do begin
+        foreach TableNode in TableNodes do
             if GetTableIdFromXmlNode(TableNode, TableID) then begin
                 if GetTableStatisticsForTelemetry(TableNode, CurrTableName, CurrRecordCount, TotalTableFields, ImportedTableFields) then
                     Session.LogMessage('0000BV1', StrSubstNo(ImportedTableContentTxt, CurrTableName, CurrRecordCount, TotalTableFields, ImportedTableFields), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
@@ -1391,7 +1391,6 @@ codeunit 8614 "Config. XML Exchange"
                             end;
                     end;
             end;
-        end;
 
         Commit(); // to ensure no deadlock occurs when waiting for background processes
 
