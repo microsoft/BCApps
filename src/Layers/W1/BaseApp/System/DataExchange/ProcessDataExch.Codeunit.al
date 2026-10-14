@@ -246,7 +246,7 @@ codeunit 1201 "Process Data Exch."
     begin
         KeyRef := RecRef.KeyIndex(1);
         FieldRef := KeyRef.FieldIndex(KeyRef.FieldCount);
-        if FieldRef.Type <> FieldType::Integer then
+        if not (FieldRef.Type in [FieldType::Integer, FieldType::BigInteger]) then
             exit(0);
 
         exit(FieldRef.Number);

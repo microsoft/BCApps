@@ -800,7 +800,7 @@ table 1226 "Payment Export Data"
         case FieldRef.Type of
             FieldType::Text, FieldType::Code, FieldType::Date:
                 BlankValue := '';
-            FieldType::Decimal, FieldType::Integer:
+            FieldType::Decimal, FieldType::Integer, FieldType::BigInteger:
                 BlankValue := '0';
         end;
         exit(Format(FieldRef.Value) = BlankValue);
