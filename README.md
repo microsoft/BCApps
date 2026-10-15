@@ -1,6 +1,7 @@
 # BCApps — the home of Business Central application development
 
 
+
 **BCApps is the single, open collaboration hub for everything _Business Central application platform_ development.**
 
 This is where Microsoft engineers, partners, and the wider community build the Business Central application — together, in the open. The Microsoft product team and external contributors work side-by-side in this one repository, on the same code, with the same pipelines and the same tooling.
