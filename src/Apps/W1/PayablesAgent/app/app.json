@@ -27,6 +27,12 @@
             "name": "E-Document Connector - Microsoft 365",
             "publisher": "Microsoft",
             "version": "30.0.0.0"
+        },
+        {
+            "id": "aceb66c8-472e-437c-81d3-27e6c07d0f14",
+            "name": "Email - Microsoft 365 Connector",
+            "publisher": "Microsoft",
+            "version": "30.0.0.0"
         }
     ],
     "internalsVisibleTo": [

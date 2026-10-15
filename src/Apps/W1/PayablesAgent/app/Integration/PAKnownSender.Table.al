@@ -5,7 +5,7 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
+using System.Email;
 
 table 3308 "PA Known Sender"
 {
@@ -25,7 +25,7 @@ table 3308 "PA Known Sender"
         {
             DataClassification = EndUserIdentifiableInformation;
             Caption = 'Email';
-            ToolTip = 'Specifies the email address of a sender whose e-documents have been processed by the Payables Agent.';
+            ToolTip = 'Specifies the email address of a sender whose emails have been processed by the Payables Agent.';
         }
         field(3; "Sender Policy"; Enum "PA Sender Policy")
         {
@@ -58,15 +58,18 @@ table 3308 "PA Known Sender"
             LogSenderApproved();
     end;
 
-    internal procedure InsertIfNew(EDocument: Record "E-Document")
+    /// <summary>
+    /// Adds the sender of an email-sourced task to the known-senders list if it is not there yet. The sender is
+    /// read from the Email module via the task source's email inbox; tasks with no email source are ignored.
+    /// Callers standardize their input into a task source first (see "PA V1V2 Compatibility").
+    /// </summary>
+    internal procedure InsertIfNew(PayablesAgentTaskSource: Record "Payables Agent Task Source")
     var
         Existing: Record "PA Known Sender";
         Setup: Record "Payables Agent Setup";
         SenderEmail: Text[250];
     begin
-        if EDocument."Outlook Mail Message Id" = '' then
-            exit;
-        SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(SenderEmail));
+        SenderEmail := GetSenderEmail(PayablesAgentTaskSource);
         if SenderEmail = '' then
             exit;
         Existing.SetRange(Email, SenderEmail);
@@ -83,18 +86,34 @@ table 3308 "PA Known Sender"
     end;
 
     /// <summary>
-    /// Finds the known-sender record matching the e-document's sender, if any.
-    /// Returns false when the sender is empty or not in the list.
+    /// Finds the known-sender record matching a task source's sender, if any.
+    /// Returns false when the task has no email source, the sender is empty, or it is not in the list.
     /// </summary>
-    internal procedure GetForEDocument(EDocument: Record "E-Document"; var KnownSender: Record "PA Known Sender"): Boolean
+    internal procedure GetForSource(PayablesAgentTaskSource: Record "Payables Agent Task Source"; var KnownSender: Record "PA Known Sender"): Boolean
     var
         SenderEmail: Text[250];
     begin
-        SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email));
+        SenderEmail := GetSenderEmail(PayablesAgentTaskSource);
         if SenderEmail = '' then
             exit(false);
         KnownSender.SetRange(Email, SenderEmail);
         exit(KnownSender.FindFirst());
+    end;
+
+    /// <summary>
+    /// The sender email address of a task source, read from the Email module. Blank when there is no email inbox
+    /// attached or the inbox row is no longer available.
+    /// </summary>
+    local procedure GetSenderEmail(PayablesAgentTaskSource: Record "Payables Agent Task Source"): Text[250]
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        if PayablesAgentTaskSource."Email Inbox Id" = 0 then
+            exit('');
+        EmailInbox.SetLoadFields("Sender Address");
+        if not EmailInbox.Get(PayablesAgentTaskSource."Email Inbox Id") then
+            exit('');
+        exit(CopyStr(EmailInbox."Sender Address", 1, 250));
     end;
 
     // Logs every path that adds a known sender, and separately every path that results in a sender

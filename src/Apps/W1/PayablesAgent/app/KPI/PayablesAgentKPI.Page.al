@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
@@ -30,7 +29,7 @@ page 3306 "Payables Agent KPI"
                     Caption = 'Emails received';
                     ToolTip = 'Specifies the number of emails received by the agent.';
                 }
-                field(AgentEDocsFinalizedByAgent; CountKPI.Get("PA KPI Scenario"::"Agent E-Docs Finalized by Agent") + CountKPI.Get("PA KPI Scenario"::"Agent E-Docs Finalized by User"))
+                field(AgentEDocsFinalizedByAgent; CountKPI.Get("PA KPI Scenario"::"Purchase Invoices completed by Agent"))
                 {
                     ApplicationArea = All;
                     Caption = 'Invoices created';
@@ -65,7 +64,7 @@ page 3306 "Payables Agent KPI"
             CountKPI.Set(PAKPIScenario, PayablesAgentKPI.GetAggregateKPI(PAKPIScenario).Count);
         end;
         TimeSavedEmails := ConvertDurationToText(CountKPI.Get("PA KPI Scenario"::"Agent Tasks Received") * 3, TimeSavedEmailsFormatExpression); // Estimated 3 minutes saved per email
-        TimeSavedInvoices := ConvertDurationToText((CountKPI.Get("PA KPI Scenario"::"Agent E-Docs Finalized by Agent") + CountKPI.Get("PA KPI Scenario"::"Agent E-Docs Finalized by User")) * 5, TimeSavedInvoicesFormatExpression); // Estimated 5 minutes saved per invoice
+        TimeSavedInvoices := ConvertDurationToText((CountKPI.Get("PA KPI Scenario"::"Purchase Invoices completed by Agent")) * 5, TimeSavedInvoicesFormatExpression); // Estimated 5 minutes saved per invoice
     end;
 
     var
@@ -87,7 +86,6 @@ page 3306 "Payables Agent KPI"
         MinutesUnitLbl: Label 'min', Comment = 'min represents minutes, it will be shown like 23 min', MaxLength = 3;
     begin
         ControlAutoFormatExpression := StrSubstNo(AutoFormatExpressionLbl, MinutesUnitLbl);
-
         if MinutesSaved < 60 then
             exit(MinutesSaved);
 
@@ -99,7 +97,6 @@ page 3306 "Payables Agent KPI"
             HoursSaved := Round(MinutesSaved / 60, 0.1)
         else
             HoursSaved := Round(MinutesSaved / 60, 0.5);
-
         if HoursSaved < 1000 then
             exit(HoursSaved);
 
@@ -110,7 +107,6 @@ page 3306 "Payables Agent KPI"
             exit(DaysSaved)
         else
             DaysSaved := Round(DaysSaved, 1);
-
         if DaysSaved < 1000 then
             exit(DaysSaved);
 

@@ -5,8 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
-
 page 3313 "PA Known Senders"
 {
     Caption = 'Payables Agent Known Senders', Comment = 'Payables Agent is a term, and should not be translated.';
@@ -38,20 +36,17 @@ page 3313 "PA Known Senders"
     trigger OnOpenPage()
     var
         SavedSetup: Record "Payables Agent Setup";
-        OutlookSetup: Record "Outlook Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         UnusedNotification: Notification;
         Impact: Enum "PA Setup Change Impact";
         SavedFolder: Text;
     begin
         SavedSetup.GetSetup();
-        if OutlookSetup.FindFirst() then
-            SavedFolder := OutlookSetup."Email Folder";
 
         Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedReason(SavedSetup."Email Review Policy", SavedFolder);
         case Impact of
             Impact::KnownSendersIgnoredByFolder:
-                UnusedNotification.Message := StrSubstNo(UnusedByFolderLbl, SavedFolder);
+                UnusedNotification.Message := UnusedByFolderLbl;
             Impact::KnownSendersIgnoredByPolicy:
                 UnusedNotification.Message := StrSubstNo(UnusedByPolicyLbl, PayablesAgentSetup.PolicyLabel(SavedSetup."Email Review Policy"));
             else
@@ -62,6 +57,6 @@ page 3313 "PA Known Senders"
     end;
 
     var
-        UnusedByFolderLbl: Label 'This list is currently unused. Emails arrive through subfolder ''%1'' and are processed without consulting it.', Comment = '%1 = folder name';
+        UnusedByFolderLbl: Label 'This list is currently unused. Emails arrive through the configured subfolder and are processed without consulting it.', Comment = '%1 = folder name';
         UnusedByPolicyLbl: Label 'This list doesn''t affect processing while review policy is set to ''%1''.', Comment = '%1 = review policy';
 }

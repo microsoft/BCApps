@@ -5,9 +5,11 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Email;
 
+/// <summary>
+/// Validates that a desired setup configuration is valid before persisting it. 
+/// </summary>
 codeunit 3310 "PA Validate Setup"
 {
     Access = Internal;
@@ -16,11 +18,11 @@ codeunit 3310 "PA Validate Setup"
     Permissions = tabledata "Email Inbox" = rid;
 
     var
-        OutlookSetup: Record "Outlook Setup";
+        PayablesAgentSetup: Record "Payables Agent Setup";
 
-    procedure SetOutlookSetup(NewOutlookSetup: Record "Outlook Setup")
+    procedure ConfigureSetupToValidate(NewPayablesAgentSetup: Record "Payables Agent Setup")
     begin
-        OutlookSetup := NewOutlookSetup;
+        PayablesAgentSetup := NewPayablesAgentSetup;
     end;
 
     trigger OnRun()
@@ -30,9 +32,8 @@ codeunit 3310 "PA Validate Setup"
         Email: Codeunit "Email";
     begin
         TempFilters."Unread Emails" := true;
-        TempFilters."Earliest Email" := OutlookSetup."Last Sync At";
+        TempFilters."Earliest Email" := PayablesAgentSetup."Last Sync At";
         TempFilters."Max No. of Emails" := 1;
-        Email.RetrieveEmails(OutlookSetup."Email Account ID", OutlookSetup."Email Connector", TempEmailInbox, TempFilters);
+        Email.RetrieveEmails(PayablesAgentSetup."Email Account Id", "Email Connector"::"Microsoft 365", TempEmailInbox, TempFilters);
     end;
-
 }

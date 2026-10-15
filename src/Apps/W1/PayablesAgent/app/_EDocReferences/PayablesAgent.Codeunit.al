@@ -7,7 +7,6 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Utilities;
 using System.Agents;
 using System.AI;
@@ -46,20 +45,9 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
     var
-        AgentTaskMessage: Record "Agent Task Message";
-        EDocument: Record "E-Document";
-        EDocumentEntryNo: Integer;
+        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        AgentTaskMessage.SetRange(ID, MessageId);
-        if not AgentTaskMessage.FindFirst() then
-            exit;
-        if not Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
-            exit;
-        if not EDocument.Get(EDocumentEntryNo) then
-            exit;
-        if EDocument."Outlook Mail Message Id" <> '' then
-            exit(Page::"PA Agent Email Task");
-        exit(Page::"PA Agent Upload Task");
+        PageId := PAV1V2Compatibility.GetAgentTaskMessagePageId(AgentUserId, MessageId);
     end;
 
     procedure GetDefaultInitials(): Text[4]
@@ -102,12 +90,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         exit(GetEDocumentForAgentTask(AgentTaskId));
     end;
 
-    /// <summary>
-    /// Given a payables agent task id, it returns the e-document associated with the task.
-    /// </summary>
-    /// <param name="AgentTaskId"></param>
-    /// <returns></returns>
-    procedure GetEDocumentForAgentTask(AgentTaskId: BigInteger) EDocument: Record "E-Document"
+    local procedure GetEDocumentForAgentTask(AgentTaskId: BigInteger) EDocument: Record "E-Document"
     var
         AgentTaskMessage: Record "Agent Task Message";
         EDocumentEntryNo: Integer;
@@ -141,105 +124,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
-    local procedure CreateAgentTask(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
-    var
-        Agent: Record Agent;
-        AgentTask: Record "Agent Task";
-        PayablesAgentSetupRec: Record "Payables Agent Setup";
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PayablesAgentKPI: Codeunit "Payables Agent KPI";
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Telemetry: Codeunit Telemetry;
-        CustomDimensions: Dictionary of [Text, Text];
-    begin
-        if not EDocument.Get(EDocument."Entry No") then
-            exit;
-        if EDocument.GetEDocumentService().Code <> PayablesAgentEDocServiceTok then
-            exit;
-        if StartState <> "Import E-Doc. Proc. Status"::Unprocessed then
-            exit;
-
-        if (StartState = "Import E-Doc. Proc. Status"::Unprocessed) and (DesiredEndState <> "Import E-Doc. Proc. Status"::Unprocessed) then
-            exit;
-
-        AgentTask.SetRange("Company Name", CompanyName());
-        AgentTask.SetRange("External ID", Format(EDocument."Entry No"));
-        if not AgentTask.IsEmpty() then
-            exit;
-
-        EDocument.CalcFields("Import Processing Status");
-        if EDocument."Import Processing Status" in ["Import E-Doc. Proc. Status"::Processed] then
-            exit;
-
-        if not PayablesAgentSetup.GetAgent(Agent) then
-            exit;
-        if Agent.State = Agent.State::Disabled then
-            exit;
-
-        PayablesAgentSetupRec.GetSetup();
-        CustomDimensions.Set('Category', PayablesAgentSetup.FeatureName());
-        CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
-        CustomDimensions.Set('EmailReviewPolicy', Format(PayablesAgentSetupRec."Email Review Policy", 0, 9));
-
-        // A sender explicitly set to Reject is a blocklist: no agent task is created.
-        if PayablesAgentSetup.IsSenderRejected(EDocument) then begin
-            Telemetry.LogMessage('0000QJ2', 'Payables Agent Task Skipped: sender rejected', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-            exit;
-        end;
-
-        BuildAgentTask(EDocument, Agent);
-
-        CustomDimensions.Set('ReviewIncomingInvoice', Format(PayablesAgentSetupRec."Review Incoming Invoice", 0, 9));
-        Telemetry.LogMessage('0000PJA', 'Payables Agent Task Received', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-        PayablesAgentKPI.InsertKPIEntry("PA KPI Scenario"::"Agent Tasks Received");
-    end;
-
-    procedure BuildAgentTask(EDocument: Record "E-Document"; Agent: Record Agent)
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
-        PayablesAgent: Codeunit "Payables Agent";
-        AgentTaskBuilder: Codeunit "Agent Task Builder";
-        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
-        PATrial: Codeunit "PA Trial";
-        AgentTaskTitle: Text[150];
-        Message: Text;
-        MustRequestReviewOfMessage: Boolean;
-        ExcludeBilling: Boolean;
-        TelemetryDictionary: Dictionary of [Text, Text];
-        TaskTitleLbl: Label 'E-Document from %1', Comment = '%1 is the sender''s email address.';
-        MessageLbl: Label 'A new electronic document %1 has been received. Your task is to create a Purchase Invoice in Business Central.', Locked = true, Comment = '%1 is the e-document entry number.';
-        TrialModeTok: Label 'Agent Task created in trial mode. Skipping billing for invoice.', Locked = true;
-    begin
-        PayablesAgentSetup.GetSetup();
-        MustRequestReviewOfMessage := PASetup.ShouldRequestReview(EDocument);
-        Message := StrSubstNo(MessageLbl, EDocument."Entry No");
-        AgentTaskTitle := CopyStr(StrSubstNo(TaskTitleLbl, LowerCase(EDocument."Source Details")), 1, MaxStrLen(AgentTaskTitle));
-
-        ExcludeBilling := false;
-        if PATrial.IsActive() then begin
-            PATrial.IncrementTrialInvoiceCount();
-            TelemetryDictionary := PayablesAgent.GetCustomDimensions();
-            TelemetryDictionary.Add('TrialInvoiceCount', Format(PATrial.GetTrialInvoiceCount(), 0, 9));
-            TelemetryDictionary.Add('TrialInvoiceLimit', Format(PATrial.GetTrialInvoiceLimit(), 0, 9));
-            TelemetryDictionary.Add('ExcludeBilling', Format(ExcludeBilling, 0, 9));
-            Session.LogMessage('0000SEE', TrialModeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
-            ExcludeBilling := true;
-        end;
-
-        AgentTaskMessageBuilder
-            .Initialize(CopyStr(EDocument."Source Details", 1, 250), Message)
-            .SetRequiresReview(MustRequestReviewOfMessage)
-            .SetMessageExternalID(Format(EDocument."Entry No"));
-
-        AgentTaskBuilder
-            .Initialize(Agent."User Security ID", AgentTaskTitle)
-            .SetExternalId(Format(EDocument."Entry No"))
-            .AddTaskMessage(AgentTaskMessageBuilder)
-            .SetBillingContext(ExcludeBilling ? Enum::"Agent Task Billing Context"::Excluded : Enum::"Agent Task Billing Context"::Default)
-            .Create();
-    end;
-
     internal procedure SetAgentTaskTitle(AgentTaskID: BigInteger; InvoiceNo: Text[50]; VendorName: Text[100])
     var
         AgentTask: Record "Agent Task";
@@ -249,18 +133,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
             AgentTask.Title := CopyStr(StrSubstNo(TaskTitleLbl, InvoiceNo, VendorName), 1, MaxStrLen(AgentTask.Title));
             AgentTask.Modify(true);
         end;
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"Inbound E-Documents", OnOpenPageEvent, '', false, false)]
-    local procedure OnOpenInboundEDocumentsPage(var Rec: Record "E-Document")
-    var
-        EDocument: Record "E-Document";
-    begin
-        // Event to ensure agent can only see e-documents that are relevant to their session.
-        EDocument := GetCurrentSessionsEDocument();
-        if EDocument."Entry No" = 0 then
-            exit;
-        Rec.SetRange("Entry No", EDocument."Entry No");
     end;
 
     internal procedure RegisterCapability()
@@ -308,7 +180,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
                 if Agent.Get(User."User Security ID") then
                     if Agent."Agent Metadata Provider" = "Agent Metadata Provider"::"Payables Agent" then
                         exit(true);
-
             until User.Next() = 0;
         exit(false);
     end;
@@ -320,7 +191,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     begin
         if not AgentSession.IsAgentSession(CurrentAgentMetadataProvider) then
             exit(false);
-
         if CurrentAgentMetadataProvider <> "Agent Metadata Provider"::"Payables Agent" then
             exit(false);
 
@@ -329,8 +199,10 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     end;
 
     procedure GetDefaultProfile(var TempAllProfile: Record "All Profile" temporary)
+    var
+        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        PASetup.GetDefaultProfile(TempAllProfile);
+        PAV1V2Compatibility.GetDefaultProfile(TempAllProfile);
     end;
 
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
@@ -342,6 +214,5 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         PAAnnotation: Codeunit "PA Annotation";
         PASetup: Codeunit "Payables Agent Setup";
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
-        PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
         PayablesAgentTelemetryTok: Label 'Payables Agent', Locked = true;
 }

@@ -6,8 +6,6 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Agents;
 using System.Email;
 using System.Utilities;
@@ -24,8 +22,6 @@ codeunit 3304 "PA Setup Configuration"
     var
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         TempPayablesAgentSetup: Record "Payables Agent Setup" temporary;
-        TempEDocumentService: Record "E-Document Service" temporary;
-        TempOutlookSetup: Record "Outlook Setup" temporary;
         TempBlobTrialUpload: Codeunit "Temp Blob";
         TrialUploadFileName: Text;
         TrialUploadPending: Boolean;
@@ -62,37 +58,17 @@ codeunit 3304 "PA Setup Configuration"
         TempPayablesAgentSetup.Copy(PayablesAgentSetup);
     end;
 
-    procedure GetEDocumentService(): Record "E-Document Service"
-    begin
-        exit(TempEDocumentService);
-    end;
-
-    procedure SetEDocumentService(EDocumentService: Record "E-Document Service")
-    begin
-        TempEDocumentService.Copy(EDocumentService);
-    end;
-
     procedure GetEmailAccount(): Record "Email Account"
     var
         TempEmailAccount: Record "Email Account" temporary;
         EmailAccount: Codeunit "Email Account";
     begin
-        if IsNullGuid(TempOutlookSetup."Email Account ID") then
+        if IsNullGuid(TempPayablesAgentSetup."Email Account Id") then
             exit(TempEmailAccount);
         EmailAccount.GetAllAccounts(false, TempEmailAccount);
-        if not TempEmailAccount.Get(TempOutlookSetup."Email Account ID", TempOutlookSetup."Email Connector") then
+        if not TempEmailAccount.Get(TempPayablesAgentSetup."Email Account Id", "Email Connector"::"Microsoft 365") then
             Clear(TempEmailAccount);
         exit(TempEmailAccount);
-    end;
-
-    procedure GetOutlookSetup(): Record "Outlook Setup"
-    begin
-        exit(TempOutlookSetup);
-    end;
-
-    procedure SetOutlookSetup(OutlookSetup: Record "Outlook Setup")
-    begin
-        TempOutlookSetup.Copy(OutlookSetup);
     end;
 
     procedure GetAgentSetupBuffer(): Record "Agent Setup Buffer"

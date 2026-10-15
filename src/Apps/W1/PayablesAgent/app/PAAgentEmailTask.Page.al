@@ -6,10 +6,7 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Agents;
-using System.Email;
 
 page 3305 "PA Agent Email Task"
 {
@@ -72,10 +69,11 @@ page 3305 "PA Agent Email Task"
 
                 trigger OnAction()
                 var
-                    OutlookIntegrationImpl: Codeunit "Outlook Integration Impl.";
+                    WebLink: Text;
                 begin
-                    if (EDocument."Outlook Mail Message Id" <> '') then
-                        HyperLink(StrSubstNo(OutlookIntegrationImpl.WebLinkText(), EDocument."Outlook Mail Message Id"));
+                    WebLink := SourceBuffer.GetSourceEmailWebLink();
+                    if WebLink <> '' then
+                        HyperLink(WebLink);
                 end;
             }
             action(ViewFile)
@@ -88,7 +86,7 @@ page 3305 "PA Agent Email Task"
 
                 trigger OnAction()
                 begin
-                    EDocument.ViewSourceFile();
+                    SourceBuffer.ViewSourcePdf();
                 end;
             }
         }
@@ -103,8 +101,8 @@ page 3305 "PA Agent Email Task"
     }
 
     var
-        EDocument: Record "E-Document";
-        EDocDataStorage: Record "E-Doc. Data Storage";
+        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
+        SourceBuffer: Record "PA Detailed Task" temporary;
         EmailSubject: Text;
         EmailFrom: Text;
         EmailContent: Text;
@@ -113,40 +111,21 @@ page 3305 "PA Agent Email Task"
         NoPDFReceivedFromEmailTxt: label 'Email received without PDF attachment';
 
     trigger OnAfterGetCurrRecord()
-    var
-        EmailMessage: Codeunit "Email Message";
-        EntryNo: Integer;
     begin
-        if Evaluate(EntryNo, Rec."External ID") then;
-        if not EDocument.Get(EntryNo) then;
-        if not EDocDataStorage.Get(EDocument."Unstructured Data Entry No.") then;
-        EmailMessage.Get(EDocument."Mail Message Id");
-        EmailFrom := EDocument."Source Details";
-        EmailContent := EmailMessage.GetBody();
-        EmailSubject := EDocument."Additional Source Details";
-        ViewPDFVisible := EDocDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
+        PAV1V2Compatibility.LoadPADetailedTask(Rec, SourceBuffer);
+        EmailFrom := SourceBuffer."Email From";
+        EmailSubject := SourceBuffer."Email Subject";
+        EmailContent := SourceBuffer.GetSourceEmailBody();
+        ViewPDFVisible := SourceBuffer."Has Pdf";
     end;
 
     local procedure GetCaption(): Text[250]
     var
-        EntryNo: Integer;
+        LocalBuffer: Record "PA Detailed Task" temporary;
     begin
-        if not Evaluate(EntryNo, Rec."External ID") then
-            exit(NoPDFReceivedFromEmailTxt);
-
-        if not EDocument.Get(EntryNo) then
-            exit(NoPDFReceivedFromEmailTxt);
-
-        if EDocument."Unstructured Data Entry No." = 0 then
-            exit(NoPDFReceivedFromEmailTxt);
-
-        if not EDocDataStorage.Get(EDocument."Unstructured Data Entry No.") then
-            exit(NoPDFReceivedFromEmailTxt);
-
-        if EDocDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF then
-            exit(PDFReceivedFromEmailTxt)
-        else
-            exit(NoPDFReceivedFromEmailTxt);
+        PAV1V2Compatibility.LoadPADetailedTask(Rec, LocalBuffer);
+        if LocalBuffer."Has Pdf" then
+            exit(PDFReceivedFromEmailTxt);
+        exit(NoPDFReceivedFromEmailTxt);
     end;
-
 }

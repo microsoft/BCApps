@@ -223,16 +223,15 @@ page 3304 "Payables Agent Setup"
                             OutlookIntegration: Codeunit "Outlook Integration Impl.";
                             PrevAccountId: Guid;
                         begin
-                            PrevAccountId := TempOutlookSetup."Email Account ID";
-                            TempEmailAccount."Account Id" := TempOutlookSetup."Email Account ID";
-                            TempEmailAccount.Connector := TempOutlookSetup."Email Connector";
+                            PrevAccountId := Rec."Email Account Id";
+                            TempEmailAccount."Account Id" := Rec."Email Account Id";
+                            TempEmailAccount.Connector := "Email Connector"::"Microsoft 365";
                             if OutlookIntegration.SelectEmailAccount(TempEmailAccount) then begin
-                                TempOutlookSetup."Email Account ID" := TempEmailAccount."Account Id";
-                                TempOutlookSetup."Email Connector" := TempEmailAccount.Connector;
+                                Rec."Email Account Id" := TempEmailAccount."Account Id";
                                 MailboxAddress := TempEmailAccount."Email Address";
-                                if PrevAccountId <> TempOutlookSetup."Email Account ID" then begin
-                                    Clear(TempOutlookSetup."Email Folder");
-                                    Clear(TempOutlookSetup."Email Folder Id");
+                                if PrevAccountId <> Rec."Email Account Id" then begin
+                                    Clear(Rec."Email Folder");
+                                    Clear(Rec."Email Folder Id");
                                 end;
                                 SetupChanged := true;
                                 CalcOpenAgentDemoGuideVisible();
@@ -240,7 +239,7 @@ page 3304 "Payables Agent Setup"
                             end;
                         end;
                     }
-                    field(MailboxFolder; TempOutlookSetup."Email Folder")
+                    field(MailboxFolder; Rec."Email Folder")
                     {
                         Caption = 'Folder';
                         ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Manage per sender'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
@@ -251,15 +250,15 @@ page 3304 "Payables Agent Setup"
                             TempEmailFolder: Record "Email Folders" temporary;
                             EmailFolders: Page "Email Account Folders";
                         begin
-                            if IsNullGuid(TempOutlookSetup."Email Account ID") then
+                            if IsNullGuid(Rec."Email Account Id") then
                                 Error(SelectMailboxFirstErr);
 
                             EmailFolders.LookupMode(true);
-                            EmailFolders.SetEmailAccount(TempOutlookSetup."Email Account ID", TempOutlookSetup."Email Connector");
+                            EmailFolders.SetEmailAccount(Rec."Email Account Id", "Email Connector"::"Microsoft 365");
                             if EmailFolders.RunModal() = Action::LookupOK then begin
                                 EmailFolders.GetRecord(TempEmailFolder);
-                                TempOutlookSetup."Email Folder" := TempEmailFolder."Folder Name";
-                                TempOutlookSetup."Email Folder Id" := TempEmailFolder."Id";
+                                Rec."Email Folder" := TempEmailFolder."Folder Name";
+                                Rec."Email Folder Id" := TempEmailFolder."Id";
                                 SetupChanged := true;
                                 CurrPage.Update();
                             end;
@@ -410,8 +409,6 @@ page 3304 "Payables Agent Setup"
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();
         Rec := PASetupConfiguration.GetPayablesAgentSetup();
-        TempEDocumentService := PASetupConfiguration.GetEDocumentService();
-        TempOutlookSetup := PASetupConfiguration.GetOutlookSetup();
         MailboxAddress := PASetupConfiguration.GetEmailAccount()."Email Address";
         CalcOpenAgentDemoGuideVisible();
         CalcTrialExperienceVisible();
@@ -483,13 +480,13 @@ page 3304 "Payables Agent Setup"
         Impact: Enum "PA Setup Change Impact";
         SendersCount: Integer;
     begin
-        Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedByChange(Rec."Email Review Policy", TempOutlookSetup."Email Folder", SendersCount);
+        Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedByChange(Rec."Email Review Policy", Rec."Email Folder", SendersCount);
         if SendersCount = 0 then
             exit(true);
 
         case Impact of
             Impact::KnownSendersIgnoredByFolder:
-                exit(Confirm(FolderIgnoresListConfirmLbl, false, SendersCount, TempOutlookSetup."Email Folder"));
+                exit(Confirm(FolderIgnoresListConfirmLbl, false, SendersCount, Rec."Email Folder"));
             Impact::KnownSendersIgnoredByPolicy:
                 exit(Confirm(PolicyIgnoresListConfirmLbl, false, SendersCount, PayablesAgentSetup.PolicyLabel(Rec."Email Review Policy")));
         end;
@@ -508,8 +505,6 @@ page 3304 "Payables Agent Setup"
         CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupConfiguration.SetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupConfiguration.SetPayablesAgentSetup(Rec);
-        PASetupConfiguration.SetEDocumentService(TempEDocumentService);
-        PASetupConfiguration.SetOutlookSetup(TempOutlookSetup);
     end;
 
     local procedure OpenDemoGuide()
@@ -578,8 +573,6 @@ page 3304 "Payables Agent Setup"
 
 
     var
-        TempEDocumentService: Record "E-Document Service" temporary;
-        TempOutlookSetup: Record "Outlook Setup" temporary;
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";

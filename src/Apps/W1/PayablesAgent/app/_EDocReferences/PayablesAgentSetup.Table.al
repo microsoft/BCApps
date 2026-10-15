@@ -23,11 +23,23 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA33
+#pragma warning disable AS0072
         field(2; "E-Document Service Code"; Code[20])
         {
             DataClassification = CustomerContent;
             TableRelation = "E-Document Service".Code;
+            ObsoleteReason = 'The Payables Agent E-Document Service code is fixed; it is no longer stored on the setup.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#pragma warning restore AS0072
+#endif
         field(3; "Monitor Outlook"; Boolean)
         {
             DataClassification = SystemMetadata;
@@ -93,6 +105,31 @@ table 3303 "Payables Agent Setup"
         field(13; "Applied Instr. Config Hash"; Text[64])
         {
             Caption = 'Applied Instructions Configuration Hash';
+            DataClassification = SystemMetadata;
+        }
+        field(14; "Email Account Id"; Guid)
+        {
+            Caption = 'Email Account Id';
+            DataClassification = SystemMetadata;
+        }
+        field(15; "Email Folder"; Text[2048])
+        {
+            Caption = 'Email Folder';
+            DataClassification = CustomerContent;
+        }
+        field(16; "Email Folder Id"; Text[2048])
+        {
+            Caption = 'Email Folder Id';
+            DataClassification = SystemMetadata;
+        }
+        field(17; "Last Sync At"; DateTime)
+        {
+            Caption = 'Last Sync At';
+            DataClassification = SystemMetadata;
+        }
+        field(18; "Email Monitoring Consent"; Boolean)
+        {
+            Caption = 'Email Monitoring Consent';
             DataClassification = SystemMetadata;
         }
     }

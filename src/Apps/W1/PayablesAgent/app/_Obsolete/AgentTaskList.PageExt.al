@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -26,7 +27,10 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
                     AllowedFileExtensions = '.pdf';
                     AllowMultipleFiles = true;
                     Image = NewDocument;
-                    Visible = IsAgentActionVisible;
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by action in the Purchase Invoices page.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction(Files: List of [FileUpload])
                     begin
@@ -39,12 +43,6 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
 
     var
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        IsAgentActionVisible: Boolean;
-
-    trigger OnOpenPage()
-    begin
-        IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
-    end;
 
     local procedure CreatePATask(Files: List of [FileUpload])
     var
@@ -60,10 +58,9 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
         PayablesAgentSetup.LoadSetupConfiguration(PASetupConfig);
         if not AgentCU.IsActive(PASetupConfig.GetAgentSetupBuffer()."User Security ID") then
             Error(AgentNotActiveErr);
-
         foreach FileUpload in Files do begin
             FileUpload.CreateInStream(InStream);
-            EDocImport.CreateFromType(EDocument, PASetupConfig.GetEDocumentService(), "E-Doc. File Format"::PDF, FileUpload.FileName, InStream);
+            EDocImport.CreateFromType(EDocument, PayablesAgentSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileUpload.FileName, InStream);
 
             EDocument."Source Details" := StrSubstNo(SourceDetailsTok, FileUpload.FileName);
             EDocument.Modify();
@@ -72,3 +69,4 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
     end;
 
 }
+#endif

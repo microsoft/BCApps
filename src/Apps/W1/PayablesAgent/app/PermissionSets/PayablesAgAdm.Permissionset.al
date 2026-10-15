@@ -9,6 +9,9 @@ using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Email;
 using System.Threading;
 
+/// <summary>
+/// Permission set used for configuring the Payables Agent
+/// </summary>
 permissionset 3304 "Payables Ag. - Adm."
 {
     Caption = 'Payables Agent - Administration', Comment = 'Payables Agent is a term, and should not be translated.';

@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Environment;
@@ -215,7 +214,6 @@ page 3307 "PA Demo Guide"
     begin
         Session.LogMessage('0000PJU', 'Running demo guide for payables agent', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
         Commit();
-
         if not SetupConfigurationProvided then begin
             Session.LogMessage('0000VDH', NoSetupConfigurationProvidedTok, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
             PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
@@ -229,7 +227,6 @@ page 3307 "PA Demo Guide"
     local procedure EnableControls();
     begin
         ResetControls();
-
         case Step of
             Step::Start:
                 ShowWelcomeStep();
@@ -353,11 +350,9 @@ page 3307 "PA Demo Guide"
     begin
         if not PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupConfiguration) then
             Error(EmailNotConfiguredErr);
-
         if not DemoInvoicesHandled then begin
             DemoEmailSent := PADemoGuide.SendDemoInvoicesByEmail(PASetupConfiguration);
             DemoInvoicesHandled := true;
-
             if DemoEmailSent then
                 Session.LogMessage('0000V8C', DemoInvoicesSentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok)
             else

@@ -6,7 +6,6 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
 using System.Agents;
 
 page 3312 "PA Agent Upload Task"
@@ -51,7 +50,7 @@ page 3312 "PA Agent Upload Task"
 
                 trigger OnAction()
                 begin
-                    EDocument.ViewSourceFile();
+                    PADetailedTask.ViewSourcePdf();
                 end;
             }
         }
@@ -63,30 +62,16 @@ page 3312 "PA Agent Upload Task"
     }
 
     var
-        EDocument: Record "E-Document";
-        EDocDataStorage: Record "E-Doc. Data Storage";
+        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
+        PADetailedTask: Record "PA Detailed Task";
         FileName: Text;
         ViewPDFVisible: Boolean;
         UploadedInvoiceTxt: Label 'Uploaded invoice';
 
     trigger OnAfterGetCurrRecord()
-    var
-        EntryNo: Integer;
     begin
-        Clear(EDocument);
-        Clear(EDocDataStorage);
-        FileName := '';
-        ViewPDFVisible := false;
-
-        if not Evaluate(EntryNo, Rec."External ID") then
-            exit;
-        if not EDocument.Get(EntryNo) then
-            exit;
-        FileName := EDocument."Source Details";
-        if EDocument."Unstructured Data Entry No." = 0 then
-            exit;
-        if not EDocDataStorage.Get(EDocument."Unstructured Data Entry No.") then
-            exit;
-        ViewPDFVisible := EDocDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
+        PAV1V2Compatibility.LoadPADetailedTask(Rec, PADetailedTask);
+        FileName := PADetailedTask."File Name";
+        ViewPDFVisible := PADetailedTask."Has Pdf";
     end;
 }
