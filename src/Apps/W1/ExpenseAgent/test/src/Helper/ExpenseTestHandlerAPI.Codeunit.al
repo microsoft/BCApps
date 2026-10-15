@@ -123,7 +123,9 @@ codeunit 148307 "Expense Test Handler API"
         IdentityManagement: Codeunit "Identity Management";
         WebServicesKey: Text;
     begin
-        // Reuse only a key without expiry; a key with an expiry date is replaced, so it can never expire mid-use.
+        // A key without expiry has expiry date 0DT. A failed lookup returns the error text as key and the current time
+        // as expiry, so checking for 0DT ensures that only an existing key is reused; otherwise a key is created, which
+        // reports any error.
         if IdentityManagement.GetWebServiceExpiryDate(ServiceUserId) = 0DT then begin
             WebServicesKey := IdentityManagement.GetWebServicesKey(ServiceUserId);
             if WebServicesKey <> '' then

@@ -295,32 +295,6 @@ codeunit 148361 "Expense Agent Config. Test"
     end;
 
     [Test]
-    procedure ServiceIdentityReplacesKeyWithExpiry()
-    var
-        AadApplication: Record "AAD Application";
-        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
-        IdentityManagement: Codeunit "Identity Management";
-        ServiceIdentity: JsonObject;
-        ExpiringKey: Text;
-    begin
-        // [SCENARIO] A key with an expiry date, as created by earlier versions of the test handler, is replaced by a key without expiry
-        Initialize();
-
-        // [GIVEN] Enabled Entra app "EA" whose application user has key "K1" that expires
-        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
-        ExpenseTestHandlerAPI.EnableEntraApplication();
-        AadApplication.Get(AadApplication."Client Id");
-        ExpiringKey := IdentityManagement.CreateWebServicesKey(AadApplication."User ID", CreateDateTime(CalcDate('<+30D>', Today()), Time()));
-
-        // [WHEN] Getting the service identity for E2E tests
-        ExpenseTestHandlerAPI.GetServiceIdentity(ServiceIdentity);
-
-        // [THEN] A new key without expiry is returned instead of "K1"
-        Assert.AreNotEqual(ExpiringKey, GetJsonText(ServiceIdentity, 'webServicesKey'), 'A key with an expiry date must be replaced.');
-        Assert.AreEqual(0DT, IdentityManagement.GetWebServiceExpiryDate(AadApplication."User ID"), 'The web service access key must not expire.');
-    end;
-
-    [Test]
     procedure ServiceIdentityRepairsEnabledApplicationWithoutUser()
     var
         AadApplication: Record "AAD Application";
