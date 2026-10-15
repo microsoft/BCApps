@@ -13,7 +13,7 @@ pageextension 31342 "Intrastat Report Setup CZ" extends "Intrastat Report Setup"
             field("Get Ctry/Reg. of Origin CZ"; Rec."Get Ctry/Reg. of Origin CZ")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies to determine the item''s country/region of origin information.';
+                ToolTip = 'Specifies whether to get the item''s country/region of origin information from the item card or posted entries.';
             }
         }
         addafter("Default Trans. Type - Returns")
