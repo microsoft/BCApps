@@ -806,6 +806,7 @@ codeunit 132590 "Type Helper Unit Tests"
     procedure DateTimeToTimeZone()
     var
         TimeZone: Record "Time Zone";
+        TimeZoneCU: Codeunit "Time Zone";
         TypeHelper: Codeunit "Type Helper";
         TimeZoneOffset: Duration;
         UserOffset: Duration;
@@ -814,15 +815,63 @@ codeunit 132590 "Type Helper Unit Tests"
         // [SCENARIO 323341] Convert DateTime to Time Zone
         InputDateTime := CreateDateTime(LibraryRandom.RandDate(10), Time);
 
-        TypeHelper.GetUserClientTypeOffset(UserOffset);
+        TypeHelper.GetUserClientTypeOffset(UserOffset, InputDateTime);
         TimeZone.SetFilter("Display Name", '*:00*');
         TimeZone.FindSet();
         TimeZone.Next(LibraryRandom.RandInt(TimeZone.Count));
-        TypeHelper.GetTimezoneOffset(TimeZoneOffset, TimeZone.ID);
+        TimeZoneOffset := TimeZoneCU.GetTimezoneOffset(InputDateTime, TimeZone.ID);
 
         Assert.AreEqual(
           InputDateTime + TimeZoneOffset - UserOffset,
           TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, TimeZone.ID), '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DateTimeFromUTCToTimeZoneUsesDaylightSavingTime()
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InputDateTime: DateTime;
+        ExpectedDateTime: DateTime;
+    begin
+        // [SCENARIO] Convert a UTC DateTime to a time zone during daylight-saving time
+
+        SetUserTimeZone('UTC');
+
+        // [GIVEN] A UTC DateTime during daylight-saving time
+        InputDateTime := CreateDateTime(DMY2Date(24, 9, 2026), 050000T);
+        ExpectedDateTime := CreateDateTime(DMY2Date(24, 9, 2026), 070000T);
+
+        // [WHEN] The DateTime is converted to the W. Europe Standard Time zone
+        // [THEN] The daylight-saving time offset is applied
+        Assert.AreEqual(
+            ExpectedDateTime,
+            TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, 'W. Europe Standard Time'),
+            'The DateTime was converted using an incorrect time zone offset.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DateTimeFromInputTimeZoneUsesDaylightSavingTime()
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InputDateTime: DateTime;
+        ExpectedDateTime: DateTime;
+    begin
+        // [SCENARIO] Convert a DateTime from a time zone during daylight-saving time
+
+        SetUserTimeZone('UTC');
+
+        // [GIVEN] A DateTime in W. Europe Standard Time during daylight-saving time
+        InputDateTime := CreateDateTime(DMY2Date(24, 9, 2026), 070000T);
+        ExpectedDateTime := CreateDateTime(DMY2Date(24, 9, 2026), 050000T);
+
+        // [WHEN] The DateTime is converted from the W. Europe Standard Time zone
+        // [THEN] The daylight-saving time offset is applied
+        Assert.AreEqual(
+            ExpectedDateTime,
+            TypeHelper.ConvertDateTimeFromInputTimeZoneToClientTimezone(InputDateTime, 'W. Europe Standard Time'),
+            'The DateTime was converted using an incorrect time zone offset.');
     end;
 
     [Test]

@@ -9061,14 +9061,17 @@
     local procedure FindTimeZone(var TimeZoneID: Text[180]; var TimeZoneOffset: Duration; var UserOffset: Duration)
     var
         TimeZone: Record "Time Zone";
+        TimeZoneCU: Codeunit "Time Zone";
         TypeHelper: Codeunit "Type Helper";
+        ReferenceDateTime: DateTime;
     begin
-        TypeHelper.GetUserClientTypeOffset(UserOffset);
+        ReferenceDateTime := TypeHelper.GetCurrUTCDateTime();
+        TypeHelper.GetUserClientTypeOffset(UserOffset, ReferenceDateTime);
         TimeZone.SetFilter("Display Name", '*:00*');
         TimeZone.FindSet();
         TimeZone.Next(LibraryRandom.RandInt(TimeZone.Count));
         TimeZoneID := TimeZone.ID;
-        TypeHelper.GetTimezoneOffset(TimeZoneOffset, TimeZone.ID);
+        TimeZoneOffset := TimeZoneCU.GetTimezoneOffset(ReferenceDateTime, TimeZone.ID);
     end;
 
     local procedure FormatDecimal(InAmount: Decimal; DecimalPlaces: Integer): Text
