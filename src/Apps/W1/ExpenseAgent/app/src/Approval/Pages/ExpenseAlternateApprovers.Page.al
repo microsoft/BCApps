@@ -8,6 +8,7 @@ page 7140 "Expense Alternate Approvers"
 {
     PageType = List;
     ApplicationArea = Basic, Suite;
+    DelayedInsert = true;
     SourceTable = "Expense Alternate Approver";
 
     layout
