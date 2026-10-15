@@ -65,7 +65,7 @@ codeunit 10845 "Report Layouts FR"
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
         if not ReportLayoutList.Get(Report::Check, 'CheckFR', CurrentModuleInfo.Id()) then begin
             Session.LogMessage('PMFR0001', MissingCheckLayoutTxt, Verbosity::Warning, DataClassification::SystemMetadata,
-                TelemetryScope::ExtensionPublisher, 'Category', PaymentManagementCategoryTok);
+                TelemetryScope::All, 'Category', PaymentManagementCategoryTok);
             exit(false);
         end;
 
