@@ -63,6 +63,7 @@ table 11725 "EET Cue CZL"
             FieldClass = FlowField;
             ToolTip = 'Specifies the number of EET entries created in the filtered period for which the communication with the EET service failed.';
         }
+#pragma warning disable AA0232
         field(20; "Registered Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -109,6 +110,7 @@ table 11725 "EET Cue CZL"
             Editable = false;
             FieldClass = FlowFilter;
         }
+#pragma warning restore AA0232
     }
 
     keys
