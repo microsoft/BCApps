@@ -157,7 +157,7 @@ page 6004 "Res. Availability (Service)"
         CurrentDocumentType: Integer;
         CurrentDocumentNo: Code[20];
         CurrentServItemLineNo: Integer;
-        CurrentEntryNo: Integer;
+        CurrentEntryNo: BigInteger;
         PeriodType: Enum "Analysis Period Type";
         DateFilter: Text;
         PKFirstRecInCurrSet: Text[1024];
@@ -165,7 +165,7 @@ page 6004 "Res. Availability (Service)"
         ColumnsSet: Text[1024];
         CurrSetLength: Integer;
 
-    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; ServItemLineNo: Integer; EntryNo: Integer)
+    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; ServItemLineNo: Integer; EntryNo: BigInteger)
     begin
         CurrentDocumentType := DocumentType;
         CurrentDocumentNo := DocumentNo;

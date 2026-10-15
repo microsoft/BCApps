@@ -113,9 +113,9 @@ codeunit 5818 "Undo Service Shipment Line"
         ServLedgEntriesPost: Codeunit "ServLedgEntries-Post";
         ConfirmManagement: Codeunit "Confirm Management";
         Window: Dialog;
-        ItemShptEntryNo: Integer;
-        ServLedgEntryNo: Integer;
-        WarrantyLedgEntryNo: Integer;
+        ItemShptEntryNo: BigInteger;
+        ServLedgEntryNo: BigInteger;
+        WarrantyLedgEntryNo: BigInteger;
         DeleteServItems: Boolean;
         PostedWhseShptLineFound: Boolean;
     begin
@@ -323,7 +323,7 @@ codeunit 5818 "Undo Service Shipment Line"
         exit(0); // "Item Shpt. Entry No."
     end;
 
-    local procedure InsertNewShipmentLine(OldServShptLine: Record "Service Shipment Line"; ItemShptEntryNo: Integer)
+    local procedure InsertNewShipmentLine(OldServShptLine: Record "Service Shipment Line"; ItemShptEntryNo: BigInteger)
     var
         NewServShptLine: Record "Service Shipment Line";
         IsHandled: Boolean;
@@ -483,7 +483,7 @@ codeunit 5818 "Undo Service Shipment Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertNewShipmentLine(var ServiceShptLine: Record "Service Shipment Line"; ItemShptEntryNo: Integer; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
+    local procedure OnBeforeInsertNewShipmentLine(var ServiceShptLine: Record "Service Shipment Line"; ItemShptEntryNo: BigInteger; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
     begin
     end;
 

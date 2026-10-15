@@ -64,7 +64,7 @@ codeunit 7057 "WHT Exp. Report Post Handler"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterPostEmployee', '', false, false)]
-    local procedure OnAfterPostEmployeeApplyExpenseWHT(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnAfterPostEmployeeApplyExpenseWHT(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
     var
         WHTExpReportBuffer: Record "WHT Exp. Report Buffer";
     begin

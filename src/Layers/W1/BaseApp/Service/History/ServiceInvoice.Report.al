@@ -822,7 +822,7 @@ report 5911 "Service - Invoice"
         CopyText: Text[30];
         ShowShippingAddr: Boolean;
         NextEntryNo: Integer;
-        FirstValueEntryNo: Integer;
+        FirstValueEntryNo: BigInteger;
         OutputNo: Integer;
         TypeInt: Integer;
         DimText: Text[120];

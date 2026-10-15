@@ -198,7 +198,7 @@ codeunit 1711 "Positive Pay Export Mgt"
     /// <param name="DataExchLineDefCode">Line definition code for the specific record type.</param>
     /// <param name="DataExchEntryNo">Entry number of the data exchange record.</param>
     /// <param name="DataExchLineNo">Line number within the data exchange entry.</param>
-    local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: Integer; DataExchLineNo: Integer)
+    local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: BigInteger; DataExchLineNo: Integer)
     var
         DataExchField: Record "Data Exch. Field";
         DataExchLineDef: Record "Data Exch. Line Def";
@@ -392,7 +392,7 @@ codeunit 1711 "Positive Pay Export Mgt"
     /// This procedure creates the footer record that concludes the positive pay export file.
     /// The footer provides summary information and maintains referential integrity with detail records.
     /// </remarks>
-    procedure PreparePosPayFooter(DataExch: Record "Data Exch."; DataExchDetalEntryNo: Integer; BankAccountNo: Text[30])
+    procedure PreparePosPayFooter(DataExch: Record "Data Exch."; DataExchDetalEntryNo: BigInteger; BankAccountNo: Text[30])
     var
         PosPayFooter: Record "Positive Pay Footer";
     begin

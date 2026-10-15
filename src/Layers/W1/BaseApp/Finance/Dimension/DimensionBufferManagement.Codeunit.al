@@ -30,7 +30,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <returns>Entry number assigned to the inserted dimension set, zero if no dimensions provided</returns>
     procedure InsertDimensions(var DimBuf: Record "Dimension Buffer"): Integer
     var
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         if DimBuf.FindSet() then begin
             TempDimBuf.Reset();
@@ -51,7 +51,7 @@ codeunit 411 "Dimension Buffer Management"
     /// </summary>
     /// <param name="DimBuf">Dimension buffer containing dimensions to insert</param>
     /// <param name="EntryNo">Specific entry number to assign to the dimension set</param>
-    procedure InsertDimensionsUsingEntryNo(var DimBuf: Record "Dimension Buffer"; EntryNo: Integer)
+    procedure InsertDimensionsUsingEntryNo(var DimBuf: Record "Dimension Buffer"; EntryNo: BigInteger)
     var
         DimCount: Integer;
         IsHandled: Boolean;
@@ -93,7 +93,7 @@ codeunit 411 "Dimension Buffer Management"
         Found: Boolean;
         EndOfDimBuf: Boolean;
         EndOfTempDimBuf: Boolean;
-        PrevEntryNo: Integer;
+        PrevEntryNo: BigInteger;
     begin
         if not DimBuf.Find('-') then
             exit(0);
@@ -146,7 +146,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="EntryNo">Entry number to retrieve dimensions for</param>
     /// <param name="DimBuf">Dimension buffer to populate with the retrieved dimensions</param>
     /// <returns>True if dimensions were found and retrieved, false if entry number not found</returns>
-    procedure GetDimensions(EntryNo: Integer; var DimBuf: Record "Dimension Buffer"): Boolean
+    procedure GetDimensions(EntryNo: BigInteger; var DimBuf: Record "Dimension Buffer"): Boolean
     begin
         TempDimBuf.SetRange("Entry No.", EntryNo);
         if not TempDimBuf.Find('-') then
@@ -180,7 +180,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="ForgetDimEntryNo">Dimension entry number to remove from collection</param>
     /// <param name="DoCollect">Whether to actually collect the dimension entry</param>
     /// <param name="DimEntryNo">Variable to receive the collected dimension entry number</param>
-    procedure CollectDimEntryNo(var SelectedDim: Record "Selected Dimension"; DimSetID: Integer; EntryNo: Integer; ForgetDimEntryNo: Integer; DoCollect: Boolean; var DimEntryNo: Integer)
+    procedure CollectDimEntryNo(var SelectedDim: Record "Selected Dimension"; DimSetID: Integer; EntryNo: BigInteger; ForgetDimEntryNo: BigInteger; DoCollect: Boolean; var DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         DimSetEntry: Record "Dimension Set Entry";
@@ -213,7 +213,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="DimEntryNo">Variable to receive the first dimension entry number</param>
     /// <param name="EntryNo">Variable to receive the first entry number</param>
     /// <returns>True if entries exist and first entry found, false if collection is empty</returns>
-    procedure FindFirstDimEntryNo(var DimEntryNo: Integer; var EntryNo: Integer): Boolean
+    procedure FindFirstDimEntryNo(var DimEntryNo: BigInteger; var EntryNo: BigInteger): Boolean
     var
         Found: Boolean;
     begin
@@ -231,7 +231,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="DimEntryNo">Variable to receive the next dimension entry number</param>
     /// <param name="EntryNo">Variable to receive the next entry number</param>
     /// <returns>True if next entry exists, false if end of collection reached</returns>
-    procedure NextDimEntryNo(var DimEntryNo: Integer; var EntryNo: Integer): Boolean
+    procedure NextDimEntryNo(var DimEntryNo: BigInteger; var EntryNo: BigInteger): Boolean
     var
         Found: Boolean;
     begin
@@ -327,7 +327,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="EntryNo">Entry number being assigned to the dimension set</param>
     /// <param name="IsHandled">Set to true to skip the standard insertion logic</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertDimensionsUsingEntryNoOnBeforeTempDimBufInsert(var TempDimBuf: Record "Dimension Buffer"; var DimBuf: Record "Dimension Buffer"; EntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnInsertDimensionsUsingEntryNoOnBeforeTempDimBufInsert(var TempDimBuf: Record "Dimension Buffer"; var DimBuf: Record "Dimension Buffer"; EntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

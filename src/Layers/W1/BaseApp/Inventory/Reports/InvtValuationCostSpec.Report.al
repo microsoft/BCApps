@@ -312,7 +312,7 @@ report 5801 "Invt. Valuation - Cost Spec."
             PosQty := RemainingQty;
     end;
 
-    local procedure SumQty(var RemainingQty: Decimal; var PosQty: Decimal; EntryNo: Integer; AppliedQty: Decimal)
+    local procedure SumQty(var RemainingQty: Decimal; var PosQty: Decimal; EntryNo: BigInteger; AppliedQty: Decimal)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ShouldExit: Boolean;

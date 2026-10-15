@@ -14,7 +14,7 @@ table 5647 "FA Matrix Posting Type"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -114,7 +114,7 @@ table 5647 "FA Matrix Posting Type"
         OnAfterCreateTypes(Rec);
     end;
 
-    procedure InsertRec(EntryNo: Integer; FAPostingTypeName: Text)
+    procedure InsertRec(EntryNo: BigInteger; FAPostingTypeName: Text)
     begin
         "Entry No." := EntryNo;
         "FA Posting Type Name" := CopyStr(FAPostingTypeName, 1, MaxStrLen("FA Posting Type Name"));

@@ -727,7 +727,7 @@ table 5109 "Purchase Header Archive"
                                                            "No." = field("Purchase Quote No."));
             ValidateTableRelation = false;
         }
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";

@@ -376,7 +376,7 @@ codeunit 370 "Bank Acc. Reconciliation Post"
     var
         BankAccRecMatchBufferCopy: Record "Bank Acc. Rec. Match Buffer";
         BankAccRecLine: Record "Bank Acc. Reconciliation Line";
-        LedgerEntryNo: Integer;
+        LedgerEntryNo: BigInteger;
         TotalRecLinesAmount: Decimal;
     begin
         BankAccRecMatchBufferCopy.SetRange("Bank Account No.", BankAccRecMatchBuffer."Bank Account No.");
@@ -869,7 +869,7 @@ codeunit 370 "Bank Acc. Reconciliation Post"
         CODEUNIT.Run(CODEUNIT::"Empl. Entry-Edit", EmployeeLedgerEntry);
     end;
 
-    local procedure CloseBankAccountLedgerEntry(EntryNo: Integer; AppliedAmount: Decimal; StatementDate: Date; StatementLineNo: Integer)
+    local procedure CloseBankAccountLedgerEntry(EntryNo: BigInteger; AppliedAmount: Decimal; StatementDate: Date; StatementLineNo: Integer)
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         CheckLedgerEntry: Record "Check Ledger Entry";

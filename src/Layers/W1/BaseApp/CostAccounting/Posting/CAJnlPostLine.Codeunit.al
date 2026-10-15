@@ -42,8 +42,8 @@ codeunit 1102 "CA Jnl.-Post Line"
         TotalDebit: Decimal;
         TotalCredit: Decimal;
         TotalBudgetAmount: Decimal;
-        NextCostEntryNo: Integer;
-        NextCostBudgetEntryNo: Integer;
+        NextCostEntryNo: BigInteger;
+        NextCostBudgetEntryNo: BigInteger;
 
     procedure RunWithCheck(var CostJnlLine2: Record "Cost Journal Line")
     begin

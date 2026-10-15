@@ -75,7 +75,7 @@ codeunit 1331 "Trial Balance Cache Mgt."
     var
         TrialBalanceCacheInfo: Record "Trial Balance Cache Info";
         TrialBalanceCache: Record "Trial Balance Cache";
-        Index: Integer;
+        Index: BigInteger;
         CaptionsSaved: Boolean;
         CacheFound: Boolean;
     begin

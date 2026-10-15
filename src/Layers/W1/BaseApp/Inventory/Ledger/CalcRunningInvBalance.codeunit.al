@@ -13,8 +13,8 @@ codeunit 124 "Calc. Running Inv. Balance"
         ClientTypeManagement: Codeunit System.Environment."Client Type Management";
         DayTotals: Dictionary of [Date, Decimal];
         DayTotalsLoc: Dictionary of [Date, Decimal];
-        EntryValues: Dictionary of [Integer, Decimal];
-        EntryValuesLoc: Dictionary of [Integer, Decimal];
+        EntryValues: Dictionary of [BigInteger, Decimal];
+        EntryValuesLoc: Dictionary of [BigInteger, Decimal];
         PrevAccNo: Code[20];
         PrevLocation: Code[20];
 
@@ -34,7 +34,7 @@ codeunit 124 "Calc. Running Inv. Balance"
         exit(RunningBalance);
     end;
 
-    local procedure CalcItemBalance(var ItemLedgerEntry: Record "Item Ledger Entry"; PerLocation: Boolean; var Daytotals2: Dictionary of [Date, Decimal]; EntryValues2: Dictionary of [Integer, Decimal]; var RunningBalance: Decimal)
+    local procedure CalcItemBalance(var ItemLedgerEntry: Record "Item Ledger Entry"; PerLocation: Boolean; var Daytotals2: Dictionary of [Date, Decimal]; EntryValues2: Dictionary of [BigInteger, Decimal]; var RunningBalance: Decimal)
     var
         DateTotal: Decimal;
     begin

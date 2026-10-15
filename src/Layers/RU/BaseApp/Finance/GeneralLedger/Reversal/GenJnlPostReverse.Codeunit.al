@@ -105,10 +105,10 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         TempTaxDiffLedgEntry: Record "Tax Diff. Ledger Entry" temporary;
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         UpdateAnalysisView: Codeunit "Update Analysis View";
-        NextDtldCustLedgEntryEntryNo: Integer;
-        NextDtldVendLedgEntryEntryNo: Integer;
-        NextDtldEmplLedgEntryNo: Integer;
-        TransactionKey: Integer;
+        NextDtldCustLedgEntryEntryNo: BigInteger;
+        NextDtldVendLedgEntryEntryNo: BigInteger;
+        NextDtldEmplLedgEntryNo: BigInteger;
+        TransactionKey: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -222,7 +222,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverse(GLRegister, GLRegister2);
     end;
 
-    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: Integer; var NextDtldVendLedgEntryEntryNo: Integer; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var ReversalEntry: Record "Reversal Entry"; var TempTaxDiffLedgerEntry: Record "Tax Diff. Ledger Entry" temporary; var ReversalEntry2: Record "Reversal Entry")
+    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: BigInteger; var NextDtldVendLedgEntryEntryNo: BigInteger; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var ReversalEntry: Record "Reversal Entry"; var TempTaxDiffLedgerEntry: Record "Tax Diff. Ledger Entry" temporary; var ReversalEntry2: Record "Reversal Entry")
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
@@ -376,7 +376,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverseGLEntry(GLEntry);
     end;
 
-    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: Integer; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: Integer)
+    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: BigInteger; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: BigInteger)
     var
         NewCustLedgerEntry: Record "Cust. Ledger Entry";
         ReversedCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -925,7 +925,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             Description := ReversalEntry.Description;
     end;
 
-    local procedure GetTransactionKey(): Integer
+    local procedure GetTransactionKey(): BigInteger
     var
         ReversalEntry: Record "Reversal Entry";
     begin
@@ -935,7 +935,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         exit(ReversalEntry."Transaction No." - 1);
     end;
 
-    local procedure GetRegisterNoForTransactionReversal(var ReversalEntry: Record "Reversal Entry"): Integer
+    local procedure GetRegisterNoForTransactionReversal(var ReversalEntry: Record "Reversal Entry"): BigInteger
     var
         GLRegister: Record "G/L Register";
     begin
@@ -1005,7 +1005,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         end;
     end;
 
-    local procedure SaveReversalEntries(var TempReversalEntry: Record "Reversal Entry" temporary; TransactionKey: Integer)
+    local procedure SaveReversalEntries(var TempReversalEntry: Record "Reversal Entry" temporary; TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -1023,7 +1023,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             until TempReversalEntry.Next() = 0;
     end;
 
-    local procedure DeleteReversalEntries(TransactionKey: Integer)
+    local procedure DeleteReversalEntries(TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -1328,7 +1328,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="IsHandled">Set to true to skip standard dimension validation</param>
     /// <param name="DimensionManagement">Dimension management codeunit for validation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
+    local procedure OnBeforeCheckDimComb(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
     begin
     end;
 
@@ -1386,7 +1386,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="DtldCustLedgEntry">Detailed customer ledger entry with applied filters</param>
     /// <param name="NextDtldCustLedgEntryEntryNo">Next entry number for detailed customer ledger entries</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseCustLedgEntryOnAfterDtldCustLedgEntrySetFilters(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NextDtldCustLedgEntryEntryNo: Integer)
+    local procedure OnReverseCustLedgEntryOnAfterDtldCustLedgEntrySetFilters(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NextDtldCustLedgEntryEntryNo: BigInteger)
     begin
     end;
 
@@ -1437,7 +1437,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="DtldVendLedgEntry">Detailed vendor ledger entry with applied filters</param>
     /// <param name="NextDtldVendLedgEntryEntryNo">Next entry number for detailed vendor ledger entries</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseVendLedgEntryOnAfterDtldVendLedgEntrySetFilters(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; NextDtldVendLedgEntryEntryNo: Integer)
+    local procedure OnReverseVendLedgEntryOnAfterDtldVendLedgEntrySetFilters(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; NextDtldVendLedgEntryEntryNo: BigInteger)
     begin
     end;
 
@@ -1561,7 +1561,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="GLEntry2">G/L entry records to be reversed</param>
     /// <param name="GLRegister">G/L register for the reversal</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
+    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: Record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
     begin
     end;
 
@@ -1574,7 +1574,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     /// <param name="NextDtldCustLedgEntryEntryNo">Next entry number for detailed customer ledger entries</param>
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryByReversalOnBeforeInsertDtldCustLedgEntry(var NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var NextDtldCustLedgEntryEntryNo: Integer)
+    local procedure OnApplyCustLedgEntryByReversalOnBeforeInsertDtldCustLedgEntry(var NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var NextDtldCustLedgEntryEntryNo: BigInteger)
     begin
     end;
 
@@ -1596,7 +1596,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     /// <param name="NextDtldVendLedgEntryEntryNo">Next entry number for detailed vendor ledger entries</param>
     [IntegrationEvent(false, false)]
-    local procedure OnApplyVendLedgEntryByReversalOnBeforeInsertDtldVendLedgEntry(var NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var NextDtldVendLedgEntryEntryNo: Integer)
+    local procedure OnApplyVendLedgEntryByReversalOnBeforeInsertDtldVendLedgEntry(var NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var NextDtldVendLedgEntryEntryNo: BigInteger)
     begin
     end;
 
@@ -1788,7 +1788,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="DetailedCustLedgEntry">Detailed customer ledger entry record context</param>
     /// <param name="NextDtldCustLedgEntryEntryNo">Next entry number that was assigned</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseCustLedgEntryOnAfterAssignNextDtldCustLedgEntryEntryNo(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var NextDtldCustLedgEntryEntryNo: Integer)
+    local procedure OnReverseCustLedgEntryOnAfterAssignNextDtldCustLedgEntryEntryNo(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var NextDtldCustLedgEntryEntryNo: BigInteger)
     begin
     end;
 
@@ -1814,7 +1814,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="IsHandled">Set to true to skip standard application processing</param>
 #pragma warning disable AS0077
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: Integer; var NextDtldCustLedgEntryEntryNo: Integer; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean)
+    local procedure OnBeforeApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: BigInteger; var NextDtldCustLedgEntryEntryNo: BigInteger; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean)
     begin
     end;
 #pragma warning restore AS0077

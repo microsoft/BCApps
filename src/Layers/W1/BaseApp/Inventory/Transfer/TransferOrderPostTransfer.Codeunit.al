@@ -219,7 +219,7 @@ codeunit 5856 "TransferOrder-Post Transfer"
         ReserveTransLine: Codeunit "Transfer Line-Reserve";
         WhsePostShipment: Codeunit "Whse.-Post Shipment";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         HideValidationDialog: Boolean;

@@ -94,7 +94,7 @@ codeunit 2581 "Dim Correction Run"
         Session.LogMessage('0000EHK', StrSubstNo(CompletedChangeLedgerEntriesLbl, DimensionCorrection."Entry No."), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DimensionCorrectionTok);
     end;
 
-    local procedure ChangeLedgerEntries(StartEntryNo: Integer; EndEntryNo: Integer; var UpdateCounter: Integer; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var DimensionCorrection: Record "Dimension Correction")
+    local procedure ChangeLedgerEntries(StartEntryNo: BigInteger; EndEntryNo: BigInteger; var UpdateCounter: Integer; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var DimensionCorrection: Record "Dimension Correction")
     var
         GLEntry: Record "G/L Entry";
         StartDateTime: DateTime;
@@ -126,7 +126,7 @@ codeunit 2581 "Dim Correction Run"
         end;
     end;
 
-    local procedure UpdateGLEntry(var GLEntry: Record "G/L Entry"; DimensionCorrectionEntryNo: Integer; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary) Result: Boolean
+    local procedure UpdateGLEntry(var GLEntry: Record "G/L Entry"; DimensionCorrectionEntryNo: BigInteger; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary) Result: Boolean
     var
         InvalidatedDimCorrection: Record "Invalidated Dim Correction";
         DimCorrectionSetBuffer: Record "Dim Correction Set Buffer";
@@ -189,7 +189,7 @@ codeunit 2581 "Dim Correction Run"
     /// <param name="DimensionCorrectionEntryNo">Entry number of the dimension correction</param>
     /// <param name="TempInvalidatedDimCorrection">Temporary invalidated dimension correction record</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateGLEntry(var GLEntry: Record "G/L Entry"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer"; var Result: Boolean; DimensionCorrectionEntryNo: Integer; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary)
+    local procedure OnAfterUpdateGLEntry(var GLEntry: Record "G/L Entry"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer"; var Result: Boolean; DimensionCorrectionEntryNo: BigInteger; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary)
     begin
     end;
 

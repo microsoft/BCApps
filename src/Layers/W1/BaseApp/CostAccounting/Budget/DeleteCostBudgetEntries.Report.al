@@ -142,7 +142,7 @@ report 1139 "Delete Cost Budget Entries"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure InitializeRequest(FromEntryNo: Integer; ToEntryNo: Integer)
+    procedure InitializeRequest(FromEntryNo: BigInteger; ToEntryNo: BigInteger)
     begin
         CostBudgetRegister2."No." := FromEntryNo;
         CostBudgetRegister3."No." := ToEntryNo;

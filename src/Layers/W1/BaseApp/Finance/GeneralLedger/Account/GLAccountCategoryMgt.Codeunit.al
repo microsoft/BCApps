@@ -155,7 +155,7 @@ codeunit 570 "G/L Account Category Mgt."
     var
         GLAccountCategory: Record "G/L Account Category";
         GLAccount: Record "G/L Account";
-        CategoryID: array[3] of Integer;
+        CategoryID: array[3] of BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -262,7 +262,7 @@ codeunit 570 "G/L Account Category Mgt."
     /// <param name="SystemGenerated">Indicates if this is a system-generated category that cannot be modified by users</param>
     /// <param name="CashFlowActivity">Cash flow statement activity classification for the category</param>
     /// <returns>Entry number of the newly created account category</returns>
-    procedure AddCategory(InsertAfterEntryNo: Integer; ParentEntryNo: Integer; AccountCategory: Option; NewDescription: Text[80]; SystemGenerated: Boolean; CashFlowActivity: Option): Integer
+    procedure AddCategory(InsertAfterEntryNo: BigInteger; ParentEntryNo: BigInteger; AccountCategory: Option; NewDescription: Text[80]; SystemGenerated: Boolean; CashFlowActivity: Option): BigInteger
     var
         GLAccountCategory: Record "G/L Account Category";
         InsertAfterSequenceNo: Integer;
@@ -1140,7 +1140,7 @@ codeunit 570 "G/L Account Category Mgt."
     /// <param name="Category">Primary account category option value</param>
     /// <param name="SubcategoryDescription">Subcategory description text to locate</param>
     /// <returns>Entry number of the matching subcategory, or 0 if not found</returns>
-    procedure GetSubcategoryEntryNo(Category: Option; SubcategoryDescription: Text): Integer
+    procedure GetSubcategoryEntryNo(Category: Option; SubcategoryDescription: Text): BigInteger
     var
         GLAccountCategory: Record "G/L Account Category";
     begin

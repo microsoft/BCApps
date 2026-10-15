@@ -29,7 +29,7 @@ table 2711 "Bank Acc. Rec. Match Buffer"
         /// Bank account ledger entry number being matched in many-to-one relationships.
         /// References the target ledger entry that multiple statement lines should match against.
         /// </summary>
-        field(1; "Ledger Entry No."; Integer)
+        field(1; "Ledger Entry No."; BigInteger)
         {
             Caption = 'Bank Account Ledger Entry No.';
             Editable = false;
@@ -47,7 +47,7 @@ table 2711 "Bank Acc. Rec. Match Buffer"
         /// Statement line number participating in the many-to-one match.
         /// Identifies specific bank statement lines that contribute to the complex match.
         /// </summary>
-        field(3; "Statement Line No."; Integer)
+        field(3; "Statement Line No."; BigInteger)
         {
             Caption = 'Statement Line No.';
             Editable = false;
@@ -65,7 +65,7 @@ table 2711 "Bank Acc. Rec. Match Buffer"
         /// Unique identifier grouping related statement lines in many-to-one matches.
         /// Multiple buffer entries with the same Match ID represent lines that collectively match one ledger entry.
         /// </summary>
-        field(5; "Match ID"; Integer)
+        field(5; "Match ID"; BigInteger)
         {
             Caption = 'Match ID';
             Editable = false;

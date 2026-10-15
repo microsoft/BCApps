@@ -306,7 +306,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
     var
         ServiceHeader: Record "Service Header";
         GenJnlLine: Record "Gen. Journal Line";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         LineCount: Integer;
     begin
         ServiceHeader := DocumentHeaderVar;

@@ -27,7 +27,7 @@ codeunit 5530 "Calc. Item Availability"
 
     var
         TempInvtEventBuf: Record "Inventory Event Buffer" temporary;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         TableNotSupportedErr: Label 'Table %1 is not supported by the ShowDocument function.', Comment = '%1 = table name';
 
     procedure CalcNewInvtEventBuf(var Item: Record Item; ForecastName: Code[10]; IncludeBlanketOrders: Boolean; ExcludeForecastBefore: Date; IncludePlan: Boolean)
@@ -671,7 +671,7 @@ codeunit 5530 "Calc. Item Availability"
         exit(ForecastExist);
     end;
 
-    procedure GetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: Integer): Boolean
+    procedure GetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: BigInteger): Boolean
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         SalesLine: Record "Sales Line";
@@ -980,7 +980,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterGetDocumentEntries(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var CurrEntryNo: Integer)
+    local procedure OnAfterGetDocumentEntries(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var CurrEntryNo: BigInteger)
     begin
     end;
 
@@ -990,7 +990,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetAnticipatedDemand(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; ForecastName: Code[10]; ExcludeForecastBefore: Date; IncludeBlanketOrders: Boolean; EntryNo: Integer)
+    local procedure OnAfterGetAnticipatedDemand(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; ForecastName: Code[10]; ExcludeForecastBefore: Date; IncludeBlanketOrders: Boolean; EntryNo: BigInteger)
     begin
     end;
 
@@ -1000,7 +1000,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: Integer; var IsHandled: Boolean; RecRef: RecordRef)
+    local procedure OnAfterGetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: BigInteger; var IsHandled: Boolean; RecRef: RecordRef)
     begin
     end;
 

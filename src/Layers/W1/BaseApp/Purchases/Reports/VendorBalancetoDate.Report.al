@@ -518,7 +518,7 @@ report 321 "Vendor - Balance to Date"
         OnAfterCalcVendorRemainingAmount(TempVendorLedgerEntry, PrintAmountInLCY, RemainingAmt, CurrencyCode);
     end;
 
-    local procedure CheckVendLedgerEntryIncludedWithCache(EntryNo: Integer): Boolean
+    local procedure CheckVendLedgerEntryIncludedWithCache(EntryNo: BigInteger): Boolean
     var
         IsIncluded: Boolean;
     begin
@@ -533,7 +533,7 @@ report 321 "Vendor - Balance to Date"
         exit(IsIncluded);
     end;
 
-    local procedure CheckVendEntryIncluded(EntryNo: Integer): Boolean
+    local procedure CheckVendEntryIncluded(EntryNo: BigInteger): Boolean
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         ClosingVendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -560,7 +560,7 @@ report 321 "Vendor - Balance to Date"
         exit(false);
     end;
 
-    local procedure CheckUnappliedEntryExists(EntryNo: Integer): Boolean
+    local procedure CheckUnappliedEntryExists(EntryNo: BigInteger): Boolean
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
     begin
@@ -572,7 +572,7 @@ report 321 "Vendor - Balance to Date"
         exit(not DetailedVendorLedgEntry.IsEmpty);
     end;
 
-    local procedure GetAppliedEntryExternalDocNo(AppliedEntryNo: Integer): Code[35]
+    local procedure GetAppliedEntryExternalDocNo(AppliedEntryNo: BigInteger): Code[35]
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin

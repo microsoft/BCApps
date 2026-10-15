@@ -471,7 +471,7 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
         DetailedVendLedgEntry.FindFirst();
     end;
 
-    local procedure AnyDtldVendLedgEntriesExceptInitialAndApplicaltionExists(VendLedgEntryNo: Integer): Boolean
+    local procedure AnyDtldVendLedgEntriesExceptInitialAndApplicaltionExists(VendLedgEntryNo: BigInteger): Boolean
     var
         DetailedVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
     begin
@@ -481,7 +481,7 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
         exit(not DetailedVendLedgEntry.IsEmpty);
     end;
 
-    local procedure CalcDtldVendLedgEntryCount(EntryType: Enum "Detailed CV Ledger Entry Type"; VendLedgEntryNo: Integer): Integer
+    local procedure CalcDtldVendLedgEntryCount(EntryType: Enum "Detailed CV Ledger Entry Type"; VendLedgEntryNo: BigInteger): Integer
     var
         DetailedVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
     begin

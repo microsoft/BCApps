@@ -1354,7 +1354,7 @@ codeunit 137103 "Cost Adjustment Parallel Run"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeStartOrContinuePosting, '', false, false)]
-    local procedure CountStartPostingOnBeforeStartOrContinuePosting(NextEntryNo: Integer)
+    local procedure CountStartPostingOnBeforeStartOrContinuePosting(NextEntryNo: BigInteger)
     begin
         if TrackGLStartPosting and (NextEntryNo = 0) then
             GLStartPostingCount += 1;
@@ -1382,7 +1382,7 @@ codeunit 137103 "Cost Adjustment Parallel Run"
         PostItemJournalLine(ItemNo, '', Quantity, UnitAmount, PostingDate, 0);
     end;
 
-    local procedure PostItemJournalLine(ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; UnitAmount: Decimal; PostingDate: Date; AppliesToEntryNo: Integer)
+    local procedure PostItemJournalLine(ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; UnitAmount: Decimal; PostingDate: Date; AppliesToEntryNo: BigInteger)
     var
         ItemJournalLine: Record "Item Journal Line";
     begin

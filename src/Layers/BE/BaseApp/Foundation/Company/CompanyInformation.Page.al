@@ -441,7 +441,7 @@ page 1 "Company Information"
                     AssistEdit = true;
                     Caption = 'Experience';
                     Editable = false;
-                    ToolTip = 'Specifies which UI elements are displayed and  which features are available. The setting applies to all users. Essential: Shows all actions and fields for all common business functionality. Premium: Shows all actions and fields for all business functionality, including Manufacturing and Service Management.';
+                    ToolTip = 'Specifies which UI elements are displayed and which features are available. The setting applies to all users. Essential: Shows all actions and fields for all common business functionality. Premium: Shows all actions and fields for all business functionality, including Manufacturing and Service Management.';
 
                     trigger OnAssistEdit()
                     var

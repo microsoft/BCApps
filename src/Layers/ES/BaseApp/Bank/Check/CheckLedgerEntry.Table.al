@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ table 272 "Check Ledger Entry"
         /// <summary>
         /// Unique sequential identifier for the check ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -55,7 +55,7 @@ table 272 "Check Ledger Entry"
         /// <summary>
         /// Reference to the corresponding bank account ledger entry that created this check.
         /// </summary>
-        field(3; "Bank Account Ledger Entry No."; Integer)
+        field(3; "Bank Account Ledger Entry No."; BigInteger)
         {
             Caption = 'Bank Account Ledger Entry No.';
             ToolTip = 'Specifies the entry number of the bank account ledger entry from which the check ledger entry was created.';

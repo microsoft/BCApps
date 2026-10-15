@@ -1151,7 +1151,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Incoming document entry number linking posted journal entries to source documents for audit trail and workflow tracking.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";
@@ -1623,7 +1623,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Fixed asset error entry number linking to FA ledger entry for error correction and audit trail purposes.
         /// </summary>
-        field(5615; "FA Error Entry No."; Integer)
+        field(5615; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
@@ -1793,7 +1793,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// General ledger register number linking posted entries to specific G/L register for audit trail and batch tracking.
         /// </summary>
-        field(8010; "G/L Register No."; Integer)
+        field(8010; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             ToolTip = 'Specifies the number of the general ledger register.';

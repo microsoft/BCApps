@@ -17,7 +17,7 @@ table 1015 "Job Entry No."
             Caption = 'Primary Key';
             Editable = false;
         }
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             Editable = false;

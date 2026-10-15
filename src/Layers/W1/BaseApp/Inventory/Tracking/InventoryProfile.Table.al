@@ -81,7 +81,7 @@ table 99000853 "Inventory Profile"
         {
             Caption = 'Source Batch Name';
         }
-        field(25; "Source Ref. No."; Integer)
+        field(25; "Source Ref. No."; BigInteger)
         {
             Caption = 'Source Ref. No.';
         }

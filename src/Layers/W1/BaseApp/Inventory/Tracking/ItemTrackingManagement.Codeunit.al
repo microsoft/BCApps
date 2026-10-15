@@ -375,7 +375,7 @@ codeunit 6500 "Item Tracking Management"
     var
         ItemTrackingCode: Record "Item Tracking Code";
         ItemTrackingSetup: Record "Item Tracking Setup";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         ExpDate: Date;
         EntriesExist: Boolean;
         IsHandled: Boolean;
@@ -1795,7 +1795,7 @@ codeunit 6500 "Item Tracking Management"
         CreateReservEntry: Codeunit "Create Reserv. Entry";
         ItemTrackingLines: Page "Item Tracking Lines";
         AvailabilityDate: Date;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         SignFactor1: Integer;
         SignFactor2: Integer;
         SecondSourceRowID: Text[250];
@@ -4193,7 +4193,7 @@ codeunit 6500 "Item Tracking Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSynchronizeItemTracking2OnBeforeDeleteSyncedTrackingSpec(var TempTrkgSpec3: Record "Tracking Specification" temporary; TempTrkgSpec1: Record "Tracking Specification" temporary; TempTrkgSpec2: Record "Tracking Specification" temporary; SignFactor1: Integer; SignFactor2: Integer; var LastEntryNo: Integer)
+    local procedure OnSynchronizeItemTracking2OnBeforeDeleteSyncedTrackingSpec(var TempTrkgSpec3: Record "Tracking Specification" temporary; TempTrkgSpec1: Record "Tracking Specification" temporary; TempTrkgSpec2: Record "Tracking Specification" temporary; SignFactor1: Integer; SignFactor2: Integer; var LastEntryNo: BigInteger)
     begin
     end;
 

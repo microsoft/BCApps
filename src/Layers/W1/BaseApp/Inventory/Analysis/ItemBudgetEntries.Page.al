@@ -177,7 +177,7 @@ page 7133 "Item Budget Entries"
     var
         UpdateItemAnalysisView: Codeunit "Update Item Analysis View";
     begin
-        if LowestModifiedEntryNo < 2147483647 then
+        if LowestModifiedEntryNo < 99999999999999999L then
             UpdateItemAnalysisView.SetLastBudgetEntryNo(LowestModifiedEntryNo - 1);
     end;
 
@@ -200,7 +200,7 @@ page 7133 "Item Budget Entries"
         BudgetDimension1CodeVisible := true;
         GlobalDimension2CodeVisible := true;
         GlobalDimension1CodeVisible := true;
-        LowestModifiedEntryNo := 2147483647;
+        LowestModifiedEntryNo := 99999999999999999L;
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -272,7 +272,7 @@ page 7133 "Item Budget Entries"
         GLSetup: Record "General Ledger Setup";
         ItemBudgetName: Record "Item Budget Name";
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
-        LowestModifiedEntryNo: Integer;
+        LowestModifiedEntryNo: BigInteger;
         GlobalDimension1CodeVisible: Boolean;
         GlobalDimension2CodeVisible: Boolean;
         BudgetDimension1CodeVisible: Boolean;

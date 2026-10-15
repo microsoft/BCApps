@@ -37,7 +37,7 @@ codeunit 5062 SegCriteriaManagement
         InsertCriteriaFilters(SegmentNo, Database::Contact, Cont.GetFilters, Cont.GetView(false));
     end;
 
-    procedure InsertReuseLogged(SegmentNo: Code[20]; LoggedSegmentEntryNo: Integer)
+    procedure InsertReuseLogged(SegmentNo: Code[20]; LoggedSegmentEntryNo: BigInteger)
     var
         InteractLogEntry: Record "Interaction Log Entry";
     begin

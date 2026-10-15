@@ -212,7 +212,7 @@ codeunit 134419 "Imp. Inc.Doc. Attachment Tests"
 
 
     [EventSubscriber(ObjectType::Table, Database::"Incoming Document Attachment", 'OnGetBinaryContent', '', false, false)]
-    local procedure OnGetBinaryContent(var Sender: Record "Incoming Document Attachment"; var TempBlob: Codeunit "Temp Blob"; IncomingDocumentEntryNo: Integer);
+    local procedure OnGetBinaryContent(var Sender: Record "Incoming Document Attachment"; var TempBlob: Codeunit "Temp Blob"; IncomingDocumentEntryNo: BigInteger);
     var
         FileOutStream: OutStream;
         DummyText: Text;

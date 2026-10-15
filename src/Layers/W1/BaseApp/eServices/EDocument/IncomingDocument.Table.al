@@ -37,7 +37,7 @@ table 130 "Incoming Document"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -778,7 +778,7 @@ table 130 "Incoming Document"
         CreateGeneralJournalLineWithDataExchange();
     end;
 
-    procedure RemoveReferenceToWorkingDocument(EntryNo: Integer)
+    procedure RemoveReferenceToWorkingDocument(EntryNo: BigInteger)
     begin
         if EntryNo = 0 then
             exit;
@@ -1265,7 +1265,7 @@ table 130 "Incoming Document"
         PAGE.Run(PAGE::"Incoming Document", Rec);
     end;
 
-    procedure ShowCardFromEntryNo(EntryNo: Integer)
+    procedure ShowCardFromEntryNo(EntryNo: BigInteger)
     begin
         if EntryNo = 0 then
             exit;
@@ -1433,7 +1433,7 @@ table 130 "Incoming Document"
         TempErrorMessage.DeleteAll();
     end;
 
-    procedure SelectIncomingDocument(EntryNo: Integer; RelatedRecordID: RecordID): Integer
+    procedure SelectIncomingDocument(EntryNo: BigInteger; RelatedRecordID: RecordID): BigInteger
     var
         IncomingDocumentsSetup: Record "Incoming Documents Setup";
         IncomingDocument: Record "Incoming Document";
@@ -1461,7 +1461,7 @@ table 130 "Incoming Document"
     procedure SelectIncomingDocumentForPostedDocument(DocumentNo: Code[20]; PostingDate: Date; RelatedRecordID: RecordID)
     var
         IncomingDocument: Record "Incoming Document";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         IsPosted: Boolean;
     begin
         if (DocumentNo = '') or (PostingDate = 0D) then
@@ -1504,7 +1504,7 @@ table 130 "Incoming Document"
 
     procedure SaveErrorMessages(var TempErrorMessageRef: Record "Error Message" temporary)
     var
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if not TempErrorMessageRef.FindSet() then
             exit;
@@ -2366,7 +2366,7 @@ table 130 "Incoming Document"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
+    local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: BigInteger)
     begin
     end;
 
@@ -2376,7 +2376,7 @@ table 130 "Incoming Document"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
+    local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: BigInteger)
     begin
     end;
 

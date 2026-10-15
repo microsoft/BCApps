@@ -836,7 +836,7 @@ report 790 "Calculate Inventory"
 
     local procedure UpdateBuffer(BinCode: Code[20]; NewQuantity: Decimal; CalledFromItemLedgerEntry: Boolean)
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
     begin
         if not HasNewQuantity(NewQuantity) then
             exit;
@@ -858,7 +858,7 @@ report 790 "Calculate Inventory"
         end;
     end;
 
-    local procedure RetrieveBuffer(BinCode: Code[20]; DimEntryNo: Integer) Result: Boolean
+    local procedure RetrieveBuffer(BinCode: Code[20]; DimEntryNo: BigInteger) Result: Boolean
     var
         IsHandled: Boolean;
     begin
@@ -1026,7 +1026,7 @@ report 790 "Calculate Inventory"
         end;
     end;
 
-    local procedure CreateDimFromDefault() DimEntryNo: Integer
+    local procedure CreateDimFromDefault() DimEntryNo: BigInteger
     var
         DefaultDimension: Record "Default Dimension";
     begin
@@ -1044,7 +1044,7 @@ report 790 "Calculate Inventory"
         TempDimBufIn.DeleteAll();
     end;
 
-    local procedure InsertDim(TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValueCode: Code[20])
+    local procedure InsertDim(TableID: Integer; EntryNo: BigInteger; DimCode: Code[20]; DimValueCode: Code[20])
     begin
         TempDimBufIn.Init();
         TempDimBufIn."Table ID" := TableID;
@@ -1125,7 +1125,7 @@ report 790 "Calculate Inventory"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeRetrieveBuffer(var TempInventoryBuffer: Record "Inventory Buffer" temporary; ItemLedgerEntry: Record "Item Ledger Entry"; BinCode: Code[20]; DimEntryNo: Integer; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeRetrieveBuffer(var TempInventoryBuffer: Record "Inventory Buffer" temporary; ItemLedgerEntry: Record "Item Ledger Entry"; BinCode: Code[20]; DimEntryNo: BigInteger; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 

@@ -135,7 +135,7 @@ codeunit 5605 "Calculate Disposal"
         end;
     end;
 
-    procedure GetDisposalType(FANo: Code[20]; DeprBookCode: Code[10]; ErrorNo: Integer; var DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal; var DisposalMethod: Option " ",Net,Gross; var MaxDisposalNo: Integer; var SalesEntryNo: Integer)
+    procedure GetDisposalType(FANo: Code[20]; DeprBookCode: Code[10]; ErrorNo: Integer; var DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal; var DisposalMethod: Option " ",Net,Gross; var MaxDisposalNo: Integer; var SalesEntryNo: BigInteger)
     var
         FALedgEntry: Record "FA Ledger Entry";
         DeprBook: Record "Depreciation Book";
