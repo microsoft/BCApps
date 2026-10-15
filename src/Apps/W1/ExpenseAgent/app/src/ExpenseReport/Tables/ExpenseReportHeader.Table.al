@@ -1212,8 +1212,6 @@ table 6906 "Expense Report Header"
             if not Employee.Get(ExpenseUser."Employee No.") then
                 Error(ExpenseUserMustBeLinkedToAnEmployeeErr, ExpenseUser."No.");
 
-            Employee.TestField("Employee Posting Group");
-
             Rec.Validate("Employee Posting Group", Employee."Employee Posting Group");
             Rec.Validate("Reimbursement Currency Code", Employee."Currency Code")
         end else begin
