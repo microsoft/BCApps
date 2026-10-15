@@ -682,7 +682,13 @@ codeunit 139400 "Permissions Test"
         TenantPermission[1]."Object ID" := AllObj."Object ID";
         TenantPermission[1]."Execute Permission" := TenantPermission[1]."Execute Permission"::Yes;
         TenantPermission[1].Insert();
-        TenantPermission[2]."Object ID" := Page::"Vendor Card";
+        AllObj.Get(AllObj."Object Type"::Page, Page::"Vendor Card");
+        TenantPermission[2].Init();
+        TenantPermission[2]."App ID" := NullGuid;
+        TenantPermission[2]."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission[2]."Object Type" := AllObj."Object Type";
+        TenantPermission[2]."Object ID" := AllObj."Object ID";
+        TenantPermission[2]."Execute Permission" := TenantPermission[2]."Execute Permission"::Yes;
         TenantPermission[2].Insert();
 
         // [GIVEN] The permission set is assigned to the current user in the current company
