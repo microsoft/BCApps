@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Finance.VAT.Setup;
-
 permissionset 6905 "Expense Mgmt. Admin"
 {
     Assignable = true;
@@ -27,9 +25,6 @@ permissionset 6905 "Expense Mgmt. Admin"
         tabledata "Expense Vehicle Type" = IMD,
         tabledata "Mileage Rate Setup" = IMD,
         tabledata "Expense Agent Setup" = IMD,
-        tabledata "VAT Business Posting Group" = R,
-        tabledata "VAT Product Posting Group" = RIM,
-        tabledata "VAT Posting Setup" = RIM,
         tabledata "Expense Agent Status" = IMD,
         tabledata "Expense User" = IMD,
         tabledata "Expense Team" = IMD,
