@@ -10,18 +10,20 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
+#if not CLEANSCHEMA33
 using Microsoft.Foundation.AuditCodes;
+#endif
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 #if not CLEAN30
 using System.Environment.Configuration;
-#endif
-#if not CLEANSCHEMA33
 using System.TestLibraries.Upgrade;
 #endif
 using System.TestLibraries.Utilities;
+#if not CLEANSCHEMA33
 using System.Upgrade;
+#endif
 
 codeunit 148163 "Depr. Diff. Calculation FI"
 {
@@ -242,7 +244,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 #else
 #if not CLEANSCHEMA33
     [Test]
-    procedure ForcedUpgradeMigratesLegacyFieldsOnce()
+    procedure ForcedUpgradePreservesMigratedFields()
     var
         FAPostingGroup: Record "FA Posting Group";
         FALedgerEntry: Record "FA Ledger Entry";
@@ -250,85 +252,67 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         DepDiffFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
         UpgradeDepreciationDiffFI: Codeunit "Upgrade Depreciation Diff. FI";
         UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
         DeprDifferenceAccount: Code[20];
         DeprDifferenceBalAccount: Code[20];
         DeprDifferenceSourceCode: Code[10];
-        ChangedDeprDifferenceAccount: Code[20];
-        ChangedDeprDifferenceBalAccount: Code[20];
-        ChangedDeprDifferenceSourceCode: Code[10];
-        FALedgerEntryNo: Integer;
     begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A completed forced upgrade preserves subsequent changes to all four migrated fields.
         Initialize();
 
-        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
-        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
-        DeprDifferenceSourceCode := CopyStr(LibraryUtility.GenerateRandomText(10), 1, MaxStrLen(DeprDifferenceSourceCode));
+        // [GIVEN] The per-company migration tag exists and migrated data has been edited.
+        CreateForcedUpgradeData(FAPostingGroup, FALedgerEntry, SourceCodeSetup);
+        SetForcedUpgradeTag();
+        DeprDifferenceAccount := FAPostingGroup."Deprec. Difference Account";
+        DeprDifferenceBalAccount := FAPostingGroup."Deprec. Difference Bal Acct";
+        DeprDifferenceSourceCode := SourceCodeSetup."Depreciation Difference Code";
 
+        // [WHEN] The forced upgrade runs again.
+        UpgradeDepreciationDiffFI.UpgradeDepreciationDifferencesFI();
+
+        // [THEN] All edited values and the per-company migration tag are preserved.
+        VerifyForcedUpgradeData(
+            FAPostingGroup.Code, FALedgerEntry."Entry No.", DeprDifferenceAccount,
+            DeprDifferenceBalAccount, DeprDifferenceSourceCode, true);
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()),
+            'The forced upgrade must preserve its per-company upgrade tag.');
+    end;
+
+    local procedure CreateForcedUpgradeData(
+        var FAPostingGroup: Record "FA Posting Group"; var FALedgerEntry: Record "FA Ledger Entry";
+        var SourceCodeSetup: Record "Source Code Setup")
+    var
+        FALedgerEntryNo: Integer;
+    begin
         LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
-        FAPostingGroup."Deprec. Difference Account" := '';
-        FAPostingGroup."Deprec. Difference Bal Acct" := '';
+        FAPostingGroup."Deprec. Difference Account" := LibraryERM.CreateGLAccountNo();
+        FAPostingGroup."Deprec. Difference Bal Acct" := LibraryERM.CreateGLAccountNo();
         FAPostingGroup.Modify(false);
-        SetLegacyFieldValue(FAPostingGroup.RecordId, 13400, DeprDifferenceAccount);
-        SetLegacyFieldValue(FAPostingGroup.RecordId, 13401, DeprDifferenceBalAccount);
 
         if FALedgerEntry.FindLast() then
             FALedgerEntryNo := FALedgerEntry."Entry No.";
         FALedgerEntry.Init();
         FALedgerEntry."Entry No." := FALedgerEntryNo + 1;
-        FALedgerEntry."Depreciation Difference Posted" := false;
+        FALedgerEntry."Depreciation Difference Posted" := true;
         FALedgerEntry.Insert(false);
-        SetLegacyFieldValue(FALedgerEntry.RecordId, 13400, true);
 
         if not SourceCodeSetup.Get() then begin
             SourceCodeSetup.Init();
             SourceCodeSetup.Insert(false);
         end;
-        SourceCodeSetup."Depreciation Difference Code" := '';
+        SourceCodeSetup."Depreciation Difference Code" :=
+            CopyStr(LibraryUtility.GenerateRandomText(10), 1, MaxStrLen(SourceCodeSetup."Depreciation Difference Code"));
         SourceCodeSetup.Modify(false);
-        SetLegacyFieldValue(SourceCodeSetup.RecordId, 13400, DeprDifferenceSourceCode);
-
-        if UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(
-                DepDiffFIUpgradeTag.GetUpgradeTag(), CopyStr(CompanyName(), 1, 30));
-
-        UpgradeDepreciationDiffFI.UpgradeDepreciationDifferencesFI();
-
-        VerifyForcedUpgradeData(
-            FAPostingGroup.Code, FALedgerEntry."Entry No.", DeprDifferenceAccount, DeprDifferenceBalAccount,
-            DeprDifferenceSourceCode, true);
-        Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()),
-            'The forced upgrade must register its per-company upgrade tag.');
-
-        ChangedDeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
-        ChangedDeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
-        ChangedDeprDifferenceSourceCode := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ChangedDeprDifferenceSourceCode));
-        FAPostingGroup.Get(FAPostingGroup.Code);
-        FAPostingGroup."Deprec. Difference Account" := ChangedDeprDifferenceAccount;
-        FAPostingGroup."Deprec. Difference Bal Acct" := ChangedDeprDifferenceBalAccount;
-        FAPostingGroup.Modify(false);
-        FALedgerEntry.Get(FALedgerEntry."Entry No.");
-        FALedgerEntry."Depreciation Difference Posted" := false;
-        FALedgerEntry.Modify(false);
-        SourceCodeSetup.Get();
-        SourceCodeSetup."Depreciation Difference Code" := ChangedDeprDifferenceSourceCode;
-        SourceCodeSetup.Modify(false);
-
-        UpgradeDepreciationDiffFI.UpgradeDepreciationDifferencesFI();
-
-        VerifyForcedUpgradeData(
-            FAPostingGroup.Code, FALedgerEntry."Entry No.", ChangedDeprDifferenceAccount,
-            ChangedDeprDifferenceBalAccount, ChangedDeprDifferenceSourceCode, false);
     end;
 
-    local procedure SetLegacyFieldValue(RecordId: RecordId; FieldNo: Integer; FieldValue: Variant)
+    local procedure SetForcedUpgradeTag()
     var
-        RecordRef: RecordRef;
+        DepDiffFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        RecordRef.Get(RecordId);
-        RecordRef.Field(FieldNo).Value := FieldValue;
-        RecordRef.Modify(false);
+        if not UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()) then
+            UpgradeTag.SetUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag());
     end;
 
     local procedure VerifyForcedUpgradeData(
@@ -340,12 +324,12 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         SourceCodeSetup: Record "Source Code Setup";
     begin
         FAPostingGroup.Get(FAPostingGroupCode);
-        FAPostingGroup.TestField("Deprec. Difference Account", DeprDifferenceAccount);
-        FAPostingGroup.TestField("Deprec. Difference Bal Acct", DeprDifferenceBalAccount);
+        Assert.AreEqual(DeprDifferenceAccount, FAPostingGroup."Deprec. Difference Account", 'The depreciation difference account must be preserved.');
+        Assert.AreEqual(DeprDifferenceBalAccount, FAPostingGroup."Deprec. Difference Bal Acct", 'The depreciation difference balancing account must be preserved.');
         FALedgerEntry.Get(FALedgerEntryNo);
-        FALedgerEntry.TestField("Depreciation Difference Posted", DepreciationDifferencePosted);
+        Assert.AreEqual(DepreciationDifferencePosted, FALedgerEntry."Depreciation Difference Posted", 'The depreciation difference posting flag must be preserved.');
         SourceCodeSetup.Get();
-        SourceCodeSetup.TestField("Depreciation Difference Code", DeprDifferenceSourceCode);
+        Assert.AreEqual(DeprDifferenceSourceCode, SourceCodeSetup."Depreciation Difference Code", 'The depreciation difference source code must be preserved.');
     end;
 #endif
 #endif

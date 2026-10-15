@@ -86,16 +86,20 @@ codeunit 139666 "Test Transformation W1"
             Field.SetRange(TableName, TableFieldMappings."From Table Name");
             Field.SetRange(FieldName, TableFieldMappings."From Table Field Name");
             Field.SetRange(ObsoleteState, Field.ObsoleteState::No);
-            if Field.IsEmpty and
-               not IsExpectedObsoleteFieldMapping(TableFieldMappings."From Table Name", TableFieldMappings."From Table Field Name")
+            if Field.IsEmpty
+#if not CLEANSCHEMA33
+               and not IsExpectedObsoleteFieldMapping(TableFieldMappings."From Table Name", TableFieldMappings."From Table Field Name")
+#endif
             then
                 MissingTablesAndFields.Add(TableFieldMappings."From Table Name" + '' + TableFieldMappings."From Table Field Name");
 
             Field.SetRange(TableName, TableFieldMappings."To Table Name");
             Field.SetRange(FieldName, TableFieldMappings."To Table Field Name");
             Field.SetRange(ObsoleteState, Field.ObsoleteState::No);
-            if Field.IsEmpty and
-               not IsExpectedObsoleteFieldMapping(TableFieldMappings."To Table Name", TableFieldMappings."To Table Field Name")
+            if Field.IsEmpty
+#if not CLEANSCHEMA33
+               and not IsExpectedObsoleteFieldMapping(TableFieldMappings."To Table Name", TableFieldMappings."To Table Field Name")
+#endif
             then
                 MissingTablesAndFields.Add(TableFieldMappings."To Table Name" + '' + TableFieldMappings."To Table Field Name");
         until TableFieldMappings.Next() = 0;
@@ -106,18 +110,16 @@ codeunit 139666 "Test Transformation W1"
             error('Missing tables and/or fields: %1', MissingTablesAndFields)
     end;
 
-    local procedure IsExpectedObsoleteFieldMapping(TableName: Text; FieldName: Text): Boolean
 #if not CLEANSCHEMA33
+    local procedure IsExpectedObsoleteFieldMapping(TableName: Text; FieldName: Text): Boolean
     var
         Field: Record Field;
         EnvironmentInformation: Codeunit "Environment Information";
-#endif
     begin
-#if not CLEANSCHEMA33
         if EnvironmentInformation.GetApplicationFamily() = 'FI' then begin
             Field.Get(Database::"Source Code Setup", 13400);
             exit((TableName = Field.TableName) and (FieldName = Field.FieldName));
         end;
-#endif
     end;
+#endif
 }
