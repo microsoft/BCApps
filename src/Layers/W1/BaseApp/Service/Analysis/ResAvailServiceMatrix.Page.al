@@ -517,7 +517,6 @@ page 9229 "Res. Avail. (Service) Matrix"
         }
     }
 
-
     actions
     {
         area(navigation)
@@ -849,3 +848,4 @@ page 9229 "Res. Avail. (Service) Matrix"
     begin
     end;
 }
+
