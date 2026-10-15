@@ -5,6 +5,7 @@
 
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using Microsoft.BusinessSkill;
 using System.Agents;
 using System.Azure.KeyVault;
 using System.Globalization;
@@ -15,6 +16,101 @@ codeunit 4598 "SOA Instructions"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    /// <summary>
+    /// Creates or refreshes the packaged SOA skills and activates them without changing their company or domain links.
+    /// Each Markdown resource supplies its title in the first heading and its description in the opening paragraph.
+    /// </summary>
+    internal procedure UpdateBusinessSkills()
+    var
+        SkillResources: List of [Text];
+        ResourceName: Text;
+        SkillResourcesPatternTok: Label 'Prompts/Skills/*.md', Locked = true;
+        MissingBusinessSkillsErr: Label 'The Sales Order Agent app does not contain any business skill resources.';
+    begin
+        SkillResources := NavApp.ListResources(SkillResourcesPatternTok);
+        if SkillResources.Count() = 0 then
+            Error(MissingBusinessSkillsErr);
+        foreach ResourceName in SkillResources do
+            UpdateBusinessSkill(ResourceName);
+    end;
+
+    local procedure UpdateBusinessSkill(ResourceName: Text)
+    var
+        BusinessSkill: Record "Business Skill";
+        SkillTitle: Text[250];
+        SkillDescription: Text[2048];
+        SkillText: Text;
+        DuplicateSkillTitleErr: Label 'More than one business skill has the title "%1". Keep one matching skill before updating Sales Order Agent setup.', Comment = '%1 = Business skill title.';
+    begin
+        ReadBusinessSkillMetadata(ResourceName, SkillTitle, SkillDescription);
+        SkillText := NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8);
+
+        BusinessSkill.LockTable();
+        BusinessSkill.SetRange(Title, SkillTitle);
+        if BusinessSkill.Count() > 1 then
+            Error(DuplicateSkillTitleErr, SkillTitle);
+
+        if BusinessSkill.FindFirst() then begin
+            if (BusinessSkill.Description = SkillDescription) and
+               (BusinessSkill.GetText() = SkillText) and
+               (BusinessSkill.Status = BusinessSkill.Status::Active)
+            then
+                exit;
+
+            BusinessSkill.Description := SkillDescription;
+            BusinessSkill.SetText(SkillText);
+            BusinessSkill.Status := BusinessSkill.Status::Active;
+            BusinessSkill.Modify(true);
+        end else begin
+            BusinessSkill.Init();
+            BusinessSkill.Title := SkillTitle;
+            BusinessSkill.Description := SkillDescription;
+            BusinessSkill.SetText(SkillText);
+            BusinessSkill.Status := BusinessSkill.Status::Active;
+            BusinessSkill.Insert(true);
+        end;
+    end;
+
+    local procedure ReadBusinessSkillMetadata(ResourceName: Text; var SkillTitle: Text[250]; var SkillDescription: Text[2048])
+    var
+        Input: InStream;
+        Line: Text;
+        DescriptionText: Text;
+        InvalidSkillResourceErr: Label 'The business skill resource %1 must start with a title and a description paragraph.', Comment = '%1 = Resource file name.';
+        SkillMetadataTooLongErr: Label 'The title or description in business skill resource %1 is too long.', Comment = '%1 = Resource file name.';
+    begin
+        NavApp.GetResource(ResourceName, Input, TextEncoding::UTF8);
+        Input.ReadText(Line);
+        if not Line.StartsWith('# ') then
+            Error(InvalidSkillResourceErr, ResourceName);
+
+        Line := CopyStr(Line, 3).Trim();
+        if Line = '' then
+            Error(InvalidSkillResourceErr, ResourceName);
+        if StrLen(Line) > MaxStrLen(SkillTitle) then
+            Error(SkillMetadataTooLongErr, ResourceName);
+        SkillTitle := CopyStr(Line, 1, MaxStrLen(SkillTitle));
+
+        while not Input.EOS() do begin
+            Input.ReadText(Line);
+            Line := Line.Trim();
+            if Line = '' then begin
+                if DescriptionText <> '' then
+                    break;
+            end else begin
+                if DescriptionText <> '' then
+                    DescriptionText += ' ';
+                DescriptionText += Line;
+            end;
+        end;
+
+        if DescriptionText = '' then
+            Error(InvalidSkillResourceErr, ResourceName);
+        if StrLen(DescriptionText) > MaxStrLen(SkillDescription) then
+            Error(SkillMetadataTooLongErr, ResourceName);
+        SkillDescription := CopyStr(DescriptionText, 1, MaxStrLen(SkillDescription));
+    end;
 
     [NonDebuggable]
     internal procedure GetSOAInstructions(): SecretText

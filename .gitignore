@@ -368,3 +368,8 @@ src/Views/**
 # MCP configs (merged, not symlinked)
 .mcp.json
 .vscode/mcp.json
+
+# BEGIN bc-agentic managed ignores
+# Paths bc-agentic deploys into this repository. Managed automatically; edit outside this block.
+/.github/skills/
+# END bc-agentic managed ignores

@@ -7,11 +7,12 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.Agents;
+using System.Agents.Internal;
 using System.AI;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation
+codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation, IAgentExperimental
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -93,6 +94,15 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
     begin
         SOASetupCU.CheckAgentNotArchived(AgentUserId);
         SOACreateTaskImpl.OpenCreateTaskPage(AgentUserId);
+    end;
+
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean;
+    var
+    begin
+        if Feature <> Feature::BusinessIQ then
+            exit(false);
+
+        exit(true);
     end;
 
     var
