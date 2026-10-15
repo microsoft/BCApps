@@ -517,6 +517,7 @@ page 9229 "Res. Avail. (Service) Matrix"
         }
     }
 
+
     actions
     {
         area(navigation)
