@@ -4,6 +4,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -32,7 +33,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     local procedure Initialize()
     begin
-        WorkDate := Today();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     [Test]
@@ -93,8 +94,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         ShipToVendor.Modify(true);
         Commit();
         VendorNo := BuyFromVendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a JSON text with an order that contains the vendor and an address
         OrderJSON := CreateOrderJSONWithAddress(BuyFromVendor, PayToVendor, ShipToVendor, OrderDate, PostingDate);
@@ -144,8 +145,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         LibraryPurchase.CreateVendorWithAddress(BuyFromVendor);
         LibraryPurchase.CreateVendorWithAddress(PayToVendor);
         VendorNo := BuyFromVendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a JSON text with an order that contains the vendor and an address
         OrderJSON := CreateOrderJSONWithoutShipTo(BuyFromVendor, PayToVendor, OrderDate, PostingDate);
@@ -403,8 +404,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         // [GIVEN] a customer
         LibraryPurchase.CreateVendor(Vendor);
         VendorNo := Vendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a json describing our new order
         OrderJSON := CreateOrderJSONWithAddress(Vendor, Vendor, Vendor, OrderDate, PostingDate);
@@ -604,6 +605,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can recieve and invoice a purchase order through the API.
 
         // [GIVEN] Create vendors and a Purchase order with lines
@@ -668,6 +671,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         PurchaseOrder."Buy-from Vendor No.".SetValue(Vendor."No.");
         PurchaseOrder."Document Date".SetValue(DocumentDate);
         PurchaseOrder."Posting Date".SetValue(PostingDate);
+        PurchaseOrder."Order Date".SetValue(DocumentDate);
     end;
 
     local procedure CheckShippingDetailsNotEmpty(var PurchaseHeader: Record "Purchase Header")

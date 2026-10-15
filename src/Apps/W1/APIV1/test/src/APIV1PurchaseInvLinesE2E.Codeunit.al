@@ -4,6 +4,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -32,6 +33,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 
