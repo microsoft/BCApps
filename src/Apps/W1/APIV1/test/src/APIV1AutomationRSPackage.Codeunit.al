@@ -4,6 +4,7 @@ codeunit 139731 "APIV1 - Automation RS Package"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -30,6 +31,7 @@ codeunit 139731 "APIV1 - Automation RS Package"
     var
         TenantConfigPackageFile: Record "Tenant Config. Package File";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         TenantConfigPackageFile.DELETEALL(TRUE);
 
         IF IsInitialized THEN
