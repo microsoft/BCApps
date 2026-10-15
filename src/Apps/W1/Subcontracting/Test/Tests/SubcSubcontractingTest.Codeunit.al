@@ -3515,7 +3515,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryReportDataset.LoadDataSetFile();
 
         // [THEN] The report runs and the ordinary shipment leaves subcontracting references blank
-        VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader);
+        VerifyOrdinaryTransferShipmentReport();
         SubcontractingMgmtLibrary.DeletePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         Commit();
     end;
@@ -5782,26 +5782,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
-    local procedure VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header")
-    var
-        TransferShipmentLine: Record "Transfer Shipment Line";
-        SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
-        SubcontractorAddress: array[8] of Text[100];
-        SubcontractorAddressValue: Text[100];
-        SubcontractorName: Text[100];
-        SubcontractorNo: Code[20];
-        SubcontractPurchaseOrderNo: Code[20];
+    local procedure VerifyOrdinaryTransferShipmentReport()
     begin
-        SubcTransferShipmentData.GetHeaderData(
-            TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
-            SubcontractorAddress, SubcontractPurchaseOrderNo);
-        Assert.AreEqual('', SubcontractorNo, 'An ordinary shipment must not expose a subcontractor number.');
-        Assert.AreEqual('', SubcontractorName, 'An ordinary shipment must not expose a subcontractor name.');
-        Assert.AreEqual('', SubcontractorAddressValue, 'An ordinary shipment must not expose a subcontractor address.');
-        Assert.AreEqual('', SubcontractPurchaseOrderNo, 'An ordinary shipment must not expose a subcontract purchase order number.');
-        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
-        TransferShipmentLine.FindFirst();
-        Assert.AreEqual('', TransferShipmentLine."Subc. Prod. Order No.", 'An ordinary shipment must not expose a production order number.');
+        LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', '');
+        LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', '');
+        LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', '');
+        LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', '');
     end;
 
     local procedure VerifySubcontractingPurchaseOrderCreationConfirmation()
@@ -5819,28 +5805,12 @@ codeunit 139989 "Subc. Subcontracting Test"
             'Expected the subcontracting purchase order creation confirmation.');
     end;
 
-    local procedure VerifySubcontractingTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line"; PurchaseOrderNo: Code[20]; PostedVendorName: Text[100])
-    var
-        SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
-        SubcontractorAddress: array[8] of Text[100];
-        SubcontractorAddressValue: Text[100];
-        SubcontractorName: Text[100];
-        SubcontractorNo: Code[20];
-        SubcontractPurchaseOrderNo: Code[20];
+    local procedure VerifySubcontractingTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header"; TransferShipmentLine: Record "Transfer Shipment Line"; PurchaseOrderNo: Code[20]; PostedVendorName: Text[100])
     begin
-        SubcTransferShipmentData.GetHeaderData(
-            TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
-            SubcontractorAddress, SubcontractPurchaseOrderNo);
-        Assert.AreEqual(TransferShipmentHeader."Source ID", SubcontractorNo, 'The report data must use the posted subcontractor number.');
-        Assert.AreEqual(PostedVendorName, SubcontractorName, 'The report data must use the posted subcontractor name.');
-        Assert.AreEqual(TransferShipmentHeader."Transfer-to Address", SubcontractorAddressValue, 'The report data must use the posted subcontractor address.');
-        Assert.AreEqual(PurchaseOrderNo, SubcontractPurchaseOrderNo, 'The report data must use the posted subcontract purchase order number.');
-
-        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
-        TransferShipmentLine.FindSet();
-        repeat
-            Assert.AreNotEqual('', TransferShipmentLine."Subc. Prod. Order No.", 'The report line must expose the posted production order number.');
-        until TransferShipmentLine.Next() = 0;
+        LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', TransferShipmentHeader."Source ID");
+        LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', PostedVendorName);
+        LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', PurchaseOrderNo);
+        LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', TransferShipmentLine."Subc. Prod. Order No.");
     end;
 
     local procedure SelectSubcontractingTransferShipmentLayout()

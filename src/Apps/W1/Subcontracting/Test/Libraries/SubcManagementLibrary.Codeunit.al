@@ -36,6 +36,11 @@ codeunit 139983 "Subc. Management Library"
         end;
     end;
 
+    /// <summary>
+    /// Creates a posted transfer shipment header and line for use in tests.
+    /// </summary>
+    /// <param name="TransferShipmentHeader">Returns the created transfer shipment header.</param>
+    /// <param name="TransferShipmentLine">Returns the created transfer shipment line.</param>
     procedure CreatePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
     var
         LibraryRandom: Codeunit "Library - Random";
@@ -55,6 +60,11 @@ codeunit 139983 "Subc. Management Library"
         TransferShipmentLine.Insert();
     end;
 
+    /// <summary>
+    /// Deletes a posted transfer shipment header and line created for a test.
+    /// </summary>
+    /// <param name="TransferShipmentHeader">The transfer shipment header to delete.</param>
+    /// <param name="TransferShipmentLine">The transfer shipment line to delete.</param>
     procedure DeletePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
     begin
         TransferShipmentLine.Delete();
