@@ -5348,6 +5348,27 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    internal procedure CountryOfOriginExtensibleMode()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ActualCountryOfOriginCode: Code[10];
+        TestModeCZTok: Label 'TESTMODE', locked = true;
+    begin
+        // [FEATURE] [Country/Region of Origin] [Extensibility]
+        // [SCENARIO] A new "Get Country/Region of Origin" mode provides the Country/Region of Origin Code through an enum extension implementing the interface
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = extended mode
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Test Mode CZ");
+
+        // [WHEN] Get Country/Region of Origin Code
+        ActualCountryOfOriginCode := IntrastatReportLine.GetCountryOfOriginCode();
+
+        // [THEN] Country/Region of Origin Code is provided by the implementation of the extended mode
+        VerifyCountryOfOrigin(TestModeCZTok, ActualCountryOfOriginCode, IntrastatReportLine.TableCaption());
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     [HandlerFunctions('IntrastatReportGetLinesPageHandler')]

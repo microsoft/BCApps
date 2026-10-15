@@ -666,12 +666,11 @@ codeunit 148126 "Library - CZ Intrastat"
     procedure GetIntrastatNo() NoSeriesCode: Code[20]
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
-        NoSeries: Record "No. Series";
         NoSeriesCodeunit: Codeunit "No. Series";
     begin
-        NoSeries.SetFilter(NoSeries.Code, IntrastatReportSetup."Intrastat Nos.");
-        NoSeries.FindFirst();
-        NoSeriesCode := NoSeriesCodeunit.GetNextNo(NoSeries.Code);
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.TestField("Intrastat Nos.");
+        NoSeriesCode := NoSeriesCodeunit.GetNextNo(IntrastatReportSetup."Intrastat Nos.");
     end;
 
     procedure GetStatisticalPeriod(ReportDate: Date): Code[20]

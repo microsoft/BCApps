@@ -542,26 +542,18 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure GetCountryOfOriginFromPostedEntryOnBeforeGetCountryOfOriginCode(var IntrastatReportLine: Record "Intrastat Report Line"; var CountryOfOriginCode: Code[10]; var IsHandled: Boolean)
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
-        IntrastatPostedSource: Enum "Intrastat Posted Source CZ";
-        IntrastatPostedOrigin: Interface "Intrastat Posted Origin CZ";
-        PostedCountryOfOriginCode: Code[10];
-        SourceTypeOrdinal: Integer;
+        IntrastatOriginMode: Interface "Intrastat Origin Mode CZ";
+        ModeCountryOfOriginCode: Code[10];
     begin
         if IsHandled then
             exit;
         if not IntrastatReportSetup.Get() then
             exit;
-        if IntrastatReportSetup."Get Ctry/Reg. of Origin CZ" <> IntrastatReportSetup."Get Ctry/Reg. of Origin CZ"::"Posted Entries" then
+        IntrastatOriginMode := IntrastatReportSetup."Get Ctry/Reg. of Origin CZ";
+        ModeCountryOfOriginCode := IntrastatOriginMode.GetCountryOfOriginCode(IntrastatReportLine);
+        if ModeCountryOfOriginCode = '' then
             exit;
-        SourceTypeOrdinal := IntrastatReportLine."Source Type".AsInteger();
-        if not IntrastatPostedSource.Ordinals().Contains(SourceTypeOrdinal) then
-            exit;
-        IntrastatPostedSource := Enum::"Intrastat Posted Source CZ".FromInteger(SourceTypeOrdinal);
-        IntrastatPostedOrigin := IntrastatPostedSource;
-        PostedCountryOfOriginCode := IntrastatPostedOrigin.GetCountryOfOriginCode(IntrastatReportLine);
-        if PostedCountryOfOriginCode = '' then
-            exit;
-        CountryOfOriginCode := PostedCountryOfOriginCode;
+        CountryOfOriginCode := ModeCountryOfOriginCode;
         IsHandled := true;
     end;
 
