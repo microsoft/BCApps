@@ -735,10 +735,7 @@ table 7001 "Price List Line"
 
     trigger OnModify()
     begin
-        if ("Asset Type" <> xRec."Asset Type") or
-           ("Asset No." <> xRec."Asset No.") or
-           ("Unit of Measure Code" <> xRec."Unit of Measure Code")
-        then
+        if BlankProductUnitOfMeasureFieldsChanged() then
             ValidateBlankProductUnitOfMeasure();
     end;
 
@@ -1240,6 +1237,27 @@ table 7001 "Price List Line"
 
         CopyTo(PriceAsset);
         PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
+    end;
+
+    local procedure BlankProductUnitOfMeasureFieldsChanged(): Boolean
+    var
+        StoredPriceListLine: Record "Price List Line";
+    begin
+        if ("Asset No." <> '') or ("Unit of Measure Code" = '') or
+           not ("Asset Type" in ["Asset Type"::Item, "Asset Type"::Resource])
+        then
+            exit(false);
+
+        if Rec.IsTemporary() then
+            exit(true);
+
+        if not StoredPriceListLine.Get("Price List Code", "Line No.") then
+            exit(true);
+
+        exit(
+            ("Asset Type" <> StoredPriceListLine."Asset Type") or
+            ("Asset No." <> StoredPriceListLine."Asset No.") or
+            ("Unit of Measure Code" <> StoredPriceListLine."Unit of Measure Code"));
     end;
 
     procedure UseCustomizedLookup(): Boolean
