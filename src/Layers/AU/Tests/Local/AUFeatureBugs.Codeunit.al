@@ -463,7 +463,7 @@ codeunit 145403 "AU Feature Bugs"
             if VATEntry."Additional-Currency Base" <> FirstACYBase then
                 DifferentACYBaseFound := true;
 
-            // [THEN] Every VAT entry of the document carries the same net Additional-Currency values (the defect)
+            // [THEN] The main line and discount line VAT entries carry their own independently converted Additional-Currency Base and Amount
 
             case
                 vatentry.base of
