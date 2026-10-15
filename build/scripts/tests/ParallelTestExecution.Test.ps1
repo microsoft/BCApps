@@ -156,6 +156,70 @@ Describe "ParallelTestExecution app-name resolution" {
         }
     }
 
+    It "passes a bounded drop query that ends sessions on the tenant database" {
+        InModuleScope ParallelTestExecution {
+            Mock Invoke-ScriptInBcContainer { }
+
+            Reset-BcTestTenant -ContainerName 'bc' -Tenant 'tenant2' `
+                -TenantDatabaseName 'tenant2' -TemplateDatabaseName 'default-test-template'
+
+            Should -Invoke Invoke-ScriptInBcContainer -Times 1 -ParameterFilter {
+                $argumentList.Count -eq 4 -and
+                $argumentList[0] -eq 'tenant2' -and
+                $argumentList[3] -like "*DECLARE @db sysname = N'tenant2';*" -and
+                $argumentList[3] -like '*KILL*' -and
+                $argumentList[3] -like '*SET SINGLE_USER WITH ROLLBACK IMMEDIATE*' -and
+                $argumentList[3] -like '*DROP DATABASE*'
+            }
+        }
+    }
+
+    It "ends only non-negative server sessions and continues when one cannot be ended" {
+        $script:RemovedServerSessions = [System.Collections.Generic.List[int]]::new()
+        $stubs = @{
+            'Get-NAVTenant'              = { [PSCustomObject]@{ State = 'Operational' } }
+            'Get-NAVServerSession'       = { @(-3947, 5, 0, 7) | ForEach-Object { [PSCustomObject]@{ SessionId = $_ } } }
+            # Mirrors the real cmdlet's validation; other arguments are accepted through $args.
+            'Remove-NAVServerSession'    = { param([ValidateRange(0, [int]::MaxValue)][int]$SessionId)
+                                             if ($SessionId -eq 5) { throw 'session busy' }
+                                             $script:RemovedServerSessions.Add($SessionId) }
+            'Dismount-NAVTenant'         = { }
+            'Get-NAVServerConfiguration' = { '' }
+            'Invoke-Sqlcmd'              = { }
+            'Copy-NAVDatabase'           = { }
+            'Mount-NAVTenant'            = { }
+        }
+        foreach ($name in $stubs.Keys) { Set-Item -Path "function:global:$name" -Value $stubs[$name] }
+        try {
+            InModuleScope ParallelTestExecution {
+                Mock Invoke-ScriptInBcContainer { & $scriptblock @argumentList }
+                Mock Write-Host { }
+
+                Reset-BcTestTenant -ContainerName 'bc' -Tenant 'tenant2' `
+                    -TenantDatabaseName 'tenant2' -TemplateDatabaseName 'default-test-template'
+
+                Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter {
+                    "$Object" -like "WARNING: Could not end server session 5 for tenant 'tenant2': session busy"
+                }
+                Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { "$Object" -like "Refreshed tenant 'tenant2'*" }
+            }
+            @($script:RemovedServerSessions) | Should -Be @(0, 7)
+        } finally {
+            foreach ($name in $stubs.Keys) { Remove-Item -Path "function:global:$name" -ErrorAction SilentlyContinue }
+        }
+    }
+
+    It "escapes the database name in the drop query" {
+        InModuleScope ParallelTestExecution {
+            $query = Get-BcTestTenantDatabaseDropQuery -DatabaseName "it's"
+
+            $query | Should -BeLike "*DECLARE @db sysname = N'it''s';*"
+            $query | Should -BeLike '*QUOTENAME(@db)*'
+            $query | Should -BeLike '*IF DB_ID(@db) IS NULL RETURN;*'
+            $query | Should -BeLike '*s.is_user_process = 1*'
+        }
+    }
+
     It "removes the clean template when normal app dispatch aborts" {
         InModuleScope ParallelTestExecution {
             Mock Get-AvailableBcTenantInfo {
