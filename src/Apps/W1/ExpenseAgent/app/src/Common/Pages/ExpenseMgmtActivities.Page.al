@@ -10,6 +10,8 @@ page 7449 "Expense Mgmt Activities"
 {
     Caption = 'Activities';
     PageType = CardPart;
+    InsertAllowed = false;
+    DeleteAllowed = false;
     Extensible = false;
     RefreshOnActivate = true;
     ShowFilter = false;
@@ -86,7 +88,7 @@ page 7449 "Expense Mgmt Activities"
             action("Set Up Cues")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Set Up Cues';
+                Caption = 'Set up cues';
                 Image = Setup;
                 ToolTip = 'Set up the cues (status tiles) related to the role.';
 

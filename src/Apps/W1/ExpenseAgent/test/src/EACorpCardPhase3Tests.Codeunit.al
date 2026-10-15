@@ -48,6 +48,54 @@ codeunit 148353 EACorpCardPhase3Tests
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
+    procedure BatchImportPreservesActionableProviderError()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+        ImportErrorInfo: ErrorInfo;
+        ImportErrorText: Text;
+        HasStructuredErrorInfo: Boolean;
+    begin
+        Initialize();
+        CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
+        SetProviderSourcePayload(CorpCardXmlProviderCodeTok, EmptyXmlPayloadTok, EmptyXmlFileNameTok);
+
+        Assert.IsFalse(
+            CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo),
+            'XML with no transaction rows must produce a provider setup error.');
+        Assert.IsTrue(HasStructuredErrorInfo, 'The failed import must retain structured error information.');
+        Assert.AreEqual(Page::"EA Corp Card Providers", ImportErrorInfo.PageNo, 'The recovery action must open provider setup.');
+        Assert.AreEqual(CorpCardProvider.RecordId, ImportErrorInfo.RecordId, 'The recovery action must target the failing provider.');
+
+        SetProviderSourcePayload(CorpCardXmlProviderCodeTok, EmptyXmlPayloadTok, EmptyXmlFileNameTok);
+        asserterror CorpCardFeedMgt.RunAllEnabledProviders();
+        Assert.AreEqual(ImportErrorInfo.Message, GetLastErrorText(), 'Batch import must surface the actionable provider error without a plain-text wrapper.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure BatchImportPreservesLastSuccessfulProvider()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+    begin
+        Initialize();
+        SetProviderSourcePayload(CorpCardCsvProviderCodeTok, 'invalid', InvalidCsvFileNameTok);
+
+        asserterror CorpCardFeedMgt.RunAllEnabledProviders();
+
+        CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
+        Assert.AreNotEqual(0DT, CorpCardProvider."Last Import DT", 'The successful provider import must retain its completion time.');
+        Assert.IsTrue(CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No."), 'The successful provider statement must survive the batch error.');
+        Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'The successful provider statement must remain imported.');
+        CorpCardProvider.CalcFields("Source Payload");
+        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'The successful provider source payload must remain cleared.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ImportClearsSourcePayloadAndRetainsMetadata()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -101,7 +149,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ResolvingExceptionStampsAuditFields()
     var
         CorpCardException: Record "EA Corp Card Exception";
@@ -135,7 +183,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingTransactionDeletesOwnedDetailsAndExceptions()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -155,7 +203,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingStatementDeletesOwnedTransactionsDetailsAndExceptions()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -201,7 +249,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingCardWithoutTransactionsSucceeds()
     var
         CorpCard: Record "EA Corp Card";
@@ -241,7 +289,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingMCCMapWithoutTransactionsSucceeds()
     var
         CorpCardMCCMap: Record "EA Corp Card MCC Map";
@@ -257,7 +305,7 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingProviderDoesNotDeleteSharedDataExchangeDefinition()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
@@ -375,7 +423,6 @@ codeunit 148353 EACorpCardPhase3Tests
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
         IsInitialized := true;
-        Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::EACorpCardPhase3Tests);
     end;
 
@@ -472,5 +519,8 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         MalformedXmlRootElementTok: Label 'CorporateCardTransactions', Locked = true;
         MalformedXmlFileNameTok: Label 'CorpCard-Malformed.xml', Locked = true;
+        EmptyXmlPayloadTok: Label '<CorporateCardTransactions />', Locked = true;
+        EmptyXmlFileNameTok: Label 'CorpCard-Empty.xml', Locked = true;
+        InvalidCsvFileNameTok: Label 'CorpCard-Invalid.csv', Locked = true;
         MissingCardIdXmlFileNameTok: Label 'CorpCard-Missing-Card-Id.xml', Locked = true;
 }

@@ -47,8 +47,8 @@ permissionset 7421 EACorpCardEdit
         tabledata "EA Corp Card MCC Map" = IM,
         tabledata "EA Corp Card Merchant Rule" = IM,
         tabledata "Expense Agent Setup" = IM,
-        tabledata "Job Queue Entry" = RIMD,
-        tabledata "Job Queue Category" = RIM,
-        tabledata "Data Exch." = RIMD,
-        tabledata "Data Exch. Field" = RIMD;
+        tabledata "Job Queue Entry" = rimd,
+        tabledata "Job Queue Category" = rim,
+        tabledata "Data Exch." = rimd,
+        tabledata "Data Exch. Field" = rimd;
 }

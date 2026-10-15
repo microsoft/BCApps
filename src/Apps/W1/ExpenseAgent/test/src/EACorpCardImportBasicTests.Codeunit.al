@@ -21,6 +21,20 @@ codeunit 148356 EACorpCardImportBasicTests
         IsInitialized: Boolean;
 
     [Test]
+    procedure CsvFallbackHandlesQuotedCommasAndEscapedQuotes()
+    var
+        CorpCardDataExchProv: Codeunit "EA Corp Card Data Exch Prov";
+        CsvFields: List of [Text];
+    begin
+        CsvFields := CorpCardDataExchProv.ParseCsvFields('TXN1,CARD1,2026-06-02,2026-06-03,19.63,USD,"Acme, ""Inc.""",4511,US');
+
+        Assert.AreEqual(9, CsvFields.Count(), 'A comma within a quoted merchant must not create an additional column.');
+        Assert.AreEqual('Acme, "Inc."', CsvFields.Get(7), 'The merchant must retain its comma and unescaped quotes.');
+        Assert.AreEqual('4511', CsvFields.Get(8), 'The MCC must remain in its column.');
+        Assert.AreEqual('US', CsvFields.Get(9), 'The country must remain in its column.');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure CsvImportCreatesCompletedStatementAndTransactions()
     var
@@ -55,6 +69,44 @@ codeunit 148356 EACorpCardImportBasicTests
 
         Assert.IsTrue(SecondStatement.Duplicates > 0, 'Second CSV import must count the previously imported transactions as duplicates.');
         Assert.AreEqual(0, SecondStatement.Imported, 'Second CSV import must not import duplicate transactions.');
+    end;
+
+    [Test]
+    procedure FuzzyMatchReusesCandidatesWithoutRematchingLinkedExpenses()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
+        MatchedExpenseNo: Code[20];
+    begin
+        Initialize();
+        InitializeValidTransaction(CorpCardTrans);
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCardTrans."Merchant Norm" := 'Bluebird Cafe';
+        CorpCardTrans.Amount := 1234;
+        CorpCardTrans."Currency Code" := UsdCurrencyCodeTok;
+
+        Expense.Init();
+        Expense."No." := 'FUZZY-001';
+        Expense."Expense User No." := CorpCard."Expense User No.";
+        Expense.Status := Expense.Status::Open;
+        Expense."Merchant Name" := CorpCardTrans."Merchant Norm";
+        Expense.Insert(false);
+        Expense."No." := 'FUZZY-002';
+        Expense.Insert(false);
+
+        EnhancedMatchMgt.InitializeCardCache();
+        Assert.IsTrue(EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo), 'A matching open expense must be found.');
+        Assert.AreEqual('FUZZY-001', MatchedExpenseNo, 'The first matching expense must be selected.');
+
+        Expense.Get(MatchedExpenseNo);
+        Expense."Credit Card Feed No." := 1;
+        Expense.Modify(false);
+        EnhancedMatchMgt.RemoveCandidate(MatchedExpenseNo);
+
+        Assert.IsTrue(EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo), 'The next available expense must still match.');
+        Assert.AreEqual('FUZZY-002', MatchedExpenseNo, 'An expense linked to a previous transaction must not match again.');
     end;
 
     [Test]

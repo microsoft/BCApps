@@ -13,14 +13,26 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     Access = Internal;
 
     var
+        TempExpenseCandidate: Record Expense temporary;
         ExpenseUserNosByCardId: Dictionary of [Code[50], Code[20]];
         MissingCardIds: Dictionary of [Code[50], Boolean];
+        CachedExpenseUsers: Dictionary of [Code[20], Boolean];
         MediumScoreThreshold: Decimal;
 
     internal procedure InitializeCardCache()
     begin
         Clear(ExpenseUserNosByCardId);
         Clear(MissingCardIds);
+        Clear(CachedExpenseUsers);
+        TempExpenseCandidate.Reset();
+        TempExpenseCandidate.DeleteAll();
+    end;
+
+    internal procedure RemoveCandidate(ExpenseNo: Code[20])
+    begin
+        TempExpenseCandidate.Reset();
+        if TempExpenseCandidate.Get(ExpenseNo) then
+            TempExpenseCandidate.Delete();
     end;
 
     /// <summary>
@@ -106,27 +118,25 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     /// </summary>
     local procedure FuzzyMerchantMatch(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseUserNo: Code[20]; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
     var
-        Expense: Record Expense;
         SimilarityScore: Decimal;
         BestScore: Decimal;
         BestExpenseNo: Code[20];
     begin
-        Expense.SetLoadFields("No.", "Merchant Name");
-        Expense.SetRange("Expense User No.", ExpenseUserNo);
-        Expense.SetRange("Status", Expense."Status"::Open);
-        Expense.SetRange("Credit Card Feed No.", 0);
+        LoadExpenseCandidates(ExpenseUserNo);
+        TempExpenseCandidate.Reset();
+        TempExpenseCandidate.SetRange("Expense User No.", ExpenseUserNo);
 
-        if not Expense.FindSet() then
+        if not TempExpenseCandidate.FindSet() then
             exit(false);
 
         BestScore := 0;
         repeat
-            SimilarityScore := CalculateSimilarity(CorpCardTrans."Merchant Norm", Expense."Merchant Name");
+            SimilarityScore := CalculateSimilarity(CorpCardTrans."Merchant Norm", TempExpenseCandidate."Merchant Name");
             if SimilarityScore > BestScore then begin
                 BestScore := SimilarityScore;
-                BestExpenseNo := Expense."No.";
+                BestExpenseNo := TempExpenseCandidate."No.";
             end;
-        until Expense.Next() = 0;
+        until TempExpenseCandidate.Next() = 0;
 
         if BestScore >= MediumScoreThreshold then begin
             MatchScore := BestScore * 100; // Convert to 0-100 scale
@@ -135,6 +145,30 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         end;
 
         exit(false);
+    end;
+
+    local procedure LoadExpenseCandidates(ExpenseUserNo: Code[20])
+    var
+        Expense: Record Expense;
+    begin
+        if CachedExpenseUsers.ContainsKey(ExpenseUserNo) then
+            exit;
+
+        Expense.SetLoadFields("No.", "Merchant Name");
+        Expense.SetRange("Expense User No.", ExpenseUserNo);
+        Expense.SetRange("Status", Expense."Status"::Open);
+        Expense.SetRange("Credit Card Feed No.", 0);
+        TempExpenseCandidate.Reset();
+        if Expense.FindSet() then
+            repeat
+                TempExpenseCandidate.Init();
+                TempExpenseCandidate."No." := Expense."No.";
+                TempExpenseCandidate."Expense User No." := ExpenseUserNo;
+                TempExpenseCandidate."Merchant Name" := Expense."Merchant Name";
+                TempExpenseCandidate.Insert(false);
+            until Expense.Next() = 0;
+
+        CachedExpenseUsers.Add(ExpenseUserNo, true);
     end;
 
     local procedure GetExpenseUserNo(CardId: Code[50]; var ExpenseUserNo: Code[20]): Boolean

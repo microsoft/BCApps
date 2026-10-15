@@ -25,19 +25,23 @@ codeunit 7432 "EA Corp Card Import Orch"
     internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean)
     var
         ImportErrorText: Text;
+        ImportErrorInfo: ErrorInfo;
+        HasStructuredErrorInfo: Boolean;
     begin
-        RunProvider(CorpCardProvider, RaiseImportError, ImportErrorText);
+        RunProvider(CorpCardProvider, RaiseImportError, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo);
     end;
 
-    internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean; var ImportErrorText: Text): Boolean
+    internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean; var ImportErrorText: Text; var ImportErrorInfo: ErrorInfo; var HasStructuredErrorInfo: Boolean): Boolean
     var
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
-        ImportErrorInfo: ErrorInfo;
-        HasStructuredErrorInfo: Boolean;
+        ImportStage: Text;
     begin
+        ImportErrorText := '';
+        ImportErrorInfo := ErrorInfo.Create();
+        HasStructuredErrorInfo := false;
         CorpCardStatement.Init();
         CorpCardStatement."Provider Code" := CorpCardProvider.Code;
         CorpCardStatement."Started DT" := CurrentDateTime();
@@ -50,9 +54,11 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardErrorContext.ClearErrorInfo();
         if not CorpCardImportOrch.Run(CorpCardStatement) then begin
             ImportErrorText := GetLastErrorText();
+            ImportStage := CorpCardErrorContext.GetImportStage();
             HasStructuredErrorInfo := CorpCardErrorContext.TryGetErrorInfo(ImportErrorInfo);
+            CorpCardErrorContext.ClearErrorInfo();
             MarkImportFailed(CorpCardStatement);
-            AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", ImportErrorText);
+            AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", ImportStage);
             ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
             UpdateProviderLastStatementEntryNo(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
             Commit();
@@ -80,6 +86,7 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardProvider."Last Import DT" := CurrentDateTime();
         CorpCardProvider."Last Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardProvider.Modify();
+        CorpCardErrorContext.ClearErrorInfo();
         exit(true);
     end;
 
@@ -88,11 +95,16 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardProvReg: Codeunit "EA Corp Card Prov Reg";
         CorpCardProviderImpl: Interface "EA Corp Card Provider";
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
     begin
+        CorpCardErrorContext.SetImportStage('Provider setup');
         CorpCardProvider.Get(CorpCardStatement."Provider Code");
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
+        CorpCardErrorContext.SetImportStage('Download');
         CorpCardProviderImpl.Download(CorpCardStatement);
+        CorpCardErrorContext.SetImportStage('Parse');
         CorpCardProviderImpl.ParseToStaging(CorpCardStatement."Statement Entry No.");
+        CorpCardErrorContext.SetImportStage('Acknowledge');
         CorpCardProviderImpl.Ack(CorpCardStatement."Statement Entry No.");
     end;
 

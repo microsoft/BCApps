@@ -51,13 +51,14 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
         Session.LogMessage('0000UCT', ImportCompletedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
-    internal procedure LogImportFailed(ProviderCode: Code[20]; StatementEntryNo: Integer; ErrorMsg: Text)
+    internal procedure LogImportFailed(ProviderCode: Code[20]; StatementEntryNo: Integer; ImportStage: Text)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
         Dimensions.Add('Category', TelemetryCategory());
         Dimensions.Add('ProviderCode', ProviderCode);
         Dimensions.Add('StatementEntryNo', Format(StatementEntryNo));
+        Dimensions.Add('ImportStage', ImportStage);
         Session.LogMessage('0000UCU', ImportFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 

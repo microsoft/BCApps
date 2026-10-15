@@ -273,6 +273,51 @@ codeunit 148360 EACorpCardSettlementTests
     end;
 
     [Test]
+    procedure ReconciliationMatchesOnlyEntriesForStatementTransactions()
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        OtherStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        SecondCorpCardTrans: Record "EA Corp Card Trans";
+        OtherTrans: Record "EA Corp Card Trans";
+        CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
+        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        SettlementStatus: Enum "EA Corp Card Settle Status";
+        ReconciledTransactions: Integer;
+        UnreconciledTransactions: Integer;
+        ReconciledAmount: Decimal;
+        UnreconciledAmount: Decimal;
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-MULTI', 3000, CorpCardStatement.Status::Validated);
+        CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 1000);
+        PostCorpCardExpenseBankEntry(CorpCardTrans, -1000);
+        CreateStatement(OtherStatement, 'STMT-OTHER', 500, OtherStatement.Status::Validated);
+        CreatePostedTransaction(OtherTrans, OtherStatement, 500);
+        PostCorpCardExpenseBankEntry(OtherTrans, -500);
+        CreatePostedTransaction(SecondCorpCardTrans, CorpCardStatement, 2000);
+        PostCorpCardExpenseBankEntry(SecondCorpCardTrans, -2000);
+        CreateSettlement(CorpCardSettlement, 3000);
+        AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
+        CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
+        CorpCardSettlementMgt.PostSettlement(CorpCardSettlement);
+
+        CorpCardStatementMgt.GetReconciliationSummary(
+            CorpCardStatement, ReconciledTransactions, ReconciledAmount,
+            UnreconciledTransactions, UnreconciledAmount, SettlementStatus);
+        Assert.AreEqual(2, ReconciledTransactions, 'Only the statement transactions must be reconciled.');
+        Assert.AreEqual(3000, ReconciledAmount, 'Reconciled amount must exclude entries for other statements.');
+        Assert.AreEqual(0, UnreconciledTransactions, 'Both statement transactions must be reconciled.');
+        Assert.AreEqual(0, UnreconciledAmount, 'No statement amount must remain unreconciled.');
+
+        CorpCardStatementMgt.CloseStatement(CorpCardStatement);
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        Assert.AreEqual(CorpCardStatement.Status::Closed, CorpCardStatement.Status, 'The statement with two reconciled transactions must close.');
+        Assert.AreEqual(2, CorpCardStatement."Reconciled Transactions", 'Closure must count only this statement''s transactions.');
+    end;
+
+    [Test]
     procedure CloseStatementRejectsMissingExpenseBankEntry()
     var
         CorpCardSettlement: Record "EA Corp Card Settlement";

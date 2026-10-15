@@ -22,6 +22,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     var
         FieldMustBeSetOnRecordErr: Label '%1 must be set on %2 %3.', Comment = '%1 = field caption, %2 = table caption, %3 = record identifier';
         DataExchImportFailedErr: Label 'Data Exchange import failed for provider %1 using definition %2.', Comment = '%1 = provider code, %2 = Data Exch Def Code';
+        InvalidCsvLineErr: Label 'CSV input contains invalid quoting.';
         InvalidTransErr: Label 'Mandatory data is missing for provider transaction %1.', Comment = '%1 = Provider transaction ID';
         NoParsedLinesErr: Label 'No transaction lines were parsed from file %1 for provider %2. Verify Data Exchange definition %3 and mapping %4.', Comment = '%1 = file name, %2 = provider code, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
         NonCsvFallbackErr: Label 'No Data Exchange fields were parsed for non-CSV provider %1 (feed type %2). Verify Data Exchange definition %3 and line mapping %4.', Comment = '%1 = provider code, %2 = feed type, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
@@ -91,7 +92,9 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             CorpCardStatement.Status := CorpCardStatement.Status::Failed;
             CorpCardStatement.Rejected += 1;
             CorpCardStatement.Modify();
-            Error(DataExchImportFailedErr, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code");
+            RaiseProviderSetupError(
+                StrSubstNo(DataExchImportFailedErr, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code"),
+                CorpCardProvider);
         end;
         if HasParsedFields(DataExch) then
             MapDataExchToTrans(CorpCardStatement, CorpCardProvider, DataExch)
@@ -187,6 +190,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
         InStr: InStream;
         LineTxt: Text;
+        CsvFields: List of [Text];
         IsHeader: Boolean;
         ValidationReason: Text[250];
     begin
@@ -213,7 +217,8 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             CorpCardTrans."Provider Code" := CorpCardProvider.Code;
             CorpCardTrans.Status := CorpCardTrans.Status::Imported;
 
-            MapCsvLineToTrans(LineTxt, CorpCardTrans);
+            CsvFields := ParseCsvFields(LineTxt);
+            MapCsvLineToTrans(CsvFields, CorpCardTrans);
 
             ValidationReason := '';
             if not CorpCardValidateMgt.ValidateTrans(CorpCardTrans, ValidationReason) then begin
@@ -273,43 +278,81 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         exit((StrPos(LowerCase(LineTxt), 'providertransid') > 0) and (StrPos(LineTxt, ',') > 0));
     end;
 
-    local procedure MapCsvLineToTrans(LineTxt: Text; var CorpCardTrans: Record "EA Corp Card Trans")
+    local procedure MapCsvLineToTrans(CsvFields: List of [Text]; var CorpCardTrans: Record "EA Corp Card Trans")
     var
         DateTxt: Text;
         PostingDateTxt: Text;
         AmountTxt: Text;
     begin
-        CorpCardTrans."Provider Trans Id" := CopyStr(GetCsvField(LineTxt, 1), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-        CorpCardTrans."Card Id" := CopyStr(GetCsvField(LineTxt, 2), 1, MaxStrLen(CorpCardTrans."Card Id"));
+        CorpCardTrans."Provider Trans Id" := CopyStr(GetCsvField(CsvFields, 1), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
+        CorpCardTrans."Card Id" := CopyStr(GetCsvField(CsvFields, 2), 1, MaxStrLen(CorpCardTrans."Card Id"));
 
-        DateTxt := GetCsvField(LineTxt, 3);
+        DateTxt := GetCsvField(CsvFields, 3);
         if not ParseIsoDate(DateTxt, CorpCardTrans."Trans Date") then
             Evaluate(CorpCardTrans."Trans Date", DateTxt);
 
-        PostingDateTxt := GetCsvField(LineTxt, 4);
+        PostingDateTxt := GetCsvField(CsvFields, 4);
         if not ParseIsoDate(PostingDateTxt, CorpCardTrans."Posting Date") then
             Evaluate(CorpCardTrans."Posting Date", PostingDateTxt);
 
-        AmountTxt := NormalizeDecimalText(GetCsvField(LineTxt, 5));
+        AmountTxt := NormalizeDecimalText(GetCsvField(CsvFields, 5));
         Evaluate(CorpCardTrans.Amount, AmountTxt);
 
-        CorpCardTrans."Currency Code" := CopyStr(GetCsvField(LineTxt, 6), 1, MaxStrLen(CorpCardTrans."Currency Code"));
-        CorpCardTrans."Merchant Raw" := CopyStr(GetCsvField(LineTxt, 7), 1, MaxStrLen(CorpCardTrans."Merchant Raw"));
-        CorpCardTrans.MCC := CopyStr(GetCsvField(LineTxt, 8), 1, MaxStrLen(CorpCardTrans.MCC));
-        CorpCardTrans.Country := CopyStr(GetCsvField(LineTxt, 9), 1, MaxStrLen(CorpCardTrans.Country));
+        CorpCardTrans."Currency Code" := CopyStr(GetCsvField(CsvFields, 6), 1, MaxStrLen(CorpCardTrans."Currency Code"));
+        CorpCardTrans."Merchant Raw" := CopyStr(GetCsvField(CsvFields, 7), 1, MaxStrLen(CorpCardTrans."Merchant Raw"));
+        CorpCardTrans.MCC := CopyStr(GetCsvField(CsvFields, 8), 1, MaxStrLen(CorpCardTrans.MCC));
+        CorpCardTrans.Country := CopyStr(GetCsvField(CsvFields, 9), 1, MaxStrLen(CorpCardTrans.Country));
     end;
 
-    local procedure GetCsvField(LineTxt: Text; FieldIndex: Integer): Text
+    internal procedure ParseCsvFields(LineTxt: Text): List of [Text]
     var
+        CsvFields: List of [Text];
         FieldTxt: Text;
-        CommaCount: Integer;
+        CurrentChar: Text[1];
+        Position: Integer;
+        InQuotes: Boolean;
+        AfterClosingQuote: Boolean;
     begin
-        CommaCount := StrLen(LineTxt) - StrLen(DelChr(LineTxt, '=', ','));
-        if FieldIndex > (CommaCount + 1) then
-            exit('');
+        Position := 1;
+        while Position <= StrLen(LineTxt) do begin
+            CurrentChar := CopyStr(LineTxt, Position, 1);
+            if CurrentChar = '"' then begin
+                if InQuotes then begin
+                    if CopyStr(LineTxt, Position + 1, 1) = '"' then begin
+                        FieldTxt += '"';
+                        Position += 1;
+                    end else begin
+                        InQuotes := false;
+                        AfterClosingQuote := true;
+                    end;
+                end else
+                    if (FieldTxt = '') and not AfterClosingQuote then
+                        InQuotes := true
+                    else
+                        Error(InvalidCsvLineErr);
+            end else
+                if (CurrentChar = ',') and not InQuotes then begin
+                    CsvFields.Add(FieldTxt);
+                    FieldTxt := '';
+                    AfterClosingQuote := false;
+                end else begin
+                    if AfterClosingQuote then
+                        Error(InvalidCsvLineErr);
+                    FieldTxt += CurrentChar;
+                end;
+            Position += 1;
+        end;
+        if InQuotes then
+            Error(InvalidCsvLineErr);
+        CsvFields.Add(FieldTxt);
+        exit(CsvFields);
+    end;
 
-        FieldTxt := SelectStr(FieldIndex, LineTxt);
-        exit(DelChr(FieldTxt, '=', '"'));
+    local procedure GetCsvField(CsvFields: List of [Text]; FieldIndex: Integer): Text
+    begin
+        if FieldIndex > CsvFields.Count() then
+            exit('');
+        exit(CsvFields.Get(FieldIndex));
     end;
 
     local procedure ParseIsoDate(DateTxt: Text; var ParsedDate: Date): Boolean

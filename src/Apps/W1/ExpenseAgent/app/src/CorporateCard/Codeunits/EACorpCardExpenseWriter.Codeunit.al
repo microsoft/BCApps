@@ -15,6 +15,7 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
 
     var
         CreditCardPaymentMethodMissingErr: Label 'An expense payment method with reimbursement type Credit Card must exist before corporate card expenses can be created.';
+        OpenPaymentMethodsLbl: Label 'Open payment methods';
         RecordNotFoundForCardErr: Label '%1 not found for card %2.', Comment = '%1 = table caption, %2 = card id.';
         Level3ReconcileWarnLbl: Label 'Level 3 detail total %1 does not match transaction amount %2.', Comment = '%1 = detail total, %2 = transaction amount';
 
@@ -44,7 +45,7 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
             Expense.Validate("Expense Category", ExpenseCategory);
         ExpensePaymentMethod.SetRange("Reimbursement Type", ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         if not ExpensePaymentMethod.FindFirst() then
-            Error(CreditCardPaymentMethodMissingErr);
+            RaiseMissingPaymentMethodError();
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
         Expense.Description := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense.Description));
         Expense."Merchant Name" := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense."Merchant Name"));
@@ -60,6 +61,20 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
 
         CorpCardTrans."Expense No." := ExpenseNo;
         CorpCardTrans.Status := CorpCardTrans.Status::DraftCreated;
+    end;
+
+    local procedure RaiseMissingPaymentMethodError()
+    var
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+        MissingPaymentMethodErrorInfo: ErrorInfo;
+    begin
+        MissingPaymentMethodErrorInfo.Message := CreditCardPaymentMethodMissingErr;
+        MissingPaymentMethodErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        MissingPaymentMethodErrorInfo.ErrorType := ErrorType::Client;
+        MissingPaymentMethodErrorInfo.PageNo := Page::"Expense Payment Methods";
+        MissingPaymentMethodErrorInfo.AddNavigationAction(OpenPaymentMethodsLbl);
+        CorpCardErrorContext.SetErrorInfo(MissingPaymentMethodErrorInfo);
+        Error(MissingPaymentMethodErrorInfo);
     end;
 
     procedure LinkPosted(var CorpCardTrans: Record "EA Corp Card Trans"; PostedDocNo: Code[20])

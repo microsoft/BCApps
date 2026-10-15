@@ -49,6 +49,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
             end else
                 if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then begin
                     LinkExpenseToTransaction(MatchedExpenseNo, CorpCardTrans."Entry No.");
+                    EnhancedMatchMgt.RemoveCandidate(MatchedExpenseNo);
                     CorpCardTrans.Status := CorpCardTrans.Status::Matched;
                     CorpCardTrans."Expense No." := MatchedExpenseNo;
                     MatchedCount += 1;

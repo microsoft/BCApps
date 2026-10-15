@@ -12,11 +12,23 @@ codeunit 7444 "EA Corp Card Error Context"
     var
         StructuredErrorInfo: ErrorInfo;
         HasStructuredErrorInfo: Boolean;
+        ImportStage: Text;
 
     internal procedure ClearErrorInfo()
     begin
         Clear(StructuredErrorInfo);
         HasStructuredErrorInfo := false;
+        Clear(ImportStage);
+    end;
+
+    internal procedure SetImportStage(NewImportStage: Text)
+    begin
+        ImportStage := NewImportStage;
+    end;
+
+    internal procedure GetImportStage(): Text
+    begin
+        exit(ImportStage);
     end;
 
     internal procedure SetErrorInfo(NewErrorInfo: ErrorInfo)
@@ -31,7 +43,9 @@ codeunit 7444 "EA Corp Card Error Context"
             exit(false);
 
         RetrievedErrorInfo := StructuredErrorInfo;
-        ClearErrorInfo();
+        StructuredErrorInfo := ErrorInfo.Create();
+        HasStructuredErrorInfo := false;
+        Clear(ImportStage);
         exit(true);
     end;
 }

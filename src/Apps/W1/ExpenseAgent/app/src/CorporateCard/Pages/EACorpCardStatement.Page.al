@@ -239,7 +239,7 @@ page 7444 "EA Corp Card Statement"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Reopen';
-                Enabled = CanCloseReconciliation;
+                Enabled = CanReopen;
                 Image = ReOpen;
                 ToolTip = 'Reopens the validated statement so that it can be corrected.';
 
@@ -340,6 +340,7 @@ page 7444 "EA Corp Card Statement"
         CorpCardStatementMgt.GetUnlinkedBankEntrySummary(Rec, UnlinkedBankEntries, UnlinkedBankAmount);
         CanCloseReconciliation := Rec.Status in [Rec.Status::Validated, Rec.Status::ReconciliationRequired];
         Rec.CalcFields("Settlement Entry No.");
+        CanReopen := (Rec.Status = Rec.Status::Validated) and (Rec."Settlement Entry No." = 0);
         if Rec."Settlement Entry No." = 0 then
             SettlementStatusText := ''
         else
@@ -349,6 +350,7 @@ page 7444 "EA Corp Card Statement"
     var
         CloseReconciliationQst: Label 'Do you want to close reconciliation for corporate card statement %1?', Comment = '%1 = statement number';
         CanCloseReconciliation: Boolean;
+        CanReopen: Boolean;
         NoSettlementErr: Label 'The statement is not included in a settlement.';
         ReconciledAmount: Decimal;
         UnreconciledAmount: Decimal;

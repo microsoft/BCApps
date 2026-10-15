@@ -25,18 +25,33 @@ codeunit 7430 "EA Corp Card Feed Mgt"
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         ImportErrorText: Text;
         FirstImportErrorText: Text;
+        ImportErrorInfo: ErrorInfo;
+        FirstActionableErrorInfo: ErrorInfo;
+        HasStructuredErrorInfo: Boolean;
+        HasActionableErrorInfo: Boolean;
+        HasFailedImport: Boolean;
     begin
         CorpCardProvider.SetRange(Enabled, true);
         if not CorpCardProvider.FindSet() then
             exit;
 
         repeat
-            if not CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText) then
-                if FirstImportErrorText = '' then
+            if CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo) then
+                Commit()
+            else begin
+                if not HasFailedImport then
                     FirstImportErrorText := ImportErrorText;
+                HasFailedImport := true;
+                if HasStructuredErrorInfo and not HasActionableErrorInfo then begin
+                    FirstActionableErrorInfo := ImportErrorInfo;
+                    HasActionableErrorInfo := true;
+                end;
+            end;
         until CorpCardProvider.Next() = 0;
 
-        if FirstImportErrorText <> '' then
+        if HasActionableErrorInfo then
+            Error(FirstActionableErrorInfo);
+        if HasFailedImport then
             Error(ProviderImportFailedErr, FirstImportErrorText);
     end;
 
