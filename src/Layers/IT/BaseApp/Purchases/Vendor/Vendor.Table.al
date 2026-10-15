@@ -3480,4 +3480,3 @@ table 23 Vendor
     begin
     end;
 }
-}

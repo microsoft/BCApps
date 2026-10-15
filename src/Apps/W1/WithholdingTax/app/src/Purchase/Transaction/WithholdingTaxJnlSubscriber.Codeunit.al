@@ -1629,8 +1629,8 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         GenJournalLine.SetRange("Is Withholding Tax", false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnProcessLinesOnAfterPostGenJournalLine, '', false, false)]
-    local procedure OnProcessLinesOnAfterProcessICTransaction(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer; sender: Codeunit "Gen. Jnl.-Post Batch")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnProcessLinesOnAfterPostGenJournalLine2, '', false, false)]
+    local procedure PostWithholdingTaxLines(var GenJournalLine: Record "Gen. Journal Line"; var LastTaxLineNo: Integer; sender: Codeunit "Gen. Jnl.-Post Batch")
     var
         WHTGenJournalLine: Record "Gen. Journal Line";
         WithholdingTaxMgmt: Codeunit "Withholding Tax Mgmt.";

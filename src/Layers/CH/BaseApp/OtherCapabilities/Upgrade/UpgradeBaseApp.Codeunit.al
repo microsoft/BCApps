@@ -243,6 +243,7 @@ codeunit 104000 "Upgrade - BaseApp"
 #if not CLEANSCHEMA27        
         UpgradeGLAmountFCYAndCurrencyCode();
 #endif
+        SetShowCurrencySymbolPosition();
         UpgradeABCAnalysisSetup();
         UpgradePurchRcptLineFields();
         UpgradeSalesShptLineFields();
