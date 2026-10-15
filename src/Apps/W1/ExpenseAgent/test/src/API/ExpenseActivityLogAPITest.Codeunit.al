@@ -12,6 +12,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148343 "Expense Activity Log API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
