@@ -3522,7 +3522,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferRouteUpgradeTag());
     end;
 
-    local procedure UpgradeDirectTransferOnTransferHeader()
+    internal procedure UpgradeDirectTransferOnTransferHeader()
     var
         InventorySetup: Record "Inventory Setup";
         TransferHeader: Record "Transfer Header";
@@ -3534,8 +3534,14 @@ codeunit 104000 "Upgrade - BaseApp"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag()) then
             exit;
 
-        InventorySetup.GetRecordOnce();
-        DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        TransferHeader.SetRange("Direct Transfer", true);
+        if TransferHeader.IsEmpty() then begin
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag());
+            exit;
+        end;
+
+        if InventorySetup.Get() then
+            DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
         if DirectTransferPostingType = DirectTransferPostingType::" " then
             DirectTransferPostingType := DirectTransferPostingType::"Shipment and Receipt";
 
