@@ -371,9 +371,12 @@ codeunit 50123 "Report Filename Fin. Rep. Sub."
         AccScheduleLine: Record "Acc. Schedule Line";
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
         ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         FirstDate: Date;
         LastDate: Date;
     begin
+        if not ReportFilenameMgt.IsActive() then
+            exit;
         if not FinancialReport.Get(FinancialReportName) then
             exit;
         if FinancialReportSchedule.Get(FinancialReportName, ScheduleCode) then
@@ -408,12 +411,13 @@ codeunit 50123 "Report Filename Fin. Rep. Sub."
     var
         FinancialReport: Record "Financial Report";
         ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         SubjectRecRef: RecordRef;
     begin
-        // Nothing chosen, or chosen and since deleted. Recording nothing is right: the run then
-        // has no subject, no pattern applies, and Business Central names the file as it always
-        // has.
-        if FinancialReportName = '' then begin
+        // Nothing chosen, or chosen and since deleted - or nothing could name the file anyway.
+        // Recording nothing is right: the run then has no subject, no pattern applies, and Business
+        // Central names the file as it always has.
+        if (FinancialReportName = '') or not ReportFilenameMgt.IsActive() then begin
             ReportFilenameContext.ClearRunSubject();
             exit;
         end;
@@ -460,6 +464,8 @@ codeunit 50123 "Report Filename Fin. Rep. Sub."
         RecordSubject(FinancialReportName, Report::"Export Acc. Sched. to Excel");
         if not ReportFilenameContext.HasRunSubjectFor(Report::"Export Acc. Sched. to Excel") then
             exit;
+        // The subject is for the run of report 29 this action starts, and for no other.
+        ReportFilenameContext.ArmExcelExport();
         // No date filter is every date. There is no one period then, and [Period] declines rather
         // than making one up.
         if DateFilterText = '' then
@@ -477,8 +483,7 @@ codeunit 50123 "Report Filename Fin. Rep. Sub."
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
     begin
-        if ReportFilenameContext.HasRunSubjectFor(Report::"Export Acc. Sched. to Excel") then
-            ReportFilenameContext.ClearRunSubject();
+        ReportFilenameContext.EndExcelExportRun();
     end;
 
     /// <summary>

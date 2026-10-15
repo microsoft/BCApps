@@ -19,8 +19,9 @@ codeunit 50192 "Filename Reminder Tests"
     // twice under one name.
     //
     // A test codeunit because the download fallback asks a question first, which only a handler can
-    // answer. Every row it creates carries the code ZZMEASURE or the number ZZRM-MEASURE and is
-    // removed before and after; scripts/checkleftovers.ps1 checks that nothing is left.
+    // answer. The two invoices are posted for a customer of the test's own, and stay, as posted
+    // documents do. Every other row it creates carries the code ZZMEASURE or the number ZZRM-MEASURE
+    // and is removed before and after; scripts/checkleftovers.ps1 checks that nothing is left.
 
     Subtype = Test;
     TestPermissions = Disabled;
@@ -137,8 +138,8 @@ codeunit 50192 "Filename Reminder Tests"
 
     /// <summary>
     /// Reminder terms and a level of their own, so that reminder automation's terms filter selects
-    /// this reminder and nothing in the company; two posted invoices of one customer; a second report
-    /// selection for the invoice; and reminder automation's group, send action and setup.
+    /// this reminder and nothing in the company; two invoices posted for a new customer; a second
+    /// report selection for the invoice; and reminder automation's group, send action and setup.
     /// </summary>
     local procedure SetUpReminder()
     var
@@ -149,16 +150,12 @@ codeunit 50192 "Filename Reminder Tests"
         SendRemindersSetup: Record "Send Reminders Setup";
         Existing: Record "Report Selections";
         ReportSelections: Record "Report Selections";
+        TestData: Codeunit "Filename Test Data";
+        CustomerNo: Code[20];
     begin
-        FirstInvoice.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if FirstInvoice.FindSet() then
-            repeat
-                SecondInvoice.Reset();
-                SecondInvoice.SetRange("Bill-to Customer No.", FirstInvoice."Bill-to Customer No.");
-                SecondInvoice.SetFilter("No.", '<>%1', FirstInvoice."No.");
-            until SecondInvoice.FindFirst() or (FirstInvoice.Next() = 0);
-        if SecondInvoice."No." = '' then
-            Error(NoTwoInvoicesErr);
+        CustomerNo := TestData.CreateCustomer();
+        TestData.PostNewInvoice(CustomerNo, FirstInvoice);
+        TestData.PostNewInvoice(CustomerNo, SecondInvoice);
 
         ReminderTerms.Init();
         ReminderTerms.Code := TermsCodeTok;
@@ -338,6 +335,5 @@ codeunit 50192 "Filename Reminder Tests"
         WrongNamesErr: Label 'With %1, the email should carry "%2" but carries "%3".', Comment = '%1 the situation, %2 expected, %3 actual';
         NotOneEmailErr: Label 'With %1, reminder automation should produce one email, but produced %2.', Comment = '%1 the situation, %2 how many';
         AutomationErr: Label 'Reminder automation reported an error: %1', Comment = '%1 the error';
-        NoTwoInvoicesErr: Label 'No customer with two posted sales invoices, so reminder automation cannot be tested.';
         AccountRegisteredErr: Label 'An email account is registered, so Base Application would send instead of falling back to a download.';
 }

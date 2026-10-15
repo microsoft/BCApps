@@ -20,19 +20,23 @@ codeunit 50152 "Filename Filter Tests"
     // And the financial report's period, [Period], which is the same idea for report 25: the
     // period is a variable of the report rather than a filter, and is captured as the request page
     // closes. Those tests drive Base Application's own entry points - Financial Report Mgt.Print,
-    // the Acc. Schedule Overview's Print action, a Financial Report Export Log row - with the
-    // feature switched off while the report runs, so the run's subject and period are still
-    // recorded afterwards, and then name the run through the manager exactly as the naming hook
-    // does. Switched on during the run, the preview's own naming hook would take them first.
+    // the Acc. Schedule Overview's Print action, a Financial Report Export Log row - on financial
+    // reports they create (Filename Test Data), with the feature switched off while the report
+    // runs, so the run's subject and period are still recorded afterwards, and then name the run
+    // through the manager exactly as the naming hook does. Switched on during the run, the
+    // preview's own naming hook would take them first.
 
     Subtype = Test;
     TestPermissions = Disabled;
 
     var
+        NamingCapture: Codeunit "Filename Naming Capture";
+        TestData: Codeunit "Filename Test Data";
         TypedFirst: Date;
         TypedLast: Date;
         ClearTheDates: Boolean;
         SwitchTo: Code[10];
+        NamingCaptureBound: Boolean;
 
     [Test]
     procedure ThePeriodIsOfferedForFinancialReportsOnly()
@@ -150,7 +154,10 @@ codeunit 50152 "Filename Filter Tests"
         Commit();
         Report.Run(Report::"Account Schedule");
 
-        AssertRunRecorded(FinancialReport.Name);
+        // What was recorded can be read back only while nothing has named the run yet: naming takes
+        // it. Where the run's own hook named it, the name below is the proof of both.
+        if not NamingCapture.HasNameFor(Report::"Account Schedule") then
+            AssertRunRecorded(FinancialReport.Name);
         AssertNamed(ReportFilenameMgt.Sanitise(FinancialReport.Description) + '-' + TypedYearTok);
     end;
 
@@ -409,17 +416,20 @@ codeunit 50152 "Filename Filter Tests"
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         FilenameProofSupport: Codeunit "Filename Proof Support";
         NoRecord: RecordRef;
+        CompanyLanguageCode: Code[10];
         Filename: Text;
+        Named: Boolean;
     begin
         // The session is English (Prepare), the invoice names no language, and the company's
         // default is German - so a pattern for DEU applies only if the company's default is what
         // decides. Falling back to the user's language, as naming once did, leaves it unnamed.
         Prepare();
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        SalesInvoiceHeader.FindFirst();
+        TestData.EnsureLanguage(GermanLanguageTok, FilenameProofSupport.GermanLanguageId());
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         SalesInvoiceHeader."Language Code" := '';
         SalesInvoiceHeader.Modify();
         CompanyInformation.Get();
+        CompanyLanguageCode := CompanyInformation."Default Language Code";
         CompanyInformation."Default Language Code" := GermanLanguageTok;
         CompanyInformation.Modify();
 
@@ -430,9 +440,15 @@ codeunit 50152 "Filename Filter Tests"
         Pattern.Enabled := true;
         Pattern.Insert(true);
 
-        if not ReportFilenameMgt.TryResolve(Report::"Standard Sales - Invoice", Enum::"Report Filename Output Route"::Download,
-            NoRecord, FilenameProofSupport.InvoiceFilterViews(SalesInvoiceHeader), Filename)
-        then
+        Named := ReportFilenameMgt.TryResolve(Report::"Standard Sales - Invoice", Enum::"Report Filename Output Route"::Download,
+            NoRecord, FilenameProofSupport.InvoiceFilterViews(SalesInvoiceHeader), Filename);
+
+        // The company's own language back before anything is asserted: the runner rolls back only when
+        // the whole codeunit ends, and the tests after this one name financial reports in it.
+        CompanyInformation."Default Language Code" := CompanyLanguageCode;
+        CompanyInformation.Modify();
+
+        if not Named then
             Error(CompanyLanguageIgnoredErr, GermanLanguageTok, SalesInvoiceHeader."No.");
         if StrPos(Filename, GermanPrefixTok + SalesInvoiceHeader."No.") = 0 then
             Error(WrongNameErr, GermanPrefixTok + SalesInvoiceHeader."No.", Filename);
@@ -545,7 +561,8 @@ codeunit 50152 "Filename Filter Tests"
 
     /// <summary>
     /// What Financial Report Export Job does first: a schedule with date formulas for this year, and
-    /// the export log row that names the financial report.
+    /// the export log row that names the financial report. The financial report is a new one, so no
+    /// earlier test's schedule is on it.
     /// </summary>
     local procedure StartScheduledExport(var FinancialReportSchedule: Record "Financial Report Schedule")
     var
@@ -553,9 +570,6 @@ codeunit 50152 "Filename Filter Tests"
         FinancialReportExportLog: Record "Financial Report Export Log";
     begin
         FinancialReport.Get(PeriodColumnsReport());
-        // Tests share one rollback per codeunit, so an earlier test's schedule may still be here.
-        if FinancialReportSchedule.Get(FinancialReport.Name, ScheduleCodeTok) then
-            FinancialReportSchedule.Delete(false);
         FinancialReportSchedule.Init();
         FinancialReportSchedule."Financial Report Name" := FinancialReport.Name;
         FinancialReportSchedule.Code := ScheduleCodeTok;
@@ -652,8 +666,12 @@ codeunit 50152 "Filename Filter Tests"
         Filename: Text;
     begin
         SetFeature(true);
-        if not TryNameFinancialReportRun(Filename) then
-            Error(FinancialReportNotNamedErr, Expected);
+        // The name the run's own naming hook gave, when it gave one - taken, so it names one
+        // assertion only.
+        Filename := NamingCapture.TakeNameWithoutExtension(Report::"Account Schedule");
+        if Filename = '' then
+            if not TryNameFinancialReportRun(Filename) then
+                Error(FinancialReportNotNamedErr, Expected);
         if Filename <> Expected then
             Error(WrongNameErr, Expected, Filename);
     end;
@@ -700,9 +718,13 @@ codeunit 50152 "Filename Filter Tests"
         // Before the feature is switched off: the proof guard's ClearPatterns, which this calls,
         // switches it back on.
         CreateFinancialReportPattern(PatternText);
-        // Off while the report runs, so the preview's own naming hook does not take the run's
-        // subject and period before the test names the run itself.
-        SetFeature(false);
+        // On while the report runs: the run's subject and period are recorded only while the
+        // feature can name something (Report Filename Mgt.IsActive). The name the run's own naming
+        // hook gives is captured as it is given; where no hook names the run in this session, the
+        // recorded run is named afterwards instead.
+        NamingCapture.Reset();
+        if not NamingCaptureBound then
+            NamingCaptureBound := BindSubscription(NamingCapture);
     end;
 
     local procedure CreateFinancialReportPattern(PatternText: Text)
@@ -729,39 +751,22 @@ codeunit 50152 "Filename Filter Tests"
     end;
 
     /// <summary>
-    /// A financial report whose columns include one that is not Balance at Date, so report 25
+    /// A new financial report whose columns include one that is not Balance at Date, so report 25
     /// keeps Starting Date.
     /// </summary>
     local procedure PeriodColumnsReport(): Code[10]
     begin
-        exit(FindFinancialReport(true));
+        exit(TestData.CreateFinancialReport(PeriodColumnsDescriptionTok, true));
     end;
 
     /// <summary>
-    /// A financial report whose columns are all Balance at Date, so report 25 can switch Starting
-    /// Date off.
+    /// A new financial report whose columns are all Balance at Date, so report 25 can switch
+    /// Starting Date off. Described otherwise than PeriodColumnsReport's, so a name built from the
+    /// description says which of the two was run.
     /// </summary>
     local procedure BalanceOnlyReport(): Code[10]
     begin
-        exit(FindFinancialReport(false));
-    end;
-
-    local procedure FindFinancialReport(WithPeriodColumn: Boolean): Code[10]
-    var
-        FinancialReport: Record "Financial Report";
-        ColumnLayout: Record "Column Layout";
-    begin
-        FinancialReport.SetFilter("Financial Report Column Group", '<>%1', '');
-        FinancialReport.SetFilter("Financial Report Row Group", '<>%1', '');
-        FinancialReport.SetFilter(Description, '<>%1', '');
-        if FinancialReport.FindSet() then
-            repeat
-                ColumnLayout.SetRange("Column Layout Name", FinancialReport."Financial Report Column Group");
-                ColumnLayout.SetFilter("Column Type", '<>%1', ColumnLayout."Column Type"::"Balance at Date");
-                if WithPeriodColumn = not ColumnLayout.IsEmpty() then
-                    exit(FinancialReport.Name);
-            until FinancialReport.Next() = 0;
-        Error(NoFinancialReportErr, WithPeriodColumn);
+        exit(TestData.CreateFinancialReport(BalanceOnlyDescriptionTok, false));
     end;
 
     local procedure CreatePattern(var Pattern: Record "Report Filename Pattern")
@@ -839,5 +844,6 @@ codeunit 50152 "Filename Filter Tests"
         NothingRecordedErr: Label 'The request page closed with financial report %1, but no run was recorded.', Comment = '%1 financial report';
         WrongReportRecordedErr: Label 'The request page closed with financial report %1, but the run was recorded as %2.', Comment = '%1 expected, %2 recorded';
         NoPeriodRecordedErr: Label 'The run of financial report %1 was recorded without a period.', Comment = '%1 financial report';
-        NoFinancialReportErr: Label 'This company has no financial report with rows, columns and a description whose columns include a period column = %1.', Comment = '%1 true or false';
+        PeriodColumnsDescriptionTok: Label 'Report Filename Test Periods', Locked = true;
+        BalanceOnlyDescriptionTok: Label 'Report Filename Test Balances', Locked = true;
 }

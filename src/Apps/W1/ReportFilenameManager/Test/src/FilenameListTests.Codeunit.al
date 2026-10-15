@@ -29,7 +29,7 @@ codeunit 50151 "Filename List Tests"
         FromThisPattern: Boolean;
     begin
         PrepareWithNoPatterns();
-        InvoiceNo := FirstPostedInvoiceNo();
+        InvoiceNo := NewInvoiceNo();
         CreatePattern(General, GeneralPatternTok, true, '');
         CreatePattern(Specific, SpecificPatternTok, true, InvoiceNo);
 
@@ -206,7 +206,7 @@ codeunit 50151 "Filename List Tests"
         TheCopy: Record "Report Filename Pattern";
     begin
         PrepareWithNoPatterns();
-        CreatePattern(Original, GeneralPatternTok, true, FirstPostedInvoiceNo());
+        CreatePattern(Original, GeneralPatternTok, true, NewInvoiceNo());
 
         Original.CopyToNewPattern(TheCopy);
 
@@ -266,7 +266,7 @@ codeunit 50151 "Filename List Tests"
         LastError := GetLastErrorText();
         if StrPos(LastError, Pattern.DisplayCaption()) = 0 then
             Error(RefusalDoesNotNamePatternErr, Pattern.DisplayCaption(), LastError);
-        if StrPos(LastError, Pattern.NoFileNamePatternMessage()) = 0 then
+        if StrPos(LastError, ExpectedTexts.NoFileNamePatternMessage()) = 0 then
             Error(RefusalDoesNotSayWhyErr, LastError);
     end;
 
@@ -333,7 +333,7 @@ codeunit 50151 "Filename List Tests"
         // the same Entry No. twice.
         PrepareWithNoPatterns();
         CreatePattern(General, GeneralPatternTok, true, '');
-        CreatePattern(Specific, SpecificPatternTok, true, FirstPostedInvoiceNo());
+        CreatePattern(Specific, SpecificPatternTok, true, NewInvoiceNo());
         CreatePattern(TurnedOff, CreditMemoPatternTok, false, '');
 
         ReportFilenameSetupPage.OpenView();
@@ -347,7 +347,8 @@ codeunit 50151 "Filename List Tests"
             Error(WrongDrillDownRowsErr, 2, DrillDownRows);
     end;
 
-    [PageHandler]
+    // A dialog: the setup waits for the list, so it can count again when the list closes.
+    [ModalPageHandler]
     procedure EnabledPatternsDrillDownHandler(var PatternList: TestPage "Report Filename Patterns")
     begin
         DrillDownRows := CountRows(PatternList);
@@ -391,11 +392,15 @@ codeunit 50151 "Filename List Tests"
         Pattern.Insert(true);
     end;
 
-    local procedure FirstPostedInvoiceNo(): Code[20]
+    /// <summary>
+    /// The number of a sales invoice posted for the test, for a pattern narrowed to one invoice.
+    /// </summary>
+    local procedure NewInvoiceNo(): Code[20]
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        TestData: Codeunit "Filename Test Data";
     begin
-        SalesInvoiceHeader.FindFirst();
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         exit(SalesInvoiceHeader."No.");
     end;
 
@@ -408,6 +413,7 @@ codeunit 50151 "Filename List Tests"
     end;
 
     var
+        ExpectedTexts: Codeunit "Filename Expected Texts";
         SentNotificationMessage: Text;
         ShownMessage: Text;
         CreditMemoPatternTok: Label 'CreditMemo-[No.]', Locked = true;

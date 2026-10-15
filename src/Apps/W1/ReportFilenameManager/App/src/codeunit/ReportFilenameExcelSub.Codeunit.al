@@ -31,25 +31,42 @@ codeunit 50127 "Report Filename Excel Sub."
     var
         FileManagement: Codeunit "File Management";
         ReportFilenameFinRepSub: Codeunit "Report Filename Fin. Rep. Sub.";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        ReportFilenameContext: Codeunit "Report Filename Context";
         NewFileName: Text;
     begin
-        if IsHandled or Downloading then
+        if IsHandled then
             exit;
+        // This subscriber's own download, re-entering: recognised by the name it is downloading under,
+        // not by a flag alone, so a download that failed half way cannot leave Excel naming switched
+        // off - any other download clears what it left behind.
+        if DownloadingName <> '' then begin
+            if ToFileName = DownloadingName then
+                exit;
+            Clear(DownloadingName);
+        end;
         if not ToFileName.EndsWith(ExcelExtensionTok) then
+            exit;
+        if not ReportFilenameMgt.IsActive() then
+            exit;
+        // Only the workbook report 29 is writing right now, for the financial report the overview's
+        // action recorded and armed - not any other workbook downloaded while something was left
+        // behind (Report Filename Context.IsExcelExportRunning).
+        if not ReportFilenameContext.IsExcelExportRunning() then
             exit;
         if not ReportFilenameFinRepSub.TryNameExcelDownload(NewFileName) then
             exit;
 
         // The download is made again through the same procedure, under the new name; the guard
         // keeps this subscriber out of its own call.
-        Downloading := true;
+        DownloadingName := NewFileName;
         Downloaded := FileManagement.DownloadHandler(FromFileName, '', ToFolder, ExcelFilterTok, NewFileName);
-        Downloading := false;
+        Clear(DownloadingName);
         IsHandled := true;
     end;
 
     var
-        Downloading: Boolean;
+        DownloadingName: Text;
         ExcelExtensionTok: Label '.xlsx', Locked = true;
         ExcelFilterTok: Label 'Excel Files (*.xlsx)|*.xlsx', Locked = true;
 }

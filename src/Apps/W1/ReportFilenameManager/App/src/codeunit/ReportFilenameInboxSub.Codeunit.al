@@ -43,7 +43,11 @@ codeunit 50122 "Report Filename Inbox Sub."
     begin
         if Rec.IsTemporary() then
             exit;
+        // The report just rendered for this entry belongs to it, not to an email.
+        ReportFilenameContext.ClearLastRendered();
         if Rec."File Name" <> '' then
+            exit;
+        if not ReportFilenameMgt.IsActive() then
             exit;
 
         // Read without consuming. One render produces one file and then one row per recipient,

@@ -233,9 +233,9 @@ page 50111 "Report Filename Pattern Card"
                 // read like a chapter heading; card groups in Base Application are captioned
                 // with a short noun phrase, as General, Invoicing and Foreign Trade are.
                 Caption = 'Multiple Records';
-                InstructionalText = 'A file name normally identifies one record. These settings apply only when one file covers several records - for example, when you run the report for a range of invoices or for several customers. They decide how many records are named, what goes between them, and the word that joins the first and the last record when there are too many to name. A report run for a single record never uses them.';
+                InstructionalText = 'A file name normally identifies one record. These settings apply only when one file covers several records - for example, when you run the report for a range of invoices or for several customers. They decide how many different values each placeholder lists, what goes between them, and the word that joins the first and the last value when there are too many to name. A report run for a single record never uses them.';
 
-                field("Max. Records Named"; Rec."Max. Records Named")
+                field("Max. Values Named"; Rec."Max. Values Named")
                 {
                     ApplicationArea = All;
                 }
@@ -292,6 +292,21 @@ page 50111 "Report Filename Pattern Card"
 
                     ReportFilenamePlaceholders.GetRecord(TempChosenPlaceholder);
                     AppendPlaceholder(TempChosenPlaceholder.Placeholder);
+                end;
+            }
+            action(ClearReport)
+            {
+                Caption = 'Clear Report';
+                ToolTip = 'Removes the report from this pattern and keeps its table, so the pattern applies to every report on that table.';
+                ApplicationArea = All;
+                Image = ClearFilter;
+                Enabled = Rec."Report ID" <> 0;
+
+                trigger OnAction()
+                begin
+                    Rec.ClearReport();
+                    Rec.CalcFields(Rec."Report Name", Rec."Table Caption");
+                    CurrPage.Update(true);
                 end;
             }
             action(TestPattern)

@@ -33,7 +33,7 @@ table 50115 "Report Filename Setup"
         field(2; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            ToolTip = 'Specifies whether file name patterns are used. When this is off, every report gets Business Central''s own file name, and your patterns are kept for when you turn it on again.';
+            ToolTip = 'Specifies whether file name patterns are used. When this is off, every report gets Business Central''s own file name, and your patterns are kept for when you turn it on again. Turning this off affects new output only. Existing Report Inbox entries keep their stored file names.';
         }
         field(3; "Max. File Name Length"; Integer)
         {

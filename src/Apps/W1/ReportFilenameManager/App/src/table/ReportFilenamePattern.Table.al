@@ -118,7 +118,7 @@ table 50110 "Report Filename Pattern"
             // Not "Pattern": that is what the whole row is called, so messages had to say "the
             // file name pattern of this pattern" or leave the reader to guess which one was meant.
             Caption = 'File Name Pattern';
-            ToolTip = 'Specifies the file name to produce, as text with placeholders in square brackets, such as Invoice-[No.].';
+            ToolTip = 'Specifies the file name without the extension. Use placeholders in square brackets, such as Invoice-[No.]. The output format adds the extension automatically.';
 
             trigger OnValidate()
             begin
@@ -150,17 +150,18 @@ table 50110 "Report Filename Pattern"
         }
         // Field 9 was Max. Length. One maximum now applies to every pattern, from
         // Report Filename Setup, so two patterns can no longer disagree about how long a name may be.
-        field(10; "Max. Records Named"; Integer)
+        field(10; "Max. Values Named"; Integer)
         {
-            // Says what is counted. It was "Max. Values" and then "Max. Number Named", and both
-            // left the reader to supply the noun - which is records.
-            Caption = 'Max. Records Named';
+            // Says what is counted: distinct values, per placeholder. CollectValues lists each value
+            // once however many records carry it, and applies this limit to each field placeholder
+            // separately - 100 invoices for two customers still list both customer numbers.
+            Caption = 'Max. Values Named';
             InitValue = 3;
-            ToolTip = 'Specifies how many records are named one by one when one file covers several records. Beyond this number, only the first and the last record are named, joined by the range word, so the file name cannot grow without limit.';
+            ToolTip = 'Specifies how many different values each placeholder lists when one file covers several records. Repeated values are listed once. Beyond this number, only the first and the last value are named, joined by the range word.';
 
             trigger OnValidate()
             begin
-                if "Max. Records Named" < 1 then
+                if "Max. Values Named" < 1 then
                     Error(MaxValuesErr);
             end;
         }
@@ -332,11 +333,11 @@ table 50110 "Report Filename Pattern"
         SeparatorErr: Label 'A separator cannot contain any of the characters %1, because a file name cannot contain them either. Spaces and punctuation are fine.', Comment = '%1 the characters that are not allowed';
         RangeWordErr: Label 'The range word cannot contain any of the characters %1, because a file name cannot contain them either.', Comment = '%1 the characters a file name may not contain';
         FilterPageCaptionLbl: Label 'Which records does this pattern apply to?';
-        MaxValuesErr: Label 'Max. Records Named must be at least 1.';
+        MaxValuesErr: Label 'Max. Values Named must be at least 1.';
         NothingCompetesMsg: Label 'No other pattern can apply to the same files as %1.', Comment = '%1 the pattern, as its card is titled';
         NoDocumentTypeForFilterErr: Label 'Choose the table this pattern applies to before you set a table filter.';
         NoDocumentTypeForLanguageErr: Label 'Choose the table this pattern applies to first, so its fields can be offered.';
-        ReportDecidesErr: Label 'The table is decided by the report this pattern applies to, %1, and cannot be changed - a pattern that disagrees with its own report would never be used. Clear the report first if you want the pattern to cover every report on a table.', Comment = '%1 the report';
+        ReportDecidesErr: Label 'The table is decided by the report this pattern applies to, %1, and cannot be changed - a pattern that disagrees with its own report would never be used. Choose Clear Report first if you want the pattern to cover every report on a table.', Comment = '%1 the report';
         NoLanguageFieldErr: Label 'Choose the language code field before you limit this pattern to %1.', Comment = '%1 language code';
         NotALanguageFieldErr: Label '%1 does not hold a language, because it does not relate to the Language table. Choose a field that does, such as Language Code.', Comment = '%1 the caption of the field that was chosen';
         NoLanguageFieldOnTableErr: Label '%1 has no field that holds a language, so this pattern cannot be limited to one.', Comment = '%1 the caption of the table';
@@ -467,39 +468,6 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// The refusal raised when a table filter is set before the table, for the test app to
-    /// compare against. A test holding its own copy of the wording breaks whenever the wording
-    /// changes and in every language but English; asking for the label does neither.
-    /// </summary>
-    /// <returns>The message text.</returns>
-    internal procedure NoTableForFilterMessage(): Text
-    begin
-        exit(NoDocumentTypeForFilterErr);
-    end;
-
-    /// <summary>
-    /// The refusal raised when a pattern with no file name pattern is turned on, for the test
-    /// app to compare against.
-    /// </summary>
-    /// <returns>The message text.</returns>
-    internal procedure NoFileNamePatternMessage(): Text
-    begin
-        exit(NoPatternToEnableErr);
-    end;
-
-    /// <summary>
-    /// The refusal raised for a separator holding a character a file name cannot contain, for
-    /// the test app to compare against.
-    /// </summary>
-    /// <returns>The message text, with the characters filled in.</returns>
-    internal procedure InvalidSeparatorMessage(): Text
-    var
-        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
-    begin
-        exit(StrSubstNo(SeparatorErr, ReportFilenameMgt.DisallowedCharacters()));
-    end;
-
-    /// <summary>
     /// What the card and the list show for a pattern with no table filter. One place, because the
     /// card said "Every record of this kind" while the list showed nothing for the same row.
     /// </summary>
@@ -622,15 +590,6 @@ table 50110 "Report Filename Pattern"
                     RouteText += RouteSeparatorTok;
                 RouteText += Format(Enum::"Report Filename Output Route".FromInteger(Ordinal));
             end;
-    end;
-
-    /// <summary>
-    /// What the card and the list show for a pattern with no route filter, for tests to compare with.
-    /// </summary>
-    /// <returns>The text.</returns>
-    internal procedure NoOutputRouteFilterText(): Text
-    begin
-        exit(AllRoutesLbl);
     end;
 
     /// <summary>
@@ -940,6 +899,21 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
+    /// Takes the report off the pattern and keeps its table, so the pattern then covers every report
+    /// on that table. The lookup can only choose another report, and Report Name is not editable, so
+    /// without this a report-specific pattern could never go back to covering the whole table.
+    /// The binding is rebuilt because a placeholder may have come from the report itself - a filter
+    /// on its request page - and a pattern that no longer fits should say so now.
+    /// </summary>
+    internal procedure ClearReport()
+    begin
+        if "Report ID" = 0 then
+            exit;
+        Validate("Report ID", 0);
+        BuildPlaceholderBinding();
+    end;
+
+    /// <summary>
     /// Picks the document type, by name, for a pattern that covers every report naming that
     /// kind of document.
     /// </summary>
@@ -1026,26 +1000,6 @@ table 50110 "Report Filename Pattern"
         if not TableMetadata.Get(TableNo) then
             exit(Format(TableNo));
         exit(TableMetadata.Caption);
-    end;
-
-    /// <summary>
-    /// The refusal raised when a field that does not hold a language is chosen as the language
-    /// code field, for the test that checks it.
-    /// </summary>
-    /// <param name="FieldCaptionText">The caption of the field that was chosen.</param>
-    internal procedure NotALanguageFieldMessage(FieldCaptionText: Text): Text
-    begin
-        exit(StrSubstNo(NotALanguageFieldErr, FieldCaptionText));
-    end;
-
-    /// <summary>
-    /// The refusal raised when the language code field is looked up on a table with no field that
-    /// holds a language, for the test that checks it.
-    /// </summary>
-    /// <param name="TableCaptionText">The caption of the table.</param>
-    internal procedure NoLanguageFieldOnTableMessage(TableCaptionText: Text): Text
-    begin
-        exit(StrSubstNo(NoLanguageFieldOnTableErr, TableCaptionText));
     end;
 
     /// <summary>

@@ -20,9 +20,10 @@ codeunit 50172 "Filename Proof Attach PDF"
         RecordVariant: Variant;
     begin
         // Narrowed to this one document first. A Variant carries the record's FILTERS, not just
-        // the row it sits on, and the caller's reference is filtered only to "has a customer" -
-        // so without this the route renders every posted invoice in the company and Base
-        // Application stops it at 200 documents. Measured: that is exactly how it failed first.
+        // the row it sits on, so a caller's reference filtered more loosely than to its one row
+        // has the route render every posted invoice that filter lets through, and Base
+        // Application stops it at 200 documents. Measured: that is exactly how it failed first,
+        // when the caller's reference was filtered only to "has a customer".
         Rec.SetRecFilter();
         RecordVariant := Rec;
 

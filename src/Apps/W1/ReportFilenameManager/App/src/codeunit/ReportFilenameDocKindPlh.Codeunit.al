@@ -136,17 +136,6 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
         exit('');
     end;
 
-    /// <summary>
-    /// The explanations Test Pattern gives, for tests to compare with.
-    /// </summary>
-    internal procedure ExplanationTexts(PlaceholderText: Text; DocumentLanguageCode: Code[10]; NameLanguageCode: Code[10]; FirstKind: Text; SecondKind: Text; var OtherLanguage: Text; var OtherLanguageInRun: Text; var MixedKinds: Text; var TooMany: Text)
-    begin
-        OtherLanguage := StrSubstNo(OtherLanguageMsg, PlaceholderText, LanguageName(DocumentLanguageCode), LanguageName(NameLanguageCode));
-        OtherLanguageInRun := StrSubstNo(OtherLanguageInRunMsg, PlaceholderText);
-        MixedKinds := StrSubstNo(MixedKindsMsg, PlaceholderText, FirstKind, SecondKind);
-        TooMany := StrSubstNo(TooManyMsg, PlaceholderText, MaxRecordsToAgree());
-    end;
-
     local procedure ResolveWithReason(var Pattern: Record "Report Filename Pattern"; var DocumentRecRef: RecordRef; LanguageCode: Code[10]; var PlaceholderValue: Text; var Decline: Option None,OtherLanguage,OtherLanguageInRun,MixedKinds,TooMany,NotNamed,Unreadable; var FirstDetail: Text; var SecondDetail: Text): Boolean
     var
         LanguageMgt: Codeunit Language;

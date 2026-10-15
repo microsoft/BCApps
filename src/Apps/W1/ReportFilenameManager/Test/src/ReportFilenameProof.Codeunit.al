@@ -76,8 +76,8 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Configures Invoice-[No.] for Standard Sales - Invoice, then names one invoice three
-    /// ways and logs whether the names agree.
+    /// Configures Invoice-[No.] for Standard Sales - Invoice, then names one invoice of the
+    /// proof's own three ways and logs whether the names agree.
     /// </summary>
     procedure ProveRouteIndependence()
     var
@@ -91,12 +91,7 @@ codeunit 50150 "Report Filename Proof"
 
         EnsurePattern();
 
-        SalesInvoiceHeader.SetFilter("No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         ProofSupport.LogLine('Document', SalesInvoiceHeader."No.");
 
@@ -300,11 +295,7 @@ codeunit 50150 "Report Filename Proof"
         FilenameProofLogMgt.StartNewRun();
         ClearPatterns();
 
-        if not FirstInvoice(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
@@ -345,13 +336,6 @@ codeunit 50150 "Report Filename Proof"
         Pattern.Validate("File Name Pattern", CopyStr(PatternText, 1, MaxStrLen(Pattern."File Name Pattern")));
         Pattern.Enabled := true;
         Pattern.Insert(true);
-    end;
-
-    local procedure FirstInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
-    begin
-        SalesInvoiceHeader.Reset();
-        SalesInvoiceHeader.SetFilter("No.", '<>%1', '');
-        exit(SalesInvoiceHeader.FindFirst());
     end;
 
     /// <summary>
@@ -408,11 +392,10 @@ codeunit 50150 "Report Filename Proof"
         FilenameProofLogMgt.StartNewRun();
         ClearPatterns();
 
-        if not FirstInvoice(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // An invoice of the proof's own, and the language row it is given below, so the language
+        // the document carries is one this company knows.
+        TestData.PostNewInvoice(SalesInvoiceHeader);
+        TestData.EnsureLanguage(FilenameProofSupport.DanishLanguageCode(), FilenameProofSupport.DanishLanguageId());
 
         ReportCaptionsInstalled();
 
@@ -436,7 +419,7 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('6 Binding stored', Pattern.GetPlaceholderBinding());
 
         // The document carries the language, so the name follows the document rather than
-        // whoever renders it. Restored at the end, so the container is left as it was.
+        // whoever renders it. Restored at the end, so the invoice is left as it was posted.
         OriginalLanguageCode := SalesInvoiceHeader."Language Code";
         // Re-read as it is written, so the naming calls below work from the document as it now
         // is rather than from a copy still carrying the old language.
@@ -727,6 +710,7 @@ codeunit 50150 "Report Filename Proof"
         PaymentTerms: Record "Payment Terms";
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
         FilenameProofSupport: Codeunit "Filename Proof Support";
+        PaymentTermsCode: Code[10];
         OriginalLanguageCode: Code[10];
         RestoreLanguage: Integer;
         Binding: Text;
@@ -742,20 +726,14 @@ codeunit 50150 "Report Filename Proof"
         FilenameProofLogMgt.StartNewRun();
         ClearPatterns();
 
-        // The largest invoice that has payment terms, not the first one. A small amount
+        // An invoice of the proof's own, on payment terms of its own - the related record to
+        // reach - and for an amount large enough to carry a thousands separator. A small amount
         // formats identically with and without Auto Format, which would make the Auto Format
         // half of this proof unfalsifiable - a thousands separator is what makes it visible.
-        if not LargestInvoiceWithPaymentTerms(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-
-        if not PaymentTerms.Get(SalesInvoiceHeader."Payment Terms Code") then begin
-            ProofSupport.LogLine('Setup', NoPaymentTermsMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PaymentTermsCode := TestData.CreatePaymentTerms(ComplexPaymentTermsTok);
+        TestData.PostNewInvoice(TestData.CreateCustomer(), '', PaymentTermsCode, LargeUnitPrice(), SalesInvoiceHeader);
+        TestData.EnsureLanguage(FilenameProofSupport.DanishLanguageCode(), FilenameProofSupport.DanishLanguageId());
+        PaymentTerms.Get(PaymentTermsCode);
 
         SalesInvoiceHeader.CalcFields("Amount Including VAT");
         ProofSupport.LogLine('9 Document', SalesInvoiceHeader."No.");
@@ -839,39 +817,13 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The posted invoice with the largest total that also has payment terms, so that both
-    /// halves of the proof have something to work with: a related record to reach, and an
-    /// amount big enough that Auto Format visibly does something.
+    /// A unit price that puts the invoice's total in the thousands, so that Auto Format visibly
+    /// does something: the session's form of the amount carries a thousands separator and the
+    /// file name's does not.
     /// </summary>
-    /// <param name="SalesInvoiceHeader">Receives the invoice.</param>
-    /// <returns>True when one was found.</returns>
-    local procedure LargestInvoiceWithPaymentTerms(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
-    var
-        Candidate: Record "Sales Invoice Header";
-        LargestSoFar: Decimal;
-        FoundNo: Code[20];
+    local procedure LargeUnitPrice(): Decimal
     begin
-        LargestSoFar := 0;
-        Candidate.SetFilter("Payment Terms Code", '<>%1', '');
-        // Asked for once, before the read, rather than calculated a row at a time inside the
-        // loop: the platform then brings the total back with the rows instead of issuing a
-        // query per candidate.
-        Candidate.SetAutoCalcFields("Amount Including VAT");
-        if not Candidate.FindSet() then
-            exit(false);
-
-        repeat
-            if Candidate."Amount Including VAT" > LargestSoFar then begin
-                LargestSoFar := Candidate."Amount Including VAT";
-                FoundNo := Candidate."No.";
-            end;
-        until Candidate.Next() = 0;
-
-        if FoundNo = '' then
-            exit(false);
-
-        SalesInvoiceHeader.Reset();
-        exit(SalesInvoiceHeader.Get(FoundNo));
+        exit(12345.67);
     end;
 
     /// <summary>
@@ -915,6 +867,7 @@ codeunit 50150 "Report Filename Proof"
 
     var
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         InvoicePatternTok: Label 'Invoice-[No.]', Locked = true;
         InvoicePrefixTok: Label 'Invoice-', Locked = true;
         ExpectedInvoiceBindingTok: Label 'Invoice-{f:3}', Locked = true;
@@ -936,13 +889,12 @@ codeunit 50150 "Report Filename Proof"
         PdfExtensionTok: Label '.pdf', Locked = true;
         InvoiceDocTypeTok: Label 'Invoice', Locked = true;
         DidNotResolveMsg: Label '(did not resolve)';
-        NoInvoiceMsg: Label 'No posted sales invoice to test against.';
+        ComplexPaymentTermsTok: Label 'Proof terms 14 days', Locked = true;
         ConfiguredMsg: Label 'Configured %1 for source table %2.', Comment = '%1 pattern, %2 table number';
         IdenticalMsg: Label 'IDENTICAL on all three routes: %1', Comment = '%1 the file name';
         DifferMsg: Label 'THE NAMES DIFFER - the claim does not hold.';
         PassMsg: Label 'PASS';
         ExpectedButGotMsg: Label 'FAIL - expected %1, got %2', Comment = '%1 expected value, %2 actual value';
-        NoPaymentTermsMsg: Label 'The first posted invoice has no payment terms, so there is no related record to reach.';
         SameEitherWayMsg: Label 'INCONCLUSIVE - this amount reads the same either way, so it does not show the difference.';
         NotRefusedMsg: Label 'FAIL - the pattern saved, so the typo would only surface when a report runs.';
         RefusedMsg: Label 'PASS - refused, naming the placeholder: %1', Comment = '%1 the error message';

@@ -46,11 +46,9 @@ codeunit 50158 "Filename Proof Maximal"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not FirstInvoice(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // An invoice of the proof's own, on payment terms of its own whose description carries no
+        // character the sanitiser would touch - see ExpectedMaximalName.
+        PostInvoiceOnTerms(TestData.CreateCustomer(), BaseUnitPrice(), SalesInvoiceHeader);
 
         // A pattern that would also match, so the specific one has to be chosen rather than
         // merely being the only one there.
@@ -102,16 +100,14 @@ codeunit 50158 "Filename Proof Maximal"
     procedure ProveMixedBatchDeclines()
     var
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
+        Numbers: List of [Text];
         ThreeInvoices: Text;
         Name: Text;
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not ThreeInvoiceFilter(ThreeInvoices) then begin
-            ProofSupport.LogLine('Setup', NotEnoughInvoicesMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PostThreeInvoices(Numbers);
+        ThreeInvoices := ThreeInvoiceFilter(Numbers);
 
         ClearPatterns();
         ConfigureMaximalPattern(0);
@@ -138,6 +134,7 @@ codeunit 50158 "Filename Proof Maximal"
     procedure ProveValueCollapseAndTruncation()
     var
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
+        Numbers: List of [Text];
         ThreeInvoices: Text;
         FirstNo: Code[20];
         LastNo: Code[20];
@@ -151,17 +148,14 @@ codeunit 50158 "Filename Proof Maximal"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not ThreeInvoiceFilter(ThreeInvoices) then begin
-            ProofSupport.LogLine('Setup', NotEnoughInvoicesMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-        ThreeInvoiceBounds(FirstNo, LastNo);
+        PostThreeInvoices(Numbers);
+        ThreeInvoices := ThreeInvoiceFilter(Numbers);
+        ThreeInvoiceBounds(Numbers, FirstNo, LastNo);
 
         // Three values allowed: the selection is listed in the order it was made.
         ClearPatterns();
         CreateSimplePattern(3, 0);
-        ExpectedJoined := InvoicePrefixTok + ThreeInvoicesJoined();
+        ExpectedJoined := InvoicePrefixTok + ThreeInvoicesJoined(Numbers);
         JoinedName := NameFromFilterViews(ThreeInvoices);
         ProofSupport.LogLine('14 Three values, three allowed', JoinedName);
         if JoinedName = ExpectedJoined then
@@ -407,7 +401,7 @@ codeunit 50158 "Filename Proof Maximal"
 
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
-        Pattern.Validate("Max. Records Named", MaxValues);
+        Pattern.Validate("Max. Values Named", MaxValues);
         if MaxLength <> 0 then
             SetMaxFileNameLength(MaxLength);
         Pattern.Validate("File Name Pattern", SimplePatternTok);
@@ -544,61 +538,71 @@ codeunit 50158 "Filename Proof Maximal"
 
 
     /// <summary>
-    /// The filter three selected invoices arrive as. Whether there are three at all is decided
-    /// by the joining helper returning nothing - counting the whole table, as this used to,
-    /// answered a different question and would have passed on a company with three invoices
-    /// none of which were usable.
+    /// Three invoices of the proof's own that disagree on everything a document can: each is for
+    /// a customer of its own and for an amount of its own, so no field of the maximal pattern
+    /// reads the same on all three. All three are on payment terms, as the maximal invoice is, so
+    /// the relation placeholder has something to reach on each and a decline cannot come from a
+    /// missing related record. Returned in the order they were posted, which is their order by
+    /// number.
     /// </summary>
-    local procedure ThreeInvoiceFilter(var FilterViews: Text): Boolean
-    var
-        Numbers: Text;
-    begin
-        Numbers := ThreeInvoicesJoinedWith(AlternationTok);
-        if Numbers = '' then
-            exit(false);
-
-        FilterViews := ProofSupport.InvoiceFilterViewsFor(Numbers);
-        exit(true);
-    end;
-
-    local procedure ThreeInvoiceBounds(var FirstNo: Code[20]; var LastNo: Code[20])
+    /// <param name="Numbers">Receives the three invoice numbers.</param>
+    local procedure PostThreeInvoices(var Numbers: List of [Text])
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        Seen: Integer;
+        Counter: Integer;
     begin
-        SalesInvoiceHeader.SetFilter("No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindSet() then
-            exit;
-        repeat
-            Seen += 1;
-            if Seen = 1 then
-                FirstNo := SalesInvoiceHeader."No.";
-            LastNo := SalesInvoiceHeader."No.";
-        until (Seen = 3) or (SalesInvoiceHeader.Next() = 0);
+        Clear(Numbers);
+        for Counter := 1 to 3 do begin
+            PostInvoiceOnTerms(TestData.CreateCustomer(), BaseUnitPrice() * Counter, SalesInvoiceHeader);
+            Numbers.Add(SalesInvoiceHeader."No.");
+        end;
     end;
 
-    local procedure ThreeInvoicesJoined(): Text
+    /// <summary>
+    /// Posts an invoice for the customer given, at the unit price given, on new payment terms with a
+    /// plain description.
+    /// </summary>
+    local procedure PostInvoiceOnTerms(CustomerNo: Code[20]; UnitPrice: Decimal; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
-        exit(ThreeInvoicesJoinedWith(SeparatorTok));
+        TestData.PostNewInvoice(CustomerNo, '', TestData.CreatePaymentTerms(PaymentTermsDescriptionTok), UnitPrice, SalesInvoiceHeader);
     end;
 
-    local procedure ThreeInvoicesJoinedWith(Separator: Text) Joined: Text
+    /// <summary>
+    /// The unit price of the maximal invoice, and the step between the three a batch is made of.
+    /// </summary>
+    local procedure BaseUnitPrice(): Decimal
+    begin
+        exit(100);
+    end;
+
+    /// <summary>
+    /// The filter the three selected invoices arrive as.
+    /// </summary>
+    local procedure ThreeInvoiceFilter(var Numbers: List of [Text]): Text
+    begin
+        exit(ProofSupport.InvoiceFilterViewsFor(ThreeInvoicesJoinedWith(Numbers, AlternationTok)));
+    end;
+
+    local procedure ThreeInvoiceBounds(var Numbers: List of [Text]; var FirstNo: Code[20]; var LastNo: Code[20])
+    begin
+        FirstNo := CopyStr(Numbers.Get(1), 1, MaxStrLen(FirstNo));
+        LastNo := CopyStr(Numbers.Get(Numbers.Count()), 1, MaxStrLen(LastNo));
+    end;
+
+    local procedure ThreeInvoicesJoined(var Numbers: List of [Text]): Text
+    begin
+        exit(ThreeInvoicesJoinedWith(Numbers, SeparatorTok));
+    end;
+
+    local procedure ThreeInvoicesJoinedWith(var Numbers: List of [Text]; Separator: Text) Joined: Text
     var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        Seen: Integer;
+        Number: Text;
     begin
-        SalesInvoiceHeader.SetFilter("No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindSet() then
-            exit('');
-        repeat
-            Seen += 1;
+        foreach Number in Numbers do begin
             if Joined <> '' then
                 Joined += Separator;
-            Joined += SalesInvoiceHeader."No.";
-        until (Seen = 3) or (SalesInvoiceHeader.Next() = 0);
-
-        if Seen < 3 then
-            exit('');
+            Joined += Number;
+        end;
     end;
 
     /// <summary>
@@ -612,19 +616,12 @@ codeunit 50158 "Filename Proof Maximal"
         exit(DelChr(CopyStr(Value, 1, MaxLength), '>', ' .-'));
     end;
 
-    local procedure FirstInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
-    begin
-        SalesInvoiceHeader.Reset();
-        SalesInvoiceHeader.SetFilter("Payment Terms Code", '<>%1', '');
-        exit(SalesInvoiceHeader.FindFirst());
-    end;
-
     /// <summary>
     /// A length that cuts the name immediately after a separator, so that both halves of the
     /// rule are exercised: the cut itself, and trimming the separator the cut leaves dangling.
     /// Derived from the name rather than written down, because the document numbers are
-    /// whatever this company happens to have. The field refuses anything below 20, so a very
-    /// short name falls back to that.
+    /// whatever this company's number series hands out. The field refuses anything below 20,
+    /// so a very short name falls back to that.
     /// </summary>
     /// <param name="Value">The untruncated name.</param>
     /// <returns>The limit to configure.</returns>
@@ -646,6 +643,7 @@ codeunit 50158 "Filename Proof Maximal"
 
     var
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         // The name an administrator sees and would type. A pattern may also carry the canonical
         // name, which is what the binding records - this used to say that instead, and so broke
         // when the canonical name was corrected on 24 September 2026.
@@ -675,6 +673,5 @@ codeunit 50158 "Filename Proof Maximal"
         TruncatedMsg: Label 'PASS - cut from %1 characters to %2, with no separator left dangling: %3', Comment = '%1 length before, %2 length after, %3 the name';
         LimitDidNothingMsg: Label 'INCONCLUSIVE - the name is shorter than the shortest limit the field accepts, so truncation cannot be shown on this data.';
         ShouldNotHaveResolvedMsg: Label 'FAIL - it named the batch %1, which belongs to only one of the documents in it.', Comment = '%1 the name it produced';
-        NoInvoiceMsg: Label 'No posted sales invoice with payment terms to test against.';
-        NotEnoughInvoicesMsg: Label 'Fewer than three posted sales invoices, so a multi-document selection cannot be built.';
+        PaymentTermsDescriptionTok: Label 'Proof terms 14 days', Locked = true;
 }

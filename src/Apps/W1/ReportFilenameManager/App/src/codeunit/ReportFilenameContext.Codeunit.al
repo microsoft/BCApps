@@ -13,13 +13,18 @@ codeunit 50112 "Report Filename Context"
     // Base Application change could only make a slot unnecessary by passing the value as an
     // argument at the call site.
     //
-    // Seven independent slots: the rendered document for the email and attachment routes (with
-    // one set aside while Document-Mailing names another document first), the
-    // run subject for Financial Reporting (with the period it was run for), a one-shot marker
-    // that tells the two halves of Send to Disk apart, the pending entry of a "PDF &
-    // Electronic Document" zip, the names given so far in one batch of files, the documents a
-    // Document Sending Profile is sending (for their electronic document), and the one record
-    // the electronic document service is sending now.
+    // Independent slots: the rendered document for the email route (with one set aside while
+    // Document-Mailing names another document first), the run subject for Financial Reporting (with
+    // the period it was run for), the Attach as PDF operation and the one attachment it has armed,
+    // the pending PDF Send to Disk or a "PDF & Electronic Document" zip is about to name, the
+    // names given so far in one batch of files, the documents a Document Sending Profile is sending
+    // (for their electronic document), the one record the electronic document service is sending
+    // now, and the case Business Central writes an electronic document's extension in (kept for the
+    // session: it belongs to the version of Base Application, not to a document).
+    //
+    // Each slot is set where its operation starts, taken or cleared where it is used or the
+    // operation ends, and checked against the document it was recorded for, so that nothing left
+    // behind by an operation that failed half way can name a file belonging to another.
 
     Access = Internal;
     SingleInstance = true;
@@ -30,15 +35,16 @@ codeunit 50112 "Report Filename Context"
         ContextRecRef: RecordRef;
         HeldRecRef: RecordRef;
         SubjectRecRef: RecordRef;
-        ZipEntryRecRef: RecordRef;
+        PendingFileRecRef: RecordRef;
         SendingRecRef: RecordRef;
         NamingPeriodFor: RecordId;
         ServiceDeliveryFor: RecordId;
+        AttachAsPdfArmDocument: RecordId;
         SendingUsage: Enum "Report Selection Usage";
         ContextReportId: Integer;
         HeldReportId: Integer;
         SubjectReportId: Integer;
-        ZipEntryReportId: Integer;
+        PendingFileReportId: Integer;
         SendingPartnerFieldNo: Integer;
         KindLanguageTableNo: Integer;
         KindLanguageFieldNo: Integer;
@@ -49,7 +55,8 @@ codeunit 50112 "Report Filename Context"
         NamingPeriodFirst: Date;
         NamingPeriodLast: Date;
         SendingPartnerNo: Code[20];
-        ZipEntryDocumentType: Text;
+        PendingFileDocumentType: Text;
+        PendingFileChannel: Enum "Report Filename Output Route";
         PageOpenedHiddenFilter: Text;
         HasContext: Boolean;
         HasHeld: Boolean;
@@ -59,12 +66,18 @@ codeunit 50112 "Report Filename Context"
         PeriodDatesValidated: Boolean;
         StartDateAlwaysOn: Boolean;
         HasNamingPeriod: Boolean;
-        HasZipEntry: Boolean;
+        HasPendingFile: Boolean;
+        HasExtensionCasing: Boolean;
+        ExtensionLowerCased: Boolean;
         HasSending: Boolean;
         SendingToCustomer: Boolean;
         HasServiceDelivery: Boolean;
         HasKindLanguageField: Boolean;
-        SendToDiskCustomerSeen: Boolean;
+        AttachAsPdfInProgress: Boolean;
+        ExcelExportArmed: Boolean;
+        ExcelExportRunning: Boolean;
+        HasAttachAsPdfArm: Boolean;
+        AttachAsPdfArmReportId: Integer;
         BatchNames: List of [Text];
 
     /// <summary>
@@ -76,9 +89,82 @@ codeunit 50112 "Report Filename Context"
     begin
         Clear(ContextRecRef);
         ContextRecRef := SourceRecRef.Duplicate();
-        ContextRecRef.SetRecFilter();
+        // The selection the render was given is the set the file holds. One SaveAs can render
+        // several records into one PDF, and narrowing to the current record named that file after
+        // one of them. Narrowed only when the caller passed no filters at all, which is when the
+        // record it handed over is itself the document - unfiltered, the reference would stand for
+        // the whole table.
+        if ContextRecRef.GetFilters() = '' then
+            ContextRecRef.SetRecFilter();
         ContextReportId := ReportId;
         HasContext := true;
+    end;
+
+    /// <summary>
+    /// Marks the start of Report Selections.SaveAsDocumentAttachment - Attach as PDF - and forgets
+    /// anything left behind before it. Only an attachment saved inside that operation is report
+    /// output; Document Attachment's save event is raised for ordinary uploads too.
+    /// </summary>
+    internal procedure StartAttachAsPdf()
+    begin
+        ClearLastRendered();
+        ClearAttachAsPdfArm();
+        AttachAsPdfInProgress := true;
+    end;
+
+    /// <summary>
+    /// Marks the end of Attach as PDF, and forgets everything it left behind.
+    /// </summary>
+    internal procedure EndAttachAsPdf()
+    begin
+        AttachAsPdfInProgress := false;
+        ClearAttachAsPdfArm();
+        ClearLastRendered();
+    end;
+
+    /// <summary>
+    /// Arms the naming of the one attachment Attach as PDF is about to save: Base Application has just
+    /// announced it, for this document and this report, a few lines before it saves it. Ignored outside
+    /// the operation.
+    /// </summary>
+    /// <param name="Document">The document the attachment is saved to.</param>
+    /// <param name="ReportId">The report it was rendered with.</param>
+    internal procedure ArmAttachAsPdf(Document: RecordId; ReportId: Integer)
+    begin
+        if not AttachAsPdfInProgress then
+            exit;
+        AttachAsPdfArmDocument := Document;
+        AttachAsPdfArmReportId := ReportId;
+        HasAttachAsPdfArm := true;
+    end;
+
+    /// <summary>
+    /// Whether the attachment being saved now is the one Attach as PDF armed - inside the operation,
+    /// armed, and saved to the same document - with the report it was rendered with. The arm is taken
+    /// whatever the answer, so it names one save at most.
+    /// </summary>
+    /// <param name="Document">The document the attachment is being saved to.</param>
+    /// <param name="ReportId">Receives the report.</param>
+    /// <returns>True only for the armed attachment.</returns>
+    internal procedure TryTakeAttachAsPdfArm(Document: RecordId; var ReportId: Integer): Boolean
+    var
+        ArmedDocument: RecordId;
+        Armed: Boolean;
+    begin
+        Armed := AttachAsPdfInProgress and HasAttachAsPdfArm;
+        ArmedDocument := AttachAsPdfArmDocument;
+        ReportId := AttachAsPdfArmReportId;
+        ClearAttachAsPdfArm();
+        if not Armed then
+            exit(false);
+        exit(ArmedDocument = Document);
+    end;
+
+    local procedure ClearAttachAsPdfArm()
+    begin
+        Clear(AttachAsPdfArmDocument);
+        AttachAsPdfArmReportId := 0;
+        HasAttachAsPdfArm := false;
     end;
 
     /// <summary>
@@ -106,17 +192,6 @@ codeunit 50112 "Report Filename Context"
             exit(false);
         SourceRecRef := ContextRecRef.Duplicate();
         exit(true);
-    end;
-
-    /// <summary>
-    /// Forgets the recorded document, so a stale one cannot be used to name a later delivery.
-    /// </summary>
-    internal procedure ClearRenderedDocument()
-    begin
-        Clear(ContextRecRef);
-        ContextReportId := 0;
-        HasContext := false;
-        ClearHeldDocument();
     end;
 
     /// <summary>
@@ -425,6 +500,76 @@ codeunit 50112 "Report Filename Context"
     end;
 
     /// <summary>
+    /// Forgets the subject recorded for one report, and only for that report - the end of an Excel
+    /// export forgets what was recorded for report 29 - and leaves a subject recorded for another
+    /// report, or for a whole export, alone.
+    /// </summary>
+    /// <param name="ReportId">The report whose subject is forgotten.</param>
+    internal procedure ClearRunSubjectFor(ReportId: Integer)
+    begin
+        if HasSubject and (SubjectReportId = ReportId) then
+            ClearRunSubject();
+    end;
+
+    /// <summary>
+    /// Open in Excel on a financial report's overview has recorded which financial report report 29
+    /// is about to export. Arms that one run of report 29: the subject is used only while report 29
+    /// runs as the next report, started by this action.
+    /// </summary>
+    internal procedure ArmExcelExport()
+    begin
+        ExcelExportArmed := true;
+        ExcelExportRunning := false;
+    end;
+
+    /// <summary>
+    /// Report 29 Export Acc. Sched. to Excel is starting. Armed by the overview's action, it runs for
+    /// the recorded financial report; started any other way - Fin. Report Excel Templates, say - it
+    /// does not, and the subject is forgotten so it cannot name that workbook.
+    /// </summary>
+    internal procedure StartExcelExportRun()
+    begin
+        ExcelExportRunning := ExcelExportArmed;
+        ExcelExportArmed := false;
+        if not ExcelExportRunning then
+            ClearRunSubjectFor(Report::"Export Acc. Sched. to Excel");
+    end;
+
+    /// <summary>
+    /// Report 29 has finished, or the overview's action has: the export is over, and whatever it
+    /// recorded is forgotten.
+    /// </summary>
+    internal procedure EndExcelExportRun()
+    begin
+        ExcelExportArmed := false;
+        ExcelExportRunning := false;
+        ClearRunSubjectFor(Report::"Export Acc. Sched. to Excel");
+    end;
+
+    /// <summary>
+    /// A report is being rendered. Any report other than 29 means no Excel export started by the
+    /// overview is under way any more - one that failed half way left its state behind - so that
+    /// state is forgotten before it could name somebody else's workbook.
+    /// </summary>
+    /// <param name="ReportId">The report being rendered.</param>
+    internal procedure NoteReportRun(ReportId: Integer)
+    begin
+        if ReportId = Report::"Export Acc. Sched. to Excel" then
+            exit;
+        if ExcelExportArmed or ExcelExportRunning then
+            EndExcelExportRun();
+    end;
+
+    /// <summary>
+    /// Whether report 29 is running now for the financial report the overview recorded.
+    /// </summary>
+    /// <returns>True only during that run.</returns>
+    internal procedure IsExcelExportRunning(): Boolean
+    begin
+        exit(ExcelExportRunning);
+    end;
+
+    /// <summary>
     /// Forgets a subject recorded for a whole export, and only that kind: an export's subject
     /// lives from its export log row until the export finishes, whatever it produced in between.
     /// A subject recorded for one interactive render is left alone.
@@ -457,84 +602,98 @@ codeunit 50112 "Report Filename Context"
     end;
 
     /// <summary>
-    /// Records that the customer half of Send to Disk has just decided its file's name.
+    /// Records a PDF Base Application is about to name through Electronic Document
+    /// Format.GetAttachmentFileName: which report renders it, the document, the route, and - for a
+    /// zip entry - the document type text Base Application will name it with.
     ///
-    /// Send to Disk has two halves in Base Application, SendToDiskForCust and SendToDiskForVend,
-    /// and they end in the same download helper. Only the customer half raises an event that
-    /// carries the name, so the vendor half can only be named at the download helper's own event -
-    /// which the customer half raises too, one line after its naming event. This tells the
-    /// download subscriber that the file in front of it belongs to the customer half, where the
-    /// naming subscriber has already decided, so it must stand aside rather than decide again.
-    ///
-    /// Base Application could make this unnecessary by raising a naming event in the vendor half as
-    /// it does in the customer half; then there would be nothing to tell apart.
-    /// </summary>
-    internal procedure MarkSendToDiskCustomerSeen()
-    begin
-        SendToDiskCustomerSeen := true;
-    end;
-
-    /// <summary>
-    /// Whether the customer half of Send to Disk decided the name of the file about to download,
-    /// forgotten in the same step so that the next download is judged on its own.
-    /// </summary>
-    /// <returns>True when the customer half's naming event ran for this download.</returns>
-    internal procedure TryTakeSendToDiskCustomerSeen(): Boolean
-    var
-        Seen: Boolean;
-    begin
-        Seen := SendToDiskCustomerSeen;
-        SendToDiskCustomerSeen := false;
-        exit(Seen);
-    end;
-
-    /// <summary>
-    /// Records the PDF about to be added to a "PDF &amp; Electronic Document" zip: which report renders
-    /// it, the document, and the document type text Base Application will name the entry with.
-    ///
-    /// SendToZipForCust and SendToZipForVend raise an event before each file and then name the entry
-    /// through Electronic Document Format.GetAttachmentFileName, whose event carries neither the
-    /// report nor the selection row. This carries them across the render in between.
+    /// Send to Disk and the "PDF &amp; Electronic Document" zip raise an event before each file and
+    /// then name it through GetAttachmentFileName, whose event carries neither the report nor the
+    /// selection row. This carries them across the render in between.
     ///
     /// Base Application could make this unnecessary by passing the report and the selection row to
-    /// the event that names the entry.
+    /// the event that names the file.
     /// </summary>
     /// <param name="Document">The document being rendered.</param>
     /// <param name="ReportId">The report rendering it.</param>
-    /// <param name="DocumentType">Format(Usage) of the selection row, which is what Base Application passes as the entry's document type.</param>
-    internal procedure SetZipEntry(var Document: RecordRef; ReportId: Integer; DocumentType: Text)
+    /// <param name="DocumentType">The document type text Base Application will pass, or blank where it is the caller's own and is not checked.</param>
+    /// <param name="Channel">The route the file is produced on.</param>
+    internal procedure SetPendingFile(var Document: RecordRef; ReportId: Integer; DocumentType: Text; Channel: Enum "Report Filename Output Route")
     begin
-        Clear(ZipEntryRecRef);
-        ZipEntryRecRef := Document.Duplicate();
-        ZipEntryReportId := ReportId;
-        ZipEntryDocumentType := DocumentType;
-        HasZipEntry := true;
+        Clear(PendingFileRecRef);
+        PendingFileRecRef := Document.Duplicate();
+        PendingFileReportId := ReportId;
+        PendingFileDocumentType := DocumentType;
+        PendingFileChannel := Channel;
+        HasPendingFile := true;
     end;
 
     /// <summary>
-    /// Hands over the recorded zip entry and forgets it in the same step, whether or not it was
-    /// wanted, so one entry's report can never name another file.
+    /// Hands over the recorded file and forgets it in the same step, whether or not it was wanted, so
+    /// one file's report can never name another.
     /// </summary>
     /// <param name="Document">Receives the document.</param>
     /// <param name="ReportId">Receives the report.</param>
-    /// <param name="DocumentType">Receives the document type text the entry is named with.</param>
-    /// <returns>True when an entry had been recorded.</returns>
-    internal procedure TryTakeZipEntry(var Document: RecordRef; var ReportId: Integer; var DocumentType: Text): Boolean
+    /// <param name="DocumentType">Receives the document type text, blank when it is not checked.</param>
+    /// <param name="Channel">Receives the route.</param>
+    /// <returns>True when a file had been recorded.</returns>
+    internal procedure TryTakePendingFile(var Document: RecordRef; var ReportId: Integer; var DocumentType: Text; var Channel: Enum "Report Filename Output Route"): Boolean
     var
         Had: Boolean;
     begin
-        Had := HasZipEntry;
+        Had := HasPendingFile;
         if Had then begin
-            Document := ZipEntryRecRef.Duplicate();
-            ReportId := ZipEntryReportId;
-            DocumentType := ZipEntryDocumentType;
+            Document := PendingFileRecRef.Duplicate();
+            ReportId := PendingFileReportId;
+            DocumentType := PendingFileDocumentType;
+            Channel := PendingFileChannel;
         end;
 
-        Clear(ZipEntryRecRef);
-        ZipEntryReportId := 0;
-        ZipEntryDocumentType := '';
-        HasZipEntry := false;
+        Clear(PendingFileRecRef);
+        PendingFileReportId := 0;
+        PendingFileDocumentType := '';
+        Clear(PendingFileChannel);
+        HasPendingFile := false;
         exit(Had);
+    end;
+
+    /// <summary>
+    /// Notes the case Business Central wrote an electronic document's extension in, read from a name
+    /// Report Filename Mgt.IsBusinessCentralsDefaultName recognised as Business Central's own. The PDF
+    /// named later in the same "PDF &amp; Electronic Document" zip is named where Business Central builds
+    /// no name to copy the case from, and takes this one, so the zip's two entries agree.
+    ///
+    /// Kept for the session, because the case belongs to the version of Base Application: version 29
+    /// writes it upper case, version 30 lower case. The ask that removes this: ask 8, a public way to read
+    /// the name Electronic Document Format.GetAttachmentFileName would give without raising its event.
+    /// </summary>
+    /// <param name="LowerCased">True when the extension was written lower case.</param>
+    internal procedure NoteExtensionCasing(LowerCased: Boolean)
+    begin
+        ExtensionLowerCased := LowerCased;
+        HasExtensionCasing := true;
+    end;
+
+    /// <summary>
+    /// The case noted above, when one has been noted in this session.
+    /// </summary>
+    /// <param name="LowerCased">Receives true when the extension was written lower case.</param>
+    /// <returns>True when a case has been noted.</returns>
+    internal procedure TryGetExtensionCasing(var LowerCased: Boolean): Boolean
+    begin
+        LowerCased := ExtensionLowerCased;
+        exit(HasExtensionCasing);
+    end;
+
+    /// <summary>
+    /// FOR TESTS ONLY - the app never calls this. Forgets the case noted above, as at the start of a
+    /// session, so a test can prove the lower-case fallback for a zip's PDF when no electronic document
+    /// was seen. It has to be here: the case is held in this SingleInstance codeunit for the session,
+    /// so nothing in the test app can clear it, and a fresh session cannot see a test's data.
+    /// </summary>
+    internal procedure ForgetExtensionCasing()
+    begin
+        ExtensionLowerCased := false;
+        HasExtensionCasing := false;
     end;
 
     /// <summary>

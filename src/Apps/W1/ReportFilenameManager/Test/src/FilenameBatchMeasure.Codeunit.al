@@ -37,27 +37,25 @@ codeunit 50190 "Filename Batch Measure"
         MeasureEmailMessage();
         MeasureEmailNameForAnotherDocument();
 
-        if FindInvoice() then begin
-            AddSecondSelection();
-            Commit();
+        PostInvoice();
+        AddSecondSelection();
+        Commit();
 
-            FilenameProofGuard.ClearPatterns();
-            Commit();
-            MeasureZip(NoPatternTok);
-            MeasureSendToDisk(Measure, NoPatternTok);
-            MeasureAttach(NoPatternTok);
+        FilenameProofGuard.ClearPatterns();
+        Commit();
+        MeasureZip(NoPatternTok);
+        MeasureSendToDisk(Measure, NoPatternTok);
+        MeasureAttach(NoPatternTok);
 
-            SetSameNamePattern();
-            Commit();
-            MeasureZip(SameNamePatternTok);
-            MeasureSendToDisk(Measure, SameNamePatternTok);
-            MeasureAttach(SameNamePatternTok);
+        SetSameNamePattern();
+        Commit();
+        MeasureZip(SameNamePatternTok);
+        MeasureSendToDisk(Measure, SameNamePatternTok);
+        MeasureAttach(SameNamePatternTok);
 
-            FilenameProofGuard.ClearPatterns();
-            RemoveSecondSelection();
-            Commit();
-        end else
-            ProofSupport.LogLine('B0 Setup', NoInvoiceMsg);
+        FilenameProofGuard.ClearPatterns();
+        RemoveSecondSelection();
+        Commit();
 
         UnbindSubscription(Measure);
         FilenameProofLogMgt.Flush();
@@ -72,43 +70,65 @@ codeunit 50190 "Filename Batch Measure"
     procedure ProveRepeatedNamesAreNumbered()
     var
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
+        ReportFilenameContext: Codeunit "Report Filename Context";
         Measure: Codeunit "Filename Batch Measure";
         Names: List of [Text];
+        ZipSuffix: Text;
+        DiskSuffix: Text;
     begin
         FilenameProofGuard.AssertSafeEnvironment();
         FilenameProofLogMgt.StartNewRun();
         BindSubscription(Measure);
 
-        if not FindInvoice() then begin
-            ProofSupport.LogLine(NumberedVerdictTok, NoInvoiceMsg);
-            UnbindSubscription(Measure);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PostInvoice();
         AddSecondSelection();
         Commit();
 
-        // Base Application's own names: two files, one name, untouched.
+        // Base Application's own names: two files, one name, untouched. Their extension is the one the
+        // named files must carry, in Business Central's own case.
         FilenameProofGuard.ClearPatterns();
         Commit();
         ZipEntries(Names);
         VerdictSameTwice(BaseAppZipVerdictTok, Names);
+        ZipSuffix := FirstSuffix(Names);
         DiskNames(Measure, Names);
         VerdictSameTwice(BaseAppDiskVerdictTok, Names);
+        DiskSuffix := FirstSuffix(Names);
 
         // A pattern that names both files alike: the second is numbered.
         SetSameNamePattern();
         Commit();
+        // On the real route SendElectronically names the electronic document earlier in the same zip,
+        // and the feature notes the case Business Central wrote it in; the zip is built on its own here,
+        // so that case is noted the same way.
+        ReportFilenameContext.NoteExtensionCasing(ZipSuffix = LowerCase(ZipSuffix));
         ZipEntries(Names);
-        VerdictExactly(NumberedZipVerdictTok, Names, SameNamePatternTok + UpperPdfTok, SameNamePatternTok + NumberOneTok + UpperPdfTok);
+        VerdictExactly(NumberedZipVerdictTok, Names, SameNamePatternTok + ZipSuffix, SameNamePatternTok + NumberOneTok + ZipSuffix);
         DiskNames(Measure, Names);
-        VerdictExactly(NumberedDiskVerdictTok, Names, SameNamePatternTok + UpperPdfTok, SameNamePatternTok + NumberOneTok + UpperPdfTok);
+        VerdictExactly(NumberedDiskVerdictTok, Names, SameNamePatternTok + DiskSuffix, SameNamePatternTok + NumberOneTok + DiskSuffix);
 
         FilenameProofGuard.ClearPatterns();
         RemoveSecondSelection();
         Commit();
         UnbindSubscription(Measure);
         FilenameProofLogMgt.Flush();
+    end;
+
+    /// <summary>
+    /// The extension, with its dot, of the first name: blank when there is none.
+    /// </summary>
+    local procedure FirstSuffix(var Names: List of [Text]): Text
+    var
+        Name: Text;
+        DotPosition: Integer;
+    begin
+        if Names.Count() = 0 then
+            exit('');
+        Name := Names.Get(1);
+        DotPosition := Name.LastIndexOf('.');
+        if DotPosition <= 1 then
+            exit('');
+        exit(CopyStr(Name, DotPosition));
     end;
 
     local procedure ZipEntries(var Names: List of [Text])
@@ -290,7 +310,8 @@ codeunit 50190 "Filename Batch Measure"
         RenderedRecRef.GetTable(InvoiceA);
         ReportFilenameContext.SetRenderedDocument(RenderedRecRef, Report::"Standard Sales - Invoice");
         DocumentMailing.GetAttachmentFileName(AttachmentFileName, InvoiceB."No.", DocumentNameTok, Enum::"Report Selection Usage"::"S.Invoice".AsInteger());
-        ReportFilenameContext.ClearRenderedDocument();
+        ReportFilenameContext.ClearLastRendered();
+        ReportFilenameContext.ClearHeldDocument();
 
         ProofSupport.LogLine('B6 Rendered just before', InvoiceA."No.");
         ProofSupport.LogLine('B6 Email attachment name asked for', InvoiceB."No.");
@@ -433,15 +454,15 @@ codeunit 50190 "Filename Batch Measure"
             Listed += Name + ' | ';
     end;
 
-    local procedure FindInvoice(): Boolean
+    /// <summary>
+    /// An invoice of the measurement's own, filtered to itself, for the report workflows to run on.
+    /// </summary>
+    local procedure PostInvoice()
+    var
+        TestData: Codeunit "Filename Test Data";
     begin
-        SalesInvoiceHeader.Reset();
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindFirst() then
-            exit(false);
-        SalesInvoiceHeader.SetRecFilter();
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('B0 Invoice', SalesInvoiceHeader."No.");
-        exit(true);
     end;
 
     /// <summary>
@@ -533,10 +554,8 @@ codeunit 50190 "Filename Batch Measure"
         NoPatternTok: Label 'no pattern', Locked = true;
         SameNamePatternTok: Label 'SameName', Locked = true;
         NumberPatternTok: Label 'Invoice-[No.]', Locked = true;
-        UpperPdfTok: Label '.PDF', Locked = true;
         NamesLineLbl: Label 'B7 Names behind "%1"', Comment = '%1 the verdict', Locked = true;
         NumberOneTok: Label ' (1)', Locked = true;
-        NumberedVerdictTok: Label 'RESULT repeated names in one batch', Locked = true;
         BaseAppZipVerdictTok: Label 'RESULT Business Central''s own zip entry names are left as they are', Locked = true;
         BaseAppDiskVerdictTok: Label 'RESULT Business Central''s own Send to Disk names are left as they are', Locked = true;
         NumberedZipVerdictTok: Label 'RESULT a name repeated in one zip is numbered', Locked = true;
@@ -563,5 +582,4 @@ codeunit 50190 "Filename Batch Measure"
         EntriesMsg: Label '%1: %2', Comment = '%1 how many, %2 their names', Locked = true;
         AcceptedMsg: Label 'accepted, no error', Locked = true;
         RefusedMsg: Label 'refused: %1', Comment = '%1 the error', Locked = true;
-        NoInvoiceMsg: Label 'No posted sales invoice with a customer, so the report workflows cannot be measured.', Locked = true;
 }

@@ -31,6 +31,13 @@ page 50119 "Report Filename Setup"
                 }
                 field("Enabled Patterns"; Rec."Enabled Patterns")
                 {
+                    trigger OnDrillDown()
+                    var
+                        Pattern: Record "Report Filename Pattern";
+                    begin
+                        Pattern.SetRange(Enabled, true);
+                        ShowPatterns(Pattern);
+                    end;
                 }
                 field("Max. File Name Length"; Rec."Max. File Name Length")
                 {
@@ -48,7 +55,13 @@ page 50119 "Report Filename Setup"
                 Caption = 'Report Filename Patterns';
                 ToolTip = 'Opens the list of file name patterns.';
                 Image = List;
-                RunObject = page "Report Filename Patterns";
+
+                trigger OnAction()
+                var
+                    Pattern: Record "Report Filename Pattern";
+                begin
+                    ShowPatterns(Pattern);
+                end;
             }
         }
         area(Promoted)
@@ -68,5 +81,17 @@ page 50119 "Report Filename Setup"
             Rec.Init();
             Rec.Insert();
         end;
+    end;
+
+    /// <summary>
+    /// Opens the patterns list, and counts Enabled Patterns again when it closes. Opened without
+    /// waiting for it, the list left the count as it was when this page opened, until the page was
+    /// refreshed - a pattern turned on there still showed 0 here.
+    /// </summary>
+    /// <param name="Pattern">The patterns to show, with their filters.</param>
+    local procedure ShowPatterns(var Pattern: Record "Report Filename Pattern")
+    begin
+        Page.RunModal(Page::"Report Filename Patterns", Pattern);
+        CurrPage.Update(false);
     end;
 }

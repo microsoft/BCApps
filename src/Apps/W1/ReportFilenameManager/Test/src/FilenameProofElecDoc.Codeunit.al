@@ -29,10 +29,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         Named: Text;
     begin
         FilenameProofLogMgt.StartNewRun();
-        if not FindInvoice(SalesInvoiceHeader) then begin
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PostInvoice(SalesInvoiceHeader);
 
         ProofGuard.ClearPatterns();
         Baseline := DiskDownload(SalesInvoiceHeader, Enum::"Doc. Sending Profile Disk"::"Electronic Document");
@@ -72,10 +69,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         Named: Text;
     begin
         FilenameProofLogMgt.StartNewRun();
-        if not FindInvoice(SalesInvoiceHeader) then begin
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PostInvoice(SalesInvoiceHeader);
 
         ProofGuard.ClearPatterns();
         CreatePattern(Enum::"Report Filename Output Route"::Any);
@@ -103,10 +97,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         Named: Text;
     begin
         FilenameProofLogMgt.StartNewRun();
-        if not FindInvoice(SalesInvoiceHeader) then begin
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PostInvoice(SalesInvoiceHeader);
 
         ProofGuard.ClearPatterns();
         Baseline := DiskDownload(SalesInvoiceHeader, Enum::"Doc. Sending Profile Disk"::"PDF & Electronic Document");
@@ -133,37 +124,27 @@ codeunit 50194 "Filename Proof Elec. Doc."
     /// </summary>
     procedure ProveTwoDocumentsInOneZip()
     var
-        Candidate: Record "Sales Invoice Header";
-        Other: Record "Sales Invoice Header";
         Selection: Record "Sales Invoice Header";
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
+        InvoiceNos: List of [Code[20]];
+        FirstNo: Code[20];
+        SecondNo: Code[20];
         Baseline: Text;
         BaselineEntries: Text;
         Named: Text;
-        Found: Boolean;
     begin
         FilenameProofLogMgt.StartNewRun();
         Capturing := false;
         NameLikeAnotherApp := false;
 
-        Candidate.SetCurrentKey("No.");
-        Candidate.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if Candidate.FindSet() then
-            repeat
-                Other.SetCurrentKey("No.");
-                Other.SetRange("Bill-to Customer No.", Candidate."Bill-to Customer No.");
-                Other.SetFilter("No.", '>%1', Candidate."No.");
-                Found := Other.FindFirst();
-            until Found or (Candidate.Next() = 0);
-        if not Found then begin
-            ProofSupport.LogLine('Setup', NoTwoInvoicesMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // Two invoices of the proof's own for one new customer, in the order of their numbers.
+        TestData.PostInvoicesOfOneCustomer(2, InvoiceNos);
+        FirstNo := InvoiceNos.Get(1);
+        SecondNo := InvoiceNos.Get(2);
         Selection.SetCurrentKey("No.");
-        Selection.SetFilter("No.", '%1|%2', Candidate."No.", Other."No.");
+        Selection.SetFilter("No.", '%1|%2', FirstNo, SecondNo);
         Selection.FindFirst();
-        ProofSupport.LogLine('E Selection', Candidate."No." + ' and ' + Other."No.");
+        ProofSupport.LogLine('E Selection', FirstNo + ' and ' + SecondNo);
 
         ProofGuard.ClearPatterns();
         Baseline := DiskDownload(Selection, Enum::"Doc. Sending Profile Disk"::"Electronic Document");
@@ -176,9 +157,9 @@ codeunit 50194 "Filename Proof Elec. Doc."
         ProofSupport.LogLine('E1 With an Electronic Document pattern the zip is', Named);
         ProofSupport.LogLine('E1 and holds', CapturedEntries);
         // Business Central names the zip from the document it finished on, the second.
-        LogVerdict(TwoInOneZipNamedTok, Other."No." + SuffixOf(Baseline), Named);
+        LogVerdict(TwoInOneZipNamedTok, SecondNo + SuffixOf(Baseline), Named);
         LogVerdict(TwoInOneZipEntriesTok,
-            Candidate."No." + SuffixOf(FirstEntry(BaselineEntries)) + EntrySeparatorTok + Other."No." + SuffixOf(FirstEntry(BaselineEntries)), CapturedEntries);
+            FirstNo + SuffixOf(FirstEntry(BaselineEntries)) + EntrySeparatorTok + SecondNo + SuffixOf(FirstEntry(BaselineEntries)), CapturedEntries);
 
         ProofGuard.ClearPatterns();
         RemoveProofFormat();
@@ -202,10 +183,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
     begin
         FilenameProofLogMgt.StartNewRun();
-        if not FindInvoice(SalesInvoiceHeader) then begin
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        PostInvoice(SalesInvoiceHeader);
 
         ProofGuard.ClearPatterns();
         CreatePattern(Enum::"Report Filename Output Route"::Any);
@@ -225,20 +203,17 @@ codeunit 50194 "Filename Proof Elec. Doc."
         FilenameProofLogMgt.Flush();
     end;
 
-    local procedure FindInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
+    /// <summary>
+    /// An invoice of the proof's own to send, filtered to itself.
+    /// </summary>
+    local procedure PostInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         // This codeunit lives for the session, so a proof that failed half-way must not leave the
         // next one capturing or naming like another app.
         Capturing := false;
         NameLikeAnotherApp := false;
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoSalesInvoiceMsg);
-            exit(false);
-        end;
-        SalesInvoiceHeader.SetRecFilter();
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('Invoice', SalesInvoiceHeader."No.");
-        exit(true);
     end;
 
     /// <summary>
@@ -429,6 +404,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
     var
         ProofGuard: Codeunit "Filename Proof Guard";
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         Capturing: Boolean;
         NameLikeAnotherApp: Boolean;
         CapturedDownload: Text;
@@ -450,9 +426,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         ZipEntriesNamedTok: Label 'the electronic document and the PDF in that zip are named from the pattern', Locked = true;
         TwoInOneZipNamedTok: Label 'the zip of two invoices'' electronic documents is named from the pattern', Locked = true;
         TwoInOneZipEntriesTok: Label 'both electronic documents in that zip are named from the pattern', Locked = true;
-        NoTwoInvoicesMsg: Label 'No customer has two posted sales invoices in this company, so there is no selection to send.';
         ServiceNotRenamedTok: Label 'the electronic document service is handed Business Central''s own name', Locked = true;
-        NoSalesInvoiceMsg: Label 'No posted sales invoice in this company, so there is nothing to send.';
         NoReportSelectionMsg: Label 'No report is selected for sales invoices, so no pattern can name one.';
         PassMsg: Label 'PASS';
         ExpectedButGotMsg: Label 'FAIL expected %1 but got %2', Comment = '%1 expected, %2 actual';

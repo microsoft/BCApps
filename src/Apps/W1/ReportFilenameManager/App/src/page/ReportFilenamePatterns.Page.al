@@ -241,6 +241,10 @@ page 50110 "Report Filename Patterns"
         if not Rec.Enabled then
             RowStyle := RowStyle::Subordinate;
         RowStyleText := Format(RowStyle);
+
+        // The list said it was empty when it opened, and now shows a pattern - one added from here.
+        if EmptyStateShown then
+            RecallEmptyStateNotification();
     end;
 
     trigger OnOpenPage()
@@ -352,9 +356,29 @@ page 50110 "Report Filename Patterns"
     var
         EmptyNotification: Notification;
     begin
+        EmptyNotification.Id(EmptyStateNotificationId());
         EmptyNotification.Message(EmptyStateMsg);
         EmptyNotification.Scope(NotificationScope::LocalScope);
         EmptyNotification.Send();
+        EmptyStateShown := true;
+    end;
+
+    /// <summary>
+    /// Withdraws the notification that the list is empty. A notification stays until it is dismissed,
+    /// so without this it kept saying no pattern was set up after one had been added from this list.
+    /// </summary>
+    local procedure RecallEmptyStateNotification()
+    var
+        EmptyNotification: Notification;
+    begin
+        EmptyNotification.Id(EmptyStateNotificationId());
+        EmptyNotification.Recall();
+        EmptyStateShown := false;
+    end;
+
+    local procedure EmptyStateNotificationId(): Guid
+    begin
+        exit('9ab1117f-cce3-42a4-8b3b-457ac5c796bb');
     end;
 
     var
@@ -363,6 +387,7 @@ page 50110 "Report Filename Patterns"
         RouteFilterText: Text;
         RowStyleText: Text;
         ShowingOverlap: Boolean;
+        EmptyStateShown: Boolean;
         OverlapCaptionLbl: Label 'Patterns Overlapping %1', Comment = '%1 the pattern, as its card is titled';
         EmptyStateMsg: Label 'No file name patterns are set up. Every report gets Business Central''s own file name until you add one.';
         CannotTurnOnErr: Label '%1 cannot be turned on. %2', Comment = '%1 the pattern, %2 why it cannot';

@@ -49,11 +49,8 @@ codeunit 50170 "Filename Proof Attachment"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not FirstInvoice(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // An invoice of the proof's own to attach to.
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('10 Invoice', SalesInvoiceHeader."No.");
 
         ProofGuard.ClearPatterns();
@@ -184,11 +181,7 @@ codeunit 50170 "Filename Proof Attachment"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not FirstInvoice(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         ProofGuard.ClearPatterns();
         RemoveAttachments(SalesInvoiceHeader);
@@ -345,20 +338,14 @@ codeunit 50170 "Filename Proof Attachment"
         Pattern.Insert(true);
     end;
 
-    local procedure FirstInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
-    begin
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        exit(SalesInvoiceHeader.FindFirst());
-    end;
-
     var
         ProofGuard: Codeunit "Filename Proof Guard";
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         CapturedChannel: Enum "Report Filename Output Route";
         CapturedName: Text[250];
         PatternTok: Label '[No.]', Locked = true;
         ExtensionSeparatorTok: Label '.', Locked = true;
-        NoInvoiceMsg: Label 'No posted sales invoice in this company, so there is nothing to attach.';
         PassMsg: Label 'PASS';
         DistinctNameMsg: Label 'a second attachment named after %1 but not identical to it', Comment = '%1 the first attachment''s name';
         ExpectedButGotMsg: Label 'FAIL expected %1 but got %2', Comment = '%1 expected, %2 actual';

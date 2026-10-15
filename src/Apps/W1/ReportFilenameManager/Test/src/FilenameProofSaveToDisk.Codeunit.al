@@ -48,12 +48,8 @@ codeunit 50175 "Filename Proof Save To Disk"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoSalesInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // An invoice of the proof's own to send.
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('40 Invoice', SalesInvoiceHeader."No.");
 
         ProofGuard.ClearPatterns();
@@ -97,7 +93,8 @@ codeunit 50175 "Filename Proof Save To Disk"
         RenameAsAnotherExtension := true;
         RunCustomerRoute(SalesInvoiceHeader, '42 Run with a renaming subscriber returned');
         RenameAsAnotherExtension := false;
-        Expected := RenamedPrefixTok + SalesInvoiceHeader."No." + SuffixOf(Baseline);
+        // The renaming subscriber writes the extension as it arrives, a Code, so upper case.
+        Expected := RenamedPrefixTok + SalesInvoiceHeader."No." + UpperCase(SuffixOf(Baseline));
         ProofSupport.LogLine('42 With a renaming subscriber it downloads as', DownloadName);
         if DownloadName = Expected then
             ProofSupport.LogLine('RESULT a subscriber that renamed the file keeps its name', PassMsg)
@@ -132,12 +129,8 @@ codeunit 50175 "Filename Proof Save To Disk"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        PurchInvHeader.SetFilter("Pay-to Vendor No.", '<>%1', '');
-        if not PurchInvHeader.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoPurchaseInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // A purchase invoice of the proof's own, for a vendor of its own.
+        TestData.PostNewPurchaseInvoice(PurchInvHeader);
         ProofSupport.LogLine('50 Purchase invoice', PurchInvHeader."No.");
 
         ProofGuard.ClearPatterns();
@@ -156,24 +149,24 @@ codeunit 50175 "Filename Proof Save To Disk"
         ProofSupport.LogLine('51 With a Save to Disk pattern it is named', CapturedName);
         ProofSupport.LogLine('51 Channel it was named on', Format(CapturedChannel));
 
-        Expected := PurchInvHeader."No." + SuffixOf(Baseline);
+        // Lower case: the vendor document is named inside GetAttachmentFileName's own event, in place of
+        // Business Central's name, so there is no case of Business Central's to copy (ask 8).
+        Expected := PurchInvHeader."No." + LowerCase(SuffixOf(Baseline));
         if CapturedName = Expected then
             ProofSupport.LogLine('RESULT Send to Disk names a vendor document from the pattern', PassMsg)
         else
             ProofSupport.LogLine('RESULT Send to Disk names a vendor document from the pattern',
                 StrSubstNo(ExpectedButGotMsg, Expected, CapturedName));
 
-        // The name the download was actually issued under. This feature performs the vendor download
-        // itself, so no Base Application event sees the name afterwards - but a session without a
-        // client refuses the download with an error that quotes the file name and the object that
-        // asked. Where that refusal happened it is read; where the download went through, there is
-        // no refusal to read and the check above stands alone.
-        if LastRunError.Contains(ClientCallbackTok) then
-            if LastRunError.Contains(Expected + SubscribersObjectTok) then
-                ProofSupport.LogLine('RESULT the vendor download is issued under that name', PassMsg)
-            else
-                ProofSupport.LogLine('RESULT the vendor download is issued under that name',
-                    StrSubstNo(ExpectedButGotMsg, Expected + SubscribersObjectTok, LastRunError));
+        // The name the download is issued under. Base Application performs the vendor download itself
+        // and raises OnBeforeDownloadAttachmentFromStream with the name just before it, which
+        // CaptureDownloadName reads - so this is the name the user gets, whether or not this session
+        // can complete the download.
+        if DownloadName = Expected then
+            ProofSupport.LogLine('RESULT the vendor download is issued under that name', PassMsg)
+        else
+            ProofSupport.LogLine('RESULT the vendor download is issued under that name',
+                StrSubstNo(ExpectedButGotMsg, Expected, DownloadName));
 
         if CapturedChannel = CapturedChannel::Disk then
             ProofSupport.LogLine('RESULT the vendor document is named on the Save to Disk channel', PassMsg)
@@ -208,11 +201,7 @@ codeunit 50175 "Filename Proof Save To Disk"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not TwoInvoicesOfOneCustomer(FirstNo, SecondNo, SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoTwoInvoicesMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        TwoInvoicesOfOneCustomer(FirstNo, SecondNo, SalesInvoiceHeader);
         ProofSupport.LogLine('45 Selection', FirstNo + ' and ' + SecondNo);
 
         ProofGuard.ClearPatterns();
@@ -237,30 +226,19 @@ codeunit 50175 "Filename Proof Save To Disk"
     end;
 
     /// <summary>
-    /// The first customer with at least two posted invoices, and a selection of exactly two of them.
+    /// Two invoices posted for one new customer, in the order of their numbers, and a selection of
+    /// exactly those two.
     /// </summary>
-    local procedure TwoInvoicesOfOneCustomer(var FirstNo: Code[20]; var SecondNo: Code[20]; var Selection: Record "Sales Invoice Header"): Boolean
+    local procedure TwoInvoicesOfOneCustomer(var FirstNo: Code[20]; var SecondNo: Code[20]; var Selection: Record "Sales Invoice Header")
     var
-        Candidate: Record "Sales Invoice Header";
-        Other: Record "Sales Invoice Header";
+        InvoiceNos: List of [Code[20]];
     begin
-        Candidate.SetCurrentKey("No.");
-        Candidate.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if not Candidate.FindSet() then
-            exit(false);
-        repeat
-            Other.SetCurrentKey("No.");
-            Other.SetRange("Bill-to Customer No.", Candidate."Bill-to Customer No.");
-            Other.SetFilter("No.", '>%1', Candidate."No.");
-            if Other.FindFirst() then begin
-                FirstNo := Candidate."No.";
-                SecondNo := Other."No.";
-                Selection.Reset();
-                Selection.SetFilter("No.", '%1|%2', FirstNo, SecondNo);
-                exit(Selection.FindFirst());
-            end;
-        until Candidate.Next() = 0;
-        exit(false);
+        TestData.PostInvoicesOfOneCustomer(2, InvoiceNos);
+        FirstNo := InvoiceNos.Get(1);
+        SecondNo := InvoiceNos.Get(2);
+        Selection.Reset();
+        Selection.SetFilter("No.", '%1|%2', FirstNo, SecondNo);
+        Selection.FindFirst();
     end;
 
     local procedure RunManyRoute(var SalesInvoiceHeader: Record "Sales Invoice Header"; FailureLabel: Text)
@@ -377,19 +355,15 @@ codeunit 50175 "Filename Proof Save To Disk"
     var
         ProofGuard: Codeunit "Filename Proof Guard";
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         CapturedChannel: Enum "Report Filename Output Route";
         CapturedName: Text[250];
         DownloadName: Text[250];
         RenameAsAnotherExtension: Boolean;
         LastRunError: Text;
         PatternTok: Label '[No.]', Locked = true;
-        ClientCallbackTok: Label 'client callback to download a file', Locked = true;
-        SubscribersObjectTok: Label ' (CodeUnit 50111 Report Filename Subscribers)', Locked = true;
         RenamedPrefixTok: Label 'Renamed-', Locked = true;
         NonEmptyTok: Label 'a name', Locked = true;
-        NoTwoInvoicesMsg: Label 'No customer has two posted sales invoices in this company, so there is no selection to send.';
-        NoSalesInvoiceMsg: Label 'No posted sales invoice in this company, so there is nothing to send.';
-        NoPurchaseInvoiceMsg: Label 'No posted purchase invoice in this company, so there is nothing to send.';
         NoReportSelectionMsg: Label 'No report is selected for usage %1, so no pattern can name it.', Comment = '%1 the report selection usage';
         PassMsg: Label 'PASS';
         ExpectedButGotMsg: Label 'FAIL expected %1 but got %2', Comment = '%1 expected, %2 actual';

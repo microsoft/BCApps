@@ -435,15 +435,73 @@ codeunit 50113 "Report Filename Preview Mgt."
         // An electronic document is not a rendered report: Business Central names it after the
         // company, the document type and the number, the rule in Electronic Document Format.
         // GetAttachmentFileName - which is the name a run of several documents gets per document too.
-        if Route = Route::ElectronicDocument then
-            if ElectronicDocumentName(SelectionRecRef, Filename) then
-                exit;
+        //
+        // Each route has its own default, and showing one route's default for another showed a name
+        // the user would not get. Where Business Central builds the default from the document, it is
+        // built the same way here; where it depends on what the caller passes - the email's document
+        // name, the zip's usage - or no single route is chosen, this says so instead.
+        case Route of
+            Route::ElectronicDocument:
+                if ElectronicDocumentName(SelectionRecRef, Filename) then
+                    exit;
+            Route::Disk:
+                if DocumentRuleName(SelectionRecRef, PdfCodeTok, Filename) then
+                    exit;
+            Route::AttachAsPdf:
+                if AttachAsPdfName(Pattern."Report ID", SelectionRecRef, Filename) then
+                    exit;
+            Route::Any, Route::Email, Route::PdfAndElectronicDocument:
+                exit(DependsOnRouteMsg);
+        end;
 
         Filename := ReportFilenameMgt.FallbackName(Pattern."Report ID");
         if Filename <> '' then
             Filename += PdfExtensionTok
         else
             Filename := DependsOnReportMsg;
+    end;
+
+    /// <summary>
+    /// The name Send to Disk gives the first document of the run when no pattern does: company,
+    /// document type, number and extension, the rule in Electronic Document Format.GetAttachmentFileName.
+    /// Asked of Business Central itself, as the electronic document's is, so the name shown is the one
+    /// the user gets on whatever version is installed - the extension's case included - and reflects
+    /// any extension that names the file. Showing a name names nothing, so asking is harmless here.
+    /// </summary>
+    [TryFunction]
+    local procedure DocumentRuleName(var SelectionRecRef: RecordRef; Extension: Code[3]; var Filename: Text)
+    var
+        ElectronicDocumentFormat: Record "Electronic Document Format";
+        FirstRecRef: RecordRef;
+    begin
+        FirstRecRef := SelectionRecRef.Duplicate();
+        FirstRecRef.FindFirst();
+        FirstRecRef.SetRecFilter();
+        Filename := ElectronicDocumentFormat.GetAttachmentFileName(
+            FirstRecRef, ElectronicDocumentFormat.GetDocumentNo(FirstRecRef), ElectronicDocumentFormat.GetDocumentType(FirstRecRef), Extension);
+    end;
+
+    /// <summary>
+    /// The name Attach as PDF gives the first document of the run when no pattern does: report id,
+    /// report caption and document number, as Report Selections.SaveDocumentAttachmentFromRecRef
+    /// builds it - the caption with Base Application's own functions, in the document's language, so a
+    /// document in another language shows the caption it is attached under.
+    /// </summary>
+    [TryFunction]
+    local procedure AttachAsPdfName(ReportId: Integer; var SelectionRecRef: RecordRef; var Filename: Text)
+    var
+        ElectronicDocumentFormat: Record "Electronic Document Format";
+        ReportDistributionManagement: Codeunit "Report Distribution Management";
+        FirstRecRef: RecordRef;
+        ReportCaption: Text;
+    begin
+        if ReportId = 0 then
+            Error('');
+        FirstRecRef := SelectionRecRef.Duplicate();
+        FirstRecRef.FindFirst();
+        FirstRecRef.SetRecFilter();
+        ReportCaption := ReportDistributionManagement.GetReportCaption(ReportId, ReportDistributionManagement.GetDocumentLanguageCode(FirstRecRef));
+        Filename := StrSubstNo(AttachAsPdfNameTok, ReportId, ReportCaption, ElectronicDocumentFormat.GetDocumentNo(FirstRecRef)) + PdfExtensionTok;
     end;
 
     /// <summary>
@@ -505,18 +563,6 @@ codeunit 50113 "Report Filename Preview Mgt."
         if Placeholder <> PlaceholderStartTok + KindOfDocument.DisplayName() + PlaceholderEndTok then
             exit('');
         exit(ReportFilenameDocKindPlh.ExplainNoValue(Pattern, SelectionRecRef, ReportFilenameMgt.NameLanguage(Pattern, SelectionRecRef), Placeholder));
-    end;
-
-    /// <summary>
-    /// The reasons Test Pattern gives when every placeholder has a value and the name is still
-    /// refused, for tests that compare against the app's own texts.
-    /// </summary>
-    internal procedure RefusedNameReasonTexts(Built: Text; MaxLength: Integer; CutName: Text; var NothingUsable: Text; var ReservedName: Text; var NothingAfterCut: Text; var ReservedAfterCut: Text)
-    begin
-        NothingUsable := StrSubstNo(NothingUsableMsg, Built);
-        ReservedName := StrSubstNo(ReservedNameMsg, Built);
-        NothingAfterCut := StrSubstNo(NothingAfterCutMsg, Built, MaxLength);
-        ReservedAfterCut := StrSubstNo(ReservedAfterCutMsg, Built, MaxLength, CutName);
     end;
 
     /// <summary>
@@ -1081,7 +1127,7 @@ codeunit 50113 "Report Filename Preview Mgt."
         if Pattern."File Name Pattern" = '' then
             exit(false);
 
-        if Pattern."Max. Records Named" < 2 then
+        if Pattern."Max. Values Named" < 2 then
             exit(false);
 
         if not ReportFilenameMgt.TryShapeName(Pattern, false, SingleRecord) then
@@ -1140,132 +1186,14 @@ codeunit 50113 "Report Filename Preview Mgt."
         exit(true);
     end;
 
-    /// <summary>
-    /// The reasons given when a switch stops a pattern that would name the file, as this page
-    /// words them, for tests to compare with.
-    /// </summary>
-    /// <param name="WouldBeName">The name the pattern would give, extension included.</param>
-    /// <param name="FeatureOff">Receives the reason when report file names are turned off in the setup.</param>
-    /// <param name="PatternOff">Receives the reason when only this pattern is turned off and nothing else named the file.</param>
-    internal procedure SwitchReasonTexts(WouldBeName: Text; var FeatureOff: Text; var PatternOff: Text)
-    begin
-        FeatureOff := StrSubstNo(FeatureOffMsg, StrSubstNo(FeatureOffWouldNameMsg, WouldBeName));
-        PatternOff := SwitchedOffMsg + ' ' + StrSubstNo(PatternOffWouldNameMsg, WouldBeName);
-    end;
-
-    /// <summary>
-    /// The answer and the reason Test Pattern gives for a reminder Base Application names from its
-    /// attachment text, as this page words them, for tests to compare with.
-    /// </summary>
-    /// <param name="WouldBeName">The name the pattern would give with File Name cleared, extension included.</param>
-    /// <param name="Filename">Receives what is shown as the file name.</param>
-    /// <param name="Reason">Receives the reason.</param>
-    internal procedure ReminderTextTexts(WouldBeName: Text; var Filename: Text; var Reason: Text)
-    begin
-        Filename := ReminderTextNamesItMsg;
-        Reason := StrSubstNo(ReminderTextMsg, StrSubstNo(ReminderTextClearedWouldNameMsg, WouldBeName));
-    end;
-
-    /// <summary>
-    /// The two reasons that name a placeholder, as this page words them, for tests to compare with.
-    /// </summary>
-    /// <param name="Placeholder">The placeholder as written, such as [Report Caption].</param>
-    /// <param name="NoLongerExists">Receives the reason for a placeholder that names nothing any more.</param>
-    /// <param name="HasNoValue">Receives the reason for a placeholder with no value for the run.</param>
-    internal procedure PlaceholderReasonTexts(Placeholder: Text; var NoLongerExists: Text; var HasNoValue: Text)
-    begin
-        NoLongerExists := StrSubstNo(NoShapeNamedMsg, Placeholder);
-        HasNoValue := StrSubstNo(NoResolveNamedMsg, Placeholder);
-    end;
-
-    /// <summary>
-    /// The three answers Test Pattern gives for where a name comes from, for the test app to
-    /// compare against rather than carry copies of.
-    /// </summary>
-    /// <param name="FromThisPattern">Receives the answer for this pattern.</param>
-    /// <param name="FromAnotherPattern">Receives the answer for another pattern.</param>
-    /// <param name="FromBusinessCentral">Receives the answer for Business Central's own file name.</param>
-    internal procedure NameSourceTexts(var FromThisPattern: Text; var FromAnotherPattern: Text; var FromBusinessCentral: Text)
-    begin
-        FromThisPattern := ThisPatternMsg;
-        FromAnotherPattern := AnotherPatternMsg;
-        FromBusinessCentral := BusinessCentralMsg;
-    end;
-
-    /// <summary>
-    /// The reasons given when another pattern names the record, as this page words them, for
-    /// tests to compare with.
-    /// </summary>
-    /// <param name="TableFilterText">The tested pattern's Table Filter in words, as the card shows it.</param>
-    /// <param name="PatternLanguageCode">The tested pattern's Language Code.</param>
-    /// <param name="DocumentLanguageCode">The record's language.</param>
-    /// <param name="WinningPattern">The winner's File Name Pattern.</param>
-    /// <param name="TableFilterExcludes">Receives the reason when the tested pattern's Table Filter excludes the record.</param>
-    /// <param name="OtherLanguage">Receives the reason when the record is in another language than the tested pattern's.</param>
-    /// <param name="OutRanked">Receives the reason when the tested pattern applies and is out-ranked.</param>
-    internal procedure AnotherPatternReasonTexts(TableFilterText: Text; PatternLanguageCode: Code[10]; DocumentLanguageCode: Code[10]; WinningPattern: Text; var TableFilterExcludes: Text; var OtherLanguage: Text; var OutRanked: Text)
-    begin
-        TableFilterExcludes := StrSubstNo(TableFilterExcludesMsg, TableFilterText, WinningPattern);
-        OtherLanguage := StrSubstNo(OtherLanguageMsg, PatternLanguageCode, DocumentLanguageCode, WinningPattern);
-        OutRanked := StrSubstNo(BeatenMsg, WinningPattern);
-    end;
-
-    /// <summary>
-    /// The reason given when another pattern with the same priority, created first, names the record,
-    /// as this page words it, for tests to compare with.
-    /// </summary>
-    /// <param name="WinningPattern">The winner's File Name Pattern.</param>
-    /// <param name="WhyNotOwn">Why the tested pattern would give no name itself, as the page words it; blank when it would.</param>
-    /// <returns>The reason.</returns>
-    internal procedure SamePriorityReasonText(WinningPattern: Text; WhyNotOwn: Text) Reason: Text
-    begin
-        Reason := StrSubstNo(TiedMsg, WinningPattern);
-        if WhyNotOwn <> '' then
-            Reason += ThisOneWouldNotResolveMsg + ' ' + WhyNotOwn;
-    end;
-
-    /// <summary>
-    /// The reasons given when the tested pattern does not apply to the record and nothing else
-    /// names it, as this page words them, for tests to compare with.
-    /// </summary>
-    /// <param name="TableFilterText">The tested pattern's Table Filter in words, as the card shows it.</param>
-    /// <param name="PatternLanguageCode">The tested pattern's Language Code.</param>
-    /// <param name="DocumentLanguageCode">The record's language.</param>
-    /// <param name="TableFilterExcludes">Receives the reason for an enabled pattern whose Table Filter excludes the record.</param>
-    /// <param name="OtherLanguage">Receives the reason for an enabled pattern in another language than the record's.</param>
-    /// <param name="TableFilterPatternOff">Receives the reason for a turned-off pattern whose Table Filter excludes the record.</param>
-    /// <param name="OtherLanguagePatternOff">Receives the reason for a turned-off pattern in another language than the record's.</param>
-    internal procedure NothingElseReasonTexts(TableFilterText: Text; PatternLanguageCode: Code[10]; DocumentLanguageCode: Code[10]; var TableFilterExcludes: Text; var OtherLanguage: Text; var TableFilterPatternOff: Text; var OtherLanguagePatternOff: Text)
-    begin
-        TableFilterExcludes := StrSubstNo(TableFilterNothingElseMsg, TableFilterText);
-        OtherLanguage := StrSubstNo(LanguageNothingElseMsg, PatternLanguageCode, DocumentLanguageCode);
-        TableFilterPatternOff := SwitchedOffMsg + ' ' + StrSubstNo(WouldNotApplyMsg, StrSubstNo(TableFilterConditionMsg, TableFilterText));
-        OtherLanguagePatternOff := SwitchedOffMsg + ' ' + StrSubstNo(WouldNotApplyMsg, StrSubstNo(LanguageConditionMsg, PatternLanguageCode, DocumentLanguageCode));
-    end;
-
-    /// <summary>
-    /// The reasons given when the route tested is not one the pattern is limited to, as this page
-    /// words them, for tests to compare with.
-    /// </summary>
-    /// <param name="RouteFilterText">The pattern's routes in words, as the card shows them.</param>
-    /// <param name="Route">The route tested.</param>
-    /// <param name="WinningPattern">The winner's File Name Pattern, when another pattern names the file.</param>
-    /// <param name="AnotherNamesIt">Receives the reason when another pattern names the file.</param>
-    /// <param name="NothingElse">Receives the reason when nothing else does.</param>
-    /// <param name="PatternOff">Receives the reason for a turned-off pattern.</param>
-    internal procedure RouteReasonTexts(RouteFilterText: Text; Route: Enum "Report Filename Output Route"; WinningPattern: Text; var AnotherNamesIt: Text; var NothingElse: Text; var PatternOff: Text)
-    begin
-        AnotherNamesIt := StrSubstNo(RouteExcludesMsg, RouteFilterText, Route, WinningPattern);
-        NothingElse := StrSubstNo(RouteNothingElseMsg, RouteFilterText, Route);
-        PatternOff := SwitchedOffMsg + ' ' + StrSubstNo(WouldNotApplyMsg, StrSubstNo(RouteConditionMsg, RouteFilterText, Route));
-    end;
-
     var
         PdfExtensionTok: Label '.pdf', Locked = true;
         PlaceholderStartTok: Label '[', Locked = true;
         PlaceholderEndTok: Label ']', Locked = true;
         XmlExtensionTok: Label '.XML', Locked = true;
         XmlCodeTok: Label 'xml', Locked = true;
+        PdfCodeTok: Label 'pdf', Locked = true;
+        AttachAsPdfNameTok: Label '%1 %2 %3', Comment = '%1 report id, %2 report caption, %3 document number', Locked = true;
         DetailSeparatorTok: Label ' · ', Locked = true;
         NoPatternMsg: Label 'This pattern has no file name pattern, so it names nothing.';
         KeyPartSeparatorTok: Label ' | ', Locked = true;
@@ -1295,6 +1223,7 @@ codeunit 50113 "Report Filename Preview Mgt."
         UnexpectedCriterionErr: Label 'Test Pattern found that this pattern does not meet its %1 criterion for the record, which cannot happen when the record is tested against its own pattern. Please report this as a defect.', Comment = '%1 the criterion';
         ThisOneWouldNotResolveMsg: Label 'This pattern would not have produced a name for this record either.';
         DependsOnReportMsg: Label '(depends on which report is run)';
+        DependsOnRouteMsg: Label '(Business Central''s own name, which depends on the output route)';
         NoShapeMsg: Label 'At least one placeholder in this pattern names something that no longer exists, so no name can be built from it. Choose the placeholder again from Available Placeholders.';
         NoResolveMsg: Label 'At least one placeholder has no value for this run. A pattern is used only when every placeholder has a value, so that a file is never named with a gap in it.';
         NoShapeNamedMsg: Label 'The placeholder %1 names something that no longer exists, so no name can be built from this pattern. Remove it and choose it again from Available Placeholders.', Comment = '%1 the placeholder as written in the pattern, such as [Report Caption]';

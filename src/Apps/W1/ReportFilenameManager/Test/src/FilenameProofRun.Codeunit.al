@@ -34,11 +34,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        if not ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers) then begin
-            ProofSupport.LogLine('RESULT a run keeps its whole selection', StrSubstNo(SkippedMsg, NotEnoughInvoicesMsg));
-            Done();
-            exit;
-        end;
+        ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers);
 
         SetPattern('Invoices-[No.]');
 
@@ -173,11 +169,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        if not ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers) then begin
-            ProofSupport.LogLine('RESULT a condition must hold for the whole run', StrSubstNo(SkippedMsg, NotEnoughInvoicesMsg));
-            Done();
-            exit;
-        end;
+        ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers);
         OneInvoice := FirstOf(Numbers);
 
         // A pattern that applies only to that one invoice, by a condition on its number.
@@ -525,10 +517,12 @@ codeunit 50167 "Filename Proof Run"
     /// permission to read a record, which is the whole reason it reads none.
     ///
     /// Three things are checked. The single-record example must carry the generated shape and
-    /// not a real invoice number. The run-of-many example must carry a first-to-last range. And
-    /// a pattern built only from computed values must offer no second example at all, because
-    /// nothing in it changes with the size of the run - without that, a change that always
-    /// showed a range would pass on the strength of the first two.
+    /// not a real invoice number: not that of an invoice the proof posts first, so there
+    /// certainly is one a record-reading example could carry, nor that of the first or the last
+    /// posted invoice there is, which are what a read would return. The run-of-many example must
+    /// carry a first-to-last range. And a pattern built only from computed values must offer no second
+    /// example at all, because nothing in it changes with the size of the run - without that, a
+    /// change that always showed a range would pass on the strength of the first two.
     /// </summary>
     procedure ProveTheExampleDoesNotImplyOneRecord()
     var
@@ -543,6 +537,8 @@ codeunit 50167 "Filename Proof Run"
         ComputedHasSecond: Boolean;
     begin
         ClearPatterns();
+
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         SetPattern('Invoice-[No.]');
         Pattern.FindFirst();
@@ -574,7 +570,7 @@ codeunit 50167 "Filename Proof Run"
             StrPos(SingleRecord, ShapeTok) = 0:
                 ProofSupport.LogLine('RESULT the example does not imply one record',
                     StrSubstNo(FailNotAShapeMsg, ShapeTok, SingleRecord));
-            RealInvoiceLeaked(SalesInvoiceHeader, SingleRecord) or RealInvoiceLeaked(SalesInvoiceHeader, OverMany):
+            RealInvoiceLeaked(SalesInvoiceHeader."No.", SingleRecord) or RealInvoiceLeaked(SalesInvoiceHeader."No.", OverMany):
                 ProofSupport.LogLine('RESULT the example does not imply one record',
                     StrSubstNo(FailReadARecordMsg, SingleRecord, OverMany));
             not HasSecond:
@@ -597,18 +593,33 @@ codeunit 50167 "Filename Proof Run"
     /// <summary>
     /// Whether an example carries a real posted invoice number, which would mean it read a
     /// record instead of building a shape.
+    ///
+    /// The pattern is Invoice-[No.] on posted sales invoices, so the one value an example built
+    /// from a record could carry is that record's number - and the records a read would return are
+    /// the first and the last there are, so those are checked as well as the proof's own. They
+    /// are read only to be looked for in the example: a company with no posted invoice besides the
+    /// proof's passes the same way.
     /// </summary>
-    /// <param name="SalesInvoiceHeader">A record to read the first invoice number through.</param>
+    /// <param name="InvoiceNo">The number of the invoice the proof posted.</param>
     /// <param name="Example">The example to inspect.</param>
-    /// <returns>True when a real invoice number appears in it.</returns>
-    local procedure RealInvoiceLeaked(var SalesInvoiceHeader: Record "Sales Invoice Header"; Example: Text): Boolean
+    /// <returns>True when one of those invoice numbers appears in it.</returns>
+    local procedure RealInvoiceLeaked(InvoiceNo: Code[20]; Example: Text): Boolean
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
         if Example = '' then
             exit(false);
-        SalesInvoiceHeader.Reset();
-        if not SalesInvoiceHeader.FindFirst() then
-            exit(false);
-        exit(StrPos(Example, SalesInvoiceHeader."No.") > 0);
+        if StrPos(Example, InvoiceNo) > 0 then
+            exit(true);
+
+        SalesInvoiceHeader.SetLoadFields("No.");
+        if SalesInvoiceHeader.FindFirst() then
+            if StrPos(Example, SalesInvoiceHeader."No.") > 0 then
+                exit(true);
+        if SalesInvoiceHeader.FindLast() then
+            if StrPos(Example, SalesInvoiceHeader."No.") > 0 then
+                exit(true);
+        exit(false);
     end;
 
 
@@ -797,12 +808,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        SalesInvoiceHeader.Reset();
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('RESULT the platform naming hook reaches this feature', StrSubstNo(SkippedMsg, NoInvoiceToNameMsg));
-            Done();
-            exit;
-        end;
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         SetPattern('Invoice-[No.]');
 
@@ -861,11 +867,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('RESULT switched off, no pattern names a file', StrSubstNo(SkippedMsg, NoInvoiceToNameMsg));
-            Done();
-            exit;
-        end;
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         SetPattern('Invoice-[No.]');
         Payload.ReadFrom(StrSubstNo(PayloadLbl, ProofSupport.InvoiceFilterViews(SalesInvoiceHeader)));
@@ -932,12 +934,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        SalesInvoiceHeader.Reset();
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('RESULT a name somebody else set survives the whole chain', StrSubstNo(SkippedMsg, NoInvoiceMsg));
-            Done();
-            exit;
-        end;
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         SetPattern('Invoice-[No.]');
 
@@ -1013,7 +1010,6 @@ codeunit 50167 "Filename Proof Run"
         PreviousAttachmentTextId: Guid;
         SeededAttachmentTextId: Guid;
         LanguageCode: Code[10];
-        Reason: Text;
         NameOursAlone: Text;
         NameAfterSomebodyElse: Text;
         NameTheirsAlone: Text;
@@ -1023,26 +1019,10 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // The other subscriber reads an issued reminder's terms, so there has to be one carrying
-        // both a level and terms. A freshly restored company has none.
-        //
-        // Committed BEFORE this isolated run, not after it. ClearPatterns above deletes with
-        // triggers, and Codeunit.Run cannot isolate a failure cleanly on top of uncommitted
-        // writes - it reports "an error occurred and the transaction is stopped", naming neither
-        // the cause nor the place. EnsureLevel3Reminder has always committed first; this call was
-        // added on 24 September 2026 without doing so and failed in exactly that way.
-        Commit();
-
-        if not Codeunit.Run(Codeunit::"Filename Proof Seed Rmdr") then
-            ProofSupport.LogLine('10 Level 1 reminder could not be seeded', GetLastErrorText());
-
-        Commit();
-
-        if not FindReminderForTheChain(IssuedReminderHeader, ReminderLevel, Reason) then begin
-            ProofSupport.LogLine(GuardVerdictTok, StrSubstNo(FailNoReminderMsg, Reason));
-            Done();
-            exit;
-        end;
+        // The other subscriber reads an issued reminder's terms and level, so the proof makes a
+        // reminder carrying both - on terms of its own, which carry no attachment text, so that
+        // nothing names it from one until raise two gives the level a file name.
+        CreateReminderForTheChain(IssuedReminderHeader, ReminderLevel);
 
         ProofSupport.LogLine('27 Reminder the chain is raised for', IssuedReminderHeader."No.");
         ProofSupport.LogLine('27 Its reminder terms and level',
@@ -1161,7 +1141,6 @@ codeunit 50167 "Filename Proof Run"
         SeededAttachmentTextId: Guid;
         Names: array[5] of Text;
         Expected: array[5] of Text;
-        Reason: Text;
         ExpectedOurs: Text;
         ExpectedTheirs: Text;
         ShownName: Text;
@@ -1175,18 +1154,11 @@ codeunit 50167 "Filename Proof Run"
         FromThisPattern: Boolean;
     begin
         ClearPatterns();
-        Commit();
 
-        if not Codeunit.Run(Codeunit::"Filename Proof Seed Rmdr") then
-            ProofSupport.LogLine('29 Level 1 reminder could not be seeded', GetLastErrorText());
-
-        Commit();
-
-        if not FindReminderForTheChain(IssuedReminderHeader, ReminderLevel, Reason) then begin
-            ProofSupport.LogLine(ReminderUnconfiguredVerdictTok, StrSubstNo(FailNoReminderMsg, Reason));
-            Done();
-            exit;
-        end;
+        // A reminder of the proof's own, on terms of its own with no attachment text, so that
+        // whether Base Application names it is decided by the File Name this proof gives it below
+        // and by nothing a company has configured.
+        CreateReminderForTheChain(IssuedReminderHeader, ReminderLevel);
 
         ProofSupport.LogLine('29 Reminder', IssuedReminderHeader."No.");
         ProofSupport.LogLine('29 Its reminder terms and level',
@@ -1236,8 +1208,8 @@ codeunit 50167 "Filename Proof Run"
         // Three: Test Pattern says so, in its own words. The pattern set above is the only one.
         Pattern.FindFirst();
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(Pattern, IssuedReminderHeader.RecordId(), ShownName, NameComesFrom, WhyNotThisPattern, FromThisPattern);
-        ReportFilenamePreviewMgt.ReminderTextTexts(ExpectedOurs + PdfExtensionLbl, ExpectedShownName, ExpectedWhy);
-        ReportFilenamePreviewMgt.NameSourceTexts(FromThisPatternText, FromAnotherPatternText, FromBusinessCentralText);
+        ExpectedTexts.ReminderTextTexts(ExpectedOurs + PdfExtensionLbl, ExpectedShownName, ExpectedWhy);
+        ExpectedTexts.NameSourceTexts(FromThisPatternText, FromAnotherPatternText, FromBusinessCentralText);
         ProofSupport.LogLine('29 Test Pattern shows', ShownName);
         ProofSupport.LogLine('29 Test Pattern says it comes from', NameComesFrom);
         ProofSupport.LogLine('29 Test Pattern gives as the reason', WhyNotThisPattern);
@@ -1278,7 +1250,8 @@ codeunit 50167 "Filename Proof Run"
         ReminderRecRef.GetTable(IssuedReminderHeader);
         ReportFilenameContext.SetRenderedDocument(ReminderRecRef, Report::Reminder);
         DocumentMailing.GetAttachmentFileName(AttachmentFileName, IssuedReminderHeader."No.", ReminderCaptionLbl, "Report Selection Usage"::Reminder.AsInteger());
-        ReportFilenameContext.ClearRenderedDocument();
+        ReportFilenameContext.ClearLastRendered();
+        ReportFilenameContext.ClearHeldDocument();
         // Business Central's own email name is not this proof's business; only a pattern's or
         // Reminder Communication's is. Either is recognisable, and anything else counts as unnamed.
         if (AttachmentFileName = OurReminderPrefixTok + IssuedReminderHeader."No." + PdfExtensionLbl) or (AttachmentFileName = TheirFileNameTok + PdfExtensionLbl) then
@@ -1420,29 +1393,17 @@ codeunit 50167 "Filename Proof Run"
 
     /// <summary>
     /// An issued reminder the other subscriber can act on, with the level row it reads its
-    /// configured file name from.
+    /// configured file name from: issued at level 1 of new reminder terms, for a new customer.
+    /// The terms and the level carry no attachment text, so Base Application names the reminder
+    /// from none until SeedReminderFileName gives the level one. Constructed rather than issued,
+    /// as Filename Test Data explains.
     /// </summary>
     /// <param name="IssuedReminderHeader">Receives the reminder.</param>
     /// <param name="ReminderLevel">Receives its level.</param>
-    /// <param name="Reason">Receives why none was found, when none was.</param>
-    /// <returns>True when both were found.</returns>
-    local procedure FindReminderForTheChain(var IssuedReminderHeader: Record "Issued Reminder Header"; var ReminderLevel: Record "Reminder Level"; var Reason: Text): Boolean
+    local procedure CreateReminderForTheChain(var IssuedReminderHeader: Record "Issued Reminder Header"; var ReminderLevel: Record "Reminder Level")
     begin
-        IssuedReminderHeader.Reset();
-        IssuedReminderHeader.SetFilter("Reminder Level", '<>%1', 0);
-        IssuedReminderHeader.SetFilter("Reminder Terms Code", '<>%1', '');
-        if not IssuedReminderHeader.FindSet() then begin
-            Reason := NoReminderMsg;
-            exit(false);
-        end;
-
-        repeat
-            if ReminderLevel.Get(IssuedReminderHeader."Reminder Terms Code", IssuedReminderHeader."Reminder Level") then
-                exit(true);
-        until IssuedReminderHeader.Next() = 0;
-
-        Reason := NoReminderLevelMsg;
-        exit(false);
+        TestData.CreateIssuedReminder(TestData.CreateCustomer(), TestData.CreateReminderTerms(1), 1, '', IssuedReminderHeader);
+        ReminderLevel.Get(IssuedReminderHeader."Reminder Terms Code", IssuedReminderHeader."Reminder Level");
     end;
 
     /// <summary>
@@ -1499,7 +1460,7 @@ codeunit 50167 "Filename Proof Run"
 
     /// <summary>
     /// Puts the reminder level back the way it was and removes the row this proof created, so
-    /// that a company is not left with a reminder file name nobody configured.
+    /// that the proof's reminder terms are not left with a reminder file name nobody configured.
     /// </summary>
     /// <param name="ReminderLevel">The level to restore.</param>
     /// <param name="PreviousId">What it pointed at before.</param>
@@ -1552,11 +1513,7 @@ codeunit 50167 "Filename Proof Run"
         // Three invoices, described two ways. The pattern names three individually so that the
         // listed form is genuinely exercised - at a lower limit both descriptions would collapse
         // to a range and agree for the wrong reason.
-        if not ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers) then begin
-            ProofSupport.LogLine('RESULT one selection gets one name', StrSubstNo(SkippedMsg, NotEnoughInvoicesMsg));
-            Done();
-            exit;
-        end;
+        ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers);
 
         SetPatternNaming(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", 'Invoices-[No.]', 3);
 
@@ -1704,7 +1661,7 @@ codeunit 50167 "Filename Proof Run"
         Pattern."Report ID" := ReportId;
         Pattern.Validate("Table No.", TableNo);
         Pattern.Validate("File Name Pattern", CopyStr(PatternText, 1, MaxStrLen(Pattern."File Name Pattern")));
-        Pattern."Max. Records Named" := MaxNamed;
+        Pattern."Max. Values Named" := MaxNamed;
         Pattern."Separator" := '-';
         Pattern.Enabled := true;
         Pattern.Insert(true);
@@ -1799,9 +1756,9 @@ codeunit 50167 "Filename Proof Run"
     ///   three different, naming two individually - first-to-last.
     ///
     /// The two ends are the related values of the FIRST and LAST values of the pointing field,
-    /// in that field's order - not the alphabetically first and last descriptions. The codes
-    /// chosen here make the two orders differ on purpose, so a proof that quietly sorted the
-    /// descriptions instead would fail.
+    /// in that field's order - not the alphabetically first and last descriptions. The proof's
+    /// own payment terms are described so that the two orders differ on purpose, so a proof that
+    /// quietly sorted the descriptions instead would fail.
     /// </summary>
     procedure ProveARunOverSeveralRelatedRecordsIsNamed()
     var
@@ -1810,7 +1767,6 @@ codeunit 50167 "Filename Proof Run"
         Numbers: List of [Text];
         Codes: List of [Text];
         Descriptions: List of [Text];
-        Originals: List of [Text];
         InvoiceFilter: Text;
         HopPlaceholder: Text;
         SameTerms: Text;
@@ -1822,25 +1778,14 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        if not ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers) then begin
-            ProofSupport.LogLine(HopVerdictTok, StrSubstNo(SkippedMsg, NotEnoughInvoicesMsg));
-            Done();
-            exit;
-        end;
-
-        if not ThreePaymentTerms(Codes, Descriptions) then begin
-            ProofSupport.LogLine(HopVerdictTok, StrSubstNo(SkippedMsg, NotEnoughTermsMsg));
-            Done();
-            exit;
-        end;
+        ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers);
+        CreateThreePaymentTerms(Codes, Descriptions);
 
         HopPlaceholder := ProofSupport.HopPlaceholderIn(
             ProofSupport.EnglishLanguageId(), Database::"Payment Terms", PaymentTerms.FieldNo(Description));
         ProofSupport.LogLine('31 Placeholder being resolved', HopPlaceholder);
         ProofSupport.LogLine('31 Payment terms used', JoinedWithDash(Codes));
         ProofSupport.LogLine('31 Their descriptions, in the order of the code', JoinedWithDash(Descriptions));
-
-        RememberPaymentTerms(Numbers, Originals);
 
         // One related record for the whole run, which is what nearly every run looks like.
         PutSameTermsOnEvery(Numbers, Codes.Get(1));
@@ -1858,10 +1803,6 @@ codeunit 50167 "Filename Proof Run"
         SetPatternNaming(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", TermsPatternTok + HopPlaceholder, 2);
         Collapsed := NameForInvoiceFilter(AlternationOf(Numbers));
         ExpectedCollapsed := TermsPrefixTok + Descriptions.Get(1) + RangeMarkerTok + Descriptions.Get(3);
-
-        // Put the documents back before anything is asserted, so a failing verdict cannot leave
-        // the company carrying payment terms this proof invented.
-        RestorePaymentTerms(Numbers, Originals);
 
         ProofSupport.LogLine('31 Every record on the same terms', SameTerms);
         ProofSupport.LogLine('31 Three different, naming three', Listed);
@@ -1883,49 +1824,26 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Three payment terms, in the order of their code, with the descriptions that go with them.
+    /// Three new payment terms, in the order of their code, with the descriptions that go with
+    /// them. Created one after another, so each gets a code after the one before it. Their
+    /// descriptions do not sort in that order - the first sorts last - so the ends of a run in
+    /// the codes' order are not the alphabetical ends.
     /// </summary>
     /// <param name="Codes">Receives the codes, in code order.</param>
     /// <param name="Descriptions">Receives their descriptions, in the same order.</param>
-    /// <returns>True when the company has at least three.</returns>
-    local procedure ThreePaymentTerms(var Codes: List of [Text]; var Descriptions: List of [Text]): Boolean
-    var
-        PaymentTerms: Record "Payment Terms";
+    local procedure CreateThreePaymentTerms(var Codes: List of [Text]; var Descriptions: List of [Text])
     begin
         Clear(Codes);
         Clear(Descriptions);
-
-        PaymentTerms.Reset();
-        PaymentTerms.SetFilter(Description, '<>%1', '');
-        if not PaymentTerms.FindSet() then
-            exit(false);
-
-        repeat
-            Codes.Add(PaymentTerms.Code);
-            Descriptions.Add(PaymentTerms.Description);
-        until (PaymentTerms.Next() = 0) or (Codes.Count() = 3);
-
-        exit(Codes.Count() = 3);
+        AddPaymentTerms(FirstTermsDescriptionTok, Codes, Descriptions);
+        AddPaymentTerms(SecondTermsDescriptionTok, Codes, Descriptions);
+        AddPaymentTerms(ThirdTermsDescriptionTok, Codes, Descriptions);
     end;
 
-    local procedure RememberPaymentTerms(var Numbers: List of [Text]; var Originals: List of [Text])
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        Number: Text;
+    local procedure AddPaymentTerms(Description: Text[100]; var Codes: List of [Text]; var Descriptions: List of [Text])
     begin
-        Clear(Originals);
-        foreach Number in Numbers do
-            if SalesInvoiceHeader.Get(CopyStr(Number, 1, MaxStrLen(SalesInvoiceHeader."No."))) then
-                Originals.Add(SalesInvoiceHeader."Payment Terms Code");
-    end;
-
-    local procedure RestorePaymentTerms(var Numbers: List of [Text]; var Originals: List of [Text])
-    var
-        i: Integer;
-    begin
-        for i := 1 to Numbers.Count() do
-            if i <= Originals.Count() then
-                WritePaymentTerms(Numbers.Get(i), Originals.Get(i));
+        Codes.Add(TestData.CreatePaymentTerms(Description));
+        Descriptions.Add(Description);
     end;
 
     local procedure PutSameTermsOnEvery(var Numbers: List of [Text]; TermsCode: Text)
@@ -1946,7 +1864,7 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Sets the payment terms on a posted invoice, which is a write this proof undoes again.
+    /// Sets the payment terms on one of the proof's own posted invoices.
     /// </summary>
     local procedure WritePaymentTerms(InvoiceNo: Text; TermsCode: Text)
     var
@@ -1982,24 +1900,19 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        if FinancialReport.Count() < 2 then begin
-            ProofSupport.LogLine('RESULT a financial report is named after itself', StrSubstNo(SkippedMsg, NotEnoughFinancialReportsMsg));
-            Done();
-            exit;
-        end;
-
         SetPatternFor(Report::"Account Schedule", Database::"Financial Report", FinancialReportPatternTok);
 
-        FinancialReport.FindFirst();
+        // Two financial reports of the proof's own, described differently.
+        FinancialReport.Get(TestData.CreateFinancialReport(FirstFinancialReportTok, false));
         FirstExpected := ReportFilenameMgt.Sanitise(FinancialReport.Description);
         FirstName := NameForFinancialReport(FinancialReport);
 
-        FinancialReport.FindLast();
+        FinancialReport.Get(TestData.CreateFinancialReport(SecondFinancialReportTok, false));
         SecondExpected := ReportFilenameMgt.Sanitise(FinancialReport.Description);
         SecondName := NameForFinancialReport(FinancialReport);
 
         ProofSupport.LogLine('25 First financial report is named', FirstName);
-        ProofSupport.LogLine('25 Last financial report is named', SecondName);
+        ProofSupport.LogLine('25 Second financial report is named', SecondName);
 
         case true of
             FirstName <> FirstExpected:
@@ -2021,7 +1934,8 @@ codeunit 50167 "Filename Proof Run"
 
     /// <summary>
     /// A financial report run that nothing identified gets no name at all, rather than a name
-    /// built from every financial report in the company.
+    /// built from every financial report in the company - of which the proof makes sure there is
+    /// at least one, its own.
     ///
     /// This is the half that is easy to get wrong. A run that narrows nothing is normally taken
     /// to cover the whole table, which is right for a chart of accounts and wrong here: report
@@ -2030,18 +1944,13 @@ codeunit 50167 "Filename Proof Run"
     /// </summary>
     procedure ProveAnUnidentifiedFinancialReportRunIsNotNamed()
     var
-        FinancialReport: Record "Financial Report";
         SourceRecRef: RecordRef;
         Channel: Enum "Report Filename Output Route";
         Name: Text;
     begin
         ClearPatterns();
 
-        if FinancialReport.IsEmpty() then begin
-            ProofSupport.LogLine('RESULT an unidentified financial report run is not named', StrSubstNo(SkippedMsg, NotEnoughFinancialReportsMsg));
-            Done();
-            exit;
-        end;
+        TestData.CreateFinancialReport(UnidentifiedFinancialReportTok, false);
 
         SetPatternFor(Report::"Account Schedule", Database::"Financial Report", FinancialReportPatternTok);
 
@@ -2065,32 +1974,45 @@ codeunit 50167 "Filename Proof Run"
     /// The kind of document is Business Central's own word for it, and it is the word in the
     /// document's own language.
     ///
-    /// Three things at once, because they are one behaviour: a posted sales invoice is named
-    /// Sales Invoice; the same invoice with a Danish language code is named Salgsfaktura; and a
-    /// run about a kind of record Business Central has no word for is not named at all.
+    /// Three things at once, because they are one behaviour, on a sales invoice the proof posts:
+    /// with no language of its own the invoice is named Sales Invoice; with a Danish language code
+    /// it is named with the word Report Distribution Management.GetFullDocumentTypeText gives for
+    /// it, asked here of the same invoice; and a run about a kind of record Business Central has
+    /// no word for is not named at all.
     ///
     /// The Danish half is the one that matters. A file name that came out in whoever happened to
-    /// render it language is the defect this whole design exists to remove, so a placeholder carrying
-    /// a translated word has to be pinned in both languages or it is not pinned at all.
+    /// render it language is the defect this whole design exists to remove. GetFullDocumentTypeText
+    /// switches to the document's language itself, so its answer is Business Central's word in the
+    /// document's language whatever translations are installed - and the session here stays
+    /// English, so a name that begins with it was asked for in the document's language rather than
+    /// the session's.
+    ///
+    /// Base Application's own Danish word, Salgsfaktura, is deliberately not compared: Base
+    /// Application's translations are not this app's to test, and on W1 they are not installed, so
+    /// there the Danish word reads as the English one. That the word really does change with the
+    /// document's language is proven on this app's own document, whose Danish caption the test app
+    /// ships, by ProveTheKindOfDocumentDeclinesOnALanguageMismatch: in this English session a Danish
+    /// proof document is named with its Danish caption, which that proof first checks differs from
+    /// the English.
     /// </summary>
     procedure ProveTheKindOfDocumentIsNamedInItsOwnLanguage()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        ReportDistributionManagement: Codeunit "Report Distribution Management";
         SourceRecRef: RecordRef;
         Channel: Enum "Report Filename Output Route";
         InEnglish: Text;
         InDanish: Text;
+        DanishKind: Text;
         OnAnAccount: Text;
         OriginalLanguageCode: Code[10];
         InvoiceNo: Code[20];
     begin
         ClearPatterns();
 
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('RESULT the kind of document is named in its own language', StrSubstNo(SkippedMsg, NoInvoiceMsg));
-            Done();
-            exit;
-        end;
+        // An invoice of the proof's own, and the Danish language row it is given below.
+        TestData.PostNewInvoice(SalesInvoiceHeader);
+        TestData.EnsureLanguage(ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageId());
         InvoiceNo := SalesInvoiceHeader."No.";
         OriginalLanguageCode := SalesInvoiceHeader."Language Code";
 
@@ -2101,9 +2023,12 @@ codeunit 50167 "Filename Proof Run"
 
         SetInvoiceLanguage(InvoiceNo, ProofSupport.DanishLanguageCode());
         InDanish := NameForInvoice(InvoiceNo);
+        // Business Central's own word for the invoice while it is Danish, read afresh so the
+        // language it carries now is the one asked about.
+        SalesInvoiceHeader.Get(InvoiceNo);
+        DanishKind := ReportDistributionManagement.GetFullDocumentTypeText(SalesInvoiceHeader);
 
-        // Put back before anything is judged, so a failure below cannot leave the document in a
-        // language somebody else's proof did not ask for.
+        // Put back before anything is judged, so the invoice is left as it was posted.
         SetInvoiceLanguage(InvoiceNo, OriginalLanguageCode);
 
         // A kind of record Business Central has no word for. Most of the reports installed are
@@ -2117,15 +2042,16 @@ codeunit 50167 "Filename Proof Run"
 
         ProofSupport.LogLine('28 Kind of document, no language on the document', InEnglish);
         ProofSupport.LogLine('28 Kind of document, document in Danish', InDanish);
+        ProofSupport.LogLine('28 Business Central''s word for the invoice in Danish', DanishKind);
         ProofSupport.LogLine('28 Kind of document on a chart of accounts', NameOrNone(OnAnAccount));
 
         case true of
             StrPos(InEnglish, EnglishKindTok) <> 1:
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
                     StrSubstNo(FailKindEnglishMsg, EnglishKindTok, InEnglish));
-            StrPos(InDanish, DanishKindTok) <> 1:
+            (DanishKind = '') or (StrPos(InDanish, DanishKind) <> 1):
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
-                    StrSubstNo(FailKindDanishMsg, DanishKindTok, InDanish));
+                    StrSubstNo(FailKindDanishMsg, DanishKind, InDanish));
             OnAnAccount <> '':
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
                     StrSubstNo(FailKindDeclineMsg, OnAnAccount));
@@ -2369,15 +2295,10 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        if FinancialReport.IsEmpty() then begin
-            ProofSupport.LogLine('RESULT a scheduled financial report is named', StrSubstNo(SkippedMsg, NotEnoughFinancialReportsMsg));
-            Done();
-            exit;
-        end;
-
         SetPatternFor(Report::"Account Schedule", Database::"Financial Report", FinancialReportPatternTok);
 
-        FinancialReport.FindFirst();
+        // A financial report of the proof's own.
+        FinancialReport.Get(TestData.CreateFinancialReport(ScheduledFinancialReportTok, false));
         Expected := ReportFilenameMgt.Sanitise(FinancialReport.Description);
 
         // Recorded the way the export records it: for whatever that export produces, because one
@@ -2486,36 +2407,30 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Three posted invoices, and the alternation filter that selects exactly those three.
+    /// Three invoices the proof posts, for one new customer, and the alternation filter that
+    /// selects exactly those three.
     /// </summary>
     /// <param name="SalesInvoiceHeader">Left filtered to the three.</param>
     /// <param name="InvoiceFilter">Receives the alternation.</param>
     /// <param name="Numbers">Receives the three numbers in order.</param>
-    /// <returns>True when this company has three to work with.</returns>
-    local procedure ThreeInvoices(var SalesInvoiceHeader: Record "Sales Invoice Header"; var InvoiceFilter: Text; var Numbers: List of [Text]): Boolean
+    local procedure ThreeInvoices(var SalesInvoiceHeader: Record "Sales Invoice Header"; var InvoiceFilter: Text; var Numbers: List of [Text])
     var
-        i: Integer;
+        InvoiceNos: List of [Code[20]];
+        InvoiceNo: Code[20];
     begin
         Clear(Numbers);
         InvoiceFilter := '';
 
-        SalesInvoiceHeader.Reset();
-        SalesInvoiceHeader.SetCurrentKey("No.");
-        if not SalesInvoiceHeader.FindSet() then
-            exit(false);
-
-        for i := 1 to 3 do begin
-            Numbers.Add(SalesInvoiceHeader."No.");
+        TestData.PostInvoicesOfOneCustomer(3, InvoiceNos);
+        foreach InvoiceNo in InvoiceNos do begin
+            Numbers.Add(InvoiceNo);
             if InvoiceFilter <> '' then
                 InvoiceFilter += '|';
-            InvoiceFilter += SalesInvoiceHeader."No.";
-            if (i < 3) and (SalesInvoiceHeader.Next() = 0) then
-                exit(false);
+            InvoiceFilter += InvoiceNo;
         end;
 
         SalesInvoiceHeader.Reset();
         SalesInvoiceHeader.SetFilter("No.", InvoiceFilter);
-        exit(Numbers.Count() = 3);
     end;
 
     local procedure FirstOf(var Numbers: List of [Text]) Value: Text
@@ -2566,7 +2481,7 @@ codeunit 50167 "Filename Proof Run"
         Pattern.Validate("File Name Pattern", CopyStr(PatternText, 1, MaxStrLen(Pattern."File Name Pattern")));
         // Two allowed values, so three selected records collapse to first-to-last. The proofs
         // that measure collapsing use the same setting.
-        Pattern."Max. Records Named" := 2;
+        Pattern."Max. Values Named" := 2;
         Pattern."Separator" := '-';
         Pattern.Enabled := true;
         Pattern.Insert(true);
@@ -2610,7 +2525,9 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     var
+        ExpectedTexts: Codeunit "Filename Expected Texts";
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         RangeLbl: Label 'Invoices-%1-to-%2', Comment = '%1 first number, %2 last number', Locked = true;
         KindAndNumberPatternTok: Label '[Kind of Document]-[Number]', Locked = true;
         KindMismatchDocumentNoTok: Label 'KIND-LANG', Locked = true;
@@ -2637,7 +2554,10 @@ codeunit 50167 "Filename Proof Run"
         InvoiceCaptionLbl: Label 'Sales - Invoice', Locked = true;
         FinancialReportPatternTok: Label '[Description]', Locked = true;
         NoNameLbl: Label '(no name)';
-        NotEnoughFinancialReportsMsg: Label 'this company has fewer than two financial reports, so there is nothing to tell apart.';
+        FirstFinancialReportTok: Label 'Proof Balance Sheet', Locked = true;
+        SecondFinancialReportTok: Label 'Proof Income Statement', Locked = true;
+        UnidentifiedFinancialReportTok: Label 'Proof Cash Flow', Locked = true;
+        ScheduledFinancialReportTok: Label 'Proof Scheduled Statement', Locked = true;
         PassFinancialNameMsg: Label 'PASS - two financial reports rendered by the same report object are named %1 and %2.', Comment = '%1 the first name, %2 the second name';
         FailFinancialNameMsg: Label 'FAIL - the run should have been named %1 but was named %2.', Comment = '%1 the expected name, %2 the name produced';
         FailFinancialSameMsg: Label 'FAIL - two different financial reports were both named %1, so the name does not say which one ran.', Comment = '%1 the name produced';
@@ -2646,10 +2566,8 @@ codeunit 50167 "Filename Proof Run"
         PassScheduledFinancialMsg: Label 'PASS - a scheduled financial report reaches its Report Inbox entry named %1.', Comment = '%1 the name produced';
         FailScheduledFinancialMsg: Label 'FAIL - a scheduled financial report should have been named %1 but its Report Inbox entry reads %2.', Comment = '%1 the expected name, %2 the name produced';
         KindPatternTok: Label '[Kind of Document]-[No.]', Locked = true;
-        NoInvoiceToNameMsg: Label 'this company has no posted sales invoice, so there is no document to name.';
         CaptionPatternTok: Label '[Report Name]-[No.]', Locked = true;
         EnglishKindTok: Label 'Sales Invoice', Locked = true;
-        DanishKindTok: Label 'Salgsfaktura', Locked = true;
         PassKindMsg: Label 'PASS - the same invoice is named %1 in English and %2 in Danish, and a chart of accounts run is left to Business Central.', Comment = '%1 the English name, %2 the Danish name';
         FailKindEnglishMsg: Label 'FAIL - the name should have begun with %1 but reads %2.', Comment = '%1 the expected word, %2 the name produced';
         FailKindDanishMsg: Label 'FAIL - with the document in Danish the name should have begun with %1 but reads %2, so it was read in the session language rather than the document''s.', Comment = '%1 the expected word, %2 the name produced';
@@ -2659,7 +2577,6 @@ codeunit 50167 "Filename Proof Run"
         PdfExtensionLbl: Label '.pdf', Locked = true;
         AlreadyNamedLbl: Label 'SomebodyElseNamedThis.pdf', Locked = true;
         RaisedLbl: Label 'Reporting Triggers.GetFilename, the platform event codeunit 44 subscribes to', Locked = true;
-        NoInvoiceMsg: Label 'there is no posted sales invoice in this company to name.';
         BadPayloadMsg: Label 'FAIL - the test could not build the platform payload, so nothing was proven.';
         NotAnsweredMsg: Label 'FAIL - the platform event was raised and this feature did not answer it. The subscriber is not reached at all: check the event name, the parameter names and the signature, because a subscriber the platform will not bind to compiles perfectly and does nothing.';
         WrongNameMsg: Label 'FAIL - the hook answered, but with the wrong name. Expected %1, got %2.', Comment = '%1 expected, %2 actual';
@@ -2686,7 +2603,10 @@ codeunit 50167 "Filename Proof Run"
         HopVerdictTok: Label 'RESULT a run pointing at several related records is named after all of them', Locked = true;
         TermsPatternTok: Label 'Terms-', Locked = true;
         TermsPrefixTok: Label 'Terms-', Locked = true;
-        NotEnoughTermsMsg: Label 'this company has fewer than three payment terms with descriptions, so a run pointing at several cannot be built.';
+        // Their alphabetical order is not their order of creation, which is the order of their codes.
+        FirstTermsDescriptionTok: Label 'Net 30 days', Locked = true;
+        SecondTermsDescriptionTok: Label 'Cash on delivery', Locked = true;
+        ThirdTermsDescriptionTok: Label 'Monthly', Locked = true;
         PassHopMsg: Label 'PASS - a run whose records point at three different related records is named after all three (%1), and collapses to first-to-last when the pattern names fewer (%2).', Comment = '%1 the listed name, %2 the collapsed name';
         FailHopSameMsg: Label 'FAIL - a run whose records all point at the same related record should be named %1 but was named %2. Naming a single related record is what nearly every run does and it must not change.', Comment = '%1 expected, %2 actual';
         FailHopListedMsg: Label 'FAIL - a run pointing at three different related records should be named %1 but was named %2. A relation placeholder that declines here is applying the rule this design abandoned for fields, one level out.', Comment = '%1 expected, %2 actual';
@@ -2735,16 +2655,12 @@ codeunit 50167 "Filename Proof Run"
         ReminderCaptionLbl: Label 'Reminder', Locked = true;
         TermsAndLevelLbl: Label '%1, level %2', Comment = '%1 the reminder terms code, %2 the level', Locked = true;
         SuppliedGuardsLbl: Label 'report %1, extension %2, incoming name %3, a positioned reference to %4, and a configured file name of %5', Comment = '%1 report id, %2 the extension, %3 the incoming name, %4 the kind of record, %5 the configured file name';
-        NoReminderMsg: Label 'this company has no issued reminder carrying both a level and reminder terms, so the other subscriber has nothing to act on.';
-        NoReminderLevelMsg: Label 'no issued reminder here has a reminder level row to read a configured file name from.';
-        FailNoReminderMsg: Label 'FAIL - the second subscriber could not be brought into play: %1', Comment = '%1 the reason';
         FailCouldNotSeedMsg: Label 'FAIL - a configured reminder file name could not be written, so the other subscriber would have declined for a reason that is this test''s fault rather than the code''s: %1', Comment = '%1 the error';
         FailOursDoesNotClaimMsg: Label 'FAIL - this feature does not name this report even with nothing competing: expected %1, got %2. Until it does, a run where both are in play proves nothing, because the other subscriber would win whether this feature had a guard or not.', Comment = '%1 expected, %2 actual';
         FailTheirsDidNotNameMsg: Label 'FAIL - the other subscriber did not name the file even with nothing competing: expected %1, got %2. Its conditions were supplied as %3, so one of them is not met and the guard is not being reached.', Comment = '%1 expected, %2 actual, %3 what was supplied';
         PassGuardMsg: Label 'PASS - another subscriber named the file %1 and this feature stood down rather than replacing it with %2, which is the name its own enabled pattern produces.', Comment = '%1 the other subscriber''s name, %2 the name this feature would have given';
         FailWeWentFirstMsg: Label 'FAIL - this feature named the file %1, and the other subscriber - which names it %2 when nothing competes - did not get it. Whichever order the platform ran the two subscribers in, this is a defect: run first, this feature must leave a reminder Base Application names to it (Report Filename Mgt.IsNamedByReminderCommunication); run second, its guard must stand down.', Comment = '%1 this feature''s name, %2 the other subscriber''s name';
         FailNeitherMsg: Label 'FAIL - the chain came back with %1, which is neither the other subscriber''s name %2 nor this feature''s %3, so something else named the file.', Comment = '%1 what came back, %2 the other name, %3 this feature''s name';
-        NotEnoughInvoicesMsg: Label 'this company has fewer than three posted sales invoices, so there is no run over several to name.';
         CaptionsDoNotDifferMsg: Label 'this container does not translate the proof report''s caption, so a run in one language cannot be told from a run in two.';
         LanguageDocumentOneTok: Label 'PROOF-LANG-1', Locked = true;
         LanguageDocumentTwoTok: Label 'PROOF-LANG-2', Locked = true;

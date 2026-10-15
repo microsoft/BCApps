@@ -38,11 +38,8 @@ codeunit 50156 "Filename Proof Scheduled"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        if not FirstInvoice(SalesInvoiceHeader) then begin
-            ProofSupport.LogLine('Setup', NoInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // An invoice of the proof's own to schedule.
+        TestData.PostNewInvoice(SalesInvoiceHeader);
 
         ConfigurePattern();
         ExpectedName := ScheduledPrefixTok + SalesInvoiceHeader."No.";
@@ -223,15 +220,9 @@ codeunit 50156 "Filename Proof Scheduled"
         Pattern.Insert(true);
     end;
 
-    local procedure FirstInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
-    begin
-        SalesInvoiceHeader.Reset();
-        SalesInvoiceHeader.SetFilter("No.", '<>%1', '');
-        exit(SalesInvoiceHeader.FindFirst());
-    end;
-
     var
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         ResolvedDownloadName: Text[250];
         ScheduledPatternTok: Label 'Scheduled-Invoice-[No.]', Locked = true;
         ScheduledPrefixTok: Label 'Scheduled-Invoice-', Locked = true;
@@ -241,7 +232,6 @@ codeunit 50156 "Filename Proof Scheduled"
         ExpectedButGotMsg: Label 'FAIL - expected %1, got %2', Comment = '%1 expected value, %2 actual value';
         ChangedMsg: Label 'PASS - Business Central would have called it %1, and it downloads as %2', Comment = '%1 the old name, %2 the configured name';
         UnchangedMsg: Label 'FAIL - the download name is the one Business Central would have produced anyway.';
-        NoInvoiceMsg: Label 'No posted sales invoice to schedule.';
         RunFailedMsg: Label 'FAIL - the scheduled run did not complete: %1', Comment = '%1 the error';
         NoEntryMsg: Label 'FAIL - the run completed but no Report Inbox entry was created.';
         AnotherUserTok: Label 'FILENAMEPROOF-OTHER', Locked = true;

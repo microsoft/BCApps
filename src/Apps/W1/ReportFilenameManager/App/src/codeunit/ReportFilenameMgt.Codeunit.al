@@ -20,9 +20,9 @@ codeunit 50110 "Report Filename Mgt."
     //                                       Excel, carrying the financial report and the name
     //   Report Filename Inbox Sub., the download half
     //                                    -> a file name event in Report Inbox.GetFileNameWithoutExtension
-    //   Report Filename Subscribers, the vendor half of Send to Disk
-    //                                    -> a naming event in Report Selections.SendToDiskForVend, the
-    //                                       twin of OnSendToDiskForCustOnBeforeDownloadAttachment
+    //   Report Filename Subscribers, the extension's case on files named through GetAttachmentFileName
+    //                                    -> a way to get Business Central's default attachment name
+    //                                       without raising OnBeforeGetAttachmentFileName
     //   IsNamedByReminderCommunication, below
     //                                    -> a public way to ask Reminder Communication for the name
     //                                       it gives a reminder
@@ -76,6 +76,8 @@ codeunit 50110 "Report Filename Mgt."
         // device name (Microsoft Learn, Naming Files, Paths, and Namespaces).
         ReservedNamesTok: Label 'CON,PRN,AUX,NUL,COM1,COM2,COM3,COM4,COM5,COM6,COM7,COM8,COM9,COM¹,COM²,COM³,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9,LPT¹,LPT²,LPT³', Locked = true;
         ReminderAnswerKeyTok: Label '%1|%2|%3', Comment = '%1 reminder terms, %2 reminder level, %3 language code', Locked = true;
+        // Base Application's own, in Electronic Document Format.GetAttachmentFileName; see BusinessCentralsDocumentFileName.
+        DocumentFileNameTok: Label '%1 - %2 %3.%4', Comment = '%1 company name, %2 document type, %3 document number, %4 extension', Locked = true;
         SwitchedOffMsg: Label 'File name patterns are turned off, so every report gets Business Central''s own file name. Turn them on in the setup.';
         OpenSetupLbl: Label 'Open Setup';
 
@@ -112,6 +114,31 @@ codeunit 50110 "Report Filename Mgt."
         // and forgotten whichever way that went, so it can never reach the next.
         ReportFilenameContext.ClearNamingPeriod();
         exit(Resolved);
+    end;
+
+    /// <summary>
+    /// Whether naming can do anything at all: the feature is switched on and at least one pattern
+    /// exists. Every naming subscriber asks this first, before it reads a document, Report
+    /// Selections or anything else, so that with the feature off - how it starts - or no patterns,
+    /// installing the app adds no read a user might lack permission for, and calls nobody else's
+    /// naming code. Reads only this app's own configuration, under the same inherent permissions
+    /// as TryResolve.
+    /// </summary>
+    /// <returns>True when a pattern could name something.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Report Filename Pattern", 'r')]
+    [InherentPermissions(PermissionObjectType::Table, Database::"Report Filename Pattern", 'X')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Report Filename Setup", 'r')]
+    [InherentPermissions(PermissionObjectType::Table, Database::"Report Filename Setup", 'X')]
+    procedure IsActive(): Boolean
+    var
+        Pattern: Record "Report Filename Pattern";
+        ReportFilenameSetup: Record "Report Filename Setup";
+    begin
+        if not ReportFilenameSetup.Get() then
+            exit(false);
+        if not ReportFilenameSetup.Enabled then
+            exit(false);
+        exit(not Pattern.IsEmpty());
     end;
 
     /// <summary>
@@ -790,7 +817,7 @@ codeunit 50110 "Report Filename Mgt."
         BestLanguageKnown := false;
         Candidate.SetCurrentKey(Enabled, "Report ID", "Table No.");
         Candidate.SetRange(Enabled, true);
-        Candidate.SetLoadFields("Report ID", "Table No.", "Output Route Filter", "Language Code", "Language Code Field", "File Name Pattern", "Date Format", "Max. Records Named", "Separator");
+        Candidate.SetLoadFields("Report ID", "Table No.", "Output Route Filter", "Language Code", "Language Code Field", "File Name Pattern", "Date Format", "Max. Values Named", "Separator");
         if not Candidate.FindSet() then
             exit(false);
 
@@ -2041,7 +2068,7 @@ codeunit 50110 "Report Filename Mgt."
     /// </summary>
     local procedure NamedIndividually(var Pattern: Record "Report Filename Pattern") MaxNamed: Integer
     begin
-        MaxNamed := Pattern."Max. Records Named";
+        MaxNamed := Pattern."Max. Values Named";
         if MaxNamed < 1 then
             MaxNamed := 3;
     end;
@@ -2503,14 +2530,6 @@ codeunit 50110 "Report Filename Mgt."
     end;
 
     /// <summary>
-    /// What the "switched off" notification says.
-    /// </summary>
-    internal procedure SwitchedOffMessage(): Text
-    begin
-        exit(SwitchedOffMsg);
-    end;
-
-    /// <summary>
     /// The action on the "switched off" notification: opens the setup, and sends the notification
     /// again when the setup is closed with patterns still turned off. Choosing the action takes the
     /// notification away, and the page it was on does not open again when the setup closes, so
@@ -2584,6 +2603,91 @@ codeunit 50110 "Report Filename Mgt."
         if (MaxLength > 0) and (StrLen(Name) + StrLen(Ending) > MaxLength) then
             Name := CopyStr(Name, 1, MaxLength - StrLen(Ending));
         exit(FitToDevices(Name, DeviceNameLimit() - DeviceLength(Ending)) + Ending);
+    end;
+
+    /// <summary>
+    /// The name Business Central gives a document's file when nothing else names it - the rule in
+    /// Electronic Document Format.GetAttachmentFileName: company, document type, number and extension.
+    ///
+    /// Rebuilt here, never asked for: GetAttachmentFileName raises OnBeforeGetAttachmentFileName first,
+    /// so calling it would run every other extension's naming code again and could return their name,
+    /// which is the one thing the callers of this must tell apart from Business Central's.
+    ///
+    /// A COPY of Base Application's format string (ElectronicDocumentFormat.Table.al,
+    /// GetAttachmentFileName), with the extension lower case as version 30 writes it; version 29 wrote
+    /// it as it arrived, upper case, and IsBusinessCentralsDefaultName accepts both. Should Microsoft
+    /// change the rule, no name matches it any more and the routes that compare against it name
+    /// nothing: Business Central's name stands, as it does without this app. The ask that removes this
+    /// copy: ask 8, a public way to read the name GetAttachmentFileName would give without raising its
+    /// event.
+    /// </summary>
+    /// <param name="DocumentType">The document type text the name is built from.</param>
+    /// <param name="DocumentNo">The document number the name is built from.</param>
+    /// <param name="Extension">The extension the name is built with.</param>
+    /// <returns>Business Central's default name.</returns>
+    internal procedure BusinessCentralsDocumentFileName(DocumentType: Text; DocumentNo: Code[20]; Extension: Code[3]): Text[250]
+    begin
+        exit(CopyStr(UncutDocumentFileName(DocumentType, DocumentNo, Extension), 1, 250));
+    end;
+
+    local procedure UncutDocumentFileName(DocumentType: Text; DocumentNo: Code[20]; Extension: Code[3]): Text
+    var
+        FileManagement: Codeunit "File Management";
+    begin
+        exit(StrSubstNo(DocumentFileNameTok, FileManagement.StripNotsupportChrInFileName(CompanyName()), DocumentType, DocumentNo, LowerCase(Extension)));
+    end;
+
+    /// <summary>
+    /// Whether a name is still Business Central's default for the document (BusinessCentralsDocumentFileName):
+    /// everything before the extension exactly as Business Central builds it, and the extension in either
+    /// case, because version 29 writes it upper case and version 30 lower case. Anything else means
+    /// something named the file on purpose, and that name stands.
+    /// </summary>
+    /// <param name="CurrentName">The name as it stands.</param>
+    /// <param name="DocumentType">The document type text Business Central built the name from.</param>
+    /// <param name="DocumentNo">The document number Business Central built the name from.</param>
+    /// <param name="Extension">The extension Business Central built the name with.</param>
+    /// <returns>True when nothing has changed the name since Business Central built it.</returns>
+    internal procedure IsBusinessCentralsDefaultName(CurrentName: Text; DocumentType: Text; DocumentNo: Code[20]; Extension: Code[3]): Boolean
+    var
+        WrittenExtension: Text;
+    begin
+        exit(IsBusinessCentralsDefaultName(CurrentName, DocumentType, DocumentNo, Extension, WrittenExtension));
+    end;
+
+    /// <summary>
+    /// As above, and hands back the extension as the current name writes it, so its case can be read.
+    /// </summary>
+    /// <param name="CurrentName">The name as it stands.</param>
+    /// <param name="DocumentType">The document type text Business Central built the name from.</param>
+    /// <param name="DocumentNo">The document number Business Central built the name from.</param>
+    /// <param name="Extension">The extension Business Central built the name with.</param>
+    /// <param name="WrittenExtension">Receives the extension as written in the current name, without its dot; blank when the name is not Business Central's or the 250-character cut removed it.</param>
+    /// <returns>True when nothing has changed the name since Business Central built it.</returns>
+    internal procedure IsBusinessCentralsDefaultName(CurrentName: Text; DocumentType: Text; DocumentNo: Code[20]; Extension: Code[3]; var WrittenExtension: Text): Boolean
+    var
+        DefaultName: Text;
+        StemLength: Integer;
+    begin
+        WrittenExtension := '';
+        if CurrentName = '' then
+            exit(false);
+        DefaultName := BusinessCentralsDocumentFileName(DocumentType, DocumentNo, Extension);
+        if StrLen(CurrentName) <> StrLen(DefaultName) then
+            exit(false);
+
+        // Everything up to and including the dot, measured on the name before Business Central cuts it
+        // to 250 characters: when the cut reaches into the extension, what is left of it is still the
+        // extension, and is still compared in either case.
+        StemLength := StrLen(UncutDocumentFileName(DocumentType, DocumentNo, Extension)) - StrLen(Format(Extension));
+        if CopyStr(CurrentName, 1, StemLength) <> CopyStr(DefaultName, 1, StemLength) then
+            exit(false);
+        if StemLength >= StrLen(CurrentName) then
+            exit(true);
+        if LowerCase(CopyStr(CurrentName, StemLength + 1)) <> CopyStr(DefaultName, StemLength + 1) then
+            exit(false);
+        WrittenExtension := CopyStr(CurrentName, StemLength + 1);
+        exit(true);
     end;
 
     /// <summary>

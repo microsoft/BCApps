@@ -37,13 +37,8 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if not SalesInvoiceHeader.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoSalesInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-        SalesInvoiceHeader.SetRecFilter();
+        // An invoice of the proof's own to zip, filtered to itself.
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('60 Invoice', SalesInvoiceHeader."No.");
 
         ProofGuard.ClearPatterns();
@@ -71,13 +66,8 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        PurchInvHeader.SetFilter("Pay-to Vendor No.", '<>%1', '');
-        if not PurchInvHeader.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoPurchaseInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-        PurchInvHeader.SetRecFilter();
+        // A purchase invoice of the proof's own, for a vendor of its own, filtered to itself.
+        TestData.PostNewPurchaseInvoice(PurchInvHeader);
         ProofSupport.LogLine('70 Purchase invoice', PurchInvHeader."No.");
 
         ProofGuard.ClearPatterns();
@@ -121,21 +111,9 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        FirstInvoice.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if not FirstInvoice.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoSalesInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-        SecondInvoice.SetFilter("Bill-to Customer No.", '<>%1', '');
-        SecondInvoice.SetFilter("No.", '<>%1', FirstInvoice."No.");
-        if not SecondInvoice.FindFirst() then begin
-            ProofSupport.LogLine('Setup', NoSecondInvoiceMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-        FirstInvoice.SetRecFilter();
-        SecondInvoice.SetRecFilter();
+        // Two invoices of the proof's own, each filtered to itself.
+        TestData.PostNewInvoice(FirstInvoice);
+        TestData.PostNewInvoice(SecondInvoice);
         ProofSupport.LogLine('80 Entry left behind for', FirstInvoice."No.");
         ProofSupport.LogLine('80 Document then named', SecondInvoice."No.");
 
@@ -157,7 +135,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         ProofSupport.LogLine('80 With nothing left behind', Baseline);
 
         FirstRecRef.GetTable(FirstInvoice);
-        ReportFilenameContext.SetZipEntry(FirstRecRef, ReportSelections."Report ID", DocumentType);
+        ReportFilenameContext.SetPendingFile(FirstRecRef, ReportSelections."Report ID", DocumentType, Enum::"Report Filename Output Route"::PdfAndElectronicDocument);
         WithLeftover := ElectronicDocumentFormat.GetAttachmentFileName(SecondInvoice, SecondInvoice."No.", DocumentType, PdfExtensionTok);
         ProofSupport.LogLine('81 With the first invoice''s entry left behind', WithLeftover);
 
@@ -172,43 +150,34 @@ codeunit 50176 "Filename Proof Zip Entry"
     /// </summary>
     procedure ProveASelectionInOneZip()
     var
-        Candidate: Record "Sales Invoice Header";
-        Other: Record "Sales Invoice Header";
         Selection: Record "Sales Invoice Header";
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
+        InvoiceNos: List of [Code[20]];
+        FirstNo: Code[20];
+        SecondNo: Code[20];
         Baseline: Text;
         Entry: Text;
-        Found: Boolean;
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        Candidate.SetCurrentKey("No.");
-        Candidate.SetFilter("Bill-to Customer No.", '<>%1', '');
-        if Candidate.FindSet() then
-            repeat
-                Other.SetCurrentKey("No.");
-                Other.SetRange("Bill-to Customer No.", Candidate."Bill-to Customer No.");
-                Other.SetFilter("No.", '>%1', Candidate."No.");
-                Found := Other.FindFirst();
-            until Found or (Candidate.Next() = 0);
-        if not Found then begin
-            ProofSupport.LogLine('Setup', NoTwoInvoicesMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
+        // Two invoices of the proof's own for one new customer, in the order of their numbers.
+        TestData.PostInvoicesOfOneCustomer(2, InvoiceNos);
+        FirstNo := InvoiceNos.Get(1);
+        SecondNo := InvoiceNos.Get(2);
 
-        Selection.SetFilter("No.", '%1|%2', Candidate."No.", Other."No.");
+        Selection.SetFilter("No.", '%1|%2', FirstNo, SecondNo);
         Selection.FindFirst();
-        ProofSupport.LogLine('90 Selection', Candidate."No." + ' and ' + Other."No.");
+        ProofSupport.LogLine('90 Selection', FirstNo + ' and ' + SecondNo);
 
         ProofGuard.ClearPatterns();
         Baseline := CustomerEntry(Selection);
         ProofSupport.LogLine('90 With no pattern the zip holds', Baseline);
 
         CreatePattern(Database::"Sales Invoice Header", Enum::"Report Selection Usage"::"S.Invoice", Enum::"Report Filename Output Route"::PdfAndElectronicDocument);
+        NoteBusinessCentralsCase(Baseline);
         Entry := CustomerEntry(Selection);
         ProofSupport.LogLine('91 With a PDF & Electronic Document pattern', Entry);
-        LogVerdict(SelectionInOneZipTok, Candidate."No." + '-' + Other."No." + SuffixOf(Baseline), Entry);
+        LogVerdict(SelectionInOneZipTok, FirstNo + '-' + SecondNo + SuffixOf(Baseline), Entry);
 
         ProofGuard.ClearPatterns();
         FilenameProofLogMgt.Flush();
@@ -228,7 +197,8 @@ codeunit 50176 "Filename Proof Zip Entry"
         else
             Side := VendorTok;
 
-        // The extension as Business Central wrote it - Code[3], so upper case.
+        // The extension in the case Business Central wrote it in.
+        NoteBusinessCentralsCase(Baseline);
         Expected := DocumentNo + SuffixOf(Baseline);
 
         ProofGuard.ClearPatterns();
@@ -253,6 +223,22 @@ codeunit 50176 "Filename Proof Zip Entry"
         Entry := EntryFor(IsCustomer, DocumentVariant);
         ProofSupport.LogLine(Step + '3 With a Save to Disk pattern', Entry);
         LogVerdict(StrSubstNo(NotNamedBySaveToDiskTok, Side), Baseline, Entry);
+    end;
+
+    /// <summary>
+    /// What the real "PDF &amp; Electronic Document" route has done by the time it names the PDF entry:
+    /// SendElectronically has named the electronic document earlier in the same zip, and the feature has
+    /// noted the case Business Central wrote its extension in. These proofs call the zip function on its
+    /// own, so the case Business Central wrote this entry in, with no pattern, is noted the same way -
+    /// otherwise the outcome would depend on what ran earlier in the session. The real route, electronic
+    /// document included, is proven by Filename Proof Elec. Doc.
+    /// </summary>
+    /// <param name="Baseline">The entry Business Central wrote with no pattern.</param>
+    local procedure NoteBusinessCentralsCase(Baseline: Text)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+    begin
+        ReportFilenameContext.NoteExtensionCasing(SuffixOf(Baseline) = LowerCase(SuffixOf(Baseline)));
     end;
 
     local procedure EntryFor(IsCustomer: Boolean; DocumentVariant: Variant): Text
@@ -380,6 +366,7 @@ codeunit 50176 "Filename Proof Zip Entry"
     var
         ProofGuard: Codeunit "Filename Proof Guard";
         ProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
         CapturedChannel: Enum "Report Filename Output Route";
         PatternTok: Label '[No.]', Locked = true;
         NonEmptyTok: Label 'an entry', Locked = true;
@@ -391,11 +378,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         NotNamedBySaveToDiskTok: Label 'a Save to Disk pattern leaves the PDF in a %1 zip alone', Comment = '%1 customer or vendor', Locked = true;
         StaleEntryTok: Label 'a zip entry left behind cannot name a different document', Locked = true;
         SelectionInOneZipTok: Label 'two invoices zipped together are named after both of them', Locked = true;
-        NoTwoInvoicesMsg: Label 'No customer has two posted sales invoices in this company, so there is no selection to zip.';
         PdfExtensionTok: Label 'pdf', Locked = true;
-        NoSecondInvoiceMsg: Label 'Only one posted sales invoice in this company, so there is no second document to name.';
-        NoSalesInvoiceMsg: Label 'No posted sales invoice in this company, so there is nothing to zip.';
-        NoPurchaseInvoiceMsg: Label 'No posted purchase invoice in this company, so there is nothing to zip.';
         NoReportSelectionMsg: Label 'No report is selected for usage %1, so no pattern can name it.', Comment = '%1 the report selection usage';
         PassMsg: Label 'PASS';
         ExpectedButGotMsg: Label 'FAIL expected %1 but got %2', Comment = '%1 expected, %2 actual';

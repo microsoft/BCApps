@@ -6,7 +6,9 @@ codeunit 50111 "Report Filename Subscribers"
 {
     Access = Internal;
 
-    // Twenty-two subscribers, because no single hook covers the delivery paths.
+    // Twenty-four subscribers - one of them naming two kinds of file - because no single hook covers
+    // the delivery paths. Every one that reads or names anything first asks Report Filename Mgt.IsActive, so with the feature off or no
+    // patterns the app reads nothing beyond its own setup.
     //
     //   OnGetFilename                                  Print, Preview, Save and Download
     //   OnAfterSubstituteReport                        names nothing; records the document and the
@@ -17,17 +19,22 @@ codeunit 50111 "Report Filename Subscribers"
     //                                                  for the email once every name is given
     //   OnBeforeSaveAttachment                         Attach as PDF, on the document's own
     //                                                  Attached Documents
+    //   OnBeforeSaveAsDocumentAttachment,
+    //     OnSaveAsDocumentAttachmentOnBefore-
+    //       ShowNotification                           name nothing; mark the Attach as PDF operation
+    //   OnBeforeSaveDocumentAttachmentFromRecRef       names nothing; arms the one attachment Attach as
+    //                                                  PDF is about to save, with its document and report
     //   OnSendToDiskFor{Cust,Vend}OnBeforeSendFileLoop names nothing; starts a batch of names
-    //   OnSendToDiskForCustOnBeforeDownloadAttachment  Send to Disk for a customer document
-    //                                                  (on-premises; the event itself needs Base
-    //                                                  Application 28.4)
-    //   OnBeforeDownloadAttachmentFromStream           Send to Disk for a vendor document, which
-    //                                                  raises no naming event of its own
-    //   OnSendToZipFor{Cust,Vend}OnBeforeSendFileLoop  names nothing; records the report and document
-    //                                                  of a PDF going into a "PDF & Electronic
-    //                                                  Document" zip
+    //   OnSendToDiskForCustOnBeforeDownloadAttachment  Send to Disk for a customer document, while the
+    //                                                  name is still Business Central's own
+    //   OnSendToDiskForVendOnBeforeSendFileLoop,
+    //   OnSendToZipFor{Cust,Vend}OnBeforeSendFileLoop  name nothing; record the report and document of
+    //                                                  the PDF a vendor's Send to Disk or a "PDF &
+    //                                                  Electronic Document" zip is about to name
     //   Electronic Document Format.
-    //     OnBeforeGetAttachmentFileName                that zipped PDF, on its own channel
+    //     OnBeforeGetAttachmentFileName                Send to Disk for a vendor document and the PDF in
+    //                                                  that zip - each on its own channel; Base
+    //                                                  Application raises no later event for either
     //   Document Sending Profile.OnBeforeSend,
     //     OnBeforeSendVendor, OnBeforeSendToDisk,
     //     OnAfterSend, OnAfterSendVendor               name nothing; record and forget the documents
@@ -37,7 +44,8 @@ codeunit 50111 "Report Filename Subscribers"
     //   Electronic Document Format.
     //     OnSendElectronicallyOnAfterRecRefGetTable    names nothing; starts a batch of names
     //     OnSendElectronicallyOnBeforeRecordExport-
-    //       BufferInsert                               the electronic document and its zip
+    //       BufferInsert                               the electronic document and its zip, while each
+    //                                                  name is still Business Central's own
     //     OnAfterSendElectronically                    names nothing; forgets the service's document
     //   Report Distribution Management.
     //     OnGetDocumentLanguageCodeCaseElse            names nothing; tells Business Central a document's
@@ -91,6 +99,8 @@ codeunit 50111 "Report Filename Subscribers"
     begin
         if Success then
             exit;
+        if not ReportFilenameMgt.IsActive() then
+            exit;
 
         FilterViews := GetFilterViews(ObjectPayload);
         Channel := ChannelFromIntent(ObjectPayload);
@@ -100,6 +110,7 @@ codeunit 50111 "Report Filename Subscribers"
 
         Filename := Resolved + FileExtension;
         Success := true;
+        OnAfterNamingDelivery(ReportID, Channel, Filename);
     end;
 
     /// <summary>
@@ -112,8 +123,12 @@ codeunit 50111 "Report Filename Subscribers"
     local procedure OnAfterSubstituteReport(ReportId: Integer; RunMode: Option Normal,ParametersOnly,Execute,Print,SaveAs,RunModal; RecordRef: RecordRef; var NewReportId: Integer)
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         TableNo: Integer;
     begin
+        // Any report other than 29 ends an Excel export the overview started, wherever it was left.
+        ReportFilenameContext.NoteReportRun(ReportId);
+
         // Never touch NewReportId - substituting a report here would change what is rendered.
         //
         // Only a SaveAs pass touches the context, and it clears and sets it together. This
@@ -127,6 +142,9 @@ codeunit 50111 "Report Filename Subscribers"
             exit;
 
         ReportFilenameContext.ClearLastRendered();
+
+        if not ReportFilenameMgt.IsActive() then
+            exit;
 
         if not TryGetTableNo(RecordRef, TableNo) then
             exit;
@@ -169,30 +187,22 @@ codeunit 50111 "Report Filename Subscribers"
         Channel: Enum "Report Filename Output Route";
         ReportId: Integer;
         Resolved: Text;
+        Found: Boolean;
     begin
         if AttachmentFileName <> '' then
             exit;
 
-        // The report that rendered, when the render recorded one. Report Selections is the
-        // fallback for a caller that reached here without a render - it is right for a tenant
-        // with no per-customer report overrides, and wrong for one that has them, which is why
-        // it is second choice rather than first.
-        // The document rendered last is not necessarily the one being named. Reminder automation
-        // renders the reminder, then asks for each overdue invoice's attachment name before
-        // rendering the invoices, and only then names the reminder's own attachment. Measured on
-        // 5 October: with invoice 103001 just rendered, the name asked for invoice 103002 came back
-        // as Invoice-103001.pdf; and once that was refused, the reminder itself kept Business
-        // Central's name, because the invoices' renders had replaced it. So the document named is
-        // the one carrying the number asked about, rendered last or set aside for it.
-        if not TakeDocumentNamed(PostedDocNo, SourceRecRef, ReportId) then
-            // Measured on 5 October in reminder automation: each attached invoice's name is asked for
-            // before the invoice is rendered, and it kept Business Central's name under a pattern.
-            if not FindDocumentByNumber(ReportUsage, PostedDocNo, SourceRecRef, ReportId) then
-                exit;
+        // First, before any read: with the feature off or no patterns, this public naming call must
+        // behave exactly as it does without the app, including for a user who cannot read Report
+        // Selections or the document.
+        if not ReportFilenameMgt.IsActive() then
+            exit;
 
-        if ReportId = 0 then
-            ReportId := ReportForUsage(ReportUsage);
-        if ReportId = 0 then
+        // The lookups read Report Selections and the document under the user's own permissions, so
+        // they run inside a TryFunction: any failure leaves Business Central's own name in place.
+        if not TryFindEmailDocument(PostedDocNo, ReportUsage, SourceRecRef, ReportId, Found) then
+            exit;
+        if not Found then
             exit;
 
         Channel := Channel::Email;
@@ -201,6 +211,41 @@ codeunit 50111 "Report Filename Subscribers"
             exit;
 
         AttachmentFileName := CopyStr(UniqueInOutlookDraft(Resolved, PdfExtensionTok, MaxStrLen(AttachmentFileName)), 1, MaxStrLen(AttachmentFileName));
+    end;
+
+    /// <summary>
+    /// The document and report an emailed attachment is named for.
+    ///
+    /// The report that rendered, when the render recorded one. Report Selections is the fallback for
+    /// a caller that reached here without a render - it is right for a tenant with no per-customer
+    /// report overrides, and wrong for one that has them, which is why it is second choice rather
+    /// than first.
+    ///
+    /// The document rendered last is not necessarily the one being named. Reminder automation renders
+    /// the reminder, then asks for each overdue invoice's attachment name before rendering the
+    /// invoices, and only then names the reminder's own attachment. Measured on 5 October: with
+    /// invoice 103001 just rendered, the name asked for invoice 103002 came back as
+    /// Invoice-103001.pdf; and once that was refused, the reminder itself kept Business Central's
+    /// name, because the invoices' renders had replaced it. So the document named is the one carrying
+    /// the number asked about, rendered last or set aside for it - and when it was not rendered at
+    /// all, as each attached invoice in reminder automation is not, found by its number.
+    /// </summary>
+    /// <param name="PostedDocNo">The number Document-Mailing names the attachment for.</param>
+    /// <param name="ReportUsage">The usage it names the attachment for.</param>
+    /// <param name="SourceRecRef">Receives the document.</param>
+    /// <param name="ReportId">Receives the report.</param>
+    /// <param name="Found">Set when a document and a report were found.</param>
+    [TryFunction]
+    local procedure TryFindEmailDocument(PostedDocNo: Code[20]; ReportUsage: Integer; var SourceRecRef: RecordRef; var ReportId: Integer; var Found: Boolean)
+    begin
+        Found := false;
+        if not TakeDocumentNamed(PostedDocNo, ReportUsage, SourceRecRef, ReportId) then
+            if not FindDocumentByNumber(ReportUsage, PostedDocNo, SourceRecRef, ReportId) then
+                exit;
+
+        if ReportId = 0 then
+            ReportId := ReportForUsage(ReportUsage);
+        Found := ReportId <> 0;
     end;
 
     /// <summary>
@@ -293,6 +338,8 @@ codeunit 50111 "Report Filename Subscribers"
 
     /// <summary>
     /// Send to Disk for a customer document is about to produce a file for one report selection.
+    /// Names nothing: starts a batch of names on the first selection. The file is named in
+    /// OnBeforeDownloadAttachment, below.
     /// </summary>
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToDiskForCustOnBeforeSendFileLoop', '', false, false)]
     local procedure OnBeforeSendToDiskForCustomer(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant)
@@ -301,12 +348,72 @@ codeunit 50111 "Report Filename Subscribers"
     end;
 
     /// <summary>
-    /// The vendor twin of the subscriber above.
+    /// Send to Disk for a customer document: the name of the PDF Business Central is about to download.
+    ///
+    /// SendToDiskForCust names the PDF through Electronic Document Format.GetAttachmentFileName on the
+    /// line before it raises this event, so the name arrives already set - "CRONUS International Ltd. -
+    /// Invoice 103001.pdf" - and an empty check would stand down every time. The name is replaced only
+    /// while it is still Business Central's own default, rebuilt by Report Filename Mgt.
+    /// IsBusinessCentralsDefaultName and never by calling GetAttachmentFileName, which would raise its
+    /// event again and run every other extension's naming code.
+    ///
+    /// That keeps a partner's name in every subscriber order. A partner naming the file in
+    /// OnBeforeGetAttachmentFileName always runs before this event, so its name is seen here and kept; a
+    /// partner subscribing to this event either runs first, and its name is kept, or runs later and sets
+    /// the name last.
+    ///
+    /// The extension is copied from Business Central's name, so its case is the one this version of Base
+    /// Application writes.
+    /// </summary>
+    /// <param name="TempReportSelections">The selection row being delivered, which carries the report.</param>
+    /// <param name="RecordVariant">The document. A Variant, so it is opened defensively.</param>
+    /// <param name="DocumentNo">The document number Business Central built its name from.</param>
+    /// <param name="DocumentName">The document type Business Central built its name from.</param>
+    /// <param name="Extension">The extension Business Central built its name with.</param>
+    /// <param name="ClientAttachmentFileName">The name, replaced only while it is Business Central's default.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToDiskForCustOnBeforeDownloadAttachment', '', false, false)]
+    local procedure OnBeforeDownloadAttachment(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; DocumentNo: Code[20]; DocumentName: Text; Extension: Code[3]; var ClientAttachmentFileName: Text)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        SourceRecRef: RecordRef;
+        Channel: Enum "Report Filename Output Route";
+        Resolved: Text;
+    begin
+        if not ReportFilenameMgt.IsActive() then
+            exit;
+
+        // The PDF just rendered belongs to this download, not to an email.
+        ReportFilenameContext.ClearLastRendered();
+
+        if not ReportFilenameMgt.IsBusinessCentralsDefaultName(ClientAttachmentFileName, DocumentName, DocumentNo, Extension) then
+            exit;
+        if not TryOpenFromVariant(RecordVariant, SourceRecRef) then
+            exit;
+        if TempReportSelections."Report ID" = 0 then
+            exit;
+
+        Channel := Channel::Disk;
+        if not ReportFilenameMgt.TryResolve(TempReportSelections."Report ID", Channel, SourceRecRef, '', Resolved) then
+            exit;
+
+        ClientAttachmentFileName := UniqueInBatch(Resolved, SuffixOf(ClientAttachmentFileName), 0);
+        OnAfterNamingDelivery(TempReportSelections."Report ID", Channel, ClientAttachmentFileName);
+    end;
+
+    /// <summary>
+    /// The vendor twin of OnBeforeSendToDiskForCustomer, which also records the PDF for naming.
     /// </summary>
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToDiskForVendOnBeforeSendFileLoop', '', false, false)]
     local procedure OnBeforeSendToDiskForVendor(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant)
+    var
+        NoDocumentTypeCheck: Text;
     begin
-        StartBatchOnFirstSelection(ReportSelections);
+        // SendToDiskForVend names its PDF through GetAttachmentFileName as its customer twin does (Base
+        // Application 29 and 30), but raises no event after it, so the PDF is named inside that call's
+        // own event (NameThroughGetAttachmentFileName) from what is recorded here. The document type it
+        // names the file with is its caller's own text, so it is not checked; the document is.
+        RecordPendingFile(ReportSelections, RecordVariant, NoDocumentTypeCheck, Enum::"Report Filename Output Route"::Disk);
     end;
 
     /// <summary>
@@ -317,14 +424,19 @@ codeunit 50111 "Report Filename Subscribers"
     /// </summary>
     /// <param name="SourceRecRef">The remembered document.</param>
     /// <param name="PostedDocNo">The number Document-Mailing names the attachment for.</param>
-    /// <returns>True when the numbers agree, or when no number was given.</returns>
-    local procedure IsTheNamedDocument(var SourceRecRef: RecordRef; PostedDocNo: Code[20]): Boolean
+    /// <param name="ReportUsage">The usage Document-Mailing names the attachment for.</param>
+    /// <returns>True when the numbers agree, or - with no number given - when the document is the kind the usage prints.</returns>
+    local procedure IsTheNamedDocument(var SourceRecRef: RecordRef; PostedDocNo: Code[20]; ReportUsage: Integer): Boolean
     var
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         DocumentRecRef: RecordRef;
         PrimaryKey: KeyRef;
     begin
+        // With no number there is nothing to compare, and the remembered document stands - but only
+        // if it is the kind of document this email is for. A render that was never emailed - an API
+        // PDF, another extension's SaveAs - must not name the attachment of an unrelated email.
         if PostedDocNo = '' then
-            exit(true);
+            exit(SourceRecRef.Number() = ReportFilenameMgt.SubjectTableNo(ReportForUsage(ReportUsage)));
         DocumentRecRef := SourceRecRef.Duplicate();
         if not DocumentRecRef.FindFirst() then
             exit(false);
@@ -340,15 +452,16 @@ codeunit 50111 "Report Filename Subscribers"
     /// rendered last is not the one asked about, it is set aside unnamed rather than forgotten.
     /// </summary>
     /// <param name="PostedDocNo">The number Document-Mailing names the attachment for.</param>
+    /// <param name="ReportUsage">The usage it names the attachment for.</param>
     /// <param name="SourceRecRef">Receives the document.</param>
     /// <param name="ReportId">Receives the report it was rendered with.</param>
     /// <returns>True when the document asked about was rendered for this delivery.</returns>
-    local procedure TakeDocumentNamed(PostedDocNo: Code[20]; var SourceRecRef: RecordRef; var ReportId: Integer): Boolean
+    local procedure TakeDocumentNamed(PostedDocNo: Code[20]; ReportUsage: Integer; var SourceRecRef: RecordRef; var ReportId: Integer): Boolean
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
     begin
         if ReportFilenameContext.GetRenderedDocument(SourceRecRef) then begin
-            if IsTheNamedDocument(SourceRecRef, PostedDocNo) then begin
+            if IsTheNamedDocument(SourceRecRef, PostedDocNo, ReportUsage) then begin
                 ReportId := ReportFilenameContext.GetRenderedDocumentReportId();
                 ReportFilenameContext.ClearLastRendered();
                 exit(true);
@@ -356,11 +469,14 @@ codeunit 50111 "Report Filename Subscribers"
             ReportFilenameContext.HoldRenderedDocument();
         end;
 
-        if ReportFilenameContext.GetHeldDocument(SourceRecRef, ReportId) then
-            if IsTheNamedDocument(SourceRecRef, PostedDocNo) then begin
-                ReportFilenameContext.ClearHeldDocument();
-                exit(true);
-            end;
+        // A document is set aside only when another document's name was asked for by number, and it is
+        // given back only to a request for its own number: never to one that names no document.
+        if PostedDocNo <> '' then
+            if ReportFilenameContext.GetHeldDocument(SourceRecRef, ReportId) then
+                if IsTheNamedDocument(SourceRecRef, PostedDocNo, ReportUsage) then begin
+                    ReportFilenameContext.ClearHeldDocument();
+                    exit(true);
+                end;
         exit(false);
     end;
 
@@ -416,147 +532,6 @@ codeunit 50111 "Report Filename Subscribers"
         ReportFilenameContext.ClearHeldDocument();
     end;
 
-    /// <summary>
-    /// Send to Disk for a customer document, which writes the file straight to the client rather
-    /// than emailing it. It is the Disk = PDF option of a Document Sending Profile. GetFilename does
-    /// not fire here and neither does Document-Mailing, so without this the route keeps Business
-    /// Central's own name while every other route uses the pattern - the one thing this design
-    /// exists to remove.
-    ///
-    /// Unlike the email route this hook needs nothing remembered: it is handed the document as a
-    /// Variant and the report on the Report Selections row, so both arrive as arguments.
-    ///
-    /// The name ARRIVES FILLED IN. SendToDiskForCust builds Business Central's own name - company,
-    /// document type and number, "CRONUS International Ltd. - Invoice 103001.pdf" - on the line
-    /// before it raises this event. The first version of this hook stood down whenever the name was
-    /// not empty, as the other hooks here do, so it stood down every time and the route was never
-    /// named. It was never run either, which is how that went unnoticed: the assumption that the name
-    /// arrives empty was listed as unverified and stayed that way. Read from Base Application 28.4,
-    /// Report Selections, SendToDiskForCust.
-    ///
-    /// So the guard asks the question the empty check was standing in for: is this still Business
-    /// Central's own name? It rebuilds that name the way SendToDiskForCust just did and replaces the
-    /// name only when the two agree. A subscriber that deliberately renamed the file has changed it,
-    /// and keeps it.
-    /// </summary>
-    /// <param name="TempReportSelections">The selection row being delivered, which carries the report.</param>
-    /// <param name="RecordVariant">The document. A Variant, so it is opened defensively.</param>
-    /// <param name="DocumentNo">The document number Business Central built its own name from.</param>
-    /// <param name="DocumentName">The document type Business Central built its own name from.</param>
-    /// <param name="Extension">The extension the caller will write, without its dot.</param>
-    /// <param name="ClientAttachmentFileName">The name to set, left alone when anything other than Business Central's default already named it.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToDiskForCustOnBeforeDownloadAttachment', '', false, false)]
-    local procedure OnBeforeDownloadAttachment(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; DocumentNo: Code[20]; DocumentName: Text; Extension: Code[3]; var ClientAttachmentFileName: Text)
-    var
-        ReportFilenameContext: Codeunit "Report Filename Context";
-        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
-        SourceRecRef: RecordRef;
-        Channel: Enum "Report Filename Output Route";
-        Resolved: Text;
-    begin
-        // First, before any early exit: the download that follows this event belongs to the
-        // customer half, and the vendor subscriber below has to know that whatever is decided here.
-        ReportFilenameContext.MarkSendToDiskCustomerSeen();
-
-        if not IsBusinessCentralsOwnName(RecordVariant, DocumentNo, DocumentName, Extension, ClientAttachmentFileName) then
-            exit;
-
-        if not TryOpenFromVariant(RecordVariant, SourceRecRef) then
-            exit;
-
-        if TempReportSelections."Report ID" = 0 then
-            exit;
-
-        Channel := Channel::Disk;
-
-        if not ReportFilenameMgt.TryResolve(TempReportSelections."Report ID", Channel, SourceRecRef, '', Resolved) then
-            exit;
-
-        ClientAttachmentFileName := UniqueInBatch(Resolved, ExtensionSeparatorTok + Extension, 0);
-        OnAfterNamingDelivery(TempReportSelections."Report ID", Channel, ClientAttachmentFileName);
-    end;
-
-    /// <summary>
-    /// Whether a Send to Disk name is still the one Business Central built, rebuilt the same way
-    /// SendToDiskForCust built it.
-    /// </summary>
-    /// <param name="RecordVariant">The document.</param>
-    /// <param name="DocumentNo">The document number the name was built from.</param>
-    /// <param name="DocumentName">The document type the name was built from.</param>
-    /// <param name="Extension">The extension the name was built with.</param>
-    /// <param name="CurrentName">The name as it stands now.</param>
-    /// <returns>True when nothing has changed the name since Business Central built it.</returns>
-    local procedure IsBusinessCentralsOwnName(RecordVariant: Variant; DocumentNo: Code[20]; DocumentName: Text; Extension: Code[3]; CurrentName: Text): Boolean
-    var
-        ElectronicDocumentFormat: Record "Electronic Document Format";
-    begin
-        exit(CurrentName = ElectronicDocumentFormat.GetAttachmentFileName(RecordVariant, DocumentNo, DocumentName, Extension));
-    end;
-
-    /// <summary>
-    /// Send to Disk for a vendor document - a purchase order sent to a vendor, say, through a
-    /// Document Sending Profile whose Disk option is PDF.
-    ///
-    /// SCAFFOLDING, until SendToDiskForVend raises a naming event like its customer twin's
-    /// OnSendToDiskForCustOnBeforeDownloadAttachment - the application ask on the Jira case. That event
-    /// is the product; this takes a download over, which a Microsoft app should not do by design.
-    ///
-    /// SendToDiskForVend raises no event that carries the name, unlike its customer twin. It hands
-    /// the file to a download helper shared with the customer half, and that helper raises one event
-    /// with an IsHandled flag, before it downloads. So the vendor half is named by performing the
-    /// download here under the pattern's name, exactly as the helper would have performed it under
-    /// Business Central's - one DownloadFromStream call, with the same file filter (Report
-    /// Selections.DownloadAttachmentFromStream, Base Application 28.4).
-    ///
-    /// The customer half raises this event too, one line after its own naming event. By then the
-    /// subscriber above has decided, so this one stands aside for that download: the marker it left
-    /// says so. Nothing is replaced unless a pattern resolves, so with no pattern Business Central
-    /// downloads the file exactly as it does today.
-    /// </summary>
-    /// <param name="TempReportSelections">The selection row being delivered, which carries the report.</param>
-    /// <param name="RecordVariant">The document. A Variant, so it is opened defensively.</param>
-    /// <param name="AttachmentInStream">The rendered PDF.</param>
-    /// <param name="ClientAttachmentFileName">Business Central's own name, which carries the extension.</param>
-    /// <param name="IsHandled">Set when this subscriber performed the download.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeDownloadAttachmentFromStream', '', false, false)]
-    local procedure OnBeforeDownloadAttachmentFromStream(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; var AttachmentInStream: InStream; ClientAttachmentFileName: Text; var IsHandled: Boolean)
-    var
-        ReportFilenameContext: Codeunit "Report Filename Context";
-        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
-        FileManagement: Codeunit "File Management";
-        SourceRecRef: RecordRef;
-        Channel: Enum "Report Filename Output Route";
-        FileName: Text;
-        Resolved: Text;
-    begin
-        // Taken before anything else, so the marker never outlives the download it was left for.
-        if ReportFilenameContext.TryTakeSendToDiskCustomerSeen() then
-            exit;
-
-        // Another subscriber already performed the download.
-        if IsHandled then
-            exit;
-
-        if not TryOpenFromVariant(RecordVariant, SourceRecRef) then
-            exit;
-
-        if TempReportSelections."Report ID" = 0 then
-            exit;
-
-        Channel := Channel::Disk;
-
-        if not ReportFilenameMgt.TryResolve(TempReportSelections."Report ID", Channel, SourceRecRef, '', Resolved) then
-            exit;
-
-        FileName := UniqueInBatch(Resolved, SuffixOf(ClientAttachmentFileName), 0);
-
-        // Raised before the download rather than after it, because the download is what a session
-        // without a client cannot do - and the name has been decided either way.
-        OnAfterNamingDelivery(TempReportSelections."Report ID", Channel, FileName);
-
-        IsHandled := true;
-        DownloadFromStream(AttachmentInStream, '', '', FileManagement.GetToFilterText('', FileName), FileName);
-    end;
 
     /// <summary>
     /// A customer document's PDF is about to be rendered into a "PDF &amp; Electronic Document" zip.
@@ -566,7 +541,9 @@ codeunit 50111 "Report Filename Subscribers"
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToZipForCustOnBeforeSendFileLoop', '', false, false)]
     local procedure OnBeforeZipFileForCustomer(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant)
     begin
-        RecordZipEntry(ReportSelections, RecordVariant);
+        // Format(Usage) because that is exactly what SendToZipForCust passes as the entry's document
+        // type, which is how the naming hook knows the call it sees is the zip's.
+        RecordPendingFile(ReportSelections, RecordVariant, Format(ReportSelections.Usage), Enum::"Report Filename Output Route"::PdfAndElectronicDocument);
     end;
 
     /// <summary>
@@ -575,47 +552,62 @@ codeunit 50111 "Report Filename Subscribers"
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToZipForVendOnBeforeSendFileLoop', '', false, false)]
     local procedure OnBeforeZipFileForVendor(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant)
     begin
-        RecordZipEntry(ReportSelections, RecordVariant);
+        RecordPendingFile(ReportSelections, RecordVariant, Format(ReportSelections.Usage), Enum::"Report Filename Output Route"::PdfAndElectronicDocument);
     end;
 
-    local procedure RecordZipEntry(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant)
+    /// <summary>
+    /// Records the PDF Base Application is about to render and then name through GetAttachmentFileName,
+    /// for the naming hook below, whose event carries neither the report nor the selection row.
+    /// </summary>
+    local procedure RecordPendingFile(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant; DocumentType: Text; Channel: Enum "Report Filename Output Route")
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         SourceRecRef: RecordRef;
     begin
         StartBatchOnFirstSelection(ReportSelections);
+        if not ReportFilenameMgt.IsActive() then
+            exit;
         if not TryOpenFromVariant(RecordVariant, SourceRecRef) then
             exit;
         if ReportSelections."Report ID" = 0 then
             exit;
-
-        // Format(Usage) because that is exactly what SendToZipForCust and SendToZipForVend pass as the
-        // entry's document type, which is how the naming hook knows the call it sees is theirs.
-        ReportFilenameContext.SetZipEntry(SourceRecRef, ReportSelections."Report ID", Format(ReportSelections.Usage));
+        ReportFilenameContext.SetPendingFile(SourceRecRef, ReportSelections."Report ID", DocumentType, Channel);
     end;
 
     /// <summary>
-    /// Names the PDF inside a "PDF &amp; Electronic Document" zip, on its own channel.
+    /// Names a PDF where Base Application names it and raises no later event that carries the name: in
+    /// Electronic Document Format.GetAttachmentFileName's own event, which Base Application raises with
+    /// an IsHandled flag before it builds a name of its own. Two files are named here, each on its own
+    /// channel:
     ///
-    /// SendToZipForCust and SendToZipForVend add the PDF to the zip under the name
-    /// Electronic Document Format.GetAttachmentFileName returns, and this is that function's own
-    /// event. It is raised from other places too - Send to Disk builds its default name through it -
-    /// so it acts only when the zip functions just recorded an entry, the document type is the one
-    /// they pass, and the document is the one recorded. The recorded entry is taken whatever happens,
-    /// and any mismatch declines, so Business Central's own name stands.
+    ///   Send to Disk for a vendor document        - SendToDiskForVend names its PDF through it and
+    ///                                               downloads it straight after
+    ///   the PDF inside a "PDF &amp; Electronic     - SendToZipForCust and SendToZipForVend name the
+    ///     Document" zip                              entry through it and write it straight after
     ///
-    /// Which route the zip belongs to - email or Save to Disk - is deliberately not decided: both
-    /// routes call the same zip functions and nothing here says which is running. The entry is named
-    /// on Channel::PdfAndElectronicDocument, which is always certain, and a pattern on Any names it too.
+    /// Customer Send to Disk and the electronic document are not named here: Base Application raises an
+    /// event after it has named them (OnBeforeDownloadAttachment and OnBeforeElectronicDocument), where
+    /// its own name is told apart from a partner's whatever order subscribers run in.
+    ///
+    /// The contract here is IsHandled: when another subscriber has already named the file, this stands
+    /// aside; when it names the file, it says so, and a subscriber that honours the flag stands aside in
+    /// turn. (Microsoft documents subscriber order as unspecified, so a subscriber that ignores the flag
+    /// and runs later sets the name last, as on every handled event.)
+    ///
+    /// The event is raised from other places too, so a file is named only when Base Application is
+    /// producing one of these, as recorded by the subscribers that run just before: a pending PDF for
+    /// the document being named. Anything else - and any mismatch - declines, and Business Central
+    /// names the file itself.
     /// </summary>
     /// <param name="RecordVariant">The document.</param>
     /// <param name="DocumentNo">The document number.</param>
-    /// <param name="DocumentType">The document type text; the zip functions pass Format(Usage).</param>
-    /// <param name="Extension">The entry's extension.</param>
-    /// <param name="IsHandled">Set when this subscriber named the entry; left alone when another already had.</param>
-    /// <param name="FileName">Receives the entry's name.</param>
+    /// <param name="DocumentType">The document type text the caller passes.</param>
+    /// <param name="Extension">The file's extension; a Code, so upper case.</param>
+    /// <param name="IsHandled">Set when this subscriber named the file; left alone when another already had.</param>
+    /// <param name="FileName">Receives the name.</param>
     [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnBeforeGetAttachmentFileName', '', false, false)]
-    local procedure OnBeforeGetZipEntryFileName(RecordVariant: Variant; DocumentNo: Code[20]; DocumentType: Text; Extension: Code[3]; var IsHandled: Boolean; var FileName: Text[250])
+    local procedure NameThroughGetAttachmentFileName(RecordVariant: Variant; DocumentNo: Code[20]; DocumentType: Text; Extension: Code[3]; var IsHandled: Boolean; var FileName: Text[250])
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -623,34 +615,214 @@ codeunit 50111 "Report Filename Subscribers"
         Channel: Enum "Report Filename Output Route";
         RecordedDocumentType: Text;
         ReportId: Integer;
-        Resolved: Text;
+        HasPendingFile: Boolean;
     begin
-        if not ReportFilenameContext.TryTakeZipEntry(SourceRecRef, ReportId, RecordedDocumentType) then
-            exit;
+        // Taken before anything else, so a recorded file never outlives the call it was recorded for.
+        HasPendingFile := ReportFilenameContext.TryTakePendingFile(SourceRecRef, ReportId, RecordedDocumentType, Channel);
 
         // Another subscriber already named it.
         if IsHandled then
             exit;
 
-        if DocumentType <> RecordedDocumentType then
+        if not ReportFilenameMgt.IsActive() then
+            exit;
+
+        if not HasPendingFile then
+            exit;
+
+        NamePendingFile(RecordVariant, DocumentType, Extension, SourceRecRef, ReportId, RecordedDocumentType, Channel, IsHandled, FileName);
+        // The PDF just rendered for Send to Disk or a zip belongs to that file, not to an email.
+        ReportFilenameContext.ClearLastRendered();
+    end;
+
+    /// <summary>
+    /// Names a PDF a vendor's Send to Disk or a "PDF &amp; Electronic Document" zip is producing, when it
+    /// is the document recorded for it.
+    /// </summary>
+    local procedure NamePendingFile(RecordVariant: Variant; DocumentType: Text; Extension: Code[3]; var SourceRecRef: RecordRef; ReportId: Integer; RecordedDocumentType: Text; Channel: Enum "Report Filename Output Route"; var IsHandled: Boolean; var FileName: Text[250])
+    var
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        Resolved: Text;
+    begin
+        // Every file recorded as pending is the PDF just rendered; any other file named through this
+        // event for the same document - its electronic document, say - is not it.
+        if Extension <> PdfCodeTok then
+            exit;
+        if (RecordedDocumentType <> '') and (DocumentType <> RecordedDocumentType) then
             exit;
 
         // And it must be the same document. A matching document type alone is not enough: if the
-        // render between recording and naming fails, the entry is left behind, and the next call with
-        // the same document type - about any document - would otherwise be named after the one that
-        // failed. Proven by Filename Proof Zip Entry.ProveAStaleEntryCannotNameAnotherDocument, which
-        // failed before this check existed.
+        // render between recording and naming fails, the record is left behind, and the next call
+        // with the same document type - about any document - would otherwise be named after the one
+        // that failed. Proven by Filename Proof Zip Entry.ProveAStaleEntryCannotNameAnotherDocument,
+        // which failed before this check existed.
         if not IsSameDocument(RecordVariant, SourceRecRef) then
             exit;
-
-        Channel := Channel::PdfAndElectronicDocument;
 
         if not ReportFilenameMgt.TryResolve(ReportId, Channel, SourceRecRef, '', Resolved) then
             exit;
 
-        FileName := CopyStr(UniqueInBatch(Resolved, ExtensionSeparatorTok + Extension, MaxStrLen(FileName)), 1, MaxStrLen(FileName));
+        FileName := CopyStr(UniqueInBatch(Resolved, PendingFileExtensionWithDot(Extension, Channel), MaxStrLen(FileName)), 1, MaxStrLen(FileName));
         IsHandled := true;
         OnAfterNamingDelivery(ReportId, Channel, FileName);
+    end;
+
+    /// <summary>
+    /// The extension for a pending PDF, with its dot. This names the file in place of Business Central,
+    /// so there is no name of Business Central's to copy the case from:
+    ///   - in a "PDF &amp; Electronic Document" zip, the case Business Central wrote the electronic
+    ///     document's extension in, earlier in the same zip (SendElectronically runs before
+    ///     SendToZipForCust and SendToZipForVend - Document Sending Profile, "PDF &amp; Electronic
+    ///     Document"), so the zip's two entries agree; lower case when that was not seen - when a partner
+    ///     named the electronic document, say;
+    ///   - on Send to Disk for a vendor, lower case.
+    /// </summary>
+    /// <param name="Extension">The file's extension; a Code, so upper case.</param>
+    /// <param name="Channel">The route the file is produced on.</param>
+    /// <returns>The extension with its dot.</returns>
+    local procedure PendingFileExtensionWithDot(Extension: Code[3]; Channel: Enum "Report Filename Output Route"): Text
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+        LowerCased: Boolean;
+    begin
+        if Channel = Channel::PdfAndElectronicDocument then
+            if ReportFilenameContext.TryGetExtensionCasing(LowerCased) then
+                if not LowerCased then
+                    exit(ExtensionSeparatorTok + UpperCase(Extension));
+        exit(LowerCaseExtensionWithDot(Extension));
+    end;
+
+    /// <summary>
+    /// Names a document's electronic document - the XML a Document Sending Profile writes to Disk or
+    /// attaches to an email - and the zip it goes into, on the Electronic Document route.
+    ///
+    /// SendElectronically names both through GetAttachmentFileName and raises this event straight after,
+    /// before the format's own export runs - so a format that sets a name of its own still sets it last:
+    /// Italy's FatturaPA export names the file IT, VAT number and progressive number, as its exchange
+    /// system requires, in Export FatturaPA Document, after this. A file the electronic document service
+    /// sends is never renamed.
+    ///
+    /// Each name is replaced only while it is still Business Central's own default, rebuilt by Report
+    /// Filename Mgt.IsBusinessCentralsDefaultName and never by calling GetAttachmentFileName, which would
+    /// run every other extension's naming code again. A partner naming the file in
+    /// OnBeforeGetAttachmentFileName always runs before this event, so its name is seen here and kept,
+    /// whatever order subscribers run in. The extension is copied from Business Central's name, and its
+    /// case is noted for the PDF named later in the same zip (PendingFileExtensionWithDot).
+    ///
+    /// The report is the one the document's PDF is rendered with, so the XML takes the name the PDF
+    /// would take, and a pattern made for that report names both.
+    /// </summary>
+    /// <param name="RecordExportBuffer">The electronic document about to be built, with Business Central's names.</param>
+    /// <param name="RecRef">The documents, positioned on the one being built.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnSendElectronicallyOnBeforeRecordExportBufferInsert', '', false, false)]
+    local procedure OnBeforeElectronicDocument(var RecordExportBuffer: Record "Record Export Buffer"; RecRef: RecordRef)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        Document: RecordRef;
+        Channel: Enum "Report Filename Output Route";
+        Usage: Enum "Report Selection Usage";
+        PartnerNo: Code[20];
+        DocumentNo: Code[20];
+        DocumentType: Text;
+        WrittenExtension: Text;
+        Resolved: Text;
+        ToCustomer: Boolean;
+        NameDocument: Boolean;
+        NameZip: Boolean;
+        ReportId: Integer;
+    begin
+        if not ReportFilenameMgt.IsActive() then
+            exit;
+        if ReportFilenameContext.IsServiceDelivery(RecRef.RecordId()) then
+            exit;
+
+        Document := RecRef.Duplicate();
+        Document.SetRecFilter();
+        if not ReportFilenameContext.TryGetSending(Document, Usage, ToCustomer, PartnerNo) then
+            exit;
+
+        // Read from the document under the user's own permissions, so a failure leaves Business
+        // Central's names in place rather than stopping the send.
+        if not TryGetElectronicDocumentFacts(Document, DocumentNo, DocumentType) then
+            exit;
+
+        NameDocument := ReportFilenameMgt.IsBusinessCentralsDefaultName(RecordExportBuffer.ClientFileName, DocumentType, DocumentNo, XmlCodeTok, WrittenExtension);
+        NoteExtensionCasing(WrittenExtension);
+        NameZip := ReportFilenameMgt.IsBusinessCentralsDefaultName(RecordExportBuffer.ZipFileName, DocumentType, DocumentNo, ZipCodeTok, WrittenExtension);
+        NoteExtensionCasing(WrittenExtension);
+        if not (NameDocument or NameZip) then
+            exit;
+
+        // Reads Report Selections under the user's own permissions, likewise.
+        if not TryReportForSending(Usage, ToCustomer, PartnerNo, ReportId) then
+            exit;
+        if ReportId = 0 then
+            exit;
+
+        Channel := Channel::ElectronicDocument;
+        if not ReportFilenameMgt.TryResolve(ReportId, Channel, Document, '', Resolved) then
+            exit;
+
+        // The XML is numbered when two documents in one send are named alike.
+        if NameDocument then begin
+            RecordExportBuffer.ClientFileName := CopyStr(
+                UniqueInBatch(Resolved, SuffixOf(RecordExportBuffer.ClientFileName), MaxStrLen(RecordExportBuffer.ClientFileName)), 1, MaxStrLen(RecordExportBuffer.ClientFileName));
+            OnAfterNamingDelivery(ReportId, Channel, RecordExportBuffer.ClientFileName);
+        end;
+        // The zip is named once per document, like Business Central's own; it holds the document's
+        // electronic document, and the PDF beside it when the profile sends both.
+        if NameZip then
+            RecordExportBuffer.ZipFileName := CopyStr(
+                FitOrJoin(Resolved, SuffixOf(RecordExportBuffer.ZipFileName), MaxStrLen(RecordExportBuffer.ZipFileName)), 1, MaxStrLen(RecordExportBuffer.ZipFileName));
+    end;
+
+    /// <summary>
+    /// Notes the case of an extension Business Central wrote, when there is one to read.
+    /// </summary>
+    /// <param name="WrittenExtension">The extension as Business Central wrote it, or blank.</param>
+    local procedure NoteExtensionCasing(WrittenExtension: Text)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+    begin
+        if WrittenExtension = '' then
+            exit;
+        ReportFilenameContext.NoteExtensionCasing(WrittenExtension = LowerCase(WrittenExtension));
+    end;
+
+    /// <summary>
+    /// The document number and document type text SendElectronically named the files with, read the
+    /// way it reads them.
+    /// </summary>
+    [TryFunction]
+    local procedure TryGetElectronicDocumentFacts(var Document: RecordRef; var DocumentNo: Code[20]; var DocumentType: Text)
+    var
+        ElectronicDocumentFormat: Record "Electronic Document Format";
+    begin
+        DocumentNo := ElectronicDocumentFormat.GetDocumentNo(Document);
+        DocumentType := ElectronicDocumentFormat.GetDocumentType(Document);
+    end;
+
+    /// <summary>
+    /// The extension, with its dot, lower case - for the two files this app names in place of Business
+    /// Central, where there is no name of Business Central's to copy the case from: Send to Disk for a
+    /// vendor document, and the PDF in a "PDF &amp; Electronic Document" zip when the electronic
+    /// document's case was not seen (PendingFileExtensionWithDot).
+    ///
+    /// HARD-CODED, and why: Base Application writes these extensions lower case from version 30
+    /// (ElectronicDocumentFormat.GetAttachmentFileName, LowerCase(Extension)) and upper case in version
+    /// 29, and offers no way to read which without raising OnBeforeGetAttachmentFileName again - which
+    /// would run every other extension's naming code and could return their name rather than Business
+    /// Central's. On a version that writes the extension upper case, such a file differs from Business
+    /// Central's only in the extension's case, which file systems and browsers ignore.
+    ///
+    /// The ask that removes this: ask 8, a public way to read the name GetAttachmentFileName would give -
+    /// or at least the case of its extension - without raising its event. With it the case would be
+    /// read, not assumed.
+    /// </summary>
+    local procedure LowerCaseExtensionWithDot(Extension: Code[3]): Text
+    begin
+        exit(ExtensionSeparatorTok + LowerCase(Extension));
     end;
 
     /// <summary>
@@ -720,8 +892,15 @@ codeunit 50111 "Report Filename Subscribers"
     local procedure RecordSending(RecordVariant: Variant; ReportUsage: Integer; ToCustomer: Boolean; PartnerNo: Code[20]; PartnerFieldNo: Integer)
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         Documents: RecordRef;
     begin
+        // A new send starts clean, whatever an earlier one that failed half way left behind: what it
+        // recorded is replaced here or cleared.
+        if not ReportFilenameMgt.IsActive() then begin
+            ReportFilenameContext.ClearSending();
+            exit;
+        end;
         if not TryOpenFromVariant(RecordVariant, Documents) then begin
             ReportFilenameContext.ClearSending();
             exit;
@@ -754,80 +933,6 @@ codeunit 50111 "Report Filename Subscribers"
         ReportFilenameContext.StartBatch();
     end;
 
-    /// <summary>
-    /// Names a document's electronic document - the XML a Document Sending Profile writes to Disk or
-    /// attaches to an email - and the zip it goes into, on the Electronic Document route.
-    ///
-    /// This is the earliest point at which the name exists, and that is deliberate: the format's own
-    /// export runs after it, so a format that sets a name of its own still sets it last - Italy's
-    /// FatturaPA export names the file IT, VAT number and progressive number, as its exchange system
-    /// requires, in Export FatturaPA Document, after this. And the name is changed only while it is
-    /// still Business Central's own: anything else means something named the file on purpose, through
-    /// GetAttachmentFileName's own event, and that name stands. A file the electronic document service
-    /// sends is never renamed.
-    ///
-    /// Business Central's own name is rebuilt here from the rule GetAttachmentFileName applies, and not
-    /// by calling it: calling it would ask every subscriber again and so return their name, which is
-    /// the one thing this must tell apart. Should Microsoft change the rule, nothing matches it any more
-    /// and this names nothing - Business Central's file name stands, as it does without this app.
-    ///
-    /// The report is the one the document's PDF is rendered with, so the XML takes the name the PDF
-    /// would take, and a pattern made for that report names both.
-    /// </summary>
-    /// <param name="RecordExportBuffer">The electronic document about to be built, with Business Central's names.</param>
-    /// <param name="RecRef">The documents, positioned on the one being built.</param>
-    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnSendElectronicallyOnBeforeRecordExportBufferInsert', '', false, false)]
-    local procedure OnBeforeElectronicDocument(var RecordExportBuffer: Record "Record Export Buffer"; RecRef: RecordRef)
-    var
-        ElectronicDocumentFormat: Record "Electronic Document Format";
-        ReportFilenameContext: Codeunit "Report Filename Context";
-        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
-        Document: RecordRef;
-        Channel: Enum "Report Filename Output Route";
-        Usage: Enum "Report Selection Usage";
-        PartnerNo: Code[20];
-        DocumentNo: Code[20];
-        DocumentType: Text;
-        Resolved: Text;
-        ToCustomer: Boolean;
-        NameDocument: Boolean;
-        NameZip: Boolean;
-        ReportId: Integer;
-    begin
-        if ReportFilenameContext.IsServiceDelivery(RecRef.RecordId()) then
-            exit;
-
-        Document := RecRef.Duplicate();
-        Document.SetRecFilter();
-        if not ReportFilenameContext.TryGetSending(Document, Usage, ToCustomer, PartnerNo) then
-            exit;
-
-        DocumentNo := ElectronicDocumentFormat.GetDocumentNo(Document);
-        DocumentType := ElectronicDocumentFormat.GetDocumentType(Document);
-        NameDocument := IsBusinessCentralsElectronicName(RecordExportBuffer.ClientFileName, DocumentType, DocumentNo, XmlExtensionTok);
-        NameZip := IsBusinessCentralsElectronicName(RecordExportBuffer.ZipFileName, DocumentType, DocumentNo, ZipExtensionTok);
-        if not (NameDocument or NameZip) then
-            exit;
-
-        ReportId := ReportForSending(Usage, ToCustomer, PartnerNo);
-        if ReportId = 0 then
-            exit;
-
-        Channel := Channel::ElectronicDocument;
-        if not ReportFilenameMgt.TryResolve(ReportId, Channel, Document, '', Resolved) then
-            exit;
-
-        if NameDocument then
-            RecordExportBuffer.ClientFileName := CopyStr(
-                UniqueInBatch(Resolved, SuffixOf(RecordExportBuffer.ClientFileName), MaxStrLen(RecordExportBuffer.ClientFileName)), 1, MaxStrLen(RecordExportBuffer.ClientFileName));
-        // The zip is named once per document, like Business Central's own; it holds the document's
-        // electronic document, and the PDF beside it when the profile sends both.
-        if NameZip then
-            RecordExportBuffer.ZipFileName := CopyStr(
-                FitOrJoin(Resolved, SuffixOf(RecordExportBuffer.ZipFileName), MaxStrLen(RecordExportBuffer.ZipFileName)), 1, MaxStrLen(RecordExportBuffer.ZipFileName));
-
-        OnAfterNamingDelivery(ReportId, Channel, RecordExportBuffer.ClientFileName);
-    end;
 
     /// <summary>
     /// Tells Business Central a document's language where it does not know it, for [Kind of Document]
@@ -871,23 +976,11 @@ codeunit 50111 "Report Filename Subscribers"
         ReportFilenameContext.ClearServiceDelivery();
     end;
 
-    /// <summary>
-    /// Whether an electronic document's name is still the one Business Central gives it, by the rule
-    /// in Electronic Document Format.GetAttachmentFileName: company, document type, number and
-    /// extension (Base Application 28.4).
-    /// </summary>
-    /// <param name="CurrentName">The name as it stands.</param>
-    /// <param name="DocumentType">The document type text the name is built from.</param>
-    /// <param name="DocumentNo">The document number the name is built from.</param>
-    /// <param name="Extension">The extension the name is built with.</param>
-    /// <returns>True when nothing has changed the name since Business Central built it.</returns>
-    local procedure IsBusinessCentralsElectronicName(CurrentName: Text; DocumentType: Text; DocumentNo: Code[20]; Extension: Code[3]): Boolean
-    var
-        FileManagement: Codeunit "File Management";
+
+    [TryFunction]
+    local procedure TryReportForSending(Usage: Enum "Report Selection Usage"; ToCustomer: Boolean; PartnerNo: Code[20]; var ReportId: Integer)
     begin
-        if CurrentName = '' then
-            exit(false);
-        exit(CurrentName = CopyStr(StrSubstNo(BusinessCentralElectronicNameTok, FileManagement.StripNotsupportChrInFileName(CompanyName()), DocumentType, DocumentNo, Extension), 1, 250));
+        ReportId := ReportForSending(Usage, ToCustomer, PartnerNo);
     end;
 
     /// <summary>
@@ -907,6 +1000,51 @@ codeunit 50111 "Report Filename Subscribers"
         if not TempReportSelections.FindFirst() then
             exit(0);
         exit(TempReportSelections."Report ID");
+    end;
+
+    /// <summary>
+    /// Attach as PDF is starting: Report Selections.SaveAsDocumentAttachment renders the document's
+    /// reports and saves each as an attachment. Marks the operation, so only the attachments it saves
+    /// are named, and forgets anything rendered before it.
+    /// </summary>
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeSaveAsDocumentAttachment', '', false, false)]
+    local procedure OnBeforeAttachAsPdf(ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; DocumentNo: Code[20]; AccountNo: Code[20]; ShowNotificationAction: Boolean)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+    begin
+        ReportFilenameContext.StartAttachAsPdf();
+    end;
+
+    /// <summary>
+    /// Attach as PDF is about to save one attachment: Base Application raises this a few lines before
+    /// Document Attachment.SaveAttachment, carrying the document and the report selection - and nothing
+    /// between here and that save saves an attachment. Names nothing: arms that one save, with the
+    /// report it was rendered with. Where another subscriber has taken the save over, nothing is armed.
+    /// </summary>
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeSaveDocumentAttachmentFromRecRef', '', false, false)]
+    local procedure OnBeforeAttachAsPdfAttachment(RecRef: RecordRef; var TempAttachReportSelections: Record "Report Selections"; DocumentNo: Code[20]; AccountNo: Code[20]; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean; var NumberOfReportsAttached: Integer)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+    begin
+        if IsHandled then
+            exit;
+        if not ReportFilenameMgt.IsActive() then
+            exit;
+        ReportFilenameContext.ArmAttachAsPdf(RecRef.RecordId(), TempAttachReportSelections."Report ID");
+    end;
+
+    /// <summary>
+    /// Attach as PDF has saved its attachments. Ends the operation and forgets anything it left
+    /// behind. The one path that does not raise this - the document could not be found - saves
+    /// nothing, and the next Attach as PDF starts clean anyway.
+    /// </summary>
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSaveAsDocumentAttachmentOnBeforeShowNotification', '', false, false)]
+    local procedure OnAfterAttachAsPdf(RecordVariant: Variant; NumberOfReportsAttached: Integer; ShowNotificationAction: Boolean; var IsHandled: Boolean)
+    var
+        ReportFilenameContext: Codeunit "Report Filename Context";
+    begin
+        ReportFilenameContext.EndAttachAsPdf();
     end;
 
     /// <summary>
@@ -957,11 +1095,24 @@ codeunit 50111 "Report Filename Subscribers"
         Resolved: Text;
         Suffix: Text;
     begin
-        // The report that rendered moments ago. Nothing in this event says which report it was,
-        // and the row does not carry one either - but the render itself passed through
-        // OnAfterSubstituteReport, which recorded it.
-        ReportId := ReportFilenameContext.GetRenderedDocumentReportId();
+        // Only Attach as PDF's own output. This event is raised for ordinary uploads too - a file
+        // added through the Office add-in, say - and nothing may ever rename a file somebody chose.
+        // So a file is named only when every one of these holds:
+        //   - Attach as PDF is under way (SaveAsDocumentAttachment, start to end);
+        //   - Base Application announced this very save a few lines earlier and nobody took it over
+        //     (OnBeforeSaveDocumentAttachmentFromRecRef), and that arm names one save only;
+        //   - the save is to the document it announced;
+        //   - the file is a PDF, as every file Attach as PDF saves is.
+        // The report comes from Base Application's own report selection, not from anything remembered
+        // from a render.
+        if not ReportFilenameContext.TryTakeAttachAsPdfArm(RecRef.RecordId(), ReportId) then
+            exit;
+        if LowerCase(SuffixOf(FileName)) <> PdfExtensionTok then
+            exit;
         if ReportId = 0 then
+            exit;
+
+        if not ReportFilenameMgt.IsActive() then
             exit;
 
         Channel := Channel::AttachAsPdf;
@@ -1000,15 +1151,13 @@ codeunit 50111 "Report Filename Subscribers"
     end;
 
     /// <summary>
-    /// Raised once a route has named a file, carrying the name it produced.
+    /// FOR TESTS ONLY - nothing in the app subscribes, and being internal, only the test app can.
+    /// Raised once a route has named a file, carrying the name and the channel it was named on.
     ///
-    /// It exists because the route cannot be observed any other way. Send to Disk hands the name
-    /// straight to a client download, so nothing is left behind to read afterwards, and a second
-    /// subscriber on the platform event cannot be relied on to see it - Microsoft documents
-    /// subscriber invocation order as unspecified, so it may run first and read an empty value.
-    ///
-    /// Like the one on Report Filename Inbox Mgt., this is here for the proof. It should stay in the
-    /// shipped app only if there is a partner scenario for it, and not merely because it is here.
+    /// It has to be here: on the platform routes - print, preview, download - the name is decided
+    /// inside the platform's own naming event, and a test subscribing to that same event cannot be
+    /// relied on to see it, because Microsoft documents subscriber invocation order as unspecified,
+    /// so it may run first and read an empty value. Nothing after that event shows the name.
     /// </summary>
     /// <param name="ReportId">The report that was named.</param>
     /// <param name="Channel">Which delivery produced it.</param>
@@ -1034,6 +1183,13 @@ codeunit 50111 "Report Filename Subscribers"
     [TryFunction]
     local procedure TryOpenFromVariant(RecordVariant: Variant; var SourceRecRef: RecordRef)
     begin
+        // SendElectronically names its files with a RecordRef in the Variant; everything else passes a
+        // record.
+        if RecordVariant.IsRecordRef() then begin
+            SourceRecRef := RecordVariant;
+            SourceRecRef := SourceRecRef.Duplicate();
+            exit;
+        end;
         SourceRecRef.GetTable(RecordVariant);
     end;
 
@@ -1109,7 +1265,7 @@ codeunit 50111 "Report Filename Subscribers"
         PdfExtensionTok: Label '.pdf', Locked = true;
         NumberSuffixTok: Label ' (%1)', Comment = '%1 the number given to a repeated name', Locked = true;
         DraftNameSeparatorTok: Label '|', Locked = true;
-        XmlExtensionTok: Label 'xml', Locked = true;
-        ZipExtensionTok: Label 'zip', Locked = true;
-        BusinessCentralElectronicNameTok: Label '%1 - %2 %3.%4', Comment = '%1 company, %2 document type, %3 document number, %4 extension', Locked = true;
+        XmlCodeTok: Label 'XML', Locked = true;
+        PdfCodeTok: Label 'PDF', Locked = true;
+        ZipCodeTok: Label 'ZIP', Locked = true;
 }

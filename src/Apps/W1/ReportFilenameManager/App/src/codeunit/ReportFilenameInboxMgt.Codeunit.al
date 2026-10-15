@@ -26,12 +26,21 @@ codeunit 50121 "Report Filename Inbox Mgt."
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         SourceRecRef: RecordRef;
         Channel: Enum "Report Filename Output Route";
+        FilterViews: Text;
+        HasRecord: Boolean;
     begin
-        if not TryOpenRecordToProcess(JobQueueEntry, SourceRecRef) then
+        HasRecord := TryOpenRecordToProcess(JobQueueEntry, SourceRecRef);
+        if not HasRecord then
             Clear(SourceRecRef);
 
+        // With no record and no readable parameters nothing says which records the run covers, and
+        // falling back to the whole table would name the file after records it may not contain.
+        if not TryFilterViewsFromParameters(JobQueueEntry, FilterViews) then
+            if not HasRecord then
+                exit(false);
+
         exit(ReportFilenameMgt.TryResolve(JobQueueEntry."Object ID to Run", Channel::Scheduled,
-            SourceRecRef, FilterViewsFromParameters(JobQueueEntry), Filename));
+            SourceRecRef, FilterViews, Filename));
     end;
 
     /// <summary>
@@ -49,31 +58,50 @@ codeunit 50121 "Report Filename Inbox Mgt."
     /// <summary>
     /// Turns the request page parameters the report was scheduled with into the same shape the
     /// platform hands to GetFilename on the interactive routes, so one resolution path serves
-    /// every route. Only the primary data item is needed: that is the one the manager binds
-    /// to, because it is the only one present when a name is decided interactively.
+    /// every route: one entry per data item that carries a view, with the data item's table.
+    ///
+    /// Every data item, not only the first. A report whose first data item is an Integer loop -
+    /// report 910 Posted Assembly Order, CopyLoop over Posted Assembly Header - keeps the filter
+    /// on its business table in a child, and with only the first view the resolver found no filter
+    /// for the subject and named the file after the whole table. Each data item's table is read
+    /// from Report Data Items, by the name the parameters give it.
     /// </summary>
-    local procedure FilterViewsFromParameters(var JobQueueEntry: Record "Job Queue Entry"): Text
+    /// <param name="JobQueueEntry">The entry being run.</param>
+    /// <param name="FilterViews">Receives the filterviews array, empty when no data item carries a view.</param>
+    [TryFunction]
+    local procedure TryFilterViewsFromParameters(var JobQueueEntry: Record "Job Queue Entry"; var FilterViews: Text)
     var
-        ReportMetadata: Record "Report Metadata";
+        ReportDataItems: Record "Report Data Items";
         ParametersXml: XmlDocument;
+        DataItemNodes: XmlNodeList;
         DataItemNode: XmlNode;
+        NameAttribute: XmlAttribute;
+        Entries: TextBuilder;
         ViewText: Text;
     begin
-        if not ReportMetadata.Get(JobQueueEntry."Object ID to Run") then
-            exit('');
-        if ReportMetadata.FirstDataItemTableID = 0 then
-            exit('');
-
+        FilterViews := '';
         if not XmlDocument.ReadFrom(JobQueueEntry.GetReportParameters(), ParametersXml) then
-            exit('');
-        if not ParametersXml.SelectSingleNode(FirstDataItemPathTok, DataItemNode) then
-            exit('');
+            Error('');
+        if not ParametersXml.SelectNodes(DataItemsPathTok, DataItemNodes) then
+            Error('');
 
-        ViewText := DataItemNode.AsXmlElement().InnerText();
-        if ViewText = '' then
-            exit('');
+        foreach DataItemNode in DataItemNodes do begin
+            ViewText := DataItemNode.AsXmlElement().InnerText();
+            if ViewText <> '' then
+                if DataItemNode.AsXmlElement().Attributes().Get(NameAttributeTok, NameAttribute) then begin
+                    ReportDataItems.SetRange("Report ID", JobQueueEntry."Object ID to Run");
+                    ReportDataItems.SetRange(Name, NameAttribute.Value());
+                    if ReportDataItems.FindFirst() then
+                        if ReportDataItems."Related Table ID" <> 0 then begin
+                            if Entries.Length() > 0 then
+                                Entries.Append(',');
+                            Entries.Append(StrSubstNo(FilterViewEntryTok, EscapeForJson(NameAttribute.Value()), ReportDataItems."Related Table ID", EscapeForJson(ViewText)));
+                        end;
+                end;
+        end;
 
-        exit(StrSubstNo(FilterViewsTok, ReportMetadata.FirstDataItemTableID, EscapeForJson(ViewText)));
+        if Entries.Length() > 0 then
+            FilterViews := '[' + Entries.ToText() + ']';
     end;
 
     /// <summary>
@@ -101,13 +129,12 @@ codeunit 50121 "Report Filename Inbox Mgt."
     end;
 
     /// <summary>
-    /// Raised when a scheduled entry is about to be downloaded under a name this feature
-    /// decided, so that the decision is observable from outside - which is also how the proof
-    /// establishes that the download hook really is what names the file.
+    /// FOR TESTS ONLY - nothing in the app subscribes, and being internal, only the test app can.
+    /// Raised when a scheduled entry is about to be downloaded under a name this feature decided.
     ///
-    /// Half of that reason is scaffolding. The proof needs this event to observe the download;
-    /// a partner may or may not. It should stay in the shipped app only if there is a partner
-    /// scenario for it, and not merely because it is here.
+    /// It has to be here: Report Filename Inbox Sub. performs that download itself, so nothing in
+    /// Business Central sees the name afterwards, and this is the only way a test can establish that
+    /// the download really is made under the decided name.
     /// </summary>
     /// <param name="ReportInbox">The entry being downloaded.</param>
     /// <param name="FileName">The name it is being downloaded under, including the extension.</param>
@@ -117,8 +144,9 @@ codeunit 50121 "Report Filename Inbox Mgt."
     end;
 
     var
-        FirstDataItemPathTok: Label '//DataItems/DataItem[1]', Locked = true;
-        FilterViewsTok: Label '[{"name":"Primary","tableid":%1,"view":"%2"}]', Comment = '%1 table id, %2 the view', Locked = true;
+        DataItemsPathTok: Label '//DataItems/DataItem', Locked = true;
+        NameAttributeTok: Label 'name', Locked = true;
+        FilterViewEntryTok: Label '{"name":"%1","tableid":%2,"view":"%3"}', Comment = '%1 data item name, %2 table id, %3 the view', Locked = true;
         QuoteTok: Label '"', Locked = true;
         BackslashTok: Label '\', Locked = true;
 }

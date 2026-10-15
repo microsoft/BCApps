@@ -9,14 +9,17 @@ codeunit 50178 "Filename Permission Tests"
     // Microsoft's own tests run as a restricted user. A second real user was the first choice, and
     // could not be made: the container's user commands refuse this machine's account.
     //
-    // Filename Proof Seed Perm leaves the pattern behind first, as the administrator it takes.
+    // Each test first sets up, as the administrator who runs the suite, the pattern and the posted
+    // invoice it is about - an ordinary user may not create a pattern, which is the point - and only
+    // then narrows the session.
     //
     // Every user who prints a report runs this feature's code, because the naming happens inside
     // the print. Only people who set up patterns hold Report Filename Mgr. So an ordinary user must be
     // named by a pattern without being able to read the patterns table, and must never get a
     // permission error out of a print.
     //
-    // Nothing here writes: the user could not, and a write would change what is being measured.
+    // Nothing here writes once the session is narrowed: the user could not, and a write would change
+    // what is being measured.
     // A failure is an error, so Run-TestsInBcContainer reports it.
 
     Subtype = Test;
@@ -30,6 +33,8 @@ codeunit 50178 "Filename Permission Tests"
         ProofSupport: Codeunit "Filename Proof Support";
         ReportingTriggers: Codeunit "Reporting Triggers";
         PermissionsMock: Codeunit "Permissions Mock";
+        FilenameProofGuard: Codeunit "Filename Proof Guard";
+        TestData: Codeunit "Filename Test Data";
         NoRecord: RecordRef;
         Payload: JsonObject;
         Filename: Text;
@@ -37,6 +42,15 @@ codeunit 50178 "Filename Permission Tests"
         Success: Boolean;
         ProbeInstalled: Boolean;
     begin
+        // Prepared as the administrator who runs the suite, before the session is narrowed: the one
+        // pattern the user is named by, on the invoice report and every route, and an invoice to print.
+        FilenameProofGuard.ClearPatterns();
+        Pattern.Init();
+        Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
+        Pattern.Validate("File Name Pattern", InvoicePatternTok);
+        Pattern.Enabled := true;
+        Pattern.Insert(true);
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         // Read before the session is narrowed, which may take away the right to read it.
         ProbeInstalled := IsPermissionSetInstalled(ProbeSetTok);
         PermissionsMock.Set(OrdinaryUserSetTok);
@@ -52,9 +66,6 @@ codeunit 50178 "Filename Permission Tests"
         // about a user who cannot.
         if Pattern.ReadPermission() then
             Error(UserCanReadPatternsErr, UserId());
-
-        SalesInvoiceHeader.SetFilter("Bill-to Customer No.", '<>%1', '');
-        SalesInvoiceHeader.FindFirst();
 
         Payload.ReadFrom(StrSubstNo(PayloadTok, ProofSupport.InvoiceFilterViews(SalesInvoiceHeader)));
 
@@ -85,6 +96,7 @@ codeunit 50178 "Filename Permission Tests"
         FilenameProofGuard: Codeunit "Filename Proof Guard";
         FilenameProofSupport: Codeunit "Filename Proof Support";
         PermissionsMock: Codeunit "Permissions Mock";
+        TestData: Codeunit "Filename Test Data";
         PatternsList: TestPage "Report Filename Patterns";
         Setup: TestPage "Report Filename Setup";
         PatternCard: TestPage "Report Filename Pattern Card";
@@ -96,8 +108,7 @@ codeunit 50178 "Filename Permission Tests"
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
         FilenameProofGuard.SwitchFeatureOn();
         FilenameProofGuard.ClearPatterns();
-        SalesInvoiceHeader.SetFilter("No.", '<>%1', '');
-        SalesInvoiceHeader.FindFirst();
+        TestData.PostNewInvoice(SalesInvoiceHeader);
         TestedInvoiceNo := SalesInvoiceHeader."No.";
         ProbeInstalled := IsPermissionSetInstalled(ProbeSetTok);
 
@@ -235,6 +246,7 @@ codeunit 50178 "Filename Permission Tests"
         ProbeSetTok: Label 'Report Naming Probe', Locked = true;
         PayloadTok: Label '{"filterviews":%1,"intent":"Print"}', Comment = '%1 the filterviews array', Locked = true;
         InvoiceCaptionTok: Label 'Sales - Invoice', Locked = true;
+        InvoicePatternTok: Label 'Invoice-[No.]', Locked = true;
         InvoicePrefixTok: Label 'Invoice-', Locked = true;
         PdfExtensionTok: Label '.pdf', Locked = true;
         UserCanReadPatternsErr: Label 'User %1 can read the patterns table directly, so this test cannot show what happens to a user who cannot. Run it as a user without Filename Manager.', Comment = '%1 the user';

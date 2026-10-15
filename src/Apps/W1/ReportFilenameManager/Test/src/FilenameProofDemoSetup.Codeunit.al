@@ -276,9 +276,11 @@ codeunit 50160 "Filename Proof Demo Setup"
         ReportSelections: Record "Report Selections";
     begin
         RemoveKindOfDocumentReminderPattern();
+        ReportSelections.SetCurrentKey(Usage, Sequence);
         ReportSelections.SetRange(Usage, ReportSelections.Usage::Reminder);
-        ReportSelections.SetFilter("Report ID", '<>%1', 0);
-        ReportSelections.FindFirst();
+        ReportSelections.FindSet();
+        while ReportSelections."Report ID" = 0 do
+            ReportSelections.Next();
         Pattern.Init();
         Pattern.Validate("Report ID", ReportSelections."Report ID");
         Pattern.Validate("Table No.", Database::"Issued Reminder Header");
