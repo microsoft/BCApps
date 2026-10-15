@@ -150,7 +150,9 @@ page 9883 "Permissions Overview"
 
                         trigger OnValidate()
                         begin
+                            Rec.FilterGroup(2);
                             Rec.SetFilter("Read Permission", GetPermFieldFilter(ReadFilter));
+                            Rec.FilterGroup(0);
                             CurrPage.Update(false);
                         end;
                     }
@@ -161,7 +163,9 @@ page 9883 "Permissions Overview"
 
                         trigger OnValidate()
                         begin
+                            Rec.FilterGroup(2);
                             Rec.SetFilter("Insert Permission", GetPermFieldFilter(InsertFilter));
+                            Rec.FilterGroup(0);
                             CurrPage.Update(false);
                         end;
                     }
@@ -172,7 +176,9 @@ page 9883 "Permissions Overview"
 
                         trigger OnValidate()
                         begin
+                            Rec.FilterGroup(2);
                             Rec.SetFilter("Modify Permission", GetPermFieldFilter(ModifyFilter));
+                            Rec.FilterGroup(0);
                             CurrPage.Update(false);
                         end;
                     }
@@ -183,7 +189,9 @@ page 9883 "Permissions Overview"
 
                         trigger OnValidate()
                         begin
+                            Rec.FilterGroup(2);
                             Rec.SetFilter("Delete Permission", GetPermFieldFilter(DeleteFilter));
+                            Rec.FilterGroup(0);
                             CurrPage.Update(false);
                         end;
                     }
@@ -194,7 +202,9 @@ page 9883 "Permissions Overview"
 
                         trigger OnValidate()
                         begin
+                            Rec.FilterGroup(2);
                             Rec.SetFilter("Execute Permission", GetPermFieldFilter(ExecuteFilter));
+                            Rec.FilterGroup(0);
                             CurrPage.Update(false);
                         end;
                     }
@@ -338,16 +348,7 @@ page 9883 "Permissions Overview"
     end;
 
     trigger OnAfterGetCurrRecord()
-    var
-        RecRef: RecordRef;
     begin
-        RecRef.GetTable(Rec);
-        SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Read Permission")), ReadFilter);
-        SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Insert Permission")), InsertFilter);
-        SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Modify Permission")), ModifyFilter);
-        SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Delete Permission")), DeleteFilter);
-        SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Execute Permission")), ExecuteFilter);
-
         LoadPermAssignmentBuffer();
         CurrPage.PermissionSetSecurityGroups.Page.SetSource(PermSetAssignmentBuffer);
         CurrPage.PermissionSetUsers.Page.SetSource(PermSetAssignmentBuffer);
@@ -684,23 +685,6 @@ page 9883 "Permissions Overview"
             exit('');
 
         exit(Format(PageFilter.AsInteger() - 1));
-    end;
-
-    local procedure SetPermFieldFilter(FldRef: FieldRef; var PageFilter: Enum "Permission Filter")
-    begin
-        if TrySetPermFieldFilter(FldRef, PageFilter) then;
-    end;
-
-    [TryFunction]
-    local procedure TrySetPermFieldFilter(FldRef: FieldRef; var PageFilter: Enum "Permission Filter")
-    begin
-        PageFilter := "Permission Filter"::" ";
-        if FldRef.GetFilter() <> '' then
-            if FldRef.GetRangeMin() = FldRef.GetRangeMax() then begin
-                PageFilter := FldRef.GetRangeMin();
-                PageFilter := "Permission Filter".FromInteger(PageFilter.AsInteger() + 1);
-                exit;
-            end;
     end;
 
     /// <summary>
