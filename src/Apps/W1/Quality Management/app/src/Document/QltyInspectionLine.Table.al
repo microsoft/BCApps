@@ -127,7 +127,8 @@ table 20406 "Qlty. Inspection Line"
 
                 SetLargeText(Rec."Test Value", false, true);
 
-                if not SkipDependentExpressionUpdate then
+                Rec.CalcFields("Test Value Type");
+                if Rec."Test Value Type" <> Rec."Test Value Type"::"Value Type Text Expression" then
                     UpdateExpressionsInOtherInspectionLinesInSameInspection();
             end;
         }
@@ -215,7 +216,8 @@ table 20406 "Qlty. Inspection Line"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         BooleanChoiceListLbl: Label 'No,Yes';
-        SkipDependentExpressionUpdate: Boolean;
+        ExpressionDependencyCycleErr: Label 'The text expressions in inspection %1 contain a dependency cycle that does not stabilize.', Comment = '%1 = Inspection No.';
+        ExpressionReferenceTok: Label '[%1]', Locked = true, Comment = '%1 = Test Code';
 
     trigger OnModify()
     begin
@@ -447,61 +449,119 @@ table 20406 "Qlty. Inspection Line"
     internal procedure UpdateExpressionsInOtherInspectionLinesInSameInspection()
     var
         OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TempChangedQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         TestCodesToProcess: List of [Text];
-        ChangedExpressionLineIds: List of [Guid];
+        DependentTemplateLineNos: List of [Integer];
+        DependenciesByTestCode: Dictionary of [Text, List of [Integer]];
         QueuedTestCodes: Dictionary of [Text, Boolean];
-        EvaluatedExpressionLineIds: Dictionary of [Guid, Boolean];
         SourceTestCode: Text;
-        ChangedExpressionLineId: Guid;
+        TemplateLineNoFilter: Text;
+        DependencyCount: Integer;
+        ExpressionEvaluationCount: Integer;
+        ExpressionLineCount: Integer;
+        MaxExpressionEvaluationCount: Integer;
+        QueuePosition: Integer;
     begin
         if not GetInspection() then
             exit;
 
         EvaluateSelfIfOnlyLineIsTextExpression();
+        BuildExpressionDependencyMap(DependenciesByTestCode, ExpressionLineCount, DependencyCount);
+        MaxExpressionEvaluationCount := (ExpressionLineCount + 1) * (DependencyCount + 1);
 
         TestCodesToProcess.Add(Rec."Test Code");
         QueuedTestCodes.Add(Rec."Test Code", true);
-        while TestCodesToProcess.Count() > 0 do begin
-            SourceTestCode := TestCodesToProcess.Get(1);
-            TestCodesToProcess.RemoveAt(1);
+        QueuePosition := 1;
+        while QueuePosition <= TestCodesToProcess.Count() do begin
+            SourceTestCode := TestCodesToProcess.Get(QueuePosition);
+            QueuePosition += 1;
+            QueuedTestCodes.Remove(SourceTestCode);
 
-            OthersInSameQltyInspectionLine.Reset();
-            OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-            OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
-            OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
-            OthersInSameQltyInspectionLine.SetAutoCalcFields("Test Value Type");
+            if DependenciesByTestCode.Get(SourceTestCode, DependentTemplateLineNos) then begin
+                TemplateLineNoFilter := GetTemplateLineNoFilter(DependentTemplateLineNos);
+                OthersInSameQltyInspectionLine.Reset();
+                OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
+                OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+                OthersInSameQltyInspectionLine.SetFilter("Template Line No.", TemplateLineNoFilter);
+                if OthersInSameQltyInspectionLine.FindSet() then
+                    repeat
+                        ExpressionEvaluationCount += 1;
+                        if ExpressionEvaluationCount > MaxExpressionEvaluationCount then
+                            Error(ExpressionDependencyCycleErr, Rec."Inspection No.");
 
-            QltyInspectionTemplateLine.Reset();
-            QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-            QltyInspectionTemplateLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
-            QltyInspectionTemplateLine.SetFilter("Test Code", '<>%1', SourceTestCode);
-            QltyInspectionTemplateLine.SetFilter("Expression Formula", StrSubstNo('@*[%1]*', SourceTestCode));
-            QltyInspectionTemplateLine.SetAutoCalcFields("Test Value Type");
-            if QltyInspectionTemplateLine.FindSet() then
-                repeat
-                    OthersInSameQltyInspectionLine.SetRange("Template Line No.", QltyInspectionTemplateLine."Line No.");
-                    OthersInSameQltyInspectionLine.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
-                    if OthersInSameQltyInspectionLine.FindSet() then
-                        repeat
-                            if not EvaluatedExpressionLineIds.ContainsKey(OthersInSameQltyInspectionLine.SystemId) then begin
-                                EvaluatedExpressionLineIds.Add(OthersInSameQltyInspectionLine.SystemId, true);
-                                if OthersInSameQltyInspectionLine.EvaluateTextExpression(QltyInspectionHeader) then begin
-                                    ChangedExpressionLineIds.Add(OthersInSameQltyInspectionLine.SystemId);
-                                    if not QueuedTestCodes.ContainsKey(OthersInSameQltyInspectionLine."Test Code") then begin
-                                        TestCodesToProcess.Add(OthersInSameQltyInspectionLine."Test Code");
-                                        QueuedTestCodes.Add(OthersInSameQltyInspectionLine."Test Code", true);
-                                    end;
-                                end;
+                        if OthersInSameQltyInspectionLine.EvaluateTextExpressionAndCheckValueChanged(QltyInspectionHeader) then begin
+                            TempChangedQltyInspectionLine := OthersInSameQltyInspectionLine;
+                            if not TempChangedQltyInspectionLine.Insert() then
+                                TempChangedQltyInspectionLine.Modify();
+                            if not QueuedTestCodes.ContainsKey(OthersInSameQltyInspectionLine."Test Code") then begin
+                                TestCodesToProcess.Add(OthersInSameQltyInspectionLine."Test Code");
+                                QueuedTestCodes.Add(OthersInSameQltyInspectionLine."Test Code", true);
                             end;
-                        until OthersInSameQltyInspectionLine.Next() = 0;
-                until QltyInspectionTemplateLine.Next() = 0;
+                        end;
+                    until OthersInSameQltyInspectionLine.Next() = 0;
+            end;
         end;
 
         UpdateConditionsAndAllowableValues(Rec);
-        foreach ChangedExpressionLineId in ChangedExpressionLineIds do
-            if OthersInSameQltyInspectionLine.GetBySystemId(ChangedExpressionLineId) then
-                UpdateConditionsAndAllowableValues(OthersInSameQltyInspectionLine);
+        if TempChangedQltyInspectionLine.FindSet() then
+            repeat
+                UpdateConditionsAndAllowableValues(TempChangedQltyInspectionLine);
+            until TempChangedQltyInspectionLine.Next() = 0;
+    end;
+
+    local procedure BuildExpressionDependencyMap(var DependenciesByTestCode: Dictionary of [Text, List of [Integer]]]; var ExpressionLineCount: Integer; var DependencyCount: Integer)
+    var
+        InspectionLine: Record "Qlty. Inspection Line";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        DependentTemplateLineNos: List of [Integer];
+        InspectionTestCodes: List of [Text];
+        ExpressionReference: Text;
+        SourceTestCode: Text;
+    begin
+        InspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
+        InspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+        InspectionLine.SetLoadFields("Test Code");
+        if InspectionLine.FindSet() then
+            repeat
+                if not InspectionTestCodes.Contains(InspectionLine."Test Code") then
+                    InspectionTestCodes.Add(InspectionLine."Test Code");
+            until InspectionLine.Next() = 0;
+
+        QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        QltyInspectionTemplateLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
+        QltyInspectionTemplateLine.SetAutoCalcFields("Test Value Type");
+        QltyInspectionTemplateLine.SetLoadFields("Line No.", "Test Code", "Expression Formula");
+        if QltyInspectionTemplateLine.FindSet() then
+            repeat
+                ExpressionLineCount += 1;
+                foreach SourceTestCode in InspectionTestCodes do
+                    if QltyInspectionTemplateLine."Test Code" <> SourceTestCode then begin
+                        ExpressionReference := StrSubstNo(ExpressionReferenceTok, SourceTestCode);
+                        if QltyInspectionTemplateLine."Expression Formula".ToLower().Contains(ExpressionReference.ToLower()) then begin
+                            if not DependenciesByTestCode.ContainsKey(SourceTestCode) then begin
+                                Clear(DependentTemplateLineNos);
+                                DependenciesByTestCode.Add(SourceTestCode, DependentTemplateLineNos);
+                            end;
+                            DependenciesByTestCode.Get(SourceTestCode, DependentTemplateLineNos);
+                            if not DependentTemplateLineNos.Contains(QltyInspectionTemplateLine."Line No.") then begin
+                                DependentTemplateLineNos.Add(QltyInspectionTemplateLine."Line No.");
+                                DependencyCount += 1;
+                            end;
+                            DependenciesByTestCode.Set(SourceTestCode, DependentTemplateLineNos);
+                        end;
+                    end;
+            until QltyInspectionTemplateLine.Next() = 0;
+    end;
+
+    local procedure GetTemplateLineNoFilter(TemplateLineNos: List of [Integer]) TemplateLineNoFilter: Text
+    var
+        TemplateLineNo: Integer;
+    begin
+        foreach TemplateLineNo in TemplateLineNos do
+            if TemplateLineNoFilter = '' then
+                TemplateLineNoFilter := Format(TemplateLineNo)
+            else
+                TemplateLineNoFilter += '|' + Format(TemplateLineNo);
     end;
 
     local procedure UpdateConditionsAndAllowableValues(SourceQltyInspectionLine: Record "Qlty. Inspection Line")
@@ -563,17 +623,24 @@ table 20406 "Qlty. Inspection Line"
     /// Evaluates the current line's text expression against the supplied inspection header.
     /// </summary>
     /// <param name="EvaluateAgainstQltyInspectionHeader">The inspection header that supplies expression values.</param>
+    internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")
+    begin
+        EvaluateTextExpressionAndCheckValueChanged(EvaluateAgainstQltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Evaluates the current line's text expression and reports whether the test value changed.
+    /// </summary>
+    /// <param name="EvaluateAgainstQltyInspectionHeader">The inspection header that supplies expression values.</param>
     /// <returns>True when evaluation changes the test value; otherwise, false.</returns>
-    internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header") ValueChanged: Boolean
+    internal procedure EvaluateTextExpressionAndCheckValueChanged(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header") ValueChanged: Boolean
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         EvaluatedValue: Text;
         PreviousValue: Text;
     begin
         PreviousValue := Rec."Test Value";
-        SkipDependentExpressionUpdate := true;
         EvaluatedValue := QltyExpressionMgmt.EvaluateTextExpression(Rec, EvaluateAgainstQltyInspectionHeader);
-        SkipDependentExpressionUpdate := false;
         ValueChanged := EvaluatedValue <> PreviousValue;
     end;
 

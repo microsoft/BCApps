@@ -75,6 +75,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         DefaultResult2PassCodeTok: Label 'PASS', Locked = true;
         ExpressionFormulaTestCodeTok: Label '[%1]', Comment = '%1=The first test code', Locked = true;
+        ConvergingExpressionFormulaTok: Label '[%1]-[%2]', Comment = '%1 and %2 = Test Codes', Locked = true;
         TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         ILEConditionFilterItemNoTok: Label 'WHERE(Item No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
@@ -1935,11 +1936,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         LibraryInventory.CreateItem(Item);
 
-        // [GIVEN] A template with a source text field "S1" and a second, unrelated text field "S2"
+        // [GIVEN] A template whose converging expression is ordered before its intermediate dependency.
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, SourceTextQltyTest, SourceTextQltyTest."Test Value Type"::"Value Type Text");
-        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, DependentExpressionQltyTest, DependentExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, ChainedExpressionQltyTest, ChainedExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, DependentExpressionQltyTest, DependentExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, SecondTextQltyTest, SecondTextQltyTest."Test Value Type"::"Value Type Text");
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, UnrelatedExpressionQltyTest, UnrelatedExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
 
@@ -1952,13 +1953,16 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DependentExprQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, SourceTextQltyTest.Code);
         DependentExprQltyInspectionTemplateLine.Modify();
 
-        // [GIVEN] The chained text expression "E2" references the dependent expression "E1"
-        ChainedExpressionQltyTest.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaTestCodeTok, DependentExpressionQltyTest.Code), true);
+        // [GIVEN] The chained text expression "E2" references both source "S1" and dependent expression "E1".
+        ChainedExpressionQltyTest.SetResultCondition(
+            DefaultResult2PassCodeTok,
+            StrSubstNo(ConvergingExpressionFormulaTok, SourceTextQltyTest.Code, DependentExpressionQltyTest.Code), true);
         ChainedExpressionQltyTest.Modify();
         ChainedExprQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ChainedExprQltyInspectionTemplateLine.SetRange("Test Code", ChainedExpressionQltyTest.Code);
         ChainedExprQltyInspectionTemplateLine.FindFirst();
-        ChainedExprQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, DependentExpressionQltyTest.Code);
+        ChainedExprQltyInspectionTemplateLine."Expression Formula" :=
+            StrSubstNo(ConvergingExpressionFormulaTok, SourceTextQltyTest.Code, DependentExpressionQltyTest.Code);
         ChainedExprQltyInspectionTemplateLine.Modify();
 
         // [GIVEN] The unrelated text expression "E3" references the second text field "S2", not "S1"
@@ -2002,12 +2006,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DependentQltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual('test', DependentQltyInspectionLine."Test Value", 'Dependent text expression referencing the changed line should be re-evaluated.');
 
-        // [THEN] The chained expression "E2" reads the persisted value of "E1"
+        // [THEN] The chained expression "E2" is re-evaluated after "E1" settles.
         ChainedQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         ChainedQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         ChainedQltyInspectionLine.SetRange("Test Code", ChainedExpressionQltyTest.Code);
         ChainedQltyInspectionLine.FindFirst();
-        LibraryAssert.AreEqual('test', ChainedQltyInspectionLine."Test Value", 'Chained text expression should use the updated dependent expression value.');
+        LibraryAssert.AreEqual('test-test', ChainedQltyInspectionLine."Test Value", 'Converging text expression should use all settled upstream values.');
 
         // [THEN] The unrelated expression "E3", which does not reference "S1", keeps its sentinel value
         UnrelatedQltyInspectionLine.FindFirst();
