@@ -5,6 +5,7 @@
 namespace Microsoft.euBP;
 
 using Microsoft.Finance.AuditFileExport;
+using Microsoft.Utilities;
 
 codeunit 6544 "euBP Data Check" implements "Audit File Export Data Check"
 {
@@ -34,4 +35,13 @@ codeunit 6544 "euBP Data Check" implements "Audit File Export Data Check"
 
         exit("Audit Data Check Status"::Passed);
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", OnCreateEvaluationDataOnAfterClassifyTablesToNormal, '', true, true)]
+    local procedure CreateEvaluationDataForeuBP()
+    var
+        DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
+    begin
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"euBP Setup");
+    end;
+
 }
