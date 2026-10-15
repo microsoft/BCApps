@@ -12,8 +12,7 @@ using System.Text;
 
 page 9886 "Effective Permissions Overview"
 {
-    Caption = 'Effective Permission Overview';
-    AdditionalSearchTerms = 'YSX';
+    Caption = 'Effective Permissions Overview';
     UsageCategory = Administration;
     PageType = List;
     ApplicationArea = All;
@@ -231,7 +230,7 @@ page 9886 "Effective Permissions Overview"
     trigger OnOpenPage()
     var
         AuditLog: Codeunit "Audit Log";
-        EffectivePermissionsPageOpenLbl: Label 'The Effective Permissions Overviewpage has been opened by UserSecurityId %1.', Locked = true;
+        EffectivePermissionsPageOpenLbl: Label 'The Effective Permissions Overview page has been opened by UserSecurityId %1.', Locked = true;
     begin
         EffectivePermissionsMgt.DisallowViewingEffectivePermissionsForNonAdminUsers(UserSecurityId());
 
@@ -320,8 +319,6 @@ page 9886 "Effective Permissions Overview"
         LastUpdateDateTime: DateTime;
         LoadDataMsg: Label 'Reading Permissions...@1@@@@@';
     begin
-        Window.Open(LoadDataMsg);
-
         LoadUsers();
         TempUser.Reset();
         TempUser.SetFilter("User Name", UserFilter);
@@ -329,9 +326,13 @@ page 9886 "Effective Permissions Overview"
             exit;
 
         AllObj.SetLoadFields("Object Type", "Object ID", "Object Name");
-        FilterAllObj(AllObj);
+        if ObjTypeFilter <> ObjTypeFilter::" " then
+            AllObj.SetRange("Object Type", ObjTypeFilter - 1);
+        AllObj.SetFilter("Object ID", ObjIDFilter);
         if not AllObj.FindSet() then
             exit;
+
+        Window.Open(LoadDataMsg);
 
         TotalCount := AllObj.Count() * TempUser.Count();
         LastUpdateDateTime := CurrentDateTime();
@@ -365,11 +366,5 @@ page 9886 "Effective Permissions Overview"
         if Rec.FindFirst() then;
 
         Window.Close();
-    end;
-
-    local procedure FilterAllObj(var AllObj: Record AllObj)
-    begin
-        AllObj.SetRange("Object Type", ObjTypeFilter - 1);
-        AllObj.SetFilter("Object ID", ObjIDFilter);
     end;
 }
