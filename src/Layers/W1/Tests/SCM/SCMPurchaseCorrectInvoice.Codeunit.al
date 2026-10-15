@@ -1225,6 +1225,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
     var
         GeneralPostingSetup: Record "General Posting Setup";
