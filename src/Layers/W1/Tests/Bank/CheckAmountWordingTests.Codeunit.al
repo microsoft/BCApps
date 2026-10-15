@@ -3,6 +3,7 @@ namespace Microsoft.Bank.Check;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.Automation;
 using System.Utilities;
 
 codeunit 134291 "Check Amount Wording Tests"
@@ -13,6 +14,7 @@ codeunit 134291 "Check Amount Wording Tests"
     EventSubscriberInstance = Manual;
 
     var
+        AttemptedCheckEntry: Record "Check Ledger Entry";
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryJournals: Codeunit "Library - Journals";
@@ -21,23 +23,21 @@ codeunit 134291 "Check Amount Wording Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         UnexpectedAmountTextErr: Label 'Unexpected amount text for %1.', Comment = '%1 = amount';
+        RestrictionDetailsTxt: Label 'Test-print journal line requires approval.';
         HandleBeforeEvent: Boolean;
         BeforeEventCount: Integer;
         AfterEventCount: Integer;
         AfterEventAmount: Decimal;
-        TestPrintEventCount: Integer;
-        TestPrintJournalId: RecordId;
-        TestPrintSourceId: RecordId;
+        CheckInsertCount: Integer;
 
     [Test]
-    procedure TestPrintKeepsDefaultSourceRecord()
+    procedure TestPrintUsesJournalSourceRecord()
     var
         BankAccount: Record "Bank Account";
         GenJournalLine: Record "Gen. Journal Line";
-        EmptyGuid: Guid;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653674] W1 test printing without a localization subscriber keeps the Integer source record.
+        // [SCENARIO 653674] Test printing associates the check with its source journal without a localization subscriber.
         Initialize();
 
         // [GIVEN] Bank account B and payment journal line J in a W1 deployment without the FR app.
@@ -47,33 +47,38 @@ codeunit 134291 "Check Amount Wording Tests"
         // [WHEN] The Check report executes its test-print path without a bound subscriber.
         RunTestPrint(BankAccount, GenJournalLine);
 
-        // [THEN] One test-print entry has no journal association and B keeps its last check number.
-        VerifyTestPrint(BankAccount, EmptyGuid);
+        // [THEN] The test-print entry references J and B keeps its last check number.
+        VerifyTestPrint(BankAccount, GenJournalLine.SystemId);
     end;
 
     [Test]
-    procedure TestPrintSubscriberChangesSourceRecord()
+    procedure TestPrintRejectsRestrictedJournalLine()
     var
         BankAccount: Record "Bank Account";
         GenJournalLine: Record "Gen. Journal Line";
-        CheckAmountWordingTests: Codeunit "Check Amount Wording Tests";
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+        RestrictionObserver: Codeunit "Check Amount Wording Tests";
+        ExpectedRestrictionError: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653674] A bound subscriber receives the exact journal and overrides the test-print source.
+        // [SCENARIO 653674] Test printing enforces journal usage restrictions when inserting the check entry.
         Initialize();
 
-        // [GIVEN] Bank account B, payment journal line J and a manually bound source-record subscriber.
+        // [GIVEN] Journal line J is restricted and an observer captures the attempted check insertion.
         CreateTestPrintJournalLine(BankAccount, GenJournalLine);
-        BindSubscription(CheckAmountWordingTests);
+        RecordRestrictionMgt.RestrictRecordUsage(GenJournalLine, RestrictionDetailsTxt);
         Commit();
+        ExpectedRestrictionError := GetJournalRestrictionError(GenJournalLine);
+        BindSubscription(RestrictionObserver);
 
-        // [WHEN] The Check report executes its test-print path.
-        RunTestPrint(BankAccount, GenJournalLine);
-        UnbindSubscription(CheckAmountWordingTests);
+        // [WHEN] The Check report attempts to test print J.
+        asserterror RunTestPrint(BankAccount, GenJournalLine);
 
-        // [THEN] The hook receives J once and its replacement reaches the inserted entry without advancing B.
-        VerifyTestPrintEvent(CheckAmountWordingTests, GenJournalLine);
-        VerifyTestPrint(BankAccount, GenJournalLine.SystemId);
+        // [THEN] The journal restriction, not report preflight, rejects the test-print insertion.
+        Assert.ExpectedError(ExpectedRestrictionError);
+        Assert.ExpectedErrorCode('Dialog');
+        UnbindSubscription(RestrictionObserver);
+        VerifyRejectedTestPrint(RestrictionObserver, BankAccount, GenJournalLine.SystemId);
     end;
 
     [Test]
@@ -175,11 +180,10 @@ codeunit 134291 "Check Amount Wording Tests"
         exit(AfterEventAmount);
     end;
 
-    procedure GetTestPrintEvent(var JournalRecordId: RecordId; var SourceRecordId: RecordId): Integer
+    procedure GetAttemptedCheckEntry(var CheckLedgerEntry: Record "Check Ledger Entry"): Integer
     begin
-        JournalRecordId := TestPrintJournalId;
-        SourceRecordId := TestPrintSourceId;
-        exit(TestPrintEventCount);
+        CheckLedgerEntry := AttemptedCheckEntry;
+        exit(CheckInsertCount);
     end;
 
     local procedure CreateTestPrintJournalLine(var BankAccount: Record "Bank Account"; var GenJournalLine: Record "Gen. Journal Line")
@@ -218,26 +222,48 @@ codeunit 134291 "Check Amount Wording Tests"
     local procedure VerifyTestPrint(BankAccount: Record "Bank Account"; ExpectedJournalSystemId: Guid)
     var
         CheckLedgerEntry: Record "Check Ledger Entry";
-        LastCheckNo: Code[20];
     begin
         CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
         Assert.RecordCount(CheckLedgerEntry, 1);
         CheckLedgerEntry.FindFirst();
+        VerifyTestPrintEntry(CheckLedgerEntry, ExpectedJournalSystemId);
+        VerifyLastCheckNo(BankAccount);
+    end;
+
+    local procedure VerifyTestPrintEntry(CheckLedgerEntry: Record "Check Ledger Entry"; ExpectedJournalSystemId: Guid)
+    begin
         Assert.AreEqual(CheckLedgerEntry."Entry Status"::"Test Print", CheckLedgerEntry."Entry Status", 'Expected a test-print check ledger entry.');
-        Assert.AreEqual(ExpectedJournalSystemId, CheckLedgerEntry."Print Gen Jnl Line SystemId", 'Unexpected journal association.');
+        Assert.AreEqual(ExpectedJournalSystemId, CheckLedgerEntry."Print Gen Jnl Line SystemId", 'Test printing must preserve the source journal association.');
+    end;
+
+    local procedure VerifyLastCheckNo(BankAccount: Record "Bank Account")
+    var
+        LastCheckNo: Code[20];
+    begin
         LastCheckNo := BankAccount."Last Check No.";
         BankAccount.Get(BankAccount."No.");
         Assert.AreEqual(LastCheckNo, BankAccount."Last Check No.", 'Test printing must not advance the last check number.');
     end;
 
-    local procedure VerifyTestPrintEvent(CheckAmountWordingTests: Codeunit "Check Amount Wording Tests"; GenJournalLine: Record "Gen. Journal Line")
+    local procedure GetJournalRestrictionError(GenJournalLine: Record "Gen. Journal Line"): Text
     var
-        JournalRecordId: RecordId;
-        SourceRecordId: RecordId;
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
     begin
-        Assert.AreEqual(1, CheckAmountWordingTests.GetTestPrintEvent(JournalRecordId, SourceRecordId), 'The test-print hook must be raised once.');
-        Assert.AreEqual(GenJournalLine.RecordId, JournalRecordId, 'The hook must receive the exact source journal line.');
-        Assert.AreEqual(Database::Integer, SourceRecordId.TableNo, 'The W1 default source must remain the Integer dataitem.');
+        asserterror RecordRestrictionMgt.CheckRecordHasUsageRestrictions(GenJournalLine);
+        Assert.ExpectedError(RestrictionDetailsTxt);
+        Assert.ExpectedErrorCode('Dialog');
+        exit(GetLastErrorText());
+    end;
+
+    local procedure VerifyRejectedTestPrint(RestrictionObserver: Codeunit "Check Amount Wording Tests"; BankAccount: Record "Bank Account"; ExpectedJournalSystemId: Guid)
+    var
+        CheckLedgerEntry: Record "Check Ledger Entry";
+    begin
+        Assert.AreEqual(1, RestrictionObserver.GetAttemptedCheckEntry(CheckLedgerEntry), 'The report must reach check ledger entry insertion once.');
+        VerifyTestPrintEntry(CheckLedgerEntry, ExpectedJournalSystemId);
+        CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        Assert.RecordIsEmpty(CheckLedgerEntry);
+        VerifyLastCheckNo(BankAccount);
     end;
 
     local procedure FormatAmountText(var NoText: array[2] of Text[80]; Amount: Decimal; CurrencyCode: Code[10])
@@ -278,13 +304,11 @@ codeunit 134291 "Check Amount Wording Tests"
         Assert.AreEqual(ExpectedAfterEventAmount, CheckAmountWordingTests.GetAfterEventAmount(), 'Unexpected amount passed to OnAfterFormatNoText.');
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::Check, 'OnBeforeTestPrintInsertCheck', '', false, false)]
-    local procedure OnBeforeTestPrintInsertCheck(GenJournalLine: Record "Gen. Journal Line"; var RecordIdToPrint: RecordId)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::CheckManagement, 'OnInsertCheckOnBeforeCheckLedgEntryInsert', '', false, false)]
+    local procedure CaptureCheckInsertion(var CheckLedgEntry: Record "Check Ledger Entry")
     begin
-        TestPrintEventCount += 1;
-        TestPrintJournalId := GenJournalLine.RecordId;
-        TestPrintSourceId := RecordIdToPrint;
-        RecordIdToPrint := GenJournalLine.RecordId;
+        CheckInsertCount += 1;
+        AttemptedCheckEntry := CheckLedgEntry;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::Check, 'OnBeforeFormatNoText', '', false, false)]

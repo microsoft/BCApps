@@ -3657,6 +3657,12 @@ End Function</Code>
         <Field Name="JnlBatchName_GenJnlLine">
           <DataField>JnlBatchName_GenJnlLine</DataField>
         </Field>
+        <Field Name="JournalTempName_GenJnlLine">
+          <DataField>JournalTempName_GenJnlLine</DataField>
+        </Field>
+        <Field Name="JournalBatchName_GenJnlLine">
+          <DataField>JournalBatchName_GenJnlLine</DataField>
+        </Field>
         <Field Name="LineNo_GenJnlLine">
           <DataField>LineNo_GenJnlLine</DataField>
         </Field>
@@ -3686,6 +3692,12 @@ End Function</Code>
         </Field>
         <Field Name="TotalLineDiscountLineDiscFormat">
           <DataField>TotalLineDiscountLineDiscFormat</DataField>
+        </Field>
+        <Field Name="TotalLineDiscountLineDiscount">
+          <DataField>TotalLineDiscountLineDiscount</DataField>
+        </Field>
+        <Field Name="TotalLineDiscountLineDiscountFormat">
+          <DataField>TotalLineDiscountLineDiscountFormat</DataField>
         </Field>
         <Field Name="TotalLineAmountLineAmount">
           <DataField>TotalLineAmountLineAmount</DataField>
@@ -3765,6 +3777,9 @@ End Function</Code>
         <Field Name="CheckDateText2">
           <DataField>CheckDateText2</DataField>
         </Field>
+        <Field Name="CheckDateTextControl2">
+          <DataField>CheckDateTextControl2</DataField>
+        </Field>
         <Field Name="DescriptionLine2">
           <DataField>DescriptionLine2</DataField>
         </Field>
@@ -3773,6 +3788,9 @@ End Function</Code>
         </Field>
         <Field Name="CheckToAddr17">
           <DataField>CheckToAddr17</DataField>
+        </Field>
+        <Field Name="CheckToAddr1Control7">
+          <DataField>CheckToAddr1Control7</DataField>
         </Field>
         <Field Name="CheckToAddr2">
           <DataField>CheckToAddr2</DataField>
@@ -3806,6 +3824,9 @@ End Function</Code>
         </Field>
         <Field Name="CheckNoText2">
           <DataField>CheckNoText2</DataField>
+        </Field>
+        <Field Name="CheckNoTextControl21">
+          <DataField>CheckNoTextControl21</DataField>
         </Field>
         <Field Name="CompanyAddr2">
           <DataField>CompanyAddr2</DataField>
