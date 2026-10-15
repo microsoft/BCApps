@@ -527,3 +527,4 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     begin
     end;
 }
+
