@@ -7,7 +7,7 @@ using System.Security.Authentication;
 using System.Security.Encryption;
 #endif
 
-codeunit 50024 "Fabric Platform Credential Mgt"
+codeunit 48524 "Fabric Platform Credential Mgt"
 {
     Access = Internal;
 
@@ -71,11 +71,10 @@ codeunit 50024 "Fabric Platform Credential Mgt"
         if IsCustomAppEnabled() then
             exit(GetCustomClientId());
 #endif
-        // if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
-        //     FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
-        // else
-        //    exit(ClientId);
-        exit('dcc80069-ba40-4ad9-ba8c-60001cea3497');
+        if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
+            FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
+        else
+            exit(ClientId);
     end;
 
     internal procedure GetTenantId(): Text
