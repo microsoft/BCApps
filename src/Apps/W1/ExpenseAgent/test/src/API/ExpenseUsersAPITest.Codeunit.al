@@ -10,6 +10,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148315 "Expense Users API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
