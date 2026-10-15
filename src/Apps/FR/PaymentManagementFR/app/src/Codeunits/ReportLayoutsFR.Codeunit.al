@@ -26,11 +26,13 @@ codeunit 10845 "Report Layouts FR"
         if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag()) then
             exit;
 
-        SetDefaultCheckLayout();
+        if not SetDefaultCheckLayout() then
+            exit;
+
         UpgradeTag.SetUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag());
     end;
 
-    internal procedure SetDefaultCheckLayout()
+    internal procedure SetDefaultCheckLayout(): Boolean
     var
         ReportLayoutList: Record "Report Layout List";
         ReportLayoutSelection: Record "Report Layout Selection";
@@ -46,7 +48,7 @@ codeunit 10845 "Report Layouts FR"
             if (ReportLayoutSelection.Type <> ReportLayoutSelection.Type::"RDLC (built-in)") or
                (ReportLayoutSelection."Custom Report Layout Code" <> '')
             then
-                exit;
+                exit(true);
 
         HasCompanySelection := TenantReportLayoutSelection.Get(Report::Check, SelectedCompany, EmptyGuid);
         if not HasCompanySelection then
@@ -58,13 +60,14 @@ codeunit 10845 "Report Layouts FR"
             if (TenantReportLayoutSelection."App ID" <> BaseApplicationId) or
                (TenantReportLayoutSelection."Layout Name" <> 'RDLCLayout')
             then
-                exit;
+                exit(true);
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        ReportLayoutList.SetRange("Report ID", Report::Check);
-        ReportLayoutList.SetRange("Application ID", CurrentModuleInfo.Id());
-        ReportLayoutList.SetRange(Name, 'CheckFR');
-        ReportLayoutList.FindFirst();
+        if not ReportLayoutList.Get(Report::Check, 'CheckFR', CurrentModuleInfo.Id()) then begin
+            Session.LogMessage('PMFR0001', MissingCheckLayoutTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+                TelemetryScope::ExtensionPublisher, 'Category', PaymentManagementCategoryTok);
+            exit(false);
+        end;
 
         TenantReportLayoutSelection."Report ID" := Report::Check;
         TenantReportLayoutSelection."Company Name" := SelectedCompany;
@@ -83,8 +86,12 @@ codeunit 10845 "Report Layouts FR"
             ReportLayoutSelection.Type := ReportLayoutSelection.Type::"RDLC (built-in)";
             ReportLayoutSelection.Insert(true);
         end;
+
+        exit(true);
     end;
 
     var
         BaseApplicationIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
+        MissingCheckLayoutTxt: Label 'The CheckFR layout is not available. Check layout migration was skipped without changing layout selections or setting the upgrade tag. A later upgrade can retry the migration.', Locked = true;
+        PaymentManagementCategoryTok: Label 'Payment Management FR', Locked = true;
 }
