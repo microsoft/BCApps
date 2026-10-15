@@ -1504,6 +1504,7 @@ codeunit 137019 "SCM Correct Invoice"
         // [GIVEN] The prepaid line is shipped and invoiced, and quantity restoration is disabled.
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SetRestoreOrderQtyOnReturn(false);
+        Commit();
 
         // [WHEN] The posted invoice is cancelled.
         CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);

@@ -1291,6 +1291,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchaseHeader.Modify(true);
         PurchaseInvoiceHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
         SetRestoreOrderQtyOnReturn(false);
+        Commit();
 
         // [WHEN] The posted invoice is cancelled.
         CorrectPostedPurchInvoice.CancelPostedInvoice(PurchaseInvoiceHeader);

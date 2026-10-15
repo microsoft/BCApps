@@ -1317,6 +1317,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         NetCheckTotal := PurchaseHeader."Check Total";
         PurchaseInvoiceHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeader, NetCheckTotal));
         SetRestoreOrderQtyOnReturn(false);
+        Commit();
 
         // [WHEN] The posted invoice is cancelled.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseHeaderCrMemo);
