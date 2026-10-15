@@ -104,7 +104,7 @@ codeunit 139191 "RS Table Info Telemetry Test"
 
         foreach ChildNode in DocElement.GetChildElements() do begin
             Node := ChildNode;
-            if ChildNode.AsXmlElement().Name.Contains(ConfigXMLExchange.GetElementName(NodeName)) then
+            if ChildNode.AsXmlElement().Name.Contains(ConfigXMLExchange.GetElementName(CopyStr(NodeName, 1, 250))) then
                 exit;
         end;
     end;
