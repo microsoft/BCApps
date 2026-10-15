@@ -104,7 +104,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure BeforeDeleteFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum "Ext. File Storage Connector"): Boolean;
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
-        NotPossibleToUnassignScenarioMsg: Label 'External Storage scenario can not be unassigned when there are uploaded files.';
+        NotPossibleToUnassignScenarioMsg: Label 'External Storage cannot be unassigned while attachments reference external files. Use Storage Sync with To Internal Storage and Move to restore content and retire local external references. Remote files are retained.';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;
@@ -123,7 +123,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure BeforeReassignFileScenarioCheck(Scenario: Enum "File Scenario"): Boolean
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
-        NotPossibleToReassignScenarioMsg: Label 'External Storage scenario can not be reassigned when there are uploaded files.';
+        NotPossibleToReassignScenarioMsg: Label 'External Storage cannot be reassigned while attachments reference external files. Use Storage Sync with To Internal Storage and Move to restore content and retire local external references. Remote files are retained.';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;

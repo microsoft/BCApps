@@ -3,6 +3,7 @@ codeunit 139724 "APIV1 - Dimensions E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
 
     trigger OnRun()
