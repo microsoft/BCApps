@@ -327,9 +327,6 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if IsSameAsInterimApprover(ExpenseReportHeader, NewApproverExpenseUserNo) then
             Error(AlternateApproverInterimConflictErr);
 
-        if (ExpenseReportHeader."Expense User No." <> GetExpenseUserNo()) and not IsApprovalAdministrator() then
-            Error(AlternateApproverActorErr);
-
         if (ActorExpenseUserNo <> '') and (ActorExpenseUserNo <> ExpenseReportHeader."Expense User No.") then
             Error(AlternateApproverActorErr);
 
