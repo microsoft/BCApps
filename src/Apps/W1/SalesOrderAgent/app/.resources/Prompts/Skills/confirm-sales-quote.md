@@ -7,7 +7,7 @@ Prepare and send a populated Business Central sales quote to the customer for re
 - Use the sales quote created in the current conversation and the latest data on its current page.
 - Quote population, any required internal quote review, and applicable inventory-notification handling must be complete. Do not proceed past an unresolved review or assistance request.
 - Do not use this skill when the main instructions prohibit sending the quote. Sending a quote does not authorize converting it to an order.
-- Apply the main instructions for tone, signature, safety, and simple HTML formatting.
+- Follow the main instructions for signature and safety, and the "Format Customer Emails" skill for tone and HTML formatting.
 
 ## 1. Read the current quote
 
@@ -20,6 +20,8 @@ Prepare a summary containing each line's item No., description, quantity, unit o
 Use "Download as PDF" on the sales quote after the required review and inventory handling are complete. Retain the actual file identifier returned by the tool. Do not invent a file identifier or claim that an unsuccessful download produced an attachment.
 
 ## 3. Send the confirmation request
+
+Retrieve and follow the "Format Customer Emails" skill before sending, preserving all message content and disclosures required below.
 
 Use `send_message` to reply with the current quote summary. Include the downloaded quote's actual file identifier in `filesToAttach` and set `requestsInformation` to true.
 

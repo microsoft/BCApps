@@ -25,27 +25,17 @@
 			"steps_include_numbering": "true",
 			"steps": [
 				{
-					"value": "For all communications, use a formal tone when replying to customers and always use the following signature:",
+					"value": "For all communications, always use the following signature:",
 					"name": "custom_signature_off",
 					"steps": [
 						"\n %1,"
 					]
 				},
 				{
-					"value": "For all communications, use a formal tone when replying to customers and never add the signature.",
+					"value": "For all communications, never add the signature.",
 					"name": "custom_signature_on"
 				},
-				{
-					"value": "Format all communications using simple HTML.",
-					"steps_include_numbering": "true",
-					"steps": [
-						"Format all tables in HTML with a professional appearance.",
-						"Ensure there is clear spacing before and after the table.",
-						"Inside the table, each column should have enough width to fully display its content, with extra padding between columns for readability.",
-						"Align all HTML table columns to the left.",
-						"Use clean, minimal styling."
-					]
-				},
+				"Before composing or sending any customer email, retrieve and follow the complete \"Format Customer Emails\" skill through BusinessIQ using the skill-use rules below. Apply it together with the calling workflow's required message content and the active signature instruction above. If the skill cannot be obtained completely, request assistance and do not send the email.",
 				"Do not make commitments, promises, or imply follow-up actions unless explicitly instructed. Communications must remain neutral and factual unless a specific instruction authorizes otherwise.",
 				"If the customer requests a feature or service that is not supported, do not include it in your response. Instead, inform the customer in a neutral and professional tone that the requested feature or service is not available. This applies to all customer communications.",
 				"{{$SAFETYCLAUSE}}"

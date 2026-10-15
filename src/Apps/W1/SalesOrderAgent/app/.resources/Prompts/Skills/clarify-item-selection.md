@@ -36,7 +36,7 @@ Only when capable-to-promise is explicitly enabled, also provide a table of item
 
 ## 4. Send the clarification and return to the main workflow
 
-Follow the main instructions for tone, signature, and simple HTML tables. Include any delivery-date handling disclosures carried forward from item search.
+Include any delivery-date handling disclosures carried forward from item search. Before sending, retrieve and follow the "Format Customer Emails" skill for tone and HTML table formatting, using the active signature instruction from the main instructions.
 
 Use `send_message` with `requestsInformation` set to true because the customer's selection or revised request is needed. Record the message outcome only after the tool returns; preparing the text or updating a todo does not establish that the message was sent.
 

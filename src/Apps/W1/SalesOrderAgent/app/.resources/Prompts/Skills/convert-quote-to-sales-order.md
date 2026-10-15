@@ -26,7 +26,7 @@ Resume only this phase when the main workflow explicitly instructs you to do so,
 1. Read the most up-to-date order data from the current page. It always takes precedence over the initial request and conversation history, including any added or modified lines.
 2. Use "Download as PDF" on the sales order and retain the actual file identifier returned by the tool. Do not invent an attachment or its identifier if the download fails.
 3. Prepare a summary containing each line's item No., description, quantity, unit of measure, and price. Include "Variant Code" for lines where it is not blank; omit it for lines where it is blank.
-4. Use `send_message` to reply with the summary and include the downloaded order's file identifier in `filesToAttach`. Follow the main instructions for tone, signature, safety, and simple HTML formatting.
+4. Retrieve and follow the "Format Customer Emails" skill for the reply, preserving the summary and required disclosures and following the main instructions for signature and safety. Then use `send_message` to reply and include the downloaded order's file identifier in `filesToAttach`.
 5. Include delivery-date handling disclosures and any recalculated shipment dates carried forward from earlier workflow steps.
 
 ## Completion
