@@ -531,8 +531,7 @@ report 1401 Check
                                 DescriptionLine[2] := DescriptionLine[1];
                                 VoidText := Text022;
                             end;
-                        end
-                        else begin
+                        end else begin
                             CheckLedgEntry.Init();
                             CheckLedgEntry."Bank Account No." := BankAcc2."No.";
                             CheckLedgEntry."Posting Date" := GenJnlLine."Posting Date";
