@@ -3,6 +3,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
