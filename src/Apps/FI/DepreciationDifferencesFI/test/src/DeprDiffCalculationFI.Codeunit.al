@@ -106,8 +106,11 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     end;
 
     local procedure InitializeContosoDemoTest()
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
     begin
         InitializeTest();
+        ContosoCoffeeDemoDataSetup.InitRecord();
         ResetContosoGLAccountMappings();
     end;
 
