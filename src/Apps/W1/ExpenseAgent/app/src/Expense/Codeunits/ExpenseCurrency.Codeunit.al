@@ -43,18 +43,14 @@ codeunit 6903 "Expense Currency"
     procedure ShowMissingExchangeRateError(CurrencyDate: Date; CurrencyCode: Code[10])
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
-        StartingDate: Date;
     begin
         if CurrencyDate = 0D then
             CurrencyDate := WorkDate();
 
-        StartingDate := CurrencyDate;
-        CurrencyExchangeRate.SetLoadFields("Starting Date");
         CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
-        if CurrencyExchangeRate.FindFirst() then
-            StartingDate := CurrencyExchangeRate."Starting Date";
-
-        Error(ReceiptDatedBeforeExchRateErr, StartingDate, CurrencyCode);
+        CurrencyExchangeRate.SetRange("Starting Date", 0D, CurrencyDate);
+        if not CurrencyExchangeRate.FindLast() then
+            Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode);
     end;
 
     var
