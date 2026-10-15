@@ -16,6 +16,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -794,6 +795,7 @@ table 6900 Expense
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense %2 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense %2 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
+        SubcategoryBlankedMsg: Label 'The expense category of expense %1 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense No.';
         OnlyUseExpenseLocationWithPerDiemErr: Label 'The selected Expense Location %1 and Expense Category %2 can only be used with per diem expenses on Expense No. %3.', Comment = '%1 = Expense Location, %2 = Expense Category, %3 = Expense No.';
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         NonRefundableAmountGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
@@ -1010,27 +1012,32 @@ table 6900 Expense
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
     var
+        ExpenseCategory: Record "Expense Category";
         ConfirmManagement: Codeunit "Confirm Management";
+        KeepItemization: Boolean;
     begin
-        if not HasAssociatedRecords() then
-            exit;
+        if Rec."Expense Category" <> '' then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                KeepItemization := ExpenseCategory.IsItemizationRequired();
 
-        if not HideValidationDialog then
+        if HasAssociatedRecords(KeepItemization) and not HideValidationDialog then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(DeleteAssociatedRecordsQst, FieldCaption, Rec."Expense Detail Required"), true) then
                 Error('');
 
-        DeleteAssociatedRecords();
+        DeleteAssociatedRecords(KeepItemization);
     end;
 
-    local procedure HasAssociatedRecords(): Boolean
+    local procedure HasAssociatedRecords(KeepItemization: Boolean): Boolean
     var
         ExpenseParticipant: Record "Expense Participant";
         ExpenseItemization: Record "Expense Itemization";
         ExpensePerDiem: Record "Expense Per Diem";
     begin
-        ExpenseItemization.SetRange("Expense No.", Rec."No.");
-        if not ExpenseItemization.IsEmpty() then
-            exit(true);
+        if not KeepItemization then begin
+            ExpenseItemization.SetRange("Expense No.", Rec."No.");
+            if not ExpenseItemization.IsEmpty() then
+                exit(true);
+        end;
 
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
@@ -1048,11 +1055,45 @@ table 6900 Expense
         end;
     end;
 
-    local procedure DeleteAssociatedRecords()
+    local procedure DeleteAssociatedRecords(KeepItemization: Boolean)
     begin
         DeleteExpenseParticipant();
-        DeleteExpenseItemization();
         DeleteExpensePerDiem();
+
+        if KeepItemization then
+            BlankItemizationSubcategory()
+        else
+            DeleteExpenseItemization();
+    end;
+
+    local procedure BlankItemizationSubcategory()
+    var
+        ExpenseItemization: Record "Expense Itemization";
+    begin
+        ExpenseItemization.SetRange("Expense No.", Rec."No.");
+        ExpenseItemization.SetFilter("Expense Subcategory Code", '<>%1', '');
+        if not ExpenseItemization.IsEmpty() and not HideValidationDialog then
+            SendSubcategoryBlankedNotification();
+
+        ExpenseItemization.SetRange("Expense Subcategory Code");
+        ExpenseItemization.ModifyAll("Expense Category Code", Rec."Expense Category", false);
+        ExpenseItemization.ModifyAll("Expense Subcategory Code", '', false);
+    end;
+
+    local procedure SendSubcategoryBlankedNotification()
+    var
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        NotificationToSend: Notification;
+    begin
+        NotificationToSend.Id := GetSubcategoryBlankedNotificationId();
+        NotificationToSend.Recall();
+        NotificationToSend.Message(StrSubstNo(SubcategoryBlankedMsg, Rec."No."));
+        NotificationLifecycleMgt.SendNotification(NotificationToSend, Rec.RecordId);
+    end;
+
+    local procedure GetSubcategoryBlankedNotificationId(): Guid
+    begin
+        exit('c3f1d6a2-7b84-4e0f-9a35-5d2e8b1f4c71');
     end;
 
     procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
@@ -1253,6 +1294,8 @@ table 6900 Expense
             exit;
         end;
 
+        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
+
         if ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::"Per Diem" then
             Rec.Validate("Expense Location", '');
 
@@ -1263,8 +1306,6 @@ table 6900 Expense
         Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
         if ExpenseCategory."Default Payment Method" <> '' then
             Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
-
-        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -1409,7 +1450,11 @@ table 6900 Expense
     var
         ExpensePolicy: Record "Expense Policy";
     begin
-        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or (Rec."Expense Category" = '') then
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
             exit(false);
 
         ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");

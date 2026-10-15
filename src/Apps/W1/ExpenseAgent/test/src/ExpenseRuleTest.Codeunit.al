@@ -51,6 +51,8 @@ codeunit 148301 "Expense Rule Test"
         AdditionalDetailsLbl: Label 'additional details';
         PerDiemForLbl: Label 'Per Diem for: %1', Comment = '%1 = Date';
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
+        SubcategoryBlankedMsg: Label 'The expense category of expense %1 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense No.';
+        ReportLineSubcategoryBlankedMsg: Label 'The expense category of expense report %1, Line No. %2 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense Report No., %2 = Line No.';
         RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
         RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
         ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
@@ -8895,6 +8897,141 @@ codeunit 148301 "Expense Rule Test"
         ExpensePage.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('SentNotificationHandler')]
+    procedure ChangingCategoryToItemizeKeepsItemizationAndBlanksSubcategory()
+    var
+        OldCategory: Record "Expense Category";
+        NewCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+    begin
+        // [SCENARIO 629913] Changing the category to another one that requires itemization keeps the itemizations, blanks the subcategory and notifies the user.
+        Initialize();
+
+        // [GIVEN] Two categories that require Itemize and an expense with an itemization that has a subcategory.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(OldCategory, OldCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseCategory(NewCategory, NewCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, OldCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", OldCategory.Code, ExpenseSubCategory.Code, '', true, '', 100);
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, OldCategory.Code, ExpenseSubCategory.Code, WorkDate(), 100, 1);
+
+        // [WHEN] The expense category is changed.
+        Expense.Validate("Expense Category", NewCategory.Code);
+
+        // [THEN] The itemization is kept on the new category with a blank subcategory.
+        ExpenseItemization.Get(ExpenseItemization."Expense No.", ExpenseItemization."Line No.");
+        Assert.AreEqual(NewCategory.Code, ExpenseItemization."Expense Category Code", StrSubstNo(ValueMustBeEqualErr, ExpenseItemization.FieldCaption("Expense Category Code"), NewCategory.Code, ExpenseItemization.TableCaption()));
+        Assert.AreEqual('', ExpenseItemization."Expense Subcategory Code", StrSubstNo(ValueMustBeEqualErr, ExpenseItemization.FieldCaption("Expense Subcategory Code"), '', ExpenseItemization.TableCaption()));
+
+        // [THEN] The user is notified that the subcategory was cleared.
+        Assert.ExpectedMessage(StrSubstNo(SubcategoryBlankedMsg, Expense."No."), LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ChangingCategoryToNonItemizeDeletesItemization()
+    var
+        OldCategory: Record "Expense Category";
+        NewCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+    begin
+        // [SCENARIO 629913] Changing the category to one that does not require itemization deletes the itemizations.
+        Initialize();
+
+        // [GIVEN] An Itemize category, a category without itemization and an itemized expense.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(OldCategory, OldCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseCategory(NewCategory, NewCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, OldCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", OldCategory.Code, ExpenseSubCategory.Code, '', true, '', 100);
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, OldCategory.Code, ExpenseSubCategory.Code, WorkDate(), 100, 1);
+
+        // [WHEN] The expense category is changed.
+        Expense.Validate("Expense Category", NewCategory.Code);
+
+        // [THEN] The itemizations are deleted.
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        Assert.RecordIsEmpty(ExpenseItemization);
+    end;
+
+    [Test]
+    [HandlerFunctions('SentNotificationHandler')]
+    procedure ChangingReportLineCategoryToItemizeKeepsItemizationAndBlanksSubcategory()
+    var
+        OldCategory: Record "Expense Category";
+        NewCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+    begin
+        // [SCENARIO 629913] Changing the report line category to another one that requires itemization keeps the itemizations, blanks the subcategory and notifies the user.
+        Initialize();
+
+        // [GIVEN] Two categories that require Itemize and a report line with an itemization that has a subcategory.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(OldCategory, OldCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseCategory(NewCategory, NewCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, OldCategory.Code, true);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", OldCategory.Code, '', true, '', 100);
+        LibraryExpense.CreateExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportLine, OldCategory.Code, ExpenseSubCategory.Code, WorkDate(), 100, 1);
+
+        // [WHEN] The expense report line category is changed.
+        ExpenseReportLine.Validate("Expense Category", NewCategory.Code);
+
+        // [THEN] The itemization is kept on the new category with a blank subcategory.
+        ExpenseReportLineItem.Get(ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No.");
+        Assert.AreEqual(NewCategory.Code, ExpenseReportLineItem."Expense Category Code", StrSubstNo(ValueMustBeEqualErr, ExpenseReportLineItem.FieldCaption("Expense Category Code"), NewCategory.Code, ExpenseReportLineItem.TableCaption()));
+        Assert.AreEqual('', ExpenseReportLineItem."Expense Subcategory Code", StrSubstNo(ValueMustBeEqualErr, ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), '', ExpenseReportLineItem.TableCaption()));
+
+        // [THEN] The user is notified that the subcategory was cleared.
+        Assert.ExpectedMessage(StrSubstNo(ReportLineSubcategoryBlankedMsg, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."), LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ChangingReportLineCategoryToNonItemizeDeletesItemization()
+    var
+        OldCategory: Record "Expense Category";
+        NewCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+    begin
+        // [SCENARIO 629913] Changing the report line category to one that does not require itemization deletes the itemizations.
+        Initialize();
+
+        // [GIVEN] An Itemize category, a category without itemization and an itemized report line.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(OldCategory, OldCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseCategory(NewCategory, NewCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, OldCategory.Code, true);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", OldCategory.Code, '', true, '', 100);
+        LibraryExpense.CreateExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportLine, OldCategory.Code, ExpenseSubCategory.Code, WorkDate(), 100, 1);
+
+        // [WHEN] The expense report line category is changed.
+        ExpenseReportLine.Validate("Expense Category", NewCategory.Code);
+
+        // [THEN] The itemizations are deleted.
+        ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordIsEmpty(ExpenseReportLineItem);
+    end;
+
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -9908,5 +10045,12 @@ codeunit 148301 "Expense Rule Test"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [SendNotificationHandler]
+    procedure SentNotificationHandler(var Notification: Notification): Boolean
+    begin
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Notification.Message);
     end;
 }

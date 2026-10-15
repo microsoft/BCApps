@@ -545,7 +545,11 @@ table 6916 "Posted Expense Report Line"
     var
         ExpensePolicy: Record "Expense Policy";
     begin
-        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or (Rec."Expense Category" = '') then
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
             exit(false);
 
         ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
