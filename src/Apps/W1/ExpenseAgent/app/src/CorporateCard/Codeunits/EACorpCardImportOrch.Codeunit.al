@@ -94,8 +94,8 @@ codeunit 7432 "EA Corp Card Import Orch"
     var
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardProvReg: Codeunit "EA Corp Card Prov Reg";
-        CorpCardProviderImpl: Interface "EA Corp Card Provider";
         CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+        CorpCardProviderImpl: Interface "EA Corp Card Provider";
     begin
         CorpCardErrorContext.SetImportStage('Provider setup');
         CorpCardProvider.Get(CorpCardStatement."Provider Code");
