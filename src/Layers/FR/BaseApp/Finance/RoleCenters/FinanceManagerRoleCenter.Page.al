@@ -27,7 +27,7 @@ using Microsoft.CostAccounting.Reports;
 using Microsoft.CostAccounting.Setup;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Analysis;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Finance.AuditFileExport;
 #endif
 using Microsoft.Finance.Consolidation;
@@ -409,7 +409,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Item Budget Entries";
                         Tooltip = 'Open the Item Budget Entries page.';
                     }
-#if not CLEAN29
+#if not CLEAN30
                     group("Group64")
                     {
                         Caption = 'Export';
