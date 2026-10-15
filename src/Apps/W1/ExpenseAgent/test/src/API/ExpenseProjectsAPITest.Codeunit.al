@@ -13,6 +13,7 @@ using Microsoft.Projects.Resources.Resource;
 codeunit 148331 "Expense Projects API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -721,9 +722,6 @@ codeunit 148331 "Expense Projects API Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Projects API Test");
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Projects API Test");
         if not ExpenseAgentSetup.Get() then begin
