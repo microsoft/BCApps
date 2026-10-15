@@ -1188,7 +1188,8 @@ table 6930 "Expense Agent Setup"
             end;
         end;
 
-        CreateExpenseCountryVATRates.InsertDefaultRates();
+        if not CreateExpenseCountryVATRates.InsertDefaultRates() then
+            exit;
 
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;

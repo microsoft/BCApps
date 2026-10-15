@@ -28,20 +28,19 @@ codeunit 6975 "Create Expense VAT Rates"
 
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        RatesSkipped: Boolean;
 
     /// <summary>
     /// Inserts all default EU VAT rate rows. Skips rows whose
     /// (Country/Region Code + Expense Category + Expense Subcategory) combination already exists.
+    /// Returns false when a country has defaults but the VAT business posting group is not configured yet.
     /// </summary>
-    procedure InsertDefaultRates()
+    procedure InsertDefaultRates(): Boolean
     var
         CompanyInfo: Record "Company Information";
     begin
-        // Sales Tax countries (e.g. CA, US) have no VAT business posting groups, so there are no VAT defaults to create.
+        RatesSkipped := false;
         ExpenseAgentSetup.GetRecordOnce();
-        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then
-            exit;
-
         CompanyInfo.Get();
         case CompanyInfo."Country/Region Code" of
             'AT':
@@ -109,6 +108,7 @@ codeunit 6975 "Create Expense VAT Rates"
             'UA':
                 CreateVATRatesUA();
         end;
+        exit(not RatesSkipped);
     end;
 
     local procedure GetPurchaseVATAccount(VATPercent: Decimal): Code[20]
@@ -150,6 +150,12 @@ codeunit 6975 "Create Expense VAT Rates"
         PurchaseVATAccountNo: Code[20];
         SalesVATAccountNo: Code[20];
     begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then begin
+            RatesSkipped := true;
+            exit;
+        end;
+
         if not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
             VATProductPostingGroup.Init();
             VATProductPostingGroup."Code" := VATProdPostingGroup;
@@ -157,7 +163,6 @@ codeunit 6975 "Create Expense VAT Rates"
             VATProductPostingGroup.Insert();
         end;
 
-        ExpenseAgentSetup.GetRecordOnce();
         PurchaseVATAccountNo := GetPurchaseVATAccount(VATPercent);
         SalesVATAccountNo := GetSalesVATAccount(VATPercent);
         if not VATPostingSetup.Get(ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProdPostingGroup) then begin

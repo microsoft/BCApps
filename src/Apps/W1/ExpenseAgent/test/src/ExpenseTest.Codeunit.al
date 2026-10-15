@@ -329,7 +329,7 @@ codeunit 148305 "Expense Test"
         // [SCENARIO 653962] Sales Tax countries (CA/US) without VAT business posting groups can create country VAT rate defaults.
         Initialize();
 
-        // [GIVEN] No VAT posting setup or VAT business posting group exists, a country with VAT defaults is set, and the expense default is blank.
+        // [GIVEN] No VAT posting setup or VAT business posting group exists, a country without VAT defaults is set, and the expense default is blank.
         VATPostingSetup.DeleteAll();
         VATBusinessPostingGroup.DeleteAll();
         SetUnsupportedCountryCode(CompanyInformation);
@@ -344,6 +344,40 @@ codeunit 148305 "Expense Test"
         ExpenseAgentSetup.Get();
         Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
         Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", ExpenseAgentSetup.FieldCaption("VAT Rates Applied"));
+    end;
+
+    [Test]
+    procedure VATCountryWithoutBusinessPostingGroupCanApplyRatesLater()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        Initialize();
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'DE';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsFalse(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must remain pending until a VAT business posting group is available.');
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(VATPostingSetup.IsEmpty(), 'No VAT posting setup must be created with a blank business posting group.');
+
+        ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must be applied when a VAT business posting group becomes available.');
+        Assert.AreEqual(VATBusinessPostingGroup.Code, ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        Assert.IsFalse(VATPostingSetup.IsEmpty(), 'The later setup run must create VAT posting rates for the business posting group.');
     end;
 
     [Test]
