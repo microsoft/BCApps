@@ -5885,166 +5885,102 @@ codeunit 148125 "Intrastat CZ Test"
         IntrastatReport.GetEntries.Invoke();
     end;
 
+    local procedure CreateTransactionType(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Transaction Type"));
+    end;
+
+    local procedure CreateTransactionSpecification(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Transaction Specification"));
+    end;
+
+    local procedure CreateShipmentMethod(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Shipment Method"));
+    end;
+
+    local procedure CreateTransportMethod(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Transport Method"));
+    end;
+
     local procedure InsertIntrastatInfoInSalesHeader(var SalesHeader: Record "Sales Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if SalesHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            SalesHeader."Transaction Type" := TransactionType.Code;
+            SalesHeader."Transaction Type" := CreateTransactionType();
             SalesHeader.Modify();
         end;
         if SalesHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            SalesHeader."Transaction Specification" := TransactionSpecification.Code;
+            SalesHeader."Transaction Specification" := CreateTransactionSpecification();
             SalesHeader.Modify();
         end;
         if SalesHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            SalesHeader."Shipment Method Code" := ShipmentMethod.Code;
+            SalesHeader."Shipment Method Code" := CreateShipmentMethod();
             SalesHeader.Modify();
         end;
         if SalesHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            SalesHeader."Transport Method" := TransportMethod.Code;
+            SalesHeader."Transport Method" := CreateTransportMethod();
             SalesHeader.Modify();
         end;
     end;
 
     local procedure InsertIntrastatInfoInServiceHeader(var ServiceHeader: Record "Service Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if ServiceHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            ServiceHeader."Transaction Type" := TransactionType.Code;
+            ServiceHeader."Transaction Type" := CreateTransactionType();
             ServiceHeader.Modify();
         end;
         if ServiceHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            ServiceHeader."Transaction Specification" := TransactionSpecification.Code;
+            ServiceHeader."Transaction Specification" := CreateTransactionSpecification();
             ServiceHeader.Modify();
         end;
         if ServiceHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            ServiceHeader."Shipment Method Code" := ShipmentMethod.Code;
+            ServiceHeader."Shipment Method Code" := CreateShipmentMethod();
             ServiceHeader.Modify();
         end;
         if ServiceHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            ServiceHeader."Transport Method" := TransportMethod.Code;
+            ServiceHeader."Transport Method" := CreateTransportMethod();
             ServiceHeader.Modify();
         end;
     end;
 
     local procedure InsertIntrastatInfoInTransferHeader(var TransferHeader: Record "Transfer Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if TransferHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            TransferHeader."Transaction Type" := TransactionType.Code;
+            TransferHeader."Transaction Type" := CreateTransactionType();
             TransferHeader.Modify();
         end;
         if TransferHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            TransferHeader."Transaction Specification" := TransactionSpecification.Code;
+            TransferHeader."Transaction Specification" := CreateTransactionSpecification();
             TransferHeader.Modify();
         end;
         if TransferHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            TransferHeader."Shipment Method Code" := ShipmentMethod.Code;
+            TransferHeader."Shipment Method Code" := CreateShipmentMethod();
             TransferHeader.Modify();
         end;
         if TransferHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            TransferHeader."Transport Method" := TransportMethod.Code;
+            TransferHeader."Transport Method" := CreateTransportMethod();
             TransferHeader.Modify();
         end;
     end;
 
     local procedure InsertIntrastatInfoInPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if PurchaseHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            PurchaseHeader."Transaction Type" := TransactionType.Code;
+            PurchaseHeader."Transaction Type" := CreateTransactionType();
             PurchaseHeader.Modify();
         end;
         if PurchaseHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            PurchaseHeader."Transaction Specification" := TransactionSpecification.Code;
+            PurchaseHeader."Transaction Specification" := CreateTransactionSpecification();
             PurchaseHeader.Modify();
         end;
         if PurchaseHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            PurchaseHeader."Shipment Method Code" := ShipmentMethod.Code;
+            PurchaseHeader."Shipment Method Code" := CreateShipmentMethod();
             PurchaseHeader.Modify();
         end;
         if PurchaseHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            PurchaseHeader."Transport Method" := TransportMethod.Code;
+            PurchaseHeader."Transport Method" := CreateTransportMethod();
             PurchaseHeader.Modify();
         end;
     end;
