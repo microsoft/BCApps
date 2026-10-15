@@ -6,7 +6,7 @@ namespace Microsoft.Inventory.Intrastat;
 
 using Microsoft.Inventory.Ledger;
 
-codeunit 148140 "Item Entry Origin CZ" implements "Intrastat Posted Origin CZ"
+codeunit 31163 "Item Entry Origin CZ" implements "Intrastat Posted Origin CZ"
 {
     Access = Internal;
 

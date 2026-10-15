@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
-codeunit 148143 "Item Card Origin CZ" implements "Intrastat Origin Mode CZ"
+codeunit 31159 "Item Card Origin CZ" implements "Intrastat Origin Mode CZ"
 {
     Access = Internal;
 
