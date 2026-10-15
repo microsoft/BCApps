@@ -3,16 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Agents;
 using System.AI;
 using System.Email;
-using System.Utilities;
 
 page 3304 "Payables Agent Setup"
 {
@@ -219,16 +214,15 @@ page 3304 "Payables Agent Setup"
 
                         trigger OnAssistEdit()
                         var
-                            TempEmailAccount: Record "Email Account" temporary;
-                            OutlookIntegration: Codeunit "Outlook Integration Impl.";
+                            SelectedAccountId: Guid;
+                            SelectedAddress: Text;
                             PrevAccountId: Guid;
                         begin
                             PrevAccountId := Rec."Email Account Id";
-                            TempEmailAccount."Account Id" := Rec."Email Account Id";
-                            TempEmailAccount.Connector := "Email Connector"::"Microsoft 365";
-                            if OutlookIntegration.SelectEmailAccount(TempEmailAccount) then begin
-                                Rec."Email Account Id" := TempEmailAccount."Account Id";
-                                MailboxAddress := TempEmailAccount."Email Address";
+                            SelectedAccountId := Rec."Email Account Id";
+                            if PASetup.SelectEmailAccount(SelectedAccountId, SelectedAddress) then begin
+                                Rec."Email Account Id" := SelectedAccountId;
+                                MailboxAddress := SelectedAddress;
                                 if PrevAccountId <> Rec."Email Account Id" then begin
                                     Clear(Rec."Email Folder");
                                     Clear(Rec."Email Folder Id");
@@ -355,6 +349,8 @@ page 3304 "Payables Agent Setup"
                 {
                     Caption = 'Configure additional fields';
                     InstructionalText = 'When you turn a draft into an invoice, Payables Agent suggests field values from a matching invoice. You can add more field values if needed.';
+                    Visible = AdditionalFieldsSetupVisible;
+
                     field("Purchase Line Fields"; AddFieldsLbl)
                     {
                         Caption = '';
@@ -363,14 +359,8 @@ page 3304 "Payables Agent Setup"
                         Editable = false;
 
                         trigger OnDrillDown()
-                        var
-                            PayablesAgentSetup: Codeunit "Payables Agent Setup";
-                            EDocAdditionalFieldsSetup: Page "EDoc Additional Fields Setup";
                         begin
-                            EDocAdditionalFieldsSetup.SetEDocumentService(PayablesAgentSetup.GetOrCreateAgentEDocumentService());
-                            Commit();
-                            EDocAdditionalFieldsSetup.LookupMode := true;
-                            if EDocAdditionalFieldsSetup.RunModal() = Action::LookupOK then
+                            if PASetup.OpenAdditionalFieldsSetup() then
                                 SetupChanged := true;
                         end;
                     }
@@ -404,12 +394,13 @@ page 3304 "Payables Agent Setup"
         if not AzureOpenAI.IsEnabled("Copilot Capability"::"Payables Agent") then
             Error(EnableCapabilityFirstErr);
 
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        PASetupConfiguration.GetAgentSetupBuffer(TempAgentSetupBuffer);
+        AdditionalFieldsSetupVisible := PASetup.SupportsAdditionalFieldsSetup();
+        PASetupUpdate.Load(PASetupUpdateParameters);
+        PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();
-        Rec := PASetupConfiguration.GetPayablesAgentSetup();
-        MailboxAddress := PASetupConfiguration.GetEmailAccount()."Email Address";
+        Rec := PASetupUpdateParameters.GetDesiredSetup();
+        MailboxAddress := PASetupUpdateParameters.GetEmailAccount()."Email Address";
         CalcOpenAgentDemoGuideVisible();
         CalcTrialExperienceVisible();
         if TrialExperienceVisible then
@@ -441,7 +432,6 @@ page 3304 "Payables Agent Setup"
             end
             else
                 Rec."Monitor Outlook" := false;
-
         if (TempAgentSetupBuffer."State Updated") and (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled) and (not OCVFeedbackAsked) then begin
             PayablesAgentOCV.TriggerDisableAgentFeedback();
             OCVFeedbackAsked := true;
@@ -451,23 +441,21 @@ page 3304 "Payables Agent Setup"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if PASetupConfiguration.GetTrialUploadPending() then begin
+        if PASetupUpdateParameters.GetTrialUploadPending() then begin
             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
             TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
             TempAgentSetupBuffer.Modify();
             CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
+            // Applying the setup also hands the pending trial upload to the agent.
             ApplySetup();
-            ProcessTrialUploadIfPending();
             exit(true);
         end;
 
         // Save the changes made to the agent setup buffer
         CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
         SetupChanged := SetupChanged or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
-
         if (CloseAction = CloseAction::Cancel) or (not SetupChanged) then
             exit(true);
-
         if not ConfirmPendingChanges() then
             exit(false);
 
@@ -483,7 +471,6 @@ page 3304 "Payables Agent Setup"
         Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedByChange(Rec."Email Review Policy", Rec."Email Folder", SendersCount);
         if SendersCount = 0 then
             exit(true);
-
         case Impact of
             Impact::KnownSendersIgnoredByFolder:
                 exit(Confirm(FolderIgnoresListConfirmLbl, false, SendersCount, Rec."Email Folder"));
@@ -497,20 +484,20 @@ page 3304 "Payables Agent Setup"
     local procedure ApplySetup()
     begin
         BuildSetupConfiguration();
-        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfiguration);
+        PASetupUpdate.Update(PASetupUpdateParameters);
     end;
 
     local procedure BuildSetupConfiguration()
     begin
         CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetupConfiguration.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetupConfiguration.SetPayablesAgentSetup(Rec);
+        PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
+        PASetupUpdateParameters.SetDesiredSetup(Rec);
     end;
 
     local procedure OpenDemoGuide()
     begin
         BuildSetupConfiguration();
-        PADemoGuide.OpenGuidePage(PASetupConfiguration);
+        PADemoGuide.OpenGuidePage(PASetupUpdateParameters);
     end;
 
     local procedure CalcOpenAgentDemoGuideVisible()
@@ -525,29 +512,6 @@ page 3304 "Payables Agent Setup"
         TrialExperienceVisible := IsEligibleForTrialVisible or IsInTrialModeVisible;
         if IsInTrialModeVisible then
             TrialProgressText := StrSubstNo(TrialProgressLbl, PATrial.GetTrialInvoiceCount(), PATrial.GetTrialInvoiceLimit());
-
-    end;
-
-    /// <summary>
-    /// Process trial invoice
-    /// </summary>
-    local procedure ProcessTrialUploadIfPending()
-    var
-        TempBlob: Codeunit "Temp Blob";
-        PayablesAgent: Codeunit "Payables Agent";
-        FileName: Text;
-        InStream: InStream;
-    begin
-        if not PASetupConfiguration.GetTrialUploadPending() then
-            exit;
-
-        FileName := PASetupConfiguration.GetTrialUploadFileName();
-        PASetupConfiguration.GetTrialUploadBlob(TempBlob);
-        TempBlob.CreateInStream(InStream);
-        PayablesAgentSetup.ImportInvoiceFile(FileName, InStream);
-        Session.LogMessage('0000SEG', TryWithUploadManuallyTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
-
-        PASetupConfiguration.ClearTrialUpload();
     end;
 
     /// <summary>
@@ -563,7 +527,7 @@ page 3304 "Payables Agent Setup"
             exit;
         SelectedFileName := CopyStr(FileName, 1, MaxStrLen(SelectedFileName));
 
-        PASetupConfiguration.SetTrialUpload(FileName, InStream);
+        PASetupUpdateParameters.SetTrialUpload(FileName, InStream);
         Rec."Monitor Outlook" := false;
         Rec."Review Incoming Invoice" := false;
         SetupChanged := true;
@@ -576,7 +540,9 @@ page 3304 "Payables Agent Setup"
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
+        PASetupUpdate: Codeunit "PA Setup Update";
+        PASetup: Codeunit "PA Setup";
         PADemoGuide: Codeunit "PA Demo Guide";
         PayablesAgentOCV: Codeunit "Payables Agent OCV";
         PATrial: Codeunit "PA Trial";
@@ -586,6 +552,7 @@ page 3304 "Payables Agent Setup"
 #if not CLEAN29
         CostEstimateText: Text;
 #endif
+        AdditionalFieldsSetupVisible: Boolean;
         TrialExperienceVisible: Boolean;
         IsEligibleForTrialVisible: Boolean;
         IsInTrialModeVisible: Boolean;
@@ -602,7 +569,6 @@ page 3304 "Payables Agent Setup"
         SelectMailboxFirstErr: Label 'Select an email account before choosing a folder.';
         OpenAgentDemoGuideLbl: Label 'Sample invoice guide';
         TrySampleInvoicesLbl: Label 'Try some sample invoices';
-        TryWithUploadManuallyTok: Label 'User uploaded a file to try the agent.', Locked = true;
         TrialProgressLbl: Label 'Invoices processed in trial mode: %1 of %2', Comment = '%1 is current count, %2 is limit';
         ExplorePayablesAgentCaptionLbl: Label 'Explore Payables Agent', Comment = 'Payables Agent is a term, and should not be translated.';
         BenefitAddInvoiceLbl: Label '• Add a PDF invoice to get started';

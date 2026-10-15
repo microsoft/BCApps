@@ -3,8 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Agent.PayablesAgent;
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
 
 page 3310 "Payables Agent Activities"
 {
@@ -31,7 +29,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        DrillDownInboundEDocumentsInStatus(Enum::"Import E-Doc. Proc. Status"::Readable);
+                        PATaskCollection.DrillDownByState("PA Task State"::"Pending Processing");
                     end;
                 }
                 field(NeedAttention; NeedAttention)
@@ -42,7 +40,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        DrillDownInboundEDocumentsInStatus(Enum::"Import E-Doc. Proc. Status"::"Draft Ready");
+                        PATaskCollection.DrillDownByState("PA Task State"::"Needs Attention");
                     end;
                 }
                 field(ReadyForReview; ReadyForReview)
@@ -53,7 +51,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        DrillDownInboundEDocumentsInStatus(Enum::"Import E-Doc. Proc. Status"::"Ready for draft");
+                        PATaskCollection.DrillDownByState("PA Task State"::"Ready For Review");
                     end;
                 }
                 field(ProcessedThisMonth; ProcessedThisMonth)
@@ -64,7 +62,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        DrillDownInboundEDocumentsInStatus(Enum::"Import E-Doc. Proc. Status"::Processed);
+                        PATaskCollection.DrillDownByState("PA Task State"::Processed);
                     end;
                 }
             }
@@ -73,31 +71,14 @@ page 3310 "Payables Agent Activities"
     }
 
     var
+        PATaskCollection: Codeunit "PA Task Collection";
         PendingProcessing, NeedAttention, ReadyForReview, ProcessedThisMonth : Integer;
 
     trigger OnOpenPage()
     begin
-        PendingProcessing := CalcInboundEDocsInStatus(Enum::"Import E-Doc. Proc. Status"::Readable);
-        NeedAttention := CalcInboundEDocsInStatus(Enum::"Import E-Doc. Proc. Status"::"Draft Ready");
-        ReadyForReview := CalcInboundEDocsInStatus(Enum::"Import E-Doc. Proc. Status"::"Ready for draft");
-        ProcessedThisMonth := CalcInboundEDocsInStatus(Enum::"Import E-Doc. Proc. Status"::Processed);
-    end;
-
-    local procedure CalcInboundEDocsInStatus(ImportEDocProcStatus: Enum "Import E-Doc. Proc. Status"): Integer
-    var
-        EDocument: Record "E-Document";
-    begin
-        EDocument.SetRange("Import Processing Status", ImportEDocProcStatus);
-        exit(EDocument.Count());
-    end;
-
-    local procedure DrillDownInboundEDocumentsInStatus(ImportEDocProcStatus: Enum "Import E-Doc. Proc. Status")
-    var
-        EDocument: Record "E-Document";
-        InboundEDocuments: Page "Inbound E-Documents";
-    begin
-        EDocument.SetRange("Import Processing Status", ImportEDocProcStatus);
-        InboundEDocuments.SetTableView(EDocument);
-        InboundEDocuments.Run();
+        PendingProcessing := PATaskCollection.CountByState("PA Task State"::"Pending Processing");
+        NeedAttention := PATaskCollection.CountByState("PA Task State"::"Needs Attention");
+        ReadyForReview := PATaskCollection.CountByState("PA Task State"::"Ready For Review");
+        ProcessedThisMonth := PATaskCollection.CountByState("PA Task State"::Processed);
     end;
 }

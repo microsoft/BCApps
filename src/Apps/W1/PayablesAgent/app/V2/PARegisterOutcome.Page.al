@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.Purchases.Document;
@@ -66,21 +65,18 @@ page 3334 "PA Register Outcome"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         PurchaseHeader: Record "Purchase Header";
-        PATaskMgt: Codeunit "PA Task Mgt.";
     begin
         if CloseAction <> Action::OK then
             exit(true);
 
         GetPurchaseHeader(PurchaseHeader);
-        if not PayablesAgentTask.Get(PayablesAgentTask."Entry No.") then
-            Error(TaskNotFoundErr);
-        PATaskMgt.RegisterOutcome(PayablesAgentTask, PurchaseHeader.RecordId);
+        PATask.RegisterOutcome(PurchaseHeader.RecordId);
         exit(true);
     end;
 
-    procedure SetTask(NewPayablesAgentTask: Record "Payables Agent Task")
+    procedure SetTask(NewPATask: Codeunit "PA Task")
     begin
-        PayablesAgentTask := NewPayablesAgentTask;
+        PATask := NewPATask;
     end;
 
     local procedure GetPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
@@ -102,10 +98,9 @@ page 3334 "PA Register Outcome"
     end;
 
     var
-        PayablesAgentTask: Record "Payables Agent Task";
+        PATask: Codeunit "PA Task";
         RecordType: Option "Purchase Invoice","Purchase Order","Purchase Credit Memo";
         DocumentNo: Code[20];
         RecordTypeTxt: Label 'Purchase Invoice,Purchase Order,Purchase Credit Memo';
         DocumentNotFoundErr: Label '%1 %2 does not exist.', Comment = '%1 = record type, such as Purchase Invoice, %2 = document number';
-        TaskNotFoundErr: Label 'The task to register the outcome for does not exist.';
 }

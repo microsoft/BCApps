@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
@@ -44,12 +43,10 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(GetMarkTrialEndedIfPayablesAgentExistsTag()) then
             exit;
-
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
             UpgradeTag.SetUpgradeTag(GetMarkTrialEndedIfPayablesAgentExistsTag());
             exit;
         end;
-
         if PayablesAgent.PayablesAgentExistsAcrossAllCompanies() then
             PATrial.MarkTrialEnded();
 
@@ -75,7 +72,6 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
-
         if PayablesAgent.GetAgent(Agent) then
             PayablesAgent.SetAgentInstructions(Agent."User Security ID");
     end;
@@ -114,7 +110,6 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(GetMapEmailReviewPolicyTag()) then
             exit;
-
         if PayablesAgentSetup.FindFirst() then
             if PayablesAgentSetup."Email Review Policy" = "PA Email Review Policy"::Unset then begin
                 if PayablesAgentSetup."Review Incoming Invoice" then

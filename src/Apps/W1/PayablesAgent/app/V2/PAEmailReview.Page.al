@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Email;
@@ -81,7 +80,6 @@ page 3338 "PA Email Review"
         Clear(EmailSubject);
         Clear(EmailReceivedAt);
         Clear(EmailBody);
-
         if not EmailInbox.Get(Rec."Email Inbox Id") then begin
             EmailSubject := EmailNotAvailableTxt;
             exit;
@@ -90,7 +88,6 @@ page 3338 "PA Email Review"
         EmailFrom := StrSubstNo(EmailFromTxt, EmailInbox."Sender Name", EmailInbox."Sender Address");
         EmailSubject := EmailInbox.Description;
         EmailReceivedAt := EmailInbox."Received DateTime";
-
         if not EmailMessage.Get(EmailInbox."Message Id") then
             exit;
         EmailBody := EmailMessage.GetBody();

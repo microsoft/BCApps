@@ -28,18 +28,20 @@ codeunit 3311 "PA Billing"
         PayablesAgent: Codeunit "Payables Agent";
         TelemetryDictionary: Dictionary of [Text, Text];
         AgentTaskID: BigInteger;
+        SessionEDocumentEntryNo: Integer;
         NumberOfLines: Integer;
         NumberOfDocumentsWithoutLines: Integer;
     begin
+        SessionEDocumentEntryNo := GetCurrentSessionEDocumentEntryNo();
         TelemetryDictionary := PayablesAgent.GetCustomDimensions();
-        TelemetryDictionary.Add('EDocumentEntryNo', Format(PayablesAgent.GetCurrentSessionsEDocument()."Entry No"));
+        TelemetryDictionary.Add('EDocumentEntryNo', Format(SessionEDocumentEntryNo));
 
         if EDocumentPurchaseHeader.IsTemporary() then begin
             Session.LogMessage('0000R32', 'Skipping billing log for temporary E-Document Purchase Header.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
             exit;
         end;
 
-        if (PayablesAgent.GetCurrentSessionsEDocument()."Entry No" <> EDocument."Entry No") then begin
+        if (SessionEDocumentEntryNo <> EDocument."Entry No") then begin
             Session.LogMessage('0000R33', 'The E-Document does not match the current session E-Document. Skipping billing log.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
             exit;
         end;
@@ -61,6 +63,23 @@ codeunit 3311 "PA Billing"
 
         LogPurchaseDocumentDraftCreated(EDocument, EDocumentPurchaseHeader, AgentTaskID);
         LogLinesExpense(EDocument, EDocumentPurchaseHeader, AgentTaskID, NumberOfLines);
+    end;
+
+    /// <summary>
+    /// Entry number of the e-document the current Payables Agent session works on, or 0 when there is none.
+    /// </summary>
+    local procedure GetCurrentSessionEDocumentEntryNo(): Integer
+    var
+        SessionEDocument: Record "E-Document";
+        PATask: Codeunit "PA Task";
+    begin
+        if not PATask.LoadCurrentSession() then
+            exit(0);
+        if PATask.GetSourceRecordId().TableNo() <> Database::"E-Document" then
+            exit(0);
+        if not SessionEDocument.Get(PATask.GetSourceRecordId()) then
+            exit(0);
+        exit(SessionEDocument."Entry No");
     end;
 
     local procedure GetLinesRange(NumberOfLines: Integer): Integer

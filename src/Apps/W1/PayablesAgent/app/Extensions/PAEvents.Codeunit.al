@@ -22,6 +22,7 @@ codeunit 3316 "PA Events"
         IsAgentDraftPageFeedbackContext(Context, Handled);
     end;
 
+    // TODOPAV2: Adapt OCV entry points
     local procedure IsAgentDraftPageFeedbackContext(Context: Dictionary of [Text, Text]; var Handled: Boolean)
     var
         PayablesAgentOCV: Codeunit "Payables Agent OCV";

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
 using System.Agents;
 using System.Environment;
 using System.Feedback;
@@ -38,7 +37,6 @@ codeunit 3317 "Payables Agent OCV"
     begin
         if not HasProcessedEnoughDocumentsForFeedback() then
             exit;
-
         if not ConfirmMgt.GetResponse(PayablesAgentFeedbackQst) then
             exit;
 
@@ -52,11 +50,12 @@ codeunit 3317 "Payables Agent OCV"
 
     procedure TriggerPayablesAgentTaskThumbsFeedback(FeedbackType: Text; AgentTaskId: Text): Boolean
     var
-        EDocumentDataStorage: Record "E-Doc. Data Storage";
+        TempBlob: Codeunit "Temp Blob";
         Feedback: Codeunit "Microsoft User Feedback";
         Base64Convert: Codeunit "Base64 Convert";
         InStream: InStream;
         Base64Data: Text;
+        InvoiceFileName: Text;
         ContextProperties, ContextFiles : Dictionary of [Text, Text];
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -69,10 +68,10 @@ codeunit 3317 "Payables Agent OCV"
                 end;
             'Copilot.ThumbsDown':
                 begin
-                    if GetInvoice(AgentTaskId, EDocumentDataStorage) then begin
-                        EDocumentDataStorage.GetTempBlob().CreateInStream(InStream);
+                    if GetInvoice(AgentTaskId, TempBlob, InvoiceFileName) then begin
+                        TempBlob.CreateInStream(InStream);
                         Base64Data := Base64Convert.ToBase64(InStream);
-                        ContextFiles.Add(EDocumentDataStorage.Name, Base64Data);
+                        ContextFiles.Add(InvoiceFileName, Base64Data);
                     end;
 
                     Feedback.WithCustomQuestion(PayablesAgentThumbDownFeedbackQst, PayablesAgentThumbDownFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
@@ -121,39 +120,34 @@ codeunit 3317 "Payables Agent OCV"
 
     local procedure HasProcessedEnoughDocumentsForFeedback(): Boolean
     var
-        PayablesAgentSetup: Record "Payables Agent Setup";
         PayablesAgentKPI: Record "Payables Agent KPI";
         Agent: Record Agent;
         PayablesAgentSetupCU: Codeunit "Payables Agent Setup";
+        PASetup: Codeunit "PA Setup";
         EnvironmentInfo: Codeunit "Environment Information";
+        LastActivated: DateTime;
     begin
-        PayablesAgentSetup.GetSetup();
-        if PayablesAgentSetupCU.GetAgent(Agent) and (PayablesAgentSetup."Last Activated" = 0DT) then
+        LastActivated := PASetup.GetLastActivated();
+        if PayablesAgentSetupCU.GetAgent(Agent) and (LastActivated = 0DT) then
             if Agent.State = Agent.State::Enabled then
                 exit(true); // If never activated, it was activated before we introduced the field, so allow feedback
 
         PayablesAgentKPI.SetRange("Is Aggregate", false);
-        PayablesAgentKPI.SetFilter(SystemCreatedAt, '>%1', PayablesAgentSetup."Last Activated");
-        PayablesAgentKPI.SetFilter("KPI Scenario", '%1|%2',
-            PayablesAgentKPI."KPI Scenario"::"Agent E-Docs Finalized by Agent",
-            PayablesAgentKPI."KPI Scenario"::"Agent E-Docs Finalized by User");
+        PayablesAgentKPI.SetFilter(SystemCreatedAt, '>%1', LastActivated);
+        PayablesAgentKPI.SetRange("KPI Scenario", PayablesAgentKPI."KPI Scenario"::"Purchase Invoices completed by Agent");
         exit(PayablesAgentKPI.Count() > (EnvironmentInfo.IsSaaS() ? 10 : 2));
     end;
 
-    local procedure GetInvoice(AgentTaskId: Text; var EDocumentDataStorage: Record "E-Doc. Data Storage"): Boolean
+    local procedure GetInvoice(AgentTaskId: Text; var TempBlob: Codeunit "Temp Blob"; var FileName: Text): Boolean
     var
-        AgentTask: Record "Agent Task";
-        EDocument: Record "E-Document";
+        PATask: Codeunit "PA Task";
+        AgentTaskIdValue: BigInteger;
     begin
-        AgentTask.ReadIsolation := IsolationLevel::ReadUncommitted;
-        EDocument.ReadIsolation := IsolationLevel::ReadUncommitted;
-        EDocumentDataStorage.ReadIsolation := IsolationLevel::ReadUncommitted;
-        AgentTask.SetLoadFields("External ID");
-        EDocument.SetLoadFields("Unstructured Data Entry No.");
-        if AgentTask.Get(AgentTaskId) then
-            if EDocument.Get(AgentTask."External ID") then
-                if EDocumentDataStorage.Get(EDocument."Unstructured Data Entry No.") then
-                    exit(true);
+        if not Evaluate(AgentTaskIdValue, AgentTaskId) then
+            exit(false);
+        if not PATask.Load(AgentTaskIdValue) then
+            exit(false);
+        exit(PATask.GetSourcePdf(TempBlob, FileName));
     end;
 
 }

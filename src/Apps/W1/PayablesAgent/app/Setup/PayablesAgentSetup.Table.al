@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
+#if not CLEANSCHEMA33
 using Microsoft.eServices.EDocument;
+#endif
 using System.Agents;
 
 table 3303 "Payables Agent Setup"
@@ -29,7 +30,7 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = CustomerContent;
             TableRelation = "E-Document Service".Code;
-            ObsoleteReason = 'The Payables Agent E-Document Service code is fixed; it is no longer stored on the setup.';
+            ObsoleteReason = 'The Payables Agent E-Document Service code is fixed for the draft-based Payables Agent; it is no longer stored on the setup.';
 #if not CLEAN30
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';

@@ -180,7 +180,7 @@ page 3307 "PA Demo Guide"
         MediaResourcesFinished: Record "Media Resources";
         MediaResourcesStd: Record "Media Resources";
         PADemoGuide: Codeunit "PA Demo Guide";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         DemoOption: Option " ","Send Demo Email","Download Demo PDFs";
         Step: Option Start,ChooseDemoOption,ShowDemoFilesToDownload,Finish;
         BackActionEnabled, FinishActionEnabled, NextActionEnabled, WelcomeStepVisible, ChooseDemoOption, ShowDemoFilesToDownloadVisible, TopBannerVisible : Boolean;
@@ -197,9 +197,9 @@ page 3307 "PA Demo Guide"
         FinalStepHeadlineDownloadLbl: Label 'Sample invoices downloaded!';
         FinalStepTextDownloadLbl: Label 'You have chosen to download sample invoice(s). Now, send the invoice(s) to the configured email so the agent will pick them up.';
 
-    internal procedure SetSetupConfiguration(NewPASetupConfiguration: Codeunit "PA Setup Configuration")
+    internal procedure SetSetupConfiguration(NewPASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     begin
-        PASetupConfiguration := NewPASetupConfiguration;
+        PASetupUpdateParameters := NewPASetupUpdateParameters;
         SetupConfigurationProvided := true;
     end;
 
@@ -210,13 +210,13 @@ page 3307 "PA Demo Guide"
 
     trigger OnOpenPage();
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        PASetupUpdate: Codeunit "PA Setup Update";
     begin
         Session.LogMessage('0000PJU', 'Running demo guide for payables agent', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
         Commit();
         if not SetupConfigurationProvided then begin
             Session.LogMessage('0000VDH', NoSetupConfigurationProvidedTok, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
-            PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
+            PASetupUpdate.Load(PASetupUpdateParameters);
         end;
 
         Step := Step::Start;
@@ -348,10 +348,10 @@ page 3307 "PA Demo Guide"
     var
         EmailNotConfiguredErr: Label 'No email account is configured for the agent. To send sample invoices by email, set up email monitoring on the Payables Agent setup page first, or choose to download the sample invoices and send them manually.';
     begin
-        if not PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupConfiguration) then
+        if not PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters) then
             Error(EmailNotConfiguredErr);
         if not DemoInvoicesHandled then begin
-            DemoEmailSent := PADemoGuide.SendDemoInvoicesByEmail(PASetupConfiguration);
+            DemoEmailSent := PADemoGuide.SendDemoInvoicesByEmail(PASetupUpdateParameters);
             DemoInvoicesHandled := true;
             if DemoEmailSent then
                 Session.LogMessage('0000V8C', DemoInvoicesSentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok)
@@ -361,7 +361,7 @@ page 3307 "PA Demo Guide"
 
         FinalStepHeadline := FinalStepHeadlineEmailLbl;
         if DemoEmailSent then
-            FinalStepText := StrSubstNo(FinalStepTextEmailSentLbl, PASetupConfiguration.GetEmailAccount()."Email Address")
+            FinalStepText := StrSubstNo(FinalStepTextEmailSentLbl, PASetupUpdateParameters.GetEmailAccount()."Email Address")
         else
             FinalStepText := FinalStepTextEmailLbl;
     end;

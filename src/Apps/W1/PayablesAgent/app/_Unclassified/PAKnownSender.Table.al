@@ -5,8 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using System.Email;
-
 table 3308 "PA Known Sender"
 {
     Access = Internal;
@@ -59,17 +57,16 @@ table 3308 "PA Known Sender"
     end;
 
     /// <summary>
-    /// Adds the sender of an email-sourced task to the known-senders list if it is not there yet. The sender is
-    /// read from the Email module via the task source's email inbox; tasks with no email source are ignored.
-    /// Callers standardize their input into a task source first (see "PA V1V2 Compatibility").
+    /// Adds the sender of a task's source email to the known-senders list if it is not there yet. Tasks with no
+    /// email source are ignored.
     /// </summary>
-    internal procedure InsertIfNew(PayablesAgentTaskSource: Record "Payables Agent Task Source")
+    internal procedure InsertIfNew(PATask: Codeunit "PA Task")
     var
         Existing: Record "PA Known Sender";
-        Setup: Record "Payables Agent Setup";
+        PASetup: Codeunit "PA Setup";
         SenderEmail: Text[250];
     begin
-        SenderEmail := GetSenderEmail(PayablesAgentTaskSource);
+        SenderEmail := PATask.GetSenderAddress();
         if SenderEmail = '' then
             exit;
         Existing.SetRange(Email, SenderEmail);
@@ -77,8 +74,7 @@ table 3308 "PA Known Sender"
             exit;
         Rec.Init();
         Rec.Email := SenderEmail;
-        Setup.GetSetup();
-        if Setup."Email Review Policy" = "PA Email Review Policy"::OnlyIfUntrusted then
+        if PASetup.GetEmailReviewPolicy() = "PA Email Review Policy"::OnlyIfUntrusted then
             Rec."Sender Policy" := "PA Sender Policy"::Approve
         else
             Rec."Sender Policy" := "PA Sender Policy"::Ask;
@@ -86,34 +82,18 @@ table 3308 "PA Known Sender"
     end;
 
     /// <summary>
-    /// Finds the known-sender record matching a task source's sender, if any.
+    /// Finds the known-sender record matching the sender of a task's source email, if any.
     /// Returns false when the task has no email source, the sender is empty, or it is not in the list.
     /// </summary>
-    internal procedure GetForSource(PayablesAgentTaskSource: Record "Payables Agent Task Source"; var KnownSender: Record "PA Known Sender"): Boolean
+    internal procedure GetForTask(PATask: Codeunit "PA Task"; var KnownSender: Record "PA Known Sender"): Boolean
     var
         SenderEmail: Text[250];
     begin
-        SenderEmail := GetSenderEmail(PayablesAgentTaskSource);
+        SenderEmail := PATask.GetSenderAddress();
         if SenderEmail = '' then
             exit(false);
         KnownSender.SetRange(Email, SenderEmail);
         exit(KnownSender.FindFirst());
-    end;
-
-    /// <summary>
-    /// The sender email address of a task source, read from the Email module. Blank when there is no email inbox
-    /// attached or the inbox row is no longer available.
-    /// </summary>
-    local procedure GetSenderEmail(PayablesAgentTaskSource: Record "Payables Agent Task Source"): Text[250]
-    var
-        EmailInbox: Record "Email Inbox";
-    begin
-        if PayablesAgentTaskSource."Email Inbox Id" = 0 then
-            exit('');
-        EmailInbox.SetLoadFields("Sender Address");
-        if not EmailInbox.Get(PayablesAgentTaskSource."Email Inbox Id") then
-            exit('');
-        exit(CopyStr(EmailInbox."Sender Address", 1, 250));
     end;
 
     // Logs every path that adds a known sender, and separately every path that results in a sender

@@ -3,17 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
 using Microsoft.Utilities;
 using System.Agents;
 using System.AI;
 using System.Environment;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Telemetry;
 
 codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 {
@@ -45,9 +42,9 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
     var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
+        PATask: Codeunit "PA Task";
     begin
-        PageId := PAV1V2Compatibility.GetAgentTaskMessagePageId(AgentUserId, MessageId);
+        PageId := PATask.GetMessagePageId(MessageId);
     end;
 
     procedure GetDefaultInitials(): Text[4]
@@ -77,32 +74,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         exit("Copilot Capability"::"Payables Agent");
     end;
 
-    /// <summary>
-    /// If the current session is a payables agent session, this procedure will return the e-document being processed by the agent.
-    /// </summary>
-    /// <returns>The E-Document being processed by the agent, or an empty record if the session is not from a payables agent.</returns>
-    procedure GetCurrentSessionsEDocument() EDocument: Record "E-Document"
-    var
-        AgentTaskId: BigInteger;
-    begin
-        if not IsPayablesAgentSession(AgentTaskId) then
-            exit;
-        exit(GetEDocumentForAgentTask(AgentTaskId));
-    end;
-
-    local procedure GetEDocumentForAgentTask(AgentTaskId: BigInteger) EDocument: Record "E-Document"
-    var
-        AgentTaskMessage: Record "Agent Task Message";
-        EDocumentEntryNo: Integer;
-    begin
-        AgentTaskMessage.SetRange("Task ID", AgentTaskId);
-        if not AgentTaskMessage.FindFirst() then
-            exit;
-        if not Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
-            exit;
-        if EDocument.Get(EDocumentEntryNo) then;
-    end;
-
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
@@ -122,17 +93,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Task Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
-    end;
-
-    internal procedure SetAgentTaskTitle(AgentTaskID: BigInteger; InvoiceNo: Text[50]; VendorName: Text[100])
-    var
-        AgentTask: Record "Agent Task";
-        TaskTitleLbl: Label 'Invoice %1 from %2', Comment = '%1 is the invoice number, %2 is the vendor name.';
-    begin
-        if AgentTask.Get(AgentTaskID) then begin
-            AgentTask.Title := CopyStr(StrSubstNo(TaskTitleLbl, InvoiceNo, VendorName), 1, MaxStrLen(AgentTask.Title));
-            AgentTask.Modify(true);
-        end;
     end;
 
     internal procedure RegisterCapability()
@@ -199,10 +159,8 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     end;
 
     procedure GetDefaultProfile(var TempAllProfile: Record "All Profile" temporary)
-    var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        PAV1V2Compatibility.GetDefaultProfile(TempAllProfile);
+        PASetup.GetDefaultProfile(TempAllProfile);
     end;
 
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
@@ -212,7 +170,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 
     var
         PAAnnotation: Codeunit "PA Annotation";
-        PASetup: Codeunit "Payables Agent Setup";
+        PASetup: Codeunit "PA Setup";
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
         PayablesAgentTelemetryTok: Label 'Payables Agent', Locked = true;
 }

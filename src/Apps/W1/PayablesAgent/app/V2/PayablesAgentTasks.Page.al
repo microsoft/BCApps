@@ -5,7 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.Purchases.Document;
 using System.Agents;
 
 /// <summary>
@@ -81,10 +80,8 @@ page 3333 "Payables Agent Tasks"
                     Enabled = IsEmailSourced;
 
                     trigger OnAction()
-                    var
-                        PATaskMgt: Codeunit "PA Task Mgt.";
                     begin
-                        PATaskMgt.OpenSourceEmail(GetPayablesAgentTask());
+                        Rec.OpenSourceEmail();
                     end;
                 }
                 action(OpenEmailExternally)
@@ -113,10 +110,8 @@ page 3333 "Payables Agent Tasks"
                     Enabled = IsPdfSourced;
 
                     trigger OnAction()
-                    var
-                        PATaskMgt: Codeunit "PA Task Mgt.";
                     begin
-                        PATaskMgt.DownloadSourcePdf(GetPayablesAgentTask());
+                        Rec.DownloadSourcePdf();
                     end;
                 }
                 action(ViewPdf)
@@ -127,10 +122,8 @@ page 3333 "Payables Agent Tasks"
                     Enabled = IsPdfSourced;
 
                     trigger OnAction()
-                    var
-                        PATaskMgt: Codeunit "PA Task Mgt.";
                     begin
-                        PATaskMgt.OpenSourcePdf(GetPayablesAgentTask());
+                        Rec.OpenSourcePdf();
                     end;
                 }
             }
@@ -142,10 +135,8 @@ page 3333 "Payables Agent Tasks"
                 Enabled = HasSource;
 
                 trigger OnAction()
-                var
-                    PATaskMgt: Codeunit "PA Task Mgt.";
                 begin
-                    PATaskMgt.OpenSource(GetPayablesAgentTask());
+                    Rec.OpenSource();
                 end;
             }
             action(OpenOutcome)
@@ -156,10 +147,8 @@ page 3333 "Payables Agent Tasks"
                 Enabled = HasOutcome;
 
                 trigger OnAction()
-                var
-                    PATaskMgt: Codeunit "PA Task Mgt.";
                 begin
-                    PATaskMgt.OpenOutcome(GetPayablesAgentTask());
+                    Rec.OpenOutcome();
                 end;
             }
             action(RegisterOutcome)
@@ -171,9 +160,11 @@ page 3333 "Payables Agent Tasks"
 
                 trigger OnAction()
                 var
+                    PATask: Codeunit "PA Task";
                     PARegisterOutcome: Page "PA Register Outcome";
                 begin
-                    PARegisterOutcome.SetTask(GetPayablesAgentTask());
+                    Rec.GetTask(PATask);
+                    PARegisterOutcome.SetTask(PATask);
                     if PARegisterOutcome.RunModal() <> Action::OK then
                         exit;
                     RefreshCurrentTask();
@@ -218,20 +209,16 @@ page 3333 "Payables Agent Tasks"
 
     trigger OnOpenPage()
     var
-        PayablesAgentTask: Record "Payables Agent Task";
         PayablesAgent: Codeunit "Payables Agent";
-        PATaskMgt: Codeunit "PA Task Mgt.";
+        PATaskCollection: Codeunit "PA Task Collection";
         AgentTaskID: BigInteger;
     begin
         IsAgentSession := PayablesAgent.IsPayablesAgentSession(AgentTaskID);
-        if IsAgentSession then begin
-            if PATaskMgt.GetCurrentSessionTask(PayablesAgentTask) then
-                InsertDetailedTask(PayablesAgentTask);
-        end else
-            if PayablesAgentTask.FindSet() then
-                repeat
-                    InsertDetailedTask(PayablesAgentTask);
-                until PayablesAgentTask.Next() = 0;
+        PATaskCollection.GetTasks(Rec);
+        if Rec.FindSet() then
+            repeat
+                ResolveDetails();
+            until Rec.Next() = 0;
         if Rec.FindFirst() then;
     end;
 
@@ -247,86 +234,43 @@ page 3333 "Payables Agent Tasks"
     end;
 
     trigger OnAfterGetCurrRecord()
-    var
-        PATaskMgt: Codeunit "PA Task Mgt.";
     begin
-        IsEmailSourced := Rec."Source Data No." <> 0;
-        IsPdfSourced := Rec."Task Data No." <> 0;
+        IsEmailSourced := Rec."Source Type" = Rec."Source Type"::Email;
+        IsPdfSourced := Rec."Has Pdf";
         HasSource := IsEmailSourced or IsPdfSourced;
         HasOutcome := Rec.Outcome.TableNo <> 0;
         EmailWebLink := '';
         if IsEmailSourced then
-            EmailWebLink := PATaskMgt.GetSourceEmailWebLink(GetPayablesAgentTask());
+            EmailWebLink := Rec.GetSourceEmailWebLink();
         HasEmailWebLink := EmailWebLink <> '';
     end;
 
-    local procedure InsertDetailedTask(PayablesAgentTask: Record "Payables Agent Task")
-    begin
-        Rec.Init();
-        Rec.TransferFields(PayablesAgentTask);
-        ResolveDetails(PayablesAgentTask);
-        Rec.Insert();
-    end;
-
     local procedure RefreshCurrentTask()
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
     begin
-        PayablesAgentTask := GetPayablesAgentTask();
-        Rec.TransferFields(PayablesAgentTask);
-        ResolveDetails(PayablesAgentTask);
+        Rec.Refresh();
         Rec.Modify();
+        ResolveDetails();
         CurrPage.Update(false);
     end;
 
     /// <summary>
-    /// Resolves the values of the current Rec that are read from the records the task points to.
+    /// Resolves the displayed values of the current Rec that are not columns of the task record.
     /// </summary>
-    local procedure ResolveDetails(PayablesAgentTask: Record "Payables Agent Task")
+    local procedure ResolveDetails()
     var
         AgentTask: Record "Agent Task";
-        PATaskMgt: Codeunit "PA Task Mgt.";
     begin
-        Rec."Vendor No." := '';
-        Clear(Rec."Agent Task Status");
-        if EntriesWithAgentTask.Contains(PayablesAgentTask."Entry No.") then
-            EntriesWithAgentTask.Remove(PayablesAgentTask."Entry No.");
-        if PayablesAgentTask."Agent Task ID" <> 0 then
-            if AgentTask.Get(PayablesAgentTask."Agent Task ID") then begin
-                Rec."Agent Task Status" := AgentTask.Status;
-                EntriesWithAgentTask.Add(PayablesAgentTask."Entry No.");
-            end;
+        if EntriesWithAgentTask.Contains(Rec."Entry No.") then
+            EntriesWithAgentTask.Remove(Rec."Entry No.");
+        if Rec."Agent Task ID" <> 0 then
+            if AgentTask.Get(Rec."Agent Task ID") then
+                EntriesWithAgentTask.Add(Rec."Entry No.");
         if AgentTask.Title <> '' then
-            TaskNames.Set(PayablesAgentTask."Entry No.", AgentTask.Title)
+            TaskNames.Set(Rec."Entry No.", AgentTask.Title)
         else
-            TaskNames.Set(PayablesAgentTask."Entry No.", StrSubstNo(TaskNameTxt, PayablesAgentTask."Entry No."));
-        SourceDescriptions.Set(PayablesAgentTask."Entry No.", PATaskMgt.DescribeSource(PayablesAgentTask));
-        ResultDescriptions.Set(PayablesAgentTask."Entry No.", DescribeOutcome(PayablesAgentTask));
-    end;
-
-    /// <summary>
-    /// Describes the outcome of the task and sets "Vendor No." on the current Rec when the outcome is a Purchase Invoice.
-    /// </summary>
-    local procedure DescribeOutcome(PayablesAgentTask: Record "Payables Agent Task"): Text
-    var
-        PurchaseHeader: Record "Purchase Header";
-    begin
-        if PayablesAgentTask.Outcome.TableNo = 0 then
-            exit('');
-        if PayablesAgentTask.Outcome.TableNo <> Database::"Purchase Header" then
-            exit(Format(PayablesAgentTask.Outcome));
-
-        PurchaseHeader.SetLoadFields("Document Type", "No.", "Buy-from Vendor No.");
-        if not PurchaseHeader.Get(PayablesAgentTask.Outcome) then
-            exit(Format(PayablesAgentTask.Outcome));
-        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then
-            Rec."Vendor No." := PurchaseHeader."Buy-from Vendor No.";
-        exit(StrSubstNo(PurchaseDocumentTxt, PurchaseHeader."Document Type", PurchaseHeader."No."));
-    end;
-
-    local procedure GetPayablesAgentTask() PayablesAgentTask: Record "Payables Agent Task"
-    begin
-        PayablesAgentTask.Get(Rec."Entry No.");
+            TaskNames.Set(Rec."Entry No.", StrSubstNo(TaskNameTxt, Rec."Entry No."));
+        SourceDescriptions.Set(Rec."Entry No.", Rec.DescribeSource());
+        ResultDescriptions.Set(Rec."Entry No.", Rec.DescribeOutcome());
     end;
 
     var
@@ -346,5 +290,4 @@ page 3333 "Payables Agent Tasks"
         HasEmailWebLink: Boolean;
         AgentTaskStatusHidden: Boolean;
         TaskNameTxt: Label 'Task %1', Comment = '%1 = task entry number';
-        PurchaseDocumentTxt: Label 'Purchase %1 %2', Comment = '%1 = purchase document type, such as Invoice, %2 = document number';
 }

@@ -63,6 +63,8 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
     local procedure UploadInvoiceWithAgent()
     var
         PayablesAgent: Codeunit "Payables Agent";
+        PASetupUpdate: Codeunit "PA Setup Update";
+        PATask: Codeunit "PA Task";
         PATrialGuide: Page "PA Trial Guide";
         FileName: Text;
         InStream: InStream;
@@ -76,8 +78,8 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
             exit;
 
         AgentExistInEnvironment := PayablesAgent.PayablesAgentExistsAcrossAllCompanies();
-        PayablesAgentSetup.EnsureAgentActivated(AlreadyActivated);
-        PayablesAgentSetup.ImportInvoiceFile(FileName, InStream);
+        PASetupUpdate.EnsureActivated(AlreadyActivated);
+        PATask.CreateTaskFromPdf(FileName, InStream);
         Session.LogMessage('0000SEJ', NewWithAgentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
 
         if AgentExistInEnvironment then

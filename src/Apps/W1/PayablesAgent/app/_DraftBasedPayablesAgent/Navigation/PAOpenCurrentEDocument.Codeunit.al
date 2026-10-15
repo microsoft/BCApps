@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
@@ -16,10 +15,12 @@ codeunit 3308 "PA Open Current E-Document"
     trigger OnRun()
     var
         EDocument: Record "E-Document";
-        PayablesAgent: Codeunit "Payables Agent";
+        PATask: Codeunit "PA Task";
         InboundEDocuments: Page "Inbound E-Documents";
     begin
-        EDocument := PayablesAgent.GetCurrentSessionsEDocument();
+        if PATask.LoadCurrentSession() then
+            if PATask.GetSourceRecordId().TableNo() = Database::"E-Document" then
+                if EDocument.Get(PATask.GetSourceRecordId()) then;
         EDocument.SetRecFilter();
         InboundEDocuments.SetTableView(EDocument);
         InboundEDocuments.Run();

@@ -3,10 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.VAT.Registration;
@@ -14,25 +12,27 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Integration.Entity;
 using System.Agents;
 using System.Diagnostics;
+using System.Email;
 using System.Security.AccessControl;
 using System.Utilities;
 
 /// <summary>
-/// The permissionset that the agent will be assigned to when they are created in the system. This permissionset is used to give the agent access to the pages and actions that are needed to perform their tasks.
+/// The permission set assigned to the agent when created under Payables Agent v2 (task-based flow). Gives the agent
+/// access to its tasks, their email and PDF sources, and what it needs to create purchase documents. Selected by
+/// "PA Setup".GetDefaultAccessControls.
 /// </summary>
-permissionset 3303 "Payables Ag. - Run"
+permissionset 3346 "Payables Ag. - RunV2"
 {
-    Caption = 'Payables Agent - Run', Comment = 'Payables Agent is a term, and should not be translated.';
+    Caption = 'Payables Agent - Run (v2)', Comment = 'Payables Agent is a term, and should not be translated.';
     Assignable = true;
     IncludedPermissionSets =
         // Basic permissions to access the system
         "D365 Basic - Read",
         "D365 READ",
         "LOCAL",
-        // Permissions to be able to interact with e-documents and create purchase documents
+        // Permissions to create purchase documents and vendors
         "D365 PURCH DOC, EDIT",
-        "D365 VENDOR, EDIT",
-        "E-Doc. Core - User";
+        "D365 VENDOR, EDIT";
 
     Permissions =
         // Missing permissions to create purchase documents
@@ -45,14 +45,16 @@ permissionset 3303 "Payables Ag. - Run"
         tabledata "Dimension Set Tree Node" = im,
         // Missing permissions for vendor creation
         tabledata "VAT Registration Log" = i, // Validating VAT Registration No. on the vendor card writes an audit entry to the VAT Registration Log
-    // Change Log
-    tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)
-    // Other
-    tabledata "Agent Task Message" = R, // Needed to add the filter of the e-documents that are available for the current session of the agent
-    tabledata "Agent Task" = RM, // Needed to read the agent task from the inbound e-document page and update the agent task title when the agent picks up an e-document
-    tabledata "PA Known Sender" = RI; // Read for dedup check + insert on agent-driven processing steps. Modify/Delete reserved for admins.
+        // Change Log
+        tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)
+        // Payables Agent tasks: "Payables Agent Task", "... Source" and "... Data" carry inherent permissions.
+        tabledata "Email Inbox" = R, // Read the source email (sender, subject, body) through the Email module
+        // Other
+        tabledata "Agent Task Message" = R, // Needed to resolve the task the current session works on
+        tabledata "Agent Task" = RM, // Needed to read the agent task status and update the agent task title
+        tabledata "PA Known Sender" = RI; // Read for dedup check + insert on agent-driven processing steps. Modify/Delete reserved for admins.
 
     ExcludedPermissionSets =
         // Permissions that are not needed for the agent to perform their tasks
-        "Payables Ag. - Excluded";
+        "Payables Ag. - ExcV2";
 }

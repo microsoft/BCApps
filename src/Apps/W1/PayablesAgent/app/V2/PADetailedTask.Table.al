@@ -3,15 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 
 /// <summary>
-/// A Payables Agent Task together with values resolved from the records it points to, for display only.
-/// Fields 1 to 7 mirror "Payables Agent Task" so the two can be copied with TransferFields.
+/// A Payables Agent task together with values resolved from the records it points to: the source table of task
+/// lists (computed values become real, sortable columns) and the single record passed around to describe a task.
+/// Populated by the "PA Task" and "PA Task Collection" facades, whatever backs the task (e-document in v1, Payables
+/// Agent task in v2). Fields 1 to 7 mirror "Payables Agent Task" so the two can be copied with TransferFields.
+/// The procedures load this record into a "PA Task" instance and delegate to it.
 /// </summary>
 table 3332 "PA Detailed Task"
 {
@@ -125,39 +127,120 @@ table 3332 "PA Detailed Task"
     /// not come from an email or the email is no longer available.
     /// </summary>
     procedure GetSourceEmailBody(): Text
-    var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        exit(PAV1V2Compatibility.GetSourceEmailBody(Rec));
+        PATask.LoadFromRecord(Rec);
+        exit(PATask.GetSourceEmailBody());
     end;
 
     /// <summary>
     /// Outlook on the web link of the source email. Blank when there is no email or no external message id.
     /// </summary>
     procedure GetSourceEmailWebLink(): Text
-    var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        exit(PAV1V2Compatibility.GetSourceEmailWebLink(Rec));
+        PATask.LoadFromRecord(Rec);
+        exit(PATask.GetSourceEmailWebLink());
     end;
 
     /// <summary>
-    /// Opens the source PDF from where it is persisted (the Payables Agent task data in v2, the e-document in v1).
+    /// Describes what the task came from.
+    /// </summary>
+    procedure DescribeSource(): Text
+    begin
+        PATask.LoadFromRecord(Rec);
+        exit(PATask.DescribeSource());
+    end;
+
+    /// <summary>
+    /// Describes the record registered as the task outcome.
+    /// </summary>
+    procedure DescribeOutcome(): Text
+    begin
+        PATask.LoadFromRecord(Rec);
+        exit(PATask.DescribeOutcome());
+    end;
+
+    /// <summary>
+    /// Opens what the task came from.
+    /// </summary>
+    procedure OpenSource()
+    begin
+        PATask.LoadFromRecord(Rec);
+        PATask.OpenSource();
+    end;
+
+    /// <summary>
+    /// Opens the email the task came from.
+    /// </summary>
+    procedure OpenSourceEmail()
+    begin
+        PATask.LoadFromRecord(Rec);
+        PATask.OpenSourceEmail();
+    end;
+
+    /// <summary>
+    /// Opens the source PDF in a page.
+    /// </summary>
+    procedure OpenSourcePdf()
+    begin
+        PATask.LoadFromRecord(Rec);
+        PATask.OpenSourcePdf();
+    end;
+
+    /// <summary>
+    /// Opens the source PDF in the client file viewer, from where it is persisted.
     /// </summary>
     procedure ViewSourcePdf()
-    var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        PAV1V2Compatibility.ViewSourcePdf(Rec);
+        PATask.LoadFromRecord(Rec);
+        PATask.ViewSourcePdf();
     end;
 
     /// <summary>
     /// Downloads the source PDF from where it is persisted.
     /// </summary>
     procedure DownloadSourcePdf()
-    var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
     begin
-        PAV1V2Compatibility.DownloadSourcePdf(Rec);
+        PATask.LoadFromRecord(Rec);
+        PATask.DownloadSourcePdf();
     end;
+
+    /// <summary>
+    /// Registers the record the task produced as its outcome, and refreshes this record.
+    /// </summary>
+    procedure RegisterOutcome(OutcomeRecordId: RecordId)
+    begin
+        PATask.LoadFromRecord(Rec);
+        PATask.RegisterOutcome(OutcomeRecordId);
+        PATask.GetRecord(Rec);
+    end;
+
+    /// <summary>
+    /// Opens the record registered as the task outcome.
+    /// </summary>
+    procedure OpenOutcome()
+    begin
+        PATask.LoadFromRecord(Rec);
+        PATask.OpenOutcome();
+    end;
+
+    /// <summary>
+    /// Re-reads this task from where it is persisted.
+    /// </summary>
+    procedure Refresh()
+    begin
+        PATask.LoadFromRecord(Rec);
+        PATask.Refresh();
+        PATask.GetRecord(Rec);
+    end;
+
+    /// <summary>
+    /// Loads this task into a "PA Task" facade instance.
+    /// </summary>
+    procedure GetTask(var PATaskToLoad: Codeunit "PA Task")
+    begin
+        PATaskToLoad.LoadFromRecord(Rec);
+    end;
+
+    var
+        PATask: Codeunit "PA Task";
 }

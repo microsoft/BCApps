@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
@@ -50,7 +49,7 @@ page 3312 "PA Agent Upload Task"
 
                 trigger OnAction()
                 begin
-                    PADetailedTask.ViewSourcePdf();
+                    PATask.ViewSourcePdf();
                 end;
             }
         }
@@ -62,16 +61,15 @@ page 3312 "PA Agent Upload Task"
     }
 
     var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
-        PADetailedTask: Record "PA Detailed Task";
+        PATask: Codeunit "PA Task";
         FileName: Text;
         ViewPDFVisible: Boolean;
         UploadedInvoiceTxt: Label 'Uploaded invoice';
 
     trigger OnAfterGetCurrRecord()
     begin
-        PAV1V2Compatibility.LoadPADetailedTask(Rec, PADetailedTask);
-        FileName := PADetailedTask."File Name";
-        ViewPDFVisible := PADetailedTask."Has Pdf";
+        if PATask.Load(Rec."Task ID") then;
+        FileName := PATask.GetFileName();
+        ViewPDFVisible := PATask.HasPdf();
     end;
 }

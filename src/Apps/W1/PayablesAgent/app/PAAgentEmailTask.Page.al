@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
@@ -71,7 +70,7 @@ page 3305 "PA Agent Email Task"
                 var
                     WebLink: Text;
                 begin
-                    WebLink := SourceBuffer.GetSourceEmailWebLink();
+                    WebLink := PATask.GetSourceEmailWebLink();
                     if WebLink <> '' then
                         HyperLink(WebLink);
                 end;
@@ -86,7 +85,7 @@ page 3305 "PA Agent Email Task"
 
                 trigger OnAction()
                 begin
-                    SourceBuffer.ViewSourcePdf();
+                    PATask.ViewSourcePdf();
                 end;
             }
         }
@@ -101,8 +100,7 @@ page 3305 "PA Agent Email Task"
     }
 
     var
-        PAV1V2Compatibility: Codeunit "PA V1V2 Compatibility";
-        SourceBuffer: Record "PA Detailed Task" temporary;
+        PATask: Codeunit "PA Task";
         EmailSubject: Text;
         EmailFrom: Text;
         EmailContent: Text;
@@ -112,19 +110,19 @@ page 3305 "PA Agent Email Task"
 
     trigger OnAfterGetCurrRecord()
     begin
-        PAV1V2Compatibility.LoadPADetailedTask(Rec, SourceBuffer);
-        EmailFrom := SourceBuffer."Email From";
-        EmailSubject := SourceBuffer."Email Subject";
-        EmailContent := SourceBuffer.GetSourceEmailBody();
-        ViewPDFVisible := SourceBuffer."Has Pdf";
+        if PATask.Load(Rec."Task ID") then;
+        EmailFrom := PATask.GetEmailFrom();
+        EmailSubject := PATask.GetEmailSubject();
+        EmailContent := PATask.GetSourceEmailBody();
+        ViewPDFVisible := PATask.HasPdf();
     end;
 
     local procedure GetCaption(): Text[250]
     var
-        LocalBuffer: Record "PA Detailed Task" temporary;
+        CaptionPATask: Codeunit "PA Task";
     begin
-        PAV1V2Compatibility.LoadPADetailedTask(Rec, LocalBuffer);
-        if LocalBuffer."Has Pdf" then
+        if CaptionPATask.Load(Rec."Task ID") then;
+        if CaptionPATask.HasPdf() then
             exit(PDFReceivedFromEmailTxt);
         exit(NoPDFReceivedFromEmailTxt);
     end;
