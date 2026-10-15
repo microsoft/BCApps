@@ -5,11 +5,13 @@
 
 namespace System.MCP;
 
+using System.Agents;
 using System.Azure.Identity;
 using System.Environment;
 using System.Feedback;
 using System.Integration;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Text;
 using System.Utilities;
 
@@ -18,6 +20,7 @@ codeunit 8351 "MCP Config Implementation"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata User = r;
 
     var
         DefaultConfigCannotBeDeactivatedErr: Label 'The default configuration cannot be deactivated.';
@@ -71,6 +74,8 @@ codeunit 8351 "MCP Config Implementation"
         MCPServerFeedbackQst: Label 'What could we do to improve the MCP server experience?';
         NoActiveConfigsFeedbackTxt: Label 'No active configs feedback triggered', Locked = true;
         GeneralFeedbackTxt: Label 'General MCP feedback triggered', Locked = true;
+        AgentNotFoundErr: Label 'The selected agent no longer exists.';
+        AgentNotEligibleErr: Label 'Only active custom agents can be added to an MCP configuration.';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -160,7 +165,7 @@ codeunit 8351 "MCP Config Implementation"
             MarkSystemDefaultAsDefault();
 
         LogConfigurationDeleted(MCPConfiguration);
-        MCPConfiguration.Delete();
+        MCPConfiguration.Delete(true);
     end;
 
     internal procedure CopyConfiguration(SourceConfigId: Guid)
@@ -194,6 +199,7 @@ codeunit 8351 "MCP Config Implementation"
         NewMCPConfiguration.Insert();
 
         CopyTools(SourceMCPConfiguration, NewMCPConfiguration);
+        CopyAgents(SourceMCPConfiguration, NewMCPConfiguration);
 
         LogConfigurationCreated(NewMCPConfiguration);
         exit(NewMCPConfiguration.SystemId);
@@ -213,6 +219,22 @@ codeunit 8351 "MCP Config Implementation"
             NewMCPConfigurationTool.ID := NewConfig.SystemId;
             NewMCPConfigurationTool.Insert();
         until SourceMCPConfigurationTool.Next() = 0;
+    end;
+
+    local procedure CopyAgents(SourceConfig: Record "MCP Configuration"; NewConfig: Record "MCP Configuration")
+    var
+        SourceMCPConfigurationAgent: Record "MCP Configuration Agent";
+        NewMCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        SourceMCPConfigurationAgent.SetRange(ID, SourceConfig.SystemId);
+        if not SourceMCPConfigurationAgent.FindSet() then
+            exit;
+
+        repeat
+            NewMCPConfigurationAgent.Copy(SourceMCPConfigurationAgent);
+            NewMCPConfigurationAgent.ID := NewConfig.SystemId;
+            NewMCPConfigurationAgent.Insert();
+        until SourceMCPConfigurationAgent.Next() = 0;
     end;
 
     internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
@@ -307,6 +329,29 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             MCPConfiguration.Init(); // not persisted yet (new config): reflect the table default (InitValue)
         exit(MCPConfiguration.EnableAlQueryTools);
+    end;
+
+    internal procedure EnableAgents(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        xMCPConfiguration := MCPConfiguration;
+        MCPConfiguration.EnableAgents := Enable;
+        MCPConfiguration.Modify();
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
+    end;
+
+    internal procedure IsAgentsEnabled(ConfigId: Guid): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            MCPConfiguration.Init();
+        exit(MCPConfiguration.EnableAgents);
     end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
@@ -556,14 +601,95 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfigurationTool.SystemId);
     end;
 
-    internal procedure DeleteTool(ToolId: Guid)
+    internal procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        Agent: Record Agent;
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+
+        if not TryGetAgent(AgentUserSecurityId, Agent) then
+            Error(AgentNotFoundErr);
+
+        if not IsAgentEligible(Agent) then
+            Error(AgentNotEligibleErr);
+
+        exit(InsertAgentTool(ConfigId, Agent));
+    end;
+
+    internal procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        EmptyGuid: Guid;
+    begin
+        if MCPConfigurationAgent.Get(ConfigId, AgentUserSecurityId) then
+            exit(MCPConfigurationAgent.SystemId);
+
+        exit(EmptyGuid);
+    end;
+
+    internal procedure IsAgentEligible(Agent: Record Agent): Boolean
+    begin
+        if Agent.State <> Agent.State::Enabled then
+            exit(false);
+
+        if Agent.Substate <> Agent.Substate::None then
+            exit(false);
+
+        if Agent."Agent Metadata Provider" = Agent."Agent Metadata Provider"::"Personal Agent" then
+            exit(false);
+
+        exit(Agent."Publisher Type" in [Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party"]);
+    end;
+
+    internal procedure SetEligibleAgentFilters(var Agent: Record Agent)
+    begin
+        Agent.SetRange(State, Agent.State::Enabled);
+        Agent.SetRange(Substate, Agent.Substate::None);
+        Agent.SetFilter("Agent Metadata Provider", '<>%1', Agent."Agent Metadata Provider"::"Personal Agent");
+        Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
+    end;
+
+    local procedure TryGetAgent(AgentUserSecurityId: Guid; var Agent: Record Agent): Boolean
+    var
+        User: Record User;
+    begin
+        if not User.Get(AgentUserSecurityId) then
+            exit(false);
+
+        exit(Agent.Get(AgentUserSecurityId));
+    end;
+
+    local procedure InsertAgentTool(ConfigId: Guid; Agent: Record Agent): Guid
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        MCPConfigurationAgent.ID := ConfigId;
+        MCPConfigurationAgent."Agent ID" := Agent."User Security ID";
+        MCPConfigurationAgent."Agent Name" := Agent."Display Name";
+        MCPConfigurationAgent.Insert();
+        exit(MCPConfigurationAgent.SystemId);
+    end;
+
+    internal procedure DeleteAPITool(APIToolId: Guid)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        if not MCPConfigurationTool.GetBySystemId(ToolId) then
+        if not MCPConfigurationTool.GetBySystemId(APIToolId) then
             exit;
 
         MCPConfigurationTool.Delete();
+    end;
+
+    internal procedure DeleteAgentTool(AgentToolId: Guid)
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        if not MCPConfigurationAgent.GetBySystemId(AgentToolId) then
+            exit;
+
+        MCPConfigurationAgent.Delete();
     end;
 
     internal procedure AllowRead(ToolId: Guid; Allow: Boolean)
@@ -1436,6 +1562,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigJson: JsonObject;
         ToolsArray: JsonArray;
+        AgentsArray: JsonArray;
         ToolJson: JsonObject;
         OutputText: Text;
     begin
@@ -1449,6 +1576,7 @@ codeunit 8351 "MCP Config Implementation"
         ConfigJson.Add('allowProdChanges', MCPConfiguration.AllowProdChanges);
         ConfigJson.Add('enableApiTools', MCPConfiguration.EnableApiTools);
         ConfigJson.Add('enableAlQueryTools', MCPConfiguration.EnableAlQueryTools);
+        ConfigJson.Add('enableAgents', MCPConfiguration.EnableAgents);
 
         MCPConfigurationTool.SetRange(ID, ConfigId);
         if MCPConfigurationTool.FindSet() then
@@ -1466,8 +1594,26 @@ codeunit 8351 "MCP Config Implementation"
             until MCPConfigurationTool.Next() = 0;
 
         ConfigJson.Add('tools', ToolsArray);
+        ExportAgents(ConfigId, AgentsArray);
+        ConfigJson.Add('agents', AgentsArray);
         ConfigJson.WriteTo(OutputText);
         OutStream.WriteText(OutputText);
+    end;
+
+    local procedure ExportAgents(ConfigId: Guid; var AgentsArray: JsonArray)
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        AgentJson: JsonObject;
+    begin
+        MCPConfigurationAgent.SetRange(ID, ConfigId);
+        if not MCPConfigurationAgent.FindSet() then
+            exit;
+
+        repeat
+            Clear(AgentJson);
+            AgentJson.Add('agentId', Format(MCPConfigurationAgent."Agent ID", 0, 9));
+            AgentsArray.Add(AgentJson);
+        until MCPConfigurationAgent.Next() = 0;
     end;
 
     local procedure GetConfigFromJson(var InStream: InStream; var ConfigName: Text[100]; var ConfigDescription: Text[250]): Boolean
@@ -1496,7 +1642,9 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration: Record "MCP Configuration";
         ConfigJson: JsonObject;
         ToolsArray: JsonArray;
+        AgentsArray: JsonArray;
         ToolToken: JsonToken;
+        AgentToken: JsonToken;
         InputText: Text;
     begin
         InStream.ReadText(InputText);
@@ -1523,6 +1671,9 @@ codeunit 8351 "MCP Config Implementation"
         if ConfigJson.Contains('enableAlQueryTools') then
             MCPConfiguration.EnableAlQueryTools := ConfirmDataQueryToolsOnImport(ConfigJson.GetBoolean('enableAlQueryTools'));
 
+        if ConfigJson.Contains('enableAgents') then
+            MCPConfiguration.EnableAgents := ConfigJson.GetBoolean('enableAgents');
+
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);
 
@@ -1530,6 +1681,12 @@ codeunit 8351 "MCP Config Implementation"
             ToolsArray := ConfigJson.GetArray('tools');
             foreach ToolToken in ToolsArray do
                 ImportTool(MCPConfiguration.SystemId, ToolToken.AsObject());
+        end;
+
+        if ConfigJson.Contains('agents') then begin
+            AgentsArray := ConfigJson.GetArray('agents');
+            foreach AgentToken in AgentsArray do
+                ImportAgent(MCPConfiguration.SystemId, AgentToken.AsObject());
         end;
 
         exit(MCPConfiguration.SystemId);
@@ -1590,6 +1747,30 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfigurationTool.Insert();
     end;
+
+    local procedure ImportAgent(ConfigId: Guid; AgentJson: JsonObject)
+    var
+        Agent: Record Agent;
+        AgentIdToken: JsonToken;
+        AgentId: Guid;
+    begin
+        if not AgentJson.Get('agentId', AgentIdToken) then
+            Error(InvalidJsonErr);
+        if not AgentIdToken.IsValue() then
+            Error(InvalidJsonErr);
+        if AgentIdToken.AsValue().IsNull() then
+            Error(InvalidJsonErr);
+        if not Evaluate(AgentId, AgentIdToken.AsValue().AsText()) then
+            Error(InvalidJsonErr);
+
+        if not TryGetAgent(AgentId, Agent) then
+            exit;
+
+        if not IsAgentEligible(Agent) then
+            exit;
+
+        InsertAgentTool(ConfigId, Agent);
+    end;
     #endregion
 
     #region Feedback
@@ -1635,6 +1816,7 @@ codeunit 8351 "MCP Config Implementation"
         Dimensions.Add('UnblockEditTools', Format(MCPConfiguration.AllowProdChanges));
         Dimensions.Add('DynamicToolMode', Format(MCPConfiguration.EnableDynamicToolMode));
         Dimensions.Add('DiscoverReadOnlyObjects', Format(MCPConfiguration.DiscoverReadOnlyObjects));
+        Dimensions.Add('EnableAgents', Format(MCPConfiguration.EnableAgents));
     end;
 
     internal procedure GetTelemetryCategory(): Text[50]
@@ -1677,6 +1859,10 @@ codeunit 8351 "MCP Config Implementation"
         if MCPConfiguration.EnableAlQueryTools <> xMCPConfiguration.EnableAlQueryTools then begin
             Dimensions.Add('OldDataQueryTools', Format(xMCPConfiguration.EnableAlQueryTools));
             Dimensions.Add('NewDataQueryTools', Format(MCPConfiguration.EnableAlQueryTools));
+        end;
+        if MCPConfiguration.EnableAgents <> xMCPConfiguration.EnableAgents then begin
+            Dimensions.Add('OldEnableAgents', Format(xMCPConfiguration.EnableAgents));
+            Dimensions.Add('NewEnableAgents', Format(MCPConfiguration.EnableAgents));
         end;
         Session.LogMessage('0000QE9', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);

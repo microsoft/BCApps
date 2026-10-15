@@ -9,6 +9,8 @@ codeunit 139494 "API Test Auth Provider Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -23,9 +25,10 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryUtility: Codeunit "Library - Utility";
         WebServiceManagement: Codeunit "Web Service Management";
+        IdentityManagement: Codeunit "Identity Management";
         SecondLibraryGraphMgt: Codeunit "Library - Graph Mgt";
-        FirstHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        FirstHttpRequestMessage: HttpRequestMessage;
+        SecondHttpRequestMessage: HttpRequestMessage;
         IsInitialized: Boolean;
         TargetURLTok: Label 'http://127.0.0.1/', Locked = true;
         ProviderCallTok: Label 'Provider|%1', Locked = true, Comment = '%1 - Provider invocation number';
@@ -33,17 +36,81 @@ codeunit 139494 "API Test Auth Provider Tests"
         UnexpectedCallErr: Label 'Unexpected authentication call.';
 
     [Test]
-    procedure DefaultAuthenticationDoesNotConfigureRequest()
+    [NonDebuggable]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure MissingKeyIsCreatedForRequest()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
     begin
-        // [SCENARIO] The default API test authentication does not configure the request
+        // [SCENARIO] First-use authentication creates a key visible to the independent HTTP session
         Initialize();
 
-        // [GIVEN] A Graph library instance without an explicitly selected provider
+        // [GIVEN] The current user's key is missing at a committed fixture boundary
+        IdentityManagement.ClearWebServicesKey(UserSecurityId());
+        Commit();
+        TargetURL := GetUrl(ClientType::ODataV4);
 
-        // [WHEN] A web request is initialized
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        // [WHEN] A request uses the default provider without explicit selection
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
-        // [THEN] Only the final request event is raised
+        // [THEN] The request authenticates and only NavUserPassword requires a generated key
+        VerifyKeyPresenceForServerMode();
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    [NonDebuggable]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ExistingKeySurvivesLibraryReset()
+    var
+        ExistingKey: Text[80];
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] A committed non-expiring key is reused across Graph library instances
+        Initialize();
+
+        // [GIVEN] The current user has a committed key without an expiry
+        ExistingKey := IdentityManagement.CreateWebServicesKeyNoExpiry(UserSecurityId());
+        Commit();
+        TargetURL := GetUrl(ClientType::ODataV4);
+
+        // [WHEN] Two independently initialized library instances authenticate
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Clear(LibraryGraphMgt);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] Neither the key nor its expiry is changed
+        VerifyExistingKey(ExistingKey);
+        Clear(ExistingKey);
+        VerifyNextCall(EventCallTok);
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    [NonDebuggable]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ExpiredKeyIsRenewedBeforeHttpRequest()
+    var
+        ExpiredKey: Text[80];
+        ResponseText: Text;
+    begin
+        // [SCENARIO] NavUserPassword authentication replaces an expired key before the API request
+        Initialize();
+
+        // [GIVEN] The current user has a committed expired key
+        ExpiredKey := IdentityManagement.CreateWebServicesKey(UserSecurityId(), CurrentDateTime() - 60000);
+        Commit();
+
+        // [WHEN] The default provider sends the request
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, GetUrl(ClientType::ODataV4), 200);
+
+        // [THEN] NavUserPassword renews the key while ambient authentication leaves it untouched
+        VerifyExpiredKeyForServerMode(ExpiredKey);
+        Clear(ExpiredKey);
         VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
@@ -58,7 +125,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] A web request is initialized
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
 
         // [THEN] The selected provider configures authentication
         VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
@@ -78,8 +145,8 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Two web requests are initialized through the same Graph library instance
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
-        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpRequestMessage, TargetURLTok);
 
         // [THEN] The same provider instance handles both requests
         VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
@@ -95,12 +162,12 @@ codeunit 139494 "API Test Auth Provider Tests"
         // [SCENARIO] Authentication provider selection is scoped to a Graph library instance
         Initialize();
 
-        // [GIVEN] Two Graph library instances where only the first uses the mock provider
+        // [GIVEN] One Graph library instance using the mock provider and another using the default
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Each Graph library instance initializes a web request
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
-        SecondLibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
+        SecondLibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpRequestMessage, TargetURLTok);
 
         // [THEN] Only the first request uses the mock provider
         VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
@@ -117,11 +184,11 @@ codeunit 139494 "API Test Auth Provider Tests"
 
         // [GIVEN] A request has used the selected provider
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
 
         // [WHEN] Initialization selects the same provider before another request
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
-        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpRequestMessage, TargetURLTok);
 
         // [THEN] The provider instance retains its invocation count
         VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
@@ -132,18 +199,18 @@ codeunit 139494 "API Test Auth Provider Tests"
     end;
 
     [Test]
-    procedure SelectingNoneStopsConfiguringRequests()
+    procedure SelectingDefaultRestoresDefaultAuthentication()
     begin
-        // [SCENARIO] Selecting None replaces the previously selected provider
+        // [SCENARIO] Selecting Default replaces the previously selected mock provider
         Initialize();
 
         // [GIVEN] A request has used the mock provider
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
 
-        // [WHEN] Authentication is deselected before another request
-        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
-        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
+        // [WHEN] Default authentication is selected before another request
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Default);
+        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpRequestMessage, TargetURLTok);
 
         // [THEN] Only the first request invokes the mock provider
         VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
@@ -255,8 +322,8 @@ codeunit 139494 "API Test Auth Provider Tests"
     begin
         Clear(LibraryGraphMgt);
         Clear(SecondLibraryGraphMgt);
-        Clear(FirstHttpWebRequestMgt);
-        Clear(SecondHttpWebRequestMgt);
+        Clear(FirstHttpRequestMessage);
+        Clear(SecondHttpRequestMessage);
         // The manually bound instance owns both recording and verification, including cleanup after a failed test.
         APITestAuthProviderTests.ClearRecordedCalls();
         if IsInitialized then
@@ -273,6 +340,42 @@ codeunit 139494 "API Test Auth Provider Tests"
         WebServiceManagement.CreateTenantWebService(
             TenantWebService."Object Type"::Page, Page::"Customer List", LibraryUtility.GenerateGUID(), true);
         exit(LibraryGraphMgt.CreateTargetURL('', Page::"Customer List", ''));
+    end;
+
+    [NonDebuggable]
+    local procedure GetCurrentWebServiceKey(): Text[80]
+    var
+        WebServiceKey: Text[80];
+    begin
+        ClearLastError();
+        WebServiceKey := IdentityManagement.GetWebServicesKey(UserSecurityId());
+        Assert.IsTrue(GetLastErrorText() = '', 'The current user key must be readable.');
+        exit(WebServiceKey);
+    end;
+
+    [NonDebuggable]
+    local procedure VerifyKeyPresenceForServerMode()
+    begin
+        Assert.AreEqual(
+            IdentityManagement.IsUserNamePasswordAuthentication(), GetCurrentWebServiceKey() <> '',
+            'Only NavUserPassword authentication should provision a key for the request.');
+    end;
+
+    [NonDebuggable]
+    local procedure VerifyExistingKey(ExistingKey: Text[80])
+    begin
+        Assert.IsTrue(ExistingKey = GetCurrentWebServiceKey(), 'Authentication must not rotate an existing key.');
+        Assert.AreEqual(0DT, IdentityManagement.GetWebServiceExpiryDate(UserSecurityId()), 'A non-expiring key must stay non-expiring.');
+    end;
+
+    [NonDebuggable]
+    local procedure VerifyExpiredKeyForServerMode(ExpiredKey: Text[80])
+    begin
+        if IdentityManagement.IsUserNamePasswordAuthentication() then begin
+            Assert.IsTrue(ExpiredKey <> GetCurrentWebServiceKey(), 'An expired key must be replaced.');
+            Assert.IsTrue(IdentityManagement.GetWebServiceExpiryDate(UserSecurityId()) > CurrentDateTime(), 'The replacement key must not be expired.');
+        end else
+            Assert.IsTrue(ExpiredKey = GetCurrentWebServiceKey(), 'Ambient authentication must not change the key.');
     end;
 
     local procedure VerifyNextCall(ExpectedCall: Text)
@@ -307,7 +410,7 @@ codeunit 139494 "API Test Auth Provider Tests"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", OnAfterInitializeWebRequestWithURL, '', false, false)]
-    local procedure RecordFinalRequestEvent(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure RecordFinalRequestEvent(var HttpRequestMessage: HttpRequestMessage)
     begin
         LibraryVariableStorage.Enqueue(EventCallTok);
     end;
