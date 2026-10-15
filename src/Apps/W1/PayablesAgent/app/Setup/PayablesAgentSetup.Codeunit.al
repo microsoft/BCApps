@@ -49,6 +49,8 @@ codeunit 3307 "Payables Agent Setup"
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         OutlookSetup: Record "Outlook Setup";
         AgentSetup: Codeunit "Agent Setup";
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
+        BusinessSkillsEnabled: Boolean;
     begin
         // Skipping configuring the Agent framework records is valid in tests
         if not PASetupConfiguration.GetSkipAgentConfiguration() then begin
@@ -65,6 +67,8 @@ codeunit 3307 "Payables Agent Setup"
         end;
 
         PayablesAgentSetup.GetSetup();
+        if AgentFeatureMgt.TryGetBusinessSkillsEnabled(PayablesAgentSetup."User Security Id", BusinessSkillsEnabled) then
+            PayablesAgentSetup."Use Business Skills" := BusinessSkillsEnabled;
         if EDocumentService.Get(PayablesAgentSetup."E-Document Service Code") then;
         if OutlookSetup.Get() then;
 
@@ -83,6 +87,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup: Record "Payables Agent Setup";
         TempPayablesAgentSetup: Record "Payables Agent Setup" temporary;
         OutlookSetup: Record "Outlook Setup";
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
         AzureADGraphUser: Codeunit "Azure AD Graph User";
         EnvironmentInformation: Codeunit "Environment Information";
         PADemoGuide: Codeunit "PA Demo Guide";
@@ -174,6 +179,7 @@ codeunit 3307 "Payables Agent Setup"
 
         // We apply the changes to the E-Document Service related records
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
+        AgentFeatureMgt.SetBusinessSkillsEnabled(PayablesAgentSetup."User Security Id", PayablesAgentSetup."Use Business Skills");
         PayablesAgentSetup.Modify();
 
         EDocPOMatching.ConfigureDefaultPOMatchingSettings();
@@ -652,11 +658,17 @@ codeunit 3307 "Payables Agent Setup"
     procedure ImportInvoiceFile(FileName: Text; InStream: InStream)
     var
         EDocument: Record "E-Document";
+    begin
+        ImportInvoiceFile(FileName, FileName, InStream, EDocument);
+    end;
+
+    internal procedure ImportInvoiceFile(FileName: Text; SourceDetails: Text; InStream: InStream; var EDocument: Record "E-Document")
+    var
         EDocImport: Codeunit "E-Doc. Import";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
     begin
         EDocImport.CreateFromType(EDocument, PayablesAgentSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileName, InStream);
-        EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
+        EDocument."Source Details" := CopyStr(SourceDetails, 1, MaxStrLen(EDocument."Source Details"));
         EDocument.Modify();
         EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
     end;

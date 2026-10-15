@@ -377,6 +377,22 @@ page 3304 "Payables Agent Setup"
                     }
                 }
             }
+            group(BusinessSkills)
+            {
+                Caption = 'Business Skills';
+                InstructionalText = 'Use company-specific Business Skills skills to guide invoice coding decisions.';
+
+                field(UseBusinessSkills; Rec."Use Business Skills")
+                {
+                    Caption = 'Use Business Skills';
+                    ToolTip = 'Specifies whether Payables Agent asks Business Skills for applicable company guidance when processing invoice lines.';
+
+                    trigger OnValidate()
+                    begin
+                        SetupChanged := true;
+                    end;
+                }
+            }
         }
     }
     actions

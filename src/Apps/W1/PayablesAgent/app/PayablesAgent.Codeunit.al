@@ -10,13 +10,14 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Utilities;
 using System.Agents;
+using System.Agents.Internal;
 using System.AI;
 using System.Environment;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Telemetry;
 
-codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
+codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentExperimental
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -27,6 +28,16 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     trigger OnInstallAppPerDatabase()
     begin
         RegisterCapability();
+    end;
+
+    trigger OnInstallAppPerCompany()
+    var
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
+        DemoSetupMgt: Codeunit "PA Business Skills Demo Mgt.";
+    begin
+        AgentFeatureMgt.MigrateBusinessSkillsSetting();
+        if DemoSetupMgt.PreviousBusinessSkillsCanBeRefreshed() then
+            DemoSetupMgt.RefreshBusinessSkills();
     end;
 
     procedure GetSetupPageId(AgentUserId: Guid): Integer
@@ -42,6 +53,19 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     procedure GetAgentAnnotations(AgentUserId: Guid; var Annotations: Record "Agent Annotation")
     begin
         PAAnnotation.GetAgentAnnotations(AgentUserId, Annotations);
+    end;
+
+    procedure GetPageScripts(AgentUserId: Guid; var AgentTaskPageScript: Record "Agent Task Page Script")
+    begin
+    end;
+
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
+    var
+        AgentFeatureMgt: Codeunit "PA Agent Feature Mgt.";
+    begin
+        if Feature <> Feature::BusinessIQ then
+            exit(false);
+        exit(AgentFeatureMgt.IsBusinessSkillsEnabled(AgentUserId));
     end;
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
@@ -216,7 +240,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         Message := StrSubstNo(MessageLbl, EDocument."Entry No");
         AgentTaskTitle := CopyStr(StrSubstNo(TaskTitleLbl, LowerCase(EDocument."Source Details")), 1, MaxStrLen(AgentTaskTitle));
 
-        ExcludeBilling := false;
+        ExcludeBilling := IsBusinessSkillsDemoEDocument(EDocument);
         if PATrial.IsActive() then begin
             PATrial.IncrementTrialInvoiceCount();
             TelemetryDictionary := PayablesAgent.GetCustomDimensions();
@@ -238,6 +262,11 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
             .AddTaskMessage(AgentTaskMessageBuilder)
             .SetBillingContext(ExcludeBilling ? Enum::"Agent Task Billing Context"::Excluded : Enum::"Agent Task Billing Context"::Default)
             .Create();
+    end;
+
+    local procedure IsBusinessSkillsDemoEDocument(EDocument: Record "E-Document"): Boolean
+    begin
+        exit(CopyStr(EDocument."Source Details", 1, StrLen(BusinessSkillsDemoSourcePrefixTok)) = BusinessSkillsDemoSourcePrefixTok);
     end;
 
     internal procedure SetAgentTaskTitle(AgentTaskID: BigInteger; InvoiceNo: Text[50]; VendorName: Text[100])
@@ -344,4 +373,5 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
         PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
         PayablesAgentTelemetryTok: Label 'Payables Agent', Locked = true;
+        BusinessSkillsDemoSourcePrefixTok: Label 'Business Skills demo ', Locked = true;
 }
