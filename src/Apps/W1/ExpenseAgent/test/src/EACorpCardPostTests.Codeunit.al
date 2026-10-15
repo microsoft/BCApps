@@ -69,6 +69,7 @@ codeunit 148358 EACorpCardPostTests
     var
         BankAccount: Record "Bank Account";
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CorpCard: Record "EA Corp Card";
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardTrans: Record "EA Corp Card Trans";
         Employee: Record Employee;
@@ -97,9 +98,15 @@ codeunit 148358 EACorpCardPostTests
         CorpCardProvider.Validate("Corp Card Bank Account No.", BankAccount."No.");
         CorpCardProvider.Modify(true);
 
+        CorpCard.Init();
+        CorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCard."Card Id"));
+        CorpCard."Provider Code" := CorpCardProvider.Code;
+        CorpCard."Expense User No." := ExpenseUser."No.";
+        CorpCard.Insert(true);
+
         CorpCardTrans.Init();
         CorpCardTrans."Provider Code" := CorpCardProvider.Code;
-        CorpCardTrans."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Card Id"));
+        CorpCardTrans."Card Id" := CorpCard."Card Id";
         CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
         CorpCardTrans."Trans Date" := WorkDate();
         CorpCardTrans.Amount := 2000;

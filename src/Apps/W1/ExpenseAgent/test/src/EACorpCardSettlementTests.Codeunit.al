@@ -364,7 +364,17 @@ codeunit 148360 EACorpCardSettlementTests
         asserterror CorpCardTrans.Modify(true);
 
         Assert.ExpectedError('is closed');
+    end;
 
+    [Test]
+    procedure ClosedStatementsAreImmutable()
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Initialize();
+        CreatePostedClosedSettlement(CorpCardSettlement, CorpCardStatement, CorpCardTrans);
         CorpCardStatement."Statement Total" := 3100;
         asserterror CorpCardStatement.Modify(true);
 

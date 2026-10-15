@@ -20,6 +20,7 @@ codeunit 148357 EACorpCardTestLib
         ProviderNotFoundTxt: Label 'Provider %1 was not found.', Comment = '%1 = provider code', Locked = true;
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
+        CorpCardXmlSampleCardIdTok: Label 'XML-CARD-SAMPLE', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
 
@@ -124,6 +125,12 @@ codeunit 148357 EACorpCardTestLib
             CorpCard."Expense User No." := ExpenseUser."No.";
             CorpCard.Insert(true);
         until (ExpenseUser.Next() = 0) or (CardSequenceNo = GetCorpCardCount());
+
+        CorpCard.Init();
+        CorpCard."Card Id" := CorpCardXmlSampleCardIdTok;
+        CorpCard."Provider Code" := CorpCardXmlProviderCodeTok;
+        CorpCard."Expense User No." := ExpenseUser."No.";
+        CorpCard.Insert(true);
     end;
 
     internal procedure SetCsvProviderSourcePayload()
@@ -154,7 +161,7 @@ codeunit 148357 EACorpCardTestLib
             '<CorporateCardTransactions>' +
                 '<Transaction>' +
                     '<ProviderTransId>XMLTXN0001</ProviderTransId>' +
-                    '<CardId>' + GetCorpCardId(1) + '</CardId>' +
+                    '<CardId>' + CorpCardXmlSampleCardIdTok + '</CardId>' +
                     '<TransDate>2026-06-02</TransDate>' +
                     '<PostingDate>2026-06-03</PostingDate>' +
                     '<Amount>19.63</Amount>' +
