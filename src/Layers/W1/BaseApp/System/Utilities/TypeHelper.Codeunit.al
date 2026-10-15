@@ -346,6 +346,12 @@ codeunit 10 "Type Helper"
         exit(GetUserTimezoneOffset(Duration, GetCurrUTCDateTime()));
     end;
 
+    /// <summary>
+    /// Gets the user's time zone offset for the specified date and time.
+    /// </summary>
+    /// <param name="Duration">The user's time zone offset for the specified date and time.</param>
+    /// <param name="ReferenceDateTime">The date and time for which the time zone offset is calculated.</param>
+    /// <returns>True if the user's time zone is configured; otherwise, false.</returns>
     procedure GetUserTimezoneOffset(var Duration: Duration; ReferenceDateTime: DateTime): Boolean
     var
         UserPersonalization: Record "User Personalization";
@@ -370,6 +376,11 @@ codeunit 10 "Type Helper"
         GetUserClientTypeOffset(Duration, GetCurrUTCDateTime());
     end;
 
+    /// <summary>
+    /// Gets the user's client type time zone offset for the specified date and time.
+    /// </summary>
+    /// <param name="Duration">The user's time zone offset for web clients; otherwise, zero.</param>
+    /// <param name="ReferenceDateTime">The date and time for which the time zone offset is calculated.</param>
     procedure GetUserClientTypeOffset(var Duration: Duration; ReferenceDateTime: DateTime)
     var
         ClientTypeManagement: Codeunit "Client Type Management";
