@@ -2797,7 +2797,9 @@ codeunit 148110 "SAF-T XML Tests 1.3"
                 PostingDate, LibraryUtility.GenerateGUID(), GLAccountNo, GetLastUsedTransactionNo() + 1,
                 0, '', '', 0, '', SourceCode, Amount, 0));
         GLEntry.UpdateDebitCredit(IsCorrection);
+#pragma warning disable AA0214
         GLEntry.Modify(true);
+#pragma warning restore AA0214
     end;
 
     local procedure LoadAnalysisExportFiles(SAFTExportHeader: Record "SAF-T Export Header"; var TempMasterXMLBuffer: Record "XML Buffer" temporary; var TempGLEntryXMLBuffer: Record "XML Buffer" temporary)
@@ -3619,7 +3621,9 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         TotalDebit: Decimal;
         TotalCredit: Decimal;
     begin
+#pragma warning disable AA0210
         SAFTExportLine.SetRange("Master Data", false);
+#pragma warning restore AA0210
         SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, ExportID);
         Assert.RecordCount(SAFTExportLine, ExpectedFiles);
         repeat
