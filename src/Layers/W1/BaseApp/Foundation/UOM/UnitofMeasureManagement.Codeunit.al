@@ -265,3 +265,4 @@ codeunit 5402 "Unit of Measure Management"
     begin
     end;
 }
+
