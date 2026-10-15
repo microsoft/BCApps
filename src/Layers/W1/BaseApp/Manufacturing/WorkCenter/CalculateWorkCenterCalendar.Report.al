@@ -182,12 +182,8 @@ report 99001046 "Calculate Work Center Calendar"
         EndingDate: Date;
 
     procedure InitializeRequest(NewStartingDate: Date; NewEndingDate: Date)
-    var
-        IsHandled: Boolean;
     begin
-        OnBeforeInitializeRequest(NewStartingDate, NewEndingDate, IsHandled);
-        if IsHandled then
-            exit;
+        OnBeforeInitializeRequest(NewStartingDate, NewEndingDate);
 
         StartingDate := NewStartingDate;
         EndingDate := NewEndingDate;
@@ -204,7 +200,7 @@ report 99001046 "Calculate Work Center Calendar"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitializeRequest(NewStartingDate: Date; NewEndingDate: Date; var IsHandled: Boolean)
+    local procedure OnBeforeInitializeRequest(NewStartingDate: Date; NewEndingDate: Date)
     begin
     end;
 
