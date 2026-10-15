@@ -74,7 +74,7 @@ codeunit 148126 "Library - CZ Intrastat"
         IntrastatReportHeader.Validate("No.", GetIntrastatNo());
         IntrastatReportHeader.Insert();
 
-        IntrastatReportHeader.Validate("Statistics Period", GetStatisticalPeriod(ReportDate));
+        IntrastatReportHeader.Validate("Statistics Period", CopyStr(GetStatisticalPeriod(ReportDate), 1, MaxStrLen(IntrastatReportHeader."Statistics Period")));
         IntrastatReportHeader.Modify();
 
         IntrastatReportNo := IntrastatReportHeader."No.";
@@ -215,7 +215,7 @@ codeunit 148126 "Library - CZ Intrastat"
         JobJournalLine.Modify(true);
     end;
 
-    procedure PostJobJournalLine(var JobJournalLine: Record "Job Journal Line")
+    internal procedure PostJobJournalLine(var JobJournalLine: Record "Job Journal Line")
     begin
         LibraryJob.PostJobJournal(JobJournalLine);
     end;
@@ -674,7 +674,7 @@ codeunit 148126 "Library - CZ Intrastat"
         NoSeriesCode := NoSeriesCodeunit.GetNextNo(NoSeries.Code);
     end;
 
-    procedure GetStatisticalPeriod(ReportDate: Date): Code[10]
+    procedure GetStatisticalPeriod(ReportDate: Date): Code[20]
     var
         Month: Code[2];
         Year: Code[4];

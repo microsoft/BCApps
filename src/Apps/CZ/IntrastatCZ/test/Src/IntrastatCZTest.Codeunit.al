@@ -37,6 +37,7 @@ codeunit 148125 "Intrastat CZ Test"
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
     EventSubscriberInstance = Manual;
 
     trigger OnRun()
@@ -5196,6 +5197,7 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     internal procedure CountryOfOriginTwoPurchasesFromDifferentCountries()
     var
@@ -5224,6 +5226,7 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
     internal procedure CountryOfOriginGetLinesItemCard()
@@ -5254,6 +5257,7 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
     internal procedure CountryOfOriginGetLinesPostedEntries()
@@ -5290,6 +5294,7 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
     internal procedure CountryOfOriginGetLinesPostedEntriesBlankFallback()
@@ -5319,6 +5324,7 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
     internal procedure CountryOfOriginPostedEntriesNotChangedByItemNoValidation()
