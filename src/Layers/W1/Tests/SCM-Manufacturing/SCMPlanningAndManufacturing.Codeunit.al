@@ -2905,6 +2905,85 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ManufacturingSetup.Modify(true);
     end;
 
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure RevalidateItemNoOnSalesOrderPageWithLinkedProdOrderShowsWarningOnce()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [SCENARIO] Re-entering the item "No." on the Sales Order page for a line linked to a Released Prod. Order shows the status warning only once.
+        Initialize();
+        SetPlanningWarning(true);
+
+        // [GIVEN] Sales Order line with a manufactured item linked to a Released Production Order
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // [WHEN] User re-enters the same Item "No." on the Sales Order subform
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder.SalesLines.GoToRecord(SalesLine);
+        SalesOrder.SalesLines."No.".SetValue(Item."No.");
+        SalesOrder.Close();
+
+        // [THEN] The status warning is shown exactly once and the sales line is updated successfully
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.TestField(Quantity, 1);
+        SalesLine.TestField("Outstanding Quantity", 1);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure ProdOrderStatusWarningExecutesOnDirectShipmentDateValidationOnSalesOrderPage()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+        SalesOrder: TestPage "Sales Order";
+        NewShipmentDate: Date;
+    begin
+        // [SCENARIO] Changing "Shipment Date" on the Sales Order page for a line linked to a Released Prod. Order still shows the status warning.
+        Initialize();
+        SetPlanningWarning(true);
+
+        // [GIVEN] Sales Order line with a manufactured item linked to a Released Production Order
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // [WHEN] User changes "Shipment Date" on the Sales Order subform
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        NewShipmentDate := SalesLine."Shipment Date" + 1;
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder.SalesLines.GoToRecord(SalesLine);
+        SalesOrder.SalesLines."Shipment Date".SetValue(NewShipmentDate);
+        SalesOrder.Close();
+
+        // [THEN] The status warning is shown once and the shipment date is updated
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.TestField("Shipment Date", NewShipmentDate);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
@@ -4348,6 +4427,15 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ProdOrderLine.SetRange("Item No.", ItemNo);
         ProdOrderLine.FindFirst();
         Assert.AreEqual(ExpectedStatus, ProdOrderLine.Status, 'Wrong status is set on production order.');
+    end;
+
+    local procedure SetPlanningWarning(PlanningWarning: Boolean)
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Planning Warning", PlanningWarning);
+        ManufacturingSetup.Modify(true);
     end;
 
     local procedure CreateManufacturedItem(var Item: Record Item)
