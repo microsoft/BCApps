@@ -4727,9 +4727,10 @@ codeunit 136302 "Job Consumption Purchase"
         // [SCENARIO 642385] Project ledger entry total cost for a G/L Account line follows the invoice discount changed on the Invoicing tab of purchase order statistics
         Initialize();
 
-        // [GIVEN] Purchases & Payables Setup with "Calc. Inv. Discount" disabled
+        // [GIVEN] Purchases & Payables Setup with "Calc. Inv. Discount" disabled and "Discount Posting" = "No Discounts"
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup.Validate("Calc. Inv. Discount", false);
+        PurchasesPayablesSetup.Validate("Discount Posting", PurchasesPayablesSetup."Discount Posting"::"No Discounts");
         PurchasesPayablesSetup.Modify(true);
 
         // [GIVEN] Integer amounts per unit keep all expected values free of rounding differences
