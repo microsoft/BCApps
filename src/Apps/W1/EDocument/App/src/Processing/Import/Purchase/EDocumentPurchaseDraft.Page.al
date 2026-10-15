@@ -26,7 +26,7 @@ page 6181 "E-Document Purchase Draft"
     InsertAllowed = false;
     DeleteAllowed = true;
     ModifyAllowed = true;
-    Extensible = false;
+    Extensible = true;
     RefreshOnActivate = true;
 
     layout

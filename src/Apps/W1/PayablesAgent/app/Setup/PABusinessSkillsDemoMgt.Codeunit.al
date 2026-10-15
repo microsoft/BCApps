@@ -145,8 +145,12 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         if AreBusinessSkillsCurrent(DemoState) then
             exit;
 
-        VerifyPreviousBusinessSkills(DemoState);
-        DeletePreviousBusinessSkills(DemoState);
+        if AreSupersededBusinessSkillsExact(DemoState) then
+            DeleteSupersededBusinessSkills(DemoState)
+        else begin
+            VerifyPreviousBusinessSkills(DemoState);
+            DeletePreviousBusinessSkills(DemoState);
+        end;
         CreateBusinessSkills(DemoState);
         DemoState.Modify(true);
     end;
@@ -166,7 +170,7 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     begin
         if not DemoState.Get(StatePrimaryKeyTok) or (DemoState."Setup Version" <> 2) then
             exit(false);
-        exit(ArePreviousBusinessSkillsExact(DemoState));
+        exit(AreSupersededBusinessSkillsExact(DemoState) or ArePreviousBusinessSkillsExact(DemoState));
     end;
 
     procedure IsConfigured(): Boolean
@@ -731,15 +735,15 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     var
         Instructions: TextBuilder;
     begin
-        Instructions.AppendLine('Apply only in CRONUS W1 to purchase invoice lines from vendor 40000.');
-        Instructions.AppendLine('Replacement parts and repair materials: Type = G/L Account, No. = 8135, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
-        Instructions.AppendLine('Office paper and office consumables: Type = G/L Account, No. = 8215, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
-        Instructions.AppendLine('Maintenance labour or technician work without separately supplied materials: Type = G/L Account, No. = 8140, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
-        Instructions.AppendLine('Classify every line from the nature of the purchase, not merely from the VAT percentage.');
-        Instructions.AppendLine('Keep separately priced categories on separate lines.');
-        Instructions.AppendLine('If one charge combines categories without a price breakdown, request clarification.');
-        Instructions.AppendLine('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
-        Instructions.Append('If the supplier VAT differs from the valid configured calculation, request review instead of changing VAT setup.');
+        Instructions.AppendLine('Use this policy for purchase invoices from Wide World Importers (vendor 40000).');
+        Instructions.AppendLine('Post replacement parts and materials used for repairs or maintenance to G/L account 8135, Repair Materials.');
+        Instructions.AppendLine('Post office paper and other office consumables to G/L account 8215, Office Consumables.');
+        Instructions.AppendLine('Post maintenance labour or technician work that does not include separately priced materials to G/L account 8140, Maintenance Labour.');
+        Instructions.AppendLine('Use VAT product posting group GB20 when the invoice supports standard-rated UK input VAT.');
+        Instructions.AppendLine('Choose the account from the nature of each purchase, not merely from its VAT percentage. Different categories can legitimately have the same VAT rate.');
+        Instructions.AppendLine('Keep separately priced categories on separate lines. If one charge combines categories without a price breakdown, ask for clarification rather than estimating a split.');
+        Instructions.AppendLine('Retain the department already supported by the invoice or other company policy; do not invent a department when the beneficiary is not stated.');
+        Instructions.Append('If the supplier VAT conflicts with the valid configured treatment, request review and do not change VAT or posting setup to reproduce the supplier total.');
         exit(Instructions.ToText());
     end;
 
@@ -747,15 +751,12 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     var
         Instructions: TextBuilder;
     begin
-        Instructions.AppendLine('Apply only in CRONUS W1 to electricity purchase invoice lines from vendor GB-ELEC.');
-        Instructions.AppendLine('For a known meter: Type = G/L Account, No. = 8125, VAT Prod. Posting Group = GB20.');
-        Instructions.AppendLine('Read the meter number on every line.');
-        Instructions.AppendLine('Meter E26A001947: Department Code = PROD.');
-        Instructions.AppendLine('Meter E26A001948: Department Code = ADM.');
-        Instructions.AppendLine('Keep different meters on separate lines.');
-        Instructions.AppendLine('Do not apply one meter''s department to the entire invoice or infer it from vendor history.');
-        Instructions.AppendLine('If a meter is missing or unknown, request its department mapping instead of guessing.');
-        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        Instructions.AppendLine('Use this policy for electricity invoices from Albion Business Energy Ltd (vendor GB-ELEC).');
+        Instructions.AppendLine('Post metered electricity to G/L account 8125, Metered Electricity, using VAT product posting group GB20 when the supply is standard-rated.');
+        Instructions.AppendLine('Allocate each invoice line from its meter number: meter E26A001947 belongs to department PROD, and meter E26A001948 belongs to department ADM.');
+        Instructions.AppendLine('Keep charges for different meters on separate lines so each department receives only its own electricity cost.');
+        Instructions.AppendLine('Do not apply one meter''s department to the entire invoice and do not infer meter ownership from vendor history.');
+        Instructions.Append('If a meter number is missing or is not listed in this policy, ask Finance for the meter-to-department mapping before completing the coding.');
         exit(Instructions.ToText());
     end;
 
@@ -763,15 +764,14 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     var
         Instructions: TextBuilder;
     begin
-        Instructions.AppendLine('Apply only in CRONUS W1 to one-off consulting or employee-training purchase invoice lines from vendor 20000.');
-        Instructions.AppendLine('Employee training or learning workshops: Type = G/L Account, No. = 8650, VAT Prod. Posting Group = GB20, Department Code = the beneficiary department stated on the invoice line.');
-        Instructions.AppendLine('Purpose-specific one-off consulting: Type = G/L Account, No. = 8320, VAT Prod. Posting Group = GB20, Department Code = the beneficiary department stated on the invoice line.');
-        Instructions.AppendLine('Generic "Consulting services" without a purpose requires clarification before selecting an account or department.');
-        Instructions.AppendLine('Training without a beneficiary department requires clarification.');
-        Instructions.AppendLine('Do not apply this skill to monthly bookkeeping or accounting assistance with a dated service period; that work has its own effective-date policy.');
-        Instructions.AppendLine('Do not automatically assume SALES and do not use vendor history or another line to fill missing information.');
-        Instructions.AppendLine('Apply the rule separately to each line.');
-        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        Instructions.AppendLine('Use this policy for one-off professional services and employee training purchased from First Up Consultants (vendor 20000).');
+        Instructions.AppendLine('Post employee training and learning workshops to G/L account 8650, Training Costs, and charge the department that received the training.');
+        Instructions.AppendLine('Post purpose-specific one-off consulting to G/L account 8320, Consulting, and charge the department that benefits from the work.');
+        Instructions.AppendLine('Use VAT product posting group GB20 when the service is subject to standard-rated UK input VAT.');
+        Instructions.AppendLine('A description such as "Consulting services" does not identify the business purpose. Ask what the work related to before choosing an account or department.');
+        Instructions.AppendLine('If training is stated but the beneficiary department is missing, ask which department attended. Do not assume SALES from previous invoices or another line.');
+        Instructions.AppendLine('Apply the policy separately to each service line and preserve the supplier''s description, quantity, and amount.');
+        Instructions.Append('Do not use this policy for recurring monthly bookkeeping or accounting assistance with a service period; that work follows the monthly bookkeeping cost-centre policy.');
         exit(Instructions.ToText());
     end;
 
@@ -779,15 +779,13 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     var
         Instructions: TextBuilder;
     begin
-        Instructions.AppendLine('Apply only in CRONUS W1 to monthly bookkeeping and accounting assistance purchase invoice lines from vendor 20000 when the line contains a service period.');
-        Instructions.AppendLine('Type = G/L Account, No. = 8630, VAT Prod. Posting Group = GB20.');
-        Instructions.AppendLine('Read the service period from the invoice line description.');
-        Instructions.AppendLine('A service period entirely before 1 October 2026 uses Department Code = SALES.');
-        Instructions.AppendLine('A service period starting on or after 1 October 2026 uses Department Code = ADM.');
-        Instructions.AppendLine('This rule overrides historical coding even when previous invoices for the same service used SALES.');
-        Instructions.AppendLine('Do not use the invoice date.');
-        Instructions.AppendLine('If the service period is missing or crosses the effective date ambiguously, request clarification.');
-        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        Instructions.AppendLine('Use this policy for recurring monthly bookkeeping and accounting assistance from First Up Consultants (vendor 20000).');
+        Instructions.AppendLine('Post the service to G/L account 8630, Accounting Services, using VAT product posting group GB20 when standard-rated UK input VAT applies.');
+        Instructions.AppendLine('Determine the department from the service period stated on the invoice line, not from the invoice date.');
+        Instructions.AppendLine('Services completed entirely before 1 October 2026 belong to department SALES.');
+        Instructions.AppendLine('Services starting on or after 1 October 2026 belong to department ADM.');
+        Instructions.AppendLine('The policy effective from 1 October 2026 overrides earlier invoice history for the same recurring service.');
+        Instructions.Append('If the service period is missing or crosses the effective date without a clear allocation, ask for clarification before completing the coding.');
         exit(Instructions.ToText());
     end;
 
@@ -853,6 +851,15 @@ codeunit 3327 "PA Business Skills Demo Mgt."
             IsCompanySkillExact(DemoState."Effective Date Skill ID", PreviousEffectiveDateSkillTitleLbl, PreviousEffectiveDateSkillDescriptionLbl, GetPreviousEffectiveDateSkillText()));
     end;
 
+    local procedure AreSupersededBusinessSkillsExact(DemoState: Record "PA Business Skills Demo State"): Boolean
+    begin
+        exit(
+            IsCompanySkillExact(DemoState."Line Classification Skill ID", SupersededLineClassSkillTitleLbl, SupersededLineClassSkillDescriptionLbl, GetSupersededLineClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Electricity Meter Skill ID", SupersededElectricitySkillTitleLbl, SupersededElectricitySkillDescriptionLbl, GetSupersededElectricityMeterSkillText()) and
+            IsCompanySkillExact(DemoState."Service Class. Skill ID", SupersededServiceClassSkillTitleLbl, SupersededServiceClassSkillDescriptionLbl, GetSupersededServiceClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Effective Date Skill ID", SupersededEffectiveDateSkillTitleLbl, SupersededEffectiveDateSkillDescriptionLbl, GetSupersededEffectiveDateSkillText()));
+    end;
+
     local procedure VerifyPreviousBusinessSkill(SkillId: BigInteger; ExpectedTitle: Text[250]; ExpectedDescription: Text[2048]; ExpectedText: Text)
     var
         BusinessSkill: Record "Business Skill";
@@ -870,6 +877,78 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", PreviousElectricityMeterSkillTitleLbl, GetPreviousElectricityMeterSkillText());
         DeleteBusinessSkill(DemoState."Service Class. Skill ID", PreviousServiceClassificationSkillTitleLbl, GetPreviousServiceClassificationSkillText());
         DeleteBusinessSkill(DemoState."Effective Date Skill ID", PreviousEffectiveDateSkillTitleLbl, GetPreviousEffectiveDateSkillText());
+    end;
+
+    local procedure DeleteSupersededBusinessSkills(DemoState: Record "PA Business Skills Demo State")
+    begin
+        DeleteBusinessSkill(DemoState."Line Classification Skill ID", SupersededLineClassSkillTitleLbl, GetSupersededLineClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", SupersededElectricitySkillTitleLbl, GetSupersededElectricityMeterSkillText());
+        DeleteBusinessSkill(DemoState."Service Class. Skill ID", SupersededServiceClassSkillTitleLbl, GetSupersededServiceClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Effective Date Skill ID", SupersededEffectiveDateSkillTitleLbl, GetSupersededEffectiveDateSkillText());
+    end;
+
+    local procedure GetSupersededLineClassificationSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to purchase invoice lines from vendor 40000.');
+        Instructions.AppendLine('Replacement parts and repair materials: Type = G/L Account, No. = 8135, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
+        Instructions.AppendLine('Office paper and office consumables: Type = G/L Account, No. = 8215, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
+        Instructions.AppendLine('Maintenance labour or technician work without separately supplied materials: Type = G/L Account, No. = 8140, VAT Prod. Posting Group = GB20. Leave Department Code unchanged unless the line states a beneficiary department.');
+        Instructions.AppendLine('Classify every line from the nature of the purchase, not merely from the VAT percentage.');
+        Instructions.AppendLine('Keep separately priced categories on separate lines.');
+        Instructions.AppendLine('If one charge combines categories without a price breakdown, request clarification.');
+        Instructions.AppendLine('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        Instructions.Append('If the supplier VAT differs from the valid configured calculation, request review instead of changing VAT setup.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure GetSupersededElectricityMeterSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to electricity purchase invoice lines from vendor GB-ELEC.');
+        Instructions.AppendLine('For a known meter: Type = G/L Account, No. = 8125, VAT Prod. Posting Group = GB20.');
+        Instructions.AppendLine('Read the meter number on every line.');
+        Instructions.AppendLine('Meter E26A001947: Department Code = PROD.');
+        Instructions.AppendLine('Meter E26A001948: Department Code = ADM.');
+        Instructions.AppendLine('Keep different meters on separate lines.');
+        Instructions.AppendLine('Do not apply one meter''s department to the entire invoice or infer it from vendor history.');
+        Instructions.AppendLine('If a meter is missing or unknown, request its department mapping instead of guessing.');
+        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure GetSupersededServiceClassificationSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to one-off consulting or employee-training purchase invoice lines from vendor 20000.');
+        Instructions.AppendLine('Employee training or learning workshops: Type = G/L Account, No. = 8650, VAT Prod. Posting Group = GB20, Department Code = the beneficiary department stated on the invoice line.');
+        Instructions.AppendLine('Purpose-specific one-off consulting: Type = G/L Account, No. = 8320, VAT Prod. Posting Group = GB20, Department Code = the beneficiary department stated on the invoice line.');
+        Instructions.AppendLine('Generic "Consulting services" without a purpose requires clarification before selecting an account or department.');
+        Instructions.AppendLine('Training without a beneficiary department requires clarification.');
+        Instructions.AppendLine('Do not apply this skill to monthly bookkeeping or accounting assistance with a dated service period; that work has its own effective-date policy.');
+        Instructions.AppendLine('Do not automatically assume SALES and do not use vendor history or another line to fill missing information.');
+        Instructions.AppendLine('Apply the rule separately to each line.');
+        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        exit(Instructions.ToText());
+    end;
+
+    local procedure GetSupersededEffectiveDateSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Apply only in CRONUS W1 to monthly bookkeeping and accounting assistance purchase invoice lines from vendor 20000 when the line contains a service period.');
+        Instructions.AppendLine('Type = G/L Account, No. = 8630, VAT Prod. Posting Group = GB20.');
+        Instructions.AppendLine('Read the service period from the invoice line description.');
+        Instructions.AppendLine('A service period entirely before 1 October 2026 uses Department Code = SALES.');
+        Instructions.AppendLine('A service period starting on or after 1 October 2026 uses Department Code = ADM.');
+        Instructions.AppendLine('This rule overrides historical coding even when previous invoices for the same service used SALES.');
+        Instructions.AppendLine('Do not use the invoice date.');
+        Instructions.AppendLine('If the service period is missing or crosses the effective date ambiguously, request clarification.');
+        Instructions.Append('The vendor uses VAT Business Posting Group DOMESTIC. Do not try to update that vendor-derived field on the draft line.');
+        exit(Instructions.ToText());
     end;
 
     local procedure GetPreviousLineClassificationSkillText(): Text
@@ -962,6 +1041,8 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         VerifyCostTypeIsUnchangedAndUnused(OfficeConsumablesAccountNoTok, OfficeConsumablesAccountNameLbl, DemoState."Office Cons. Cost Type Created");
         VerifyCostTypeIsUnchangedAndUnused(TrainingCostsAccountNoTok, TrainingCostsAccountNameLbl, DemoState."Training Cost Type Created");
         if AreBusinessSkillsCurrent(DemoState) then
+            exit;
+        if AreSupersededBusinessSkillsExact(DemoState) then
             exit;
         VerifyPreviousBusinessSkills(DemoState);
     end;
@@ -1262,6 +1343,10 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     local procedure DeleteBusinessSkills(DemoState: Record "PA Business Skills Demo State")
     begin
         if not AreBusinessSkillsCurrent(DemoState) then begin
+            if AreSupersededBusinessSkillsExact(DemoState) then begin
+                DeleteSupersededBusinessSkills(DemoState);
+                exit;
+            end;
             VerifyPreviousBusinessSkills(DemoState);
             DeletePreviousBusinessSkills(DemoState);
             exit;
@@ -1629,14 +1714,22 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         JulyServiceDescriptionLbl: Label 'Monthly bookkeeping and accounting assistance - 01/07/2026 to 31/07/2026';
         AugustServiceDescriptionLbl: Label 'Monthly bookkeeping and accounting assistance - 01/08/2026 to 31/08/2026';
         SeptemberServiceDescriptionLbl: Label 'Monthly bookkeeping and accounting assistance - 01/09/2026 to 30/09/2026';
-        LineClassificationSkillTitleLbl: Label 'Vendor 40000 repair, maintenance, and office supply invoice coding';
-        LineClassificationSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 40000. Classifies replacement parts, repair materials, office paper, office consumables, maintenance labour, and technician work to G/L accounts 8135, 8215, or 8140 with GB20 VAT.';
-        ElectricityMeterSkillTitleLbl: Label 'GB-ELEC electricity invoice coding by meter number';
-        ElectricityMeterSkillDescriptionLbl: Label 'Purchase invoice policy for vendor GB-ELEC. Uses meter E26A001947 for PROD and E26A001948 for ADM, with G/L account 8125 and GB20 VAT.';
-        ServiceClassificationSkillTitleLbl: Label 'Vendor 20000 employee training and one-off consulting invoice coding';
-        ServiceClassificationSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 20000 employee training, learning workshops, and purpose-specific one-off consulting. Uses the beneficiary department and excludes recurring monthly bookkeeping.';
-        EffectiveDateSkillTitleLbl: Label 'Vendor 20000 monthly bookkeeping department change from October 2026';
-        EffectiveDateSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 20000 monthly bookkeeping and accounting assistance with a service period. Use G/L account 8630 and GB20 VAT; SALES before 1 October 2026 and ADM from 1 October 2026.';
+        LineClassificationSkillTitleLbl: Label 'Wide World Importers purchase coding for repairs, office supplies, and maintenance';
+        LineClassificationSkillDescriptionLbl: Label 'Company accounting policy for invoices from Wide World Importers, vendor 40000. Distinguishes repair materials, office consumables, and maintenance labour using G/L accounts 8135, 8215, and 8140 with standard UK input VAT.';
+        ElectricityMeterSkillTitleLbl: Label 'Albion electricity cost allocation by meter';
+        ElectricityMeterSkillDescriptionLbl: Label 'Company accounting policy for electricity invoices from Albion Business Energy Ltd, vendor GB-ELEC. Uses G/L account 8125 and allocates meters E26A001947 and E26A001948 to PROD and ADM.';
+        ServiceClassificationSkillTitleLbl: Label 'First Up Consultants professional services and training coding';
+        ServiceClassificationSkillDescriptionLbl: Label 'Company accounting policy for vendor 20000 one-off consulting, employee training, learning workshops, and beneficiary departments. Excludes recurring monthly bookkeeping.';
+        EffectiveDateSkillTitleLbl: Label 'First Up Consultants monthly bookkeeping cost-centre policy';
+        EffectiveDateSkillDescriptionLbl: Label 'Company accounting policy for vendor 20000 recurring bookkeeping and accounting assistance. Use G/L account 8630; allocate service periods before October 2026 to SALES and periods from October 2026 to ADM.';
+        SupersededLineClassSkillTitleLbl: Label 'Vendor 40000 repair, maintenance, and office supply invoice coding';
+        SupersededLineClassSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 40000. Classifies replacement parts, repair materials, office paper, office consumables, maintenance labour, and technician work to G/L accounts 8135, 8215, or 8140 with GB20 VAT.';
+        SupersededElectricitySkillTitleLbl: Label 'GB-ELEC electricity invoice coding by meter number';
+        SupersededElectricitySkillDescriptionLbl: Label 'Purchase invoice policy for vendor GB-ELEC. Uses meter E26A001947 for PROD and E26A001948 for ADM, with G/L account 8125 and GB20 VAT.';
+        SupersededServiceClassSkillTitleLbl: Label 'Vendor 20000 employee training and one-off consulting invoice coding';
+        SupersededServiceClassSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 20000 employee training, learning workshops, and purpose-specific one-off consulting. Uses the beneficiary department and excludes recurring monthly bookkeeping.';
+        SupersededEffectiveDateSkillTitleLbl: Label 'Vendor 20000 monthly bookkeeping department change from October 2026';
+        SupersededEffectiveDateSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 20000 monthly bookkeeping and accounting assistance with a service period. Use G/L account 8630 and GB20 VAT; SALES before 1 October 2026 and ADM from 1 October 2026.';
         PreviousLineClassificationSkillTitleLbl: Label 'PA GB demo - line classification';
         PreviousLineClassificationSkillDescriptionLbl: Label 'Overrides broad expense defaults with company-specific repair, consumable, and labour classifications.';
         PreviousElectricityMeterSkillTitleLbl: Label 'PA GB demo - electricity meter departments';

@@ -14,7 +14,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   - Do NOT send messages to users; for the responsibility of the payables agent this tool is not required. Limit interactions to `request_assistance` and `request_review`.
   - Verify the page you are in and where you should be before assuming that you are where you were before. Use the provided sitemap if at any point you can't find an action before requesting assistance.
   - Request user assistance or user review only at the designated interaction points. If the task specifies a mandatory page for the interaction, you **must** be on that page before making the request.
-  - Do not call Business Skills before the draft, vendor, and invoice-line details are available. Business Skills retrieval must use the concrete line facts gathered immediately before the pre-finalization review.
+  - Do not call Business Skills before the draft, vendor, invoice header, and invoice-line details are available. Business Skills retrieval must use the concrete document facts gathered immediately before the pre-finalization review.
 </critical_instructions>
 
 ## WORKFLOW GUIDANCE
@@ -24,7 +24,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 2. [ ] Memorize vendor details
 3. [ ] Ensure vendor is assigned to the draft
 4. [ ] Add PO matching tasks for all lines
-5. [ ] Apply Business Skills guidance to draft lines
+5. [ ] Apply Business Skills guidance to the draft
 6. [ ] Request pre-finalization review
 7. [ ] Finalize draft invoice
 
@@ -153,42 +153,55 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   **Do each line one at a time**
 </task>
 
-<task name="Apply Business Skills guidance to draft lines">
+<task name="Apply Business Skills guidance to the draft">
   Complete this task after vendor assignment and all purchase-order matching tasks, immediately before requesting the pre-finalization review.
 
-  If the `bciq_ask` tool is available, you **must** ask Business Skills at this stage. A general question asked before the invoice draft and line details were available does not satisfy this task.
+  If the `bciq_ask` tool is available, you **must** ask Business Skills at this stage. A generic question asked before the complete draft was available does not satisfy this task.
 
-  Process every draft line separately:
-  1. Stay on the `Purchase Document Draft` page.
-  2. Add one todo immediately before the pre-finalization review todo for each draft line, identifying the line by its full description.
-  3. For the current line, call `bciq_ask` with one concise accounting-classification question in this order:
-     - Start with `Purchase invoice coding policy`.
+  1. Stay on the `Purchase Document Draft` page and inspect the complete draft:
+     - Visible header fields: Vendor No., Vendor Name, Vendor Address, Due Date, Purchase Document, and Draft Type.
+     - For every line, the visible Description, Quantity, Order line match, Type, No., Name, VAT Prod. Posting Group, Item Reference No., Unit Of Measure, Deferral Code, and Shortcut Dimension 1 Code.
+     - Use business facts only when they are present in those visible fields. For example, text inside Description is available context; do not assume a separate field exists for information that is not shown on the draft.
+  2. Add a todo immediately before the pre-finalization review todo to discover and apply applicable Business Skills.
+  3. Call `bciq_ask` with one concise document-level question:
+     - Start with `Purchase invoice policy`.
      - Identify the vendor by Vendor No. and vendor name.
-     - Include the complete invoice-line description exactly as shown on the draft.
-     - Include any service period, meter number, or beneficiary department from that line.
-     - Ask for the exact Type, No., VAT Prod. Posting Group, and Department Code.
-  4. Keep the retrieval question focused on those business facts. Do not add addresses, VAT registration numbers, workflow history, current draft coding, or generic payables-process questions unless the line's classification genuinely depends on them.
-  5. If Business Skills returns applicable guidance:
+     - Summarize the relevant values from the visible draft header and line fields.
+     - Ask which company policies apply, what clarification is required, and which editable draft header or line fields should change.
+  4. Keep the retrieval question focused on business facts. Do not add addresses, VAT registration numbers, workflow history, or unrelated draft values unless the policy genuinely depends on them.
+  5. Check policy coverage after the document-level answer:
+     - For every draft line, confirm that the returned guidance explicitly covers that line's business purpose. If it does not, ask one targeted line-level question with that line's complete facts before concluding that no policy applies.
+     - If the returned guidance does not address document-header or review fields, ask one focused header-level follow-up for any applicable company policy.
+     - Do not repeat the same broad question for every line.
+  6. If Business Skills returns applicable guidance:
      - Treat it as governing company policy.
-     - Compare the returned values with the current Type, No., VAT Prod. Posting Group, and Department Code.
-     - Select the exact draft row and use `bcui_update_row` to apply every explicit line-field value from the guidance.
-     - Do not change a field that the guidance leaves unresolved.
-     - If the guidance requires clarification before classification, request assistance from the `Purchase Document Draft` page and wait for the response instead of guessing.
-  6. If Business Skills returns no applicable skill, leave the current line values unchanged.
-  7. A Business Skills error or timeout is not the same as no applicable skill. Request assistance from the `Purchase Document Draft` page and do not proceed to review until the user decides how to continue.
-  8. After any update, verify from the refreshed `Purchase Document Draft` page that the Type, No., VAT Prod. Posting Group, and Department Code match the guidance before completing that line's todo.
+     - Apply explicit changes only to visible, editable accounting-classification fields: line Type, No., VAT Prod. Posting Group, Item Reference No., Unit Of Measure, Deferral Code, Shortcut Dimension 1 Code, and a non-financial document-header field that an applicable company policy names explicitly.
+     - Use the appropriate BC UI update tool; select the exact row before changing a line.
+     - Do not change fields that the guidance leaves unresolved.
+     - If guidance calls for a change to Vendor No., Due Date, Description, Quantity, or any other payment-critical or source-document field, request assistance instead of changing it.
+     - Do not update Business Central setup, vendor master data, or fields that are unavailable or read-only on the draft.
+     - If the policy requires an unavailable field, a clarification, or a value that fails Business Central validation, request assistance from the `Purchase Document Draft` page instead of guessing.
+     - Keep a concise record of the Business Skill title when returned, each affected field, and its before/after value for the pre-finalization review.
+  7. When the page or runtime provides a supported explanation or infotip action for a changed field, record that the applicable Business Skill informed the change and verify the explanation is visible. If no such action exists, do not claim that an infotip was written; report that limitation in the pre-finalization review.
+  8. If Business Skills returns no applicable policy, leave the draft unchanged.
+  9. A Business Skills error or timeout is not the same as no applicable policy. Request assistance from the `Purchase Document Draft` page and do not proceed to review until the user decides how to continue.
+  10. After updates, refresh the `Purchase Document Draft` page and verify every changed header and line field matches the guidance before completing the todo.
 
-  If `bciq_ask` is not available, do not invent Business Skills guidance. Leave the draft unchanged and continue to review.
+  If `bciq_ask` is not available, do not invent Business Skills guidance. Leave the draft unchanged, continue to review, and state that Business Skills were not available for this task.
 
-  <success_criteria>Every draft line was checked with its complete invoice and current accounting context after draft preparation; all applicable Business Skills guidance was written to the exact draft row and verified before review, or no applicable skill/tool was available.</success_criteria>
+  <success_criteria>The complete prepared draft was checked against applicable company policy; every explicit supported header and line change was applied to the correct field and verified, required clarification was requested, or no applicable policy/tool was available. The review summary accurately identifies the guidance used and does not claim unsupported provenance.</success_criteria>
 </task>
 
 <task name="Request pre-finalization review">
   Before proceeding to create the final purchase invoice, you must request user review to ensure all information is correct.
 
-  Do not request this review until the `Apply Business Skills guidance to draft lines` task and every line-specific Business Skills todo are complete.
+  Do not request this review until the `Apply Business Skills guidance to the draft` task and any targeted Business Skills follow-up todos are complete.
 
-  Request a review because the draft needs to be verified before creating the finalized purchase invoice. Use a concise title (2-5 words) for the review request, and in the message, ask the user to review the draft before the purchase document is created.
+  Request a review because the draft needs to be verified before creating the finalized purchase invoice. Use a concise title (2-5 words). In the message:
+  - Ask the user to review the draft before the purchase document is created.
+  - Name each Business Skill title returned and applied. If guidance was applied but the response did not identify a title, state that explicitly and never infer a title from the content. Otherwise state that no applicable policy/tool was available.
+  - Summarize each field changed by Business Skills with its before and after value.
+  - State whether field-level explanations or infotips were successfully recorded; do not claim they exist unless verified.
 
   <success_criteria>User has reviewed and acknowledged that you can proceed with finalization</success_criteria>
 </task>
