@@ -26,6 +26,9 @@ codeunit 133504 "SCM Costing Performance"
         isInitialized: Boolean;
         NotLinearCCErr: Label 'Computational cost is not linear.';
         NotConstantCCErr: Label 'Computational cost must be constant.';
+        ReceiptProcessing25To50Err: Label 'Receipt processing must increase from 25 to 50 pending entries. Visits: %1, %2.', Comment = '%1 = receipt processing count for 25 entries, %2 = receipt processing count for 50 entries';
+        ReceiptProcessing50To100Err: Label 'Receipt processing must increase from 50 to 100 pending entries. Visits: %1, %2.', Comment = '%1 = receipt processing count for 50 entries, %2 = receipt processing count for 100 entries';
+        ReceiptNotRevisitedErr: Label 'Old receipt %1 must be revisited.', Comment = '%1 = item ledger entry number';
         ObservedItemNo: Code[20];
         ReceiptVisits: Dictionary of [Integer, Integer];
         ReceiptProcessingCount: Integer;
@@ -338,10 +341,10 @@ codeunit 133504 "SCM Costing Performance"
 
         Assert.IsTrue(
             ProcessingCounts[2] > ProcessingCounts[1],
-            StrSubstNo('Receipt processing must increase from 25 to 50 pending entries. Visits: %1, %2.', ProcessingCounts[1], ProcessingCounts[2]));
+            StrSubstNo(ReceiptProcessing25To50Err, ProcessingCounts[1], ProcessingCounts[2]));
         Assert.IsTrue(
             ProcessingCounts[3] > ProcessingCounts[2],
-            StrSubstNo('Receipt processing must increase from 50 to 100 pending entries. Visits: %1, %2.', ProcessingCounts[2], ProcessingCounts[3]));
+            StrSubstNo(ReceiptProcessing50To100Err, ProcessingCounts[2], ProcessingCounts[3]));
     end;
 
     [Test]
@@ -372,7 +375,7 @@ codeunit 133504 "SCM Costing Performance"
         VerifyEveryReceiptVisited(ReceiptEntryNos);
         VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
 
-        SalesHeader.Find();
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
         LibrarySales.PostSalesDocument(SalesHeader, false, true);
         RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCount, BufferedCount);
         VerifyEveryReceiptVisited(ReceiptEntryNos);
@@ -410,6 +413,7 @@ codeunit 133504 "SCM Costing Performance"
         LineNo: Integer;
     begin
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetLoadFields("Entry No.");
         if ItemLedgerEntry.FindLast() then
             PreviousEntryNo := ItemLedgerEntry."Entry No.";
 
@@ -475,7 +479,7 @@ codeunit 133504 "SCM Costing Performance"
         EntryNo: Integer;
     begin
         foreach EntryNo in ReceiptEntryNos do
-            Assert.IsTrue(ReceiptVisits.Get(EntryNo) > 0, StrSubstNo('Old receipt %1 must be revisited.', EntryNo));
+            Assert.IsTrue(ReceiptVisits.Get(EntryNo) > 0, StrSubstNo(ReceiptNotRevisitedErr, EntryNo));
     end;
 
     local procedure VerifyReceiptBacklog(ItemNo: Code[20]; ReceiptEntryNos: List of [Integer]; Pending: Boolean)
@@ -483,6 +487,7 @@ codeunit 133504 "SCM Costing Performance"
         ItemLedgerEntry: Record "Item Ledger Entry";
         EntryNo: Integer;
     begin
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
         foreach EntryNo in ReceiptEntryNos do begin
             ItemLedgerEntry.Get(EntryNo);
             ItemLedgerEntry.TestField("Item No.", ItemNo);
@@ -490,12 +495,12 @@ codeunit 133504 "SCM Costing Performance"
             ItemLedgerEntry.TestField("Remaining Quantity", 0);
             ItemLedgerEntry.TestField("Completely Invoiced", true);
             ItemLedgerEntry.TestField("Applied Entry to Adjust", Pending);
-            ItemLedgerEntry.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
             ItemLedgerEntry.TestField("Cost Amount (Actual)", 10);
             ItemLedgerEntry.TestField("Cost Amount (Expected)", 0);
         end;
 
         ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
         Assert.RecordCount(ItemLedgerEntry, ReceiptEntryNos.Count());
@@ -503,7 +508,6 @@ codeunit 133504 "SCM Costing Performance"
         repeat
             ItemLedgerEntry.TestField(Quantity, -1);
             ItemLedgerEntry.TestField("Completely Invoiced", not Pending);
-            ItemLedgerEntry.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
             if Pending then begin
                 ItemLedgerEntry.TestField("Cost Amount (Actual)", 0);
                 ItemLedgerEntry.TestField("Cost Amount (Expected)", -10);
