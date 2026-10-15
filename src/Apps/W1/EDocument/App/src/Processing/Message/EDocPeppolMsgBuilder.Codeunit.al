@@ -43,11 +43,13 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
         AcceptedTok: Label 'AP', Locked = true;
         AcknowledgedTok: Label 'AB', Locked = true;
         ConditionallyAcceptedTok: Label 'CA', Locked = true;
+        InvalidEndpointSchemeErr: Label 'The order response cannot be created because the electronic address %1 of %2 has the scheme %3, which is not a Peppol Electronic Address Scheme (EAS) code.', Comment = '%1 = electronic address (e.g. a GLN), %2 = company or customer name, %3 = scheme identifier';
         LineAcceptedTok: Label '5', Locked = true;
         LineAddedTok: Label '1', Locked = true;
         LineChangedTok: Label '3', Locked = true;
         LineNotAcceptedTok: Label '7', Locked = true;
         MissingEndpointSchemeErr: Label 'The order response cannot be created because the electronic address %1 of %2 has no Peppol scheme. Specify the %3 on %4 %5, or use a GLN with %6.', Comment = '%1 = electronic address (e.g. a VAT registration no.), %2 = company or customer name, %3 = VAT Scheme field caption, %4 = Country/Region table caption, %5 = country/region code, %6 = Use GLN in Electronic Document field caption';
+        MissingUnitCodeErr: Label 'The order response cannot be created because unit of measure %1 has no %2, so the confirmed quantity in that unit cannot be stated. Specify the %2 on %3 %1, or add an item unit of measure that converts it to the ordered unit.', Comment = '%1 = unit of measure code, %2 = International Standard Code field caption, %3 = Unit of Measure table caption';
         RejectedTok: Label 'RE', Locked = true;
         UnorderedLinesNoteTxt: Label 'The seller added lines that were not in the order: %1', Comment = '%1 = list of added lines, e.g. 1908-S LONDON Swivel Chair, blue (2 PCS)';
         UnorderedLineTxt: Label '%1 %2 (%3 %4)', Comment = '%1 = item or account no., %2 = description, %3 = quantity, %4 = unit of measure code', Locked = true;
@@ -155,12 +157,12 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
         if (EndpointId = '') or (EndpointSchemeId = '') then begin
             PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(EndpointId, EndpointSchemeId, CompanyPartyName);
             PEPPOLMgt.CheckCompanyPartyIdentification(EndpointId);
-            CheckEndpointScheme(EndpointId, EndpointSchemeId, CompanyInformation.Name, CompanyInformation."Country/Region Code");
         end;
 
         SellerName := CompanyInformation.Name;
         if SellerName = '' then
             SellerName := EDocSalesHeader."Seller Company Name";
+        CheckEndpointScheme(EndpointId, EndpointSchemeId, SellerName, CompanyInformation."Country/Region Code");
         PEPPOLOrderRespBuilder.SetSellerParty(EndpointId, EndpointSchemeId, SellerName);
     end;
 
@@ -191,13 +193,13 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
                 PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(SalesHeader, EndpointId, EndpointSchemeId, CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerPartyName);
             end;
             PEPPOLMgt.CheckCustomerPartyIdentification(EndpointId, Customer."No.");
-            CheckEndpointScheme(EndpointId, EndpointSchemeId, Customer.Name, SalesHeader."Bill-to Country/Region Code");
         end;
 
         // PEPPOL-T76-R001: the buyer needs an official name or identifier
         BuyerName := EDocSalesHeader."Buyer Company Name";
         if BuyerName = '' then
             BuyerName := Customer.Name;
+        CheckEndpointScheme(EndpointId, EndpointSchemeId, BuyerName, SalesHeader."Bill-to Country/Region Code");
         PEPPOLOrderRespBuilder.SetBuyerParty(EndpointId, EndpointSchemeId, BuyerName);
     end;
 
@@ -205,16 +207,19 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
     var
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
+        PEPPOLElectronicAddress: Codeunit "PEPPOL Electronic Address";
     begin
         // A VAT registration no. gets its scheme from the country's VAT Scheme, which may not be set up;
         // an endpoint without schemeID breaks PEPPOL-T76-B01601/B02402 just like a missing endpoint
-        if EndpointSchemeId <> '' then
-            exit;
-        if CountryRegionCode = '' then begin
-            CompanyInformation.Get();
-            CountryRegionCode := CompanyInformation."Country/Region Code";
+        if EndpointSchemeId = '' then begin
+            if CountryRegionCode = '' then begin
+                CompanyInformation.Get();
+                CountryRegionCode := CompanyInformation."Country/Region Code";
+            end;
+            Error(MissingEndpointSchemeErr, EndpointId, PartyName, CountryRegion.FieldCaption("VAT Scheme"), CountryRegion.TableCaption(), CountryRegionCode, CompanyInformation.FieldCaption("Use GLN in Electronic Document"));
         end;
-        Error(MissingEndpointSchemeErr, EndpointId, PartyName, CountryRegion.FieldCaption("VAT Scheme"), CountryRegion.TableCaption(), CountryRegionCode, CompanyInformation.FieldCaption("Use GLN in Electronic Document"));
+        if not PEPPOLElectronicAddress.IsValidScheme(EndpointSchemeId) then
+            Error(InvalidEndpointSchemeErr, EndpointId, PartyName, EndpointSchemeId);
     end;
 
     #region Sales order snapshot
@@ -396,7 +401,7 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
         UnitChanged := true;
         TotalQuantity := SalesLine.Quantity;
         QtyToShip := SalesLine."Qty. to Ship";
-        UnitCode := GetUnitCode('', SalesLine."Unit of Measure Code");
+        UnitCode := GetReplacementUnitCode(SalesLine."Unit of Measure Code");
     end;
 
     local procedure IsBackorder(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"): Boolean
@@ -453,8 +458,9 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
 
         if SalesLine."Promised Delivery Date" <> 0D then
             exit(IsDeliveryDateChanged(RequestedDeliveryDate, SalesLine."Promised Delivery Date"));
-        if IsDeliveryDateChanged(RequestedDeliveryDate, SalesLine."Requested Delivery Date") then
-            exit(true);
+        if (SalesLine."Requested Delivery Date" <> 0D) or (EDocSalesLine."Requested Delivery Date" <> 0D) then
+            if IsDeliveryDateChanged(RequestedDeliveryDate, SalesLine."Requested Delivery Date") then
+                exit(true);
 
         // Dates BC calculated when the line was created moved, so the seller rescheduled the shipment
         if (EDocSalesLine."Created Shipment Date" <> 0D) and (SalesLine."Shipment Date" <> EDocSalesLine."Created Shipment Date") then
@@ -464,8 +470,8 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
 
     local procedure IsDeliveryDateChanged(RequestedDeliveryDate: Date; SellerDeliveryDate: Date): Boolean
     begin
-        // A date the buyer did not ask for is not a change to the order
-        if (RequestedDeliveryDate = 0D) or (SellerDeliveryDate = 0D) then
+        // A date the buyer did not ask for is not a change to the order, but clearing a requested date is
+        if RequestedDeliveryDate = 0D then
             exit(false);
         exit(RequestedDeliveryDate <> SellerDeliveryDate);
     end;
@@ -621,7 +627,7 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
                     if FindLinkedSalesLine(OrderEDocSalesLine, OrderSalesLine) and (OrderSalesLine."Unit of Measure Code" = AddedSalesLine."Unit of Measure Code") then
                         PEPPOLOrderRespBuilder.SetLineQuantity(AddedSalesLine.Quantity, GetUnitCode(OrderEDocSalesLine."Unit of Measure", AddedSalesLine."Unit of Measure Code"))
                     else
-                        PEPPOLOrderRespBuilder.SetLineQuantity(AddedSalesLine.Quantity, GetUnitCode('', AddedSalesLine."Unit of Measure Code"));
+                        PEPPOLOrderRespBuilder.SetLineQuantity(AddedSalesLine.Quantity, GetReplacementUnitCode(AddedSalesLine."Unit of Measure Code"));
                     if GetSellerDeliveryDate(AddedSalesLine) <> 0D then
                         PEPPOLOrderRespBuilder.SetLinePromisedDeliveryDate(GetSellerDeliveryDate(AddedSalesLine));
                     if AddedSalesLine."Line Amount" <> 0 then
@@ -704,6 +710,18 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
             exit('');
         if UnitOfMeasure.Get(UnitOfMeasureCode) then
             exit(UnitOfMeasure."International Standard Code");
+    end;
+
+    local procedure GetReplacementUnitCode(UnitOfMeasureCode: Code[10]) UnitCode: Text
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        if UnitOfMeasureCode = '' then
+            exit('');
+
+        UnitCode := GetUnitCode('', UnitOfMeasureCode);
+        if UnitCode = '' then
+            Error(MissingUnitCodeErr, UnitOfMeasureCode, UnitOfMeasure.FieldCaption("International Standard Code"), UnitOfMeasure.TableCaption());
     end;
 
     #endregion Response lines

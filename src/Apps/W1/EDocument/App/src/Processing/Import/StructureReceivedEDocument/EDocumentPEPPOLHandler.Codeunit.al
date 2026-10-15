@@ -572,6 +572,9 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
                 exit("E-Doc. Response Type"::Acknowledged);
             'AP':
                 exit("E-Doc. Response Type"::Accepted);
+            'AC':
+                // Legacy inbound alias: earlier BC versions sent AC for an accepted order; outbound responses use AP only
+                exit("E-Doc. Response Type"::Accepted);
             'CA':
                 exit("E-Doc. Response Type"::"Conditionally Accepted");
             'RE':

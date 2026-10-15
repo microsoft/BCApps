@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.EServices.EDocument.Processing;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
@@ -12,6 +13,7 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Peppol.Response;
 using Microsoft.Sales.Customer;
@@ -431,8 +433,8 @@ codeunit 139864 "E-Doc. Message Response Tests"
     procedure HeaderDateChangeWithoutDraftLinksAnswersOrderLines()
     var
         EDocRecordLink: Record "E-Doc. Record Link";
-        EDocSalesHeader: Record "E-Document Sales Header";
         EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
         SalesHeader: Record "Sales Header";
         TempBlob: Codeunit "Temp Blob";
         XmlDoc: XmlDocument;
@@ -469,8 +471,8 @@ codeunit 139864 "E-Doc. Message Response Tests"
     procedure OrderResponseBuilderStartsCleanAfterBuild()
     var
         PEPPOLRespBuilder: Codeunit "PEPPOL Order Resp. Builder";
-        TempBlob: Codeunit "Temp Blob";
         SecondTempBlob: Codeunit "Temp Blob";
+        TempBlob: Codeunit "Temp Blob";
         XmlDoc: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
     begin
@@ -622,8 +624,8 @@ codeunit 139864 "E-Doc. Message Response Tests"
     [Test]
     procedure ResponseWithoutEndpointSchemeIsNotCreated()
     var
-        CountryRegion: Record "Country/Region";
         OriginalCompanyInformation: Record "Company Information";
+        CountryRegion: Record "Country/Region";
         OriginalCustomer: Record Customer;
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
@@ -682,6 +684,301 @@ codeunit 139864 "E-Doc. Message Response Tests"
         Assert.ExpectedError(CompanyInformation.FieldCaption("VAT Registration No."));
 
         RestoreCompanyInformation(OriginalCompanyInformation);
+    end;
+
+    [Test]
+    procedure InboundEndpointsWithEASSchemesAreReturned()
+    var
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        SalesHeader: Record "Sales Header";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] Endpoints received with the order whose schemes are EAS codes are returned as received.
+        Initialize();
+
+        // [GIVEN] An inbound order from a buyer addressed by a Norwegian organisation number, to a seller addressed by a German VAT number
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."Buyer Endpoint Scheme Id" := '0192';
+        EDocSalesHeader."Seller Endpoint Scheme Id" := '9930';
+        EDocSalesHeader.Modify();
+
+        // [WHEN] The acceptance response is built
+        BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] Both endpoints keep their schemes
+        Assert.AreEqual('0192', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:BuyerCustomerParty/cac:Party/cbc:EndpointID/@schemeID'), 'Buyer EndpointID schemeID');
+        Assert.AreEqual('9930', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:SellerSupplierParty/cac:Party/cbc:EndpointID/@schemeID'), 'Seller EndpointID schemeID');
+    end;
+
+    [Test]
+    procedure InboundBuyerEndpointWithUnknownSchemeIsNotCreated()
+    var
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        SalesHeader: Record "Sales Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A buyer endpoint received with a scheme that is not an EAS code would be rejected by Peppol code list
+        // validation, so the response is not built, and the scheme is not replaced on its own.
+        Initialize();
+
+        // [GIVEN] An inbound order whose buyer endpoint has a custom scheme
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."Buyer Endpoint Scheme Id" := 'MY-SCHEME';
+        EDocSalesHeader.Modify();
+
+        // [WHEN] The acceptance response is built
+        asserterror BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+
+        // [THEN] The error names the scheme, the endpoint and the buyer
+        Assert.ExpectedError('MY-SCHEME');
+        Assert.ExpectedError(BuyerEndpointId());
+        Assert.ExpectedError(EDocSalesHeader."Buyer Company Name");
+    end;
+
+    [Test]
+    procedure InboundSellerEndpointWithUnknownSchemeIsNotCreated()
+    var
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        SalesHeader: Record "Sales Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A seller endpoint received with a scheme that is not an EAS code would be rejected by Peppol code list
+        // validation, so the response is not built, and the scheme is not replaced on its own.
+        Initialize();
+
+        // [GIVEN] An inbound order whose seller endpoint has a four digit scheme that is not an EAS code
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."Seller Endpoint Scheme Id" := '0089';
+        EDocSalesHeader.Modify();
+
+        // [WHEN] The acceptance response is built
+        asserterror BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+
+        // [THEN] The error names the scheme and the endpoint
+        Assert.ExpectedError('0089');
+        Assert.ExpectedError(SellerEndpointId());
+    end;
+
+    [Test]
+    procedure EndpointSchemeFromSetupMustBeEASCode()
+    var
+        OriginalCompanyInformation: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+        OriginalCustomer: Record Customer;
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A customer addressed by VAT registration no. in a country whose VAT Scheme is not an EAS code
+        // would give an invalid schemeID, so the response is not built.
+        Initialize();
+
+        // [GIVEN] A company with a GLN, and a customer with only a VAT registration no. in a country with an invalid VAT Scheme
+        SetCompanyGLN(SellerEndpointId(), OriginalCompanyInformation);
+        SetCustomerGLN('', OriginalCustomer);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."VAT Scheme" := 'XX99';
+        CountryRegion.Modify();
+        Customer.Get(Customer."No.");
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer."VAT Registration No." := 'X12345678';
+        Customer.Modify();
+
+        // [GIVEN] An inbound order draft without endpoint information
+        CreateOrderDraftWithoutEndpoints(EDocument);
+
+        // [WHEN] The acknowledgement is built
+        asserterror BuildResponse(EDocument, "E-Doc. Response Type"::Acknowledged, TempBlob);
+
+        // [THEN] The error names the invalid scheme
+        Assert.ExpectedError('XX99');
+
+        RestoreCustomer(OriginalCustomer);
+        RestoreCompanyInformation(OriginalCompanyInformation);
+    end;
+
+    [Test]
+    procedure ClearedHeaderDeliveryDateIsReportedAsChanged()
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+        BuiltResponseType: Enum "E-Doc. Response Type";
+    begin
+        // [SCENARIO] A seller clearing the delivery date the buyer requested for the order changes the order, so it is not AP.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order with a requested delivery date, which the seller cleared
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."Requested Delivery Date" := RequestedDeliveryDate();
+        EDocSalesHeader.Modify();
+        SalesHeader.Find();
+        SalesHeader."Requested Delivery Date" := 0D;
+        SalesHeader."Promised Delivery Date" := 0D;
+        SalesHeader.Modify();
+
+        // [WHEN] The acceptance response is built
+        BuiltResponseType := BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] The response is CA without a promised header date, and the unchanged lines are accepted
+        Assert.AreEqual('CA', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'A cleared requested date must be conditionally accepted.');
+        Assert.AreEqual("E-Doc. Response Type"::"Conditionally Accepted", BuiltResponseType, 'The builder must report the acceptance as conditional.');
+        Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:Delivery'), 'No promised header date can be stated for a cleared date.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'A line with its own unchanged date must be accepted.');
+    end;
+
+    [Test]
+    procedure ClearedLineDeliveryDateIsReportedAsChanged()
+    var
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] A seller clearing the delivery date the buyer requested for a line reports that line as changed.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order whose lines have their own requested delivery date
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+
+        // [GIVEN] The seller clears the requested delivery date of line 1
+        FindSalesLine(SalesHeader, 1, SalesLine);
+        SalesLine."Requested Delivery Date" := 0D;
+        SalesLine.Modify();
+
+        // [WHEN] The acceptance response is built
+        BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] Line 1 is changed and line 2 is accepted
+        Assert.AreEqual('CA', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'A cleared line date must be conditionally accepted.');
+        Assert.AreEqual('3', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'A cleared requested line date must be reported as changed.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '2', 'cbc:LineStatusCode'), 'An unchanged line must be reported as accepted.');
+    end;
+
+    [Test]
+    procedure LineWithoutOwnDeliveryDateIsAccepted()
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocSalesLine: Record "E-Document Sales Line";
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+        BuiltResponseType: Enum "E-Doc. Response Type";
+    begin
+        // [SCENARIO] An order line without its own delivery date gets a sales line without one, as the order's date is on
+        // the header; that blank line date is not a change to the order.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order with a requested delivery date on the header only
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."Requested Delivery Date" := RequestedDeliveryDate();
+        EDocSalesHeader.Modify();
+        SalesHeader.Find();
+        SalesHeader."Requested Delivery Date" := RequestedDeliveryDate();
+        SalesHeader.Modify();
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocSalesLine.ModifyAll("Requested Delivery Date", 0D);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.ModifyAll("Requested Delivery Date", 0D);
+
+        // [WHEN] The acceptance response is built
+        BuiltResponseType := BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] The order is accepted as ordered
+        Assert.AreEqual('AP', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'A line without its own date must not make the order changed.');
+        Assert.AreEqual("E-Doc. Response Type"::Accepted, BuiltResponseType, 'The message must be stored as Accepted.');
+    end;
+
+    [Test]
+    procedure ReplacementUnitWithoutInternationalCodeIsNotCreated()
+    var
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        ReplacementUnitOfMeasure: Record "Unit of Measure";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A seller switching a line to a unit that converts neither to the ordered unit nor to a UN/ECE Rec 20 code
+        // cannot state the confirmed quantity, so the response is not built.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order, whose line 1 the seller switches to a unit without International Standard Code
+        // that cannot be converted to the ordered unit
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        SetUnconvertibleReplacementUnit(EDocument, SalesHeader, '', ReplacementUnitOfMeasure);
+
+        // [WHEN] The acceptance response is built
+        asserterror BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+
+        // [THEN] The error names the unit to set up
+        Assert.ExpectedError(ReplacementUnitOfMeasure.Code);
+        Assert.ExpectedError(ReplacementUnitOfMeasure.FieldCaption("International Standard Code"));
+    end;
+
+    [Test]
+    procedure ReplacementUnitIsReportedWithItsInternationalCode()
+    var
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        ReplacementUnitOfMeasure: Record "Unit of Measure";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] A seller switching a line to a unit that cannot be converted to the ordered unit reports the quantity
+        // in that unit, with its UN/ECE Rec 20 code.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order, whose line 1 the seller switches to 2 of a unit with International Standard Code BX
+        // that cannot be converted to the ordered unit
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        SetUnconvertibleReplacementUnit(EDocument, SalesHeader, 'BX', ReplacementUnitOfMeasure);
+
+        // [WHEN] The acceptance response is built
+        BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] Line 1 is changed and states the quantity in the replacement unit
+        Assert.AreEqual('3', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'A changed unit must be reported as changed.');
+        Assert.AreEqual('2', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:Quantity'), 'The quantity must be stated in the replacement unit.');
+        Assert.AreEqual('BX', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:Quantity/@unitCode'), 'The quantity must use the replacement unit code.');
+    end;
+
+    [Test]
+    procedure InboundOrderResponseCodesAreMapped()
+    begin
+        // [SCENARIO] Inbound Order Response codes are mapped to response types, including AC that earlier BC versions sent for Accepted.
+        Initialize();
+
+        // [WHEN] Order responses with each code are received for an outbound order
+        // [THEN] AP and the legacy AC are Accepted, CA is Conditionally Accepted, and an unknown code is None
+        Assert.AreEqual("E-Doc. Response Type"::Accepted, ReceiveOrderResponse('AP'), 'AP must be read as Accepted.');
+        Assert.AreEqual("E-Doc. Response Type"::Accepted, ReceiveOrderResponse('AC'), 'The legacy AC must be read as Accepted.');
+        Assert.AreEqual("E-Doc. Response Type"::"Conditionally Accepted", ReceiveOrderResponse('CA'), 'CA must be read as Conditionally Accepted.');
+        Assert.AreEqual("E-Doc. Response Type"::Acknowledged, ReceiveOrderResponse('AB'), 'AB must be read as Acknowledged.');
+        Assert.AreEqual("E-Doc. Response Type"::Rejected, ReceiveOrderResponse('RE'), 'RE must be read as Rejected.');
+        Assert.AreEqual("E-Doc. Response Type"::None, ReceiveOrderResponse('XX'), 'An unknown code must be read as None.');
     end;
 
     local procedure CreateSalesOrderFromInboundOrder(var EDocument: Record "E-Document"; var SalesHeader: Record "Sales Header")
@@ -838,6 +1135,54 @@ codeunit 139864 "E-Doc. Message Response Tests"
         SalesLine.Validate(Quantity, Quantity);
         SalesLine.Validate("Unit Price", UnitPrice);
         SalesLine.Modify(true);
+    end;
+
+    local procedure SetUnconvertibleReplacementUnit(EDocument: Record "E-Document"; SalesHeader: Record "Sales Header"; InternationalStandardCode: Code[10]; var ReplacementUnitOfMeasure: Record "Unit of Measure")
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesLine: Record "Sales Line";
+        OrderedUnitOfMeasure: Record "Unit of Measure";
+    begin
+        // The ordered unit is not set up for the item, so the replacement unit cannot be converted back to it
+        LibraryInventory.CreateUnitOfMeasureCode(OrderedUnitOfMeasure);
+        EDocSalesLine.Get(EDocument."Entry No", 10000);
+        EDocSalesLine."[BC] Unit of Measure" := OrderedUnitOfMeasure.Code;
+        EDocSalesLine.Modify();
+
+        LibraryInventory.CreateUnitOfMeasureCode(ReplacementUnitOfMeasure);
+        ReplacementUnitOfMeasure."International Standard Code" := InternationalStandardCode;
+        ReplacementUnitOfMeasure.Modify();
+        FindSalesLine(SalesHeader, 1, SalesLine);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, SalesLine."No.", ReplacementUnitOfMeasure.Code, 5);
+        ChangeUnitOfMeasure(SalesLine, ReplacementUnitOfMeasure.Code, 2, 50);
+    end;
+
+    local procedure ReceiveOrderResponse(ResponseCode: Code[10]): Enum "E-Doc. Response Type"
+    var
+        InboundEDocument: Record "E-Document";
+        OutboundEDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentPEPPOLHandler: Codeunit "E-Document PEPPOL Handler";
+        PEPPOLRespBuilder: Codeunit "PEPPOL Order Resp. Builder";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // The outbound order the response answers
+        LibraryEDoc.CreateInboundEDocument(OutboundEDocument, EDocumentService);
+        OutboundEDocument.Direction := OutboundEDocument.Direction::Outgoing;
+        OutboundEDocument."Document No." := BuyerOrderNoTxt;
+        OutboundEDocument.Modify();
+
+        LibraryEDoc.CreateInboundEDocument(InboundEDocument, EDocumentService);
+        PEPPOLRespBuilder.Build(InboundEDocument."Entry No", BuyerOrderNoTxt, 'Seller Corp.', 'Buyer Inc.', ResponseCode, TempBlob);
+
+        // The response is stored on the outbound order and committed; the inbound carrier then stops with an empty error
+        asserterror EDocumentPEPPOLHandler.ReadIntoDraft(InboundEDocument, TempBlob);
+
+        EDocMessage.SetRange("E-Document Entry No.", OutboundEDocument."Entry No");
+        EDocMessage.FindLast();
+        Assert.AreEqual(EDocMessage.Direction::Incoming, EDocMessage.Direction, 'The response must be stored as incoming.');
+        exit(EDocMessage."Response Type");
     end;
 
     local procedure InsertSalesLine(SalesHeader: Record "Sales Header"; LineNo: Integer; ItemNo: Code[20]; Quantity: Decimal)
