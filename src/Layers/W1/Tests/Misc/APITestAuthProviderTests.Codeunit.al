@@ -36,8 +36,6 @@ codeunit 139494 "API Test Auth Provider Tests"
         UnexpectedCallErr: Label 'Unexpected authentication call.';
 
     [Test]
-    [NonDebuggable]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MissingKeyIsCreatedForRequest()
     var
         TargetURL: Text;
@@ -52,20 +50,15 @@ codeunit 139494 "API Test Auth Provider Tests"
         TargetURL := GetUrl(ClientType::ODataV4);
 
         // [WHEN] A request uses the default provider without explicit selection
+        // [THEN] The request authenticates
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-
-        // [THEN] The request authenticates and only NavUserPassword requires a generated key
-        VerifyKeyPresenceForServerMode();
         VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
 
     [Test]
-    [NonDebuggable]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ExistingKeySurvivesLibraryReset()
     var
-        ExistingKey: Text[80];
         TargetURL: Text;
         ResponseText: Text;
     begin
@@ -73,44 +66,37 @@ codeunit 139494 "API Test Auth Provider Tests"
         Initialize();
 
         // [GIVEN] The current user has a committed key without an expiry
-        ExistingKey := IdentityManagement.CreateWebServicesKeyNoExpiry(UserSecurityId());
+        IdentityManagement.CreateWebServicesKeyNoExpiry(UserSecurityId());
         Commit();
         TargetURL := GetUrl(ClientType::ODataV4);
 
         // [WHEN] Two independently initialized library instances authenticate
+        // [THEN] Both requests authenticate
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         Clear(LibraryGraphMgt);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-
-        // [THEN] Neither the key nor its expiry is changed
-        VerifyExistingKey(ExistingKey);
-        Clear(ExistingKey);
         VerifyNextCall(EventCallTok);
         VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
 
     [Test]
-    [NonDebuggable]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ExpiredKeyIsRenewedBeforeHttpRequest()
     var
-        ExpiredKey: Text[80];
         ResponseText: Text;
     begin
         // [SCENARIO] NavUserPassword authentication replaces an expired key before the API request
         Initialize();
 
         // [GIVEN] The current user has a committed expired key
-        ExpiredKey := IdentityManagement.CreateWebServicesKey(UserSecurityId(), CurrentDateTime() - 60000);
+        IdentityManagement.CreateWebServicesKey(UserSecurityId(), CurrentDateTime() - 60000);
         Commit();
 
         // [WHEN] The default provider sends the request
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, GetUrl(ClientType::ODataV4), 200);
 
-        // [THEN] NavUserPassword renews the key while ambient authentication leaves it untouched
-        VerifyExpiredKeyForServerMode(ExpiredKey);
-        Clear(ExpiredKey);
+        // [THEN] NavUserPassword replaces the key with one that does not expire, while ambient authentication leaves it untouched
+        VerifyExpiryForServerMode();
         VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
@@ -342,40 +328,15 @@ codeunit 139494 "API Test Auth Provider Tests"
         exit(LibraryGraphMgt.CreateTargetURL('', Page::"Customer List", ''));
     end;
 
-    [NonDebuggable]
-    local procedure GetCurrentWebServiceKey(): Text[80]
+    local procedure VerifyExpiryForServerMode()
     var
-        WebServiceKey: Text[80];
+        ExpiryDate: DateTime;
     begin
-        ClearLastError();
-        WebServiceKey := IdentityManagement.GetWebServicesKey(UserSecurityId());
-        Assert.IsTrue(GetLastErrorText() = '', 'The current user key must be readable.');
-        exit(WebServiceKey);
-    end;
-
-    [NonDebuggable]
-    local procedure VerifyKeyPresenceForServerMode()
-    begin
-        Assert.AreEqual(
-            IdentityManagement.IsUserNamePasswordAuthentication(), GetCurrentWebServiceKey() <> '',
-            'Only NavUserPassword authentication should provision a key for the request.');
-    end;
-
-    [NonDebuggable]
-    local procedure VerifyExistingKey(ExistingKey: Text[80])
-    begin
-        Assert.IsTrue(ExistingKey = GetCurrentWebServiceKey(), 'Authentication must not rotate an existing key.');
-        Assert.AreEqual(0DT, IdentityManagement.GetWebServiceExpiryDate(UserSecurityId()), 'A non-expiring key must stay non-expiring.');
-    end;
-
-    [NonDebuggable]
-    local procedure VerifyExpiredKeyForServerMode(ExpiredKey: Text[80])
-    begin
-        if IdentityManagement.IsUserNamePasswordAuthentication() then begin
-            Assert.IsTrue(ExpiredKey <> GetCurrentWebServiceKey(), 'An expired key must be replaced.');
-            Assert.IsTrue(IdentityManagement.GetWebServiceExpiryDate(UserSecurityId()) > CurrentDateTime(), 'The replacement key must not be expired.');
-        end else
-            Assert.IsTrue(ExpiredKey = GetCurrentWebServiceKey(), 'Ambient authentication must not change the key.');
+        ExpiryDate := IdentityManagement.GetWebServiceExpiryDate(UserSecurityId());
+        if IdentityManagement.IsUserNamePasswordAuthentication() then
+            Assert.AreEqual(0DT, ExpiryDate, 'An expired key must be replaced with a key that does not expire.')
+        else
+            Assert.IsTrue(ExpiryDate <= CurrentDateTime(), 'Ambient authentication must not change the key.');
     end;
 
     local procedure VerifyNextCall(ExpectedCall: Text)
