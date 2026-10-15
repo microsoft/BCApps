@@ -1215,6 +1215,7 @@ table 6900 Expense
     local procedure UpdateCurrencyFactor()
     var
         CurrExchRate: Record "Currency Exchange Rate";
+        ExpenseCurrency: Codeunit "Expense Currency";
         UpdateCurrencyExchangeRates: Codeunit "Update Currency Exchange Rates";
         CurrencyDate: Date;
     begin
@@ -1227,7 +1228,7 @@ table 6900 Expense
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Currency Code") then
                 Rec."Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Currency Code")
             else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Currency Code");
+                ExpenseCurrency.ShowMissingExchangeRateError(CurrencyDate, Rec."Currency Code");
         end else
             Rec."Currency Factor" := 0;
     end;
