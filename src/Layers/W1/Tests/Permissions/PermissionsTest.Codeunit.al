@@ -658,6 +658,59 @@ codeunit 139400 "Permissions Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure EffectivePermissionsOverviewObjUserFilter()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[2] of Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        AllObj: Record AllObj;
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        EffectivePermOverview: TestPage "Effective Permissions Overview";
+    begin
+        // [SCENARIO] Effective permissions overview correctly filters for the object, user, and currently company (automatic)
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+
+        // [GIVEN] A permission set with a wildcard permission
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        // [GIVEN] Two permissions for the same permission set
+        AllObj.Get(AllObj."Object Type"::Page, Page::"Customer Card");
+        TenantPermission[1].Init();
+        TenantPermission[1]."App ID" := NullGuid;
+        TenantPermission[1]."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission[1]."Object Type" := AllObj."Object Type";
+        TenantPermission[1]."Object ID" := AllObj."Object ID";
+        TenantPermission[1]."Execute Permission" := TenantPermission[1]."Execute Permission"::Yes;
+        TenantPermission[1].Insert();
+        TenantPermission[2]."Object ID" := Page::"Vendor Card";
+        TenantPermission[2].Insert();
+
+        // [GIVEN] The permission set is assigned to the current user in the current company
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The effective permissions overview is opened with the user and object filters set
+        EffectivePermOverview.OpenEdit();
+        EffectivePermOverview.UserFilter.SetValue(UserId());
+        EffectivePermOverview.ObjTypeFilter.SetValue(TenantPermission[1]."Object Type" + 1);
+        EffectivePermOverview.ObjIDFilter.SetValue(TenantPermission[1]."Object ID");
+        EffectivePermOverview.Apply.Invoke();
+
+        // [THEN] Only the filtered permission should be displayed
+        Assert.IsTrue(EffectivePermOverview.First(), 'An entry should exist');
+        EffectivePermOverview.UserName.AssertEquals(UserId());
+        EffectivePermOverview.ObjectType.AssertEquals(AllObj."Object Type");
+        EffectivePermOverview.ObjectName.AssertEquals(AllObj."Object Name");
+        EffectivePermOverview.ExecutePermission.AssertEquals(TenantPermission[1]."Execute Permission");
+        Assert.IsFalse(EffectivePermOverview.Next(), 'There should be no more entries');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure PermOverviewObjTypeFilter()
     var
         ExpandedPermission: Record "Expanded Permission";

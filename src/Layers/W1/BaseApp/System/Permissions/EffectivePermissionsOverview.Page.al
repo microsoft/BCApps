@@ -7,6 +7,7 @@ namespace System.Security.AccessControl;
 using System.Environment;
 using System.Reflection;
 using System.Security.User;
+using System.Telemetry;
 using System.Text;
 
 page 9886 "Effective Permissions Overview"
@@ -22,7 +23,7 @@ page 9886 "Effective Permissions Overview"
     ModifyAllowed = false;
     SourceTable = "Effective Permission Buffer";
     AboutTitle = 'About Effective Permission Overview';
-    AboutText = 'Audit the effective permissions each user has across objects in your system, as well as which assigned permission set contributed to each effective permission. Effective permissions show the final access to objects and data, helping you verify access, troubleshoot permission issues.';
+    AboutText = 'Audit the effective permissions each user has across objects in your system, as well as which assigned permission set contributed to each effective permission. Effective permissions show the final access to objects and data, helping you verify access and troubleshoot permission issues.';
 
     layout
     {
@@ -30,7 +31,10 @@ page 9886 "Effective Permissions Overview"
         {
             group(Filters)
             {
-                ShowCaption = false;
+                Caption = 'Filters';
+                AboutTitle = 'Filtering users, objects, and permissions';
+                AboutText = 'Start by narrowing down the effective permissions displayed by setting filters for user, object, and permission.';
+
                 field(CompanyFilter; CompanyFilter)
                 {
                     Caption = 'Company';
@@ -48,9 +52,12 @@ page 9886 "Effective Permissions Overview"
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         User: Record User;
+                        UserSelection: Codeunit "User Selection";
                         Users: Page Users;
                         RecRef: RecordRef;
                     begin
+                        UserSelection.FilterSystemUserAndGroupUsers(User);
+                        Users.SetTableView(User);
                         Users.LookupMode(true);
                         if Users.RunModal() = Action::LookupOK then begin
                             Users.GetSelectionFilter(User);
@@ -171,9 +178,10 @@ page 9886 "Effective Permissions Overview"
         {
             action(Apply)
             {
-                ApplicationArea = All;
                 Caption = 'Apply Filters';
                 ToolTip = 'Refresh the data based on the current filters.';
+                AboutTitle = 'Applying your filters';
+                AboutText = 'After setting your filters, select Apply Filters to refresh the data displayed on the page.';
                 Image = Refresh;
 
                 trigger OnAction()
@@ -181,7 +189,22 @@ page 9886 "Effective Permissions Overview"
                     LoadData();
                     CurrPage.Update(false);
                 end;
-
+            }
+            action(PermissionSets)
+            {
+                ApplicationArea = All;
+                Caption = 'Permission Sets';
+                Image = Permission;
+                RunObject = Page "Permission Sets";
+                ToolTip = 'View or edit which feature objects that users need to access and set up the related permissions in permission sets that you can assign to the users of the database.';
+            }
+            action(PermissionSetByUser)
+            {
+                ApplicationArea = All;
+                Caption = 'Permission Set by User';
+                Image = Permission;
+                RunObject = Page "Permission Set by User";
+                ToolTip = 'View or edit the available permission sets and apply permission sets to existing users.';
             }
         }
         area(Promoted)
@@ -189,6 +212,8 @@ page 9886 "Effective Permissions Overview"
             group(Category_Process)
             {
                 actionref(Apply_Promoted; Apply) { }
+                actionref(PermissionSets_Promoted; PermissionSets) { }
+                actionref(PermissionSetByUser_Promoted; PermissionSetByUser) { }
             }
         }
     }
@@ -196,18 +221,25 @@ page 9886 "Effective Permissions Overview"
     var
         TempUser: Record User temporary;
         SelectionFilterMgt: Codeunit SelectionFilterManagement;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
         UserFilter: Text;
         CompanyFilter: Text[30];
         ObjTypeFilter: Option " ","Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         ObjIDFilter: Text;
         ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Option " ",No,Yes,Indirect;
-        LoadDataMsg: Label 'Reading Permissions...@1@@@@@';
 
     trigger OnOpenPage()
+    var
+        AuditLog: Codeunit "Audit Log";
+        EffectivePermissionsPageOpenLbl: Label 'The Effective Permissions Overviewpage has been opened by UserSecurityId %1.', Locked = true;
     begin
+        EffectivePermissionsMgt.DisallowViewingEffectivePermissionsForNonAdminUsers(UserSecurityId());
+
         CompanyFilter := CopyStr(CompanyName(), 1, MaxStrLen(CompanyFilter));
         LoadUsers();
         ApplyFilters(false);
+
+        AuditLog.LogAuditMessage(StrSubstNo(EffectivePermissionsPageOpenLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -256,6 +288,7 @@ page 9886 "Effective Permissions Overview"
         User: Record User;
         UserProperty: Record "User Property";
         EnvironmentInfo: Codeunit "Environment Information";
+        UserSelection: Codeunit "User Selection";
         // AzureADUserManagement: Codeunit "Azure AD User Management";
         IsSaaS: Boolean;
     begin
@@ -263,6 +296,7 @@ page 9886 "Effective Permissions Overview"
         TempUser.Reset();
         TempUser.DeleteAll();
         UserProperty.SetLoadFields("Authentication Object ID");
+        UserSelection.FilterSystemUserAndGroupUsers(User);
         User.SetLoadFields("User Security ID", "User Name");
         if User.FindSet() then
             repeat
@@ -281,10 +315,10 @@ page 9886 "Effective Permissions Overview"
     var
         AllObj: Record AllObj;
         TempPermission: Record Permission temporary;
-        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
         Window: Dialog;
         ProcessCount, TotalCount : Integer;
         LastUpdateDateTime: DateTime;
+        LoadDataMsg: Label 'Reading Permissions...@1@@@@@';
     begin
         Window.Open(LoadDataMsg);
 
