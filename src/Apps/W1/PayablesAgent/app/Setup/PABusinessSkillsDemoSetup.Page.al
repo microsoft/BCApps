@@ -79,7 +79,7 @@ page 3327 "PA Business Skills Demo Setup"
             action(SetupCompany)
             {
                 Caption = 'Setup Company';
-                ToolTip = 'Create the baseline mappings, policy-specific accounts and VAT groups, four unposted history invoices, and four Business Skills skills required by the GB comparison demo.';
+                ToolTip = 'Create the baseline mappings, policy-specific accounts and VAT groups, four unposted history invoices, and four Business Skill records required by the GB comparison demo.';
                 Image = Setup;
                 Enabled = not SetupConfigured and not UpgradeRequired;
 
@@ -151,7 +151,7 @@ page 3327 "PA Business Skills Demo Setup"
             action(CleanupCompany)
             {
                 Caption = 'Clean Up';
-                ToolTip = 'Restore captured defaults and remove only unchanged, unused, unposted records and exact Business Skills skill IDs created by setup.';
+                ToolTip = 'Restore captured defaults and remove only unchanged, unused, unposted records and exact Business Skill IDs created by setup.';
                 Image = Delete;
                 Enabled = SetupConfigured or UpgradeRequired;
 
@@ -227,7 +227,7 @@ page 3327 "PA Business Skills Demo Setup"
         SetupCompletedMsg: Label 'The GB Payables Agent comparison setup is ready.';
         UpgradeCompletedMsg: Label 'The GB Payables Agent demo was upgraded to the comparison setup.';
         CleanupCompletedMsg: Label 'The GB Payables Agent demo setup was removed and the captured vendor fields were restored.';
-        BusinessSkillsRefreshedMsg: Label 'The four Business Skills demo skills were refreshed with the latest retrieval and accounting guidance.';
+        BusinessSkillsRefreshedMsg: Label 'The four demo Business Skill records were refreshed with the latest retrieval and accounting guidance.';
         InvoicesSubmittedMsg: Label 'The eight GB scenario invoices were submitted to Payables Agent.';
         SubmittedInvoicesCleanedMsg: Label 'The submitted demo invoice batch was cleaned.';
         CleanSubmittedInvoicesQst: Label 'Clean the submitted demo invoice batch? All tracked tasks must already be stopped or completed, and generated purchase invoices must remain unposted.';

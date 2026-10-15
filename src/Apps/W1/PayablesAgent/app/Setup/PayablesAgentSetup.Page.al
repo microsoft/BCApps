@@ -380,7 +380,7 @@ page 3304 "Payables Agent Setup"
             group(BusinessSkills)
             {
                 Caption = 'Business Skills';
-                InstructionalText = 'Use company-specific Business Skills skills to guide invoice coding decisions.';
+                InstructionalText = 'Use company-specific guidance from Business Skills when coding invoices.';
 
                 field(UseBusinessSkills; Rec."Use Business Skills")
                 {
