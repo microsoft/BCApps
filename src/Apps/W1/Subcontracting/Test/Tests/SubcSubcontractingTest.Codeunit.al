@@ -5847,6 +5847,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', '');
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', '');
+        LibraryReportDataset.AssertElementWithValueExists('SubcVendorAddress', '');
         LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', '');
         LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', '');
     end;
@@ -5870,6 +5871,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', TransferShipmentHeader."Source ID");
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', PostedVendorName);
+        LibraryReportDataset.AssertElementWithValueExists('SubcVendorAddress', TransferShipmentHeader."Transfer-to Address");
         LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', PurchaseOrderNo);
         LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', TransferShipmentLine."Subc. Prod. Order No.");
     end;
