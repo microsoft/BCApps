@@ -1523,6 +1523,86 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.ExpectedErrorCode('Dialog');
     end;
 
+    [Test]
+    procedure LifecycleDerivesIssuerSIRENFromSIRET()
+    var
+        CompanyInformation: Record "Company Information";
+        EDocument: Record "E-Document";
+        Message: Record "FR E-Invoice Message";
+        MessageManagement: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Lifecycle messages use the same SIRET-derived issuer SIREN as invoice exports
+        Initialize();
+
+        // [GIVEN] A SIRET-only issuer and an incoming invoice
+        CreateIncomingEDocument(EDocument);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := '';
+        CompanyInformation."SIRET No." := '12345678901234';
+        CompanyInformation.Modify();
+
+        // [WHEN] A refusal message is created
+        MessageManagement.RefuseInvoice(EDocument, '', '');
+
+        // [THEN] The frozen issuer is a qualified SIREN, not SIRET
+        FindMessage(Message, EDocument, "FR E-Invoice Message Type"::Refused);
+        Assert.AreEqual('123456789', Message."Invoice Issuer ID", 'Issuer must use resolved SIREN.');
+        Assert.AreEqual('0002', Message."Invoice Issuer Scheme", 'Issuer must use legal SIREN scheme.');
+        CompanyInformation.Get();
+        Assert.AreEqual('', CompanyInformation."Registration No.", 'Lifecycle creation must not backfill master data.');
+    end;
+
+    [Test]
+    procedure LifecycleRejectsConflictingCompanyIdentifiers()
+    var
+        CompanyInformation: Record "Company Information";
+        EDocument: Record "E-Document";
+        MessageManagement: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Lifecycle messages cannot freeze contradictory company identity
+        Initialize();
+
+        // [GIVEN] An issuer whose SIRET contradicts its SIREN
+        CreateIncomingEDocument(EDocument);
+        CompanyInformation.Get();
+        CompanyInformation."SIRET No." := '98765432100011';
+        CompanyInformation.Modify();
+
+        // [WHEN] A refusal message is created
+        asserterror MessageManagement.RefuseInvoice(EDocument, '', '');
+
+        // [THEN] Identity coherence is enforced
+        Assert.ExpectedError('first nine digits of SIRET must match SIREN');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure LifecycleRejectsMalformedPopulatedSIREN()
+    var
+        CompanyInformation: Record "Company Information";
+        EDocument: Record "E-Document";
+        MessageManagement: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Lifecycle creation cannot normalize malformed SIREN into another identity
+        Initialize();
+
+        // [GIVEN] Punctuation is stored in issuer SIREN
+        CreateIncomingEDocument(EDocument);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := '123-456-789';
+        CompanyInformation.Modify();
+
+        // [WHEN] A refusal message is created
+        asserterror MessageManagement.RefuseInvoice(EDocument, '', '');
+
+        // [THEN] The raw value is rejected
+        Assert.ExpectedError('exactly nine digits');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
     local procedure BuildLifecycleXml(InvoiceID: Text; Status: Text; ReasonCode: Text; ReasonDescription: Text): Text
     var
         XmlText: TextBuilder;
@@ -1771,6 +1851,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     begin
         CompanyInformation.Get();
         CompanyInformation."Registration No." := '123456789';
+        CompanyInformation."SIRET No." := '';
         CompanyInformation.Name := 'FR Test Issuer';
         CompanyInformation.Modify();
     end;
