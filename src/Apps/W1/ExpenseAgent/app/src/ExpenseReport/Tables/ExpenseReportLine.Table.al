@@ -2000,6 +2000,7 @@ table 6907 "Expense Report Line"
 
     local procedure UpdateCurrencyFactor()
     var
+        ExpenseCurrencyMgt: Codeunit "Expense Currency";
         UpdateCurrencyExchangeRates: Codeunit "Update Currency Exchange Rates";
         CurrencyDate: Date;
     begin
@@ -2012,7 +2013,7 @@ table 6907 "Expense Report Line"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Expense Currency Code") then
                 Rec."Expense Currency Factor" := CurrencyExchangeRate.ExchangeRate(CurrencyDate, Rec."Expense Currency Code")
             else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Expense Currency Code");
+                ExpenseCurrencyMgt.ShowMissingExchangeRateError(CurrencyDate, Rec."Expense Currency Code");
         end else
             Rec."Expense Currency Factor" := 0;
     end;
