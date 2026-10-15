@@ -542,7 +542,7 @@ report 1401 Check
                             CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::"Test Print";
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
-                            CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
+                            CheckManagement.InsertCheck(CheckLedgEntry, RecordId);
 
                             CheckAmountText := Text024;
                             DescriptionLine[1] := Text025;

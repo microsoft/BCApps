@@ -249,9 +249,7 @@ report 1401 Check
                                                     begin
                                                         CustUpdateAmounts(CustLedgEntry, RemainingAmount);
                                                         FoundLast := (CustLedgEntry.Next() = 0) or (RemainingAmount <= 0);
-#if not CLEAN30
                                                         AddedRemainingAmount := not (FoundLast and (RemainingAmount > 0));
-#endif
                                                         if FoundLast and not FoundNegative then begin
                                                             CustLedgEntry.SetRange(Positive, false);
                                                             FoundLast := not CustLedgEntry.Find('-');
@@ -262,9 +260,7 @@ report 1401 Check
                                                     begin
                                                         VendUpdateAmounts(VendLedgEntry, RemainingAmount);
                                                         FoundLast := (VendLedgEntry.Next() = 0) or (RemainingAmount <= 0);
-#if not CLEAN30
                                                         AddedRemainingAmount := not (FoundLast and (RemainingAmount > 0));
-#endif
                                                         if FoundLast and not FoundNegative then begin
                                                             VendLedgEntry.SetRange(Positive, false);
                                                             FoundLast := not VendLedgEntry.Find('-');
@@ -1467,7 +1463,7 @@ report 1401 Check
     end;
 
 #if not CLEAN30
-    [Obsolete('Moved to the Payment Management FR extension. Use FormatNoText instead.', '30.0')]
+    [Obsolete('Use FormatNoTextFR on codeunit "Check Amount Wording FR" in the Payment Management FR extension.', '30.0')]
     [Scope('OnPrem')]
     procedure FormatNoTextFR(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var
@@ -1539,7 +1535,7 @@ report 1401 Check
             end;
     end;
 
-    [Obsolete('Moved to the Payment Management FR extension. Use FormatNoText instead.', '30.0')]
+    [Obsolete('Use FormatTens on codeunit "Check Amount Wording FR" in the Payment Management FR extension.', '30.0')]
     [Scope('OnPrem')]
     procedure FormatTens(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; Exponent: Integer; Hundreds: Integer; Tens: Integer; Ones: Integer)
     begin
@@ -1591,7 +1587,7 @@ report 1401 Check
         end;
     end;
 
-    [Obsolete('Moved to the Payment Management FR extension. Use FormatNoText instead.', '30.0')]
+    [Obsolete('Use FormatNoTextINTL on codeunit "Check Amount Wording FR" in the Payment Management FR extension.', '30.0')]
     [Scope('OnPrem')]
     procedure FormatNoTextINTL(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var

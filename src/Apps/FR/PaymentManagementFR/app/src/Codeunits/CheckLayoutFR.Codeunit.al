@@ -6,6 +6,7 @@ namespace Microsoft.Bank.Payment;
 
 using Microsoft.Bank.Check;
 using Microsoft.Foundation.Reporting;
+using System.Environment.Configuration;
 using System.Reflection;
 using System.Upgrade;
 

@@ -14,7 +14,7 @@ using Microsoft.Finance.Currency;
 /// </summary>
 codeunit 10832 "Check Amount Wording FR"
 {
-    Access = Internal;
+    Access = Public;
 
     var
         OnesText: array[20] of Text[30];
@@ -63,7 +63,6 @@ codeunit 10832 "Check Amount Wording FR"
         if IsHandled then
             exit;
 
-        InitTextVariable();
         if IsFrenchLanguage() then
             FormatNoTextFR(NoText, No, CurrencyCode)
         else
@@ -79,6 +78,9 @@ codeunit 10832 "Check Amount Wording FR"
 
     local procedure InitTextVariable()
     begin
+        Clear(OnesText);
+        Clear(TensText);
+        Clear(ExponentText);
         OnesText[1] := OneLbl;
         OnesText[2] := TwoLbl;
         OnesText[3] := ThreeLbl;
@@ -128,7 +130,11 @@ codeunit 10832 "Check Amount Wording FR"
         NoText[NoTextIndex] := DelChr(NoText[NoTextIndex] + ' ' + AddText, '<');
     end;
 
-    local procedure FormatNoTextFR(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
+    /// <summary>
+    /// Formats an amount using the legacy French grammar and the current language's labels.
+    /// No separate initialization is required.
+    /// </summary>
+    procedure FormatNoTextFR(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var
         Currency: Record Currency;
         PrintExponent: Boolean;
@@ -138,6 +144,7 @@ codeunit 10832 "Check Amount Wording FR"
         Exponent: Integer;
         NoTextIndex: Integer;
     begin
+        InitTextVariable();
         Clear(NoText);
         NoTextIndex := 1;
         NoText[1] := '****';
@@ -163,7 +170,7 @@ codeunit 10832 "Check Amount Wording FR"
                             AddToNoText(NoText, NoTextIndex, PrintExponent, HundredLbl);
                     end;
 
-                FormatTens(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+                FormatTensInternal(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
 
                 if PrintExponent and (Exponent > 1) then
                     if ((Hundreds * 100 + Tens * 10 + Ones) > 1) and (Exponent <> 2) then
@@ -184,7 +191,7 @@ codeunit 10832 "Check Amount Wording FR"
         No := No * 100;
         Ones := No mod 10;
         Tens := No div 10;
-        FormatTens(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+        FormatTensInternal(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
 
         if (CurrencyCode = '') or (CurrencyCode = 'FRF') then
             case true of
@@ -195,7 +202,17 @@ codeunit 10832 "Check Amount Wording FR"
             end;
     end;
 
-    local procedure FormatTens(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; Exponent: Integer; Hundreds: Integer; Tens: Integer; Ones: Integer)
+    /// <summary>
+    /// Appends tens using the legacy French grammar and the current language's labels.
+    /// Preserves the caller's text, line index and exponent state.
+    /// </summary>
+    procedure FormatTens(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; Exponent: Integer; Hundreds: Integer; Tens: Integer; Ones: Integer)
+    begin
+        InitTextVariable();
+        FormatTensInternal(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+    end;
+
+    local procedure FormatTensInternal(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; Exponent: Integer; Hundreds: Integer; Tens: Integer; Ones: Integer)
     begin
         case Tens of
             9:
@@ -245,7 +262,11 @@ codeunit 10832 "Check Amount Wording FR"
         end;
     end;
 
-    local procedure FormatNoTextINTL(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
+    /// <summary>
+    /// Formats an amount using the legacy international grammar and fixed hundredths.
+    /// No separate initialization is required.
+    /// </summary>
+    procedure FormatNoTextINTL(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var
         PrintExponent: Boolean;
         Ones: Integer;
@@ -254,6 +275,7 @@ codeunit 10832 "Check Amount Wording FR"
         Exponent: Integer;
         NoTextIndex: Integer;
     begin
+        InitTextVariable();
         Clear(NoText);
         NoTextIndex := 1;
         NoText[1] := '****';

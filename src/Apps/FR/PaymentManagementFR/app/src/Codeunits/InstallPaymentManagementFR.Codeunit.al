@@ -13,6 +13,6 @@ codeunit 10846 "Install Payment Management FR"
     var
         CheckLayoutFR: Codeunit "Check Layout FR";
     begin
-        CheckLayoutFR.SetDefaultLayout();
+        CheckLayoutFR.UpgradeLayout();
     end;
 }
