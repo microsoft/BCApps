@@ -79,10 +79,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         GeneralPostingSetup: Record "General Posting Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
-        LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
-        LibraryVariableStorage.Clear();
-        Clear(LibraryReportValidation);
-        Clear(HandledMessage);
+        InitializeTest();
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
@@ -96,6 +93,20 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
+    end;
+
+    local procedure InitializeTest()
+    begin
+        LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
+        LibraryVariableStorage.Clear();
+        Clear(LibraryReportValidation);
+        Clear(HandledMessage);
+    end;
+
+    local procedure InitializeContosoDemoTest()
+    begin
+        InitializeTest();
+        ResetContosoGLAccountMappings();
     end;
 
 #if not CLEAN30
@@ -340,6 +351,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 #endif
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ContosoDemoGeneratorInitializesExtensionAccounts()
     var
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
@@ -348,7 +360,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Contoso setup generation initializes the extension accounts for all five FI posting groups.
-        Initialize();
+        InitializeContosoDemoTest();
         EnableFeature();
 
         // [GIVEN] FI accounts exist and fixed asset setup data has not been generated.
@@ -357,14 +369,16 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
         ContosoDemoToolPage.GenerateSetup.Invoke();
         ContosoDemoToolPage.Close();
+        ResetContosoGLAccountMappings();
+        DisableFeature();
 
         // [THEN] All five posting groups have extension accounts instead of legacy accounts.
         VerifyContosoPostingGroupAccounts(DeprDifferenceAccount, DeprDifferenceBalAccount, true);
-        DisableFeature();
     end;
 
 #if not CLEAN30
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ContosoDemoGeneratorInitializesLegacyAccountsWhenFeatureDisabled()
     var
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
@@ -373,7 +387,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Contoso setup generation retains legacy FI accounts when the feature is disabled.
-        Initialize();
+        InitializeContosoDemoTest();
         SetFeatureEnabled(false);
 
         // [GIVEN] FI accounts exist and fixed asset setup data has not been generated.
@@ -382,10 +396,11 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
         ContosoDemoToolPage.GenerateSetup.Invoke();
         ContosoDemoToolPage.Close();
+        ResetContosoGLAccountMappings();
+        DisableFeature();
 
         // [THEN] All five posting groups have legacy accounts and empty extension accounts.
         VerifyContosoPostingGroupAccounts(DeprDifferenceAccount, DeprDifferenceBalAccount, false);
-        DisableFeature();
     end;
 
     [Test]
@@ -937,6 +952,14 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         ContosoDemoToolPage.GoToRecord(ContosoDemoDataModule);
     end;
 
+    local procedure ResetContosoGLAccountMappings()
+    var
+        CreateGLAccount: Codeunit "Create G/L Account";
+    begin
+        // The single-instance mapping is not rolled back with database changes.
+        CreateGLAccount.AddGLAccountsForLocalization();
+    end;
+
     local procedure GetContosoPostingGroupCodes() PostingGroupCodes: List of [Code[20]]
     var
         CreateFAPostingGroup: Codeunit "Create FA Posting Group";
@@ -1246,16 +1269,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     end;
 
     local procedure UpdateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group"; ClearDeprDifferenceAcc: Boolean; ClearDeprDifferenceBalAcc: Boolean)
-    var
-        FAPostingGroup2: Record "FA Posting Group";
-        RecRef: RecordRef;
     begin
-        FAPostingGroup2.Init();
-        FAPostingGroup2.SetFilter("Acquisition Cost Account", '<>''''');
-        RecRef.GetTable(FAPostingGroup2);
-        LibraryUtility.FindRecord(RecRef);
-        RecRef.SetTable(FAPostingGroup2);
-        FAPostingGroup.TransferFields(FAPostingGroup2, false);
         if ClearDeprDifferenceAcc then
             FAPostingGroup.Validate("Deprec. Difference Account", '')
         else
