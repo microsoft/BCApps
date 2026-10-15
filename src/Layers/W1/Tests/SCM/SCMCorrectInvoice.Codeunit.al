@@ -1448,6 +1448,7 @@ codeunit 137019 "SCM Correct Invoice"
         Customer: Record Customer;
         GenJournalLine: Record "Gen. Journal Line";
         GeneralPostingSetup: Record "General Posting Setup";
+        GLAccount: Record "G/L Account";
         Item: Record Item;
         PrepaidSalesLine: Record "Sales Line";
         RemainingSalesLine: Record "Sales Line";
@@ -1464,13 +1465,15 @@ codeunit 137019 "SCM Correct Invoice"
         Initialize();
 
         // [GIVEN] A Sales Order with a paid 50% prepayment on the line that will be posted.
-        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibrarySales.CreatePrepaymentVATSetup(GLAccount, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
         LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
         GeneralPostingSetup."Sales Credit Memo Account" := LibraryERM.CreateGLAccountNo();
         GeneralPostingSetup.Modify(true);
-        LibraryERM.CreateVATPostingSetupWithAccounts(
-            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
-        SetupSalesPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+        VATPostingSetup.Get(GLAccount."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
+        VATPostingSetup.Modify(true);
 
         LibraryInventory.CreateItem(Item);
         Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
@@ -1560,18 +1563,6 @@ codeunit 137019 "SCM Correct Invoice"
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
-    end;
-
-    local procedure SetupSalesPrepmtGLAccountPostingGroups(GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup")
-    var
-        GLAccount: Record "G/L Account";
-    begin
-        GLAccount.Get(GeneralPostingSetup."Sales Prepayments Account");
-        GLAccount.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
-        GLAccount.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
-        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        GLAccount.Modify(true);
     end;
 
     local procedure SetGlobalNoSeriesInSetups()
