@@ -542,32 +542,23 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure GetCountryOfOriginFromPostedEntryOnBeforeGetCountryOfOriginCode(var IntrastatReportLine: Record "Intrastat Report Line"; var CountryOfOriginCode: Code[10]; var IsHandled: Boolean)
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        JobLedgerEntry: Record "Job Ledger Entry";
+        IntrastatPostedSource: Enum "Intrastat Posted Source CZ";
+        IntrastatPostedOrigin: Interface "Intrastat Posted Origin CZ";
         PostedCountryOfOriginCode: Code[10];
+        SourceTypeOrdinal: Integer;
     begin
         if IsHandled then
-            exit;
-        if not (IntrastatReportLine."Source Type" in [IntrastatReportLine."Source Type"::"Item Entry", IntrastatReportLine."Source Type"::"Job Entry"]) then
             exit;
         if not IntrastatReportSetup.Get() then
             exit;
         if IntrastatReportSetup."Get Ctry/Reg. of Origin CZ" <> IntrastatReportSetup."Get Ctry/Reg. of Origin CZ"::"Posted Entries" then
             exit;
-        case IntrastatReportLine."Source Type" of
-            IntrastatReportLine."Source Type"::"Item Entry":
-                begin
-                    ItemLedgerEntry.SetLoadFields("Country/Reg. of Orig. Code CZ");
-                    if ItemLedgerEntry.Get(IntrastatReportLine."Source Entry No.") then
-                        PostedCountryOfOriginCode := ItemLedgerEntry."Country/Reg. of Orig. Code CZ";
-                end;
-            IntrastatReportLine."Source Type"::"Job Entry":
-                begin
-                    JobLedgerEntry.SetLoadFields("Country/Reg. of Orig. Code CZ");
-                    if JobLedgerEntry.Get(IntrastatReportLine."Source Entry No.") then
-                        PostedCountryOfOriginCode := JobLedgerEntry."Country/Reg. of Orig. Code CZ";
-                end;
-        end;
+        SourceTypeOrdinal := IntrastatReportLine."Source Type".AsInteger();
+        if not IntrastatPostedSource.Ordinals().Contains(SourceTypeOrdinal) then
+            exit;
+        IntrastatPostedSource := Enum::"Intrastat Posted Source CZ".FromInteger(SourceTypeOrdinal);
+        IntrastatPostedOrigin := IntrastatPostedSource;
+        PostedCountryOfOriginCode := IntrastatPostedOrigin.GetCountryOfOriginCode(IntrastatReportLine);
         if PostedCountryOfOriginCode = '' then
             exit;
         CountryOfOriginCode := PostedCountryOfOriginCode;

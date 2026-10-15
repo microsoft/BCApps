@@ -5324,6 +5324,30 @@ codeunit 148125 "Intrastat CZ Test"
     end;
 
     [Test]
+    internal procedure CountryOfOriginPostedEntriesExtensibleSource()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ActualCountryOfOriginCode: Code[10];
+        TestCZTok: Label 'TESTCZ', locked = true;
+    begin
+        // [FEATURE] [Country/Region of Origin] [Extensibility]
+        // [SCENARIO] A new source type provides its posted Country/Region of Origin Code through an enum extension implementing the interface
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = "Posted Entries"
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Posted Entries");
+
+        // [GIVEN] Intrastat Report Line with the extended source type
+        IntrastatReportLine."Source Type" := IntrastatReportLine."Source Type"::"Test Source CZ";
+
+        // [WHEN] Get Country/Region of Origin Code
+        ActualCountryOfOriginCode := IntrastatReportLine.GetCountryOfOriginCode();
+
+        // [THEN] Country/Region of Origin Code is provided by the implementation of the extended source type
+        VerifyCountryOfOrigin(TestCZTok, ActualCountryOfOriginCode, IntrastatReportLine.TableCaption());
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
