@@ -2991,9 +2991,16 @@ table 18 Customer
 
 #if not CLEAN30
     [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '30.0')]
-    procedure GetSIRENNoWithCaption(): Text
+    procedure GetSIRENNoWithCaption() SIRENNoWithCaption: Text
     begin
-        exit(StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No."));
+        SIRENNoWithCaption := StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No.");
+        OnAfterGetSIRENNoWithCaption(Rec, SIRENNoWithCaption);
+    end;
+
+    [Obsolete('SIREN number formatting moved to Sales FR app.', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetSIRENNoWithCaption(Customer: Record Customer; var SIRENNoWithCaption: Text)
+    begin
     end;
 #endif
 

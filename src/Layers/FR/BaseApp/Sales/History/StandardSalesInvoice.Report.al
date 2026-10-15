@@ -1657,10 +1657,17 @@ report 1306 "Standard Sales - Invoice"
             exit(Item.Type = Item.Type::Inventory);
     end;
 
-    local procedure GetVATPaidonDebitsText(): Text
+    local procedure GetVATPaidonDebitsText() VATPaidOnDebitsText: Text
     begin
         if Header."VAT Paid on Debits" then
-            exit(Header.FieldCaption("VAT Paid on Debits"));
+            VATPaidOnDebitsText := Header.FieldCaption("VAT Paid on Debits");
+        OnAfterGetVATPaidOnDebitsText(Header, VATPaidOnDebitsText);
+    end;
+
+    [Obsolete('VAT paid on debits formatting moved to Sales FR app.', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetVATPaidOnDebitsText(SalesInvoiceHeader: Record "Sales Invoice Header"; var VATPaidOnDebitsText: Text)
+    begin
     end;
 #endif
 

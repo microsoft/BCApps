@@ -11,7 +11,6 @@ using Microsoft.Sales.History;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Upgrade;
-using System.TestLibraries.Utilities;
 using System.Upgrade;
 
 codeunit 148006 "Sales FR Report Layouts Test"

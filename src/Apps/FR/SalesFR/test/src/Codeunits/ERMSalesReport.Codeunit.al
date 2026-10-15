@@ -10,6 +10,9 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
+#if not CLEAN30
+using System.Environment.Configuration;
+#endif
 #if CLEAN30
 using System.Reflection;
 #endif
@@ -20,6 +23,7 @@ codeunit 148004 "ERM Sales Report"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
 
     trigger OnRun()
     begin
@@ -37,10 +41,9 @@ codeunit 148004 "ERM Sales Report"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-#if CLEAN30
         Assert: Codeunit Assert;
-#endif
         isInitialized: Boolean;
+        SIRENNoWithCaptionTok: Label '%1: %2', Locked = true;
 #if CLEAN30
         SalesFRAppIdTok: Label '8df591a3-d767-4475-8bff-44b8b5527477', Locked = true;
 #endif
@@ -300,6 +303,50 @@ codeunit 148004 "ERM Sales Report"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure StandardSalesInvoice_UsesFRFieldsPerDocument()
+    begin
+        // [SCENARIO] Each invoice prints the active FR values, including cleared values, without synchronizing legacy fields.
+        VerifyInvoiceFieldSource(true);
+    end;
+
+    [Test]
+    procedure StandardSalesCreditMemo_UsesFRFieldsPerDocument()
+    begin
+        // [SCENARIO] Each credit memo prints the active FR values, including cleared values, without synchronizing legacy fields.
+        VerifyCreditMemoFieldSource(true);
+    end;
+
+    [Test]
+    procedure StandardSalesDraftInvoice_UsesFRFieldsPerDocument()
+    begin
+        // [SCENARIO] Each draft invoice prints the active FR values, including cleared values, without synchronizing legacy fields.
+        VerifyDraftInvoiceFieldSource(true);
+    end;
+
+#if not CLEAN30
+    [Test]
+    procedure StandardSalesInvoice_UsesLegacyFieldsWhenFeatureDisabled()
+    begin
+        // [SCENARIO] Disabled Sales FR preserves each invoice's legacy values even when the FR fields differ.
+        VerifyInvoiceFieldSource(false);
+    end;
+
+    [Test]
+    procedure StandardSalesCreditMemo_UsesLegacyFieldsWhenFeatureDisabled()
+    begin
+        // [SCENARIO] Disabled Sales FR preserves each credit memo's legacy values even when the FR fields differ.
+        VerifyCreditMemoFieldSource(false);
+    end;
+
+    [Test]
+    procedure StandardSalesDraftInvoice_UsesLegacyFieldsWhenFeatureDisabled()
+    begin
+        // [SCENARIO] Disabled Sales FR preserves each draft invoice's legacy values even when the FR fields differ.
+        VerifyDraftInvoiceFieldSource(false);
+    end;
+#endif
+
 #if CLEAN30
     [Test]
     procedure FRLayoutsAreRegisteredOnW1Reports()
@@ -333,6 +380,10 @@ codeunit 148004 "ERM Sales Report"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Sales Report");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
+        Clear(LibraryReportDataset);
+#if not CLEAN30
+        SetSalesFRFeatureEnabled(true);
+#endif
 
         // Lazy Setup.
         if isInitialized then
@@ -354,12 +405,6 @@ codeunit 148004 "ERM Sales Report"
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("SIREN No. FR", CopyStr(LibraryUtility.GenerateRandomNumericText(9), 1, MaxStrLen(Customer."SIREN No. FR")));
-#if not CLEAN30
-#pragma warning disable AL0432
-        // Default builds still read the legacy BaseApp fields.
-        Customer.Validate("SIREN No.", Customer."SIREN No. FR");
-#pragma warning restore AL0432
-#endif
         Customer.Modify(true);
     end;
 
@@ -367,11 +412,6 @@ codeunit 148004 "ERM Sales Report"
     begin
         LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
         SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
-#if not CLEAN30
-#pragma warning disable AL0432
-        SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
-#pragma warning restore AL0432
-#endif
         SalesHeader.Modify();
     end;
 
@@ -379,13 +419,213 @@ codeunit 148004 "ERM Sales Report"
     begin
         LibrarySales.CreateSalesCreditMemoForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
         SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
+        SalesHeader.Modify();
+    end;
+
+    local procedure VerifyInvoiceFieldSource(FeatureEnabled: Boolean)
+    var
+        Customer: array[2] of Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: array[2] of Record "Sales Invoice Header";
+        ReportSalesInvoiceHeader: Record "Sales Invoice Header";
+        Index: Integer;
+    begin
+        InitializeReportFieldSource(FeatureEnabled);
+
+        for Index := 1 to ArrayLen(Customer) do begin
+            CreateCustomerWithDivergentSirenNo(Customer[Index], Index = 2);
+            LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, Customer[Index]."No.");
+            SetDivergentVATFields(SalesHeader, Index = 2);
+            SalesInvoiceHeader[Index].Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+            SalesInvoiceHeader[Index].TestField("VAT Paid on Debits FR", Index = 2);
+        end;
+        ReportSalesInvoiceHeader.SetFilter("No.", '%1|%2', SalesInvoiceHeader[1]."No.", SalesInvoiceHeader[2]."No.");
+        Commit();
+
+        LibraryReportDataset.RunReportAndLoad(Report::"Standard Sales - Invoice", ReportSalesInvoiceHeader, '');
+
+        for Index := 1 to ArrayLen(Customer) do begin
+            AssertReportFields(SalesInvoiceHeader[Index]."No.", Customer[Index], Index = 2, FeatureEnabled, SalesInvoiceHeader[Index].FieldCaption("VAT Paid on Debits FR"));
+            SalesInvoiceHeader[Index].Get(SalesInvoiceHeader[Index]."No.");
+            SalesInvoiceHeader[Index].TestField("VAT Paid on Debits FR", Index = 2);
 #if not CLEAN30
 #pragma warning disable AL0432
-        SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
+            SalesInvoiceHeader[Index].TestField("VAT Paid on Debits", Index = 1);
+#pragma warning restore AL0432
+#endif
+        end;
+    end;
+
+    local procedure VerifyCreditMemoFieldSource(FeatureEnabled: Boolean)
+    var
+        Customer: array[2] of Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: array[2] of Record "Sales Cr.Memo Header";
+        ReportSalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Index: Integer;
+    begin
+        InitializeReportFieldSource(FeatureEnabled);
+
+        for Index := 1 to ArrayLen(Customer) do begin
+            CreateCustomerWithDivergentSirenNo(Customer[Index], Index = 2);
+            LibrarySales.CreateSalesCreditMemoForCustomerNo(SalesHeader, Customer[Index]."No.");
+            SetDivergentVATFields(SalesHeader, Index = 2);
+            SalesCrMemoHeader[Index].Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+            SalesCrMemoHeader[Index].TestField("VAT Paid on Debits FR", Index = 2);
+        end;
+        ReportSalesCrMemoHeader.SetFilter("No.", '%1|%2', SalesCrMemoHeader[1]."No.", SalesCrMemoHeader[2]."No.");
+        Commit();
+
+        LibraryReportDataset.RunReportAndLoad(Report::"Standard Sales - Credit Memo", ReportSalesCrMemoHeader, '');
+
+        for Index := 1 to ArrayLen(Customer) do begin
+            AssertReportFields(SalesCrMemoHeader[Index]."No.", Customer[Index], Index = 2, FeatureEnabled, SalesCrMemoHeader[Index].FieldCaption("VAT Paid on Debits FR"));
+            SalesCrMemoHeader[Index].Get(SalesCrMemoHeader[Index]."No.");
+            SalesCrMemoHeader[Index].TestField("VAT Paid on Debits FR", Index = 2);
+#if not CLEAN30
+#pragma warning disable AL0432
+            SalesCrMemoHeader[Index].TestField("VAT Paid on Debits", Index = 1);
+#pragma warning restore AL0432
+#endif
+        end;
+    end;
+
+    local procedure VerifyDraftInvoiceFieldSource(FeatureEnabled: Boolean)
+    var
+        Customer: array[2] of Record Customer;
+        SalesHeader: array[2] of Record "Sales Header";
+        ReportSalesHeader: Record "Sales Header";
+        Index: Integer;
+    begin
+        InitializeReportFieldSource(FeatureEnabled);
+
+        for Index := 1 to ArrayLen(Customer) do begin
+            CreateCustomerWithDivergentSirenNo(Customer[Index], Index = 2);
+            LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader[Index], Customer[Index]."No.");
+            SetDivergentVATFields(SalesHeader[Index], Index = 2);
+        end;
+        ReportSalesHeader.SetRange("Document Type", ReportSalesHeader."Document Type"::Invoice);
+        ReportSalesHeader.SetFilter("No.", '%1|%2', SalesHeader[1]."No.", SalesHeader[2]."No.");
+        Commit();
+
+        LibraryReportDataset.RunReportAndLoad(Report::"Standard Sales - Draft Invoice", ReportSalesHeader, '');
+
+        for Index := 1 to ArrayLen(Customer) do begin
+            AssertReportFields(SalesHeader[Index]."No.", Customer[Index], Index = 2, FeatureEnabled, SalesHeader[Index].FieldCaption("VAT Paid on Debits FR"));
+            SalesHeader[Index].Get(SalesHeader[Index]."Document Type", SalesHeader[Index]."No.");
+            SalesHeader[Index].TestField("VAT Paid on Debits FR", Index = 2);
+#if not CLEAN30
+#pragma warning disable AL0432
+            SalesHeader[Index].TestField("VAT Paid on Debits", Index = 1);
+#pragma warning restore AL0432
+#endif
+        end;
+    end;
+
+    local procedure InitializeReportFieldSource(FeatureEnabled: Boolean)
+    begin
+        Initialize();
+#if not CLEAN30
+        SetSalesFRFeatureEnabled(FeatureEnabled);
+#else
+        Assert.IsTrue(FeatureEnabled, 'Sales FR is always enabled in clean builds.');
+#endif
+    end;
+
+    local procedure CreateCustomerWithDivergentSirenNo(var Customer: Record Customer; ClearSIRENNo: Boolean)
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("SIREN No. FR", '222222222');
+        if ClearSIRENNo then
+            Customer.Validate("SIREN No. FR", '');
+#if not CLEAN30
+#pragma warning disable AL0432
+        if ClearSIRENNo then
+            Customer.Validate("SIREN No.", '333333333')
+        else
+            Customer.Validate("SIREN No.", '111111111');
+#pragma warning restore AL0432
+#endif
+        Customer.Modify(true);
+    end;
+
+    local procedure SetDivergentVATFields(var SalesHeader: Record "Sales Header"; VATPaidOnDebits: Boolean)
+    begin
+        SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
+#if not CLEAN30
+#pragma warning disable AL0432
+        SalesHeader.Validate("VAT Paid on Debits", not VATPaidOnDebits);
 #pragma warning restore AL0432
 #endif
         SalesHeader.Modify();
     end;
+
+    local procedure AssertReportFields(DocumentNo: Code[20]; Customer: Record Customer; VATPaidOnDebits: Boolean; FeatureEnabled: Boolean; VATCaption: Text)
+    var
+        StoredCustomer: Record Customer;
+        ExpectedSIRENNo: Text;
+        ExpectedVATText: Text;
+    begin
+        if FeatureEnabled then
+            ExpectedSIRENNo := StrSubstNo(SIRENNoWithCaptionTok, Customer.FieldCaption("SIREN No. FR"), Customer."SIREN No. FR")
+        else begin
+#if not CLEAN30
+#pragma warning disable AL0432
+            ExpectedSIRENNo := StrSubstNo(SIRENNoWithCaptionTok, Customer.FieldCaption("SIREN No."), Customer."SIREN No.");
+#pragma warning restore AL0432
+            VATPaidOnDebits := not VATPaidOnDebits;
+#else
+            Assert.Fail('Sales FR cannot be disabled in clean builds.');
+#endif
+        end;
+        if VATPaidOnDebits then
+            ExpectedVATText := VATCaption;
+
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('DocumentNo', DocumentNo) + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('CustomerSirenNo', ExpectedSIRENNo);
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATPaidOnDebits_Lbl', ExpectedVATText);
+
+        StoredCustomer.Get(Customer."No.");
+        StoredCustomer.TestField("SIREN No. FR", Customer."SIREN No. FR");
+#if not CLEAN30
+#pragma warning disable AL0432
+        StoredCustomer.TestField("SIREN No.", Customer."SIREN No.");
+#pragma warning restore AL0432
+#endif
+    end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    local procedure SetSalesFRFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        SalesFR: Codeunit "Sales FR";
+    begin
+        FeatureKey.Get(SalesFR.GetFeatureKeyId());
+        if Enabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey.Modify();
+
+        if not FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then begin
+            FeatureDataUpdateStatus.Init();
+            FeatureDataUpdateStatus."Feature Key" := FeatureKey.ID;
+            FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus."Data Update Required" := FeatureKey."Data Update Required";
+            FeatureDataUpdateStatus.Insert();
+        end;
+        if Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Complete
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+
+        Assert.AreEqual(Enabled, SalesFR.IsEnabled(), 'The effective Sales FR feature state must match the report scenario.');
+    end;
+#pragma warning restore AL0432
+#endif
 
     local procedure IsPaymentInfoAvailbleInCompanyInformation(): Boolean
     begin
