@@ -82,26 +82,22 @@ codeunit 148307 "Expense Test Handler API"
     /// <summary>
     /// Returns a web service access key for the enabled Expense Agent Microsoft Entra application user. On-premises,
     /// the Expense Agent service uses this identity to call Business Central with the same least-privilege permissions
-    /// it has as an S2S application in SaaS. An unexpired key is reused, so services that already use it keep working
-    /// when Configure is called again.
+    /// it has as an S2S application in SaaS. The key does not expire and is reused, so services that already use it keep
+    /// working when Configure is called again.
     /// </summary>
-    /// <param name="ServiceIdentity">Receives the userName, webServicesKey and expiresAt properties.</param>
+    /// <param name="ServiceIdentity">Receives the userName and webServicesKey properties.</param>
     internal procedure GetServiceIdentity(var ServiceIdentity: JsonObject)
     var
         User: Record User;
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
-        ExpiresAt: DateTime;
         ServiceUserId: Guid;
-        WebServicesKey: Text;
     begin
         ServiceUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
         User.Get(ServiceUserId);
-        WebServicesKey := GetOrCreateWebServicesKey(ServiceUserId, ExpiresAt);
 
         Clear(ServiceIdentity);
         ServiceIdentity.Add('userName', User."User Name");
-        ServiceIdentity.Add('webServicesKey', WebServicesKey);
-        ServiceIdentity.Add('expiresAt', ExpiresAt);
+        ServiceIdentity.Add('webServicesKey', GetOrCreateWebServicesKey(ServiceUserId));
     end;
 
     local procedure EnsureAadApplicationUser()
@@ -122,26 +118,19 @@ codeunit 148307 "Expense Test Handler API"
         Commit();
     end;
 
-    local procedure GetOrCreateWebServicesKey(ServiceUserId: Guid; var ExpiresAt: DateTime): Text
+    local procedure GetOrCreateWebServicesKey(ServiceUserId: Guid): Text
     var
         IdentityManagement: Codeunit "Identity Management";
         WebServicesKey: Text;
     begin
-        ExpiresAt := IdentityManagement.GetWebServiceExpiryDate(ServiceUserId);
-        if ExpiresAt > CurrentDateTime() + WebServicesKeyRenewalMarginMs() then begin
+        // Reuse only a key without expiry; a key with an expiry date is replaced, so it can never expire mid-use.
+        if IdentityManagement.GetWebServiceExpiryDate(ServiceUserId) = 0DT then begin
             WebServicesKey := IdentityManagement.GetWebServicesKey(ServiceUserId);
             if WebServicesKey <> '' then
                 exit(WebServicesKey);
         end;
 
-        ExpiresAt := CreateDateTime(CalcDate('<+30D>', Today()), Time());
-        exit(IdentityManagement.CreateWebServicesKey(ServiceUserId, ExpiresAt));
-    end;
-
-    local procedure WebServicesKeyRenewalMarginMs(): BigInteger
-    begin
-        // Renew a key that expires within a day, so a test run never starts with a key that is about to expire.
-        exit(24 * 60 * 60 * 1000);
+        exit(IdentityManagement.CreateWebServicesKeyNoExpiry(ServiceUserId));
     end;
 
     local procedure ExpenseAgentSetupIsComplete(): Boolean
