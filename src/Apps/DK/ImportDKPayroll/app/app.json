@@ -14,7 +14,7 @@
   "dependencies": [],
   "screenshots": [],
   "platform": "30.0.0.0",
-  "target": "Cloud",
+  "target": "OnPrem",
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,
