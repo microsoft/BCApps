@@ -19,7 +19,8 @@ codeunit 10804 "Install XML"
         if (AppInfo.DataVersion() <> Version.Create('0.0.0.0')) then
             exit;
 
-        AuditFileExportSetup.InitSetup(AuditFileExportFormat::"GL Entries XML FR");
+        if not AuditFileExportSetup.Get() then
+            AuditFileExportSetup.InitSetup(AuditFileExportFormat::"GL Entries XML FR");
         AuditFileExportFormatSetup.InitSetup(AuditFileExportFormat::"GL Entries XML FR", '', false);
     end;
 }
