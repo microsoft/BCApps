@@ -286,6 +286,9 @@ codeunit 48520 "Fabric Platform Mgt"
                 EnableExportWithCustomApp(CredMgt)
             else begin
 #endif
+#pragma warning disable AA0013
+            begin
+#pragma warning restore AA0013
                 CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
                 FabricExportManager.EnableFabricExport();
             end;

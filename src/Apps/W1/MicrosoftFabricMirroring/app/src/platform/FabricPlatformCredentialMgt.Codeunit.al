@@ -7,7 +7,7 @@ using System.Security.Authentication;
 using System.Security.Encryption;
 #endif
 
-codeunit 48524 "Fabric Platform Credential Mgt"
+codeunit 50024 "Fabric Platform Credential Mgt"
 {
     Access = Internal;
 
@@ -71,10 +71,11 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if IsCustomAppEnabled() then
             exit(GetCustomClientId());
 #endif
-        if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
-            FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
-        else
-            exit(ClientId);
+        // if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
+        //     FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
+        // else
+        //    exit(ClientId);
+        exit('dcc80069-ba40-4ad9-ba8c-60001cea3497');
     end;
 
     internal procedure GetTenantId(): Text
@@ -241,7 +242,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
             exit(AcquireFabricApiTokenWithCustomApp());
 #endif
 
-        Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
+        Scopes.Add('https://api.fabric.microsoft.com/Workspace.Read.All');
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
         OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
         if AccessToken.IsEmpty() then
