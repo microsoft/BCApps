@@ -10,7 +10,7 @@ using System.Environment.Configuration;
 using System.Reflection;
 using System.Upgrade;
 
-codeunit 10845 "Check Layout FR"
+codeunit 10845 "Report Layouts FR"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -18,7 +18,7 @@ codeunit 10845 "Check Layout FR"
     Permissions = tabledata "Report Layout Selection" = rim,
                   tabledata "Tenant Report Layout Selection" = rim;
 
-    internal procedure UpgradeLayout()
+    internal procedure UpgradeCheckLayout()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
@@ -26,11 +26,11 @@ codeunit 10845 "Check Layout FR"
         if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag()) then
             exit;
 
-        SetDefaultLayout();
+        SetDefaultCheckLayout();
         UpgradeTag.SetUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag());
     end;
 
-    internal procedure SetDefaultLayout()
+    internal procedure SetDefaultCheckLayout()
     var
         ReportLayoutList: Record "Report Layout List";
         ReportLayoutSelection: Record "Report Layout Selection";

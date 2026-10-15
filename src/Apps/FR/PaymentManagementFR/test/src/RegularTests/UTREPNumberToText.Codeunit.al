@@ -368,7 +368,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure FrenchCheckLayoutIsSelectedWithoutExistingSelection()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] A company using the implicit built-in layout gets the extension layout.
@@ -378,7 +378,7 @@ codeunit 144044 "UT REP Number To Text"
         ClearLayoutSelections();
 
         // [WHEN] The default layout is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The company uses the extension layout.
         VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
@@ -387,7 +387,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure LegacyBuiltInCheckLayoutIsMigrated()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         BaseApplicationId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -400,7 +400,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection(CompanyName(), 'RDLCLayout', BaseApplicationId);
 
         // [WHEN] The default layout is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The company uses the extension layout.
         VerifyLayoutSelection(CompanyName(), 'CheckFR', PaymentManagementAppId());
@@ -409,7 +409,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AllCompanyBuiltInCheckLayoutIsMigratedPerCompany()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         BaseApplicationId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -422,7 +422,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection('', 'RDLCLayout', BaseApplicationId);
 
         // [WHEN] The current company's default is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The company migrates without changing the global default.
         VerifyCompanyAndGlobalLayouts(BaseApplicationId);
@@ -431,7 +431,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure CustomCheckLayoutSelectionIsPreserved()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         EmptyGuid: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -443,7 +443,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection(CompanyName(), 'CUSTOM CHECK', EmptyGuid);
 
         // [WHEN] The default layout is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The tenant-defined selection is unchanged.
         VerifyLayoutSelection(CompanyName(), 'CUSTOM CHECK', EmptyGuid);
@@ -452,7 +452,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AllCompanyCustomCheckLayoutSelectionIsPreserved()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         EmptyGuid: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -464,7 +464,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection('', 'CUSTOM CHECK', EmptyGuid);
 
         // [WHEN] The company default is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The global selection survives without a company-specific override.
         VerifyGlobalCustomLayout(EmptyGuid);
@@ -473,7 +473,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure OtherExtensionCheckLayoutSelectionIsPreserved()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         OtherAppId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -486,7 +486,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection(CompanyName(), 'OTHER CHECK', OtherAppId);
 
         // [WHEN] The default layout is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The third-party selection is unchanged.
         VerifyLayoutSelection(CompanyName(), 'OTHER CHECK', OtherAppId);
@@ -495,7 +495,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure LegacyCustomCheckLayoutSelectionIsPreserved()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         CustomLayoutCode: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
@@ -507,7 +507,7 @@ codeunit 144044 "UT REP Number To Text"
         CustomLayoutCode := CreateLegacyCustomLayoutSelection();
 
         // [WHEN] The default layout is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The legacy selection remains without a tenant override.
         VerifyLegacyCustomLayout(CustomLayoutCode);
@@ -516,7 +516,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure FrenchCheckLayoutSelectionIsIdempotent()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] The shared install/upgrade path tags the migration and is idempotent.
@@ -527,8 +527,8 @@ codeunit 144044 "UT REP Number To Text"
         ClearCheckLayoutUpgradeTag();
 
         // [WHEN] The same entry point used by installation and upgrade runs twice.
-        CheckLayoutFR.UpgradeLayout();
-        CheckLayoutFR.UpgradeLayout();
+        ReportLayoutsFR.UpgradeCheckLayout();
+        ReportLayoutsFR.UpgradeCheckLayout();
 
         // [THEN] The layout is selected once and the upgrade tag is persisted.
         VerifyTaggedLayout('CheckFR', PaymentManagementAppId());
@@ -538,7 +538,7 @@ codeunit 144044 "UT REP Number To Text"
     procedure UserSpecificCheckLayoutSelectionIsPreserved()
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -556,7 +556,7 @@ codeunit 144044 "UT REP Number To Text"
         TenantReportLayoutSelection.Insert();
 
         // [WHEN] The company default is selected.
-        CheckLayoutFR.SetDefaultLayout();
+        ReportLayoutsFR.SetDefaultCheckLayout();
 
         // [THEN] The company migrates but the user's selection is unchanged.
         VerifyUserSpecificLayout(SelectedUserId);
@@ -565,7 +565,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure CompletedLayoutUpgradeDoesNotOverrideLaterSelection()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         BaseApplicationId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -575,14 +575,14 @@ codeunit 144044 "UT REP Number To Text"
         // [GIVEN] The shared install path has migrated and tagged the company.
         ClearLayoutSelections();
         ClearCheckLayoutUpgradeTag();
-        CheckLayoutFR.UpgradeLayout();
+        ReportLayoutsFR.UpgradeCheckLayout();
 
         // [GIVEN] The user subsequently selects the Base Application layout explicitly.
         BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
         ChangeCompanyLayoutSelection('RDLCLayout', BaseApplicationId);
 
         // [WHEN] A later upgrade runs the same tagged migration.
-        CheckLayoutFR.UpgradeLayout();
+        ReportLayoutsFR.UpgradeCheckLayout();
 
         // [THEN] The explicit built-in choice and original tag survive.
         VerifyTaggedLayout('RDLCLayout', BaseApplicationId);

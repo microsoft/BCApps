@@ -11,10 +11,10 @@ permissionset 10838 "Payment Mgt FR - Objects X"
     Access = Internal;
     Assignable = false;
     Permissions = codeunit "Check Amount Wording FR" = X,
-                  codeunit "Check Layout FR" = X,
                   codeunit "Local Navigate Handler FR" = X,
                   codeunit "Payment Management FR" = X,
                   codeunit "Payment-Apply FR" = X,
+                  codeunit "Report Layouts FR" = X,
                   codeunit "RIB Key FR" = X,
                   page "Payment Addresses FR" = X,
                   page "Payment Bank FR" = X,

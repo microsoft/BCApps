@@ -19,7 +19,7 @@ codeunit 10840 "Upgrade Payment Management FR"
 
     trigger OnUpgradePerCompany()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
@@ -27,7 +27,7 @@ codeunit 10840 "Upgrade Payment Management FR"
             UpgradePayment();
 
         UpgradePaymentStepObjectIDs();
-        CheckLayoutFR.UpgradeLayout();
+        ReportLayoutsFR.UpgradeCheckLayout();
     end;
 
     local procedure UpgradePayment()

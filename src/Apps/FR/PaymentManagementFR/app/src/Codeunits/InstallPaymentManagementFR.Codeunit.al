@@ -11,8 +11,8 @@ codeunit 10846 "Install Payment Management FR"
 
     trigger OnInstallAppPerCompany()
     var
-        CheckLayoutFR: Codeunit "Check Layout FR";
+        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
-        CheckLayoutFR.UpgradeLayout();
+        ReportLayoutsFR.UpgradeCheckLayout();
     end;
 }
