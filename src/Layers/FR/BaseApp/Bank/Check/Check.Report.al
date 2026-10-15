@@ -544,8 +544,7 @@ report 1401 Check
                                       UseCheckNo, TotalLineAmount);
                                 CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::Printed;
                                 CheckLedgEntry.Amount := TotalLineAmount;
-                            end
-                            else begin
+                            end else begin
                                 CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::Voided;
                                 CheckLedgEntry.Amount := 0;
                             end;
