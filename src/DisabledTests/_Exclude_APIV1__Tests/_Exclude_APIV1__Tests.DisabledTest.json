@@ -30,11 +30,6 @@
     "method": "TestCreateCreditMemoThroughPageAndAPI"
   },
   {
-    "codeunitId": 139729,
-    "codeunitName": "APIV1 - Purchase Invoices E2E",
-    "method": "TestPurchaseInvoiceWithPaymentDiscount"
-  },
-  {
     "codeunitId": 139730,
     "codeunitName": "APIV1 - GLEntries E2E",
     "method": "TestGetGLEntries"
