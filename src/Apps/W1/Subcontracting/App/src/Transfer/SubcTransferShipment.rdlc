@@ -1747,7 +1747,7 @@ Fields!SubcPurchaseOrderNo.Value)</Hidden>
               </Style>
             </Textbox>
             <Textbox Name="SubcontractingDetails">
-              <CanGrow>false</CanGrow>
+              <CanGrow>true</CanGrow>
               <KeepTogether>true</KeepTogether>
               <Paragraphs>
                 <Paragraph>
@@ -2072,6 +2072,9 @@ End Function</Code>
         <Field Name="No_TransShptHeader">
           <DataField>No_TransShptHeader</DataField>
         </Field>
+        <Field Name="CopyTextCaption">
+          <DataField>CopyTextCaption</DataField>
+        </Field>
         <Field Name="TransferToAddr1">
           <DataField>TransferToAddr1</DataField>
         </Field>
@@ -2102,11 +2105,14 @@ End Function</Code>
         <Field Name="TransferToAddr6">
           <DataField>TransferToAddr6</DataField>
         </Field>
-        <Field Name="InTransitCode_TransShptHeader">
-          <DataField>InTransitCode_TransShptHeader</DataField>
+        <Field Name="InTransit_TransShptHeader">
+          <DataField>InTransit_TransShptHeader</DataField>
         </Field>
-        <Field Name="PostingDate_TransShptHeader">
-          <DataField>PostingDate_TransShptHeader</DataField>
+        <Field Name="PostDate_TransShptHeader">
+          <DataField>PostDate_TransShptHeader</DataField>
+        </Field>
+        <Field Name="No2_TransShptHeader">
+          <DataField>No2_TransShptHeader</DataField>
         </Field>
         <Field Name="TransferToAddr7">
           <DataField>TransferToAddr7</DataField>
@@ -2120,8 +2126,8 @@ End Function</Code>
         <Field Name="TransferFromAddr6">
           <DataField>TransferFromAddr6</DataField>
         </Field>
-        <Field Name="ShptDate_TransShptHeader">
-          <DataField>ShptDate_TransShptHeader</DataField>
+        <Field Name="ShiptDate_TransShptHeader">
+          <DataField>ShiptDate_TransShptHeader</DataField>
         </Field>
         <Field Name="TransferFromAddr7">
           <DataField>TransferFromAddr7</DataField>
@@ -2135,89 +2141,29 @@ End Function</Code>
         <Field Name="OutputNo">
           <DataField>OutputNo</DataField>
         </Field>
-        <Field Name="TransShptCopyText">
-          <DataField>TransShptCopyText</DataField>
+        <Field Name="Desc_ShptMethod">
+          <DataField>Desc_ShptMethod</DataField>
         </Field>
-        <Field Name="ContracterTxt">
-          <DataField>ContracterTxt</DataField>
+        <Field Name="TransShptHdrNoCaption">
+          <DataField>TransShptHdrNoCaption</DataField>
         </Field>
-        <Field Name="AddInfo_TransShptHeader">
-          <DataField>AddInfo_TransShptHeader</DataField>
-        </Field>
-        <Field Name="AddNotes_TransShptHeader">
-          <DataField>AddNotes_TransShptHeader</DataField>
-        </Field>
-        <Field Name="AddInstructions_TransShptHeader">
-          <DataField>AddInstructions_TransShptHeader</DataField>
-        </Field>
-        <Field Name="TDDPreparedBy_TransShptHeader">
-          <DataField>TDDPreparedBy_TransShptHeader</DataField>
-        </Field>
-        <Field Name="ShippingAgentAddr1">
-          <DataField>ShippingAgentAddr1</DataField>
-        </Field>
-        <Field Name="ShippingAgentAddr2">
-          <DataField>ShippingAgentAddr2</DataField>
-        </Field>
-        <Field Name="LoaderAddr1">
-          <DataField>LoaderAddr1</DataField>
-        </Field>
-        <Field Name="LoaderAddr2">
-          <DataField>LoaderAddr2</DataField>
-        </Field>
-        <Field Name="ShippingAgentAddr3">
-          <DataField>ShippingAgentAddr3</DataField>
-        </Field>
-        <Field Name="LoaderAddr3">
-          <DataField>LoaderAddr3</DataField>
-        </Field>
-        <Field Name="ShippingAgentAddr4">
-          <DataField>ShippingAgentAddr4</DataField>
-        </Field>
-        <Field Name="LoaderAddr4">
-          <DataField>LoaderAddr4</DataField>
-        </Field>
-        <Field Name="ShippingAgentAddr5">
-          <DataField>ShippingAgentAddr5</DataField>
-        </Field>
-        <Field Name="LoaderAddr5">
-          <DataField>LoaderAddr5</DataField>
-        </Field>
-        <Field Name="ShipmenNoCaption">
-          <DataField>ShipmenNoCaption</DataField>
-        </Field>
-        <Field Name="ShipmentDateCaption">
-          <DataField>ShipmentDateCaption</DataField>
-        </Field>
-        <Field Name="AddDeclarationInfoCaption">
-          <DataField>AddDeclarationInfoCaption</DataField>
-        </Field>
-        <Field Name="NotesCaption">
-          <DataField>NotesCaption</DataField>
-        </Field>
-        <Field Name="AdditionalInstructionsCaption">
-          <DataField>AdditionalInstructionsCaption</DataField>
-        </Field>
-        <Field Name="CompiledByCaption">
-          <DataField>CompiledByCaption</DataField>
-        </Field>
-        <Field Name="ShippingAgentAddr1Caption">
-          <DataField>ShippingAgentAddr1Caption</DataField>
-        </Field>
-        <Field Name="LoaderAddr1Caption">
-          <DataField>LoaderAddr1Caption</DataField>
+        <Field Name="TransShptShptDateCaption">
+          <DataField>TransShptShptDateCaption</DataField>
         </Field>
         <Field Name="DimText">
           <DataField>DimText</DataField>
         </Field>
-        <Field Name="Number_IntegerLine">
-          <DataField>Number_IntegerLine</DataField>
+        <Field Name="Number_DimensionLoop1">
+          <DataField>Number_DimensionLoop1</DataField>
         </Field>
-        <Field Name="HeaderDimensionsCaption">
-          <DataField>HeaderDimensionsCaption</DataField>
+        <Field Name="HdrDimCaption">
+          <DataField>HdrDimCaption</DataField>
         </Field>
         <Field Name="ShowInternalInfo">
           <DataField>ShowInternalInfo</DataField>
+        </Field>
+        <Field Name="NoOfCopies">
+          <DataField>NoOfCopies</DataField>
         </Field>
         <Field Name="ItemNo_TransShptLine">
           <DataField>ItemNo_TransShptLine</DataField>
@@ -2237,20 +2183,17 @@ End Function</Code>
         <Field Name="LineNo_TransShptLine">
           <DataField>LineNo_TransShptLine</DataField>
         </Field>
-        <Field Name="ShipmentMethodDescription">
-          <DataField>ShipmentMethodDescription</DataField>
+        <Field Name="DocNo_TransShptLine">
+          <DataField>DocNo_TransShptLine</DataField>
         </Field>
-        <Field Name="ShipmentMethodDescriptionCaption">
-          <DataField>ShipmentMethodDescriptionCaption</DataField>
-        </Field>
-        <Field Name="DimText_DimensionLoop2">
-          <DataField>DimText_DimensionLoop2</DataField>
+        <Field Name="DimText4">
+          <DataField>DimText4</DataField>
         </Field>
         <Field Name="Number_DimensionLoop2">
           <DataField>Number_DimensionLoop2</DataField>
         </Field>
-        <Field Name="LineDimensionsCaption">
-          <DataField>LineDimensionsCaption</DataField>
+        <Field Name="LineDimCaption">
+          <DataField>LineDimCaption</DataField>
         </Field>
         <Field Name="SubcVendorNo">
           <DataField>SubcVendorNo</DataField>
