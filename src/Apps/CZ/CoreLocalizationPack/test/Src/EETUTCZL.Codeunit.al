@@ -24,13 +24,16 @@ codeunit 148083 "EET UT CZL"
     procedure DeleteEETBusinessPremisesWithEETEntries()
     var
         EETBusinessPremisesCZL: Record "EET Business Premises CZL";
+        EETCashRegister: Record "EET Cash Register CZL";
     begin
         // [SCENARIO] Delete EET business premises with posted EET entries
         // [GIVEN] Create EET business premises
+        // [GIVEN] Create EET cash register
         // [GIVEN] Create EET entries for created EET business premises
         Initialize();
         CreateEETBusinessPremises(EETBusinessPremisesCZL);
-        CreateFakeEntries(EETBusinessPremisesCZL.Code, '');
+        CreateEETCashRegister(EETCashRegister, EETBusinessPremisesCZL.Code);
+        CreateFakeEntries(EETCashRegister."Business Premises Code", EETCashRegister.Code);
 
         // [WHEN] Delete EET business premises
         asserterror EETBusinessPremisesCZL.Delete(true);
