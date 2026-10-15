@@ -568,16 +568,17 @@ codeunit 148004 "ERM Sales Report"
     begin
         if FeatureEnabled then
             ExpectedSIRENNo := StrSubstNo(SIRENNoWithCaptionTok, Customer.FieldCaption("SIREN No. FR"), Customer."SIREN No. FR")
-        else begin
 #if not CLEAN30
+        else begin
 #pragma warning disable AL0432
             ExpectedSIRENNo := StrSubstNo(SIRENNoWithCaptionTok, Customer.FieldCaption("SIREN No."), Customer."SIREN No.");
 #pragma warning restore AL0432
             VATPaidOnDebits := not VATPaidOnDebits;
+        end;
 #else
+        else
             Assert.Fail('Sales FR cannot be disabled in clean builds.');
 #endif
-        end;
         if VATPaidOnDebits then
             ExpectedVATText := VATCaption;
 
