@@ -47,6 +47,8 @@ codeunit 132536 "Assert Test"
     [Test]
     [Scope('OnPrem')]
     procedure AreEqualTest()
+    var
+        BigIntegerValue: BigInteger;
     begin
         Assert.AreEqual(true, true, 'Comparing booleans');
         Assert.AreEqual(2, 2, 'Comparing integers');
@@ -56,6 +58,8 @@ codeunit 132536 "Assert Test"
         Assert.AreEqual(101000T, 101000T, 'Comparing times');
         Assert.AreEqual(DMY2Date(10, 10, 2010), DMY2Date(10, 10, 2010), 'Comparing dates');
         Assert.AreEqual(1, 1.0, 'Comparing integer with decimal');
+        BigIntegerValue := 2147483648;
+        Assert.AreEqual(BigIntegerValue, Format(BigIntegerValue, 0, 2), 'Comparing BigInteger with text');
 
         asserterror Assert.AreEqual(DMY2Date(1, 1, 2001), 2.0, '');
         Assert.AreEqual(StrSubstNo(AreEqualFailedMsg, DMY2Date(1, 1, 2001), 'Date', 2.0, 'Decimal', ''),
@@ -470,4 +474,3 @@ codeunit 132536 "Assert Test"
         NameValueBuffer.Insert();
     end;
 }
-

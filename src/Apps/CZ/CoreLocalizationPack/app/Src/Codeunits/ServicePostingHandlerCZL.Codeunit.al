@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ codeunit 31040 "Service Posting Handler CZL"
         GenJournalLine."Gen. Prod. Posting Group" := InvoicePostingBuffer."Gen. Prod. Posting Group";
         GenJournalLine.Validate("VAT Delay CZL", true);
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 
     local procedure GetCurrency(CurrencyCode: Code[10])

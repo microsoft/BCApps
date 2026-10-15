@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ codeunit 18970 "Check Management Subscriber"
             GenJournalLine."Allow Zero-Amount Posting" := true;
             GenJnlPostLine.Run(GenJournalLine);
 
-            TaxBaseLibrary.ReverseTDSEntry(TDSEntryNo, GenJnlPostLine.GetNextTransactionNo());
+            TaxBaseLibrary.ReverseTDSEntry(TDSEntryNo, GenJnlPostLine.GetNextTransactionNoBigInteger());
         end;
 
         GenJournalLine.Init();
@@ -151,7 +151,7 @@ codeunit 18970 "Check Management Subscriber"
                 GenJournalLine.Validate("Bal. Account No.", CheckLedgerEntry."Bal. Account No.");
                 GenJournalLine."Shortcut Dimension 1 Code" := '';
                 GenJournalLine."Shortcut Dimension 2 Code" := '';
-                GenJnlPostLine.RunWithoutCheck(GenJournalLine);
+                GenJnlPostLine.RunWithoutCheckBigInteger(GenJournalLine);
             end;
         end;
 
@@ -640,7 +640,7 @@ codeunit 18970 "Check Management Subscriber"
             GenJournalLine."Allow Zero-Amount Posting" := true;
             GenJnlPostLine.Run(GenJournalLine);
 
-            TaxBaseLibrary.ReverseTDSEntry(TDSEntryNo, GenJnlPostLine.GetNextTransactionNo());
+            TaxBaseLibrary.ReverseTDSEntry(TDSEntryNo, GenJnlPostLine.GetNextTransactionNoBigInteger());
         end;
     end;
 

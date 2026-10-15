@@ -566,7 +566,7 @@ page 29 "Vendor Ledger Entries"
                         ReversePaymentRec: Codeunit "Reverse Payment Rec. Journal";
                     begin
                         ReversePaymentRec.ErrorIfEntryIsNotReversable(Rec);
-                        ReversalEntry.ReverseTransaction(Rec."Transaction No.");
+                        ReversalEntry.ReverseTransactionBigInteger(Rec."Transaction No.");
                         Clear(CalcRunningVendBalance);
                     end;
                 }
@@ -893,4 +893,3 @@ page 29 "Vendor Ledger Entries"
             VendorLedgerEntry.FieldNo("Vendor No."), VendorLedgerEntry.FieldNo("Document No."));
     end;
 }
-

@@ -136,7 +136,7 @@ codeunit 18771 "TDS Check Void Handler"
         GenJnlLine."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
         GenJnlLine."Source Code" := SourceCodeSetup."Financially Voided Check";
         GenJnlLine."Allow Zero-Amount Posting" := true;
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure PostTDSPayableReversal(CheckLedgEntry: Record "Check Ledger Entry"; VoidDate: Date)
@@ -215,7 +215,7 @@ codeunit 18771 "TDS Check Void Handler"
         GenJnlLine."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
         GenJnlLine."Source Code" := SourceCodeSetup."Financially Voided Check";
         GenJnlLine."Allow Zero-Amount Posting" := true;
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure PostVendorReversal(CheckLedgEntry: Record "Check Ledger Entry"; VoidDate: Date; VoidType: Option)
@@ -268,7 +268,7 @@ codeunit 18771 "TDS Check Void Handler"
         GenJnlLine."Source Code" := SourceCodeSetup."Financially Voided Check";
         GenJnlLine."Source Currency Code" := VendorLedgerEntry."Currency Code";
         GenJnlLine."Allow Zero-Amount Posting" := true;
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
     end;
 
     local procedure UnApplyVendorInvoices(CheckLedgEntry: Record "Check Ledger Entry"; VoidDate: Date): Boolean
@@ -338,7 +338,7 @@ codeunit 18771 "TDS Check Void Handler"
         if not TDSEntry.FindSet() then
             exit;
         repeat
-            TaxBaseLibrary.ReverseTDSEntry(TDSEntry."Entry No.", GenJnlPostLine.GetNextTransactionNo());
+            TaxBaseLibrary.ReverseTDSEntry(TDSEntry."Entry No.", GenJnlPostLine.GetNextTransactionNoBigInteger());
         until TDSEntry.Next() = 0;
     end;
 

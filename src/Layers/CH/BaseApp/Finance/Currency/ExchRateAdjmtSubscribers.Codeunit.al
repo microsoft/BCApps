@@ -402,7 +402,7 @@ codeunit 597 "Exch. Rate Adjmt. Subscribers"
         GenJnlLine."Shortcut Dimension 2 Code" := GetGlobalDimVal(GLSetup."Global Dimension 2 Code", DimSetEntry);
         GenJnlLine."Dimension Set ID" := DimMgt.GetDimensionSetID(TempDimSetEntry);
         GenJnlPostLine.Run(GenJnlLine);
-        exit(GenJnlPostLine.GetNextTransactionNo());
+        exit(GenJnlPostLine.GetNextTransactionNoBigInteger());
     end;
 
     local procedure GetGlobalDimVal(GlobalDimCode: Code[20]; var DimSetEntry: Record "Dimension Set Entry"): Code[20]

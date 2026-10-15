@@ -467,7 +467,7 @@ codeunit 6784 "Wthldg Tax Purch. Subscribers"
                         if WithholdingTaxEntry.Amount <> 0 then begin
                             PurchHeader."Withholding Tax Amount" += WithholdingTaxEntry.Amount;
                             InsertGenJournalWithholding(PurchHeader, GenJnlLine, WithholdingPostingSetup.GetPayableWithholdingTaxAccount(), SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, WithholdingTaxEntry.Amount, TotalPurchLineLCY);
-                            GenJnlPostLine.RunWithCheck(GenJnlLine);
+                            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                         end;
                 until WithholdingTaxEntry.Next() = 0;
 

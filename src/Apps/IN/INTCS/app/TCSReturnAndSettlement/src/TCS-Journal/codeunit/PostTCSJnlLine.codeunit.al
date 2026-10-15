@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -124,6 +124,6 @@ codeunit 18871 "Post-TCS Jnl. Line"
 
     local procedure RunGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line")
     begin
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 }

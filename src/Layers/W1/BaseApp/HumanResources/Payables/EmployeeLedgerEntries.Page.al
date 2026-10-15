@@ -368,7 +368,7 @@ page 5237 "Employee Ledger Entries"
                         ReversePaymentRec: Codeunit "Reverse Payment Rec. Journal";
                     begin
                         ReversePaymentRec.ErrorIfEntryIsNotReversable(Rec);
-                        ReversalEntry.ReverseTransaction(Rec."Transaction No.");
+                        ReversalEntry.ReverseTransactionBigInteger(Rec."Transaction No.");
                     end;
                 }
             }
@@ -459,4 +459,3 @@ page 5237 "Employee Ledger Entries"
         GenJournalBatch.Get(JournalTemplateName, JournalBatchName);
     end;
 }
-

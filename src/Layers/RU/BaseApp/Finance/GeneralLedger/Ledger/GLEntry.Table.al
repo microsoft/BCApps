@@ -896,7 +896,13 @@ table 17 "G/L Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetNextEntryNo(): BigInteger
+    procedure GetNextEntryNo(): Integer
+    begin
+        exit(GetLegacyIntegerEntryNo(GetNextEntryNoBigInteger()));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    procedure GetNextEntryNoBigInteger(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -908,7 +914,17 @@ table 17 "G/L Entry"
     /// </summary>
     /// <returns>The last entry number used</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetLastEntryNo(): BigInteger;
+    procedure GetLastEntryNo(): Integer;
+    begin
+        exit(GetLegacyIntegerEntryNo(GetLastEntryNoBigInteger()));
+    end;
+
+    /// <summary>
+    /// Gets the highest entry number from the G/L Entry table as a BigInteger.
+    /// </summary>
+    /// <returns>The last entry number used</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    procedure GetLastEntryNoBigInteger(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -921,7 +937,23 @@ table 17 "G/L Entry"
     /// <param name="LastEntryNo">Returns the last entry number used</param>
     /// <param name="LastTransactionNo">Returns the last transaction number used</param>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetLastEntry(var LastEntryNo: BigInteger; var LastTransactionNo: BigInteger)
+    procedure GetLastEntry(var LastEntryNo: Integer; var LastTransactionNo: Integer)
+    var
+        LastEntryNoBigInteger: BigInteger;
+        LastTransactionNoBigInteger: BigInteger;
+    begin
+        GetLastEntryBigInteger(LastEntryNoBigInteger, LastTransactionNoBigInteger);
+        LastEntryNo := GetLegacyIntegerEntryNo(LastEntryNoBigInteger);
+        LastTransactionNo := GetLegacyIntegerEntryNo(LastTransactionNoBigInteger);
+    end;
+
+    /// <summary>
+    /// Gets the last entry number and transaction number as BigInteger values.
+    /// </summary>
+    /// <param name="LastEntryNo">Returns the last entry number used</param>
+    /// <param name="LastTransactionNo">Returns the last transaction number used</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    procedure GetLastEntryBigInteger(var LastEntryNo: BigInteger; var LastTransactionNo: BigInteger)
     var
         FindRecordManagement: Codeunit "Find Record Management";
         FieldNoValues: List of [BigInteger];
@@ -931,6 +963,15 @@ table 17 "G/L Entry"
         FindRecordManagement.GetLastEntryIntFieldValues(Rec, FieldNoValues);
         LastEntryNo := FieldNoValues.Get(1);
         LastTransactionNo := FieldNoValues.Get(2);
+    end;
+
+    local procedure GetLegacyIntegerEntryNo(EntryNo: BigInteger): Integer
+    var
+        EntryNoExceedsIntegerRangeErr: Label 'Entry No. %1 cannot be returned by this compatibility procedure because it exceeds the Integer range.';
+    begin
+        if EntryNo > 2147483647 then
+            Error(EntryNoExceedsIntegerRangeErr, EntryNo);
+        exit(EntryNo);
     end;
 
 #if not CLEAN27

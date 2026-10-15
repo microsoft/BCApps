@@ -133,8 +133,8 @@ codeunit 5802 "Inventory Posting To G/L"
     procedure GetGLRegister(var GLRegister: Record "G/L Register"; var NextVATEntryNo: BigInteger; var NextTransactionNo: Integer)
     begin
         GenJnlPostLine.GetGLReg(GLRegister);
-        NextVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();
-        NextTransactionNo := GenJnlPostLine.GetNextTransactionNo();
+        NextVATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger();
+        NextTransactionNo := GenJnlPostLine.GetNextTransactionNoBigInteger();
     end;
 
     /// <summary>
@@ -1371,7 +1371,7 @@ codeunit 5802 "Inventory Posting To G/L"
         InvtPostGLSrcCurrSub: Codeunit "Invt. Post G/L Src. Curr. Sub.";
     begin
         BindSubscription(InvtPostGLSrcCurrSub);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         UnbindSubscription(InvtPostGLSrcCurrSub);
     end;
 

@@ -274,7 +274,7 @@ codeunit 136359 "UT T Gen Jnl Line Usage Link"
 
         // [WHEN] When the Job currency code is set to blank and Journal Line is Posted
         GenJournalLine.Validate("Job Currency Code", '');
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         // [THEN] Total Cost (LCY) on Job Ledger Entry should be same as Amount of Journal Line
         JobLedgEntry.FindLast();

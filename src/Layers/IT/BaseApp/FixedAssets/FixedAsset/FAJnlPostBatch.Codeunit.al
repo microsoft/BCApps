@@ -410,7 +410,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
                 GenJnlLine."Shortcut Dimension 2 Code" := CompressDepr[1]."Global Dimension 2 Code";
                 GenJnlLine.Validate(Amount, CompressDepr[1].Amount);
                 OnPostCompressTableOnBeforePostFirstLine(GenJnlLine, CompressDepr, FAJnlLine, FAPostingGr);
-                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
 
                 GenJnlLine.Validate("Account No.", GlAcc2."No.");
                 GenJnlLine.Description := StrSubstNo(Text12100, CompressDepr[1]."FA Posting Type");
@@ -418,7 +418,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
                 GenJnlLine."Shortcut Dimension 2 Code" := CompressDepr[1]."Global Dimension 2 Code";
                 GenJnlLine.Validate(Amount, -CompressDepr[1].Amount);
                 OnPostCompressTableOnBeforePostSecondLine(GenJnlLine, CompressDepr, FAJnlLine, FAPostingGr);
-                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                 OnPostCompressTableOnAfterPostSecondLine(GenJnlLine, CompressDepr, FAJnlLine, FAPostingGr, GenJnlPostLine);
             until CompressDepr[1].Next() = 0;
         CompressDepr[1].DeleteAll();

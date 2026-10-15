@@ -163,7 +163,7 @@ codeunit 395 "FinChrgMemo-Issue"
                 GenJnlLine2 := TempGenJnlLine;
                 SetDimensions(GenJnlLine2, FinChrgMemoHeader);
                 OnBeforeGenJnlPostLineRunWithCheck(GenJnlLine2, FinChrgMemoHeader);
-                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                 OnRunOnAfterGenJnlPostLineRunWithCheck(TempGenJnlLine, GenJnlPostLine);
             until TempGenJnlLine.Next() = 0;
 

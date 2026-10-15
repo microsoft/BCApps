@@ -383,7 +383,7 @@ report 95 "Date Compress VAT Entries"
 
     local procedure InitRegisters()
     begin
-        GLReg.Initialize(GLReg.GetLastEntryNo() + 1, LastGLEntryNo + 1, LastVATEntryNo + 1, SourceCodeSetup."Compress Vend. Ledger", '', '');
+        GLReg.InitializeBigInteger(GLReg.GetLastEntryNoBigInteger() + 1, LastGLEntryNo + 1, LastVATEntryNo + 1, SourceCodeSetup."Compress Vend. Ledger", '', '');
 
         DateComprReg.InitRegister(
           DATABASE::"VAT Entry", DateComprReg.GetLastEntryNo() + 1, EntrdDateComprReg."Starting Date", EntrdDateComprReg."Ending Date",
@@ -528,4 +528,3 @@ report 95 "Date Compress VAT Entries"
     end;
 
 }
-

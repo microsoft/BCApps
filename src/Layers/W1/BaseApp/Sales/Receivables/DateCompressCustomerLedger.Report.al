@@ -363,7 +363,7 @@ report 198 "Date Compress Customer Ledger"
     var
         NextRegNo: Integer;
     begin
-        GLReg.Initialize(GLReg.GetLastEntryNo() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress Cust. Ledger", '', '');
+        GLReg.InitializeBigInteger(GLReg.GetLastEntryNoBigInteger() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress Cust. Ledger", '', '');
         NextRegNo := DateComprReg.GetLastEntryNo() + 1;
 
         DateComprReg.InitRegister(
@@ -783,4 +783,3 @@ report 198 "Date Compress Customer Ledger"
     begin
     end;
 }
-

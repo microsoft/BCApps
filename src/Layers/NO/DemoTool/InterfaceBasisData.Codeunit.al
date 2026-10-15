@@ -596,7 +596,7 @@
                                 GenJournalLine.Validate(Amount, -VendorLedgerEntry."Remaining Amount");
                             end;
                     end;
-                GenJnlPostLine.RunWithCheck(GenJournalLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
             until GenJournalLine.Next() = 0;
             GenJournalLine.DeleteAll();
         end;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ codeunit 18200 "GST Distribution"
                         GSTDistributionHeader."Shortcut Dimension 2 Code",
                         GSTDistributionHeader."Dimension Set ID");
 
-                GenJnlPostLine.RunWithCheck(GenJournalLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
             until DistComponentAmount.Next() = 0;
 
         if DistReversal then begin

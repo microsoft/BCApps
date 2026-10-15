@@ -428,7 +428,12 @@ table 179 "Reversal Entry"
     /// Reverses all ledger entries from a specific transaction number.
     /// </summary>
     /// <param name="TransactionNo">Transaction number to reverse</param>
-    procedure ReverseTransaction(TransactionNo: BigInteger)
+    procedure ReverseTransaction(TransactionNo: Integer)
+    begin
+        ReverseTransactionBigInteger(TransactionNo);
+    end;
+
+    procedure ReverseTransactionBigInteger(TransactionNo: BigInteger)
     begin
         ReverseEntries(TransactionNo, "Reversal Type"::Transaction);
     end;
@@ -437,7 +442,12 @@ table 179 "Reversal Entry"
     /// Reverses all ledger entries from a specific G/L register number.
     /// </summary>
     /// <param name="RegisterNo">G/L register number to reverse</param>
-    procedure ReverseRegister(RegisterNo: BigInteger)
+    procedure ReverseRegister(RegisterNo: Integer)
+    begin
+        ReverseRegisterBigInteger(RegisterNo);
+    end;
+
+    procedure ReverseRegisterBigInteger(RegisterNo: BigInteger)
     begin
         CheckRegister(RegisterNo);
         ReverseEntries(RegisterNo, "Reversal Type"::Register);
@@ -454,7 +464,7 @@ table 179 "Reversal Entry"
         if IsHandled then
             exit;
 
-        InsertReversalEntry(Number, RevType);
+        InsertReversalEntryBigInteger(Number, RevType);
         OnReverseEntriesOnAfterInsertReversalEntry(TempReversalEntry, Number, RevType);
         TempReversalEntry.SetCurrentKey("Document No.", "Posting Date", "Entry Type", "Entry No.");
         if not HideDialog then begin
@@ -473,7 +483,12 @@ table 179 "Reversal Entry"
         OnAfterReverseEntries(Number, RevType, HideDialog);
     end;
 
-    protected procedure InsertReversalEntry(Number: BigInteger; RevType: Option Transaction,Register)
+    protected procedure InsertReversalEntry(Number: Integer; RevType: Option Transaction,Register)
+    begin
+        InsertReversalEntryBigInteger(Number, RevType);
+    end;
+
+    protected procedure InsertReversalEntryBigInteger(Number: BigInteger; RevType: Option Transaction,Register)
     var
         TempTransactionNoInteger: Record "Integer" temporary;
         NextLineNo: Integer;

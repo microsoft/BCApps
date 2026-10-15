@@ -247,7 +247,7 @@ codeunit 367 CheckManagement
         GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
         GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
         OnFinancialVoidCheckOnBeforePostVoidCheckLine(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry2);
-        GenJnlPostLine.RunWithCheck(GenJnlLine2);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
         OnFinancialVoidCheckOnAfterPostVoidCheckLine(GenJnlLine2, GenJnlPostLine);
 
         if CheckLedgEntry."Interest Amount" <> 0 then begin
@@ -309,7 +309,7 @@ codeunit 367 CheckManagement
                                 GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
                                 GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
-                                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
                             until CustLedgEntry.Next() = 0;
                     end;
@@ -347,7 +347,7 @@ codeunit 367 CheckManagement
                                 if GenJnlLine2."Posting Group" <> VendorLedgEntry."Vendor Posting Group" then
                                     GenJnlLine2."Posting Group" := VendorLedgEntry."Vendor Posting Group";
                                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
-                                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
                             until VendorLedgEntry.Next() = 0;
                     end;
@@ -369,7 +369,7 @@ codeunit 367 CheckManagement
                                 GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
                                 GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
-                                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
                             until BankAccLedgEntry3.Next() = 0;
                     end;
@@ -390,7 +390,7 @@ codeunit 367 CheckManagement
                                 GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
                                 GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
-                                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
                             until FALedgEntry.Next() = 0;
                     end;
@@ -414,7 +414,7 @@ codeunit 367 CheckManagement
                                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
                                 GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
                                 GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
-                                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
                             until EmployeeLedgerEntry.Next() = 0;
                     end;
@@ -427,7 +427,7 @@ codeunit 367 CheckManagement
                     GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
                     GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                     OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
-                    GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                    GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                     OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
                 end;
             end;
@@ -495,7 +495,7 @@ codeunit 367 CheckManagement
                 GenJnlLine."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
                 GenJnlLine."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine, CheckLedgEntry);
-                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine, CheckLedgEntry, GenJnlPostLine);
             until GLEntry.Next() = 0;
     end;
@@ -550,7 +550,7 @@ codeunit 367 CheckManagement
                 GenJournalLine1."Account No." := CheckLedgEntry."Bank Account No.";
                 GenJournalLine1.Amount := -WHTEntry.Amount;
                 GenJournalLine1."Amount (LCY)" := -WHTEntry."Amount (LCY)";
-                GenJnlPostLine.RunWithCheck(GenJournalLine1);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine1);
             until WHTEntry.Next() = 0
         else begin
             PayDetailedVendorLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Entry Type", "Posting Date");
@@ -969,7 +969,7 @@ codeunit 367 CheckManagement
         GenJnlLine2."Journal Template Name" := BankAccLedgEntry2."Journal Templ. Name";
         GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
         OnPostRoundingAmountOnBeforeGenJnlPostLine(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry2);
-        GenJnlPostLine.RunWithCheck(GenJnlLine2);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
         OnPostRoundingAmountOnAfterGenJnlPostLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
     end;
 

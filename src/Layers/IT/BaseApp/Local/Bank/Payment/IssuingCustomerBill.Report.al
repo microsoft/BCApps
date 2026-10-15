@@ -90,9 +90,9 @@ report 12180 "Issuing Customer Bill"
 
                 GenJnlPostLine.SetCheckDim(CheckDim);
                 if not CheckDim then
-                    GenJnlPostLine.RunWithCheck(GenJnlLine)
+                    GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine)
                 else
-                    GenJnlPostLine.RunWithoutCheck(GenJnlLine);
+                    GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine);
             end;
 
             trigger OnPostDataItem()

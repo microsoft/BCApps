@@ -86,7 +86,7 @@ codeunit 31179 "Item Charge Assgnt. Purch. CZL"
         PurchaseLine."Unit Cost (LCY)" := Round(PurchaseLine.Amount / ItemLedgerEntry.Quantity, GeneralLedgerSetup."Unit-Amount Rounding Precision");
         PurchaseLine."Line No." := TempItemChargeAssignmentPurch."Document Line No.";
 
-        PurchPost.PostItemJnlLine(
+        PurchPost.PostItemJnlLineBigInteger(
           PurchaseHeader, PurchaseLine, 0, 0,
           ItemLedgerEntry.Quantity, ItemLedgerEntry.Quantity,
           PurchaseLine."Appl.-to Item Entry", TempItemChargeAssignmentPurch."Item Charge No.", DummyTrackingSpecification);

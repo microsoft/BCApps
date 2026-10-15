@@ -355,7 +355,7 @@ page 372 "Bank Account Ledger Entries"
                                     ReversalEntry.TestFieldError();
                         end;
                         Rec.TestField("Transaction No.");
-                        ReversalEntry.ReverseTransaction(Rec."Transaction No.");
+                        ReversalEntry.ReverseTransactionBigInteger(Rec."Transaction No.");
                         Clear(CalcRunningAccBalance);
                         CurrPage.Update(false);
                     end;
@@ -454,4 +454,3 @@ page 372 "Bank Account Ledger Entries"
         DimensionManagement.UseShortcutDims(Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible);
     end;
 }
-

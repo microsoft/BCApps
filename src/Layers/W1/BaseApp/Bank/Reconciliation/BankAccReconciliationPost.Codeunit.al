@@ -618,7 +618,7 @@ codeunit 370 "Bank Acc. Reconciliation Post"
             OnPostPaymentApplicationsOnBeforeValidateApplyRequirements(BankAccReconLine, GenJnlLine, AppliedAmount);
 
             GenJnlLine.ValidateApplyRequirements(GenJnlLine);
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
             OnPostPaymentApplicationsOnAfterPostGenJnlLine(GenJnlLine, GenJnlPostLine);
             if not PostPaymentsOnly then begin
                 BankAccountLedgerEntry.SetRange(Open, true);

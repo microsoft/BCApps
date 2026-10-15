@@ -984,7 +984,7 @@ report 20 "Calc. and Post VAT Settlement"
         LastPostedVATEntryNo: BigInteger;
     begin
         if PostVATSettlement then begin
-            NextAvailableVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();
+            NextAvailableVATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger();
             if NextAvailableVATEntryNo <> 0 then
                 LastPostedVATEntryNo := NextAvailableVATEntryNo - 1;
             exit(LastPostedVATEntryNo);

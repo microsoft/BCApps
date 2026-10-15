@@ -493,7 +493,7 @@
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
-        exit(GenJnlPostLine.RunWithCheck(GenJnlLine));
+        exit(GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine));
     end;
 
     local procedure VerifyEmployeeEntriesClosed(var EmployeeLedgerEntry: Record "Employee Ledger Entry")

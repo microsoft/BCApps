@@ -1062,7 +1062,7 @@ codeunit 144055 "UT TAB Telebank"
         LibraryERM.FindGLAccount(GLAccount);
         GenJournalLine.Validate("Bal. Account No.", GLAccount."No.");
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
         exit(GenJournalLine."Document No.");
     end;
 

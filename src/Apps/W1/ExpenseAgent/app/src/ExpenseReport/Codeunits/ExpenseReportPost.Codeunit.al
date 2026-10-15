@@ -606,7 +606,7 @@ codeunit 6987 "Expense Report-Post"
         GlobalExpenseLedgerEntry."Refundable Amount" := GenJournalLine.Amount;
         GlobalExpenseLedgerEntry."Refundable Amount (LCY)" := GenJournalLine."Amount (LCY)";
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         RefundableAmount := GenJournalLine.Amount + GenJournalLine."VAT Amount";
         RefundableAmountLCY := GenJournalLine."Amount (LCY)" + GenJournalLine."VAT Amount (LCY)";
@@ -650,7 +650,7 @@ codeunit 6987 "Expense Report-Post"
                 GlobalEntryCopied := true;
             end;
 
-            GenJnlPostLine.RunWithCheck(GenJournalLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
             // Accumulate gross (base + VAT) from the spec row for rounding/balance checks.
             RefundableAmount += ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
@@ -684,7 +684,7 @@ codeunit 6987 "Expense Report-Post"
         SetupCompanyPaidAccount(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         PostRoundingDifferenceOnCurrency(
             ExpenseReportHeader, ExpenseReportLine,
@@ -713,7 +713,7 @@ codeunit 6987 "Expense Report-Post"
         if not ExpenseReportLine.Refundable then
             GlobalExpenseLedgerEntry.CopyFromGenJnlLine(GenJournalLine);
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         RefundableAmount := GenJournalLine.Amount + GenJournalLine."VAT Amount";
         RefundableLCY := GenJournalLine."Amount (LCY)" + GenJournalLine."VAT Amount (LCY)";
@@ -744,7 +744,7 @@ codeunit 6987 "Expense Report-Post"
                 GlobalEntryCopied := true;
             end;
 
-            GenJnlPostLine.RunWithCheck(GenJournalLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
             PostedAmount += ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
             PostedAmountLCY += ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
         until ExpenseReportLineVATSpec.Next() = 0;
@@ -829,7 +829,7 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine."System-Created Entry" := true;
 
         OnBeforePostEmployeeEntry(GenJournalLine, ExpenseReportHeader, PostedExpenseReportHeader);
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
         OnAfterPostEmployeeEntry(GenJournalLine, ExpenseReportHeader, PostedExpenseReportHeader);
     end;
 
@@ -1217,7 +1217,7 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine."Source Currency Amount" := AmountToPost;
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
         GenJournalLine."System-Created Entry" := true;
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 
     procedure UpdateVATAmount(
@@ -1316,7 +1316,7 @@ codeunit 6987 "Expense Report-Post"
 
     local procedure InsertExpenseLedgerEntry(var ExpenseLedgerEntry: Record "Expense Ledger Entry")
     begin
-        ExpenseLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        ExpenseLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         ExpenseLedgerEntry."Employee Posting Group" := PostedExpenseReportHeader."Employee Posting Group";
         ExpenseLedgerEntry.Insert(true);
     end;

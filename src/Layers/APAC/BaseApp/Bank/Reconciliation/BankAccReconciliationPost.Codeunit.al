@@ -622,7 +622,7 @@ codeunit 370 "Bank Acc. Reconciliation Post"
             OnPostPaymentApplicationsOnBeforeValidateApplyRequirements(BankAccReconLine, GenJnlLine, AppliedAmount);
 
             GenJnlLine.ValidateApplyRequirements(GenJnlLine);
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
 
             PostUnrealizedWHT(GenJnlLine);
 
@@ -656,7 +656,7 @@ codeunit 370 "Bank Acc. Reconciliation Post"
         if not GenJournalLineWHT.FindFirst() then
             exit;
 
-        GenJnlPostLine.RunWithCheck(GenJournalLineWHT);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLineWHT);
 
         GenJournalLineWHT.Delete();
     end;

@@ -90,6 +90,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         Text028: Label 'The Balance and Reversing Balance recurring methods can be used only with Allocations.';
 #pragma warning restore AA0074
         ConfirmManualCheckTxt: Label 'A balancing account is not specified for one or more lines. If you print checks without specifying balancing accounts you will not be able to void the checks, if needed. Do you want to continue?';
+        GLRegisterNoOutOfRangeErr: Label 'G/L Register No. %1 cannot be assigned to the journal line because it exceeds %2.';
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlBatch: Record "Gen. Journal Batch";
         GenJnlLine2: Record "Gen. Journal Line";
@@ -302,11 +303,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             if not GLReg.FindLast() or (GLReg."No." <> GLRegNo) then
                 GLRegNo := 0;
 
+        if GLRegNo > 2147483647 then
+            Error(GLRegisterNoOutOfRangeErr, GLRegNo, 2147483647);
+
         GenJnlLine.Init();
-        if GLRegNo <= 2147483647 then
-            GenJnlLine."Line No." := GLRegNo
-        else
-            GenJnlLine."Line No." := 2147483647;
+        GenJnlLine."Line No." := GLRegNo;
 
         OnProcessLinesOnAfterAssignGLNegNo(GenJnlLine, GLReg, GLRegNo);
 
@@ -325,7 +326,9 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
         DeleteDimBalBatch(GenJnlLine, true);
 
-        OnBeforeCommit(GLRegNo, GenJnlLine, GenJnlPostLine);
+        if GLRegNo <= 2147483647 then
+            OnBeforeCommit(GLRegNo, GenJnlLine, GenJnlPostLine);
+        OnBeforeCommitBigInteger(GLRegNo, GenJnlLine, GenJnlPostLine);
 
         if not SuppressCommit then
             Commit();
@@ -787,7 +790,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                     PrepareGenJnlLineAddCurr(GenJnlLine2);
                     if not Reversing then begin
                         OnPostAllocationsOnBeforePostNotReversingLine(GenJnlLine2, GenJnlPostLine, AllocateGenJnlLine, GenJnlAlloc);
-                        GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                         if AllocateGenJnlLine."Recurring Method" in
                            [AllocateGenJnlLine."Recurring Method"::"V  Variable", AllocateGenJnlLine."Recurring Method"::"B  Balance"]
                         then begin
@@ -799,7 +802,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                         MultiplyAmounts(GenJnlLine2, -1);
                         GenJnlLine2."Reversing Entry" := true;
                         OnPostAllocationsOnBeforePostReversingLine(GenJnlLine2, GenJnlPostLine, AllocateGenJnlLine, GenJnlAlloc);
-                        GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
                         if AllocateGenJnlLine."Recurring Method" in
                            [AllocateGenJnlLine."Recurring Method"::"RV Reversing Variable",
                             AllocateGenJnlLine."Recurring Method"::"RB Reversing Balance"]
@@ -1283,7 +1286,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             exit;
 
         GLReg.LockTable();
-        GLRegNo := GLReg.GetLastEntryNo() + 1;
+        GLRegNo := GLReg.GetLastEntryNoBigInteger() + 1;
     end;
 
     local procedure CheckGenJnlLine(var MarkedGenJnlLine: Record "Gen. Journal Line"; var GenJournalLine: Record "Gen. Journal Line")
@@ -1398,7 +1401,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 IsHandled := false;
                 OnPostReversingLinesOnBeforeGenJnlPostLine(GenJournalLine2, GenJnlPostLine, IsHandled);
                 if not IsHandled then
-                    GenJnlPostLine.RunWithCheck(GenJournalLine2);
+                    GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine2);
                 PostAllocations(GenJournalLine1, true);
             until TempGenJnlLine.Next() = 0;
 
@@ -1562,7 +1565,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         UpdateDimBalBatchName(GenJnlLine5);
         OnBeforePostGenJnlLine(GenJnlLine5, SuppressCommit, IsPosted, GenJnlPostLine, GenJournalLine);
         if not IsPosted then begin
-            GenJnlPostLine.RunWithoutCheck(GenJnlLine5);
+            GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine5);
             InsertPostedGenJnlLine(GenJournalLine);
             RemoveRecordLink(GenJournalLine);
             UnlinkIncDocFromGenJnlLine(GenJournalLine);
@@ -2158,7 +2161,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     /// <param name="GenJournalLine">General journal line being committed</param>
     /// <param name="GenJnlPostLine">Posting codeunit handling the commit operation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCommit(GLRegNo: BigInteger; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnBeforeCommit(GLRegNo: Integer; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCommitBigInteger(GLRegNo: BigInteger; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 

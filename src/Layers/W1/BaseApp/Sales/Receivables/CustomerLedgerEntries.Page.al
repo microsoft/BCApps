@@ -627,7 +627,7 @@ page 25 "Customer Ledger Entries"
                         ReversePaymentRecJournal: Codeunit "Reverse Payment Rec. Journal";
                     begin
                         ReversePaymentRecJournal.ErrorIfEntryIsNotReversable(Rec);
-                        ReversalEntry.ReverseTransaction(Rec."Transaction No.");
+                        ReversalEntry.ReverseTransactionBigInteger(Rec."Transaction No.");
                         Clear(CalcRunningCustBalance);
                     end;
                 }

@@ -328,7 +328,7 @@ report 1201 "Post Direct Debit Collection"
         if CreateJnlOnly then
             GenJnlLine.Insert(true)
         else
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         exit(true);
     end;
 

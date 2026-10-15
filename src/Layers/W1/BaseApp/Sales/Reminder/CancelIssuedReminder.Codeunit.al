@@ -336,7 +336,7 @@ codeunit 1393 "Cancel Issued Reminder"
     begin
         if TempGenJnlLine.FindSet() then
             repeat
-                GenJnlPostLine.RunWithCheck(TempGenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(TempGenJnlLine);
             until TempGenJnlLine.Next() = 0;
 
         TempGenJnlLine.DeleteAll();

@@ -1657,7 +1657,7 @@
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
-        exit(GenJnlPostLine.RunWithCheck(GenJnlLine));
+        exit(GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine));
     end;
 
     local procedure VerifyInvoiceCrMemoAndPaymentRemAmounts(DocumentNo: Code[20]; InvoiceRemAmt: Decimal; CrMemoRemAmt: Decimal; PaymentRemAmt: Decimal)

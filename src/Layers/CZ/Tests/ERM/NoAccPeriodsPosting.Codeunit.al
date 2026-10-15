@@ -388,7 +388,7 @@ codeunit 134361 "No Acc. Periods: Posting"
         GenJournalLine1.Modify(true);
 
         // [WHEN] Expected Error will come during Posting Preview.
-        asserterror GenJnlPostLine.RunWithCheck(GenJournalLine1);
+        asserterror GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine1);
 
         // [VERIFY] Verify the error message will be Duplicate Record Error
         Assert.ExpectedError(StrSubstNo(DuplicateRecordErr, DocumentNo));

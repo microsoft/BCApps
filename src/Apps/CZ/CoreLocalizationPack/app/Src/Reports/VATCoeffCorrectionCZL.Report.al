@@ -308,7 +308,7 @@ report 11749 "VAT Coeff. Correction CZL"
             CreateDimensionFromGLAccount(GenJournalLine);
 
         OnPostVATOnBeforePostGenJournalLine(TempVATEntry, GenJournalLine);
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
 
         ModifyVATEntry.FindLast();
         EntryNo := ModifyVATEntry."Entry No.";

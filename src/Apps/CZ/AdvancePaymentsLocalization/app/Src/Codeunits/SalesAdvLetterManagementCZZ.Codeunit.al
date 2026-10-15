@@ -735,7 +735,7 @@ codeunit 31002 "SalesAdvLetterManagement CZZ"
         GenJournalLine."VAT Base Amount" := -VATBaseCorr;
         GenJournalLine."VAT Difference" := SalesInvoiceLine."VAT Difference";
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
     end;
 
     procedure PostAdvancePaymentUsageVAT(var SalesAdvLetterEntryCZZ: Record "Sales Adv. Letter Entry CZZ")

@@ -408,7 +408,7 @@ report 98 "Date Compress General Ledger"
     begin
         OnBeforeInitRegisters("G/L Entry");
 
-        GLReg.Initialize(GLReg.GetLastEntryNo() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress G/L", '', '');
+        GLReg.InitializeBigInteger(GLReg.GetLastEntryNoBigInteger() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress G/L", '', '');
 
         DateComprReg.InitRegister(
           DATABASE::"G/L Entry", DateComprReg.GetLastEntryNo() + 1, EntrdDateComprReg."Starting Date", EntrdDateComprReg."Ending Date",
@@ -745,4 +745,3 @@ report 98 "Date Compress General Ledger"
     begin
     end;
 }
-

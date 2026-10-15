@@ -134,14 +134,14 @@ codeunit 18436 "GST Reverse Trans. Handler"
                     GSTLedgerEntry.Reset();
                     GSTLedgerEntry.SetRange("Transaction No.", TempReversalEntry."Transaction No.");
                     if GSTLedgerEntry.FindSet() then
-                        ReverseGST(GSTLedgerEntry, GenJnlPostLine.GetNextTransactionNo());
+                        ReverseGST(GSTLedgerEntry, GenJnlPostLine.GetNextTransactionNoBigInteger());
                 end;
 
                 if TempReversalEntry."Reversal Type" = TempReversalEntry."Reversal Type"::Transaction then begin
                     GSTTdsTcsEntry.Reset();
                     GSTTdsTcsEntry.SetRange("Transaction No.", TempReversalEntry."Transaction No.");
                     if GSTTdsTcsEntry.FindSet() then
-                        ReverseGSTTDSTCS(GSTTdsTcsEntry, GenJnlPostLine.GetNextTransactionNo());
+                        ReverseGSTTDSTCS(GSTTdsTcsEntry, GenJnlPostLine.GetNextTransactionNoBigInteger());
                 end;
             until TempReversalEntry.Next() = 0;
     end;

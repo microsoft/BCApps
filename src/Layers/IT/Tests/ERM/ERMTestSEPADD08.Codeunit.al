@@ -1705,7 +1705,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
         GenJnlLine.Validate("Bal. Account Type", GenJnlLine."Bal. Account Type"::"G/L Account");
         GenJnlLine.Validate("Bal. Account No.", GLAccount."No.");
         GenJnlLine.Validate("Direct Debit Mandate ID", DirectDebitMandateID);
-        GenJnlPostLine.RunWithoutCheck(GenJnlLine);
+        GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine);
     end;
 
     local procedure CreateCustomerWithDirectDebitPaymentMethodAndTwoBankAccounts(var CustomerNo: Code[20]; var CustomerBankAccount: array[2] of Record "Customer Bank Account")

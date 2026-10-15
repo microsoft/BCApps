@@ -279,7 +279,7 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
             repeat
                 GenJnlLine2 := TempGenJnlLine;
                 SetDimensions(GenJnlLine2, IssuedFinChargeMemoHeader);
-                GenJnlPostLine.RunWithCheck(GenJnlLine2);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine2);
             until TempGenJnlLine.Next() = 0;
 
         TempGenJnlLine.DeleteAll();

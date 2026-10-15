@@ -477,7 +477,7 @@ codeunit 137551 "Tax Document GL Posting Tests"
 
         // [WHEN] GetRecordID function is called
         BindSubscription(TaxDocumentGLPostingTests);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         UnBindSubscription(TaxDocumentGLPostingTests);
         // [THEN] it should return the same recordid's for Sales, Purchase, Transfer and Journal
         TaxPostingBufferMgmt.GetDocument(Record);

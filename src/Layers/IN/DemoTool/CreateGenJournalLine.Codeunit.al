@@ -2550,7 +2550,7 @@
         GenJnlLine.Modify();
         CalculateTax.CallTaxEngineOnGenJnlLine(GenJnlLine, GenJnlLine);
         if PostGenJnlline then begin
-            GenJnlPostLine.RunWithoutCheck(GenJnlLine);
+            GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine);
             GenJnlLine.Delete();
         end else begin
             GenJnlLine.Quantity := 1;
@@ -2604,7 +2604,7 @@
         GenJnlLine.Modify();
         CalculateTax.CallTaxEngineOnGenJnlLine(GenJnlLine, GenJnlLine);
         if PostGenJnlline then begin
-            GenJnlPostLine.RunWithoutCheck(GenJnlLine);
+            GenJnlPostLine.RunWithoutCheckBigInteger(GenJnlLine);
             GenJnlLine.Delete();
         end else begin
             GenJnlLine.Quantity := 1;

@@ -386,9 +386,9 @@ codeunit 20341 "Tax Document GL Posting"
 
                     OnAfterCopyTaxGenJnlLine(TaxGenJnlLine, GenJournalLine, TransactionPostingBuffer, GenJnlPostLine);
                     if TaxGenJnlLine.Amount <> 0 then
-                        TransactionPostingBuffer."G/L Entry No" := GenJnlPostLine.RunWithCheck(TaxGenJnlLine);
+                        TransactionPostingBuffer."G/L Entry No" := GenJnlPostLine.RunWithCheckBigInteger(TaxGenJnlLine);
                 end;
-                TransactionPostingBuffer."G/L Entry Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+                TransactionPostingBuffer."G/L Entry Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
                 TransactionPostingBuffer.Modify();
                 TaxPostingBufferMgmt.GetDocument(DocumentRecord);
                 TaxPostingBufferMgmt.GetTransactionValues(TransactionPostingBuffer."Group ID", TempTransactionValue);
@@ -415,7 +415,7 @@ codeunit 20341 "Tax Document GL Posting"
                     TaxGenJnlLine."Posting No. Series" := GenJournalLine."Posting No. Series";
 
                     OnAfterCopyTaxGenJnlLineForReverseCharge(TaxGenJnlLine, GenJournalLine, TransactionPostingBuffer, GenJnlPostLine, TempTransactionValue);
-                    GenJnlPostLine.RunWithCheck(TaxGenJnlLine);
+                    GenJnlPostLine.RunWithCheckBigInteger(TaxGenJnlLine);
                 end;
                 TaxPostingBufferMgmt.ClearGroupingBuffers(TransactionPostingBuffer, TempTransactionValue);
             until TransactionPostingBuffer.Next() = 0;

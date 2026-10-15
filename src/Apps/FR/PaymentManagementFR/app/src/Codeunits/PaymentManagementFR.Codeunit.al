@@ -723,7 +723,7 @@ codeunit 10837 "Payment Management FR"
                 GenJnlLine."Reason Code" := Step."Reason Code";
                 GenJnlLine."Document Date" := PaymentHeader."Document Date";
                 OnGenerEntriesOnBeforeGenJnlPostLineRunWithCheck(GenJnlLine, PaymentHeader, StepLedger);
-                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
             end;
         end;
 
@@ -1105,7 +1105,7 @@ codeunit 10837 "Payment Management FR"
         GenJnlLine."Dimension Set ID" := InvPostingBuffer[1]."Dimension Set ID";
 
         OnPostInvPostingBufferOnBeforeGenJnlPostLineRunWithCheck(GenJnlLine, PaymentHeader, PaymentClass, PaymentLine, InvPostingBuffer[1]);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         GLEntry.SetRange("Document Type", GenJnlLine."Document Type");
         GLEntry.SetRange("Document No.", GenJnlLine."Document No.");
         if GLEntry.FindLast() then

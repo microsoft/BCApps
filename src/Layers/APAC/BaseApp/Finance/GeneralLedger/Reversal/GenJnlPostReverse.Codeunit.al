@@ -155,7 +155,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
 
         OnReverseOnBeforeStartPosting(GenJournalLine, ReversalEntry2, GLEntry2, GenJnlPostLine);
 
-        if GenJnlPostLine.GetNextEntryNo() = 0 then
+        if GenJnlPostLine.GetNextEntryNoBigInteger() = 0 then
             GenJnlPostLine.StartPosting(GenJournalLine)
         else
             GenJnlPostLine.ContinuePosting(GenJournalLine);
@@ -238,12 +238,12 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 OnReverseGLEntryOnBeforeLoop(GLEntry2, GenJournalLine, GenJnlPostLine);
                 if GLEntry2."Reversed by Entry No." <> 0 then
                     Error(CannotReverseErr);
-                CheckDimComb(GLEntry2."Entry No.", GLEntry2."Dimension Set ID", Database::"G/L Account", GLEntry2."G/L Account No.", 0, '');
+                CheckDimCombBigInteger(GLEntry2."Entry No.", GLEntry2."Dimension Set ID", Database::"G/L Account", GLEntry2."G/L Account No.", 0, '');
                 GLEntry := GLEntry2;
                 if GLEntry2."FA Entry No." <> 0 then
                     FAInsertLedgerEntry.InsertReverseEntry(
-                      GenJnlPostLine.GetNextEntryNo(), GLEntry2."FA Entry Type", GLEntry2."FA Entry No.", GLEntry."FA Entry No.",
-                      GenJnlPostLine.GetNextTransactionNo());
+                      GenJnlPostLine.GetNextEntryNoBigInteger(), GLEntry2."FA Entry Type", GLEntry2."FA Entry No.", GLEntry."FA Entry No.",
+                      GenJnlPostLine.GetNextTransactionNoBigInteger());
                 GLEntry.Amount := -GLEntry2.Amount;
                 GLEntry."Source Currency Amount" := -GLEntry2."Source Currency Amount";
                 GLEntry."Source Currency VAT Amount" := -GLEntry2."Source Currency VAT Amount";
@@ -255,8 +255,8 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 GLEntry."Additional-Currency Amount" := -GLEntry2."Additional-Currency Amount";
                 GLEntry."Add.-Currency Debit Amount" := -GLEntry2."Add.-Currency Debit Amount";
                 GLEntry."Add.-Currency Credit Amount" := -GLEntry2."Add.-Currency Credit Amount";
-                GLEntry."Entry No." := GenJnlPostLine.GetNextEntryNo();
-                GLEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+                GLEntry."Entry No." := GenJnlPostLine.GetNextEntryNoBigInteger();
+                GLEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
                 GLEntry."G/L Register No." := GLRegister."No.";
                 GLEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLEntry2."User ID"));
                 GenJournalLine.Correction :=
@@ -287,7 +287,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                     TempCustLedgerEntry.Get(GLEntry2."Entry No."):
                         begin
                             OnReverseGLEntryOnBeforeTempCustLedgEntryCheckDimComb(GLEntry2, TempCustLedgerEntry);
-                            CheckDimComb(GLEntry2."Entry No.", GLEntry2."Dimension Set ID",
+                            CheckDimCombBigInteger(GLEntry2."Entry No.", GLEntry2."Dimension Set ID",
                               Database::Customer, TempCustLedgerEntry."Customer No.",
                               Database::"Salesperson/Purchaser", TempCustLedgerEntry."Salesperson Code");
                             ReverseCustLedgEntry(
@@ -298,7 +298,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                         end;
                     TempVendorLedgerEntry.Get(GLEntry2."Entry No."):
                         begin
-                            CheckDimComb(GLEntry2."Entry No.", GLEntry2."Dimension Set ID",
+                            CheckDimCombBigInteger(GLEntry2."Entry No.", GLEntry2."Dimension Set ID",
                               Database::Vendor, TempVendorLedgerEntry."Vendor No.",
                               Database::"Salesperson/Purchaser", TempVendorLedgerEntry."Purchaser Code");
                             ReverseVendLedgEntry(
@@ -309,7 +309,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                         end;
                     TempEmployeeLedgerEntry.Get(GLEntry2."Entry No."):
                         begin
-                            CheckDimComb(
+                            CheckDimCombBigInteger(
                               GLEntry2."Entry No.", GLEntry2."Dimension Set ID", Database::Employee, TempEmployeeLedgerEntry."Employee No.", 0, '');
                             ReverseEmplLedgEntry(
                               TempEmployeeLedgerEntry, GLEntry."Entry No.", GenJournalLine.Correction, GenJournalLine."Source Code",
@@ -318,7 +318,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                         end;
                     TempBankAccountLedgerEntry.Get(GLEntry2."Entry No."):
                         begin
-                            CheckDimComb(GLEntry2."Entry No.", GLEntry2."Dimension Set ID",
+                            CheckDimCombBigInteger(GLEntry2."Entry No.", GLEntry2."Dimension Set ID",
                               Database::"Bank Account", TempBankAccountLedgerEntry."Bank Account No.", 0, '');
                             ReverseBankAccLedgEntry(TempBankAccountLedgerEntry, GLEntry."Entry No.", GenJournalLine."Source Code");
                             TempBankAccountLedgerEntry.Delete();
@@ -359,7 +359,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewCustLedgerEntry."Pmt. Tolerance (LCY)" := -NewCustLedgerEntry."Pmt. Tolerance (LCY)";
         NewCustLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewCustLedgerEntry."User ID"));
         NewCustLedgerEntry."Entry No." := NewEntryNo;
-        NewCustLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        NewCustLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         NewCustLedgerEntry."Journal Batch Name" := '';
         NewCustLedgerEntry."Source Code" := SourceCode;
         SetReversalDescription(CustLedgerEntry, NewCustLedgerEntry.Description);
@@ -403,7 +403,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewDetailedCustLedgEntry.UpdateDebitCredit(Correction);
             NewDetailedCustLedgEntry."Cust. Ledger Entry No." := NewEntryNo;
             NewDetailedCustLedgEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewCustLedgerEntry."User ID"));
-            NewDetailedCustLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+            NewDetailedCustLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
             NewDetailedCustLedgEntry."Entry No." := NextDtldCustLedgEntryEntryNo;
             NextDtldCustLedgEntryEntryNo := NextDtldCustLedgEntryEntryNo + 1;
             IsHandled := false;
@@ -441,7 +441,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewVendorLedgerEntry."Pmt. Tolerance (LCY)" := -NewVendorLedgerEntry."Pmt. Tolerance (LCY)";
         NewVendorLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVendorLedgerEntry."User ID"));
         NewVendorLedgerEntry."Entry No." := NewEntryNo;
-        NewVendorLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        NewVendorLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         NewVendorLedgerEntry."Journal Batch Name" := '';
         NewVendorLedgerEntry."Source Code" := SourceCode;
         SetReversalDescription(VendorLedgerEntry, NewVendorLedgerEntry.Description);
@@ -485,7 +485,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewDetailedVendorLedgEntry.UpdateDebitCredit(Correction);
             NewDetailedVendorLedgEntry."Vendor Ledger Entry No." := NewEntryNo;
             NewDetailedVendorLedgEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVendorLedgerEntry."User ID"));
-            NewDetailedVendorLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+            NewDetailedVendorLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
             NewDetailedVendorLedgEntry."Entry No." := NextDtldVendLedgEntryEntryNo;
             NextDtldVendLedgEntryEntryNo := NextDtldVendLedgEntryEntryNo + 1;
             IsHandled := false;
@@ -514,7 +514,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewEmployeeLedgerEntry."Original Currency Factor" := NewEmployeeLedgerEntry."Original Currency Factor";
         NewEmployeeLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewEmployeeLedgerEntry."User ID"));
         NewEmployeeLedgerEntry."Entry No." := NewEntryNo;
-        NewEmployeeLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        NewEmployeeLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         NewEmployeeLedgerEntry."Journal Batch Name" := '';
         NewEmployeeLedgerEntry."Source Code" := SourceCode;
         SetReversalDescription(EmployeeLedgerEntry, NewEmployeeLedgerEntry.Description);
@@ -553,7 +553,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewDetailedEmployeeLedgerEntry.UpdateDebitCredit(Correction);
             NewDetailedEmployeeLedgerEntry."Employee Ledger Entry No." := NewEntryNo;
             NewDetailedEmployeeLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewEmployeeLedgerEntry."User ID"));
-            NewDetailedEmployeeLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+            NewDetailedEmployeeLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
             NewDetailedEmployeeLedgerEntry."Entry No." := NextDtldEmplLedgEntryNo;
             NextDtldEmplLedgEntryNo += 1;
             OnReverseEmplLedgEntryOnBeforeInsertDtldEmplLedgEntry(NewDetailedEmployeeLedgerEntry, DetailedEmployeeLedgerEntry);
@@ -589,7 +589,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewBankAccountLedgerEntry.Positive := not NewBankAccountLedgerEntry.Positive;
         NewBankAccountLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewBankAccountLedgerEntry."User ID"));
         NewBankAccountLedgerEntry."Entry No." := NewEntryNo;
-        NewBankAccountLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        NewBankAccountLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         NewBankAccountLedgerEntry."Journal Batch Name" := '';
         NewBankAccountLedgerEntry."Source Code" := SourceCode;
         SetReversalDescription(BankAccountLedgerEntry, NewBankAccountLedgerEntry.Description);
@@ -647,10 +647,10 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 NewVATEntry."VAT Difference" := -NewVATEntry."VAT Difference";
                 NewVATEntry."Add.-Curr. VAT Difference" := -NewVATEntry."Add.-Curr. VAT Difference";
                 NonDeductibleVAT.Reverse(NewVATEntry);
-                NewVATEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+                NewVATEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
                 NewVATEntry."Source Code" := SourceCode;
                 NewVATEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVATEntry."User ID"));
-                NewVATEntry."Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                NewVATEntry."Entry No." := GenJnlPostLine.GetNextVATEntryNoBigInteger();
                 NewVATEntry."Reversed Entry No." := VATEntry."Entry No.";
                 NewVATEntry."BAS Doc. No." := '';
                 NewVATEntry."BAS Version" := 0;
@@ -723,7 +723,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewDetailedCustLedgEntry."Entry Type" := NewDetailedCustLedgEntry."Entry Type"::Application;
             NewDetailedCustLedgEntry."Applied Cust. Ledger Entry No." := AppliedEntryNo;
             NewDetailedCustLedgEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewDetailedCustLedgEntry."User ID"));
-            NewDetailedCustLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+            NewDetailedCustLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
             NewDetailedCustLedgEntry."Entry No." := NextDtldCustLedgEntryEntryNo;
             NextDtldCustLedgEntryEntryNo := NextDtldCustLedgEntryEntryNo + 1;
             IsHandled := false;
@@ -759,7 +759,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewDetailedVendorLedgEntry."Entry Type" := NewDetailedVendorLedgEntry."Entry Type"::Application;
         NewDetailedVendorLedgEntry."Applied Vend. Ledger Entry No." := AppliedEntryNo;
         NewDetailedVendorLedgEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewDetailedVendorLedgEntry."User ID"));
-        NewDetailedVendorLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        NewDetailedVendorLedgEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         NewDetailedVendorLedgEntry."Entry No." := NextDtldVendLedgEntryEntryNo;
         NextDtldVendLedgEntryEntryNo := NextDtldVendLedgEntryEntryNo + 1;
         IsHandled := false;
@@ -788,7 +788,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewDetailedEmployeeLedgerEntry."Entry Type" := NewDetailedEmployeeLedgerEntry."Entry Type"::Application;
         NewDetailedEmployeeLedgerEntry."Applied Empl. Ledger Entry No." := AppliedEntryNo;
         NewDetailedEmployeeLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewDetailedEmployeeLedgerEntry."User ID"));
-        NewDetailedEmployeeLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+        NewDetailedEmployeeLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
         NewDetailedEmployeeLedgerEntry."Entry No." := NextDtldEmplLedgEntryNo;
         NextDtldEmplLedgEntryNo += 1;
         OnApplyEmplLedgEntryByReversalOnBeforeInsertDtldEmplLedgEntry(NewDetailedEmployeeLedgerEntry, DetailedEmployeeLedgerEntry2);
@@ -805,15 +805,25 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="AccNo1">Primary account number for dimension validation</param>
     /// <param name="TableID2">Secondary table ID for dimension validation</param>
     /// <param name="AccNo2">Secondary account number for dimension validation</param>
-    procedure CheckDimComb(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20])
+    procedure CheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20])
+    begin
+        CheckDimCombBigInteger(EntryNo, DimSetID, TableID1, AccNo1, TableID2, AccNo2);
+    end;
+
+    procedure CheckDimCombBigInteger(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20])
     var
         DimensionManagement: Codeunit DimensionManagement;
         TableID: array[10] of Integer;
         AccNo: array[10] of Code[20];
         IsHandled: Boolean;
+        LegacyEntryNo: Integer;
     begin
         IsHandled := false;
-        OnBeforeCheckDimComb(EntryNo, DimSetID, TableID1, AccNo1, TableID2, AccNo2, IsHandled, DimensionManagement);
+        if EntryNo <= 2147483647 then begin
+            LegacyEntryNo := EntryNo;
+            OnBeforeCheckDimComb(LegacyEntryNo, DimSetID, TableID1, AccNo1, TableID2, AccNo2, IsHandled, DimensionManagement);
+        end;
+        OnBeforeCheckDimCombBigInteger(EntryNo, DimSetID, TableID1, AccNo1, TableID2, AccNo2, IsHandled, DimensionManagement);
         if not IsHandled then begin
             if not DimensionManagement.CheckDimIDComb(DimSetID) then
                 Error(DimCombBlockedErr, EntryNo, DimensionManagement.GetDimCombErr());
@@ -1031,7 +1041,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 NewWHTEntry."Rem Realized Amount" := -NewWHTEntry."Rem Realized Amount";
                 NewWHTEntry."Rem Realized Base" := -NewWHTEntry."Rem Realized Base";
                 NewWHTEntry."WHT Difference" := -NewWHTEntry."WHT Difference";
-                NewWHTEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+                NewWHTEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNoBigInteger();
                 NewWHTEntry."Source Code" := SourceCode;
                 NewWHTEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewWHTEntry."User ID"));
                 NewWHTEntry."Reversed Entry No." := WHTEntry."Entry No.";
@@ -1080,7 +1090,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 repeat
                     GSTPurchaseEntry2.TransferFields(GSTPurchaseEntry);
                     GSTPurchaseEntry2."Entry No." := EntryNo;
-                    GSTPurchaseEntry2."GST Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                    GSTPurchaseEntry2."GST Entry No." := GenJnlPostLine.GetNextVATEntryNoBigInteger();
                     GSTPurchaseEntry2."GST Base" := -GSTPurchaseEntry."GST Base";
                     GSTPurchaseEntry2.Amount := -GSTPurchaseEntry.Amount;
                     GSTPurchaseEntry2.Insert();
@@ -1099,7 +1109,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                     repeat
                         GSTSalesEntry2.TransferFields(GSTSalesEntry);
                         GSTSalesEntry2."Entry No." := EntryNo;
-                        GSTSalesEntry2."GST Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                        GSTSalesEntry2."GST Entry No." := GenJnlPostLine.GetNextVATEntryNoBigInteger();
                         GSTSalesEntry2."GST Base" := -GSTSalesEntry."GST Base";
                         GSTSalesEntry2.Amount := -GSTSalesEntry.Amount;
                         GSTSalesEntry2.Insert();
@@ -1172,7 +1182,12 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="IsHandled">Set to true to skip standard dimension validation</param>
     /// <param name="DimensionManagement">Dimension management codeunit for validation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckDimComb(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
+    local procedure OnBeforeCheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckDimCombBigInteger(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
     begin
     end;
 
@@ -1673,4 +1688,3 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     begin
     end;
 }
-

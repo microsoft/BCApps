@@ -92,7 +92,7 @@ codeunit 12170 "Recall Customer Bill"
             CustLedgEntry."Bank Receipt Temp. No." := GenJnlLine."Document No.";
             CustLedgEntry.Modify();
 
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+            GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
 
             BankReceiptToIssue := BankReceiptToIssue + 1;
             CustomerBillLine.Delete();
@@ -263,7 +263,7 @@ codeunit 12170 "Recall Customer Bill"
 
                 Window.Update(3, GenJnlLine."Document No.");
 
-                GenJnlPostLine.RunWithCheck(GenJnlLine);
+                GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
 
                 BankReceiptToIssue := BankReceiptToIssue + 1;
                 IssuedCustomerBillLine."Recall Date" := WorkDate();

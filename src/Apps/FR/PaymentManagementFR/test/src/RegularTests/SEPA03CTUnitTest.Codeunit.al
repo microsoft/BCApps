@@ -847,7 +847,7 @@ codeunit 144024 "SEPA.03 CT Unit Test"
         LibraryERM.FindGLAccount(GLAccount);
         GenJournalLine.Validate("Bal. Account No.", GLAccount."No.");
 
-        GenJnlPostLine.RunWithCheck(GenJournalLine);
+        GenJnlPostLine.RunWithCheckBigInteger(GenJournalLine);
         exit(GenJournalLine."Document No.");
     end;
 

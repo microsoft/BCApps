@@ -310,7 +310,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                         PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                         AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
                     GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, true);
-                    VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                    VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                     OnPostAdvancePaymentVATOnAfterPost(
                         PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                         AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -400,7 +400,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                 PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, VATPostingSetup,
                 AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
             GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-            VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+            VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
             OnPostAdvancePaymentVATUnlinkingOnAfterPost(
                 PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, VATPostingSetup,
                 AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -672,7 +672,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                                 PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ2, AdvancePostingBufferCZZ,
                                 AdvancePostingParametersCZZ2, GenJnlPostLine, GenJournalLine);
                             GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, false, false);
-                            VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                            VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                             OnPostAdvancePaymentUsageVATCancellationOnAfterPost(
                                 PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ2, AdvancePostingBufferCZZ,
                                 AdvancePostingParametersCZZ2, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -773,7 +773,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                     PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                     AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
                 GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-                VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                 OnPostAdvanceCreditMemoVATOnAfterPost(
                     PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                     AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -1020,7 +1020,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                 PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                 AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
             GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-            VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+            VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
             OnPostAdvanceLetterEntryVATUsageUnapplyingOnAfterPost(
                 PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, AdvancePostingBufferCZZ,
                 AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -1183,7 +1183,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
             AdvancePostingParametersCZZ."Document No." :=
                 NoSeriesBatch.GetNextNo(
                     AdvanceLetterTemplateCZZ."Advance Letter Cr. Memo Nos.", AdvancePostingParametersCZZ."Posting Date");
-            NextEntryNo := GenJnlPostLine.GetNextEntryNo();
+            NextEntryNo := GenJnlPostLine.GetNextEntryNoBigInteger();
         end;
 
         if AdvancePostingParametersCZZ."Source Code" = '' then begin
@@ -1201,7 +1201,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                     PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, GenJnlPostLine, AdvancePostingParametersCZZ);
             until PurchAdvLetterEntryCZZ.Next() = 0;
 
-        if GetDocNoFromNoSeries and (NextEntryNo <> GenJnlPostLine.GetNextEntryNo()) then
+        if GetDocNoFromNoSeries and (NextEntryNo <> GenJnlPostLine.GetNextEntryNoBigInteger()) then
             NoSeriesBatch.SaveState();
 
         PurchAdvLetterManagementCZZ.CancelInitEntry(PurchAdvLetterHeaderCZZ, AdvancePostingParametersCZZ."Posting Date", false);
@@ -1521,7 +1521,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
                     PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, VATPostingSetup,
                     AdvancePostingBufferCZZ, AdvancePostingParametersCZZ, GenJnlPostLine, GenJournalLine);
                 GLEntryNo := RunGenJnlPostLine(GenJournalLine, GenJnlPostLine, true, true, false);
-                VATEntryNo := GenJnlPostLine.GetNextVATEntryNo() - 1;
+                VATEntryNo := GenJnlPostLine.GetNextVATEntryNoBigInteger() - 1;
                 OnReverseAdvancePaymentVATOnAfterPost(
                     PurchAdvLetterHeaderCZZ, PurchAdvLetterEntryCZZ, VATPostingSetup, AdvancePostingBufferCZZ,
                     AdvancePostingParametersCZZ, GLEntryNo, GenJnlPostLine, GenJournalLine);
@@ -2297,7 +2297,7 @@ codeunit 31142 "Purch. Adv. Letter-Post CZZ"
             BindSubscription(DocumentTypeHandlerCZZ);
         if ActivateGenJnlCheckLnHandler then
             BindSubscription(GenJnlCheckLnHandlerCZZ);
-        GLEntryNo := GenJnlPostLine.RunWithCheck(GenJnlLine);
+        GLEntryNo := GenJnlPostLine.RunWithCheckBigInteger(GenJnlLine);
         if UseAdvLetterVATAccounts then
             UnbindSubscription(VATPostingSetupHandlerCZZ);
         if UseEmptyDocumentType then
