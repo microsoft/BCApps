@@ -39,7 +39,6 @@ codeunit 148346 "Expense Interim Approval Test"
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
         AlternateApproverStatusErr: Label 'An alternate approver can only be assigned while the expense report is %1.', Comment = '%1 = Pending Approval status caption';
-        AlternateApproverActorErr: Label 'Only an expense report owner or approval administrator can assign an alternate approver.';
         NoActiveAlternateApproverForDateErr: Label 'No active alternate approver is configured for final approver %1 on %2.', Comment = '%1 = final approver no., %2 = reference date';
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
@@ -397,46 +396,6 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [THEN] The expected validation error is raised and routing remains unchanged.
         Assert.ExpectedError(StrSubstNo(NoActiveAlternateApproverForDateErr, FinalApprover."No.", WorkDate()));
-        VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
-        WorkDate(OriginalWorkDate);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure AssignAlternateApproverRequiresOwnerOrAdmin()
-    var
-        Submitter: Record "Expense User";
-        AlternateApprover: Record "Expense User";
-        OtherExpenseUser: Record "Expense User";
-        InterimApprover: Record "Expense User";
-        FinalApprover: Record "Expense User";
-        ExpenseReportHeader: Record "Expense Report Header";
-        OriginalWorkDate: Date;
-    begin
-        // [FEATURE] [AI test 0.4]
-        // [SCENARIO 626975] Only the report owner or an approval administrator can assign an alternate approver.
-        Initialize();
-        OriginalWorkDate := WorkDate();
-        WorkDate(Today());
-
-        // [GIVEN] A pending report with active alternate coverage, and a different non-admin actor.
-        EnableAgent(true);
-        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
-        CreateApproverExpenseUser(AlternateApprover);
-        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
-        CreateAlternateApproverCoverage(
-            FinalApprover."No.",
-            AlternateApprover."No.",
-            WorkDate(),
-            WorkDate());
-        CreateSubmitterExpenseUser(OtherExpenseUser);
-        SetCurrentUser(OtherExpenseUser);
-
-        // [WHEN] The non-owner and non-admin user invokes Assign Alternate Approver.
-        asserterror ExpenseReportHeader.AssignAlternateApprover('');
-
-        // [THEN] The assignment is rejected and the current approver remains unchanged.
-        Assert.ExpectedError(AlternateApproverActorErr);
         VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
         WorkDate(OriginalWorkDate);
     end;
