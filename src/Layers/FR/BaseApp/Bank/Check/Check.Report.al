@@ -249,7 +249,6 @@ report 1401 Check
                                                     begin
                                                         CustUpdateAmounts(CustLedgEntry, RemainingAmount);
                                                         FoundLast := (CustLedgEntry.Next() = 0) or (RemainingAmount <= 0);
-                                                        AddedRemainingAmount := not (FoundLast and (RemainingAmount > 0));
                                                         if FoundLast and not FoundNegative then begin
                                                             CustLedgEntry.SetRange(Positive, false);
                                                             FoundLast := not CustLedgEntry.Find('-');
@@ -260,7 +259,6 @@ report 1401 Check
                                                     begin
                                                         VendUpdateAmounts(VendLedgEntry, RemainingAmount);
                                                         FoundLast := (VendLedgEntry.Next() = 0) or (RemainingAmount <= 0);
-                                                        AddedRemainingAmount := not (FoundLast and (RemainingAmount > 0));
                                                         if FoundLast and not FoundNegative then begin
                                                             VendLedgEntry.SetRange(Positive, false);
                                                             FoundLast := not VendLedgEntry.Find('-');
@@ -526,6 +524,7 @@ report 1401 Check
 
                     trigger OnAfterGetRecord()
                     var
+                        RecordIdToPrint: RecordId;
                         Decimals: Decimal;
                         CheckLedgEntryAmount: Decimal;
                     begin
@@ -592,7 +591,13 @@ report 1401 Check
                             CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::"Test Print";
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
-                            CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
+#if not CLEAN30
+                            RecordIdToPrint := GenJnlLine.RecordId;
+#else
+                            RecordIdToPrint := RecordId;
+#endif
+                            OnBeforeTestPrintInsertCheck(GenJnlLine, RecordIdToPrint);
+                            CheckManagement.InsertCheck(CheckLedgEntry, RecordIdToPrint);
 
                             CheckAmountText := Text024;
                             DescriptionLine[1] := Text025;
@@ -1762,6 +1767,17 @@ report 1401 Check
                     Text031,
                     VendLedgEntry3."Document Type", VendLedgEntry3."Document No.",
                     VendLedgEntry3."Vendor No."));
+    end;
+
+    /// <summary>
+    /// Integration event raised before inserting a test-print check ledger entry.
+    /// Enables localizations to select the source record associated with the test print.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being test printed</param>
+    /// <param name="RecordIdToPrint">Source record passed to CheckManagement.InsertCheck</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestPrintInsertCheck(GenJournalLine: Record "Gen. Journal Line"; var RecordIdToPrint: RecordId)
+    begin
     end;
 
     /// <summary>

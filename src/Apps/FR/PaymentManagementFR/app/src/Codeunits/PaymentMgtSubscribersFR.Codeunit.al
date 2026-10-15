@@ -6,6 +6,7 @@ namespace Microsoft.Bank.Payment;
 #pragma warning disable AA0228
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -25,6 +26,12 @@ codeunit 10838 "PaymentMgt Subscribers FR"
         UnrealCVLedgEntryBuffer: Record "Unreal. CV Ledg. Entry Buffer";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+
+    [EventSubscriber(ObjectType::Report, Report::Check, 'OnBeforeTestPrintInsertCheck', '', false, false)]
+    local procedure OnBeforeTestPrintInsertCheck(GenJournalLine: Record "Gen. Journal Line"; var RecordIdToPrint: RecordId)
+    begin
+        RecordIdToPrint := GenJournalLine.RecordId;
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Prepare Source", 'OnBeforeCreateTempJnlLines', '', false, false)]
     local procedure OnBeforeCreateTempJnlLines(var FromGenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)

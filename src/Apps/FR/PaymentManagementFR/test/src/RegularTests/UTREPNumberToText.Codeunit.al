@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Reporting;
+using System.Automation;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Upgrade;
 using System.Upgrade;
+using System.Utilities;
 
 codeunit 144044 "UT REP Number To Text"
 {
@@ -22,14 +26,72 @@ codeunit 144044 "UT REP Number To Text"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = Uncategorized;
+    EventSubscriberInstance = Manual;
 
     var
+        AttemptedCheckEntry: Record "Check Ledger Entry";
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
         UnexpectedAmountTextErr: Label 'Unexpected amount text for %1 in language %2.', Comment = '%1 = amount, %2 = language ID';
         UnexpectedLayoutErr: Label 'Unexpected check layout selection.';
+        RestrictionDetailsTxt: Label 'Test-print journal line requires approval.';
+        CheckInsertCount: Integer;
+
+    [Test]
+    procedure TestPrintPreservesJournalAssociation()
+    var
+        BankAccount: Record "Bank Account";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653674] FR test printing associates the entry with its journal without advancing the bank check number.
+        Initialize();
+
+        // [GIVEN] Bank account B and payment journal line J with Payment Management FR installed.
+        CreateTestPrintJournalLine(BankAccount, GenJournalLine);
+        Commit();
+
+        // [WHEN] The Check report executes its test-print path.
+        RunTestPrint(BankAccount, GenJournalLine);
+
+        // [THEN] The test-print entry references J and B keeps its last check number.
+        VerifyTestPrint(BankAccount, GenJournalLine.SystemId);
+    end;
+
+    [Test]
+    procedure TestPrintRejectsRestrictedJournalLine()
+    var
+        BankAccount: Record "Bank Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+        RestrictionObserver: Codeunit "UT REP Number To Text";
+        ExpectedRestrictionError: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653674] FR test printing enforces journal usage restrictions when inserting the check entry.
+        Initialize();
+
+        // [GIVEN] Journal line J is restricted and an observer captures the attempted check insertion.
+        CreateTestPrintJournalLine(BankAccount, GenJournalLine);
+        RecordRestrictionMgt.RestrictRecordUsage(GenJournalLine, RestrictionDetailsTxt);
+        Commit();
+        ExpectedRestrictionError := GetJournalRestrictionError(GenJournalLine);
+        BindSubscription(RestrictionObserver);
+
+        // [WHEN] The Check report attempts to test print J.
+        asserterror RunTestPrint(BankAccount, GenJournalLine);
+
+        // [THEN] The journal restriction, not report preflight, rejects the test-print insertion.
+        Assert.ExpectedError(ExpectedRestrictionError);
+        Assert.ExpectedErrorCode('Dialog');
+        UnbindSubscription(RestrictionObserver);
+        VerifyRejectedTestPrint(RestrictionObserver, BankAccount, GenJournalLine.SystemId);
+    end;
 
     [Test]
     procedure FrenchNumberGrammar()
@@ -532,6 +594,92 @@ codeunit 144044 "UT REP Number To Text"
         ClearLastError();
     end;
 
+    local procedure CreateTestPrintJournalLine(var BankAccount: Record "Bank Account"; var GenJournalLine: Record "Gen. Journal Line")
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.Validate("Last Check No.", '100');
+        BankAccount.Modify(true);
+        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
+        GenJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        GenJournalBatch.Validate("Bal. Account Type", GenJournalBatch."Bal. Account Type"::"Bank Account");
+        GenJournalBatch.Validate("Bal. Account No.", BankAccount."No.");
+        GenJournalBatch.Modify(true);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor,
+            LibraryPurchase.CreateVendorNo(), 100);
+        GenJournalLine.Validate("Bank Payment Type", GenJournalLine."Bank Payment Type"::"Computer Check");
+        GenJournalLine.Modify(true);
+        GenJournalLine.SetRecFilter();
+    end;
+
+    local procedure RunTestPrint(BankAccount: Record "Bank Account"; GenJournalLine: Record "Gen. Journal Line")
+    var
+        Check: Report Check;
+        TempBlob: Codeunit "Temp Blob";
+        OutputStream: OutStream;
+    begin
+        Check.SetTableView(GenJournalLine);
+        Check.InitializeRequest(BankAccount."No.", BankAccount."Last Check No.", false, false, true, false);
+        TempBlob.CreateOutStream(OutputStream);
+        Check.SaveAs('', ReportFormat::Xml, OutputStream);
+    end;
+
+    local procedure GetJournalRestrictionError(GenJournalLine: Record "Gen. Journal Line"): Text
+    var
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+    begin
+        asserterror RecordRestrictionMgt.CheckRecordHasUsageRestrictions(GenJournalLine);
+        Assert.ExpectedError(RestrictionDetailsTxt);
+        Assert.ExpectedErrorCode('Dialog');
+        exit(GetLastErrorText());
+    end;
+
+    procedure GetAttemptedCheckEntry(var CheckLedgerEntry: Record "Check Ledger Entry"): Integer
+    begin
+        CheckLedgerEntry := AttemptedCheckEntry;
+        exit(CheckInsertCount);
+    end;
+
+    local procedure VerifyTestPrint(BankAccount: Record "Bank Account"; ExpectedJournalSystemId: Guid)
+    var
+        CheckLedgerEntry: Record "Check Ledger Entry";
+    begin
+        CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        Assert.RecordCount(CheckLedgerEntry, 1);
+        CheckLedgerEntry.FindFirst();
+        VerifyTestPrintEntry(CheckLedgerEntry, ExpectedJournalSystemId);
+        VerifyLastCheckNo(BankAccount);
+    end;
+
+    local procedure VerifyTestPrintEntry(CheckLedgerEntry: Record "Check Ledger Entry"; ExpectedJournalSystemId: Guid)
+    begin
+        Assert.AreEqual(CheckLedgerEntry."Entry Status"::"Test Print", CheckLedgerEntry."Entry Status", 'Expected a test-print check ledger entry.');
+        Assert.AreEqual(ExpectedJournalSystemId, CheckLedgerEntry."Print Gen Jnl Line SystemId", 'Test printing must preserve the source journal association.');
+    end;
+
+    local procedure VerifyLastCheckNo(BankAccount: Record "Bank Account")
+    var
+        LastCheckNo: Code[20];
+    begin
+        LastCheckNo := BankAccount."Last Check No.";
+        BankAccount.Get(BankAccount."No.");
+        Assert.AreEqual(LastCheckNo, BankAccount."Last Check No.", 'Test printing must not advance the last check number.');
+    end;
+
+    local procedure VerifyRejectedTestPrint(RestrictionObserver: Codeunit "UT REP Number To Text"; BankAccount: Record "Bank Account"; ExpectedJournalSystemId: Guid)
+    var
+        CheckLedgerEntry: Record "Check Ledger Entry";
+    begin
+        Assert.AreEqual(1, RestrictionObserver.GetAttemptedCheckEntry(CheckLedgerEntry), 'The report must reach check ledger entry insertion once.');
+        VerifyTestPrintEntry(CheckLedgerEntry, ExpectedJournalSystemId);
+        CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        Assert.RecordIsEmpty(CheckLedgerEntry);
+        VerifyLastCheckNo(BankAccount);
+    end;
+
     local procedure ClearLayoutSelections()
     var
         ReportLayoutSelection: Record "Report Layout Selection";
@@ -790,5 +938,12 @@ codeunit 144044 "UT REP Number To Text"
         CreateCurrency(
             Currency, LibraryUtility.GenerateRandomCode(Currency.FieldNo(Code), Database::Currency),
             'Test Currency');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::CheckManagement, 'OnInsertCheckOnBeforeCheckLedgEntryInsert', '', false, false)]
+    local procedure CaptureCheckInsertion(var CheckLedgEntry: Record "Check Ledger Entry")
+    begin
+        CheckInsertCount += 1;
+        AttemptedCheckEntry := CheckLedgEntry;
     end;
 }

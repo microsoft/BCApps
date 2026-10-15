@@ -476,6 +476,7 @@ report 1401 Check
 
                     trigger OnAfterGetRecord()
                     var
+                        RecordIdToPrint: RecordId;
                         Decimals: Decimal;
                         CheckLedgEntryAmount: Decimal;
                     begin
@@ -542,7 +543,9 @@ report 1401 Check
                             CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::"Test Print";
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
-                            CheckManagement.InsertCheck(CheckLedgEntry, RecordId);
+                            RecordIdToPrint := RecordId;
+                            OnBeforeTestPrintInsertCheck(GenJnlLine, RecordIdToPrint);
+                            CheckManagement.InsertCheck(CheckLedgEntry, RecordIdToPrint);
 
                             CheckAmountText := Text024;
                             DescriptionLine[1] := Text025;
@@ -1513,6 +1516,17 @@ report 1401 Check
                     Text031,
                     VendLedgEntry3."Document Type", VendLedgEntry3."Document No.",
                     VendLedgEntry3."Vendor No."));
+    end;
+
+    /// <summary>
+    /// Integration event raised before inserting a test-print check ledger entry.
+    /// Enables localizations to select the source record associated with the test print.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being test printed</param>
+    /// <param name="RecordIdToPrint">Source record passed to CheckManagement.InsertCheck</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestPrintInsertCheck(GenJournalLine: Record "Gen. Journal Line"; var RecordIdToPrint: RecordId)
+    begin
     end;
 
     /// <summary>
