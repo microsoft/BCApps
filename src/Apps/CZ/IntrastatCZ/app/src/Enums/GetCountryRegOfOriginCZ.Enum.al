@@ -12,6 +12,7 @@ enum 31302 "Get Country/Reg. of Origin CZ" implements "Intrastat Origin Mode CZ"
 {
     Extensible = true;
     DefaultImplementation = "Intrastat Origin Mode CZ" = "Item Card Origin CZ";
+    UnknownValueImplementation = "Intrastat Origin Mode CZ" = "Item Card Origin CZ";
 
     value(0; "Item Card")
     {
