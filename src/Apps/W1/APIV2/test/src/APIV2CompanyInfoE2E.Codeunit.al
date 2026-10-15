@@ -3,6 +3,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
     // Tests set up data that must be committed so the web service session can read and lock Company Information.
