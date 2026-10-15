@@ -187,10 +187,10 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Sales Statistics';
                             RunObject = report "Sales Statistics";
-                            Tooltip = 'Run the Sales Statistics report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
                             ObsoleteTag = '28.0';
+                            Tooltip = 'Run the Sales Statistics report.';
                         }
 #endif
                         action("Team - Tasks")
@@ -263,10 +263,10 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - List';
                             RunObject = report "Customer - List";
-                            Tooltip = 'Run the Customer - List report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
                             ObsoleteTag = '28.0';
+                            Tooltip = 'Run the Customer - List report.';
                         }
 #endif
                         action("Customer - Labels")
@@ -274,12 +274,14 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Suite;
                             Caption = 'Customer Labels';
                             RunObject = report "Customer - Labels";
+                            Tooltip = 'Run the Customer Labels report.';
                         }
                         action("Customer - Balance to Date")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - Balance to Date';
                             RunObject = report "Customer - Balance to Date";
+                            Tooltip = 'Run the Customer - Balance to Date report.';
                         }
                         action("Customer - Order Summary")
                         {
@@ -300,6 +302,7 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Register';
                             RunObject = report "Customer Register";
+                            Tooltip = 'Run the Customer Register report.';
                         }
                         action("Customer - Order Detail")
                         {
@@ -314,10 +317,10 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Top 10 List (Obsolete)';
                             RunObject = report "Customer - Top 10 List";
-                            Tooltip = 'Run the Customer Top 10 List report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
                             ObsoleteTag = '28.0';
+                            Tooltip = 'Run the Customer Top 10 List report.';
                         }
 #endif
                         action("Customer - Trial Balance")
@@ -325,6 +328,7 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Trial Balance';
                             RunObject = report "Customer - Trial Balance";
+                            Tooltip = 'Run the Customer Trial Balance report.';
                         }
 #if not CLEAN28
                         action("Customer - Sales List")
@@ -332,10 +336,10 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - Sales List';
                             RunObject = report "Customer - Sales List";
-                            Tooltip = 'Run the Customer - Sales List report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
                             ObsoleteTag = '28.0';
+                            Tooltip = 'Run the Customer - Sales List report.';
                         }
 #endif
                     }
@@ -556,10 +560,10 @@ page 8907 "Sales & Marketing Manager RC"
                         ApplicationArea = Reservation;
                         Caption = 'Sales Reservation Avail.';
                         RunObject = report "Sales Reservation Avail.";
-                        Tooltip = 'Run the Sales Reservation Avail. report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
                         ObsoleteTag = '28.0';
+                        Tooltip = 'Run the Sales Reservation Avail. report.';
                     }
                     action("Sales Order Picking List")
                     {
@@ -576,20 +580,20 @@ page 8907 "Sales & Marketing Manager RC"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sales Statistics';
                         RunObject = report "Sales Statistics";
-                        Tooltip = 'Run the Sales Statistics report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
                         ObsoleteTag = '28.0';
+                        Tooltip = 'Run the Sales Statistics report.';
                     }
                     action("Customer - Sales List1")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Sales List';
                         RunObject = report "Customer - Sales List";
-                        Tooltip = 'Run the Customer - Sales List report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
                         ObsoleteTag = '28.0';
+                        Tooltip = 'Run the Customer - Sales List report.';
                     }
 #endif
                     action("EC Sales List")
@@ -884,8 +888,8 @@ page 8907 "Sales & Marketing Manager RC"
                     ApplicationArea = Suite;
                     Caption = 'Coupled Data Synchronization Errors';
                     RunObject = page "CRM Skipped Records";
-                    Tooltip = 'Open the Coupled Data Synchronization Errors page.';
                     AccessByPermission = TableData "CRM Integration Record" = R;
+                    Tooltip = 'Open the Coupled Data Synchronization Errors page.';
                 }
             }
             group("Group16")
