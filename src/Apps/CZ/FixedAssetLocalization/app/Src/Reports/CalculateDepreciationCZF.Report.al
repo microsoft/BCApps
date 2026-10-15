@@ -80,11 +80,11 @@ report 31240 "Calculate Depreciation CZF"
                     CurrReport.Skip();
 
                 HasDerogatorySetup := false;
-                FADerogatoryDepreciationBook.SetLoadFields("FA No.", "Depreciation Book Code");
-                FADerogatoryDepreciationBook.SetRange("FA No.", "No.");
-                FADerogatoryDepreciationBook.SetRange("Depreciation Book Code", DepreciationBook2.Code);
-                if FADerogatoryDepreciationBook.FindFirst() then
-                    HasDerogatorySetup := true;
+                if DepreciationBook2.Code <> '' then begin
+                    FADerogatoryDepreciationBook.SetRange("FA No.", "No.");
+                    FADerogatoryDepreciationBook.SetRange("Depreciation Book Code", DepreciationBook2.Code);
+                    HasDerogatorySetup := not FADerogatoryDepreciationBook.IsEmpty();
+                end;
 
                 DepreciationInterrupted := FADeprBook."Deprec. Interrupted up to CZF" >= DeprUntilDate;
 
@@ -478,7 +478,7 @@ report 31240 "Calculate Depreciation CZF"
         BalAccount := BalAccountFrom;
     end;
 
-    procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
+    local procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
     begin
         exit(Amount1 - Amount2);
     end;

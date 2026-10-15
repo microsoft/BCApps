@@ -67,10 +67,10 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         GenJnlPostLineMutatedDescriptionLbl: Label 'GEN-JNL-EVENT-MUTATED', Locked = true;
         PostDeprUntilDateEventMarkerLbl: Label 'DEPR-UNTIL-EVENT-ORDER', Locked = true;
         MaintenanceValidationEventMarkerLbl: Label 'MAINT-LINK-ORDER', Locked = true;
-        CompletionStatsTok: Label 'The depreciation has been calculated.';
-        MissingDerogatoryCounterpartTok: Label 'The derogatory counterpart for source entry';
-        MultipleDerogatoryCounterpartsTok: Label 'More than one derogatory counterpart references source entry';
-        InvalidDerogatoryLinkTok: Label 'cannot be linked to depreciation book';
+        CompletionStatsMsg: Label 'The depreciation has been calculated.';
+        MissingDerogatoryCounterpartErr: Label 'The derogatory counterpart for source entry';
+        MultipleDerogatoryCounterpartsErr: Label 'More than one derogatory counterpart references source entry';
+        InvalidDerogatoryLinkErr: Label 'cannot be linked to depreciation book';
         SimulatedFeatureBodyFailureErr: Label 'Simulated composed-French test-body failure.';
         MonthOffsetFormulaTok: Label '<%1M>', Locked = true;
         PreviousMonthOffsetFormulaTok: Label '<-%1M>', Locked = true;
@@ -1204,7 +1204,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         UnbindSubscription(EventSubscriber);
 
         // [THEN] The expected error is reported without changing the existing entries
-        Assert.ExpectedError(InvalidDerogatoryLinkTok);
+        Assert.ExpectedError(InvalidDerogatoryLinkErr);
         Assert.ExpectedErrorCode('Dialog');
         FALedgerEntry.SetRange("FA No.", FANo);
         Assert.AreEqual(0, FALedgerEntry.Count(), 'The rejected source and counterpart must be rolled back together.');
@@ -1299,7 +1299,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         asserterror ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
 
         // [THEN] The expected error is reported without changing the existing entries
-        Assert.ExpectedError(MissingDerogatoryCounterpartTok);
+        Assert.ExpectedError(MissingDerogatoryCounterpartErr);
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -1329,7 +1329,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         asserterror ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
 
         // [THEN] The expected error is reported without changing the existing entries
-        Assert.ExpectedError(MissingDerogatoryCounterpartTok);
+        Assert.ExpectedError(MissingDerogatoryCounterpartErr);
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -1449,7 +1449,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         asserterror ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
 
         // [THEN] The expected error is reported without changing the existing entries
-        Assert.ExpectedError(MultipleDerogatoryCounterpartsTok);
+        Assert.ExpectedError(MultipleDerogatoryCounterpartsErr);
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -1479,7 +1479,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         asserterror ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
 
         // [THEN] The expected error is reported without changing the existing entries
-        Assert.ExpectedError(MultipleDerogatoryCounterpartsTok);
+        Assert.ExpectedError(MultipleDerogatoryCounterpartsErr);
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -2224,7 +2224,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         UnbindSubscription(EventSubscriber);
 
         // [THEN] Final validation rejects the corrupted mirror and rolls back both entries
-        Assert.ExpectedError(InvalidDerogatoryLinkTok);
+        Assert.ExpectedError(InvalidDerogatoryLinkErr);
         Assert.ExpectedErrorCode('Dialog');
         EventSubscriber.GetPostMaintenanceEventState(EventCount);
         Assert.AreEqual(2, EventCount, EventInvocationCountErr);
@@ -3144,7 +3144,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     [ConfirmHandler]
     procedure DepreciationCalcConfirmHandler(Message: Text[1024]; var Reply: Boolean)
     begin
-        if 0 <> StrPos(Message, CompletionStatsTok) then
+        if 0 <> StrPos(Message, CompletionStatsMsg) then
             Reply := false
         else
             Reply := true;

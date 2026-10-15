@@ -68,11 +68,11 @@ report 5692 "Calculate Depreciation"
                     CurrReport.Skip();
 
                 HasDerogatorySetup := false;
-                FADeprBook.SetLoadFields("FA No.", "Depreciation Book Code");
-                FADeprBook.SetRange("FA No.", "No.");
-                FADeprBook.SetRange("Depreciation Book Code", DeprBook2.Code);
-                if FADeprBook.FindFirst() then
-                    HasDerogatorySetup := true;
+                if DeprBook2.Code <> '' then begin
+                    FADeprBook.SetRange("FA No.", "No.");
+                    FADeprBook.SetRange("Depreciation Book Code", DeprBook2.Code);
+                    HasDerogatorySetup := not FADeprBook.IsEmpty();
+                end;
 
                 OnBeforeCalculateDepreciation(
                     "No.", TempGenJnlLine, TempFAJnlLine, DeprAmount, NumberOfDays, DeprBookCode, DeprUntilDate, EntryAmounts, DaysInPeriod);
@@ -667,7 +667,7 @@ report 5692 "Calculate Depreciation"
             ErrorMessageMgt.Activate(ErrorMessageHandler);
     end;
 
-    procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
+    local procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
     begin
         exit(Amount1 - Amount2);
     end;

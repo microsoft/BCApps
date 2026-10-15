@@ -15119,7 +15119,7 @@ codeunit 10780 "Create ES GL Accounts"
         end;
     end;
 
-    procedure UpdateDerogatoryIncomeStmtBalAcc()
+    internal procedure UpdateDerogatoryIncomeStmtBalAcc()
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin

@@ -510,17 +510,20 @@ table 5601 "FA Ledger Entry"
         field(5865; "Derogatory Excluded"; Boolean)
         {
             Caption = 'Exclude Derogatory';
+            ToolTip = 'Specifies whether the entry is excluded from derogatory depreciation calculations.';
             Editable = false;
         }
         field(5866; "Derogatory Source Entry No."; Integer)
         {
             Caption = 'Derogatory Source Entry No.';
+            ToolTip = 'Specifies the source fixed asset ledger entry linked to this derogatory entry.';
             Editable = false;
             TableRelation = "FA Ledger Entry"."Entry No.";
         }
         field(5867; "Legacy Derogatory Ambiguous"; Boolean)
         {
             Caption = 'Legacy Derogatory Ambiguous';
+            ToolTip = 'Specifies whether multiple matches prevented a unique historical derogatory link for this entry.';
             Editable = false;
         }
         field(6210; "Non-Ded. VAT FA Cost"; Boolean)

@@ -32,6 +32,7 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         GLBudgetEntriesMustNotExistMsg: Label 'G/L Budget Entries must not exist.';
         WrongAmountErr: Label 'Wrong amount.';
         NumberFAEntryErr: Label 'Number of FA entries did not match the expected.';
+        CompatibilityFieldCopyErr: Label 'The compatibility delegate must copy field %1 before returning false.', Comment = '%1 = field number';
         PeriodTxt: Label '12';
         OnlyOneDefaultDeprBookErr: Label 'Default FA Depreciation Book Only one fixed asset depreciation book can be marked as the default book';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
@@ -1381,15 +1382,15 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         Initialize();
 
         // [GIVEN] FA journal source "FJ" without a derogatory-book relationship
-        SourceFAJournalLine."Journal Template Name" := LibraryRandom.RandText(10);
-        SourceFAJournalLine."Journal Batch Name" := LibraryRandom.RandText(10);
+        SourceFAJournalLine."Journal Template Name" := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(SourceFAJournalLine."Journal Template Name"));
+        SourceFAJournalLine."Journal Batch Name" := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(SourceFAJournalLine."Journal Batch Name"));
         SourceFAJournalLine."Line No." := LibraryRandom.RandInt(10000);
-        SourceFAJournalLine."FA No." := LibraryRandom.RandText(20);
-        SourceFAJournalLine."Depreciation Book Code" := LibraryRandom.RandText(10);
-        SourceFAJournalLine."Document No." := LibraryRandom.RandText(20);
-        SourceFAJournalLine.Description := LibraryRandom.RandText(50);
+        SourceFAJournalLine."FA No." := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(SourceFAJournalLine."FA No."));
+        SourceFAJournalLine."Depreciation Book Code" := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(SourceFAJournalLine."Depreciation Book Code"));
+        SourceFAJournalLine."Document No." := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(SourceFAJournalLine."Document No."));
+        SourceFAJournalLine.Description := CopyStr(LibraryRandom.RandText(50), 1, MaxStrLen(SourceFAJournalLine.Description));
         SourceFAJournalLine.Amount := LibraryRandom.RandInt(1000);
-        CounterpartFAJournalLine."Journal Template Name" := LibraryRandom.RandText(10);
+        CounterpartFAJournalLine."Journal Template Name" := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(CounterpartFAJournalLine."Journal Template Name"));
 
         // [WHEN] The compatibility delegate evaluates "FJ"
         IsCounterpartCreated := FAJnlPostBatch.MakeDerogatoryFAJnlLine(CounterpartFAJournalLine, SourceFAJournalLine);
@@ -1420,7 +1421,7 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         CreateJournalSetupDepreciation(SecondTaxDepreciationBook);
         SecondTaxDepreciationBook."Derogatory Calc." := DepreciationBook.Code;
         SecondTaxDepreciationBook.Modify();
-        SourceFAJournalLine."FA No." := LibraryRandom.RandText(20);
+        SourceFAJournalLine."FA No." := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(SourceFAJournalLine."FA No."));
         SourceFAJournalLine."Depreciation Book Code" := DepreciationBook.Code;
 
         // [WHEN] The compatibility delegate evaluates source "FJ"
@@ -2143,7 +2144,7 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
             ActualFieldRef := ActualRecordRef.Field(ExpectedFieldRef.Number());
             Assert.AreEqual(
                 Format(ExpectedFieldRef.Value()), Format(ActualFieldRef.Value()),
-                StrSubstNo('The compatibility delegate must copy field %1 before returning false.', ExpectedFieldRef.Number()));
+                StrSubstNo(CompatibilityFieldCopyErr, ExpectedFieldRef.Number()));
         end;
     end;
 

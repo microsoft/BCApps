@@ -969,7 +969,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         OriginalFALedgerEntry.Get(ReversingFALedgerEntry."Reversed Entry No.");
         if OriginalFALedgerEntry."Reversed Entry No." = 0 then
             FALedgEntryForDerog.SetRange("Reversed Entry No.", 0);
-        if not FALedgEntryForDerog.FindFirst() then begin
+        if not FALedgEntryForDerog.FindSet() then begin
             if not DerogatoryPostingMgt.IsEligible(
                  ReversingFALedgerEntry."FA No.", ReversingFALedgerEntry."Depreciation Book Code",
                  Enum::"Derogatory Posting Role"::Source, DerogatoryDepreciationBookCode)
@@ -1009,7 +1009,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         OriginalMaintenanceLedgerEntry.Get(ReversingMaintenanceLedgerEntry."Reversed Entry No.");
         if OriginalMaintenanceLedgerEntry."Reversed Entry No." = 0 then
             MaintLedgEntryForDerog.SetRange("Reversed Entry No.", 0);
-        if not MaintLedgEntryForDerog.FindFirst() then begin
+        if not MaintLedgEntryForDerog.FindSet() then begin
             if not DerogatoryPostingMgt.IsEligible(
                  ReversingMaintenanceLedgerEntry."FA No.", ReversingMaintenanceLedgerEntry."Depreciation Book Code",
                  Enum::"Derogatory Posting Role"::Source, DerogatoryDepreciationBookCode)

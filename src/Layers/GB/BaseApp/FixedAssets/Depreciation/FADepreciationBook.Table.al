@@ -893,10 +893,12 @@ table 5612 "FA Depreciation Book"
             Caption = 'Derogatory';
             Editable = false;
             FieldClass = FlowField;
+            ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
         }
         field(5866; "Last Derogatory"; Date)
         {
             Caption = 'Last Derogatory Date';
+            ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
         }
     }
 

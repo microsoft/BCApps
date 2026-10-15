@@ -1,3 +1,13 @@
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Setup;
+
 codeunit 144149 "ERM Derogatory Declaration NL"
 {
     Subtype = Test;
@@ -42,8 +52,9 @@ codeunit 144149 "ERM Derogatory Declaration NL"
 
         SourceFALedgerEntry.SetRange("FA No.", FANo);
         SourceFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
-        SourceFALedgerEntry.SetRange("Automatic Entry", false);
+        SourceFALedgerEntry.SetRange("FA Posting Type", SourceFALedgerEntry."FA Posting Type"::"Acquisition Cost");
         SourceFALedgerEntry.FindFirst();
+        SourceFALedgerEntry.TestField("Automatic Entry", false);
 
         CounterpartFALedgerEntry.SetRange("FA No.", FANo);
         CounterpartFALedgerEntry.SetRange("Depreciation Book Code", TaxDeprBookCode);
