@@ -18,6 +18,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -1828,11 +1829,8 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseHeader.Get(EDocument."Document Record ID");
         Assert.AreEqual(PostedInvoiceNo, PurchaseHeader."Applies-to Doc. No.", 'The credit memo must be applied to the posted invoice.');
 
-        // [GIVEN] The document totals match the created lines, which posting verifies; the fixture prints a VAT rate the test company does not use
-        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
-        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
-        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
-        PurchaseHeader.Modify();
+        // [GIVEN] The credit memo meets the posting requirements of the test company
+        PrepareCreditMemoForPosting(PurchaseHeader);
 
         // [WHEN] The credit memo is posted
         PostedCreditMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -1885,11 +1883,8 @@ codeunit 139883 "E-Doc Process Test"
         // [GIVEN] Without that, Apply to Oldest would pick the unrelated invoice: same vendor and currency, posted no later than the credit memo
         Assert.IsTrue(InvoiceLedgerEntry."Posting Date" <= PurchaseHeader."Posting Date", 'The unrelated invoice must be old enough for Apply to Oldest to pick it.');
 
-        // [GIVEN] The document totals match the created lines, which posting verifies; the fixture prints a VAT rate the test company does not use
-        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
-        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
-        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
-        PurchaseHeader.Modify();
+        // [GIVEN] The credit memo meets the posting requirements of the test company
+        PrepareCreditMemoForPosting(PurchaseHeader);
 
         // [WHEN] The credit memo is posted
         PostedCreditMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -2087,6 +2082,20 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchaseLine.Modify(true);
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure PrepareCreditMemoForPosting(var PurchaseHeader: Record "Purchase Header")
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        // Posting checks the document totals against the lines, and the fixture prints a VAT rate the test company does not use.
+        // Some localizations, such as AU with GST adjustments mandatory, also require a reason code on credit memos.
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        LibraryERM.CreateReasonCode(ReasonCode);
+        PurchaseHeader.Validate("Reason Code", ReasonCode.Code);
+        PurchaseHeader.Modify();
     end;
 
     local procedure GetVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; DocumentNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
