@@ -129,6 +129,11 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     end;
 
     procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary; CurrencyCode: Code[10])
+    begin
+        MapLinesFromJson(LinesArray, EDocEntryNo, TempLine, CurrencyCode, false);
+    end;
+
+    procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary; CurrencyCode: Code[10]; KeepNegativeQuantities: Boolean)
     var
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineToken: JsonToken;
@@ -174,7 +179,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                 if not QuantityProvided then
                     TempLine.Quantity := 1
                 else
-                    if TempLine.Quantity < 0 then
+                    if (TempLine.Quantity < 0) and not KeepNegativeQuantities then
                         TempLine.Quantity := 0;
 
                 if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
@@ -192,6 +197,121 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
             end;
     end;
 #pragma warning restore AA0139
+
+    internal procedure GetDocumentTypeCode(SourceJsonObject: JsonObject): Text
+    var
+        TypeCode: Text;
+    begin
+        GetString(SourceJsonObject, 'invoice_type_code', 10, TypeCode);
+        exit(DelChr(TypeCode, '<>', ' '));
+    end;
+
+    internal procedure IsCreditNote(SourceJsonObject: JsonObject): Boolean
+    begin
+        exit(GetDocumentTypeCode(SourceJsonObject) = CreditNoteTypeCodeTok);
+    end;
+
+    internal procedure GetDocumentTypeCodeForTelemetry(SourceJsonObject: JsonObject): Text
+    var
+        TypeCode: Text;
+    begin
+        TypeCode := GetDocumentTypeCode(SourceJsonObject);
+        if TypeCode in [InvoiceTypeCodeTok, CreditNoteTypeCodeTok] then
+            exit(TypeCode);
+        if TypeCode = '' then
+            exit('None');
+        exit('Other');
+    end;
+
+    internal procedure GetInvoiceReferences(SourceJsonObject: JsonObject; OwnDocumentNo: Text) InvoiceReferences: List of [Text]
+    var
+        ReferencesToken: JsonToken;
+        ReferenceToken: JsonToken;
+        ReferencesArray: JsonArray;
+        DocumentReferenceObj: JsonObject;
+        Reference: Text;
+    begin
+        if not SourceJsonObject.Get('billing_reference', ReferencesToken) then
+            exit;
+        if ReferencesToken.IsArray() then
+            ReferencesArray := ReferencesToken.AsArray()
+        else
+            if ReferencesToken.IsObject() then
+                ReferencesArray.Add(ReferencesToken)
+            else
+                exit;
+
+        foreach ReferenceToken in ReferencesArray do
+            if ReferenceToken.IsObject() then
+                if GetNestedObject(ReferenceToken.AsObject(), 'invoice_document_reference', DocumentReferenceObj) then begin
+                    Clear(Reference);
+                    GetString(DocumentReferenceObj, 'id', 250, Reference);
+                    Reference := DelChr(Reference, '<>', ' ');
+                    if (Reference <> '') and (Reference <> OwnDocumentNo) then
+                        InvoiceReferences.Add(Reference);
+                end;
+    end;
+
+    internal procedure NormalizeCreditNoteSigns(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary) LineSignsChanged: Boolean
+    var
+        CreditedIsNegative: Boolean;
+        LineAmount: Decimal;
+    begin
+        CreditedIsNegative := CreditedDirectionIsNegative(TempHeader, TempLine);
+
+        TempHeader."Sub Total" := Abs(TempHeader."Sub Total");
+        TempHeader."Total Discount" := Abs(TempHeader."Total Discount");
+        TempHeader."Total VAT" := Abs(TempHeader."Total VAT");
+        TempHeader.Total := Abs(TempHeader.Total);
+        TempHeader."Amount Due" := Abs(TempHeader."Amount Due");
+
+        if not TempLine.FindSet() then
+            exit;
+        repeat
+            LineAmount := LineAmountOf(TempLine);
+
+            TempLine.Quantity := Abs(TempLine.Quantity);
+            TempLine."Unit Price" := Abs(TempLine."Unit Price");
+            TempLine."Total Discount" := Abs(TempLine."Total Discount");
+            TempLine."Sub Total" := Abs(TempLine."Sub Total");
+            if (LineAmount <> 0) and ((LineAmount < 0) <> CreditedIsNegative) then begin
+                TempLine.Quantity := -TempLine.Quantity;
+                TempLine."Sub Total" := -TempLine."Sub Total";
+                TempLine."Total Discount" := -TempLine."Total Discount";
+                LineSignsChanged := true;
+            end;
+            TempLine.Modify();
+        until TempLine.Next() = 0;
+    end;
+
+    local procedure CreditedDirectionIsNegative(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary): Boolean
+    var
+        HasNegativeLine: Boolean;
+        LineAmount: Decimal;
+        LinesNet: Decimal;
+    begin
+        if TempLine.FindSet() then
+            repeat
+                LineAmount := LineAmountOf(TempLine);
+                LinesNet += LineAmount;
+                HasNegativeLine := HasNegativeLine or (LineAmount < 0);
+            until TempLine.Next() = 0;
+
+        if LinesNet <> 0 then
+            exit(LinesNet < 0);
+        if TempHeader.Total <> 0 then
+            exit(TempHeader.Total < 0);
+        if TempHeader."Sub Total" <> 0 then
+            exit(TempHeader."Sub Total" < 0);
+        exit(HasNegativeLine);
+    end;
+
+    local procedure LineAmountOf(TempLine: Record "E-Document Purchase Line" temporary): Decimal
+    begin
+        if TempLine."Sub Total" <> 0 then
+            exit(TempLine."Sub Total");
+        exit(TempLine.Quantity * TempLine."Unit Price");
+    end;
 
     local procedure GetString(JsonObj: JsonObject; PropertyName: Text; MaxLen: Integer; var FieldValue: Text)
     var
@@ -305,4 +425,8 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
         CurrencyCode := CopyStr(UpperCase(CurrencyText), 1, MaxStrLen(CurrencyCode));
     end;
+
+    var
+        CreditNoteTypeCodeTok: Label '381', Locked = true;
+        InvoiceTypeCodeTok: Label '380', Locked = true;
 }

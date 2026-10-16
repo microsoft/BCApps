@@ -9,11 +9,16 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// Shared logic for creating BC purchase documents (invoices and credit memos) from e-document draft data.
@@ -58,7 +63,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
 
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo(Quantity), EDocumentPurchaseLine.Quantity);
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Direct Unit Cost"), EDocumentPurchaseLine."Unit Price");
-        if EDocumentPurchaseLine."Total Discount" > 0 then
+        if DiscountFollowsLineDirection(PurchaseLine, EDocumentPurchaseLine."Total Discount") then
             ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Line Discount Amount"), EDocumentPurchaseLine."Total Discount");
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Deferral Code"), EDocumentPurchaseLine."[BC] Deferral Code");
 
@@ -70,6 +75,14 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
         PurchaseLine.Insert();
         EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
+    end;
+
+    /// <summary>
+    /// A line discount is carried over only when it reduces the line in the line's own direction, which is the only discount Business Central accepts as a percentage between 0 and 100.
+    /// </summary>
+    local procedure DiscountFollowsLineDirection(PurchaseLine: Record "Purchase Line"; LineDiscountAmount: Decimal): Boolean
+    begin
+        exit(LineDiscountAmount * PurchaseLine.Quantity * PurchaseLine."Direct Unit Cost" > 0);
     end;
 
     procedure ValidateFieldWithContext(var Rec: Record "Purchase Header"; FieldNo: Integer; Value: Variant)
@@ -236,6 +249,186 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
             VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+    end;
+
+    /// <summary>
+    /// Finds the one open posted invoice of the pay-to vendor that Reference identifies, by its document number or by the vendor's invoice number, in a currency the credit memo can be applied to.
+    /// </summary>
+    internal procedure TryResolveOpenInvoice(PayToVendorNo: Code[20]; CurrencyCode: Code[10]; Reference: Text; var PostedInvoiceNo: Code[20]; var FailureReason: Text): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        SeenEntryNos: List of [Integer];
+        CurrencyMismatchInvoiceNo: Code[20];
+        VendorNotSetErr: Label 'A vendor must be assigned before the invoice to apply to can be found.';
+        InvoiceNotFoundErr: Label 'No open purchase invoice %1 was found for vendor %2.', Comment = '%1 = invoice number, %2 = vendor number';
+        InvoiceAmbiguousErr: Label 'More than one open purchase invoice of vendor %2 matches %1. Enter a number that identifies only one of them, or clear the field and apply the credit memo manually after posting.', Comment = '%1 = invoice number, %2 = vendor number';
+        CurrencyNotApplicableErr: Label 'Purchase invoice %1 is in a currency that this credit memo cannot be applied to.', Comment = '%1 = posted invoice number';
+    begin
+        Clear(PostedInvoiceNo);
+        Clear(FailureReason);
+        Reference := DelChr(Reference, '<>', ' ');
+        if Reference = '' then begin
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'NotStated');
+            exit(false);
+        end;
+        if PayToVendorNo = '' then begin
+            FailureReason := VendorNotSetErr;
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'VendorMissing');
+            exit(false);
+        end;
+
+        if GeneralLedgerSetup.Get() and (CurrencyCode = GeneralLedgerSetup."LCY Code") then
+            CurrencyCode := '';
+
+        VendorLedgerEntry.SetLoadFields("Entry No.", "Document No.", "Currency Code");
+        VendorLedgerEntry.SetRange("Vendor No.", PayToVendorNo);
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.SetRange(Open, true);
+        if StrLen(Reference) <= MaxStrLen(VendorLedgerEntry."Document No.") then begin
+            VendorLedgerEntry.SetRange("Document No.", Reference);
+            if not TryMatchOpenInvoice(VendorLedgerEntry, CurrencyCode, SeenEntryNos, PostedInvoiceNo, CurrencyMismatchInvoiceNo) then begin
+                FailureReason := StrSubstNo(InvoiceAmbiguousErr, Reference, PayToVendorNo);
+                EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'Ambiguous');
+                exit(false);
+            end;
+            VendorLedgerEntry.SetRange("Document No.");
+        end;
+        if StrLen(Reference) <= MaxStrLen(VendorLedgerEntry."External Document No.") then begin
+            VendorLedgerEntry.SetRange("External Document No.", Reference);
+            if not TryMatchOpenInvoice(VendorLedgerEntry, CurrencyCode, SeenEntryNos, PostedInvoiceNo, CurrencyMismatchInvoiceNo) then begin
+                FailureReason := StrSubstNo(InvoiceAmbiguousErr, Reference, PayToVendorNo);
+                EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'Ambiguous');
+                exit(false);
+            end;
+        end;
+
+        if PostedInvoiceNo <> '' then begin
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'Resolved');
+            exit(true);
+        end;
+        if CurrencyMismatchInvoiceNo <> '' then begin
+            FailureReason := StrSubstNo(CurrencyNotApplicableErr, CurrencyMismatchInvoiceNo);
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'CurrencyMismatch');
+        end else begin
+            FailureReason := StrSubstNo(InvoiceNotFoundErr, Reference, PayToVendorNo);
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'NotFound');
+        end;
+        exit(false);
+    end;
+
+    internal procedure GetAppliesToResolutionTok(): Text
+    begin
+        exit('AppliesToResolution');
+    end;
+
+    // Reads the matching open invoices straight from the filtered iteration (no Get per entry).
+    // Returns false when the references resolve to more than one distinct open invoice (ambiguous).
+    local procedure TryMatchOpenInvoice(var VendorLedgerEntry: Record "Vendor Ledger Entry"; CurrencyCode: Code[10]; var SeenEntryNos: List of [Integer]; var PostedInvoiceNo: Code[20]; var CurrencyMismatchInvoiceNo: Code[20]): Boolean
+    var
+        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+    begin
+        if VendorLedgerEntry.FindSet() then
+            repeat
+                if not SeenEntryNos.Contains(VendorLedgerEntry."Entry No.") then begin
+                    SeenEntryNos.Add(VendorLedgerEntry."Entry No.");
+                    if GenJnlApply.CheckAgainstApplnCurrency(CurrencyCode, VendorLedgerEntry."Currency Code", Enum::"Gen. Journal Account Type"::Vendor, false) then begin
+                        if PostedInvoiceNo <> '' then begin
+                            Clear(PostedInvoiceNo);
+                            exit(false);
+                        end;
+                        PostedInvoiceNo := VendorLedgerEntry."Document No.";
+                    end else
+                        CurrencyMismatchInvoiceNo := VendorLedgerEntry."Document No.";
+                end;
+            until VendorLedgerEntry.Next() = 0;
+        exit(true);
+    end;
+
+    internal procedure GetPayToVendorNo(VendorNo: Code[20]): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.SetLoadFields("Pay-to Vendor No.");
+        if Vendor.Get(VendorNo) then
+            if Vendor."Pay-to Vendor No." <> '' then
+                exit(Vendor."Pay-to Vendor No.");
+        exit(VendorNo);
+    end;
+
+    /// <summary>
+    /// Sets "Applies-to Doc. No." on the credit memo draft to the open posted invoice identified by "Vendor Invoice No." for the draft's vendor, or clears it.
+    /// </summary>
+    /// <returns>True when the invoice was found; otherwise false, with the reason in FailureReason (empty when the draft states no invoice).</returns>
+    internal procedure ResolveInvoiceToApplyTo(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var FailureReason: Text): Boolean
+    var
+        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        PostedInvoiceNo: Code[20];
+        SeveralInvoicesReferencedErr: Label 'The credit note refers to several invoices (%1).', Comment = '%1 = list of invoice numbers';
+    begin
+        Clear(FailureReason);
+        EDocumentPurchaseHeader."Applies-to Doc. No." := '';
+        if EDocumentPurchaseHeader."Vendor Invoice No." = '' then begin
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'NotStated');
+            exit(false);
+        end;
+
+        // The ledger decides, not the punctuation: a number that identifies one open invoice is applied
+        // to even when it contains characters that also separate several references.
+        if TryResolveOpenInvoice(
+            GetPayToVendorNo(EDocumentPurchaseHeader."[BC] Vendor No."), EDocumentPurchaseHeader."Currency Code",
+            EDocumentPurchaseHeader."Vendor Invoice No.", PostedInvoiceNo, FailureReason)
+        then begin
+            EDocumentPurchaseHeader."Applies-to Doc. No." := PostedInvoiceNo;
+            exit(true);
+        end;
+
+        // It did not identify one invoice. A draft that lists several explains that better than "not found",
+        // but only once a vendor is known - otherwise the vendor message is the one the user needs.
+        if (EDocumentPurchaseHeader."[BC] Vendor No." <> '') and
+           EDocPurchaseDraftUtility.ReferencesSeveralInvoices(EDocumentPurchaseHeader."Vendor Invoice No.")
+        then begin
+            FailureReason := StrSubstNo(SeveralInvoicesReferencedErr, EDocumentPurchaseHeader."Vendor Invoice No.");
+            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'SeveralReferenced');
+        end;
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Describes what happens when a credit memo is posted without Applies-to Doc. No.
+    /// </summary>
+    internal procedure GetNotAppliedOutcome(VendorNo: Code[20]): Text
+    var
+        Vendor: Record Vendor;
+        NotAppliedToOldestMsg: Label 'The credit memo is not applied to an invoice, even though the vendor''s application method is Apply to Oldest; apply it after posting.';
+        NotAppliedMsg: Label 'The credit memo is not applied to an invoice; apply it after posting.';
+    begin
+        Vendor.SetLoadFields("Application Method");
+        if Vendor.Get(GetPayToVendorNo(VendorNo)) then
+            if Vendor."Application Method" = Vendor."Application Method"::"Apply to Oldest" then
+                exit(NotAppliedToOldestMsg);
+        exit(NotAppliedMsg);
+    end;
+
+    /// <summary>
+    /// Keeps a credit memo that is not applied to an invoice from being applied to unrelated invoices when it is posted.
+    /// Posting applies a credit memo with neither Applies-to Doc. No. nor Applies-to ID to the oldest open invoices when the vendor's
+    /// application method is Apply to Oldest. Setting Applies-to ID to the credit memo's own number, as Apply Entries does, limits
+    /// posting to the entries marked with that ID, and none are.
+    /// </summary>
+    internal procedure PreventApplyToOldestOnPosting(var PurchaseHeader: Record "Purchase Header")
+    var
+        Vendor: Record Vendor;
+    begin
+        if (PurchaseHeader."Applies-to Doc. No." <> '') or (PurchaseHeader."Applies-to ID" <> '') or (PurchaseHeader."Bal. Account No." <> '') then
+            exit;
+        Vendor.SetLoadFields("Application Method");
+        if not Vendor.Get(PurchaseHeader."Pay-to Vendor No.") then
+            exit;
+        if Vendor."Application Method" = Vendor."Application Method"::"Apply to Oldest" then
+            ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Applies-to ID"), PurchaseHeader."No.");
     end;
 
     local procedure ComputeTotalLineAmount(EDocEntryNo: Integer; AmountRoundingPrecision: Decimal): Decimal

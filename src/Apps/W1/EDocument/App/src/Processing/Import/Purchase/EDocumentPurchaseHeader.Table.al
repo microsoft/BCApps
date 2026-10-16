@@ -232,11 +232,13 @@ table 6100 "E-Document Purchase Header"
         }
 #pragma warning disable AS0125
 #pragma warning disable AS0005
-        field(40; "Vendor Invoice No."; Text[100])
+#pragma warning disable AS0086
+        field(40; "Vendor Invoice No."; Text[2048])
         {
-            Caption = 'Applies-to Ext. Invoice No.';
+            Caption = 'Applies-to Vendor Inv. No.';
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0086
 #pragma warning restore AS0005
 #pragma warning restore AS0125
         #endregion Purchase fields

@@ -548,6 +548,42 @@ codeunit 139891 "E-Document Structured Tests"
             StructuredValidations.AssertFullMLLMDocumentExtracted(EDocument."Entry No")
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Doc. Process Draft"::"Purchase Invoice", EDocument."Process Draft Impl.", 'A document without credit note type code must be read as an invoice.');
+    end;
+
+    [Test]
+    procedure TestMLLMCreditNote_ReadAsCreditMemoWithPositiveAmounts()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        // [SCENARIO 650500] A credit note read by the MLLM becomes a credit memo draft with the stated invoice, credited lines positive and charges negative
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupMLLMEDocumentService();
+
+        // [GIVEN] MLLM output with type code 381, invoice MLLM-INV-001, a returned line of -100 and a restocking fee of +10
+        CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-creditnote-mixed-signs.json');
+
+        // [WHEN] The document is read into a draft
+        Assert.IsTrue(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), EDocumentStatusNotUpdatedErr);
+
+        // [THEN] The draft is a credit memo applied to the stated invoice
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Doc. Process Draft"::"Purchase Credit Memo", EDocument."Process Draft Impl.", 'Type code 381 must be read as a credit memo.');
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual('MLLM-INV-001', EDocumentPurchaseHeader."Vendor Invoice No.", 'The stated invoice must be kept as Applies-to Vendor Inv. No.');
+        Assert.AreEqual(103.5, EDocumentPurchaseHeader.Total, 'The credit memo total must be positive.');
+
+        // [THEN] The returned line is credited (positive) and the restocking fee reduces the credit (negative)
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentPurchaseLine.FindSet();
+        Assert.AreEqual(10, EDocumentPurchaseLine.Quantity, 'The returned line must be credited with a positive quantity.');
+        Assert.AreEqual(100, EDocumentPurchaseLine."Sub Total", 'The returned line must be credited with a positive amount.');
+        EDocumentPurchaseLine.Next();
+        Assert.AreEqual(-1, EDocumentPurchaseLine.Quantity, 'The restocking fee must reduce the credit.');
+        Assert.AreEqual(-10, EDocumentPurchaseLine."Sub Total", 'The restocking fee must reduce the credit.');
     end;
     #endregion
 
