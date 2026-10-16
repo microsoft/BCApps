@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DemoTool.Helpers;
 
-using Microsoft.DemoData.FixedAsset;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
@@ -127,8 +126,6 @@ codeunit 4776 "Contoso Fixed Asset"
     procedure InsertFADepreciationBook(FixedAssetNo: Code[20]; DepreciationBookCode: Code[20]; DepreciationStartingDate: Date; NoOfDepreciationYears: Decimal)
     var
         FADepreciationBook: Record "FA Depreciation Book";
-        DepreciationBook: Record "Depreciation Book";
-        CreateFADepreciationBook: Codeunit "Create FA Depreciation Book";
         Exists: Boolean;
     begin
         if FADepreciationBook.Get(FixedAssetNo, DepreciationBookCode) then begin
@@ -142,7 +139,6 @@ codeunit 4776 "Contoso Fixed Asset"
         FADepreciationBook.Validate("Depreciation Book Code", DepreciationBookCode);
         FADepreciationBook.Validate("Depreciation Starting Date", DepreciationStartingDate);
         FADepreciationBook.Validate("No. of Depreciation Years", NoOfDepreciationYears);
-        DepreciationBook.Validate("Derogatory Calc.", CreateFADepreciationBook.Company());
 
         if Exists then
             FADepreciationBook.Modify(true)
@@ -153,8 +149,6 @@ codeunit 4776 "Contoso Fixed Asset"
     procedure InsertFADepreciationBook(FixedAssetNo: Code[20]; DepreciationBookCode: Code[20]; DepreciationStartingDate: Date; NoOfDepreciationYears: Decimal; FAPostingGroup: Code[20])
     var
         FADepreciationBook: Record "FA Depreciation Book";
-        DepreciationBook: Record "Depreciation Book";
-        CreateFADepreciationBook: Codeunit "Create FA Depreciation Book";
         Exists: Boolean;
     begin
         if FADepreciationBook.Get(FixedAssetNo, DepreciationBookCode) then begin
@@ -168,7 +162,6 @@ codeunit 4776 "Contoso Fixed Asset"
         FADepreciationBook.Validate("Depreciation Book Code", DepreciationBookCode);
         FADepreciationBook.Validate("Depreciation Starting Date", DepreciationStartingDate);
         FADepreciationBook.Validate("No. of Depreciation Years", NoOfDepreciationYears);
-        DepreciationBook.Validate("Derogatory Calc.", CreateFADepreciationBook.Company());
         FADepreciationBook.Validate("FA Posting Group", FAPostingGroup);
 
         if Exists then
