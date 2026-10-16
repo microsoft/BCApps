@@ -131,6 +131,10 @@ pagecustomization "SOA Sales Order" customizes "Sales Order"
 
     actions
     {
+        modify(CreatePurchaseOrder)
+        {
+            Visible = true;
+        }
         modify(DownloadAsPDF_Promoted)
         {
             Visible = true;
