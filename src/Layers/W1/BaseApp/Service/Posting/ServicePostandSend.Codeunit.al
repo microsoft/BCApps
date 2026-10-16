@@ -29,6 +29,7 @@ codeunit 5979 "Service-Post and Send"
         ServicePost: Codeunit "Service-Post";
         ConfirmPostAndSendIsHandled: Boolean;
         PostIsHandled: Boolean;
+        SkipPost: Boolean;
     begin
         OnBeforeCode(ServiceHeader);
 
@@ -44,11 +45,13 @@ codeunit 5979 "Service-Post and Send"
         ValidateElectronicFormats(TempDocumentSendingProfile);
 
         PostIsHandled := false;
-        OnCodeOnBeforePost(ServiceHeader, PostIsHandled);
-        if PostIsHandled then
-            exit;
-
-        CODEUNIT.Run(CODEUNIT::"Service-Post", ServiceHeader);
+        SkipPost := false;
+        OnCodeOnBeforePost(ServiceHeader, PostIsHandled, SkipPost);
+        if PostIsHandled then begin
+            if SkipPost then
+                exit;
+        end else
+            CODEUNIT.Run(CODEUNIT::"Service-Post", ServiceHeader);
 
         OnAfterPostAndBeforeSend(ServiceHeader);
         Commit();
@@ -122,7 +125,7 @@ codeunit 5979 "Service-Post and Send"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnBeforePost(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
+    local procedure OnCodeOnBeforePost(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean; var SkipPost: Boolean)
     begin
     end;
 
