@@ -26,6 +26,7 @@ permissionset 6105 "E-Doc. Core - User"
 
     Permissions =
         codeunit "E-Document Message API" = X,
+        codeunit "E-Doc. Message Schedule Runner" = X,
         codeunit "E-Doc. Message Response Job" = X,
         codeunit "E-Doc. Message Send Job" = X,
         codeunit "E-Doc. Message Send Runner" = X,
