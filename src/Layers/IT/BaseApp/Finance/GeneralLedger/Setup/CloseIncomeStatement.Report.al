@@ -698,9 +698,10 @@ report 94 "Close Income Statement"
         if ClosePerGlobalDim2 then
             GLEntry.SetRange("Global Dimension 2 Code", GLEntrySource."Global Dimension 2 Code");
 
-        GLEntry.CalcSums(Amount, "Additional-Currency Amount");
         if GLEntrySource."Source Currency Code" <> '' then
-            GLEntry.CalcSums("Source Currency Amount", "Source Currency VAT Amount");
+            GLEntry.CalcSums(Amount, "Additional-Currency Amount", "Source Currency Amount", "Source Currency VAT Amount")
+        else
+            GLEntry.CalcSums(Amount, "Additional-Currency Amount");
         GLEntrySource.Amount := GLEntry.Amount;
         GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
         GLEntrySource."Source Currency Amount" := GLEntry."Source Currency Amount";
