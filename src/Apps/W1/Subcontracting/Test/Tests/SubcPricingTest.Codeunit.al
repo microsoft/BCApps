@@ -2351,6 +2351,135 @@ codeunit 139982 "Subc. Pricing Test"
             TimeBasedProdLineScrapErr);
     end;
 
+    [Test]
+    procedure TimeBasedSubcontractorPriceIncludesAllSharedRoutingLines()
+    begin
+        Initialize();
+        VerifyTimeBasedPriceForSharedRoutingLines(0);
+    end;
+
+    [Test]
+    procedure TimeBasedSubcontractorPriceIncludesEachSharedLinesScrap()
+    begin
+        Initialize();
+        VerifyTimeBasedPriceForSharedRoutingLines(10);
+    end;
+
+    local procedure VerifyTimeBasedPriceForSharedRoutingLines(SecondLineScrapPct: Decimal)
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        ExpectedDirectUnitCost: Decimal;
+    begin
+        // [GIVEN] Two production lines of 10 base units share a time-based operation with Run Time 1 and price 100
+        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, '', 1);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", 100);
+        SubcontractorPrice.Modify(true);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 10, WorkDate());
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine."Line No." += 10000;
+        ProdOrderLine.Validate("Scrap %", SecondLineScrapPct);
+        ProdOrderLine.Insert(true);
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ExpectedDirectUnitCost := 100 * (10 + 10 * (1 + SecondLineScrapPct / 100)) / 20;
+
+        // [WHEN] Worksheet and purchase pricing run for the shared operation
+        StageTimeBasedRequisitionLine(RequisitionLine, Vendor, WorkCenter, Item, ProdOrderRoutingLine, '');
+        RequisitionLine.Quantity := 10;
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost", DirectlyCreatedPurchaseLineDirectUnitCostErr);
+        PurchaseLine."Direct Unit Cost" := 0;
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        // [THEN] Both costs include every participating line and its own scrap percentage
+        Assert.AreEqual(ExpectedDirectUnitCost, RequisitionLine."Direct Unit Cost", WorksheetDirectUnitCostErr);
+        Assert.AreEqual(ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost", AutomaticPurchaseLineRepricingErr);
+    end;
+
+    [Test]
+    procedure TimeBasedSubcontractorPriceConvertsProductionUOMOnce()
+    begin
+        Initialize();
+        VerifyTimeBasedPriceForProductionUOM(false);
+    end;
+
+    [Test]
+    procedure TimeBasedSubcontractorPriceUsesMatchingProductionUOM()
+    begin
+        Initialize();
+        VerifyTimeBasedPriceForProductionUOM(true);
+    end;
+
+    local procedure VerifyTimeBasedPriceForProductionUOM(PriceMatchesProductionUOM: Boolean)
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        AltUOMCode: Code[10];
+        PriceUOMCode: Code[10];
+    begin
+        // [GIVEN] One production UOM contains 10 base units, with Run Time 2 and price 100
+        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, '', 2);
+        AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, 10);
+        if PriceMatchesProductionUOM then
+            PriceUOMCode := AltUOMCode;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), PriceUOMCode, 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", 100);
+        SubcontractorPrice.Modify(true);
+        CreateReleasedProdOrderAndFindRoutingLine(ProductionOrder, ProdOrderRoutingLine, Item, WorkCenter."No.");
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate("Unit of Measure Code", AltUOMCode);
+        ProdOrderLine.Validate(Quantity, 1);
+        ProdOrderLine.Modify(true);
+
+        // [WHEN] Worksheet and purchase pricing run in the production UOM
+        StageTimeBasedRequisitionLine(RequisitionLine, Vendor, WorkCenter, Item, ProdOrderRoutingLine, '');
+        RequisitionLine."Unit of Measure Code" := AltUOMCode;
+        RequisitionLine."Qty. per Unit of Measure" := 10;
+        RequisitionLine."Quantity (Base)" := 10;
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        PurchaseLine.TestField("Unit of Measure Code", AltUOMCode);
+        Assert.AreEqual(2000, PurchaseLine."Direct Unit Cost", DirectlyCreatedPurchaseLineDirectUnitCostErr);
+        PurchaseLine."Direct Unit Cost" := 0;
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        // [THEN] The production UOM multiplier is applied once, whether the price UOM matches or defaults to base
+        Assert.AreEqual(2000, RequisitionLine."Direct Unit Cost", WorksheetDirectUnitCostErr);
+        Assert.AreEqual(2000, PurchaseLine."Direct Unit Cost", AutomaticPurchaseLineRepricingErr);
+    end;
+
     local procedure CreateTimeBasedSubcontractingScenario(var Item: Record Item; var Vendor: Record Vendor; var WorkCenter: Record "Work Center"; CurrencyCode: Code[10]; RunTime: Decimal)
     var
         RoutingHeader: Record "Routing Header";
