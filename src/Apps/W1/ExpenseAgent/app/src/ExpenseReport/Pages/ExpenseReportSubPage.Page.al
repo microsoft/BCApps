@@ -617,6 +617,42 @@ page 6999 "Expense Report SubPage"
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }
+                group("Split Expense")
+                {
+                    Caption = 'Split Expense';
+                    Image = Split;
+                    ShowAs = SplitButton;
+
+                    action("Same user")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Same user';
+                        Image = Users;
+                        ToolTip = 'Split the current line into two lines for the same user by moving part of the amount to a new line and choosing a category for it.';
+                        Enabled = Rec.Amount > 0;
+
+                        trigger OnAction()
+                        begin
+                            ExpenseLineSplitMgt.SplitSameUser(Rec);
+                            CurrPage.Update(true);
+                        end;
+                    }
+                    action("Different users")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Different users';
+                        Image = Users;
+                        ToolTip = 'Allocate part of this line amount to other users. A new open expense is created for each selected user and amount.';
+                        Enabled = Rec.Amount > 0;
+                        Visible = DifferentUsersSplitVisible and (Rec."Line No." <> 0);
+
+                        trigger OnAction()
+                        begin
+                            ExpenseLineSplitMgt.SplitDifferentUsers(Rec);
+                            CurrPage.Update(true);
+                        end;
+                    }
+                }
             }
         }
     }
@@ -644,6 +680,7 @@ page 6999 "Expense Report SubPage"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        ExpenseLineSplitMgt: Codeunit "Expense Line Split Mgt.";
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -652,6 +689,7 @@ page 6999 "Expense Report SubPage"
         TotalReimbursableAmount, TotalRefundableAmount : Decimal;
         IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory : Boolean;
         IsRuleApplied: Boolean;
+        DifferentUsersSplitVisible: Boolean;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
         PolicyEvaluationEnabled: Boolean;
@@ -675,6 +713,7 @@ page 6999 "Expense Report SubPage"
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        DifferentUsersSplitVisible := ExpenseLineSplitMgt.IsDifferentUsersSplitEnabled();
         PolicyEvaluationEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation);
         if PolicyEvaluationEnabled then begin
             PolicyStatus := Rec.GetPolicyStatus();
@@ -718,7 +757,6 @@ page 6999 "Expense Report SubPage"
     begin
         if not ExpenseReportHeader.Get(Rec."Document No.") then
             exit;
-
         if ExpenseReportHeader."Reimbursement Currency Code" <> '' then
             exit(StrSubstNo(ReimbursementAmountLbl, Rec.FieldCaption("Reimbursable Amount"), ExpenseReportHeader."Reimbursement Currency Code"))
         else
