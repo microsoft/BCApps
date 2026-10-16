@@ -250,6 +250,7 @@ codeunit 144052 "UT REP Purchase & Sales"
         // [GIVEN] No report is set for Report Selections "Vendor Remittance".
         // [GIVEN] Payment for Vendor.
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"V.Remittance");
+        ReportSelections.DeleteAll();
         Assert.RecordIsEmpty(ReportSelections);
         CreatePaymentGenJournalBatch(GenJournalBatch);
         CreateVendorPayment(
@@ -284,6 +285,8 @@ codeunit 144052 "UT REP Purchase & Sales"
 
         // [GIVEN] Report "General Journal - Test" is set as the only report for Report Selections "Vendor Remittance".
         // [GIVEN] Two Payments with Document No. "P1" and "P2" for different Vendors.
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"V.Remittance");
+        ReportSelections.DeleteAll();
         CreateReportSelections(ReportSelections, ReportSelections.Usage::"V.Remittance", '1', Report::"General Journal - Test");
         CreatePaymentGenJournalBatch(GenJournalBatch);
         CreateVendorPayment(
@@ -327,6 +330,8 @@ codeunit 144052 "UT REP Purchase & Sales"
 
         // [GIVEN] Report "Remittance Advice - Journal" is set as the only report for Report Selections "Vendor Remittance".
         // [GIVEN] Two Payments with Document No. "P1" and "P2" for different Vendors.
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"V.Remittance");
+        ReportSelections.DeleteAll();
         CreateReportSelections(ReportSelections, ReportSelections.Usage::"V.Remittance", '1', Report::"Remittance Advice - Journal");
         CreatePaymentGenJournalBatch(GenJournalBatch);
         CreateVendorPayment(

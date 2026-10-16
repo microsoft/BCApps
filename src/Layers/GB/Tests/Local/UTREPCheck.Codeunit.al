@@ -30,7 +30,7 @@ codeunit 144051 "UT REP Check"
         // Setup: Create Bank Account and General Journal Line.
         Initialize();
         CreateGeneralJournalLine(GenJournalLine, GenJournalLine."Account Type"::"Bank Account", CreateBankAccount());
-        CheckAmountText := DelChr(Format(GenJournalLine.Amount, 0, '**<Sign><Integer>-<Decimals,3>**'), '=', '.');  // Calculation of format String and DELCHR based on Report - Check.
+        CheckAmountText := Format(GenJournalLine.Amount, 0, 0);
 
         // Exercise.
         REPORT.Run(REPORT::Check);  // Opens handler - CheckRequestPageHandler.
