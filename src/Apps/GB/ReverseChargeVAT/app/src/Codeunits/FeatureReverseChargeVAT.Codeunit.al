@@ -122,10 +122,6 @@ codeunit 10553 "Feature - Reverse Charge VAT" implements "Feature Data Update"
         GLSetup: Record "General Ledger Setup";
         Item: Record Item;
         ItemTempl: Record "Item Templ.";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseSetup: Record "Purchases & Payables Setup";
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
-        PurchInvLine: Record "Purch. Inv. Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesInvLine: Record "Sales Invoice Line";
         SalesLine: Record "Sales Line";
@@ -154,40 +150,6 @@ codeunit 10553 "Feature - Reverse Charge VAT" implements "Feature Data Update"
 #pragma warning restore AL0432
                 ItemTempl.Modify();
             until ItemTempl.Next() = 0;
-
-        if PurchaseLine.FindSet() then
-            repeat
-#pragma warning disable AL0432
-                PurchaseLine."Reverse Charge Item GB" := PurchaseLine."Reverse Charge Item";
-#pragma warning restore AL0432
-                PurchaseLine.Modify();
-            until PurchaseLine.Next() = 0;
-
-        if PurchaseSetup.Get() then begin
-#pragma warning disable AL0432
-            PurchaseSetup."Reverse Charge VAT Post. Gr." := PurchaseSetup."Reverse Charge VAT Posting Gr.";
-            PurchaseSetup."Domestic Vendors GB" := PurchaseSetup."Domestic Vendors";
-#pragma warning restore AL0432
-            PurchaseSetup.Modify();
-        end;
-
-        if PurchCrMemoLine.FindSet() then
-            repeat
-#pragma warning disable AL0432
-                PurchCrMemoLine."Reverse Charge Item GB" := PurchCrMemoLine."Reverse Charge Item";
-                PurchCrMemoLine."Reverse Charge GB" := PurchCrMemoLine."Reverse Charge";
-#pragma warning restore AL0432
-                PurchCrMemoLine.Modify();
-            until PurchCrMemoLine.Next() = 0;
-
-        if PurchInvLine.FindSet() then
-            repeat
-#pragma warning disable AL0432
-                PurchInvLine."Reverse Charge Item GB" := PurchInvLine."Reverse Charge Item";
-                PurchInvLine."Reverse Charge GB" := PurchInvLine."Reverse Charge";
-#pragma warning restore AL0432
-                PurchInvLine.Modify();
-            until PurchInvLine.Next() = 0;
 
         if SalesCrMemoLine.FindSet() then
             repeat
