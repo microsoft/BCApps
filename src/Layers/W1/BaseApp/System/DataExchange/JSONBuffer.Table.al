@@ -189,7 +189,7 @@ table 1236 "JSON Buffer"
     end;
 
     // Validates the complete document against the RFC 8259 grammar, because the native parser accepts nonstandard syntax.
-    local procedure IsStrictJSONDocument(var JSONText: Text): Boolean
+    local procedure IsStrictJSONDocument(JSONText: Text): Boolean
     var
         Position: Integer;
     begin
@@ -201,7 +201,7 @@ table 1236 "JSON Buffer"
         exit(Position > StrLen(JSONText));
     end;
 
-    local procedure ScanJSONValue(var JSONText: Text; var Position: Integer): Boolean
+    local procedure ScanJSONValue(JSONText: Text; var Position: Integer): Boolean
     begin
         if Position > StrLen(JSONText) then
             exit(false);
@@ -225,7 +225,7 @@ table 1236 "JSON Buffer"
         exit(false);
     end;
 
-    local procedure ScanJSONObject(var JSONText: Text; var Position: Integer): Boolean
+    local procedure ScanJSONObject(JSONText: Text; var Position: Integer): Boolean
     begin
         Position += 1;
         SkipJSONWhitespace(JSONText, Position);
@@ -258,7 +258,7 @@ table 1236 "JSON Buffer"
         until false;
     end;
 
-    local procedure ScanJSONArray(var JSONText: Text; var Position: Integer): Boolean
+    local procedure ScanJSONArray(JSONText: Text; var Position: Integer): Boolean
     begin
         Position += 1;
         SkipJSONWhitespace(JSONText, Position);
@@ -282,7 +282,7 @@ table 1236 "JSON Buffer"
         until false;
     end;
 
-    local procedure ScanJSONString(var JSONText: Text; var Position: Integer): Boolean
+    local procedure ScanJSONString(JSONText: Text; var Position: Integer): Boolean
     var
         CharacterCode: Integer;
         EscapeIsValid: Boolean;
@@ -321,7 +321,7 @@ table 1236 "JSON Buffer"
         exit(false);
     end;
 
-    local procedure ScanJSONNumber(var JSONText: Text; var Position: Integer): Boolean
+    local procedure ScanJSONNumber(JSONText: Text; var Position: Integer): Boolean
     var
         HasLeadingZero: Boolean;
     begin
@@ -352,7 +352,7 @@ table 1236 "JSON Buffer"
         exit(true);
     end;
 
-    local procedure ScanJSONDigits(var JSONText: Text; var Position: Integer): Boolean
+    local procedure ScanJSONDigits(JSONText: Text; var Position: Integer): Boolean
     var
         StartPosition: Integer;
     begin
@@ -370,7 +370,7 @@ table 1236 "JSON Buffer"
         exit(true);
     end;
 
-    local procedure SkipJSONWhitespace(var JSONText: Text; var Position: Integer)
+    local procedure SkipJSONWhitespace(JSONText: Text; var Position: Integer)
     begin
         while IsJSONWhitespace(JSONText, Position) do
             Position += 1;
