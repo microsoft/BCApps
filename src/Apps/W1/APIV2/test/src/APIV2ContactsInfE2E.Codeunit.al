@@ -3,6 +3,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
     // version Test,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -30,6 +32,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get all contact information for a customer
 
@@ -60,6 +64,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get all contact information for a customer
 
@@ -92,6 +98,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get all contact information for a vendor
 
@@ -122,6 +130,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get all contact information for a Vendor
 
@@ -176,5 +186,10 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         LibraryMarketing.CreatePersonContact(Contact);
         Contact.Validate("Company No.", CompanyNo);
         Contact.Modify(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

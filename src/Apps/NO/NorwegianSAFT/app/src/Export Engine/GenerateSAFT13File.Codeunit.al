@@ -23,6 +23,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Environment;
 using System.Reflection;
 
 codeunit 10692 "Generate SAF-T 1.3 File"
@@ -94,13 +95,14 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
+        ApplicationSystemConstants: Codeunit "Application System Constants";
     begin
         SAFTXMLHelper.Initialize();
         if GuiAllowed() then
             Window.Update(1, GeneratingHeaderTxt);
         CompanyInformation.get();
         SAFTXMLHelper.AddNewXMLNode('Header', '');
-        SAFTXMLHelper.AppendXMLNode('AuditFileVersion', '1.3');
+        SAFTXMLHelper.AppendXMLNode('AuditFileVersion', '1.30');
         if CompanyInformation."Country/Region Code" <> '' then begin
             CountryRegion.Get(CompanyInformation."Country/Region Code");
             if CountryRegion."ISO Code" = '' then
@@ -111,7 +113,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SAFTXMLHelper.AppendXMLNode('AuditFileDateCreated', FormatDate(today()));
         SAFTXMLHelper.AppendXMLNode('SoftwareCompanyName', 'Microsoft');
         SAFTXMLHelper.AppendXMLNode('SoftwareID', 'Microsoft Dynamics 365 Business Central');
-        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', '14.0');
+        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
         ExportCompanyInfo('Company');
         GeneralLedgerSetup.get();
         SAFTXMLHelper.AppendXMLNode('DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");
@@ -542,9 +544,10 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         DimensionValue: Record "Dimension Value";
         LastDimensionCode: Code[20];
     begin
-        If not DimensionValue.FindSet() then
+        if not HasExportableDimensionValues() then
             exit;
 
+        DimensionValue.FindSet();
         if GuiAllowed() then
             Window.Update(1, ExportingDimensionsTxt);
         SAFTXMLHelper.AddNewXMLNode('AnalysisTypeTable', '');
@@ -565,13 +568,91 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SAFTXMLHelper.FinalizeXMLNode();
     end;
 
+    local procedure HasExportableDimensionValues(): Boolean
+    var
+        Dimension: Record Dimension;
+        DimensionValue: Record "Dimension Value";
+    begin
+        Dimension.SetRange("Export to SAF-T", true);
+        if Dimension.FindSet() then
+            repeat
+                DimensionValue.SetRange("Dimension Code", Dimension.Code);
+                if not DimensionValue.IsEmpty() then
+                    exit(true);
+            until Dimension.Next() = 0;
+        exit(false);
+    end;
+
+    internal procedure CountTransactions(SAFTExportHeader: Record "SAF-T Export Header") NumberOfTransactions: Integer
+    var
+        SAFTSourceCode: Record "SAF-T Source Code";
+        TempSourceCode: Record "Source Code" temporary;
+        SAFTGLEntryByDoc: Query "SAF-T G/L Entry By Doc.";
+        SourceCodeFilter: Text;
+    begin
+        if not SAFTSourceCode.FindSet() then
+            SAFTSourceCode.Init();
+        repeat
+            PopulateSourceCodeBuffer(TempSourceCode, SAFTSourceCode);
+            SourceCodeFilter := GetSourceCodeFilter(TempSourceCode);
+            if SourceCodeFilter <> '' then begin
+                Clear(SAFTGLEntryByDoc);
+                SAFTGLEntryByDoc.SetRange(Posting_Date, SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+                SAFTGLEntryByDoc.SetFilter(Source_Code, SourceCodeFilter);
+                SAFTGLEntryByDoc.Open();
+                while SAFTGLEntryByDoc.Read() do
+                    NumberOfTransactions += 1;
+                SAFTGLEntryByDoc.Close();
+            end;
+        until SAFTSourceCode.Next() = 0;
+    end;
+
+    local procedure PopulateSourceCodeBuffer(var TempSourceCode: Record "Source Code" temporary; var SAFTSourceCode: Record "SAF-T Source Code")
+    var
+        SourceCode: Record "Source Code";
+        SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
+    begin
+        SourceCode.Reset();
+        TempSourceCode.Reset();
+        TempSourceCode.DeleteAll();
+        if SAFTSourceCode.Code = '' then begin
+            SAFTSourceCode.Init();
+            SAFTSourceCode.Code := SAFTMappingHelper.GetARSAFTSourceCode();
+            SAFTSourceCode.Description := SAFTMappingHelper.GetASAFTSourceCodeDescription();
+        end else
+            SourceCode.SetRange("SAF-T Source Code", SAFTSourceCode.Code);
+        if SourceCode.FindSet() then
+            repeat
+                TempSourceCode := SourceCode;
+                TempSourceCode.Insert();
+            until SourceCode.Next() = 0;
+        if SAFTSourceCode."Includes No Source Code" then begin
+            TempSourceCode.Init();
+            TempSourceCode.Code := '';
+            TempSourceCode.Insert();
+        end;
+    end;
+
+    local procedure GetSourceCodeFilter(var TempSourceCode: Record "Source Code" temporary) SourceCodeFilter: Text
+    begin
+        TempSourceCode.Reset();
+        if not TempSourceCode.FindSet() then
+            exit('');
+        repeat
+            if SourceCodeFilter <> '' then
+                SourceCodeFilter += '|';
+            if TempSourceCode.Code = '' then
+                SourceCodeFilter += ''' '''
+            else
+                SourceCodeFilter += TempSourceCode.Code;
+        until TempSourceCode.Next() = 0;
+    end;
+
     local procedure ExportGeneralLedgerEntries(var GLEntry: Record "G/L Entry"; var SAFTExportLine: Record "SAF-T Export Line")
     var
         SAFTSourceCode: Record "SAF-T Source Code";
         TempSourceCode: Record "Source Code" temporary;
-        SourceCode: Record "Source Code";
         SAFTExportHeader: Record "SAF-T Export Header";
-        SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
         GLEntryProgressStep: Decimal;
         GLEntryProgress: Decimal;
     begin
@@ -592,24 +673,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         else
             GLEntryProgressStep := 10000;
         repeat
-            TempSourceCode.Reset();
-            TempSourceCode.DeleteAll();
-            if SAFTSourceCode.Code = '' then begin
-                SAFTSourceCode.Init();
-                SAFTSourceCode.Code := SAFTMappingHelper.GetARSAFTSourceCode();
-                SAFTSourceCode.Description := SAFTMappingHelper.GetASAFTSourceCodeDescription();
-            end else
-                SourceCode.SetRange("SAF-T Source Code", SAFTSourceCode.Code);
-            if SourceCode.FindSet() then
-                repeat
-                    TempSourceCode := SourceCode;
-                    TempSourceCode.Insert();
-                until SourceCode.Next() = 0;
-            if SAFTSourceCode."Includes No Source Code" then begin
-                TempSourceCode.Init();
-                TempSourceCode.Code := '';
-                TempSourceCode.Insert();
-            end;
+            PopulateSourceCodeBuffer(TempSourceCode, SAFTSourceCode);
             GLEntryProgress += GLEntryProgressStep;
             if GuiAllowed() then
                 Window.Update(2, GLEntryProgress);
@@ -629,17 +693,9 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SourceCodeFilter: Text;
         GLEntriesExists: Boolean;
     begin
-        If not TempSourceCode.FindSet() then
+        SourceCodeFilter := GetSourceCodeFilter(TempSourceCode);
+        if SourceCodeFilter = '' then
             exit(false);
-
-        repeat
-            if SourceCodeFilter <> '' then
-                SourceCodeFilter += '|';
-            if TempSourceCode.Code = '' then
-                SourceCodeFilter += ''' '''
-            else
-                SourceCodeFilter += TempSourceCode.Code;
-        until TempSourceCode.Next() = 0;
         GLEntry.SetFilter("Source Code", SourceCodeFilter);
         GLEntriesExists := GLEntry.FindSet();
         if not GLEntriesExists then
@@ -812,6 +868,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
 
         SAFTXMLHelper.AddNewXMLNode(ParentNodeName, '');
         GetCurrencyAmounts(CurrentAmount, CurrentAmountLCY, CurrencyCode, ExchangeRate, Amount, EntryAmount, EntryAmountLCY);
+        CurrentAmountLCY := Abs(CurrentAmountLCY);
+        CurrentAmount := Abs(CurrentAmount);
         SAFTXMLHelper.AppendXMLNode('Amount', FormatAmount(CurrentAmountLCY));
         SAFTXMLHelper.AppendXMLNode('CurrencyCode', CurrencyCode);
         SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmount(CurrentAmount));
@@ -930,10 +988,12 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         if DefaultDimension.FindSet() then
             repeat
                 Dimension.get(DefaultDimension."Dimension Code");
-                TempDimIDBuffer."Parent ID" += 1;
-                TempDimIDBuffer."Dimension Code" := Dimension."SAF-T Analysis Type";
-                TempDimIDBuffer."Dimension Value" := DefaultDimension."Dimension Value Code";
-                TempDimIDBuffer.Insert();
+                if Dimension."Export to SAF-T" then begin
+                    TempDimIDBuffer."Parent ID" += 1;
+                    TempDimIDBuffer."Dimension Code" := Dimension."SAF-T Analysis Type";
+                    TempDimIDBuffer."Dimension Value" := DefaultDimension."Dimension Value Code";
+                    TempDimIDBuffer.Insert();
+                end;
             until DefaultDimension.next() = 0;
     end;
 

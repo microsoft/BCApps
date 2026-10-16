@@ -13,6 +13,7 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 148215 "PowerBI Sustainability Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     Access = Internal;
     Permissions = tabledata "Employee Ledger Entry" = RIMD, tabledata "Detailed Employee Ledger Entry" = RIMD;
 
