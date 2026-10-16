@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace MyDemoApp.Tests;
 
-codeunit 50150 "My Demo Close Income Tests"
+
+codeunit 50199 "My Demo Close Income Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
