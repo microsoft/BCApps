@@ -14,6 +14,7 @@ codeunit 134291 "Check Amount Wording Tests"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         UnexpectedAmountTextErr: Label 'Unexpected amount text for %1.', Comment = '%1 = amount';
+        IsInitialized: Boolean;
         HandleBeforeEvent: Boolean;
         BeforeEventCount: Integer;
         AfterEventCount: Integer;
@@ -92,8 +93,14 @@ codeunit 134291 "Check Amount Wording Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Check Amount Wording Tests");
         LibrarySetupStorage.Restore();
+        if not IsInitialized then begin
+            LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Check Amount Wording Tests");
+            LibrarySetupStorage.Save(Database::"General Ledger Setup");
+            IsInitialized := true;
+            LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Check Amount Wording Tests");
+        end;
+
         GeneralLedgerSetup.Get();
-        LibrarySetupStorage.Save(Database::"General Ledger Setup");
         GeneralLedgerSetup."Amount Rounding Precision" := 0.01;
         GeneralLedgerSetup.Modify();
     end;

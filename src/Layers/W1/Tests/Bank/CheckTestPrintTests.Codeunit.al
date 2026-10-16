@@ -27,6 +27,7 @@ codeunit 134292 "Check Test Print Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         RestrictionDetailsTxt: Label 'Test-print journal line requires approval.';
+        IsInitialized: Boolean;
         CheckInsertCount: Integer;
 
     [Test]
@@ -86,8 +87,14 @@ codeunit 134292 "Check Test Print Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Check Test Print Tests");
         LibrarySetupStorage.Restore();
+        if not IsInitialized then begin
+            LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Check Test Print Tests");
+            LibrarySetupStorage.Save(Database::"General Ledger Setup");
+            IsInitialized := true;
+            LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Check Test Print Tests");
+        end;
+
         GeneralLedgerSetup.Get();
-        LibrarySetupStorage.Save(Database::"General Ledger Setup");
         GeneralLedgerSetup."Amount Rounding Precision" := 0.01;
         GeneralLedgerSetup.Modify();
     end;
@@ -123,12 +130,13 @@ codeunit 134292 "Check Test Print Tests"
     var
         Check: Report Check;
         TempBlob: Codeunit "Temp Blob";
+        JournalRecordRef: RecordRef;
         OutputStream: OutStream;
     begin
-        Check.SetTableView(GenJournalLine);
+        JournalRecordRef.GetTable(GenJournalLine);
         Check.InitializeRequest(BankAccount."No.", BankAccount."Last Check No.", false, false, true, false);
         TempBlob.CreateOutStream(OutputStream);
-        Check.SaveAs('', ReportFormat::Xml, OutputStream);
+        Check.SaveAs('', ReportFormat::Xml, OutputStream, JournalRecordRef);
     end;
 
     local procedure VerifyTestPrint(BankAccount: Record "Bank Account"; ExpectedJournalSystemId: Guid)
