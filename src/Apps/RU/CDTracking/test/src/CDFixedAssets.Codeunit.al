@@ -39,6 +39,57 @@ codeunit 147104 "CD Fixed Assets"
         VATLedgerErr: Label 'Couldn''t find Purchase VAT Ledger Line with CDNo';
         isInitialized: Boolean;
 
+    [Test]
+    procedure CountryInformationPrefersLocalValues()
+    var
+        CountryRegion: Record "Country/Region";
+        CDFAInformation: Record "CD FA Information";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Name := 'Country name';
+        CountryRegion."Local Name" := 'Local country name';
+        CountryRegion."Local Country/Region Code" := 'LOCAL';
+        CountryRegion.Modify();
+        CDFAInformation."Country/Region Code" := CountryRegion.Code;
+
+        Assert.AreEqual(CountryRegion."Local Name", CDFAInformation.GetCountryName(), 'The local country name must take precedence.');
+        Assert.AreEqual(CountryRegion."Local Country/Region Code", CDFAInformation.GetCountryLocalCode(), 'The local country code must be returned.');
+    end;
+
+    [Test]
+    procedure CountryInformationFallsBackToCountryName()
+    var
+        CountryRegion: Record "Country/Region";
+        CDFAInformation: Record "CD FA Information";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Name := 'Country name';
+        CountryRegion."Local Name" := '';
+        CountryRegion."Local Country/Region Code" := '';
+        CountryRegion.Modify();
+        CDFAInformation."Country/Region Code" := CountryRegion.Code;
+
+        Assert.AreEqual(CountryRegion.Name, CDFAInformation.GetCountryName(), 'The country name must be used when no local name is set.');
+        Assert.AreEqual('', CDFAInformation.GetCountryLocalCode(), 'A missing local code must not fall back to the country code.');
+    end;
+
+    [Test]
+    procedure MissingCountryInformationReturnsEmptyValues()
+    var
+        CountryRegion: Record "Country/Region";
+        CDFAInformation: Record "CD FA Information";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CDFAInformation."Country/Region Code" := CountryRegion.Code;
+        CountryRegion.Delete();
+
+        Assert.AreEqual('', CDFAInformation.GetCountryName(), 'A missing country must return an empty name.');
+        Assert.AreEqual('', CDFAInformation.GetCountryLocalCode(), 'A missing country must return an empty local code.');
+    end;
+
     [Normal]
     local procedure Initialize()
     begin
