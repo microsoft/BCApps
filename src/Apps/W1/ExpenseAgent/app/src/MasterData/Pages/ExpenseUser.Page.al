@@ -207,12 +207,18 @@ page 6949 "Expense User"
 
         area(Navigation)
         {
+#if not CLEAN30
             action(ApprovalSetup)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Approval Setup';
                 ToolTip = 'Opens the Expense Approval Setup page for this expense user.';
                 Image = Approvals;
+                Visible = false;
+
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'All fields from the related page are already included in the current page.';
+                ObsoleteState = Pending;
 
                 trigger OnAction()
                 var
@@ -221,21 +227,31 @@ page 6949 "Expense User"
                     ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
                 end;
             }
+#endif
         }
 
         area(Promoted)
         {
             group(Category_Process)
             {
+#if not CLEAN30
                 group(Category_Approval)
                 {
                     Caption = 'Approval';
                     ShowAs = Standard;
 
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'All fields from the related page are already included in the current page.';
+                    ObsoleteState = Pending;
                     actionref(ApprovalSetup_Promoted; ApprovalSetup)
                     {
+                        Visible = false;
+                        ObsoleteTag = '30.0';
+                        ObsoleteReason = 'All fields from the related page are already included in the current page.';
+                        ObsoleteState = Pending;
                     }
                 }
+#endif
                 actionref(CreateEmployee_Promoted; CreateEmployee)
                 {
                 }

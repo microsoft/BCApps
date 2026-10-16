@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,12 +9,15 @@ codeunit 6909 "Expense Approval Helper"
 {
     Access = Internal;
 
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'This codeunit is now empty.';
+    ObsoleteState = Pending;
+
     procedure OpenApprovalSetupPage(ExpenseUser: Record "Expense User")
     var
         ApprovalExpenseUser: Record "Expense Approval Setup";
     begin
         ExpenseUser.TestField("No.");
-
         if not ApprovalExpenseUser.Get(ExpenseUser."No.") then
             CreateApprovalSetupForExpenseUser(ExpenseUser);
 
@@ -32,3 +36,4 @@ codeunit 6909 "Expense Approval Helper"
         ApprovalExpenseUser.Insert(true);
     end;
 }
+#endif

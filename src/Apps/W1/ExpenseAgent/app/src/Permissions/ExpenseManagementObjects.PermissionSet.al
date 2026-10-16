@@ -200,7 +200,9 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Exp. Preview Post. Subscriber" = X,
         codeunit "Exp. Preview Posting Handler" = X,
         codeunit "Expense Preview Post Instance" = X,
+#if not CLEAN30
         codeunit "Expense Approval Helper" = X,
+#endif
         codeunit "Create Expense Agent Setup" = X,
         codeunit "Create Expense Locations" = X,
         codeunit "Create Expense Rule Conditions" = X,
