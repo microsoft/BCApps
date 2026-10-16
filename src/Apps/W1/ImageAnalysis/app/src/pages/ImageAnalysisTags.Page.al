@@ -39,7 +39,7 @@ page 2026 "Image Analysis Tags"
             }
             repeater(TagsTable)
             {
-                field(TagName; "Tag Name")
+                field(TagName; Rec."Tag Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = false;
@@ -53,7 +53,7 @@ page 2026 "Image Analysis Tags"
                     end;
                 }
 
-                field(TagConfidence; "Tag Confidence")
+                field(TagConfidence; Rec."Tag Confidence")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = false;
@@ -62,13 +62,13 @@ page 2026 "Image Analysis Tags"
                     StyleExpr = Emphasize;
                     ToolTip = 'Specifies the tag confidence.';
                 }
-                field(ActionToPerform; "Action To Perform")
+                field(ActionToPerform; Rec."Action To Perform")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the action to perform.';
                 }
 
-                field(DetailsText; "Details Text")
+                field(DetailsText; Rec."Details Text")
                 {
                     Editable = false;
                     Enabled = false;
@@ -80,19 +80,19 @@ page 2026 "Image Analysis Tags"
                         ItemCategory: Record "Item Category";
                         ItemCategoryCard: Page "Item Category Card";
                     begin
-                        case "Action To Perform" of
-                            "Action To Perform"::Category:
+                        case Rec."Action To Perform" of
+                            Rec."Action To Perform"::Category:
                                 begin
-                                    ItemCategory.Get("Item Category Code");
+                                    ItemCategory.Get(Rec."Item Category Code");
                                     ItemCategoryCard.SetRecord(ItemCategory);
                                     ItemCategoryCard.RunModal();
                                     OnAssignCategory();
                                 end;
 
-                            "Action To Perform"::Attribute:
+                            Rec."Action To Perform"::Attribute:
                                 begin
-                                    SelectItemAttribute();
-                                    UpdateValueText();
+                                    Rec.SelectItemAttribute();
+                                    Rec.UpdateValueText();
                                     OnAssignAttribute();
                                 end;
                         end;
@@ -109,7 +109,7 @@ page 2026 "Image Analysis Tags"
 
                     trigger OnDrillDown()
                     begin
-                        AppendTagToDescription("Tag Name");
+                        AppendTagToDescription(Rec."Tag Name");
                     end;
                 }
             }
@@ -213,20 +213,20 @@ page 2026 "Image Analysis Tags"
     var
         Item: Record Item;
     begin
-        Reset();
-        FindFirst();
-        Item.Get("Detected On Item No");
+        Rec.Reset();
+        Rec.FindFirst();
+        Item.Get(Rec."Detected On Item No");
         PageItemDescription := Item.Description;
 
-        SetFilter("Tag Confidence", '>%1', ConfidencePercent);
-        SetCurrentKey("Tag Confidence");
-        SetAscending("Tag Confidence", true); //descending does not work
+        Rec.SetFilter("Tag Confidence", '>%1', ConfidencePercent);
+        Rec.SetCurrentKey("Tag Confidence");
+        Rec.SetAscending("Tag Confidence", true); //descending does not work
         FilterOn := true;
     end;
 
     trigger OnAfterGetRecord()
     begin
-        Emphasize := "Tag Confidence" < ConfidencePercent;
+        Emphasize := Rec."Tag Confidence" < ConfidencePercent;
     end;
 
     var
@@ -242,13 +242,13 @@ page 2026 "Image Analysis Tags"
     procedure ToggleConfidenceTagFilter()
     begin
         Rec.Reset();
-        SetCurrentKey("Tag Confidence");
-        SetAscending("Tag Confidence", false);
+        Rec.SetCurrentKey("Tag Confidence");
+        Rec.SetAscending("Tag Confidence", false);
 
         if FilterOn then
-            SetFilter("Tag Confidence", '')
+            Rec.SetFilter("Tag Confidence", '')
         else
-            SetFilter("Tag Confidence", '>%1', ConfidencePercent);
+            Rec.SetFilter("Tag Confidence", '>%1', ConfidencePercent);
 
         FilterOn := not FilterOn;
     end;
