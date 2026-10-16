@@ -140,6 +140,8 @@ page 594 "Change Log Setup (Field) List"
     var
         ChangeLogSetupField: Record "Change Log Setup (Field)";
         CannotChangeColumnErr: Label 'You cannot change this column.';
+        TableMonitoredErr: Label 'You cannot change the change log field settings for table %1 because it is configured for field monitoring. Use the Monitored Fields Worksheet page to manage its monitored fields.', Comment = '%1 = Table number';
+        ShowMonitoredFieldsLbl: Label 'Open Monitored Fields Worksheet';
         LogIns: Boolean;
         LogMod: Boolean;
         LogDel: Boolean;
@@ -165,6 +167,9 @@ page 594 "Change Log Setup (Field) List"
 
     local procedure UpdateRec()
     var
+        ChangeLogSetupTable: Record "Change Log Setup (Table)";
+        MonitoredField: Record "Change Log Setup (Field)";
+        TableMonitoredErrorInfo: ErrorInfo;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -174,6 +179,20 @@ page 594 "Change Log Setup (Field) List"
 
         GetRec();
         TransToRec();
+        ChangeLogSetupTable.Get(ChangeLogSetupField."Table No.");
+        if ChangeLogSetupTable."Monitor Sensitive Field" then begin
+            TableMonitoredErrorInfo := ErrorInfo.Create(StrSubstNo(TableMonitoredErr, ChangeLogSetupTable."Table No."), false);
+            TableMonitoredErrorInfo.PageNo := Page::"Monitored Fields Worksheet";
+            if MonitoredField.Get(ChangeLogSetupField."Table No.", ChangeLogSetupField."Field No.") then
+                TableMonitoredErrorInfo.RecordId := MonitoredField.RecordId;
+            TableMonitoredErrorInfo.AddNavigationAction(ShowMonitoredFieldsLbl);
+            Error(TableMonitoredErrorInfo);
+        end;
+        if ChangeLogSetupField."Monitor Sensitive Field" then begin
+            ChangeLogSetupField.Validate("Monitor Sensitive Field", false);
+            ChangeLogSetupField.Validate(Notify, false);
+        end;
+
         if not (ChangeLogSetupField."Log Insertion" or ChangeLogSetupField."Log Modification" or ChangeLogSetupField."Log Deletion") then begin
             if ChangeLogSetupField.Delete() then;
         end else
@@ -211,4 +230,3 @@ page 594 "Change Log Setup (Field) List"
     begin
     end;
 }
-
