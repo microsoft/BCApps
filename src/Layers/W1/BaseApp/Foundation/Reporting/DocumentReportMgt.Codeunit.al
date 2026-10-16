@@ -8,7 +8,6 @@ using System;
 using System.Environment;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 codeunit 9651 "Document Report Mgt."
 {
@@ -139,19 +138,38 @@ codeunit 9651 "Document Report Mgt."
     [Scope('OnPrem')]
     procedure IsStreamHasDataset(InStrXmlData: InStream): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNode: DotNet XmlNode;
-        XmlHasDataset: Boolean;
+        DatasetXmlDocument: XmlDocument;
+        DocumentElement: XmlElement;
+        DataItemsXmlNode: XmlNode;
+        ChildXmlNode: XmlNode;
     begin
-        XmlHasDataset := XMLDOMManagement.LoadXMLNodeFromInStream(InStrXmlData, XmlNode);
+        if not XmlDocument.ReadFrom(InStrXmlData, DatasetXmlDocument) then
+            exit(false);
 
-        if XmlHasDataset then
-            XmlHasDataset := XMLDOMManagement.FindNode(XmlNode, 'DataItems', XmlNode);
+        if not DatasetXmlDocument.GetRoot(DocumentElement) then
+            exit(false);
 
-        if XmlHasDataset then
-            XmlHasDataset := XmlNode.ChildNodes.Count > 0;
+        if not DocumentElement.SelectSingleNode('DataItems', DataItemsXmlNode) then
+            exit(false);
 
-        exit(XmlHasDataset);
+        foreach ChildXmlNode in DataItemsXmlNode.AsXmlElement().GetChildNodes() do
+            if not IsWhitespaceXmlText(ChildXmlNode) then
+                exit(true);
+
+        exit(false);
+    end;
+
+    local procedure IsWhitespaceXmlText(CheckXmlNode: XmlNode): Boolean
+    var
+        Whitespace: Text[4];
+    begin
+        if not CheckXmlNode.IsXmlText() then
+            exit(false);
+        Whitespace[1] := 9;
+        Whitespace[2] := 10;
+        Whitespace[3] := 13;
+        Whitespace[4] := 32;
+        exit(DelChr(CheckXmlNode.AsXmlText().Value(), '=', Whitespace) = '');
     end;
 
     [Scope('OnPrem')]
