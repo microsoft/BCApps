@@ -318,7 +318,7 @@ table 469 "Workflow Webhook Subscription"
                         EventConditions, WorkflowWebhookSetup.GetPurchPayCategoryTxt(), DATABASE::Vendor));
                 end
             else begin
-                OnCreateEventConditionsOnBeforeLegacyFallback(ConditionsTxt, EventCode, ConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
+                OnCreateEventConditionsOnBeforeLegacyFallback(Rec, ConditionsTxt, EventCode, ConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
                 if IsHandled then
                     exit(Result);
 
@@ -464,8 +464,8 @@ table 469 "Workflow Webhook Subscription"
     begin
     end;
 
-    [IntegrationEvent(true, false)]
-    local procedure OnCreateEventConditionsOnBeforeLegacyFallback(ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: JsonObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateEventConditionsOnBeforeLegacyFallback(var WorkflowWebhookSubscription: Record "Workflow Webhook Subscription"; ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: JsonObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
     begin
     end;
 

@@ -130,9 +130,12 @@ codeunit 5458 "Graph Collection Mgt - Contact"
         if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)) then begin
             if Address = '' then
                 exit;
+            // The collection stores a copy, so the object must be complete before it is added.
+            JObject.Add('Address', Address);
             AddJObjectToCollection(JObject);
-        end else
-            JObject.Remove('Type');
+            exit;
+        end;
+        JObject.Remove('Type');
         ReplaceOrAddJPropertyInJObject(JObject, 'Address', Address);
     end;
 

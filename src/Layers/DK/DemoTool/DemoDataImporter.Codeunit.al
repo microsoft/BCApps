@@ -19,7 +19,7 @@ codeunit 101017 "Demo Data Importer"
         if not DemoDataFile.FindSet() then
             exit;
 
-        Clear(CachedRefrencesTable);
+        Clear(CachedReferencesTable);
 
         repeat
             ReadDemoDataFile(DemoDataFile);
@@ -27,8 +27,8 @@ codeunit 101017 "Demo Data Importer"
             JsonObject.ReadFrom(JsonTxt);
             TablesArray := JsonObject.GetArray('tables');
             Clear(OptionsTable);
-            Clear(RefrencesTable);
-            Clear(IndexedRefrenceAddresses);
+            Clear(ReferencesTable);
+            Clear(IndexedReferenceAddresses);
             foreach TableToken in TablesArray do
                 ImportTable(TableToken.AsObject());
         until DemoDataFile.Next() = 0;
@@ -37,9 +37,9 @@ codeunit 101017 "Demo Data Importer"
     var
         Json: Codeunit Json;
         OptionsTable: Dictionary of [Text, Integer];
-        RefrencesTable: Dictionary of [Text, Text];
-        CachedRefrencesTable: Dictionary of [Text, Text];
-        IndexedRefrenceAddresses: List of [Text];
+        ReferencesTable: Dictionary of [Text, Text];
+        CachedReferencesTable: Dictionary of [Text, Text];
+        IndexedReferenceAddresses: List of [Text];
         JsonObject: JsonObject;
         JsonTxt: Text;
         LanguageCode: Code[10];
@@ -80,8 +80,8 @@ codeunit 101017 "Demo Data Importer"
             end else
                 TempVar := Json.GetTokenAsText(ValueToken);
 
-            if RefrencesTable.ContainsKey(Format(TableId) + '/' + FieldName) then
-                TempVar := GetRefrencedValue(Format(TableId) + '/' + FieldName, Format(TempVar));
+            if ReferencesTable.ContainsKey(Format(TableId) + '/' + FieldName) then
+                TempVar := GetReferencedValue(Format(TableId) + '/' + FieldName, Format(TempVar));
 
             FRef := RecRef.Field(GetFieldNo(TableId, FieldName, Field));
             case Field.Type of
@@ -135,7 +135,7 @@ codeunit 101017 "Demo Data Importer"
                 InitOptionsTable(JsonToken.AsObject(), TblID);
 
             if MetadataToken.AsObject().Get('Refrences', JsonToken) and JsonToken.IsObject() then
-                InitRefrencesTable(JsonToken.AsObject(), TblID);
+                InitReferencesTable(JsonToken.AsObject(), TblID);
         end;
 
         RowsArray := TableJson.GetArray('rows');
@@ -167,7 +167,7 @@ codeunit 101017 "Demo Data Importer"
             AddOptionsToDic(Json.GetTokenAsText(LanguageToken), TableID, OptionName);
     end;
 
-    local procedure InitRefrencesTable(ReferencesJson: JsonObject; TableId: Integer)
+    local procedure InitReferencesTable(ReferencesJson: JsonObject; TableId: Integer)
     var
         ReferenceToken: JsonToken;
         FieldName: Text;
@@ -176,8 +176,8 @@ codeunit 101017 "Demo Data Importer"
         foreach FieldName in ReferencesJson.Keys() do begin
             ReferencesJson.Get(FieldName, ReferenceToken);
             KeyStr := Format(TableId) + '/' + FieldName;
-            if not RefrencesTable.ContainsKey(KeyStr) then
-                RefrencesTable.Add(KeyStr, Json.GetTokenAsText(ReferenceToken));
+            if not ReferencesTable.ContainsKey(KeyStr) then
+                ReferencesTable.Add(KeyStr, Json.GetTokenAsText(ReferenceToken));
         end;
     end;
 
@@ -205,7 +205,7 @@ codeunit 101017 "Demo Data Importer"
         exit(ValInt);
     end;
 
-    local procedure GetRefrencedValue("Key": Text; RefValue: Text): Text
+    local procedure GetReferencedValue("Key": Text; RefValue: Text): Text
     var
         ReferenceAddress: Text;
         CacheKey: Text;
@@ -217,29 +217,29 @@ codeunit 101017 "Demo Data Importer"
         if LanguageCode = 'ENU' then
             exit(RefValue);
 
-        RefrencesTable.Get(Key, ReferenceAddress);
+        ReferencesTable.Get(Key, ReferenceAddress);
         CacheKey := ReferenceAddress + '/' + RefValue;
-        if CachedRefrencesTable.Get(CacheKey, Result) then
+        if CachedReferencesTable.Get(CacheKey, Result) then
             exit(Result);
 
         // Index each referenced table/field once per document instead of scanning it for every value.
-        if IndexedRefrenceAddresses.Contains(ReferenceAddress) then
+        if IndexedReferenceAddresses.Contains(ReferenceAddress) then
             exit('');
-        IndexRefrenceAddress(ReferenceAddress);
+        IndexReferenceAddress(ReferenceAddress);
 
-        if CachedRefrencesTable.Get(CacheKey, Result) then
+        if CachedReferencesTable.Get(CacheKey, Result) then
             exit(Result);
         exit('');
     end;
 
-    local procedure IndexRefrenceAddress(ReferenceAddress: Text)
+    local procedure IndexReferenceAddress(ReferenceAddress: Text)
     var
         TablesToken: JsonToken;
         TableToken: JsonToken;
         ReferenceParts: List of [Text];
         ReferenceTableId: Integer;
     begin
-        IndexedRefrenceAddresses.Add(ReferenceAddress);
+        IndexedReferenceAddresses.Add(ReferenceAddress);
 
         ReferenceParts := ReferenceAddress.Split('/');
         Evaluate(ReferenceTableId, ReferenceParts.Get(1));
@@ -250,10 +250,10 @@ codeunit 101017 "Demo Data Importer"
         foreach TableToken in TablesToken.AsArray() do
             if TableToken.IsObject() then
                 if TableToken.AsObject().GetInteger('table') = ReferenceTableId then
-                    IndexRefrenceRows(TableToken.AsObject(), ReferenceAddress, ReferenceParts.Get(2));
+                    IndexReferenceRows(TableToken.AsObject(), ReferenceAddress, ReferenceParts.Get(2));
     end;
 
-    local procedure IndexRefrenceRows(TableObject: JsonObject; ReferenceAddress: Text; ReferenceFieldName: Text)
+    local procedure IndexReferenceRows(TableObject: JsonObject; ReferenceAddress: Text; ReferenceFieldName: Text)
     var
         RowsToken: JsonToken;
         RowToken: JsonToken;
@@ -273,8 +273,8 @@ codeunit 101017 "Demo Data Importer"
                            TryGetLanguageValue(FieldToken.AsObject(), LanguageCode, LocalizedValue)
                         then begin
                             CacheKey := ReferenceAddress + '/' + EnuValue;
-                            if not CachedRefrencesTable.ContainsKey(CacheKey) then
-                                CachedRefrencesTable.Add(CacheKey, LocalizedValue);
+                            if not CachedReferencesTable.ContainsKey(CacheKey) then
+                                CachedReferencesTable.Add(CacheKey, LocalizedValue);
                         end;
     end;
 
