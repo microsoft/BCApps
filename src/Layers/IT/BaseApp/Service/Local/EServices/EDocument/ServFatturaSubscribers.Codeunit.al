@@ -51,6 +51,7 @@ codeunit 12189 "Serv. Fattura Subscribers"
                     TempFatturaHeader."Document Type" := "Gen. Journal Document Type"::Invoice.AsInteger();
                     TempFatturaHeader."Posting Date" := ServiceInvoiceHeader."Posting Date";
                     TempFatturaHeader."Document No." := ServiceInvoiceHeader."No.";
+                    TempFatturaHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
                     LineRecRef.Open(Database::"Service Invoice Line");
                 end;
             Database::"Service Cr.Memo Header":
@@ -62,6 +63,7 @@ codeunit 12189 "Serv. Fattura Subscribers"
                     TempFatturaHeader."Document Type" := "Gen. Journal Document Type"::"Credit Memo".AsInteger();
                     TempFatturaHeader."Posting Date" := ServiceCrMemoHeader."Posting Date";
                     TempFatturaHeader."Document No." := ServiceCrMemoHeader."No.";
+                    TempFatturaHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
                     LineRecRef.Open(Database::"Service Cr.Memo Line");
                 end;
         end;
