@@ -85,12 +85,12 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyItemBudget(Response: Text; ItemBudgetName: Record "Item Budget Name")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.budgetName == ''' + Format(ItemBudgetName.Name) + ''')]'), 'Item budget name not found.');
-        Assert.AreEqual(Format(ItemBudgetName."Analysis Area"), JsonMgt.GetValue('analysisArea'), 'Item Budget name analysis area does not match.');
-        Assert.AreEqual(ItemBudgetName.Description, JsonMgt.GetValue('budgetDescription'), 'Item Budget name description does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.budgetName == ''' + Format(ItemBudgetName.Name) + ''')]'), 'Item budget name not found.');
+        Assert.AreEqual(Format(ItemBudgetName."Analysis Area"), LibraryGraphMgt.GetValue('analysisArea'), 'Item Budget name analysis area does not match.');
+        Assert.AreEqual(ItemBudgetName.Description, LibraryGraphMgt.GetValue('budgetDescription'), 'Item Budget name description does not match.');
     end;
 
     [Test]
@@ -132,24 +132,24 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesOrderLine(Response: Text; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales line not found.');
-        Assert.AreEqual(Format(SalesHeader."No."), JsonMgt.GetValue('salesOrderNo'), 'Sales order no does not match.');
-        Assert.AreEqual(Format(SalesHeader."Document Type"), JsonMgt.GetValue('documentType'), 'Sales header document type does not match.');
-        Assert.AreEqual(SalesHeader."Bill-to Customer No.", JsonMgt.GetValue('customerNo'), 'Sales header customer no does not match.');
-        Assert.AreEqual(Format(SalesHeader."Order Date", 0, 9), JsonMgt.GetValue('orderDate'), 'Sales header order date does not match.');
-        Assert.AreEqual(SalesHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Sales header salesperson code does not match.');
-        Assert.AreEqual(Format(SalesLine."Document Type"), JsonMgt.GetValue('salesLineDocumentType'), 'Sales line document type does not match.');
-        Assert.AreEqual(SalesLine."Document No.", JsonMgt.GetValue('documentNo'), 'Sales line document no does not match.');
-        Assert.AreEqual(SalesLine."No.", JsonMgt.GetValue('itemNo'), 'Sales line item no does not match.');
-        Assert.AreEqual(SalesLine."Location Code", JsonMgt.GetValue('locationCode'), 'Sales line location code does not match.');
-        Assert.AreEqual(Format(SalesLine."Outstanding Qty. (Base)" / 1.0, 0, 9), JsonMgt.GetValue('outstandingQtyBase'), 'Sales line outstanding qty base does not match.');
-        Assert.AreEqual(Format(SalesLine."Outstanding Amount (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('outstandingAmountLCY'), 'Sales line outstanding amount lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Outstanding Quantity" / 1.0, 0, 9), JsonMgt.GetValue('outstandingQuantity'), 'Sales line outstanding quantity does not match.');
-        Assert.AreEqual(Format(SalesLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales line not found.');
+        Assert.AreEqual(Format(SalesHeader."No."), LibraryGraphMgt.GetValue('salesOrderNo'), 'Sales order no does not match.');
+        Assert.AreEqual(Format(SalesHeader."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Sales header document type does not match.');
+        Assert.AreEqual(SalesHeader."Bill-to Customer No.", LibraryGraphMgt.GetValue('customerNo'), 'Sales header customer no does not match.');
+        Assert.AreEqual(Format(SalesHeader."Order Date", 0, 9), LibraryGraphMgt.GetValue('orderDate'), 'Sales header order date does not match.');
+        Assert.AreEqual(SalesHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Sales header salesperson code does not match.');
+        Assert.AreEqual(Format(SalesLine."Document Type"), LibraryGraphMgt.GetValue('salesLineDocumentType'), 'Sales line document type does not match.');
+        Assert.AreEqual(SalesLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Sales line document no does not match.');
+        Assert.AreEqual(SalesLine."No.", LibraryGraphMgt.GetValue('itemNo'), 'Sales line item no does not match.');
+        Assert.AreEqual(SalesLine."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Sales line location code does not match.');
+        Assert.AreEqual(Format(SalesLine."Outstanding Qty. (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('outstandingQtyBase'), 'Sales line outstanding qty base does not match.');
+        Assert.AreEqual(Format(SalesLine."Outstanding Amount (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('outstandingAmountLCY'), 'Sales line outstanding amount lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Outstanding Quantity" / 1.0, 0, 9), LibraryGraphMgt.GetValue('outstandingQuantity'), 'Sales line outstanding quantity does not match.');
+        Assert.AreEqual(Format(SalesLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
     end;
 
     [Test]
@@ -187,19 +187,19 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyItemBudgetEntry(Response: Text; ItemBudgetEntry: Record "Item Budget Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(ItemBudgetEntry."Entry No.") + ')]'), 'Item budget entry not found.');
-        Assert.AreEqual(ItemBudgetEntry."Budget Name", JsonMgt.GetValue('budgetName'), 'Item budget entry budget name does not match.');
-        Assert.AreEqual(Format(ItemBudgetEntry.Date, 0, 9), JsonMgt.GetValue('entryDate'), 'Item budget entry entry date does not match.');
-        Assert.AreEqual(ItemBudgetEntry."Item No.", JsonMgt.GetValue('itemNo'), 'Item budget entry item no does not match.');
-        Assert.AreEqual(ItemBudgetEntry."Location Code", JsonMgt.GetValue('locationCode'), 'Item budget entry location code does not match.');
-        Assert.AreEqual(Format(ItemBudgetEntry."Source Type"), JsonMgt.GetValue('sourceType'), 'Item budget entry source type does not match.');
-        Assert.AreEqual(ItemBudgetEntry."Source No.", JsonMgt.GetValue('sourceNo'), 'Item budget entry source no does not match.');
-        Assert.AreEqual(Format(ItemBudgetEntry.Quantity / 1.0, 0, 9), JsonMgt.GetValue('quantity'), 'Item budget entry quantity does not match.');
-        Assert.AreEqual(Format(ItemBudgetEntry."Sales Amount" / 1.0, 0, 9), JsonMgt.GetValue('salesAmount'), 'Item budget entry sales amount does not match.');
-        Assert.AreEqual(Format(ItemBudgetEntry."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Item budget entry dimension set id does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(ItemBudgetEntry."Entry No.") + ')]'), 'Item budget entry not found.');
+        Assert.AreEqual(ItemBudgetEntry."Budget Name", LibraryGraphMgt.GetValue('budgetName'), 'Item budget entry budget name does not match.');
+        Assert.AreEqual(Format(ItemBudgetEntry.Date, 0, 9), LibraryGraphMgt.GetValue('entryDate'), 'Item budget entry entry date does not match.');
+        Assert.AreEqual(ItemBudgetEntry."Item No.", LibraryGraphMgt.GetValue('itemNo'), 'Item budget entry item no does not match.');
+        Assert.AreEqual(ItemBudgetEntry."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Item budget entry location code does not match.');
+        Assert.AreEqual(Format(ItemBudgetEntry."Source Type"), LibraryGraphMgt.GetValue('sourceType'), 'Item budget entry source type does not match.');
+        Assert.AreEqual(ItemBudgetEntry."Source No.", LibraryGraphMgt.GetValue('sourceNo'), 'Item budget entry source no does not match.');
+        Assert.AreEqual(Format(ItemBudgetEntry.Quantity / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantity'), 'Item budget entry quantity does not match.');
+        Assert.AreEqual(Format(ItemBudgetEntry."Sales Amount" / 1.0, 0, 9), LibraryGraphMgt.GetValue('salesAmount'), 'Item budget entry sales amount does not match.');
+        Assert.AreEqual(Format(ItemBudgetEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Item budget entry dimension set id does not match.');
     end;
 
     [Test]
@@ -233,30 +233,30 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesValueEntryV2(Response: Text; SalesHeader: Record "Sales Header"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemLedgerEntryNo == ' + Format(ItemLedgerEntry."Entry No.") + ')]'), 'Sales item ledger entry not found.');
-        Assert.AreEqual(SalesHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
-        Assert.AreEqual(Format(ValueEntry."Entry No."), JsonMgt.GetValue('entryNo'), 'Value entry entry no does not match.');
-        Assert.AreEqual(Format(ItemLedgerEntry."Entry No."), JsonMgt.GetValue('itemLedgerEntryNo'), 'Item ledger entry no. does not match.');
-        Assert.AreEqual(Format(ItemLedgerEntry."Entry Type"), JsonMgt.GetValue('itemLedgerEntryType'), 'Item ledger entry type does not match.');
-        Assert.AreEqual(Format(ValueEntry."Entry Type"), JsonMgt.GetValue('entryType'), 'Value entry entry type does not match.');
-        Assert.AreEqual(ValueEntry."Document No.", JsonMgt.GetValue('documentNo'), 'Value entry document no does not match.');
-        Assert.AreEqual(Format(ValueEntry."Document Type"), JsonMgt.GetValue('documentType'), 'Value entry document type does not match.');
-        Assert.AreEqual(Format(ValueEntry."Invoiced Quantity" / 1.0, 0, 9), JsonMgt.GetValue('invoicedQuantity'), 'Value entry invoiced quantity does not match.');
-        Assert.AreEqual(Format(ValueEntry."Sales Amount (Actual)" / 1.0, 0, 9), JsonMgt.GetValue('salesAmountActual'), 'Value entry sales amount actual does not match.');
-        Assert.AreEqual(Format(ValueEntry."Cost Amount (Actual)" / 1.0, 0, 9), JsonMgt.GetValue('costAmountActual'), 'Value entry cost amount actual does not match.');
-        Assert.AreEqual(Format(ValueEntry."Cost Amount (Non-Invtbl.)" / 1.0, 0, 9), JsonMgt.GetValue('costAmountNonInvtbl'), 'Value entry cost amount non-invtbl does not match.');
-        Assert.AreEqual(Format(ValueEntry."Cost Posted to G/L" / 1.0, 0, 9), JsonMgt.GetValue('costPostedToGL'), 'Value entry cost posted to G/L does not match.');
-        Assert.AreEqual(ValueEntry."Source No.", JsonMgt.GetValue('customerNo'), 'Value entry customer no does not match.');
-        Assert.AreEqual(Format(ValueEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Value entry posting date does not match.');
-        Assert.AreEqual(Format(ValueEntry."Document Date", 0, 9), JsonMgt.GetValue('documentDate'), 'Value entry posting date does not match.');
-        Assert.AreEqual(ValueEntry."Item No.", JsonMgt.GetValue('itemNo'), 'Value entry item no does not match.');
-        Assert.AreEqual(ValueEntry."Location Code", JsonMgt.GetValue('locationCode'), 'Value entry location code does not match.');
-        Assert.AreEqual(Format(ValueEntry."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Value entry Dimension Set ID does not match.');
-        Assert.AreEqual(Format(ValueEntry."Return Reason Code"), JsonMgt.GetValue('returnReasonCode'), 'Value entry return reason code does not match.');
-        Assert.AreEqual(ValueEntry."Job No.", JsonMgt.GetValue('projectNo'), 'Value entry project no. does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.itemLedgerEntryNo == ' + Format(ItemLedgerEntry."Entry No.") + ')]'), 'Sales item ledger entry not found.');
+        Assert.AreEqual(SalesHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
+        Assert.AreEqual(Format(ValueEntry."Entry No."), LibraryGraphMgt.GetValue('entryNo'), 'Value entry entry no does not match.');
+        Assert.AreEqual(Format(ItemLedgerEntry."Entry No."), LibraryGraphMgt.GetValue('itemLedgerEntryNo'), 'Item ledger entry no. does not match.');
+        Assert.AreEqual(Format(ItemLedgerEntry."Entry Type"), LibraryGraphMgt.GetValue('itemLedgerEntryType'), 'Item ledger entry type does not match.');
+        Assert.AreEqual(Format(ValueEntry."Entry Type"), LibraryGraphMgt.GetValue('entryType'), 'Value entry entry type does not match.');
+        Assert.AreEqual(ValueEntry."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Value entry document no does not match.');
+        Assert.AreEqual(Format(ValueEntry."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Value entry document type does not match.');
+        Assert.AreEqual(Format(ValueEntry."Invoiced Quantity" / 1.0, 0, 9), LibraryGraphMgt.GetValue('invoicedQuantity'), 'Value entry invoiced quantity does not match.');
+        Assert.AreEqual(Format(ValueEntry."Sales Amount (Actual)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('salesAmountActual'), 'Value entry sales amount actual does not match.');
+        Assert.AreEqual(Format(ValueEntry."Cost Amount (Actual)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('costAmountActual'), 'Value entry cost amount actual does not match.');
+        Assert.AreEqual(Format(ValueEntry."Cost Amount (Non-Invtbl.)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('costAmountNonInvtbl'), 'Value entry cost amount non-invtbl does not match.');
+        Assert.AreEqual(Format(ValueEntry."Cost Posted to G/L" / 1.0, 0, 9), LibraryGraphMgt.GetValue('costPostedToGL'), 'Value entry cost posted to G/L does not match.');
+        Assert.AreEqual(ValueEntry."Source No.", LibraryGraphMgt.GetValue('customerNo'), 'Value entry customer no does not match.');
+        Assert.AreEqual(Format(ValueEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Value entry posting date does not match.');
+        Assert.AreEqual(Format(ValueEntry."Document Date", 0, 9), LibraryGraphMgt.GetValue('documentDate'), 'Value entry posting date does not match.');
+        Assert.AreEqual(ValueEntry."Item No.", LibraryGraphMgt.GetValue('itemNo'), 'Value entry item no does not match.');
+        Assert.AreEqual(ValueEntry."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Value entry location code does not match.');
+        Assert.AreEqual(Format(ValueEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Value entry Dimension Set ID does not match.');
+        Assert.AreEqual(Format(ValueEntry."Return Reason Code"), LibraryGraphMgt.GetValue('returnReasonCode'), 'Value entry return reason code does not match.');
+        Assert.AreEqual(ValueEntry."Job No.", LibraryGraphMgt.GetValue('projectNo'), 'Value entry project no. does not match.');
     end;
 
     [Test]
@@ -299,24 +299,24 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyShippedNotInvoiced(Response: Text; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales item ledger entry not found.');
-        Assert.AreEqual(Format(SalesHeader."Document Type"), JsonMgt.GetValue('documentType'), 'Sales header document type does not match.');
-        Assert.AreEqual(SalesHeader."Bill-to Customer No.", JsonMgt.GetValue('customerNo'), 'Sales header customer no does not match.');
-        Assert.AreEqual(Format(SalesHeader."Order Date", 0, 9), JsonMgt.GetValue('orderDate'), 'Sales header order date does not match.');
-        Assert.AreEqual(SalesHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Sales header salesperson code does not match.');
-        Assert.AreEqual(Format(SalesLine."Document Type"), JsonMgt.GetValue('salesLineDocumentType'), 'Sales line document type does not match.');
-        Assert.AreEqual(SalesLine."Document No.", JsonMgt.GetValue('documentNo'), 'Sales line document no does not match.');
-        Assert.AreEqual(Format(SalesLine."Line No."), JsonMgt.GetValue('lineNo'), 'Sales line line no does not match.');
-        Assert.AreEqual(SalesLine."No.", JsonMgt.GetValue('itemNo'), 'Sales line item no does not match.');
-        Assert.AreEqual(SalesLine."Location Code", JsonMgt.GetValue('locationCode'), 'Sales line location code does not match.');
-        Assert.AreEqual(Format(SalesLine."Qty. Shipped Not Invd. (Base)" / 1.0, 0, 9), JsonMgt.GetValue('qtyShippedNotInvdBase'), 'Sales line qty shipped not invd base does not match.');
-        Assert.AreEqual(Format(SalesLine."Shipped Not Inv. (LCY) No VAT" / 1.0, 0, 9), JsonMgt.GetValue('shippedNotInvoicedLCY'), 'Sales line shipped not invoiced lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Shipped Not Invoiced" / 1.0, 0, 9), JsonMgt.GetValue('shippedNotInvoiced'), 'Sales line shipped not invoiced does not match.');
-        Assert.AreEqual(Format(SalesLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales item ledger entry not found.');
+        Assert.AreEqual(Format(SalesHeader."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Sales header document type does not match.');
+        Assert.AreEqual(SalesHeader."Bill-to Customer No.", LibraryGraphMgt.GetValue('customerNo'), 'Sales header customer no does not match.');
+        Assert.AreEqual(Format(SalesHeader."Order Date", 0, 9), LibraryGraphMgt.GetValue('orderDate'), 'Sales header order date does not match.');
+        Assert.AreEqual(SalesHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Sales header salesperson code does not match.');
+        Assert.AreEqual(Format(SalesLine."Document Type"), LibraryGraphMgt.GetValue('salesLineDocumentType'), 'Sales line document type does not match.');
+        Assert.AreEqual(SalesLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Sales line document no does not match.');
+        Assert.AreEqual(Format(SalesLine."Line No."), LibraryGraphMgt.GetValue('lineNo'), 'Sales line line no does not match.');
+        Assert.AreEqual(SalesLine."No.", LibraryGraphMgt.GetValue('itemNo'), 'Sales line item no does not match.');
+        Assert.AreEqual(SalesLine."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Sales line location code does not match.');
+        Assert.AreEqual(Format(SalesLine."Qty. Shipped Not Invd. (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('qtyShippedNotInvdBase'), 'Sales line qty shipped not invd base does not match.');
+        Assert.AreEqual(Format(SalesLine."Shipped Not Inv. (LCY) No VAT" / 1.0, 0, 9), LibraryGraphMgt.GetValue('shippedNotInvoicedLCY'), 'Sales line shipped not invoiced lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Shipped Not Invoiced" / 1.0, 0, 9), LibraryGraphMgt.GetValue('shippedNotInvoiced'), 'Sales line shipped not invoiced does not match.');
+        Assert.AreEqual(Format(SalesLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
     end;
 
     [Test]
@@ -362,55 +362,55 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesLineV2(Response: Text; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales line not found.');
-        Assert.AreEqual(Format(SalesHeader."No."), JsonMgt.GetValue('orderNo'), 'Sales order no does not match.');
-        Assert.AreEqual(Format(SalesHeader."Document Type"), JsonMgt.GetValue('documentType'), 'Sales header document type does not match.');
-        Assert.AreEqual(SalesHeader."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Sales header bill-to customer no does not match.');
-        Assert.AreEqual(SalesHeader."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sales header sell-to customer no does not match.');
-        Assert.AreEqual(Format(SalesHeader."Order Date", 0, 9), JsonMgt.GetValue('orderDate'), 'Sales header order date does not match.');
-        Assert.AreEqual(SalesHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Sales header salesperson code does not match.');
-        Assert.AreEqual(SalesHeader."Opportunity No.", JsonMgt.GetValue('opportunityNo'), 'Sales header opportunity no does not match.');
-        Assert.AreEqual(SalesHeader."Quote No.", JsonMgt.GetValue('quoteNo'), 'Sales header quote no does not match.');
-        Assert.AreEqual(Format(SalesHeader."Quote Valid Until Date", 0, 9), JsonMgt.GetValue('quoteValidUntilDate'), 'Sales header quote valid until date does not match.');
-        Assert.AreEqual(Format(SalesHeader."Document Date", 0, 9), JsonMgt.GetValue('documentDate'), 'Sales header document date does not match.');
-        Assert.AreEqual(Format(SalesHeader."Due Date", 0, 9), JsonMgt.GetValue('dueDate'), 'Sales header due date does not match.');
-        Assert.AreEqual(SalesHeader."Campaign No.", JsonMgt.GetValue('campaignNo'), 'Sales header campaign no does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales line not found.');
+        Assert.AreEqual(Format(SalesHeader."No."), LibraryGraphMgt.GetValue('orderNo'), 'Sales order no does not match.');
+        Assert.AreEqual(Format(SalesHeader."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Sales header document type does not match.');
+        Assert.AreEqual(SalesHeader."Bill-to Customer No.", LibraryGraphMgt.GetValue('billToCustomerNo'), 'Sales header bill-to customer no does not match.');
+        Assert.AreEqual(SalesHeader."Sell-to Customer No.", LibraryGraphMgt.GetValue('sellToCustomerNo'), 'Sales header sell-to customer no does not match.');
+        Assert.AreEqual(Format(SalesHeader."Order Date", 0, 9), LibraryGraphMgt.GetValue('orderDate'), 'Sales header order date does not match.');
+        Assert.AreEqual(SalesHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Sales header salesperson code does not match.');
+        Assert.AreEqual(SalesHeader."Opportunity No.", LibraryGraphMgt.GetValue('opportunityNo'), 'Sales header opportunity no does not match.');
+        Assert.AreEqual(SalesHeader."Quote No.", LibraryGraphMgt.GetValue('quoteNo'), 'Sales header quote no does not match.');
+        Assert.AreEqual(Format(SalesHeader."Quote Valid Until Date", 0, 9), LibraryGraphMgt.GetValue('quoteValidUntilDate'), 'Sales header quote valid until date does not match.');
+        Assert.AreEqual(Format(SalesHeader."Document Date", 0, 9), LibraryGraphMgt.GetValue('documentDate'), 'Sales header document date does not match.');
+        Assert.AreEqual(Format(SalesHeader."Due Date", 0, 9), LibraryGraphMgt.GetValue('dueDate'), 'Sales header due date does not match.');
+        Assert.AreEqual(SalesHeader."Campaign No.", LibraryGraphMgt.GetValue('campaignNo'), 'Sales header campaign no does not match.');
 
-        Assert.AreEqual(Format(SalesLine."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Sales line posting date does not match.');
-        Assert.AreEqual(Format(SalesLine."Document Type"), JsonMgt.GetValue('salesLineDocumentType'), 'Sales line document type does not match.');
-        Assert.AreEqual(SalesLine."Document No.", JsonMgt.GetValue('documentNo'), 'Sales line document no does not match.');
-        Assert.AreEqual(Format(SalesLine."Line No."), JsonMgt.GetValue('lineNo'), 'Sales line line no does not match.');
-        Assert.AreEqual(SalesLine."No.", JsonMgt.GetValue('itemNo'), 'Sales line item no does not match.');
-        Assert.AreEqual(SalesLine."Location Code", JsonMgt.GetValue('locationCode'), 'Sales line location code does not match.');
-        Assert.AreEqual(Format(SalesLine."Quantity (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityBase'), 'Sales line quantity base does not match.');
-        Assert.AreEqual(Format(SalesLine."Outstanding Qty. (Base)" / 1.0, 0, 9), JsonMgt.GetValue('outstandingQtyBase'), 'Sales line outstanding qty base does not match.');
-        Assert.AreEqual(Format(SalesLine."Outstanding Amount (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('outstandingAmountLCY'), 'Sales line outstanding amount lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Amount" / 1.0, 0, 9), JsonMgt.GetValue('amount'), 'Sales line amount does not match.');
-        Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Outstanding Quantity" / 1.0, 0, 9), JsonMgt.GetValue('outstandingQuantity'), 'Sales line outstanding quantity does not match.');
-        Assert.AreEqual(SalesLine."Return Reason Code", JsonMgt.GetValue('returnReasonCode'), 'Sales line return reason code does not match.');
-        Assert.AreEqual(Format(SalesLine."Shipment Date", 0, 9), JsonMgt.GetValue('shipmentDate'), 'Sales line shipment date does not match.');
-        Assert.AreEqual(Format(SalesLine."Planned Shipment Date", 0, 9), JsonMgt.GetValue('plannedShipmentDate'), 'Sales line planned shipment date does not match.');
-        Assert.AreEqual(Format(SalesLine."Planned Delivery Date", 0, 9), JsonMgt.GetValue('plannedDeliveryDate'), 'Sales line planned Delivery date does not match.');
-        Assert.AreEqual(Format(SalesLine."Requested Delivery Date", 0, 9), JsonMgt.GetValue('requestedDeliveryDate'), 'Sales line requested Delivery date does not match.');
-        Assert.AreEqual(Format(SalesLine."Promised Delivery Date", 0, 9), JsonMgt.GetValue('promisedDeliveryDate'), 'Sales line promised Delivery date does not match.');
-        Assert.AreEqual(Format(SalesLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
-        Assert.AreEqual(Format(SalesLine."Return Qty. Rcd. Not Invd." / 1.0, 0, 9), JsonMgt.GetValue('returnQtyRcdNotInvd'), 'Sales line return qty rcd not invd does not match.');
-        Assert.AreEqual(Format(SalesLine."Return Qty. Received (Base)" / 1.0, 0, 9), JsonMgt.GetValue('returnQtyReceivedBase'), 'Sales line return qty received base does not match.');
-        Assert.AreEqual(Format(SalesLine."Return Qty. to Receive (Base)" / 1.0, 0, 9), JsonMgt.GetValue('returnQtyToReceiveBase'), 'Sales line return qty to receive base does not match.');
-        Assert.AreEqual(Format(SalesLine."Return Rcd. Not Invd. (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('returnRcdNotInvdLCY'), 'Sales line return rcd not invd lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Qty. Shipped (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityShippedBase'), 'Sales line qty shipped base does not match.');
-        Assert.AreEqual(Format(SalesLine."Qty. to Ship (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityToShipBase'), 'Sales line qty to ship base does not match.');
-        Assert.AreEqual(Format(SalesLine."Qty. Shipped Not Invd. (Base)" / 1.0, 0, 9), JsonMgt.GetValue('qtyShippedNotInvdBase'), 'Sales line qty shipped not invd base does not match.');
-        Assert.AreEqual(Format(SalesLine."Shipped Not Inv. (LCY) No VAT" / 1.0, 0, 9), JsonMgt.GetValue('shippedNotInvoicedLCYNoVAT'), 'Sales line shipped not invoiced lcy does not match.');
-        Assert.AreEqual(Format(SalesLine."Shipped Not Invoiced" / 1.0, 0, 9), JsonMgt.GetValue('shippedNotInvoiced'), 'Sales line shipped not invoiced does not match.');
-        Assert.AreEqual(Format(SalesLine."Quantity Invoiced" / 1.0, 0, 9), JsonMgt.GetValue('quantityInvoiced'), 'Sales line quantity invoiced does not match.');
-        Assert.AreEqual(Format(SalesLine.Type), JsonMgt.GetValue('type'), 'Sales line type does not match.');
-        Assert.AreEqual(Format(SalesLine.Description), JsonMgt.GetValue('description'), 'Sales line description type does not match.');
-        Assert.AreEqual(Format(SalesLine."Job No."), JsonMgt.GetValue('projectNo'), 'Sales line project no. does not match.');
+        Assert.AreEqual(Format(SalesLine."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Sales line posting date does not match.');
+        Assert.AreEqual(Format(SalesLine."Document Type"), LibraryGraphMgt.GetValue('salesLineDocumentType'), 'Sales line document type does not match.');
+        Assert.AreEqual(SalesLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Sales line document no does not match.');
+        Assert.AreEqual(Format(SalesLine."Line No."), LibraryGraphMgt.GetValue('lineNo'), 'Sales line line no does not match.');
+        Assert.AreEqual(SalesLine."No.", LibraryGraphMgt.GetValue('itemNo'), 'Sales line item no does not match.');
+        Assert.AreEqual(SalesLine."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Sales line location code does not match.');
+        Assert.AreEqual(Format(SalesLine."Quantity (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityBase'), 'Sales line quantity base does not match.');
+        Assert.AreEqual(Format(SalesLine."Outstanding Qty. (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('outstandingQtyBase'), 'Sales line outstanding qty base does not match.');
+        Assert.AreEqual(Format(SalesLine."Outstanding Amount (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('outstandingAmountLCY'), 'Sales line outstanding amount lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Amount" / 1.0, 0, 9), LibraryGraphMgt.GetValue('amount'), 'Sales line amount does not match.');
+        Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Outstanding Quantity" / 1.0, 0, 9), LibraryGraphMgt.GetValue('outstandingQuantity'), 'Sales line outstanding quantity does not match.');
+        Assert.AreEqual(SalesLine."Return Reason Code", LibraryGraphMgt.GetValue('returnReasonCode'), 'Sales line return reason code does not match.');
+        Assert.AreEqual(Format(SalesLine."Shipment Date", 0, 9), LibraryGraphMgt.GetValue('shipmentDate'), 'Sales line shipment date does not match.');
+        Assert.AreEqual(Format(SalesLine."Planned Shipment Date", 0, 9), LibraryGraphMgt.GetValue('plannedShipmentDate'), 'Sales line planned shipment date does not match.');
+        Assert.AreEqual(Format(SalesLine."Planned Delivery Date", 0, 9), LibraryGraphMgt.GetValue('plannedDeliveryDate'), 'Sales line planned Delivery date does not match.');
+        Assert.AreEqual(Format(SalesLine."Requested Delivery Date", 0, 9), LibraryGraphMgt.GetValue('requestedDeliveryDate'), 'Sales line requested Delivery date does not match.');
+        Assert.AreEqual(Format(SalesLine."Promised Delivery Date", 0, 9), LibraryGraphMgt.GetValue('promisedDeliveryDate'), 'Sales line promised Delivery date does not match.');
+        Assert.AreEqual(Format(SalesLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
+        Assert.AreEqual(Format(SalesLine."Return Qty. Rcd. Not Invd." / 1.0, 0, 9), LibraryGraphMgt.GetValue('returnQtyRcdNotInvd'), 'Sales line return qty rcd not invd does not match.');
+        Assert.AreEqual(Format(SalesLine."Return Qty. Received (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('returnQtyReceivedBase'), 'Sales line return qty received base does not match.');
+        Assert.AreEqual(Format(SalesLine."Return Qty. to Receive (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('returnQtyToReceiveBase'), 'Sales line return qty to receive base does not match.');
+        Assert.AreEqual(Format(SalesLine."Return Rcd. Not Invd. (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('returnRcdNotInvdLCY'), 'Sales line return rcd not invd lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Qty. Shipped (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityShippedBase'), 'Sales line qty shipped base does not match.');
+        Assert.AreEqual(Format(SalesLine."Qty. to Ship (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityToShipBase'), 'Sales line qty to ship base does not match.');
+        Assert.AreEqual(Format(SalesLine."Qty. Shipped Not Invd. (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('qtyShippedNotInvdBase'), 'Sales line qty shipped not invd base does not match.');
+        Assert.AreEqual(Format(SalesLine."Shipped Not Inv. (LCY) No VAT" / 1.0, 0, 9), LibraryGraphMgt.GetValue('shippedNotInvoicedLCYNoVAT'), 'Sales line shipped not invoiced lcy does not match.');
+        Assert.AreEqual(Format(SalesLine."Shipped Not Invoiced" / 1.0, 0, 9), LibraryGraphMgt.GetValue('shippedNotInvoiced'), 'Sales line shipped not invoiced does not match.');
+        Assert.AreEqual(Format(SalesLine."Quantity Invoiced" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityInvoiced'), 'Sales line quantity invoiced does not match.');
+        Assert.AreEqual(Format(SalesLine.Type), LibraryGraphMgt.GetValue('type'), 'Sales line type does not match.');
+        Assert.AreEqual(Format(SalesLine.Description), LibraryGraphMgt.GetValue('description'), 'Sales line description type does not match.');
+        Assert.AreEqual(Format(SalesLine."Job No."), LibraryGraphMgt.GetValue('projectNo'), 'Sales line project no. does not match.');
     end;
 
     [Test]
@@ -441,20 +441,20 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyOpportunity(Response: Text; Opportunity: Record Opportunity)
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.opportunityNo == ''' + Format(Opportunity."No.") + ''')]'), 'Opportunity not found.');
-        Assert.AreEqual(Opportunity.Description, JsonMgt.GetValue('opportunityDescription'), 'Opportunity Description does not match.');
-        Assert.AreEqual(Opportunity."Sales Cycle Code", JsonMgt.GetValue('opportunitySalesCycle'), 'Opportunity Sales Cycle Code does not match.');
-        Assert.AreEqual(Format(Opportunity."Creation Date", 0, 9), JsonMgt.GetValue('opportunityCreationDate'), 'Opportunity Creation Date does not match.');
-        Assert.AreEqual(Format(Opportunity.Status), JsonMgt.GetValue('opportunityStatus'), 'Opportunity Status does not match.');
-        Assert.AreEqual(Opportunity.Closed ? 'True' : 'False', JsonMgt.GetValue('opportunityClosed'), 'Opportunity Closed does not match.');
-        Assert.AreEqual(Format(Opportunity."Sales Document No."), JsonMgt.GetValue('opportunitySalesDocumentNo'), 'Opportunity Sales Document No does not match.');
-        Assert.AreEqual(Format(Opportunity."Sales Document Type"), JsonMgt.GetValue('opportunitySalesDocumentType'), 'Opportunity Sales Document Type does not match.');
-        Assert.AreEqual(Format(Opportunity."Priority"), JsonMgt.GetValue('opportunityPriority'), 'Opportunity Priority does not match.');
-        Assert.AreEqual(Format(Opportunity."Campaign No."), JsonMgt.GetValue('opportunityCampaignNo'), 'Opportunity Campaign No does not match.');
-        Assert.AreEqual(Format(Opportunity."Segment No."), JsonMgt.GetValue('opportunitySegmentNo'), 'Opportunity Segment No does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.opportunityNo == ''' + Format(Opportunity."No.") + ''')]'), 'Opportunity not found.');
+        Assert.AreEqual(Opportunity.Description, LibraryGraphMgt.GetValue('opportunityDescription'), 'Opportunity Description does not match.');
+        Assert.AreEqual(Opportunity."Sales Cycle Code", LibraryGraphMgt.GetValue('opportunitySalesCycle'), 'Opportunity Sales Cycle Code does not match.');
+        Assert.AreEqual(Format(Opportunity."Creation Date", 0, 9), LibraryGraphMgt.GetValue('opportunityCreationDate'), 'Opportunity Creation Date does not match.');
+        Assert.AreEqual(Format(Opportunity.Status), LibraryGraphMgt.GetValue('opportunityStatus'), 'Opportunity Status does not match.');
+        Assert.AreEqual(Opportunity.Closed ? 'True' : 'False', LibraryGraphMgt.GetValue('opportunityClosed'), 'Opportunity Closed does not match.');
+        Assert.AreEqual(Format(Opportunity."Sales Document No."), LibraryGraphMgt.GetValue('opportunitySalesDocumentNo'), 'Opportunity Sales Document No does not match.');
+        Assert.AreEqual(Format(Opportunity."Sales Document Type"), LibraryGraphMgt.GetValue('opportunitySalesDocumentType'), 'Opportunity Sales Document Type does not match.');
+        Assert.AreEqual(Format(Opportunity."Priority"), LibraryGraphMgt.GetValue('opportunityPriority'), 'Opportunity Priority does not match.');
+        Assert.AreEqual(Format(Opportunity."Campaign No."), LibraryGraphMgt.GetValue('opportunityCampaignNo'), 'Opportunity Campaign No does not match.');
+        Assert.AreEqual(Format(Opportunity."Segment No."), LibraryGraphMgt.GetValue('opportunitySegmentNo'), 'Opportunity Segment No does not match.');
     end;
 
     [Test]
@@ -503,26 +503,26 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyOpportunityEntry(Response: Text; OpportunityEntry: Record "Opportunity Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.opportunityEntryEntryNo == ' + Format(OpportunityEntry."Entry No.") + ')]'), 'Opportunity Entry No not found.');
-        Assert.AreEqual(OpportunityEntry."Opportunity No.", JsonMgt.GetValue('opportunityEntryOpportunity'), 'Opportunity Entry Opportunity No does not match.');
-        Assert.AreEqual(OpportunityEntry."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Opportunity Entry Salesperson does not match.');
-        Assert.AreEqual(OpportunityEntry.Active ? 'True' : 'False', JsonMgt.GetValue('opportunityEntryActive'), 'Opportunity Entry Active does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Action Taken"), JsonMgt.GetValue('opportunityEntryActionTaken'), 'Opportunity Entry Action taken does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Date of Change", 0, 9), JsonMgt.GetValue('opportunityEntryDateChange'), 'Opportunity EntryDate of Change does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Estimated Close Date", 0, 9), JsonMgt.GetValue('opportunityEntryEstCloseDate'), 'Opportunity Entry Estimated Close Date does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Estimated Value (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('opportunityEntryEstValue'), 'Opportunity Entry Estimated value lcy does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Calcd. Current Value (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('opportunityEntryCalcCurrentValue'), 'Opportunity Entry calculated current value lcy does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Completed %" / 1.0, 0, 9), JsonMgt.GetValue('opportunityEntryCompleted'), 'Opportunity Entry Completed % does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Chances of Success %" / 1.0, 0, 9), JsonMgt.GetValue('opportunityEntryChanceSuccess'), 'Opportunity Entry Chance of Success % does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Probability %" / 1.0, 0, 9), JsonMgt.GetValue('opportunityEntryProbability'), 'Opportunity Entry Probability % does not match.');
-        Assert.AreEqual(OpportunityEntry."Sales Cycle Code", JsonMgt.GetValue('opportunityEntrySalesCycleCode'), 'Opportunity Entry Sales Cycle Code does not match.');
-        Assert.AreEqual(Format(OpportunityEntry."Sales Cycle Stage"), JsonMgt.GetValue('opportunityEntrySalesCycleStage'), 'Opportunity Entry Sales Cycle Stage does not match.');
-        Assert.AreEqual(OpportunityEntry."Sales Cycle Stage Description", JsonMgt.GetValue('opportunityEntrySalesCycleStageDescription'), 'Opportunity Entry Sales Cycle Stage Description does not match.');
-        Assert.AreEqual(OpportunityEntry."Close Opportunity Code", JsonMgt.GetValue('opportunityEntryCloseOpportunityCode'), 'Opportunity Entry Close Opportunity Code does not match.');
-        Assert.AreEqual(OpportunityEntry."Contact No.", JsonMgt.GetValue('opportunityContactNo'), 'Opportunity Entry Contact No does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.opportunityEntryEntryNo == ' + Format(OpportunityEntry."Entry No.") + ')]'), 'Opportunity Entry No not found.');
+        Assert.AreEqual(OpportunityEntry."Opportunity No.", LibraryGraphMgt.GetValue('opportunityEntryOpportunity'), 'Opportunity Entry Opportunity No does not match.');
+        Assert.AreEqual(OpportunityEntry."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Opportunity Entry Salesperson does not match.');
+        Assert.AreEqual(OpportunityEntry.Active ? 'True' : 'False', LibraryGraphMgt.GetValue('opportunityEntryActive'), 'Opportunity Entry Active does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Action Taken"), LibraryGraphMgt.GetValue('opportunityEntryActionTaken'), 'Opportunity Entry Action taken does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Date of Change", 0, 9), LibraryGraphMgt.GetValue('opportunityEntryDateChange'), 'Opportunity EntryDate of Change does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Estimated Close Date", 0, 9), LibraryGraphMgt.GetValue('opportunityEntryEstCloseDate'), 'Opportunity Entry Estimated Close Date does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Estimated Value (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('opportunityEntryEstValue'), 'Opportunity Entry Estimated value lcy does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Calcd. Current Value (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('opportunityEntryCalcCurrentValue'), 'Opportunity Entry calculated current value lcy does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Completed %" / 1.0, 0, 9), LibraryGraphMgt.GetValue('opportunityEntryCompleted'), 'Opportunity Entry Completed % does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Chances of Success %" / 1.0, 0, 9), LibraryGraphMgt.GetValue('opportunityEntryChanceSuccess'), 'Opportunity Entry Chance of Success % does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Probability %" / 1.0, 0, 9), LibraryGraphMgt.GetValue('opportunityEntryProbability'), 'Opportunity Entry Probability % does not match.');
+        Assert.AreEqual(OpportunityEntry."Sales Cycle Code", LibraryGraphMgt.GetValue('opportunityEntrySalesCycleCode'), 'Opportunity Entry Sales Cycle Code does not match.');
+        Assert.AreEqual(Format(OpportunityEntry."Sales Cycle Stage"), LibraryGraphMgt.GetValue('opportunityEntrySalesCycleStage'), 'Opportunity Entry Sales Cycle Stage does not match.');
+        Assert.AreEqual(OpportunityEntry."Sales Cycle Stage Description", LibraryGraphMgt.GetValue('opportunityEntrySalesCycleStageDescription'), 'Opportunity Entry Sales Cycle Stage Description does not match.');
+        Assert.AreEqual(OpportunityEntry."Close Opportunity Code", LibraryGraphMgt.GetValue('opportunityEntryCloseOpportunityCode'), 'Opportunity Entry Close Opportunity Code does not match.');
+        Assert.AreEqual(OpportunityEntry."Contact No.", LibraryGraphMgt.GetValue('opportunityContactNo'), 'Opportunity Entry Contact No does not match.');
     end;
 
     [Test]
@@ -564,13 +564,13 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesCycleStage(Response: Text; SalesCycleStage: Record "Sales Cycle Stage")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.salesCycleCode == ''' + SalesCycleStage."Sales Cycle Code" + ''')]'), 'Sales Cycle Code not found.');
-        Assert.AreEqual(SalesCycleStage."Sales Cycle Code", JsonMgt.GetValue('salesCycleCode'), 'Sales cycle code does not match.');
-        Assert.AreEqual(Format(SalesCycleStage.Stage, 0, 9), JsonMgt.GetValue('salesCycleStage'), 'Sales cycle stage does not match.');
-        Assert.AreEqual(SalesCycleStage.Description, JsonMgt.GetValue('salesCycleStageDescription'), 'Sales cycle description does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.salesCycleCode == ''' + SalesCycleStage."Sales Cycle Code" + ''')]'), 'Sales Cycle Code not found.');
+        Assert.AreEqual(SalesCycleStage."Sales Cycle Code", LibraryGraphMgt.GetValue('salesCycleCode'), 'Sales cycle code does not match.');
+        Assert.AreEqual(Format(SalesCycleStage.Stage, 0, 9), LibraryGraphMgt.GetValue('salesCycleStage'), 'Sales cycle stage does not match.');
+        Assert.AreEqual(SalesCycleStage.Description, LibraryGraphMgt.GetValue('salesCycleStageDescription'), 'Sales cycle description does not match.');
     end;
 
     [Test]
@@ -607,13 +607,13 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyCloseOpportunityCode(Response: Text; CloseOpportunityCode: Record "Close Opportunity Code")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.closeOpportunityCode == ''' + CloseOpportunityCode.Code + ''')]'), 'Sales Cycle Code not found.');
-        Assert.AreEqual(CloseOpportunityCode.Code, JsonMgt.GetValue('closeOpportunityCode'), 'Close opportunity code does not match.');
-        Assert.AreEqual(CloseOpportunityCode.Description, JsonMgt.GetValue('closeOpportunityDescription'), 'Close opportunity description does not match.');
-        Assert.AreEqual(Format(CloseOpportunityCode.Type), JsonMgt.GetValue('closeOpportunityType'), 'Close opportunity type does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.closeOpportunityCode == ''' + CloseOpportunityCode.Code + ''')]'), 'Sales Cycle Code not found.');
+        Assert.AreEqual(CloseOpportunityCode.Code, LibraryGraphMgt.GetValue('closeOpportunityCode'), 'Close opportunity code does not match.');
+        Assert.AreEqual(CloseOpportunityCode.Description, LibraryGraphMgt.GetValue('closeOpportunityDescription'), 'Close opportunity description does not match.');
+        Assert.AreEqual(Format(CloseOpportunityCode.Type), LibraryGraphMgt.GetValue('closeOpportunityType'), 'Close opportunity type does not match.');
     end;
 
     [Test]
@@ -664,30 +664,30 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesCreditLines(Response: Text; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesCrMemoLine: Record "Sales Cr.Memo Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesCrMemoLine."Line No.") + ')]'), 'Sales line not found.');
-        Assert.AreEqual(Format(SalesCrMemoLine."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Posting date does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine.Type), JsonMgt.GetValue('type'), 'Type does not match.');
-        Assert.AreEqual(SalesCrMemoLine.Description, JsonMgt.GetValue('description'), 'Description does not match.');
-        Assert.AreEqual(SalesCrMemoLine."Document No.", JsonMgt.GetValue('documentNo'), 'Document no. does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine."Line No."), JsonMgt.GetValue('lineNo'), 'Type does not match.');
-        Assert.AreEqual(SalesCrMemoLine."No.", JsonMgt.GetValue('no'), 'No. does not match.');
-        Assert.AreEqual(SalesCrMemoLine."Location Code", JsonMgt.GetValue('locationCode'), 'Location code does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine."Quantity (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityBase'), 'Quantity (base) does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine.Amount / 1.0, 0, 9), JsonMgt.GetValue('amount'), 'Amount does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Unit cost (LCY) does not match.');
-        Assert.AreEqual(SalesCrMemoLine."Return Reason Code", JsonMgt.GetValue('returnReasonCode'), 'Return reason code does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine."Shipment Date", 0, 9), JsonMgt.GetValue('shipmentDate'), 'Shipment date does not match.');
-        Assert.AreEqual(Format(SalesCrMemoLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID does not match.');
-        Assert.AreEqual(SalesCrMemoLine."Job No.", JsonMgt.GetValue('projectNo'), 'Project no. does not match.');
-        Assert.AreEqual(SalesCrMemoLine."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to Customer No. does not match.');
-        Assert.AreEqual(SalesCrMemoLine."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to Customer No. does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."No.", JsonMgt.GetValue('salesCreditDocumentNo'), 'Sales credit document no. does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Campaign No.", JsonMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Opportunity No.", JsonMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesCrMemoLine."Line No.") + ')]'), 'Sales line not found.');
+        Assert.AreEqual(Format(SalesCrMemoLine."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Posting date does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine.Type), LibraryGraphMgt.GetValue('type'), 'Type does not match.');
+        Assert.AreEqual(SalesCrMemoLine.Description, LibraryGraphMgt.GetValue('description'), 'Description does not match.');
+        Assert.AreEqual(SalesCrMemoLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Document no. does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine."Line No."), LibraryGraphMgt.GetValue('lineNo'), 'Type does not match.');
+        Assert.AreEqual(SalesCrMemoLine."No.", LibraryGraphMgt.GetValue('no'), 'No. does not match.');
+        Assert.AreEqual(SalesCrMemoLine."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Location code does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine."Quantity (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityBase'), 'Quantity (base) does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine.Amount / 1.0, 0, 9), LibraryGraphMgt.GetValue('amount'), 'Amount does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Unit cost (LCY) does not match.');
+        Assert.AreEqual(SalesCrMemoLine."Return Reason Code", LibraryGraphMgt.GetValue('returnReasonCode'), 'Return reason code does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine."Shipment Date", 0, 9), LibraryGraphMgt.GetValue('shipmentDate'), 'Shipment date does not match.');
+        Assert.AreEqual(Format(SalesCrMemoLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID does not match.');
+        Assert.AreEqual(SalesCrMemoLine."Job No.", LibraryGraphMgt.GetValue('projectNo'), 'Project no. does not match.');
+        Assert.AreEqual(SalesCrMemoLine."Bill-to Customer No.", LibraryGraphMgt.GetValue('billToCustomerNo'), 'Bill-to Customer No. does not match.');
+        Assert.AreEqual(SalesCrMemoLine."Sell-to Customer No.", LibraryGraphMgt.GetValue('sellToCustomerNo'), 'Sell-to Customer No. does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."No.", LibraryGraphMgt.GetValue('salesCreditDocumentNo'), 'Sales credit document no. does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Campaign No.", LibraryGraphMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Opportunity No.", LibraryGraphMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
     end;
 
     [Test]
@@ -738,31 +738,31 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesInvoiceLines(Response: Text; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesInvoiceLine."Line No.") + ')]'), 'Sales line not found.');
-        Assert.AreEqual(Format(SalesInvoiceLine."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Posting date does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine.Type), JsonMgt.GetValue('type'), 'Type does not match.');
-        Assert.AreEqual(SalesInvoiceLine.Description, JsonMgt.GetValue('description'), 'Description does not match.');
-        Assert.AreEqual(SalesInvoiceLine."Document No.", JsonMgt.GetValue('documentNo'), 'Document no. does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine."Line No."), JsonMgt.GetValue('lineNo'), 'Type does not match.');
-        Assert.AreEqual(SalesInvoiceLine."No.", JsonMgt.GetValue('no'), 'No. does not match.');
-        Assert.AreEqual(SalesInvoiceLine."Location Code", JsonMgt.GetValue('locationCode'), 'Location code does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine."Quantity (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityBase'), 'Quantity (base) does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine.Amount / 1.0, 0, 9), JsonMgt.GetValue('amount'), 'Amount does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Unit cost (LCY) does not match.');
-        Assert.AreEqual(SalesInvoiceLine."Return Reason Code", JsonMgt.GetValue('returnReasonCode'), 'Return reason code does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine."Shipment Date", 0, 9), JsonMgt.GetValue('shipmentDate'), 'Shipment date does not match.');
-        Assert.AreEqual(Format(SalesInvoiceLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID does not match.');
-        Assert.AreEqual(SalesInvoiceLine."Job No.", JsonMgt.GetValue('projectNo'), 'Project no. does not match.');
-        Assert.AreEqual(SalesInvoiceLine."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to Customer No. does not match.');
-        Assert.AreEqual(SalesInvoiceLine."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to Customer No. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."No.", JsonMgt.GetValue('salesInvoiceDocumentNo'), 'Sales invoice document no. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Campaign No.", JsonMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Opportunity No.", JsonMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Quote No.", JsonMgt.GetValue('quoteNo'), 'Quote no. does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesInvoiceLine."Line No.") + ')]'), 'Sales line not found.');
+        Assert.AreEqual(Format(SalesInvoiceLine."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Posting date does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine.Type), LibraryGraphMgt.GetValue('type'), 'Type does not match.');
+        Assert.AreEqual(SalesInvoiceLine.Description, LibraryGraphMgt.GetValue('description'), 'Description does not match.');
+        Assert.AreEqual(SalesInvoiceLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Document no. does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine."Line No."), LibraryGraphMgt.GetValue('lineNo'), 'Type does not match.');
+        Assert.AreEqual(SalesInvoiceLine."No.", LibraryGraphMgt.GetValue('no'), 'No. does not match.');
+        Assert.AreEqual(SalesInvoiceLine."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Location code does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine."Quantity (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityBase'), 'Quantity (base) does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine.Amount / 1.0, 0, 9), LibraryGraphMgt.GetValue('amount'), 'Amount does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Unit cost (LCY) does not match.');
+        Assert.AreEqual(SalesInvoiceLine."Return Reason Code", LibraryGraphMgt.GetValue('returnReasonCode'), 'Return reason code does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine."Shipment Date", 0, 9), LibraryGraphMgt.GetValue('shipmentDate'), 'Shipment date does not match.');
+        Assert.AreEqual(Format(SalesInvoiceLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID does not match.');
+        Assert.AreEqual(SalesInvoiceLine."Job No.", LibraryGraphMgt.GetValue('projectNo'), 'Project no. does not match.');
+        Assert.AreEqual(SalesInvoiceLine."Bill-to Customer No.", LibraryGraphMgt.GetValue('billToCustomerNo'), 'Bill-to Customer No. does not match.');
+        Assert.AreEqual(SalesInvoiceLine."Sell-to Customer No.", LibraryGraphMgt.GetValue('sellToCustomerNo'), 'Sell-to Customer No. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."No.", LibraryGraphMgt.GetValue('salesInvoiceDocumentNo'), 'Sales invoice document no. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Campaign No.", LibraryGraphMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Opportunity No.", LibraryGraphMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Quote No.", LibraryGraphMgt.GetValue('quoteNo'), 'Quote no. does not match.');
     end;
 
     [Test]
@@ -828,34 +828,34 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesInvoiceProjectLedgerEntry(Response: Text; SalesInvoiceHeader: Record "Sales Invoice Header"; JobLedgerEntry: Record "Job Ledger Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(JobLedgerEntry."Entry No.") + ')]'), 'Project ledger entry not found.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(JobLedgerEntry."Entry No.") + ')]'), 'Project ledger entry not found.');
 
         // Project ledger entry assertions
-        Assert.AreEqual(Format(JobLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Project ledger entry posting date does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry.Type), JsonMgt.GetValue('type'), 'Project ledger entry type does not match.');
-        Assert.AreEqual(JobLedgerEntry.Description, JsonMgt.GetValue('description'), 'Project ledger entry description does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Entry No." / 1.0, 0, 9), JsonMgt.GetValue('entryNo'), 'Project ledger entry no. does not match.');
-        Assert.AreEqual(JobLedgerEntry."No.", JsonMgt.GetValue('no'), 'Project ledger entry no. does not match.');
-        Assert.AreEqual(JobLedgerEntry."Document No.", JsonMgt.GetValue('documentNo'), 'Project ledger entry document no. does not match.');
-        Assert.AreEqual(JobLedgerEntry."Location Code", JsonMgt.GetValue('locationCode'), 'Project ledger entry location code does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Quantity (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityBase'), 'Project ledger entry quantity (base) does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Total Price (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('totalPriceLCY'), 'Project ledger entry total price (LCY) does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Total Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('totalCostLCY'), 'Project ledger entry total cost (LCY) does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Project ledger entry unit cost (LCY) does not match.');
-        Assert.AreEqual(JobLedgerEntry."Reason Code", JsonMgt.GetValue('reasonCode'), 'Project ledger entry reason code does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Dimension Set ID" / 1.0, 0, 9), JsonMgt.GetValue('dimensionSetID'), 'Project ledger entry dimension set ID does not match.');
-        Assert.AreEqual(JobLedgerEntry."Job No.", JsonMgt.GetValue('projectNo'), 'Project ledger entry project no. does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Project ledger entry posting date does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry.Type), LibraryGraphMgt.GetValue('type'), 'Project ledger entry type does not match.');
+        Assert.AreEqual(JobLedgerEntry.Description, LibraryGraphMgt.GetValue('description'), 'Project ledger entry description does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Entry No." / 1.0, 0, 9), LibraryGraphMgt.GetValue('entryNo'), 'Project ledger entry no. does not match.');
+        Assert.AreEqual(JobLedgerEntry."No.", LibraryGraphMgt.GetValue('no'), 'Project ledger entry no. does not match.');
+        Assert.AreEqual(JobLedgerEntry."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Project ledger entry document no. does not match.');
+        Assert.AreEqual(JobLedgerEntry."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Project ledger entry location code does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Quantity (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityBase'), 'Project ledger entry quantity (base) does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Total Price (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('totalPriceLCY'), 'Project ledger entry total price (LCY) does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Total Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('totalCostLCY'), 'Project ledger entry total cost (LCY) does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Project ledger entry unit cost (LCY) does not match.');
+        Assert.AreEqual(JobLedgerEntry."Reason Code", LibraryGraphMgt.GetValue('reasonCode'), 'Project ledger entry reason code does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Dimension Set ID" / 1.0, 0, 9), LibraryGraphMgt.GetValue('dimensionSetID'), 'Project ledger entry dimension set ID does not match.');
+        Assert.AreEqual(JobLedgerEntry."Job No.", LibraryGraphMgt.GetValue('projectNo'), 'Project ledger entry project no. does not match.');
 
         // Sales invoice header assertions
-        Assert.AreEqual(SalesInvoiceHeader."No.", JsonMgt.GetValue('salesInvoiceDocumentNo'), 'Sales invoice document no. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Campaign No.", JsonMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Opportunity No.", JsonMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to customer does not match.');
-        Assert.AreEqual(SalesInvoiceHeader."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to customer does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."No.", LibraryGraphMgt.GetValue('salesInvoiceDocumentNo'), 'Sales invoice document no. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Campaign No.", LibraryGraphMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Opportunity No.", LibraryGraphMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Bill-to Customer No.", LibraryGraphMgt.GetValue('billToCustomerNo'), 'Bill-to customer does not match.');
+        Assert.AreEqual(SalesInvoiceHeader."Sell-to Customer No.", LibraryGraphMgt.GetValue('sellToCustomerNo'), 'Sell-to customer does not match.');
     end;
 
     [Test]
@@ -938,34 +938,34 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesCreditProjectLedgerEntry(Response: Text; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; JobLedgerEntry: Record "Job Ledger Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(JobLedgerEntry."Entry No.") + ')]'), 'Project ledger entry not found.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(JobLedgerEntry."Entry No.") + ')]'), 'Project ledger entry not found.');
 
         // Project ledger entry assertions
-        Assert.AreEqual(Format(JobLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Project ledger entry posting date does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry.Type), JsonMgt.GetValue('type'), 'Project ledger entry type does not match.');
-        Assert.AreEqual(JobLedgerEntry.Description, JsonMgt.GetValue('description'), 'Project ledger entry description does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Entry No." / 1.0, 0, 9), JsonMgt.GetValue('entryNo'), 'Project ledger entry no. does not match.');
-        Assert.AreEqual(JobLedgerEntry."No.", JsonMgt.GetValue('no'), 'Project ledger entry no. does not match.');
-        Assert.AreEqual(JobLedgerEntry."Document No.", JsonMgt.GetValue('documentNo'), 'Project ledger entry document no. does not match.');
-        Assert.AreEqual(JobLedgerEntry."Location Code", JsonMgt.GetValue('locationCode'), 'Project ledger entry location code does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Quantity (Base)" / 1.0, 0, 9), JsonMgt.GetValue('quantityBase'), 'Project ledger entry quantity (base) does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Total Price (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('totalPriceLCY'), 'Project ledger entry total price (LCY) does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Total Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('totalCostLCY'), 'Project ledger entry total cost (LCY) does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Project ledger entry unit cost (LCY) does not match.');
-        Assert.AreEqual(JobLedgerEntry."Reason Code", JsonMgt.GetValue('reasonCode'), 'Project ledger entry reason code does not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Dimension Set ID" / 1.0, 0, 9), JsonMgt.GetValue('dimensionSetID'), 'Project ledger entry dimension set ID does not match.');
-        Assert.AreEqual(JobLedgerEntry."Job No.", JsonMgt.GetValue('projectNo'), 'Project ledger entry project no. does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Project ledger entry posting date does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry.Type), LibraryGraphMgt.GetValue('type'), 'Project ledger entry type does not match.');
+        Assert.AreEqual(JobLedgerEntry.Description, LibraryGraphMgt.GetValue('description'), 'Project ledger entry description does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Entry No." / 1.0, 0, 9), LibraryGraphMgt.GetValue('entryNo'), 'Project ledger entry no. does not match.');
+        Assert.AreEqual(JobLedgerEntry."No.", LibraryGraphMgt.GetValue('no'), 'Project ledger entry no. does not match.');
+        Assert.AreEqual(JobLedgerEntry."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Project ledger entry document no. does not match.');
+        Assert.AreEqual(JobLedgerEntry."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Project ledger entry location code does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Quantity (Base)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('quantityBase'), 'Project ledger entry quantity (base) does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Total Price (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('totalPriceLCY'), 'Project ledger entry total price (LCY) does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Total Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('totalCostLCY'), 'Project ledger entry total cost (LCY) does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Project ledger entry unit cost (LCY) does not match.');
+        Assert.AreEqual(JobLedgerEntry."Reason Code", LibraryGraphMgt.GetValue('reasonCode'), 'Project ledger entry reason code does not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Dimension Set ID" / 1.0, 0, 9), LibraryGraphMgt.GetValue('dimensionSetID'), 'Project ledger entry dimension set ID does not match.');
+        Assert.AreEqual(JobLedgerEntry."Job No.", LibraryGraphMgt.GetValue('projectNo'), 'Project ledger entry project no. does not match.');
 
         // Sales credit memo header assertions
-        Assert.AreEqual(SalesCrMemoHeader."No.", JsonMgt.GetValue('salesCreditDocumentNo'), 'Sales credit document no. does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Campaign No.", JsonMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Salesperson Code", JsonMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Opportunity No.", JsonMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to customer does not match.');
-        Assert.AreEqual(SalesCrMemoHeader."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to customer does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."No.", LibraryGraphMgt.GetValue('salesCreditDocumentNo'), 'Sales credit document no. does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Campaign No.", LibraryGraphMgt.GetValue('campaignNo'), 'Campaign no. does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Salesperson Code", LibraryGraphMgt.GetValue('salespersonCode'), 'Salesperson code does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Opportunity No.", LibraryGraphMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Bill-to Customer No.", LibraryGraphMgt.GetValue('billToCustomerNo'), 'Bill-to customer does not match.');
+        Assert.AreEqual(SalesCrMemoHeader."Sell-to Customer No.", LibraryGraphMgt.GetValue('sellToCustomerNo'), 'Sell-to customer does not match.');
     end;
 
     [Test]
@@ -997,20 +997,20 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyContact(Response: Text; Contact: Record Contact)
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.contactNo == ''' + Format(Contact."No.") + ''')]'), 'Contact not found.');
-        Assert.AreEqual(Contact."No.", JsonMgt.GetValue('contactNo'), 'Contact No. does not match.');
-        Assert.AreEqual(Format(Contact.Type), JsonMgt.GetValue('contactType'), 'Contact Type does not match.');
-        Assert.AreEqual(Contact."Company No.", JsonMgt.GetValue('companyNo'), 'Company No. does not match.');
-        Assert.AreEqual(Contact."Company Name", JsonMgt.GetValue('companyName'), 'Company Name does not match.');
-        Assert.AreEqual(Contact.Address, JsonMgt.GetValue('address'), 'Address does not match.');
-        Assert.AreEqual(Contact."Address 2", JsonMgt.GetValue('address2'), 'Address 2 does not match.');
-        Assert.AreEqual(Contact.City, JsonMgt.GetValue('city'), 'City does not match.');
-        Assert.AreEqual(Contact."Post Code", JsonMgt.GetValue('postCode'), 'Post Code Type does not match.');
-        Assert.AreEqual(Contact.County, JsonMgt.GetValue('county'), 'County does not match.');
-        Assert.AreEqual(Contact."Country/Region Code", JsonMgt.GetValue('countryRegionCode'), 'Contry/Region Code does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.contactNo == ''' + Format(Contact."No.") + ''')]'), 'Contact not found.');
+        Assert.AreEqual(Contact."No.", LibraryGraphMgt.GetValue('contactNo'), 'Contact No. does not match.');
+        Assert.AreEqual(Format(Contact.Type), LibraryGraphMgt.GetValue('contactType'), 'Contact Type does not match.');
+        Assert.AreEqual(Contact."Company No.", LibraryGraphMgt.GetValue('companyNo'), 'Company No. does not match.');
+        Assert.AreEqual(Contact."Company Name", LibraryGraphMgt.GetValue('companyName'), 'Company Name does not match.');
+        Assert.AreEqual(Contact.Address, LibraryGraphMgt.GetValue('address'), 'Address does not match.');
+        Assert.AreEqual(Contact."Address 2", LibraryGraphMgt.GetValue('address2'), 'Address 2 does not match.');
+        Assert.AreEqual(Contact.City, LibraryGraphMgt.GetValue('city'), 'City does not match.');
+        Assert.AreEqual(Contact."Post Code", LibraryGraphMgt.GetValue('postCode'), 'Post Code Type does not match.');
+        Assert.AreEqual(Contact.County, LibraryGraphMgt.GetValue('county'), 'County does not match.');
+        Assert.AreEqual(Contact."Country/Region Code", LibraryGraphMgt.GetValue('countryRegionCode'), 'Contry/Region Code does not match.');
     end;
 
     [Test]
@@ -1046,14 +1046,14 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyItemCategory(Response: Text; ItemCategory: Record "Item Category"; ParentCategoryCode: Code[20])
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.code == ''' + Format(ItemCategory.Code) + ''')]'), 'Item Category not found.');
-        Assert.AreEqual(ItemCategory.Code, JsonMgt.GetValue('code'), 'Item Category Code does not match.');
-        Assert.AreEqual(ItemCategory.Description, JsonMgt.GetValue('description'), 'Description does not match.');
-        Assert.AreEqual(ParentCategoryCode, JsonMgt.GetValue('parentCategory'), 'Parent Category does not match.');
-        Assert.AreEqual(Format(ItemCategory.SystemId), '{' + JsonMgt.GetValue('systemId').ToUpper() + '}', 'System ID does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.code == ''' + Format(ItemCategory.Code) + ''')]'), 'Item Category not found.');
+        Assert.AreEqual(ItemCategory.Code, LibraryGraphMgt.GetValue('code'), 'Item Category Code does not match.');
+        Assert.AreEqual(ItemCategory.Description, LibraryGraphMgt.GetValue('description'), 'Description does not match.');
+        Assert.AreEqual(ParentCategoryCode, LibraryGraphMgt.GetValue('parentCategory'), 'Parent Category does not match.');
+        Assert.AreEqual(Format(ItemCategory.SystemId), '{' + LibraryGraphMgt.GetValue('systemId').ToUpper() + '}', 'System ID does not match.');
     end;
 
     [Test]
@@ -1084,12 +1084,12 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyReturnReason(Response: Text; ReturnReason: Record "Return Reason")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.reasonCode == ''' + Format(ReturnReason.Code) + ''')]'), 'Return Reason not found.');
-        Assert.AreEqual(ReturnReason.Code, JsonMgt.GetValue('reasonCode'), 'Return Reason Code does not match.');
-        Assert.AreEqual(ReturnReason.Description, JsonMgt.GetValue('reasonDescription'), 'Description does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.reasonCode == ''' + Format(ReturnReason.Code) + ''')]'), 'Return Reason not found.');
+        Assert.AreEqual(ReturnReason.Code, LibraryGraphMgt.GetValue('reasonCode'), 'Return Reason Code does not match.');
+        Assert.AreEqual(ReturnReason.Description, LibraryGraphMgt.GetValue('reasonDescription'), 'Description does not match.');
     end;
 
     [Test]
@@ -1122,15 +1122,15 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyResource(Response: Text; Resource: Record Resource)
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.resourceNo == ''' + Format(Resource."No.") + ''')]'), 'Resource not found.');
-        Assert.AreEqual(Resource."No.", JsonMgt.GetValue('resourceNo'), 'Resource no. does not match.');
-        Assert.AreEqual(Resource.Name, JsonMgt.GetValue('resourceName'), 'Resource name does not match.');
-        Assert.AreEqual(Resource."Base Unit of Measure", JsonMgt.GetValue('baseUnitofMeasure'), 'Base unit of measure does not match.');
-        Assert.AreEqual(Format(Resource."Unit Cost" / 1.0, 0, 9), JsonMgt.GetValue('unitCost'), 'Unit cost does not match.');
-        Assert.AreEqual(Format(Resource."Unit Price" / 1.0, 0, 9), JsonMgt.GetValue('unitPrice'), 'Unit price does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.resourceNo == ''' + Format(Resource."No.") + ''')]'), 'Resource not found.');
+        Assert.AreEqual(Resource."No.", LibraryGraphMgt.GetValue('resourceNo'), 'Resource no. does not match.');
+        Assert.AreEqual(Resource.Name, LibraryGraphMgt.GetValue('resourceName'), 'Resource name does not match.');
+        Assert.AreEqual(Resource."Base Unit of Measure", LibraryGraphMgt.GetValue('baseUnitofMeasure'), 'Base unit of measure does not match.');
+        Assert.AreEqual(Format(Resource."Unit Cost" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCost'), 'Unit cost does not match.');
+        Assert.AreEqual(Format(Resource."Unit Price" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitPrice'), 'Unit price does not match.');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Create-Invoice", OnCreateSalesInvoiceOnBeforeRunReport, '', true, true)]

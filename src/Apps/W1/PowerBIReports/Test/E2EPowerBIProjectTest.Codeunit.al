@@ -77,25 +77,25 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJob(Response: Text; Job: Record Job)
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         BoolText: Text;
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(Job."No.") + ''')]'), 'Job not found.');
-        Assert.AreEqual(Job.Description, JsonMgt.GetValue('description'), 'Description did not match.');
-        Assert.AreEqual(Job."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to customer no. did not match.');
-        Assert.AreEqual(Job."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to customer no. did not match.');
-        Assert.AreEqual(Format(Job."Creation Date", 0, 9), JsonMgt.GetValue('creationDate'), 'Creation date did not match.');
-        Assert.AreEqual(Format(Job."Starting Date", 0, 9), JsonMgt.GetValue('startingDate'), 'Starting date did not match.');
-        Assert.AreEqual(Format(Job."Ending Date", 0, 9), JsonMgt.GetValue('endingDate'), 'Ending date did not match.');
-        Assert.AreEqual(Format(Job.Status), JsonMgt.GetValue('status'), 'Status did not match.');
-        Assert.AreEqual(Job."Job Posting Group", JsonMgt.GetValue('jobPostingGroup'), 'Job posting group did not match.');
-        Assert.AreEqual(Format(Job.Blocked), JsonMgt.GetValue('blocked'), 'Blocked did not match.');
-        Assert.AreEqual(Job."Project Manager", JsonMgt.GetValue('projectManager'), 'Project manager did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(Job."No.") + ''')]'), 'Job not found.');
+        Assert.AreEqual(Job.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(Job."Bill-to Customer No.", LibraryGraphMgt.GetValue('billToCustomerNo'), 'Bill-to customer no. did not match.');
+        Assert.AreEqual(Job."Sell-to Customer No.", LibraryGraphMgt.GetValue('sellToCustomerNo'), 'Sell-to customer no. did not match.');
+        Assert.AreEqual(Format(Job."Creation Date", 0, 9), LibraryGraphMgt.GetValue('creationDate'), 'Creation date did not match.');
+        Assert.AreEqual(Format(Job."Starting Date", 0, 9), LibraryGraphMgt.GetValue('startingDate'), 'Starting date did not match.');
+        Assert.AreEqual(Format(Job."Ending Date", 0, 9), LibraryGraphMgt.GetValue('endingDate'), 'Ending date did not match.');
+        Assert.AreEqual(Format(Job.Status), LibraryGraphMgt.GetValue('status'), 'Status did not match.');
+        Assert.AreEqual(Job."Job Posting Group", LibraryGraphMgt.GetValue('jobPostingGroup'), 'Job posting group did not match.');
+        Assert.AreEqual(Format(Job.Blocked), LibraryGraphMgt.GetValue('blocked'), 'Blocked did not match.');
+        Assert.AreEqual(Job."Project Manager", LibraryGraphMgt.GetValue('projectManager'), 'Project manager did not match.');
         BoolText := 'False';
         if Job.Complete then
             BoolText := 'True';
-        Assert.AreEqual(BoolText, JsonMgt.GetValue('complete'), 'Complete did not match.');
+        Assert.AreEqual(BoolText, LibraryGraphMgt.GetValue('complete'), 'Complete did not match.');
     end;
 
     [Test]
@@ -132,16 +132,16 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJobTask(Response: Text; JobTask: Record "Job Task")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.jobTaskNo == ''' + Format(JobTask."Job Task No.") + ''')]'), 'Job task not found.');
-        Assert.AreEqual(JobTask.Description, JsonMgt.GetValue('description'), 'Description did not match.');
-        Assert.AreEqual(JobTask.Totaling, JsonMgt.GetValue('totaling'), 'Totaling did not match.');
-        Assert.AreEqual(Format(JobTask."Job Task Type"), JsonMgt.GetValue('jobTaskType'), 'Job task type did not match.');
-        Assert.AreEqual(Format(JobTask.Indentation), JsonMgt.GetValue('indentation'), 'Indentation did not match.');
-        Assert.AreEqual(Format(JobTask."Start Date", 0, 9), JsonMgt.GetValue('startDate'), 'Start date did not match.');
-        Assert.AreEqual(Format(JobTask."End Date", 0, 9), JsonMgt.GetValue('endDate'), 'End date did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.jobTaskNo == ''' + Format(JobTask."Job Task No.") + ''')]'), 'Job task not found.');
+        Assert.AreEqual(JobTask.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(JobTask.Totaling, LibraryGraphMgt.GetValue('totaling'), 'Totaling did not match.');
+        Assert.AreEqual(Format(JobTask."Job Task Type"), LibraryGraphMgt.GetValue('jobTaskType'), 'Job task type did not match.');
+        Assert.AreEqual(Format(JobTask.Indentation), LibraryGraphMgt.GetValue('indentation'), 'Indentation did not match.');
+        Assert.AreEqual(Format(JobTask."Start Date", 0, 9), LibraryGraphMgt.GetValue('startDate'), 'Start date did not match.');
+        Assert.AreEqual(Format(JobTask."End Date", 0, 9), LibraryGraphMgt.GetValue('endDate'), 'End date did not match.');
     end;
 
     [Test]
@@ -184,24 +184,24 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJobPlanningLine(Response: Text; JobPlanningLine: Record "Job Planning Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(JobPlanningLine."No.") + ''')]'), 'Job planning line not found.');
-        Assert.AreEqual(JobPlanningLine."Job No.", JsonMgt.GetValue('jobNo'), 'Job no. did not match.');
-        Assert.AreEqual(JobPlanningLine."Job Task No.", JsonMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Line No."), JsonMgt.GetValue('lineNo'), 'Line no. did not match.');
-        Assert.AreEqual(Format(JobPlanningLine.Type), JsonMgt.GetValue('jobType'), 'Job type did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Line Type"), JsonMgt.GetValue('lineType'), 'Line type did not match.');
-        Assert.AreEqual(JobPlanningLine."No.", JsonMgt.GetValue('no'), 'No. did not match.');
-        Assert.AreEqual(JobPlanningLine.Description, JsonMgt.GetValue('description'), 'Description did not match.');
-        Assert.AreEqual(Format(JobPlanningLine.Quantity, 0, 9), JsonMgt.GetValue('quantity'), 'Quantity did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Unit cost (LCY) did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Total Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('totalCostLCY'), 'Total cost (LCY) did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Unit Price (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitPriceLCY'), 'Unit price (LCY) did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Line Amount (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('lineAmountLCY'), 'Line amount (LCY) did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Total Price (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('totalPriceLCY'), 'Total price (LCY) did not match.');
-        Assert.AreEqual(Format(JobPlanningLine."Planning Date", 0, 9), JsonMgt.GetValue('planningDate'), 'Planning date did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(JobPlanningLine."No.") + ''')]'), 'Job planning line not found.');
+        Assert.AreEqual(JobPlanningLine."Job No.", LibraryGraphMgt.GetValue('jobNo'), 'Job no. did not match.');
+        Assert.AreEqual(JobPlanningLine."Job Task No.", LibraryGraphMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Line No."), LibraryGraphMgt.GetValue('lineNo'), 'Line no. did not match.');
+        Assert.AreEqual(Format(JobPlanningLine.Type), LibraryGraphMgt.GetValue('jobType'), 'Job type did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Line Type"), LibraryGraphMgt.GetValue('lineType'), 'Line type did not match.');
+        Assert.AreEqual(JobPlanningLine."No.", LibraryGraphMgt.GetValue('no'), 'No. did not match.');
+        Assert.AreEqual(JobPlanningLine.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(Format(JobPlanningLine.Quantity, 0, 9), LibraryGraphMgt.GetValue('quantity'), 'Quantity did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Unit Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitCostLCY'), 'Unit cost (LCY) did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Total Cost (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('totalCostLCY'), 'Total cost (LCY) did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Unit Price (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('unitPriceLCY'), 'Unit price (LCY) did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Line Amount (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('lineAmountLCY'), 'Line amount (LCY) did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Total Price (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('totalPriceLCY'), 'Total price (LCY) did not match.');
+        Assert.AreEqual(Format(JobPlanningLine."Planning Date", 0, 9), LibraryGraphMgt.GetValue('planningDate'), 'Planning date did not match.');
     end;
 
     [Test]
@@ -252,25 +252,25 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJobLedgerEntry(Response: Text; JobLedgerEntry: Record "Job Ledger Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(JobLedgerEntry."No.") + ''')]'), 'Job ledger entry not found.');
-        Assert.AreEqual(JobLedgerEntry."Job No.", JsonMgt.GetValue('jobNo'), 'Job no. did not match.');
-        Assert.AreEqual(JobLedgerEntry."Job Task No.", JsonMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Posting date did not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Entry Type"), JsonMgt.GetValue('entryType'), 'Entry type did not match.');
-        Assert.AreEqual(Format(JobLedgerEntry.Type), JsonMgt.GetValue('type'), 'Type did not match.');
-        Assert.AreEqual(JobLedgerEntry."No.", JsonMgt.GetValue('no'), 'No. did not match.');
-        Assert.AreEqual(JobLedgerEntry.Description, JsonMgt.GetValue('description'), 'Description did not match.');
-        Assert.AreEqual(JobLedgerEntry."Location Code", JsonMgt.GetValue('locationCode'), 'Location code did not match.');
-        Assert.AreEqual(JobLedgerEntry."Unit of Measure Code", JsonMgt.GetValue('unitOfMeasureCode'), 'Unit of measure code did not match.');
-        Assert.AreNearlyEqual(JobLedgerEntry.Quantity, CastToDecimal(JsonMgt.GetValue('quantity')), 0.01, 'Quantity did not match.');
-        Assert.AreNearlyEqual(JobLedgerEntry."Unit Cost (LCY)", CastToDecimal(JsonMgt.GetValue('unitCostLCY')), 0.01, 'Unit cost (LCY) did not match.');
-        Assert.AreNearlyEqual(JobLedgerEntry."Total Cost (LCY)", CastToDecimal(JsonMgt.GetValue('totalCostLCY')), 0.01, 'Total cost (LCY) did not match.');
-        Assert.AreNearlyEqual(JobLedgerEntry."Unit Price", CastToDecimal(JsonMgt.GetValue('unitPrice')), 0.01, 'Unit price did not match.');
-        Assert.AreNearlyEqual(JobLedgerEntry."Total Price (LCY)", CastToDecimal(JsonMgt.GetValue('totalPriceLCY')), 0.01, 'Total price (LCY) did not match.');
-        Assert.AreEqual(Format(JobLedgerEntry."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(JobLedgerEntry."No.") + ''')]'), 'Job ledger entry not found.');
+        Assert.AreEqual(JobLedgerEntry."Job No.", LibraryGraphMgt.GetValue('jobNo'), 'Job no. did not match.');
+        Assert.AreEqual(JobLedgerEntry."Job Task No.", LibraryGraphMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Posting date did not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Entry Type"), LibraryGraphMgt.GetValue('entryType'), 'Entry type did not match.');
+        Assert.AreEqual(Format(JobLedgerEntry.Type), LibraryGraphMgt.GetValue('type'), 'Type did not match.');
+        Assert.AreEqual(JobLedgerEntry."No.", LibraryGraphMgt.GetValue('no'), 'No. did not match.');
+        Assert.AreEqual(JobLedgerEntry.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(JobLedgerEntry."Location Code", LibraryGraphMgt.GetValue('locationCode'), 'Location code did not match.');
+        Assert.AreEqual(JobLedgerEntry."Unit of Measure Code", LibraryGraphMgt.GetValue('unitOfMeasureCode'), 'Unit of measure code did not match.');
+        Assert.AreNearlyEqual(JobLedgerEntry.Quantity, CastToDecimal(LibraryGraphMgt.GetValue('quantity')), 0.01, 'Quantity did not match.');
+        Assert.AreNearlyEqual(JobLedgerEntry."Unit Cost (LCY)", CastToDecimal(LibraryGraphMgt.GetValue('unitCostLCY')), 0.01, 'Unit cost (LCY) did not match.');
+        Assert.AreNearlyEqual(JobLedgerEntry."Total Cost (LCY)", CastToDecimal(LibraryGraphMgt.GetValue('totalCostLCY')), 0.01, 'Total cost (LCY) did not match.');
+        Assert.AreNearlyEqual(JobLedgerEntry."Unit Price", CastToDecimal(LibraryGraphMgt.GetValue('unitPrice')), 0.01, 'Unit price did not match.');
+        Assert.AreNearlyEqual(JobLedgerEntry."Total Price (LCY)", CastToDecimal(LibraryGraphMgt.GetValue('totalPriceLCY')), 0.01, 'Total price (LCY) did not match.');
+        Assert.AreEqual(Format(JobLedgerEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
     end;
 
     [Test]
@@ -306,23 +306,23 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyOutstandingPOLine(Response: Text; PurchaseLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         OutstandingAmountLCY: Decimal;
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(PurchaseLine."No.") + ''')]'), 'Outstanding PO line not found.');
-        Assert.AreEqual(Format(PurchaseLine."Document Type"), JsonMgt.GetValue('documentType'), 'Document type did not match.');
-        Assert.AreEqual(PurchaseLine."Document No.", JsonMgt.GetValue('documentNo'), 'Document no. did not match.');
-        Assert.AreEqual(PurchaseLine."No.", JsonMgt.GetValue('no'), 'No. did not match.');
-        Assert.AreEqual(Format(PurchaseLine.Type), JsonMgt.GetValue('type'), 'Type did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Outstanding Qty. (Base)", 0, 9), JsonMgt.GetValue('outstandingQtyBase'), 'Outstanding quantity (base) did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(PurchaseLine."No.") + ''')]'), 'Outstanding PO line not found.');
+        Assert.AreEqual(Format(PurchaseLine."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Document type did not match.');
+        Assert.AreEqual(PurchaseLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Document no. did not match.');
+        Assert.AreEqual(PurchaseLine."No.", LibraryGraphMgt.GetValue('no'), 'No. did not match.');
+        Assert.AreEqual(Format(PurchaseLine.Type), LibraryGraphMgt.GetValue('type'), 'Type did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Outstanding Qty. (Base)", 0, 9), LibraryGraphMgt.GetValue('outstandingQtyBase'), 'Outstanding quantity (base) did not match.');
         OutstandingAmountLCY := PurchaseLine."Outstanding Amount (LCY)";
-        Assert.AreEqual(Format(OutstandingAmountLCY, 0, 9), JsonMgt.GetValue('outstandingAmountLCY'), 'Outstanding amount (LCY) did not match.');
-        Assert.AreEqual(PurchaseLine."Job No.", JsonMgt.GetValue('jobNo'), 'Job no. did not match.');
-        Assert.AreEqual(PurchaseLine."Job Task No.", JsonMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Expected Receipt Date", 0, 9), JsonMgt.GetValue('expectedReceiptDate'), 'Expected receipt date did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
-        Assert.AreEqual(PurchaseLine.Description, JsonMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(Format(OutstandingAmountLCY, 0, 9), LibraryGraphMgt.GetValue('outstandingAmountLCY'), 'Outstanding amount (LCY) did not match.');
+        Assert.AreEqual(PurchaseLine."Job No.", LibraryGraphMgt.GetValue('jobNo'), 'Job no. did not match.');
+        Assert.AreEqual(PurchaseLine."Job Task No.", LibraryGraphMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Expected Receipt Date", 0, 9), LibraryGraphMgt.GetValue('expectedReceiptDate'), 'Expected receipt date did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
+        Assert.AreEqual(PurchaseLine.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
     end;
 
     [Test]
@@ -423,21 +423,21 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyRcvdNotInvdPOLine(Response: Text; PurchaseLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(PurchaseLine."No.") + ''')]'), 'Received not invoiced PO line not found.');
-        Assert.AreEqual(Format(PurchaseLine."Document Type"), JsonMgt.GetValue('documentType'), 'Document type did not match.');
-        Assert.AreEqual(PurchaseLine."Document No.", JsonMgt.GetValue('documentNo'), 'Document no. did not match.');
-        Assert.AreEqual(PurchaseLine."No.", JsonMgt.GetValue('no'), 'No. did not match.');
-        Assert.AreEqual(Format(PurchaseLine.Type), JsonMgt.GetValue('type'), 'Type did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Qty. Rcd. Not Invoiced (Base)", 0, 9), JsonMgt.GetValue('qtyRcdNotInvoicedBase'), 'Qty. received not invoiced (base) did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Amt. Rcd. Not Invoiced (LCY)", 0, 9), JsonMgt.GetValue('amtRcdNotInvoicedLCY'), 'Amount received not invoiced (LCY) did not match.');
-        Assert.AreEqual(PurchaseLine."Job No.", JsonMgt.GetValue('jobNo'), 'Job no. did not match.');
-        Assert.AreEqual(PurchaseLine."Job Task No.", JsonMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Expected Receipt Date", 0, 9), JsonMgt.GetValue('expectedReceiptDate'), 'Expected receipt date did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
-        Assert.AreEqual(PurchaseLine.Description, JsonMgt.GetValue('description'), 'Description did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(PurchaseLine."No.") + ''')]'), 'Received not invoiced PO line not found.');
+        Assert.AreEqual(Format(PurchaseLine."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Document type did not match.');
+        Assert.AreEqual(PurchaseLine."Document No.", LibraryGraphMgt.GetValue('documentNo'), 'Document no. did not match.');
+        Assert.AreEqual(PurchaseLine."No.", LibraryGraphMgt.GetValue('no'), 'No. did not match.');
+        Assert.AreEqual(Format(PurchaseLine.Type), LibraryGraphMgt.GetValue('type'), 'Type did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Qty. Rcd. Not Invoiced (Base)", 0, 9), LibraryGraphMgt.GetValue('qtyRcdNotInvoicedBase'), 'Qty. received not invoiced (base) did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Amt. Rcd. Not Invoiced (LCY)", 0, 9), LibraryGraphMgt.GetValue('amtRcdNotInvoicedLCY'), 'Amount received not invoiced (LCY) did not match.');
+        Assert.AreEqual(PurchaseLine."Job No.", LibraryGraphMgt.GetValue('jobNo'), 'Job no. did not match.');
+        Assert.AreEqual(PurchaseLine."Job Task No.", LibraryGraphMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Expected Receipt Date", 0, 9), LibraryGraphMgt.GetValue('expectedReceiptDate'), 'Expected receipt date did not match.');
+        Assert.AreEqual(Format(PurchaseLine."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
+        Assert.AreEqual(PurchaseLine.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
     end;
 
     local procedure CreatePOWithJob(var PurchHeader: Record "Purchase Header"; Job: Record Job)

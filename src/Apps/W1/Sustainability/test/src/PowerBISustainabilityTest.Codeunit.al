@@ -72,27 +72,27 @@ codeunit 148215 "PowerBI Sustainability Test"
 
     procedure VerifySustainabilityLedgerEntry(Response: Text; SustainabilityLedgerEntry: Record "Sustainability Ledger Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(Format(SustainabilityLedgerEntry."Entry No.") + ')]')), 'Sustainability ledger entry not found.');
-        Assert.AreEqual(SustainabilityLedgerEntry."Account No.", JsonMgt.GetValue('sustainAccountNo'), 'Account No did not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Entry No."), JsonMgt.GetValue('entryNo'), 'Entry No did not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Posting date did not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Document Type"), JsonMgt.GetValue('documentType'), 'Document type does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Emission CO2" / 1.0, 0, 9), JsonMgt.GetValue('emissionco2'), 'Emission Co2 does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Emission CH4" / 1.0, 0, 9), JsonMgt.GetValue('emissionch4'), 'Emission CH4 does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Emission N2O" / 1.0, 0, 9), JsonMgt.GetValue('emissionN2O'), 'Emission N2O does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."CO2e Emission" / 1.0, 0, 9), JsonMgt.GetValue('emissionCo2e'), 'Emission Co2e does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Carbon Fee" / 1.0, 0, 9), JsonMgt.GetValue('carbonFee'), 'Carbon Fee does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Water Intensity" / 1.0, 0, 9), JsonMgt.GetValue('waterIntensity'), 'Water Intensity does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Discharged Into Water" / 1.0, 0, 9), JsonMgt.GetValue('dischargedIntoWater'), 'Discharged Into Water does not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Waste Intensity" / 1.0, 0, 9), JsonMgt.GetValue('wasteIntensity'), 'Waste Intensity does not match.');
-        Assert.AreEqual(SustainabilityLedgerEntry."Responsibility Center", JsonMgt.GetValue('responsibilityCenter'), 'Responsibility Centre did not match.');
-        Assert.AreEqual(SustainabilityLedgerEntry."Country/Region Code", JsonMgt.GetValue('countryRegionCode'), 'Country Region Code did not match.');
-        Assert.AreEqual(SustainabilityLedgerEntry."Description", JsonMgt.GetValue('description'), 'Description did not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Water Type"), JsonMgt.GetValue('waterType'), 'Water Type did not match.');
-        Assert.AreEqual(Format(SustainabilityLedgerEntry."Water/Waste Intensity Type"), JsonMgt.GetValue('waterWasteIntensityType'), 'Water Waste Intensity Type did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(Format(SustainabilityLedgerEntry."Entry No.") + ')]')), 'Sustainability ledger entry not found.');
+        Assert.AreEqual(SustainabilityLedgerEntry."Account No.", LibraryGraphMgt.GetValue('sustainAccountNo'), 'Account No did not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Entry No."), LibraryGraphMgt.GetValue('entryNo'), 'Entry No did not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Posting date did not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Document type does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Emission CO2" / 1.0, 0, 9), LibraryGraphMgt.GetValue('emissionco2'), 'Emission Co2 does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Emission CH4" / 1.0, 0, 9), LibraryGraphMgt.GetValue('emissionch4'), 'Emission CH4 does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Emission N2O" / 1.0, 0, 9), LibraryGraphMgt.GetValue('emissionN2O'), 'Emission N2O does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."CO2e Emission" / 1.0, 0, 9), LibraryGraphMgt.GetValue('emissionCo2e'), 'Emission Co2e does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Carbon Fee" / 1.0, 0, 9), LibraryGraphMgt.GetValue('carbonFee'), 'Carbon Fee does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Water Intensity" / 1.0, 0, 9), LibraryGraphMgt.GetValue('waterIntensity'), 'Water Intensity does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Discharged Into Water" / 1.0, 0, 9), LibraryGraphMgt.GetValue('dischargedIntoWater'), 'Discharged Into Water does not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Waste Intensity" / 1.0, 0, 9), LibraryGraphMgt.GetValue('wasteIntensity'), 'Waste Intensity does not match.');
+        Assert.AreEqual(SustainabilityLedgerEntry."Responsibility Center", LibraryGraphMgt.GetValue('responsibilityCenter'), 'Responsibility Centre did not match.');
+        Assert.AreEqual(SustainabilityLedgerEntry."Country/Region Code", LibraryGraphMgt.GetValue('countryRegionCode'), 'Country Region Code did not match.');
+        Assert.AreEqual(SustainabilityLedgerEntry."Description", LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Water Type"), LibraryGraphMgt.GetValue('waterType'), 'Water Type did not match.');
+        Assert.AreEqual(Format(SustainabilityLedgerEntry."Water/Waste Intensity Type"), LibraryGraphMgt.GetValue('waterWasteIntensityType'), 'Water Waste Intensity Type did not match.');
     end;
 
     [Test]
@@ -135,18 +135,18 @@ codeunit 148215 "PowerBI Sustainability Test"
 
     procedure VerifyEmployeeLedgerEntry(Response: Text; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(Format(EmployeeLedgerEntry."Entry No.") + ')]')), 'Employee ledger entry not found.');
-        Assert.AreEqual(EmployeeLedgerEntry."Employee No.", JsonMgt.GetValue('employeeNo'), 'Employee No did not match.');
-        Assert.AreEqual(Format(EmployeeLedgerEntry."Entry No."), JsonMgt.GetValue('entryNo'), 'Entry No did not match.');
-        Assert.AreEqual(Format(EmployeeLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Posting date did not match.');
-        Assert.AreEqual(Format(EmployeeLedgerEntry."Document Type"), JsonMgt.GetValue('documentType'), 'Document type does not match.');
-        Assert.AreEqual(Format(EmployeeLedgerEntry."Document No."), JsonMgt.GetValue('documentNo'), 'Document No does not match.');
-        Assert.AreEqual(EmployeeLedgerEntry."Description", JsonMgt.GetValue('description'), 'Description No did not match.');
-        Assert.AreEqual(Format(EmployeeLedgerEntry."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension Set ID did not match.');
-        Assert.AreEqual(Format(EmployeeLedgerEntry.Amount / 1.0, 0, 9), JsonMgt.GetValue('amount'), 'Amount does not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(Format(EmployeeLedgerEntry."Entry No.") + ')]')), 'Employee ledger entry not found.');
+        Assert.AreEqual(EmployeeLedgerEntry."Employee No.", LibraryGraphMgt.GetValue('employeeNo'), 'Employee No did not match.');
+        Assert.AreEqual(Format(EmployeeLedgerEntry."Entry No."), LibraryGraphMgt.GetValue('entryNo'), 'Entry No did not match.');
+        Assert.AreEqual(Format(EmployeeLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Posting date did not match.');
+        Assert.AreEqual(Format(EmployeeLedgerEntry."Document Type"), LibraryGraphMgt.GetValue('documentType'), 'Document type does not match.');
+        Assert.AreEqual(Format(EmployeeLedgerEntry."Document No."), LibraryGraphMgt.GetValue('documentNo'), 'Document No does not match.');
+        Assert.AreEqual(EmployeeLedgerEntry."Description", LibraryGraphMgt.GetValue('description'), 'Description No did not match.');
+        Assert.AreEqual(Format(EmployeeLedgerEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension Set ID did not match.');
+        Assert.AreEqual(Format(EmployeeLedgerEntry.Amount / 1.0, 0, 9), LibraryGraphMgt.GetValue('amount'), 'Amount does not match.');
     end;
 
     [Test]
@@ -346,26 +346,26 @@ codeunit 148215 "PowerBI Sustainability Test"
 
     procedure VerifySustainabilityGoal(Response: Text; SustainabilityGoal: Record "Sustainability Goal")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + SustainabilityGoal."No." + ''')]'), 'Sustainability goal not found.');
-        Assert.AreEqual(SustainabilityGoal."No.", JsonMgt.GetValue('no'), 'No. did not match.');
-        Assert.AreEqual(SustainabilityGoal."Scorecard No.", JsonMgt.GetValue('scoreCardNo'), 'Scorecard No. did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Line No.", 0, 9), JsonMgt.GetValue('lineNo'), 'Line No. did not match.');
-        Assert.AreEqual(SustainabilityGoal.Name, JsonMgt.GetValue('name'), 'Name did not match.');
-        Assert.AreEqual(SustainabilityGoal.Owner, JsonMgt.GetValue('owner'), 'Owner did not match.');
-        Assert.AreEqual(SustainabilityGoal."Country/Region Code", JsonMgt.GetValue('countryRegion'), '"Country/Region Code did not match.');
-        Assert.AreEqual(SustainabilityGoal."Responsibility Center", JsonMgt.GetValue('responsibilityCentre'), 'Responsibility Center did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Target Value for CO2" / 1.0, 0, 9), JsonMgt.GetValue('targetValueForCo2'), 'Target Value for CO2 did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Target Value for CH4" / 1.0, 0, 9), JsonMgt.GetValue('targetValueForCh4'), 'Target Value for CH4 did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Target Value for N2O" / 1.0, 0, 9), JsonMgt.GetValue('targetValueForN2O'), 'Target Value for N2O did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Target Value for Water Int." / 1.0, 0, 9), JsonMgt.GetValue('targetValueForWaterIntensity'), 'Target Value For Water Intensity did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Target Value for Waste Int." / 1.0, 0, 9), JsonMgt.GetValue('targetValueForWasteIntensity'), 'Target Value For Waste Intensity did not match.');
-        Assert.AreEqual(SustainabilityGoal."Main Goal" ? 'True' : 'False', JsonMgt.GetValue('mainGoal'), 'Main Goal did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Start Date", 0, 9), JsonMgt.GetValue('startDate'), 'Start Date did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."End Date", 0, 9), JsonMgt.GetValue('endDate'), 'End Date did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Baseline Start Date", 0, 9), JsonMgt.GetValue('baselineStartDate'), 'Baseline Start Date did not match.');
-        Assert.AreEqual(Format(SustainabilityGoal."Baseline End Date", 0, 9), JsonMgt.GetValue('baselineEndDate'), 'Baseline End Date did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + SustainabilityGoal."No." + ''')]'), 'Sustainability goal not found.');
+        Assert.AreEqual(SustainabilityGoal."No.", LibraryGraphMgt.GetValue('no'), 'No. did not match.');
+        Assert.AreEqual(SustainabilityGoal."Scorecard No.", LibraryGraphMgt.GetValue('scoreCardNo'), 'Scorecard No. did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Line No.", 0, 9), LibraryGraphMgt.GetValue('lineNo'), 'Line No. did not match.');
+        Assert.AreEqual(SustainabilityGoal.Name, LibraryGraphMgt.GetValue('name'), 'Name did not match.');
+        Assert.AreEqual(SustainabilityGoal.Owner, LibraryGraphMgt.GetValue('owner'), 'Owner did not match.');
+        Assert.AreEqual(SustainabilityGoal."Country/Region Code", LibraryGraphMgt.GetValue('countryRegion'), '"Country/Region Code did not match.');
+        Assert.AreEqual(SustainabilityGoal."Responsibility Center", LibraryGraphMgt.GetValue('responsibilityCentre'), 'Responsibility Center did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Target Value for CO2" / 1.0, 0, 9), LibraryGraphMgt.GetValue('targetValueForCo2'), 'Target Value for CO2 did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Target Value for CH4" / 1.0, 0, 9), LibraryGraphMgt.GetValue('targetValueForCh4'), 'Target Value for CH4 did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Target Value for N2O" / 1.0, 0, 9), LibraryGraphMgt.GetValue('targetValueForN2O'), 'Target Value for N2O did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Target Value for Water Int." / 1.0, 0, 9), LibraryGraphMgt.GetValue('targetValueForWaterIntensity'), 'Target Value For Water Intensity did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Target Value for Waste Int." / 1.0, 0, 9), LibraryGraphMgt.GetValue('targetValueForWasteIntensity'), 'Target Value For Waste Intensity did not match.');
+        Assert.AreEqual(SustainabilityGoal."Main Goal" ? 'True' : 'False', LibraryGraphMgt.GetValue('mainGoal'), 'Main Goal did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Start Date", 0, 9), LibraryGraphMgt.GetValue('startDate'), 'Start Date did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."End Date", 0, 9), LibraryGraphMgt.GetValue('endDate'), 'End Date did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Baseline Start Date", 0, 9), LibraryGraphMgt.GetValue('baselineStartDate'), 'Baseline Start Date did not match.');
+        Assert.AreEqual(Format(SustainabilityGoal."Baseline End Date", 0, 9), LibraryGraphMgt.GetValue('baselineEndDate'), 'Baseline End Date did not match.');
     end;
 }

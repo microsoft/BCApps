@@ -104,36 +104,36 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyVendorLedgerEntry(Response: Text; PurchInvHeader: Record "Purch. Inv. Header"; VendorLedgerEntry: Record "Vendor Ledger Entry"; DetailedVendLedgerEntry: Record "Detailed Vendor Ledg. Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.dvleEntryNo == ' + Format(Format(DetailedVendLedgerEntry."Entry No.") + ')]')), 'Vendor ledger entry not found.');
-        Assert.AreEqual(Format(VendorLedgerEntry."Due Date", 0, 9), JsonMgt.GetValue('vleDueDate'), 'Due date did not match.');
-        Assert.AreEqual(Format(VendorLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('vlePostingDate'), 'Posting date did not match.');
-        Assert.AreEqual(Format(VendorLedgerEntry."Document Date", 0, 9), JsonMgt.GetValue('vleDocumentDate'), 'Document date did not match.');
-        Assert.AreEqual(Format(VendorLedgerEntry."Dimension Set ID"), JsonMgt.GetValue('vleDimensionSetID'), 'Dimension set ID did not match.');
-        Assert.AreEqual(Format(VendorLedgerEntry."Closed at Date", 0, 9), JsonMgt.GetValue('vleClosedAtDate'), 'Closed at Date did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('dvlePostingDate'), 'Detailed vendor ledger entry posting date did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Entry Type"), JsonMgt.GetValue('dvleEntryType'), 'Detailed vendor ledger entry type did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Document Type"), JsonMgt.GetValue('dvleDocumentType'), 'Detailed vendor ledger entry document type did not match.');
-        Assert.AreEqual(DetailedVendLedgerEntry."Document No.", JsonMgt.GetValue('dvleDocumentNo'), 'Detailed vendor ledger entry document no. did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Initial Entry Due Date", 0, 9), JsonMgt.GetValue('dvleInitialEntryDueDate'), 'Detailed vendor ledger entry initial entry due date did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Amount (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('dvleAmountLCY'), 'Detailed vendor ledger entry amount (LCY) did not match.');
-        Assert.AreEqual(DetailedVendLedgerEntry."Vendor No.", JsonMgt.GetValue('dvleVendorNo'), 'Detailed vendor ledger entry vendor no. did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Application No."), JsonMgt.GetValue('dvleApplicationNo'), 'Detailed vendor ledger entry application no. did not match.');
-        Assert.AreEqual(Format(DetailedVendLedgerEntry."Applied Vend. Ledger Entry No."), JsonMgt.GetValue('dvleAppliedVendLedgerEntryNo'), 'Detailed vendor ledger entry applied vendor ledger entry no. did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.dvleEntryNo == ' + Format(Format(DetailedVendLedgerEntry."Entry No.") + ')]')), 'Vendor ledger entry not found.');
+        Assert.AreEqual(Format(VendorLedgerEntry."Due Date", 0, 9), LibraryGraphMgt.GetValue('vleDueDate'), 'Due date did not match.');
+        Assert.AreEqual(Format(VendorLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('vlePostingDate'), 'Posting date did not match.');
+        Assert.AreEqual(Format(VendorLedgerEntry."Document Date", 0, 9), LibraryGraphMgt.GetValue('vleDocumentDate'), 'Document date did not match.');
+        Assert.AreEqual(Format(VendorLedgerEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('vleDimensionSetID'), 'Dimension set ID did not match.');
+        Assert.AreEqual(Format(VendorLedgerEntry."Closed at Date", 0, 9), LibraryGraphMgt.GetValue('vleClosedAtDate'), 'Closed at Date did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('dvlePostingDate'), 'Detailed vendor ledger entry posting date did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Entry Type"), LibraryGraphMgt.GetValue('dvleEntryType'), 'Detailed vendor ledger entry type did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Document Type"), LibraryGraphMgt.GetValue('dvleDocumentType'), 'Detailed vendor ledger entry document type did not match.');
+        Assert.AreEqual(DetailedVendLedgerEntry."Document No.", LibraryGraphMgt.GetValue('dvleDocumentNo'), 'Detailed vendor ledger entry document no. did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Initial Entry Due Date", 0, 9), LibraryGraphMgt.GetValue('dvleInitialEntryDueDate'), 'Detailed vendor ledger entry initial entry due date did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Amount (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('dvleAmountLCY'), 'Detailed vendor ledger entry amount (LCY) did not match.');
+        Assert.AreEqual(DetailedVendLedgerEntry."Vendor No.", LibraryGraphMgt.GetValue('dvleVendorNo'), 'Detailed vendor ledger entry vendor no. did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Application No."), LibraryGraphMgt.GetValue('dvleApplicationNo'), 'Detailed vendor ledger entry application no. did not match.');
+        Assert.AreEqual(Format(DetailedVendLedgerEntry."Applied Vend. Ledger Entry No."), LibraryGraphMgt.GetValue('dvleAppliedVendLedgerEntryNo'), 'Detailed vendor ledger entry applied vendor ledger entry no. did not match.');
         case DetailedVendLedgerEntry."Entry Type" of
             DetailedVendLedgerEntry."Entry Type"::"Initial Entry":
                 begin
-                    Assert.AreEqual(PurchInvHeader."No.", JsonMgt.GetValue('purchInvHeaderDocumentNo'), 'Purchase invoice header document no. did not match.');
-                    Assert.AreEqual(PurchInvHeader."Payment Terms Code", JsonMgt.GetValue('purchInvHeaderPaymentTermsCode'), 'Purchase invoice header payment terms code did not match.');
-                    Assert.AreEqual(Format(PurchInvHeader."Pmt. Discount Date", 0, 9), JsonMgt.GetValue('purchInvHeaderPmtDiscountDate'), 'Purchase invoice header payment discount date did not match.');
+                    Assert.AreEqual(PurchInvHeader."No.", LibraryGraphMgt.GetValue('purchInvHeaderDocumentNo'), 'Purchase invoice header document no. did not match.');
+                    Assert.AreEqual(PurchInvHeader."Payment Terms Code", LibraryGraphMgt.GetValue('purchInvHeaderPaymentTermsCode'), 'Purchase invoice header payment terms code did not match.');
+                    Assert.AreEqual(Format(PurchInvHeader."Pmt. Discount Date", 0, 9), LibraryGraphMgt.GetValue('purchInvHeaderPmtDiscountDate'), 'Purchase invoice header payment discount date did not match.');
                 end;
             DetailedVendLedgerEntry."Entry Type"::Application:
                 begin
-                    Assert.AreEqual('', JsonMgt.GetValue('purchInvHeaderDocumentNo'), 'Purchase invoice header document no. did not match.');
-                    Assert.AreEqual('', JsonMgt.GetValue('purchInvHeaderPaymentTermsCode'), 'Purchase invoice header payment terms code did not match.');
-                    Assert.AreEqual('0001-01-01', JsonMgt.GetValue('purchInvHeaderPmtDiscountDate'), 'Purchase invoice header payment discount date did not match.');
+                    Assert.AreEqual('', LibraryGraphMgt.GetValue('purchInvHeaderDocumentNo'), 'Purchase invoice header document no. did not match.');
+                    Assert.AreEqual('', LibraryGraphMgt.GetValue('purchInvHeaderPaymentTermsCode'), 'Purchase invoice header payment terms code did not match.');
+                    Assert.AreEqual('0001-01-01', LibraryGraphMgt.GetValue('purchInvHeaderPmtDiscountDate'), 'Purchase invoice header payment discount date did not match.');
                 end;
         end;
     end;
@@ -193,36 +193,36 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyCustomerLedgerEntry(Response: Text; SalesInvHeader: Record "Sales Invoice Header"; CustomerLedgerEntry: Record "Cust. Ledger Entry"; DetailedCustLedgerEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.dcleEntryNo == ' + Format(Format(DetailedCustLedgerEntry."Entry No.") + ')]')), 'Customer ledger entry not found.');
-        Assert.AreEqual(Format(CustomerLedgerEntry."Due Date", 0, 9), JsonMgt.GetValue('cleDueDate'), 'Due date did not match.');
-        Assert.AreEqual(Format(CustomerLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('clePostingDate'), 'Posting date did not match.');
-        Assert.AreEqual(Format(CustomerLedgerEntry."Document Date", 0, 9), JsonMgt.GetValue('cleDocumentDate'), 'Document date did not match.');
-        Assert.AreEqual(Format(CustomerLedgerEntry."Dimension Set ID"), JsonMgt.GetValue('cleDimensionSetID'), 'Dimension set ID did not match.');
-        Assert.AreEqual(Format(CustomerLedgerEntry."Closed at Date", 0, 9), JsonMgt.GetValue('cleClosedAtDate'), 'Closed at Date did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Posting Date", 0, 9), JsonMgt.GetValue('dclePostingDate'), 'Detailed customer ledger entry posting date did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Entry Type"), JsonMgt.GetValue('dcleEntryType'), 'Detailed customer ledger entry type did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Document Type"), JsonMgt.GetValue('dcleDocumentType'), 'Detailed customer ledger entry document type did not match.');
-        Assert.AreEqual(DetailedCustLedgerEntry."Document No.", JsonMgt.GetValue('dcleDocumentNo'), 'Detailed customer ledger entry document no. did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Initial Entry Due Date", 0, 9), JsonMgt.GetValue('dcleInitialEntryDueDate'), 'Detailed customer ledger entry initial entry due date did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Amount (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('dcleAmountLCY'), 'Detailed customer ledger entry amount (LCY) did not match.');
-        Assert.AreEqual(DetailedCustLedgerEntry."Customer No.", JsonMgt.GetValue('dcleCustomerNo'), 'Detailed customer ledger entry customer no. did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Application No."), JsonMgt.GetValue('dcleApplicationNo'), 'Detailed customer ledger entry application no. did not match.');
-        Assert.AreEqual(Format(DetailedCustLedgerEntry."Applied Cust. Ledger Entry No."), JsonMgt.GetValue('dcleAppliedCustLedgerEntryNo'), 'Detailed customer ledger entry applied customer ledger entry no. did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.dcleEntryNo == ' + Format(Format(DetailedCustLedgerEntry."Entry No.") + ')]')), 'Customer ledger entry not found.');
+        Assert.AreEqual(Format(CustomerLedgerEntry."Due Date", 0, 9), LibraryGraphMgt.GetValue('cleDueDate'), 'Due date did not match.');
+        Assert.AreEqual(Format(CustomerLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('clePostingDate'), 'Posting date did not match.');
+        Assert.AreEqual(Format(CustomerLedgerEntry."Document Date", 0, 9), LibraryGraphMgt.GetValue('cleDocumentDate'), 'Document date did not match.');
+        Assert.AreEqual(Format(CustomerLedgerEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('cleDimensionSetID'), 'Dimension set ID did not match.');
+        Assert.AreEqual(Format(CustomerLedgerEntry."Closed at Date", 0, 9), LibraryGraphMgt.GetValue('cleClosedAtDate'), 'Closed at Date did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('dclePostingDate'), 'Detailed customer ledger entry posting date did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Entry Type"), LibraryGraphMgt.GetValue('dcleEntryType'), 'Detailed customer ledger entry type did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Document Type"), LibraryGraphMgt.GetValue('dcleDocumentType'), 'Detailed customer ledger entry document type did not match.');
+        Assert.AreEqual(DetailedCustLedgerEntry."Document No.", LibraryGraphMgt.GetValue('dcleDocumentNo'), 'Detailed customer ledger entry document no. did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Initial Entry Due Date", 0, 9), LibraryGraphMgt.GetValue('dcleInitialEntryDueDate'), 'Detailed customer ledger entry initial entry due date did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Amount (LCY)" / 1.0, 0, 9), LibraryGraphMgt.GetValue('dcleAmountLCY'), 'Detailed customer ledger entry amount (LCY) did not match.');
+        Assert.AreEqual(DetailedCustLedgerEntry."Customer No.", LibraryGraphMgt.GetValue('dcleCustomerNo'), 'Detailed customer ledger entry customer no. did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Application No."), LibraryGraphMgt.GetValue('dcleApplicationNo'), 'Detailed customer ledger entry application no. did not match.');
+        Assert.AreEqual(Format(DetailedCustLedgerEntry."Applied Cust. Ledger Entry No."), LibraryGraphMgt.GetValue('dcleAppliedCustLedgerEntryNo'), 'Detailed customer ledger entry applied customer ledger entry no. did not match.');
         case DetailedCustLedgerEntry."Entry Type" of
             DetailedCustLedgerEntry."Entry Type"::"Initial Entry":
                 begin
-                    Assert.AreEqual(SalesInvHeader."No.", JsonMgt.GetValue('salesInvHeaderDocumentNo'), 'Sales invoice header document no. did not match.');
-                    Assert.AreEqual(SalesInvHeader."Payment Terms Code", JsonMgt.GetValue('salesInvHeaderPaymentTermsCode'), 'Sales invoice header payment terms code did not match.');
-                    Assert.AreEqual(Format(SalesInvHeader."Pmt. Discount Date", 0, 9), JsonMgt.GetValue('salesInvHeaderPmtDiscountDate'), 'Sales invoice header payment discount date did not match.');
+                    Assert.AreEqual(SalesInvHeader."No.", LibraryGraphMgt.GetValue('salesInvHeaderDocumentNo'), 'Sales invoice header document no. did not match.');
+                    Assert.AreEqual(SalesInvHeader."Payment Terms Code", LibraryGraphMgt.GetValue('salesInvHeaderPaymentTermsCode'), 'Sales invoice header payment terms code did not match.');
+                    Assert.AreEqual(Format(SalesInvHeader."Pmt. Discount Date", 0, 9), LibraryGraphMgt.GetValue('salesInvHeaderPmtDiscountDate'), 'Sales invoice header payment discount date did not match.');
                 end;
             DetailedCustLedgerEntry."Entry Type"::Application:
                 begin
-                    Assert.AreEqual('', JsonMgt.GetValue('salesInvHeaderDocumentNo'), 'Sales invoice header document no. did not match.');
-                    Assert.AreEqual('', JsonMgt.GetValue('salesInvHeaderPaymentTermsCode'), 'Sales invoice header payment terms code did not match.');
-                    Assert.AreEqual('0001-01-01', JsonMgt.GetValue('salesInvHeaderPmtDiscountDate'), 'Sales invoice header payment discount date did not match.');
+                    Assert.AreEqual('', LibraryGraphMgt.GetValue('salesInvHeaderDocumentNo'), 'Sales invoice header document no. did not match.');
+                    Assert.AreEqual('', LibraryGraphMgt.GetValue('salesInvHeaderPaymentTermsCode'), 'Sales invoice header payment terms code did not match.');
+                    Assert.AreEqual('0001-01-01', LibraryGraphMgt.GetValue('salesInvHeaderPmtDiscountDate'), 'Sales invoice header payment discount date did not match.');
                 end;
         end;
     end;
@@ -253,16 +253,16 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLAccount(Response: Text; GLAccount: Record "G/L Account")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.accountNo == ''' + Format(GLAccount."No.") + ''')]'), 'G/L account not found.');
-        Assert.AreEqual(GLAccount.Name, JsonMgt.GetValue('accountName'), 'Account name did not match.');
-        Assert.AreEqual(Format(GLAccount."Account Type"), JsonMgt.GetValue('accountType'), 'Account type did not match.');
-        Assert.AreEqual(Format(GLAccount."Income/Balance"), JsonMgt.GetValue('incomeBalance'), 'Income/Balance did not match.');
-        Assert.AreEqual(Format(GLAccount."Account Subcategory Entry No."), JsonMgt.GetValue('accountSubcategoryEntryNo'), 'Account subcategory entry no. did not match.');
-        Assert.AreEqual(Format(GLAccount.Indentation), JsonMgt.GetValue('indentation'), 'Indentation did not match.');
-        Assert.AreEqual(GLAccount.Totaling, JsonMgt.GetValue('totaling'), 'Totaling did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.accountNo == ''' + Format(GLAccount."No.") + ''')]'), 'G/L account not found.');
+        Assert.AreEqual(GLAccount.Name, LibraryGraphMgt.GetValue('accountName'), 'Account name did not match.');
+        Assert.AreEqual(Format(GLAccount."Account Type"), LibraryGraphMgt.GetValue('accountType'), 'Account type did not match.');
+        Assert.AreEqual(Format(GLAccount."Income/Balance"), LibraryGraphMgt.GetValue('incomeBalance'), 'Income/Balance did not match.');
+        Assert.AreEqual(Format(GLAccount."Account Subcategory Entry No."), LibraryGraphMgt.GetValue('accountSubcategoryEntryNo'), 'Account subcategory entry no. did not match.');
+        Assert.AreEqual(Format(GLAccount.Indentation), LibraryGraphMgt.GetValue('indentation'), 'Indentation did not match.');
+        Assert.AreEqual(GLAccount.Totaling, LibraryGraphMgt.GetValue('totaling'), 'Totaling did not match.');
     end;
 
     [Test]
@@ -291,13 +291,13 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLAccountCategory(Response: Text; GLAccountCategory: Record "G/L Account Category")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLAccountCategory."Entry No.") + ')]'), 'G/L account category not found.');
-        Assert.AreEqual(GLAccountCategory.Description, JsonMgt.GetValue('description'), 'Description did not match.');
-        Assert.AreEqual(Format(GLAccountCategory."Parent Entry No."), JsonMgt.GetValue('parentEntryNo'), 'Parent entry no. did not match.');
-        Assert.AreEqual(GLAccountCategory."Presentation Order", JsonMgt.GetValue('presentationOrder'), 'Presentation order did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLAccountCategory."Entry No.") + ')]'), 'G/L account category not found.');
+        Assert.AreEqual(GLAccountCategory.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+        Assert.AreEqual(Format(GLAccountCategory."Parent Entry No."), LibraryGraphMgt.GetValue('parentEntryNo'), 'Parent entry no. did not match.');
+        Assert.AreEqual(GLAccountCategory."Presentation Order", LibraryGraphMgt.GetValue('presentationOrder'), 'Presentation order did not match.');
     end;
 
     [Test]
@@ -327,11 +327,11 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLBudgetName(Response: Text; GLBudgetName: Record "G/L Budget Name")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.budgetName == ''' + Format(GLBudgetName.Name) + ''')]'), 'G/L budget name not found.');
-        Assert.AreEqual(GLBudgetName.Description, JsonMgt.GetValue('budgetDescription'), 'Budget description did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.budgetName == ''' + Format(GLBudgetName.Name) + ''')]'), 'G/L budget name not found.');
+        Assert.AreEqual(GLBudgetName.Description, LibraryGraphMgt.GetValue('budgetDescription'), 'Budget description did not match.');
     end;
 
     [Test]
@@ -372,13 +372,13 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLBudgetEntry(Response: Text; GLBudgetEntry: Record "G/L Budget Entry")
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
-        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLBudgetEntry."Entry No.") + ')]'), 'G/L budget entry not found.');
-        Assert.AreEqual(Format(GLBudgetEntry.Date, 0, 9), JsonMgt.GetValue('budgetDate'), 'Budget date did not match.');
-        Assert.AreEqual(Format(GLBudgetEntry.Amount / 1.0, 0, 9), JsonMgt.GetValue('budgetAmount'), 'Budget amount did not match.');
-        Assert.AreEqual(Format(GLBudgetEntry."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
+        LibraryGraphMgt.InitializeObject(Response);
+        Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLBudgetEntry."Entry No.") + ')]'), 'G/L budget entry not found.');
+        Assert.AreEqual(Format(GLBudgetEntry.Date, 0, 9), LibraryGraphMgt.GetValue('budgetDate'), 'Budget date did not match.');
+        Assert.AreEqual(Format(GLBudgetEntry.Amount / 1.0, 0, 9), LibraryGraphMgt.GetValue('budgetAmount'), 'Budget amount did not match.');
+        Assert.AreEqual(Format(GLBudgetEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
     end;
 
     [Test]
@@ -518,21 +518,21 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyPostedGLEntry(Response: Text; GLAccount: Record "G/L Account"; GLEntry: Record "G/L Entry"; EntryShouldExist: Boolean)
     var
-        JsonMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
-        JsonMgt.InitializeObject(Response);
+        LibraryGraphMgt.InitializeObject(Response);
         if EntryShouldExist then begin
-            Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLEntry."Entry No.") + ')]'), 'G/L entry not found.');
-            Assert.AreEqual(Format(GLAccount."Income/Balance"), JsonMgt.GetValue('incomeBalance'), 'Income/Balance did not match.');
-            Assert.AreEqual(Format(GLEntry."Posting Date", 0, 9), JsonMgt.GetValue('postingDate'), 'Posting date did not match.');
-            Assert.AreEqual(Format(GLEntry.Amount / 1.0, 0, 9), JsonMgt.GetValue('amount'), 'Amount did not match.');
-            Assert.AreEqual(Format(GLEntry."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
-            Assert.AreEqual(GLEntry."Source Code", JsonMgt.GetValue('sourceCode'), 'Source code did not match.');
-            Assert.AreEqual(GLEntry.Description, JsonMgt.GetValue('description'), 'Description did not match.');
-            Assert.AreEqual(Format(GLEntry."Source Type"), JsonMgt.GetValue('sourceType'), 'Source type did not match.');
-            Assert.AreEqual(GLEntry."Source No.", JsonMgt.GetValue('sourceNo'), 'Source no. did not match.');
+            Assert.IsTrue(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLEntry."Entry No.") + ')]'), 'G/L entry not found.');
+            Assert.AreEqual(Format(GLAccount."Income/Balance"), LibraryGraphMgt.GetValue('incomeBalance'), 'Income/Balance did not match.');
+            Assert.AreEqual(Format(GLEntry."Posting Date", 0, 9), LibraryGraphMgt.GetValue('postingDate'), 'Posting date did not match.');
+            Assert.AreEqual(Format(GLEntry.Amount / 1.0, 0, 9), LibraryGraphMgt.GetValue('amount'), 'Amount did not match.');
+            Assert.AreEqual(Format(GLEntry."Dimension Set ID"), LibraryGraphMgt.GetValue('dimensionSetID'), 'Dimension set ID did not match.');
+            Assert.AreEqual(GLEntry."Source Code", LibraryGraphMgt.GetValue('sourceCode'), 'Source code did not match.');
+            Assert.AreEqual(GLEntry.Description, LibraryGraphMgt.GetValue('description'), 'Description did not match.');
+            Assert.AreEqual(Format(GLEntry."Source Type"), LibraryGraphMgt.GetValue('sourceType'), 'Source type did not match.');
+            Assert.AreEqual(GLEntry."Source No.", LibraryGraphMgt.GetValue('sourceNo'), 'Source no. did not match.');
         end else
-            Assert.IsFalse(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLEntry."Entry No.") + ')]'), 'G/L entry should not be found.');
+            Assert.IsFalse(LibraryGraphMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLEntry."Entry No.") + ')]'), 'G/L entry should not be found.');
     end;
 
     [ConfirmHandler]
