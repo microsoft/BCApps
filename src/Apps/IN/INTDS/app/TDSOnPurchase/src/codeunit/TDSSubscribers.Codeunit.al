@@ -443,13 +443,24 @@ codeunit 18716 "TDS Subscribers"
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Applies-to Doc. No.', false, false)]
     local procedure OnAfterValidateAppliesToDocNo(var Rec: Record "Purchase Header")
+    begin
+        RecalculateTDSOnPurchaseLines(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Applies-to ID', false, false)]
+    local procedure OnAfterValidateAppliesToID(var Rec: Record "Purchase Header")
+    begin
+        RecalculateTDSOnPurchaseLines(Rec);
+    end;
+
+    local procedure RecalculateTDSOnPurchaseLines(PurchaseHeader: Record "Purchase Header")
     var
         PurchaseLine: Record "Purchase Line";
         CalculateTax: Codeunit "Calculate Tax";
     begin
         PurchaseLine.SetCurrentKey("Document Type", "Document No.", "TDS Section Code");
-        PurchaseLine.SetRange("Document Type", Rec."Document Type");
-        PurchaseLine.SetRange("Document No.", Rec."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetFilter("TDS Section Code", '<>%1', '');
         if PurchaseLine.FindSet() then
             repeat
