@@ -14,6 +14,7 @@
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryJob: Codeunit "Library - Job";
+        LibraryMarketing: Codeunit "Library - Marketing";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -39,6 +40,7 @@
         CustomerPriceListCaptionTxt: Label 'Price List Lines - Customer %1 %2', Comment = '%1 = Customer No., %2 = Customer Name';
         VendorPriceListCaptionTxt: Label 'Price List Lines - Vendor %1 %2', Comment = '%1 = Vendor No., %2 = Vendor Name';
         UnexpectedPageCaptionErr: Label 'Unexpected page caption';
+        PricesOverviewCaptionErr: Label 'Expected the Prices Overview caption to contain "%1", but it was "%2".', Comment = '%1 = Name or Description of the filtered source, %2 = Page caption';
 
     [Test]
     procedure T000_SalesPriceListsPageIsNotEditable()
@@ -5066,6 +5068,95 @@
             PriceListLineReview.Caption, UnexpectedPageCaptionErr);
     end;
 
+    [Test]
+    procedure T223_PricesOverviewCaptionShowsFilteredCustomerName()
+    var
+        Customer: array[2] of Record Customer;
+        Item: Record Item;
+        DistinctName: array[2] of Text[100];
+        Index: Integer;
+    begin
+        // [FEATURE] [Prices Overview] [Caption]
+        // [SCENARIO 9101] "Prices Overview" opened for a customer shows that customer's Name in the page caption, not the Name of the first customer in the table.
+        Initialize(true);
+
+        // [GIVEN] Two customers, each with a Name distinct from its own No. and from the other customer's Name, and each with a sales price line
+        LibraryInventory.CreateItem(Item);
+        for Index := 1 to ArrayLen(Customer) do begin
+            LibrarySales.CreateCustomer(Customer[Index]);
+            DistinctName[Index] := 'TST_NAME_' + Customer[Index]."No.";
+            Customer[Index].Validate(Name, DistinctName[Index]);
+            Customer[Index].Modify(true);
+            CreatePriceListLineForSource("Price Type"::Sale, "Price Source Type"::Customer, Customer[Index]."No.", Item."No.");
+        end;
+
+        // [WHEN] "Prices Overview" is opened filtered on each of the two customers in turn
+        // [THEN] The caption contains the Name of the customer that was filtered on.
+        // Both customers are checked so the test cannot pass against an unfiltered FindFirst(): that
+        // returns the same record for either filter value, so it fails on whichever of the two is not
+        // the first customer in the table, whatever the table already holds.
+        for Index := 1 to ArrayLen(Customer) do
+            VerifyPricesOverviewCaptionContains("Price Source Type"::Customer, Customer[Index]."No.", DistinctName[Index]);
+    end;
+
+    [Test]
+    procedure T224_PricesOverviewCaptionShowsFilteredCustomerPriceGroupDescription()
+    var
+        CustomerPriceGroup: array[2] of Record "Customer Price Group";
+        Item: Record Item;
+        DistinctDesc: array[2] of Text[50];
+        Index: Integer;
+    begin
+        // [FEATURE] [Prices Overview] [Caption]
+        // [SCENARIO 9101] "Prices Overview" opened for a customer price group shows that group's Description in the page caption.
+        Initialize(true);
+
+        // [GIVEN] Two customer price groups, each with a Description distinct from its own Code and from the other group's Description, and each with a sales price line
+        LibraryInventory.CreateItem(Item);
+        for Index := 1 to ArrayLen(CustomerPriceGroup) do begin
+            LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup[Index]);
+            DistinctDesc[Index] := 'TST_DESC_' + CustomerPriceGroup[Index].Code;
+            CustomerPriceGroup[Index].Validate(Description, DistinctDesc[Index]);
+            CustomerPriceGroup[Index].Modify(true);
+            CreatePriceListLineForSource("Price Type"::Sale, "Price Source Type"::"Customer Price Group", CustomerPriceGroup[Index].Code, Item."No.");
+        end;
+
+        // [WHEN] "Prices Overview" is opened filtered on each of the two customer price groups in turn
+        // [THEN] The caption contains the Description of the group that was filtered on, which an
+        // unfiltered FindFirst() cannot satisfy for both groups.
+        for Index := 1 to ArrayLen(CustomerPriceGroup) do
+            VerifyPricesOverviewCaptionContains("Price Source Type"::"Customer Price Group", CustomerPriceGroup[Index].Code, DistinctDesc[Index]);
+    end;
+
+    [Test]
+    procedure T225_PricesOverviewCaptionShowsFilteredCampaignDescription()
+    var
+        Campaign: array[2] of Record Campaign;
+        Item: Record Item;
+        DistinctDesc: array[2] of Text[50];
+        Index: Integer;
+    begin
+        // [FEATURE] [Prices Overview] [Caption]
+        // [SCENARIO 9101] "Prices Overview" opened for a campaign shows that campaign's Description in the page caption.
+        Initialize(true);
+
+        // [GIVEN] Two campaigns, each with a Description distinct from its own No. and from the other campaign's Description, and each with a sales price line
+        LibraryInventory.CreateItem(Item);
+        for Index := 1 to ArrayLen(Campaign) do begin
+            LibraryMarketing.CreateCampaign(Campaign[Index]);
+            DistinctDesc[Index] := 'TST_DESC_' + Campaign[Index]."No.";
+            Campaign[Index].Validate(Description, DistinctDesc[Index]);
+            Campaign[Index].Modify(true);
+            CreatePriceListLineForSource("Price Type"::Sale, "Price Source Type"::Campaign, Campaign[Index]."No.", Item."No.");
+        end;
+
+        // [WHEN] "Prices Overview" is opened filtered on each of the two campaigns in turn
+        // [THEN] The caption contains the Description of the campaign that was filtered on, which an
+        // unfiltered FindFirst() cannot satisfy for both campaigns.
+        for Index := 1 to ArrayLen(Campaign) do
+            VerifyPricesOverviewCaptionContains("Price Source Type"::Campaign, Campaign[Index]."No.", DistinctDesc[Index]);
+    end;
+
     local procedure Initialize(Enable: Boolean)
     var
         PriceListHeader: Record "Price List Header";
@@ -5170,6 +5261,16 @@
                 end;
             SourceType := SourceType::"All Vendors";
         end;
+    end;
+
+    local procedure CreatePriceListLineForSource(PriceType: Enum "Price Type"; SourceType: Enum "Price Source Type"; SourceNo: Code[20]; ItemNo: Code[20])
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+    begin
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceType, SourceType, SourceNo);
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, ItemNo);
     end;
 
     local procedure CreateSalesPriceLinesForCustomers(Customer: array[2] of Record Customer; var PriceListLine: array[4] of Record "Price List Line")
@@ -5407,6 +5508,25 @@
         SalesPriceList.AmountType.AssertEquals("Price Amount Type"::Discount);
         SalesPriceList.SourceType.SetValue(PriceListHeader."Source Type"::"Customer Price Group");
         SalesPriceList.AmountType.AssertEquals("Price Amount Type"::Price);
+    end;
+
+    local procedure VerifyPricesOverviewCaptionContains(SourceType: Enum "Price Source Type"; SourceNo: Code[20]; ExpectedText: Text)
+    var
+        PriceListLine: Record "Price List Line";
+        PricesOverview: TestPage "Prices Overview";
+    begin
+        // The page reads the source filters from filter group 2 when it opens and builds its caption from them.
+        PriceListLine.FilterGroup(2);
+        PriceListLine.SetRange("Source Type", SourceType);
+        PriceListLine.SetRange("Source No.", SourceNo);
+        PriceListLine.FilterGroup(0);
+        PricesOverview.Trap();
+        Page.Run(Page::"Prices Overview", PriceListLine);
+        Assert.IsTrue(PricesOverview.First(), 'not found first');
+        Assert.IsTrue(
+            StrPos(PricesOverview.Caption(), ExpectedText) > 0,
+            StrSubstNo(PricesOverviewCaptionErr, ExpectedText, PricesOverview.Caption()));
+        PricesOverview.Close();
     end;
 
     [Scope('OnPrem')]
