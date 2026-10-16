@@ -1328,6 +1328,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
 
         // fix No. Series setup
         SetGlobalNoSeriesInSetups();
