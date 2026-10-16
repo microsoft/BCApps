@@ -90,7 +90,8 @@ report 70955 "My Demo Close Income Statement"
                         else
                             TempEntryNoAmountBuffer."Business Unit Code" := '';
                         TempEntryNoAmountBuffer."Source Currency Code" := "Source Currency Code";
-                        TempEntryNoAmountBuffer."Entry No." := GetEntryNo(DimensionBufferID);
+                        TempEntryNoAmountBuffer."Entry No." :=
+                            GetEntryNo(DimensionBufferID, TempEntryNoAmountBuffer."Business Unit Code", "Source Currency Code");
                         if TempEntryNoAmountBuffer.Find() then begin
                             TempEntryNoAmountBuffer.Amount := TempEntryNoAmountBuffer.Amount + Amount;
                             TempEntryNoAmountBuffer.Amount2 := TempEntryNoAmountBuffer.Amount2 + "Additional-Currency Amount";
@@ -124,7 +125,6 @@ report 70955 "My Demo Close Income Statement"
                     TempEntryNoAmountBuffer.Reset();
                     MaxEntry := TempEntryNoAmountBuffer.Count();
                     EntryCount := 0;
-                    EntryNo := 0;
                     Window.Update(2, Text012);
                     Window.Update(3, 0);
 
@@ -144,12 +144,11 @@ report 70955 "My Demo Close Income Statement"
                                 GenJnlLine.Validate(Amount, -TempEntryNoAmountBuffer.Amount);
                                 if not AddSourceCurrencyFields() then
                                     GenJnlLine."Source Currency Amount" := -TempEntryNoAmountBuffer.Amount2;
-                                if "Source Currency Code" <> '' then
-                                    GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
                                 GenJnlLine."Business Unit Code" := TempEntryNoAmountBuffer."Business Unit Code";
 
                                 TempDimBuf2.DeleteAll();
-                                DimBufMgt.RetrieveDimensions(TempEntryNoAmountBuffer."Entry No.", TempDimBuf2);
+                                DimBufMgt.RetrieveDimensions(
+                                    GetDimensionBufferID(TempEntryNoAmountBuffer."Business Unit Code", TempEntryNoAmountBuffer."Entry No."), TempDimBuf2);
                                 NewDimensionID := DimMgt.CreateDimSetIDFromDimBuf(TempDimBuf2);
                                 GenJnlLine."Dimension Set ID" := NewDimensionID;
                                 DimMgt.UpdateGlobalDimFromDimSetID(NewDimensionID, GlobalDimVal1, GlobalDimVal2);
@@ -200,6 +199,7 @@ report 70955 "My Demo Close Income Statement"
 
                     TempEntryNoAmountBuffer.DeleteAll();
                     EntryCount := 0;
+                    ResetEntryNoGrouping();
 
                     LastWindowUpdateDateTime := CurrentDateTime;
                 end;
@@ -531,6 +531,8 @@ report 70955 "My Demo Close Income Statement"
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
         EntryNo: Integer;
+        GroupEntryNos: Dictionary of [Text, Integer];
+        EntryNoDimensionIds: Dictionary of [Text, Integer];
 #pragma warning disable AA0074
         Text000: Label 'Enter the ending date for the fiscal year.';
         Text001: Label 'Enter a Document No.';
@@ -794,22 +796,59 @@ report 70955 "My Demo Close Income Statement"
 
     local procedure AddSourceCurrencyFields(): Boolean
     begin
+        GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
         if TempEntryNoAmountBuffer."Source Currency Amount" = 0 then
             exit(false);
 
-        GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
         GenJnlLine."Source Currency Amount" := -(TempEntryNoAmountBuffer."Source Currency Amount");
         GenJnlLine."Source Curr. VAT Amount" := -(TempEntryNoAmountBuffer."Source Currency VAT Amount");
         exit(true);
     end;
 
-    local procedure GetEntryNo(DimensionBufferID: Integer): Integer
+    local procedure GetEntryNo(DimensionBufferID: Integer; BusinessUnitCode: Code[20]; SourceCurrencyCode: Code[10]): Integer
+    var
+        GroupKey: Text;
+        AssignedEntryNo: Integer;
     begin
-        if DimensionBufferID <> 0 then
+        GroupKey := MakeGroupKey(BusinessUnitCode, Format(DimensionBufferID), SourceCurrencyCode);
+        if GroupEntryNos.Get(GroupKey, AssignedEntryNo) then
+            exit(AssignedEntryNo);
+
+        AssignedEntryNo := DimensionBufferID;
+        // The buffer key excludes currency; additional currency groups need a separate ID.
+        if EntryNoDimensionIds.ContainsKey(MakeGroupKey(BusinessUnitCode, Format(AssignedEntryNo), '')) then begin
+            EntryNo := EntryNo - 1;
+            AssignedEntryNo := EntryNo;
+        end;
+
+        GroupEntryNos.Add(GroupKey, AssignedEntryNo);
+        EntryNoDimensionIds.Add(MakeGroupKey(BusinessUnitCode, Format(AssignedEntryNo), ''), DimensionBufferID);
+        exit(AssignedEntryNo);
+    end;
+
+    local procedure GetDimensionBufferID(BusinessUnitCode: Code[20]; BufferEntryNo: Integer): Integer
+    var
+        DimensionBufferID: Integer;
+    begin
+        if EntryNoDimensionIds.Get(MakeGroupKey(BusinessUnitCode, Format(BufferEntryNo), ''), DimensionBufferID) then
             exit(DimensionBufferID);
 
-        EntryNo := EntryNo - 1;
-        exit(EntryNo);
+        exit(BufferEntryNo);
+    end;
+
+    local procedure MakeGroupKey(BusinessUnitCode: Code[20]; DimensionPart: Text; SourceCurrencyCode: Code[10]): Text
+    begin
+        // Length prefixes prevent code values containing separators from colliding.
+        exit(Format(StrLen(BusinessUnitCode)) + '|' + BusinessUnitCode +
+             '|' + Format(StrLen(DimensionPart)) + '|' + DimensionPart +
+             '|' + SourceCurrencyCode);
+    end;
+
+    local procedure ResetEntryNoGrouping()
+    begin
+        Clear(GroupEntryNos);
+        Clear(EntryNoDimensionIds);
+        EntryNo := 0;
     end;
 
     /// <summary>
@@ -868,7 +907,7 @@ report 70955 "My Demo Close Income Statement"
     /// <summary>
     /// Integration event fired after processing G/L entry into amount buffer during closing.
     /// </summary>
-    /// <param name="TempEntryNoAmountBuffer">Temporary entry number amount buffer</param>
+    /// <param name="TempEntryNoAmountBuffer">Temporary amount buffer whose entry number identifies a business unit, selected dimension, and source currency group.</param>
     /// <param name="GEntry">G/L entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnAfterGetRecordOnAfterEntryNoAmountBuf(var TempEntryNoAmountBuffer: Record "Entry No. Amount Buffer" temporary; GEntry: Record "G/L Entry")
@@ -879,7 +918,7 @@ report 70955 "My Demo Close Income Statement"
     /// Integration event fired after handling general journal line during G/L entry processing.
     /// </summary>
     /// <param name="GenJnlLine">General journal line being handled</param>
-    /// <param name="TempEntryNoAmountBuf">Temporary entry number amount buffer</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary amount buffer whose entry number identifies a business unit, selected dimension, and source currency group.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin

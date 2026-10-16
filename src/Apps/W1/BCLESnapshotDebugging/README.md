@@ -50,7 +50,28 @@ with data deletion from the disposable sandbox.
 
 ## Test project
 
-The separate `test` project is a scaffold for future automated tests. It depends
-on this app, **Library Assert**, and **Library Variable Storage**; it contains no
-test cases yet. Add **Tests-TestLibraries** when tests need application test
-helpers and that package is available in the target environment.
+The separate `test` project depends on this app, **Library Assert**, and
+**Library Variable Storage**. Codeunit 99998, **My Demo Close Income Tests**,
+contains `NoDimensionsConsolidatesClosingJournalLinesWithoutARC`.
+
+The test posts three transactions for 100, 200, and 300 to a new income statement
+account, explicitly clears the user's selected dimensions for report 70955,
+**My Demo Close Income Statement**, and closes into an empty journal batch. It
+expects a closing total of -600 and exactly one closing line. The report reuses
+buffer entries for each business unit, selected dimension combination, and source
+currency, including the empty dimension combination. The pre-fix version created
+three lines and failed the line-count assertion. The additional reporting
+currency variation is not covered.
+
+The test uses automatic rollback and ignores nested commits so its setup changes,
+accounts, fiscal year, and journal/ledger entries are rolled back even on failure.
+Its fixtures use public application APIs and the installed test libraries without
+requiring **Tests-TestLibraries** or provisioning another environment.
+
+For snapshot debugging, arm report snappoints in `GetEntryNo`, the G/L Entry
+`OnAfterGetRecord` trigger before buffer lookup and after accumulation, and the
+`OnPostDataItem` trigger before emitting closing lines. Initialize the snapshot
+context for **WebClient**, run codeunit 99998 through the snapshot proxy's
+`run_tests`, and always finalize the context with `stop_snapshot_debugging`,
+including after a test failure. The test itself reproduces the
+scenario; no manual financial posting is required.
