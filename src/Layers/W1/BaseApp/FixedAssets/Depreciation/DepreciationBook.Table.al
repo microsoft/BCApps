@@ -561,9 +561,11 @@ table 5611 "Depreciation Book"
     procedure IndexGLIntegration(var IntegrationFlags: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
     var
         LegacyGLIntegration: array[9] of Boolean;
+        i: Integer;
     begin
         IndexGLIntegration(LegacyGLIntegration);
-        CopyArray(IntegrationFlags, LegacyGLIntegration, 1, 9);
+        for i := 1 to ArrayLen(LegacyGLIntegration) do
+            IntegrationFlags[i] := LegacyGLIntegration[i];
         IntegrationFlags[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
     end;
 

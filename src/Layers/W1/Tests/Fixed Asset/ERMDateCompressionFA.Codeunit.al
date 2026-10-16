@@ -626,6 +626,8 @@ codeunit 134049 "ERM Date Compression FA"
         FALedgerEntry.SetRange("FA No.", FANo);
         FALedgerEntry.SetRange("Depreciation Book Code", BookCode);
         DateCompressFALedger.SetTableView(FALedgerEntry);
+        DateCompressFALedger.SetRetainDocumentNo(false);
+        DateCompressFALedger.SetRetainIndexEntry(false);
         DateCompressFALedger.InitializeRequest(PostingDate, PostingDate, DateComprRegister."Period Length"::Day, FANo, '', false);
         DateCompressFALedger.UseRequestPage(false);
         DateCompressFALedger.Run();
@@ -640,6 +642,8 @@ codeunit 134049 "ERM Date Compression FA"
         MaintenanceLedgerEntry.SetRange("FA No.", FANo);
         MaintenanceLedgerEntry.SetRange("Depreciation Book Code", BookCode);
         DateCompressMaintLedger.SetTableView(MaintenanceLedgerEntry);
+        DateCompressMaintLedger.SetRetainDocumentNo(false);
+        DateCompressMaintLedger.SetRetainIndexEntry(false);
         DateCompressMaintLedger.InitializeRequest(PostingDate, PostingDate, DateComprRegister."Period Length"::Day, FANo, '', false);
         DateCompressMaintLedger.UseRequestPage(false);
         DateCompressMaintLedger.Run();

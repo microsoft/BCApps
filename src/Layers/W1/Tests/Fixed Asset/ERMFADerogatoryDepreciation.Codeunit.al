@@ -8,7 +8,6 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Reports;
 using Microsoft.Foundation.AuditCodes;
-using System.Environment;
 using System.IO;
 
 codeunit 134111 "ERM FA Derogatory Depreciation"
@@ -1468,12 +1467,14 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
             LibraryReportDataset.AssertCurrentRowValueEquals(ElementName, ExpectedPercentage);
     end;
 
-    local procedure IsFrenchReportContract(): Boolean
+    local procedure IsFrenchReportContract() IsFrench: Boolean
     var
-        ApplicationSystemConstants: Codeunit "Application System Constants";
+        DepreciationBookRecordRef: RecordRef;
     begin
-        // Select the localization contract, never infer it from missing dataset elements.
-        exit(CopyStr(ApplicationSystemConstants.OriginalApplicationVersion(), 1, 3) = 'FR ');
+        // Field 10802 identifies the FR schema even when build-version macros are not expanded.
+        DepreciationBookRecordRef.Open(Database::"Depreciation Book");
+        IsFrench := DepreciationBookRecordRef.FieldExist(10802);
+        DepreciationBookRecordRef.Close();
     end;
 
     local procedure DatasetColumn(W1Column: Text): Text

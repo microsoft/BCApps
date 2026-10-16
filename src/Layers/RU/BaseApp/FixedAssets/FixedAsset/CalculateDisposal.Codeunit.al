@@ -28,8 +28,10 @@ codeunit 5605 "Calculate Disposal"
     procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[14] of Decimal)
     var
         ExtendedEntryAmounts: array[15] of Decimal;
+        i: Integer;
     begin
-        CopyArray(ExtendedEntryAmounts, EntryAmounts, 1, 14);
+        for i := 1 to ArrayLen(EntryAmounts) do
+            ExtendedEntryAmounts[i] := EntryAmounts[i];
         CalcGainLoss(FANo, DeprBookCode, ExtendedEntryAmounts, false);
         CopyArray(EntryAmounts, ExtendedEntryAmounts, 1, 14);
     end;
@@ -106,8 +108,10 @@ codeunit 5605 "Calculate Disposal"
     procedure CalcReverseAmounts(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[4] of Decimal)
     var
         ExtendedEntryAmounts: array[5] of Decimal;
+        i: Integer;
     begin
-        CopyArray(ExtendedEntryAmounts, EntryAmounts, 1, 4);
+        for i := 1 to ArrayLen(EntryAmounts) do
+            ExtendedEntryAmounts[i] := EntryAmounts[i];
         CalcReverseAmounts(FANo, DeprBookCode, ExtendedEntryAmounts, false);
         CopyArray(EntryAmounts, ExtendedEntryAmounts, 1, 4);
     end;

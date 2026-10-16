@@ -1873,8 +1873,8 @@ codeunit 134978 "ERM Fixed Assets Reports"
         DocumentNo: Code[20];
     begin
         FAJournalSetup.Get(DepreciationBookCode, '');
-        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."Gen. Jnl. Template Name");
-        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."Gen. Jnl. Batch Name");
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
         FAJournalLine.SetRange("FA No.", FixedAssetNo);
         FAJournalLine.FindSet();
         FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name");
@@ -1882,7 +1882,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         DocumentNo := NoSeries.PeekNextNo(FAJournalBatch."No. Series");
         repeat
             FAJournalLine.Validate("Document No.", DocumentNo);
-            FAJournalLine.Validate(Description, FAJournalSetup."Gen. Jnl. Batch Name");
+            FAJournalLine.Validate(Description, FAJournalSetup."FA Jnl. Batch Name");
             FAJournalLine.Modify(true);
         until FAJournalLine.Next() = 0;
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);

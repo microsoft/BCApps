@@ -1641,7 +1641,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         // [THEN] The assertions passed and the test company is removed even after a failure
         OtherCompany.Delete(true);
         Assert.AreEqual(TestBodyCompletedErr, LastErrorText, 'Company-local completion failed.');
-        Assert.AreEqual('Application_DialogException', LastErrorCode, 'The test body must end with the expected AL error.');
+        Assert.AreEqual('Dialog', LastErrorCode, 'The test body must end with the expected AL error.');
     end;
 
     [Test]
@@ -1930,8 +1930,8 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure LegacyFAReversalUsesOnlyConfiguredBook()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LegacyFAReversalRejectsMatchingUnrelatedBook()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1940,27 +1940,37 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UnrelatedFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         NewEntryNo: Integer;
+        FALedgerEntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 617319] An unrelated book with the same document and amount cannot win legacy fallback
+        // [SCENARIO 617319] Current setup cannot resolve indistinguishable historical entries in different books
         Initialize();
 
-        // [GIVEN] A unique tax counterpart plus an unrelated-book entry
+        // [GIVEN] Matching historical entries in the configured tax book and an unrelated book
         CreateHistoricalFAFixture(SourceFALedgerEntry, CounterpartFALedgerEntry, ReversingFALedgerEntry);
         LibraryFixedAsset.CreateDepreciationBook(UnrelatedDepreciationBook);
         UnrelatedFALedgerEntry := CounterpartFALedgerEntry;
         UnrelatedFALedgerEntry."Entry No." := 4;
         UnrelatedFALedgerEntry."Depreciation Book Code" := UnrelatedDepreciationBook.Code;
         UnrelatedFALedgerEntry.Insert();
+        FALedgerEntryCount := SourceFALedgerEntry.Count();
+        Commit();
 
         // [WHEN] The marked source is reversed
-        FAInsertLedgerEntry.InsertFARevEntryForDerog(1, NewEntryNo, ReversingFALedgerEntry);
+        asserterror FAInsertLedgerEntry.InsertFARevEntryForDerog(1, NewEntryNo, ReversingFALedgerEntry);
 
-        // [THEN] Only the configured counterpart is reversed
+        // [THEN] Ambiguity is reported without guessing or changing either candidate
+        Assert.ExpectedError(StrSubstNo(AmbiguousHistoricalCounterpartErr, SourceFALedgerEntry."Entry No."));
+        Assert.ExpectedErrorCode('Dialog');
         CounterpartFALedgerEntry.Get(2);
         UnrelatedFALedgerEntry.Get(4);
-        Assert.AreEqual(NewEntryNo, CounterpartFALedgerEntry."Reversed by Entry No.", 'The configured book must be selected.');
+        Assert.AreEqual(0, CounterpartFALedgerEntry."Reversed by Entry No.", 'The configured entry must remain untouched.');
         Assert.AreEqual(0, UnrelatedFALedgerEntry."Reversed by Entry No.", 'The unrelated entry must remain untouched.');
+        Assert.IsFalse(CounterpartFALedgerEntry.Reversed, 'The configured entry must not be reversed.');
+        Assert.IsFalse(UnrelatedFALedgerEntry.Reversed, 'The unrelated entry must not be reversed.');
+        Assert.AreEqual(0, CounterpartFALedgerEntry."Derogatory Source Entry No.", 'The configured entry must remain unlinked.');
+        Assert.AreEqual(0, UnrelatedFALedgerEntry."Derogatory Source Entry No.", 'The unrelated entry must remain unlinked.');
+        Assert.AreEqual(FALedgerEntryCount, SourceFALedgerEntry.Count(), 'An ambiguous reversal must not create ledger entries.');
     end;
 
     [Test]
@@ -2653,6 +2663,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         AssetIndex: Integer;
     begin
         for AssetIndex := 1 to AssetCount do begin
+            Clear(FixedAsset);
             LibraryFixedAsset.CreateFixedAsset(FixedAsset);
             CreateFALedgerEntry(2 * AssetIndex - 1, FixedAsset."No.", SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
             CreateFALedgerEntry(2 * AssetIndex, FixedAsset."No.", DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
@@ -2867,6 +2878,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     var
         FixedAsset: Record "Fixed Asset";
         FAPostingGroup: Record "FA Posting Group";
+        AcquisitionFALedgerEntry: Record "FA Ledger Entry";
     begin
         EnableCentralRoutingIfRequired();
         InitializeLinkageTestData();
@@ -2879,6 +2891,12 @@ codeunit 144047 "UT Derogatory Linkage Upg."
             SourceFALedgerEntry."FA Posting Type"::Depreciation, false, 0, 0);
         CreateFALedgerEntry(3, FixedAsset."No.", SourceDepreciationBookCode, false, 0,
             SourceFALedgerEntry."FA Posting Type"::Depreciation, true, 0, 1);
+        CreateFALedgerEntry(6, FixedAsset."No.", SourceDepreciationBookCode, false, 0,
+            SourceFALedgerEntry."FA Posting Type"::"Acquisition Cost", false, 0, 0);
+        CreateFALedgerEntry(7, FixedAsset."No.", DerogatoryDepreciationBookCode, false, 0,
+            SourceFALedgerEntry."FA Posting Type"::"Acquisition Cost", false, 0, 0);
+        AcquisitionFALedgerEntry.SetRange("Entry No.", 6, 7);
+        AcquisitionFALedgerEntry.ModifyAll("FA Posting Date", WorkDate() - 1);
         SourceFALedgerEntry.Get(1);
         CounterpartFALedgerEntry.Get(2);
         ReversingFALedgerEntry.Get(3);
