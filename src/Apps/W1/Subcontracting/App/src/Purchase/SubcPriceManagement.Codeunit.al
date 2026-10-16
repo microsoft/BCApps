@@ -406,7 +406,7 @@ codeunit 20508 "Subc. Price Management"
             DirectCost := PriceListCost;
     end;
 
-    local procedure ConvertPriceToCurrency(TargetCurrencyCode: Code[10]; PriceListCurrencyCode: Code[10]; PriceListCost: Decimal; var DirectCost: Decimal)
+    local procedure ConvertPriceToCurrency(TargetCurrencyCode: Code[10]; PriceListCurrencyCode: Code[10]; var DirectCost: Decimal)
     var
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
@@ -429,15 +429,15 @@ codeunit 20508 "Subc. Price Management"
                 DirectCost := Round(DirectCost, UnitAmtRngPrecision);
             (TargetCurrencyCode <> '') and (PriceListCurrencyCode = ''):
                 DirectCost := CurrencyExchangeRate.ExchangeAmtLCYToFCY(
-                    WorkDate(), TargetCurrencyCode, PriceListCost,
+                    WorkDate(), TargetCurrencyCode, DirectCost,
                     CurrencyExchangeRate.ExchangeRate(WorkDate(), TargetCurrencyCode));
             (TargetCurrencyCode = '') and (PriceListCurrencyCode <> ''):
                 DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToLCY(
-                    WorkDate(), PriceListCurrencyCode, PriceListCost,
+                    WorkDate(), PriceListCurrencyCode, DirectCost,
                     CurrencyExchangeRate.ExchangeRate(WorkDate(), PriceListCurrencyCode));
             (TargetCurrencyCode <> '') and (PriceListCurrencyCode <> ''):
                 DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToFCY(
-                    WorkDate(), PriceListCurrencyCode, TargetCurrencyCode, PriceListCost);
+                    WorkDate(), PriceListCurrencyCode, TargetCurrencyCode, DirectCost);
         end;
 
         DirectCost := Round(DirectCost, UnitAmtRngPrecision);
@@ -517,7 +517,7 @@ codeunit 20508 "Subc. Price Management"
             PriceListCost *= CostFactor;
             if PriceListCost <> 0 then begin
                 ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityForUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
-                ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
+                ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", DirectCost);
             end;
             RequisitionLine."Direct Unit Cost" := DirectCost;
             RequisitionLine."Subc. Pricelist Cost" := PriceListCost;
@@ -651,7 +651,7 @@ codeunit 20508 "Subc. Price Management"
             exit(true);
 
         ConvertPriceToUOM(PurchaseLine."Unit of Measure Code", PurchaseLine.GetQuantityPerUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
-        ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
+        ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", DirectCost);
         exit(true);
     end;
 
