@@ -4899,6 +4899,7 @@ table 5900 "Service Header"
                 ServLine.SetHideCostWarning(true);
                 ServLine."Line No." := ServLine."Line No." + 10000;
                 ServLine."Price Calculation Method" := "Price Calculation Method";
+                OnCreateServiceLinesOnBeforeAssignType(ServLine, TempServLine);
                 ServLine.Validate(Type, TempServLine.Type);
                 if TempServLine."No." <> '' then begin
                     ServLine.Validate("No.", TempServLine."No.");
@@ -6400,6 +6401,11 @@ table 5900 "Service Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateServiceLinesOnBeforeCopyReservEntryFromTemp(var ServiceLine: Record "Service Line"; var TempServiceLine: Record "Service Line" temporary; var ServiceHeader: Record "Service Header"; xServiceHeader: Record "Service Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateServiceLinesOnBeforeAssignType(var ServiceLine: Record "Service Line"; var TempServiceLine: Record "Service Line" temporary)
     begin
     end;
 
