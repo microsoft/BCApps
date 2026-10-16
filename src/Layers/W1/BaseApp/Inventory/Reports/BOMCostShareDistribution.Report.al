@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,10 +15,13 @@ report 5872 "BOM Cost Share Distribution"
 {
     AdditionalSearchTerms = 'cost breakdown,rolled-up cost';
     ApplicationArea = Assembly;
-    Caption = 'BOM Cost Share Distribution';
+    Caption = 'BOM Cost Share Distribution (Obsolete)';
+    DefaultRenderingLayout = RDLCLayout;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = RDLCLayout;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -139,8 +143,8 @@ report 5872 "BOM Cost Share Distribution"
 
     requestpage
     {
-        AboutTitle = 'About BOM Cost Share Distribution';
-        AboutText = 'Helps you decide whether to change component suppliers or replace internal resources with outsourced labor (or vice versa). It can also help you review and modify an item''s bill of materials.';
+        AboutTitle = 'About BOM Cost Share Distribution (Obsolete)';
+        AboutText = 'Helps you decide whether to change component suppliers or replace internal resources with outsourced labor (or vice versa). It can also help you review and modify an item''s bill of materials. ** This report is obsolete and will be removed in a later release.** Please consult the report documentation for alternative ways to get to this data.';
         SaveValues = true;
 
         layout
@@ -183,9 +187,12 @@ report 5872 "BOM Cost Share Distribution"
     {
         layout(RDLCLayout)
         {
+            Caption = 'BOM Cost Share Distribution (Obsolete)';
             Type = RDLC;
             LayoutFile = './Inventory/Reports/BOMCostShareDistribution.rdlc';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
     }
 
@@ -369,4 +376,4 @@ report 5872 "BOM Cost Share Distribution"
     begin
     end;
 }
-
+#endif
