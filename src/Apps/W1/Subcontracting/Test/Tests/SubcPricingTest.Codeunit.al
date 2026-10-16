@@ -2406,6 +2406,7 @@ codeunit 139982 "Subc. Pricing Test"
         SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
         CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
         Assert.AreEqual(ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost", DirectlyCreatedPurchaseLineDirectUnitCostErr);
+        PurchaseLine."Order Date" := WorkDate();
         PurchaseLine."Direct Unit Cost" := 0;
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
 
@@ -2472,6 +2473,7 @@ codeunit 139982 "Subc. Pricing Test"
         CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
         PurchaseLine.TestField("Unit of Measure Code", AltUOMCode);
         Assert.AreEqual(2000, PurchaseLine."Direct Unit Cost", DirectlyCreatedPurchaseLineDirectUnitCostErr);
+        PurchaseLine."Order Date" := WorkDate();
         PurchaseLine."Direct Unit Cost" := 0;
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
 
