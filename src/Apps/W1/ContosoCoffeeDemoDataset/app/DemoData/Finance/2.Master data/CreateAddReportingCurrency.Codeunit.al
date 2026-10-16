@@ -56,6 +56,7 @@ codeunit 5627 "Create Add. Reporting Currency"
         CreateGLAccount: Codeunit "Create G/L Account";
         IsHandled: Boolean;
     begin
+        IsHandled := false;
         OnBeforeGetResidualCurrencyAccounts(FXGainsAccount, FXLossesAccount, IsHandled);
         if IsHandled then
             exit;
