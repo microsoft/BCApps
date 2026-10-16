@@ -81,7 +81,7 @@ codeunit 148305 "Expense Test"
         PDFTestContentLbl: Label 'PDF test content';
         OnlyMyExpenseExpectedErr: Label 'Expense %1 should be visible after Show My Expenses is invoked.', Comment = '%1 = Expense No. that should be the only row';
         ExpenseVendorNosShouldBeSetErr: Label 'Expense Vendor Nos. should be set when no. series defaults are created.';
-        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2.\\Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     [Test]
     procedure NoCannotBeUpdatedInExpenseManuallyIfManualNosIsFalse()
@@ -5573,6 +5573,29 @@ codeunit 148305 "Expense Test"
 
         // [THEN] Verify that the same missing exchange rate error is raised.
         Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedOnExpenseReportHeader()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a report header raises an error when no exchange rate exists for its posting date.
+        Initialize();
+
+        // [GIVEN] An expense report header and a currency whose first exchange rate is tomorrow.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() + 1, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] The currency is assigned to the report header.
+        asserterror ExpenseReportHeader.Validate("Reimbursement Currency Code", CurrencyCode);
+
+        // [THEN] The missing exchange rate error identifies the header posting date and currency.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
     end;
 
     [Test]
