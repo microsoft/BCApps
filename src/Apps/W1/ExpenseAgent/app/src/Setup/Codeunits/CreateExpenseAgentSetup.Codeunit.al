@@ -15,6 +15,7 @@ codeunit 6970 "Create Expense Agent Setup"
     InherentPermissions = X;
     Permissions =
         tabledata "Expense Agent Setup" = rim,
+        tabledata "Expense User" = r,
         tabledata "Source Code Setup" = rim;
 
     trigger OnRun()
@@ -48,9 +49,9 @@ codeunit 6970 "Create Expense Agent Setup"
             ExpenseAgentSetup."Expense Vendor Nos." := CreateExpenseNoSeries.ExpenseVendorNoSeries();
 
         // Update Expense Payment Methods.
-        CreateExpensePaymentMethod(CardTok, XCARDTxt, "Expense Reimbursement Type"::"Credit Card");
-        CreateExpensePaymentMethod(CashTok, XCASHTxt, "Expense Reimbursement Type"::"Employee Paid");
-        CreateExpensePaymentMethod(BankTok, XBANKTxt, "Expense Reimbursement Type"::"Company Paid");
+        CreateExpensePaymentMethod(CardTok, CardDescriptionLbl, "Expense Reimbursement Type"::"Credit Card");
+        CreateExpensePaymentMethod(CashTok, CashDescriptionLbl, "Expense Reimbursement Type"::"Employee Paid");
+        CreateExpensePaymentMethod(BankTok, BankDescriptionLbl, "Expense Reimbursement Type"::"Company Paid");
 
         if Format(ExpenseAgentSetup."Do Not Allow Exp. Older Than") = '' then
             Evaluate(ExpenseAgentSetup."Do Not Allow Exp. Older Than", '<3M>');
@@ -111,9 +112,9 @@ codeunit 6970 "Create Expense Agent Setup"
         TempExpensePaymentMethod.Reset();
         TempExpensePaymentMethod.DeleteAll();
 
-        AddPaymentMethodSeed(TempExpensePaymentMethod, CardTok, XCARDTxt, "Expense Reimbursement Type"::"Credit Card");
-        AddPaymentMethodSeed(TempExpensePaymentMethod, CashTok, XCASHTxt, "Expense Reimbursement Type"::"Employee Paid");
-        AddPaymentMethodSeed(TempExpensePaymentMethod, BankTok, XBANKTxt, "Expense Reimbursement Type"::"Company Paid");
+        AddPaymentMethodSeed(TempExpensePaymentMethod, CardTok, CardDescriptionLbl, "Expense Reimbursement Type"::"Credit Card");
+        AddPaymentMethodSeed(TempExpensePaymentMethod, CashTok, CashDescriptionLbl, "Expense Reimbursement Type"::"Employee Paid");
+        AddPaymentMethodSeed(TempExpensePaymentMethod, BankTok, BankDescriptionLbl, "Expense Reimbursement Type"::"Company Paid");
     end;
 
     /// <summary>
@@ -243,9 +244,9 @@ codeunit 6970 "Create Expense Agent Setup"
         CardTok: Label 'Card', Locked = true;
         CashTok: Label 'Cash', Locked = true;
         BankTok: Label 'Bank', Locked = true;
-        XCARDTxt: Label 'Card';
-        XCASHTxt: Label 'Cash';
-        XBANKTxt: Label 'Bank';
+        CardDescriptionLbl: Label 'Card';
+        CashDescriptionLbl: Label 'Cash';
+        BankDescriptionLbl: Label 'Bank';
         MilesTxt: Label 'Miles';
         MilesCodeTxt: Label 'MILES';
         KilometerTxt: Label 'Kilometer';
