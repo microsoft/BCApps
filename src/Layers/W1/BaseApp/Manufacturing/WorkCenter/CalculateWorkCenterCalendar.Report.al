@@ -200,7 +200,7 @@ report 99001046 "Calculate Work Center Calendar"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitializeRequest(NewStartingDate: Date; NewEndingDate: Date)
+    local procedure OnBeforeInitializeRequest(var NewStartingDate: Date;var NewEndingDate: Date)
     begin
     end;
 
