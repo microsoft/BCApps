@@ -34,20 +34,25 @@ codeunit 48524 "Fabric Platform Credential Mgt"
             IsolatedStorage.Set('FabricPlat.UseCustomApp', 'true', DataScope::Module)
         else begin
             DeleteStoredValue('FabricPlat.UseCustomApp');
-            ClearClientSecret();
+            ClearClientSecret('SwitchTo1P');
         end;
         ClearTokenCache();
     end;
 
-    internal procedure ClearClientSecret()
+    internal procedure ClearClientSecret(ChangeTrigger: Text)
+    var
+        FabricPlatformTelemetry: Codeunit "Fabric Platform Telemetry";
     begin
-        DeleteStoredValue('FabricPlat.ClientSecret');
+        if IsolatedStorage.Contains('FabricPlat.ClientSecret', DataScope::Module) then begin
+            IsolatedStorage.Delete('FabricPlat.ClientSecret', DataScope::Module);
+            FabricPlatformTelemetry.LogCredentialChanged('Deleted', ChangeTrigger, GetCustomClientId());
+        end;
         ClearTokenCache();
     end;
 
     internal procedure ClearEnvironmentCredentials()
     begin
-        ClearClientSecret();
+        ClearClientSecret('EnvironmentCleanup');
         DeleteStoredValue('FabricPlat.UseCustomApp');
         DeleteStoredValue('FabricPlat.ClientId');
         DeleteStoredValue('FabricPlat.PrincipalId');
@@ -157,12 +162,19 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     internal procedure SetClientSecret(ClientSecret: SecretText)
     var
         CryptographyManagement: Codeunit "Cryptography Management";
+        FabricPlatformTelemetry: Codeunit "Fabric Platform Telemetry";
         EncryptionNotEnabledErrorInfo: ErrorInfo;
+        ReplacingCredential: Boolean;
     begin
-        if IsolatedStorage.Contains('FabricPlat.ClientSecret', DataScope::Module) then
-            IsolatedStorage.Delete('FabricPlat.ClientSecret', DataScope::Module);
         if CryptographyManagement.IsEncryptionEnabled() then begin
+            ReplacingCredential := IsolatedStorage.Contains('FabricPlat.ClientSecret', DataScope::Module);
+            if ReplacingCredential then
+                IsolatedStorage.Delete('FabricPlat.ClientSecret', DataScope::Module);
             IsolatedStorage.SetEncrypted('FabricPlat.ClientSecret', ClientSecret, DataScope::Module);
+            if ReplacingCredential then
+                FabricPlatformTelemetry.LogCredentialChanged('Replaced', 'SetupPage', GetCustomClientId())
+            else
+                FabricPlatformTelemetry.LogCredentialChanged('Stored', 'SetupPage', GetCustomClientId());
             exit;
         end;
 

@@ -460,7 +460,7 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeDisableExport(IsHandled);
         if not IsHandled then
             FabricExportManager.DisableFabricExport();
-        FabricPlatformCredentialMgt.ClearClientSecret();
+        FabricPlatformCredentialMgt.ClearClientSecret('Disable');
         Telemetry.LogEvent('0000VNH', 'Fabric mirroring disable requested.');
         Telemetry.LogAudit('0000VNI', 'Microsoft Fabric Open Mirroring - export disable requested.');
         if GuiAllowed() then
