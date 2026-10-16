@@ -12,6 +12,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148343 "Expense Activity Log API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -807,9 +808,6 @@ codeunit 148343 "Expense Activity Log API Test"
         CleanupTestData();
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
         LibraryERMCountryData.UpdateGeneralLedgerSetup();

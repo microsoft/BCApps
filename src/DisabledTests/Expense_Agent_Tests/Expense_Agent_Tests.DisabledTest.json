@@ -1,5 +1,15 @@
 [
   {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "CapabilitiesProjectsEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI"
+  },
+  {
     "codeunitId": 148305,
     "codeunitName": "Expense Test",
     "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
@@ -43,5 +53,10 @@
     "codeunitId": 148319,
     "codeunitName": "Cancel Posted Exp. Report Test",
     "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148348,
+    "codeunitName": "Expense VAT Spec. API Test",
+    "method": "AgentVATSpecificationIsInsertedThroughAPI"
   }
 ]

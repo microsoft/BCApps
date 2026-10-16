@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148349 "Expense PerDiem Locations Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -85,9 +86,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense PerDiem Locations Test");
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense PerDiem Locations Test");
         IsInitialized := true;

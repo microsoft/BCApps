@@ -39,6 +39,7 @@ codeunit 137351 "SCM Inventory Reports - IV"
         NotAvailable: Label 'Not Available';
         PostingMessage: Label 'Do you want to post the journal lines?';
         PostedLinesMessage: Label 'The journal lines were successfully posted.';
+        PeriodLengthFormatTok: Label '<%1D>', Locked = true;
         RevaluationLinesCreated: Label 'Revaluation journal lines have also been created.';
         StartingDateError: Label 'You cannot base a date calculation on an undefined date.';
         StatusDateError: Label 'Enter the Status Date';
@@ -145,6 +146,49 @@ codeunit 137351 "SCM Inventory Reports - IV"
         LibraryReportDataset.SetRange('No_Item', Item."No.");
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('InvtQty1_ItemLedgEntry', 31);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemAgeCompositionValueOKRequestPageHandler')]
+    procedure ItemAgeCompositionHeaderValuesPopulatedWhenRunWithSavedParameters()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        PeriodLength: DateFormula;
+        RequestPageXML: Text;
+        EndingDate: Date;
+        PeriodDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.4] [Item Age Composition]
+        // [SCENARIO 641530] Ending date, period ranges and Location Filter are in the dataset when the report runs from saved request page parameters, as a scheduled report does.
+        Initialize();
+
+        // [GIVEN] Create an Item and Location.
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] Saved request page parameters with random Ending Date and random Period Length.
+        EndingDate := LibraryRandom.RandDate(LibraryRandom.RandIntInRange(10, 100));
+        PeriodDays := LibraryRandom.RandIntInRange(5, 30);
+        Evaluate(PeriodLength, StrSubstNo(PeriodLengthFormatTok, PeriodDays));
+        LibraryVariableStorage.Enqueue(EndingDate);
+        LibraryVariableStorage.Enqueue(PeriodLength);
+        Commit();
+        RequestPageXML := Report.RunRequestPage(Report::"Item Age Composition - Value");
+
+        // [WHEN] Run the report without request page for the created Item with Location Filter for the created Location using the saved parameters.
+        Item.SetRange("No.", Item."No.");
+        Item.SetFilter("Location Filter", Location.Code);
+        LibraryReportDataset.RunReportAndLoad(Report::"Item Age Composition - Value", Item, RequestPageXML);
+
+        // [THEN] Verify that the dataset contains Ending Date, periods and Location Filter.
+        VerifyItemAgeCompositionHeaderValues(
+          Item."No.", EndingDate,
+          Format(EndingDate - 3 * PeriodDays + 1) + '..' + Format(EndingDate - 2 * PeriodDays),
+          Format(EndingDate - 2 * PeriodDays + 1) + '..' + Format(EndingDate - PeriodDays),
+          Format(EndingDate - PeriodDays + 1) + '..' + Format(EndingDate),
+          Location.Code);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -2384,6 +2428,8 @@ codeunit 137351 "SCM Inventory Reports - IV"
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Inventory Reports - IV");
         LibraryVariableStorage.Clear();
+        // RunReportAndLoad switches the dataset schema type, which breaks later LoadDataSetFile calls.
+        Clear(LibraryReportDataset);
 
         // Lazy Setup.
         if isInitialized then
@@ -3423,6 +3469,17 @@ codeunit 137351 "SCM Inventory Reports - IV"
         LibraryReportDataset.AssertCurrentRowValueEquals('InvtValue5_Item', ExpectedValue);
     end;
 
+    local procedure VerifyItemAgeCompositionHeaderValues(ItemNo: Code[20]; ExpectedEndingDate: Date; ExpectedPeriod1Text: Text; ExpectedPeriod2Text: Text; ExpectedPeriod3Text: Text; ExpectedLocationFilter: Text)
+    begin
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, 'No_Item', ItemNo));
+        LibraryReportDataset.AssertCurrentRowValueEquals('No_Item', ItemNo);
+        LibraryReportDataset.AssertCurrentRowValueEquals('EndingDateText', Format(ExpectedEndingDate));
+        LibraryReportDataset.AssertCurrentRowValueEquals('Period1RangeText', ExpectedPeriod1Text);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Period2RangeText', ExpectedPeriod2Text);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Period3RangeText', ExpectedPeriod3Text);
+        LibraryReportDataset.AssertCurrentRowValueEquals('LocationFilterText', ExpectedLocationFilter);
+    end;
+
     local procedure VerifyItemJournalLine(ItemJournalBatch: Record "Item Journal Batch"; ItemNo: Code[20]; StandardCost: Decimal)
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -3489,7 +3546,6 @@ codeunit 137351 "SCM Inventory Reports - IV"
         StockkeepingUnit.SetRange("Item No.", ItemNo);
         StockkeepingUnit.FindSet();
         LibraryReportDataset.LoadDataSetFile();
-
         repeat
             LibraryReportDataset.SetRange('LocationCode_StockKeepingUnit', StockkeepingUnit."Location Code");
             LibraryReportDataset.GetNextRow();
@@ -4009,6 +4065,21 @@ codeunit 137351 "SCM Inventory Reports - IV"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
+    procedure ItemAgeCompositionValueOKRequestPageHandler(var ItemAgeCompositionValue: TestRequestPage "Item Age Composition - Value")
+    var
+        EndingDate: Variant;
+        PeriodLength: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(EndingDate);
+        LibraryVariableStorage.Dequeue(PeriodLength);
+
+        ItemAgeCompositionValue.EndingDate.SetValue(EndingDate);
+        ItemAgeCompositionValue.PeriodLength.SetValue(PeriodLength);
+        ItemAgeCompositionValue.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
     procedure ItemVendorCatalogRequestPageHandler(var ItemVendorCatalog: TestRequestPage "Item/Vendor Catalog")
     begin
         ItemVendorCatalog.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
@@ -4120,7 +4191,6 @@ codeunit 137351 "SCM Inventory Reports - IV"
         CodeListAsVariant := CodeList;
         LibraryVariableStorage.Dequeue(CodeListAsVariant);
         CodeList := CodeListAsVariant;
-
         foreach Code in CodeList do begin
             AnalysisDimSelectionLevel.FILTER.SetFilter(Description, Code);
             Level += 1;
