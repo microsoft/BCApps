@@ -255,7 +255,7 @@ codeunit 147522 "SII Document Processing"
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Sales] [Credit Memo]
         // [SCENARIO 221933] Stan can generte SII XML file for Posted Sales Credit Memo created from Journal
@@ -288,7 +288,7 @@ codeunit 147522 "SII Document Processing"
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Purchase] [Credit Memo]
         // [SCENARIO 221933] Stan can generate SII XML file for Posted Purch Credit Memo created from Journal
@@ -895,7 +895,7 @@ codeunit 147522 "SII Document Processing"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
     begin
         // [FEATURE] [Sales] [Invoice] [EU Service] [Reverse Charge VAT]
@@ -931,8 +931,9 @@ codeunit 147522 "SII Document Processing"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
+        XmlText: Text;
     begin
         // [FEATURE] [Sales] [Credit Memo] [EU Service] [Reverse Charge VAT]
         // [SCENARIO 225529] SII XML request does not contain tag 'sii:Entrega' for EU Service intracommunity sales invoice with Reverse Charge VAT
@@ -957,7 +958,8 @@ codeunit 147522 "SII Document Processing"
         VerifyTagAbsence(XMLDoc, 'sii:Entrega');
 
         // [THEN] XML node by XPath '//soapenv:Body/siiRL:SuministroLRFacturasEmitidas/siiRL:RegistroLRFacturasEmitidas/siiRL:FacturaExpedida/sii:TipoDesglose/sii:DesgloseTipoOperacion/sii:PrestacionServicios' generated
-        LibraryXPathXMLReader.InitializeWithText(XMLDoc.OuterXml, '');
+        XMLDoc.WriteTo(XmlText);
+        LibraryXPathXMLReader.InitializeWithText(XmlText, '');
         SetupXMLNamespaces();
         LibraryXPathXMLReader.VerifyNodeCountByXPath(XPathPrestacionServiciosTok, 1);
     end;
@@ -1459,7 +1461,7 @@ codeunit 147522 "SII Document Processing"
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 261095] Stan can specify "Invoice Type" and "Special Scheme" code in General Journal Line for Sales Invoice
@@ -1495,7 +1497,7 @@ codeunit 147522 "SII Document Processing"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustNo: Code[20];
         DocNo: Code[20];
         PostingDate: Date;
@@ -1552,7 +1554,7 @@ codeunit 147522 "SII Document Processing"
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 261095] Stan can specify "Invoice Type" and "Special Scheme" code in General Journal Line for Purchase Invoice
@@ -1588,7 +1590,7 @@ codeunit 147522 "SII Document Processing"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendNo: Code[20];
         DocNo: Code[20];
         DocDate: Date;
@@ -1647,7 +1649,7 @@ codeunit 147522 "SII Document Processing"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 263060] It is possible to set specific version for IDVersionSii node through function SetSIIVersionNo of codeunit SII XML Creator
@@ -1682,7 +1684,7 @@ codeunit 147522 "SII Document Processing"
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 341899] Stan cannot submit the document to SII if the SuministroInformacion Schema or SuministroLR Schema is not specified
@@ -2580,19 +2582,17 @@ codeunit 147522 "SII Document Processing"
         exit(SIIDocUploadState.Id);
     end;
 
-    local procedure ValidateElementByName(XMLDoc: DotNet XmlDocument; ElementName: Text;
+    local procedure ValidateElementByName(XMLDoc: XmlDocument; ElementName: Text;
                                                       ExpectedValue: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        i: Integer;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
         AssertMsg: Text;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ElementName);
-        for i := 0 to XMLNodeList.Count - 1 do begin
-            XMLNode := XMLNodeList.Item(i);
+        XMLNodeList := LibrarySII.GetElementsByTagName(XMLDoc, ElementName);
+        foreach XMLNode in XMLNodeList do begin
             AssertMsg := StrSubstNo('Value is invalid for element : %1', ElementName);
-            Assert.AreEqual(ExpectedValue, Format(XMLNode.InnerText), AssertMsg);
+            Assert.AreEqual(ExpectedValue, XMLNode.AsXmlElement().InnerText, AssertMsg);
         end;
     end;
 
@@ -2612,11 +2612,11 @@ codeunit 147522 "SII Document Processing"
         Assert.IsFalse(SIIHistory.Status = SIIHistory.Status::"Not Supported", 'Document is not supported');
     end;
 
-    local procedure VerifyTagAbsence(XMLDoc: DotNet XmlDocument; TagName: Text)
+    local procedure VerifyTagAbsence(XMLDoc: XmlDocument; TagName: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(TagName);
+        XMLNodeList := LibrarySII.GetElementsByTagName(XMLDoc, TagName);
         Assert.AreEqual(0, XMLNodeList.Count, StrSubstNo(TagMustNotExistErr, TagName));
     end;
 

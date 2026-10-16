@@ -81,7 +81,7 @@ codeunit 147527 "SII Intracommunitary"
         PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -111,7 +111,7 @@ codeunit 147527 "SII Intracommunitary"
         PurchaseHeader: Record "Purchase Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -142,7 +142,7 @@ codeunit 147527 "SII Intracommunitary"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 230978] "ID Type" is "02" in SII xml file for Sales Invoice with Intracommunitary customer
@@ -167,7 +167,7 @@ codeunit 147527 "SII Intracommunitary"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 230978] "ID Type" is "02" in SII xml file for Sales Credit Memo with Intracommunitary customer
@@ -192,7 +192,7 @@ codeunit 147527 "SII Intracommunitary"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 230978] "ID Type" is "02" in SII xml file for Purchase Invoice with Intracommunitary vendor
@@ -218,7 +218,7 @@ codeunit 147527 "SII Intracommunitary"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 230978] "ID Type" is "02" in SII xml file for Purchase Credit Memo with Intracommunitary vendor
@@ -244,7 +244,7 @@ codeunit 147527 "SII Intracommunitary"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 230978] "ID Type" is "02" in SII xml file for Service Invoice with Intracommunitary customer
@@ -270,7 +270,7 @@ codeunit 147527 "SII Intracommunitary"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 230978] "ID Type" is "02" in SII xml file for Service Credit Memo with Intracommunitary customer

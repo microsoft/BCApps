@@ -11,16 +11,15 @@ codeunit 147564 "SII Event Tests"
         GLEntry: Record "G/L Entry";
         SIIEventTests: codeunit "SII Event Tests";
         SIIXMLCreator: codeunit "SII XML Creator";
-        ResultXmlDocument, ExpectedXmlDocument : DotNet XmlDocument;
+        ResultXmlDocument, ExpectedXmlDocument : XmlDocument;
         ResultXML, ExpectedXML : text;
     begin
         BindSubscription(SIIEventTests);
         SIIXMLCreator.GenerateXml(GLEntry, ResultXmlDocument, 0, false);
-        ResultXML := ResultXmlDocument.OuterXml();
+        ResultXmlDocument.WriteTo(ResultXML);
 
-        ExpectedXmlDocument := ExpectedXmlDocument.XmlDocument();
-        ExpectedXmlDocument.LoadXml(GetSampleXml());
-        ExpectedXML := ExpectedXmlDocument.OuterXml();
+        XmlDocument.ReadFrom(GetSampleXml(), ExpectedXmlDocument);
+        ExpectedXmlDocument.WriteTo(ExpectedXML);
 
         Assert.AreEqual(ExpectedXML, ResultXML, 'Xml Document did not match.');
     end;

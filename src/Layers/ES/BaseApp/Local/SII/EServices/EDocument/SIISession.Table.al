@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
-using System;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 table 10753 "SII Session"
 {
@@ -70,21 +68,52 @@ table 10753 "SII Session"
     procedure XMLTextIndent(InputXMLText: Text): Text
     var
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         TypeHelper: Codeunit "Type Helper";
-        XMLDocument: DotNet XmlDocument;
+        FormattedXmlDocument: XmlDocument;
+        RootXmlElement: XmlElement;
+        XmlDeclaration: XmlDeclaration;
         OutStream: OutStream;
         InStream: InStream;
+        FormattedXmlText: Text;
     begin
         // Format input XML text: append indentations
-        if XMLDOMMgt.LoadXMLDocumentFromText(InputXMLText, XMLDocument) then begin
+        if XmlDocument.ReadFrom(InputXMLText, FormattedXmlDocument) then begin
+            RemoveWhitespaceNodes(FormattedXmlDocument.AsXmlNode());
+            if not FormattedXmlDocument.GetDeclaration(XmlDeclaration) then begin
+                FormattedXmlDocument.GetRoot(RootXmlElement);
+                RootXmlElement.WriteTo(FormattedXmlText);
+                exit(FormattedXmlText);
+            end;
             TempBlob.CreateOutStream(OutStream, TEXTENCODING::UTF8);
-            XMLDocument.Save(OutStream);
+            FormattedXmlDocument.WriteTo(OutStream);
             TempBlob.CreateInStream(InStream, TEXTENCODING::UTF8);
             exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator()));
         end;
         ClearLastError();
         exit(InputXMLText);
+    end;
+
+    local procedure RemoveWhitespaceNodes(ParentXmlNode: XmlNode)
+    var
+        ChildXmlNode: XmlNode;
+        ChildXmlNodeList: XmlNodeList;
+        i: Integer;
+    begin
+        if ParentXmlNode.IsXmlDocument() then
+            ChildXmlNodeList := ParentXmlNode.AsXmlDocument().GetChildNodes()
+        else
+            if ParentXmlNode.IsXmlElement() then
+                ChildXmlNodeList := ParentXmlNode.AsXmlElement().GetChildNodes()
+            else
+                exit;
+        for i := ChildXmlNodeList.Count() downto 1 do begin
+            ChildXmlNodeList.Get(i, ChildXmlNode);
+            if ChildXmlNode.IsXmlText() then begin
+                if ChildXmlNode.AsXmlText().Value.Trim() = '' then
+                    ChildXmlNode.Remove();
+            end else
+                RemoveWhitespaceNodes(ChildXmlNode);
+        end;
     end;
 }
 

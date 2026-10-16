@@ -23,6 +23,8 @@ codeunit 143006 "Library - SII"
         SiiLRTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroLR.xsd', Locked = true;
         SoapenvUrlTok: Label 'http://schemas.xmlsoap.org/soap/envelope/';
         XPathSalesIDFacturaTok: Label '//soapenv:Body/siiRL:SuministroLRFacturasEmitidas/siiRL:RegistroLRFacturasEmitidas/siiRL:IDFactura/';
+        InvalidElementValueErr: Label 'Value is invalid for element : %1', Comment = '%1 = element name', Locked = true;
+        ElementNotFoundAtPositionErr: Label 'Element %1 was not found at position %2.', Comment = '%1 = element name, %2 = position', Locked = true;
         XPathPurchIDFacturaTok: Label '//soapenv:Body/siiLR:SuministroLRFacturasRecibidas/siiLR:RegistroLRFacturasRecibidas/siiLR:IDFactura/';
 
     [Scope('OnPrem')]
@@ -1051,7 +1053,7 @@ codeunit 143006 "Library - SII"
     end;
 
     [Scope('OnPrem')]
-    procedure ValidateXmlAgainstXsdSchema(XMLDoc: DotNet XmlDocument)
+    procedure ValidateXmlAgainstXsdSchema(XMLDoc: XmlDocument)
     var
         FileManagement: Codeunit "File Management";
         LibraryVerifyXMLSchema: Codeunit "Library - Verify XML Schema";
@@ -1064,7 +1066,7 @@ codeunit 143006 "Library - SII"
         XmlPath := FileManagement.ServerTempFileName('xml');
         XmlFile.Create(XmlPath);
         XmlFile.CreateOutStream(XmlStream);
-        XMLDoc.Save(XmlStream);
+        XMLDoc.WriteTo(XmlStream);
         XmlFile.Close();
 
         XsdPath := ResolveTestAssetPath('\GDL\ES\App\Test\SiiXmlSchema\SuministroLR.xsd');
@@ -1083,64 +1085,62 @@ codeunit 143006 "Library - SII"
     end;
 
     [Scope('OnPrem')]
-    procedure ValidateElementByName(XMLDoc: DotNet XmlDocument; ElementName: Text; ExpectedValue: Text)
+    procedure ValidateElementByName(XMLDoc: XmlDocument; ElementName: Text; ExpectedValue: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        i: Integer;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
         AssertMsg: Text;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ElementName);
+        XMLNodeList := GetElementsByTagName(XMLDoc, ElementName);
         Assert.IsTrue(XMLNodeList.Count > 0, StrSubstNo('No elements found with name %1', ElementName));
-        for i := 0 to XMLNodeList.Count - 1 do begin
-            XMLNode := XMLNodeList.Item(i);
+        foreach XMLNode in XMLNodeList do begin
             AssertMsg := StrSubstNo('Value is invalid for element : %1', ElementName);
-            Assert.AreEqual(ExpectedValue, Format(XMLNode.InnerText), AssertMsg);
+            Assert.AreEqual(ExpectedValue, XMLNode.AsXmlElement().InnerText, AssertMsg);
         end;
     end;
 
     [Scope('OnPrem')]
-    procedure ValidateElementByNameAt(XMLDoc: DotNet XmlDocument; ElementName: Text; ExpectedValue: Text; Position: Integer)
+    procedure ValidateElementByNameAt(XMLDoc: XmlDocument; ElementName: Text; ExpectedValue: Text; Position: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
         AssertMsg: Text;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ElementName);
-        XMLNode := XMLNodeList.Item(Position);
+        XMLNodeList := GetElementsByTagName(XMLDoc, ElementName);
+        Assert.IsTrue(XMLNodeList.Get(Position + 1, XMLNode), StrSubstNo(ElementNotFoundAtPositionErr, ElementName, Position));
         AssertMsg := StrSubstNo('Value is invalid for element : %1', ElementName);
-        Assert.AreEqual(ExpectedValue, Format(XMLNode.InnerText), AssertMsg);
+        Assert.AreEqual(ExpectedValue, XMLNode.AsXmlElement().InnerText, AssertMsg);
     end;
 
     [Scope('OnPrem')]
-    procedure ValidateNoElementsByName(XMLDoc: DotNet XmlDocument; ElementName: Text)
+    procedure ValidateNoElementsByName(XMLDoc: XmlDocument; ElementName: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ElementName);
+        XMLNodeList := GetElementsByTagName(XMLDoc, ElementName);
         Assert.AreEqual(0, XMLNodeList.Count, StrSubstNo('Element %1 exists in XML file', ElementName));
     end;
 
     [Scope('OnPrem')]
-    procedure ValidateElementWithNameExists(XMLDoc: DotNet XmlDocument; ElementName: Text)
+    procedure ValidateElementWithNameExists(XMLDoc: XmlDocument; ElementName: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ElementName);
+        XMLNodeList := GetElementsByTagName(XMLDoc, ElementName);
         Assert.IsTrue(XMLNodeList.Count > 0, StrSubstNo('Element %1 exists in XML file', ElementName));
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyCountOfElements(XMLDoc: DotNet XmlDocument; ElementName: Text; ExpectedCount: Integer)
+    procedure VerifyCountOfElements(XMLDoc: XmlDocument; ElementName: Text; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ElementName);
+        XMLNodeList := GetElementsByTagName(XMLDoc, ElementName);
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Incorrect count of elements');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXml(XMLDoc: DotNet XmlDocument; LedgerEntry: Variant; XmlType: Option Invoice,"Intra Community",Payment; IsCashBasedVAT: Boolean; IsSelfEmployed: Boolean)
+    procedure VerifyXml(XMLDoc: XmlDocument; LedgerEntry: Variant; XmlType: Option Invoice,"Intra Community",Payment; IsCashBasedVAT: Boolean; IsSelfEmployed: Boolean)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
@@ -1191,7 +1191,7 @@ codeunit 143006 "Library - SII"
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLPurchNoTaxableAmount(XMLDoc: DotNet XmlDocument; VendorLedgerEntry: Record "Vendor Ledger Entry")
+    procedure VerifyXMLPurchNoTaxableAmount(XMLDoc: XmlDocument; VendorLedgerEntry: Record "Vendor Ledger Entry")
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         TempVATEntry: Record "VAT Entry" temporary;
@@ -1215,60 +1215,59 @@ codeunit 143006 "Library - SII"
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLWithNormalAndReverseChargeVAT(XMLDoc: DotNet XmlDocument; VATRate: Decimal; VATRateReverseCharge: Decimal; Amount: Decimal; AmountReverse: Decimal)
+    procedure VerifyXMLWithNormalAndReverseChargeVAT(XMLDoc: XmlDocument; VATRate: Decimal; VATRateReverseCharge: Decimal; Amount: Decimal; AmountReverse: Decimal)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
         CuotaDeducibleDecValue: Decimal;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('sii:DesgloseFactura');
-        XMLNode := XMLNodeList.Item(0);
-        XMLNodeList := XMLNode.ChildNodes;
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'sii:DesgloseFactura');
+        XMLNodeList.Get(1, XMLNode);
+        XMLNodeList := XMLNode.AsXmlElement().GetChildNodes();
         Assert.AreEqual(2, XMLNodeList.Count, 'sii:DesgloseFactura must have 2 children in this case');
 
-        XMLNode := XMLNodeList.Item(0);
+        XMLNodeList.Get(1, XMLNode);
         VerifyXMLInvoiceDetails(CuotaDeducibleDecValue, XMLNode, 'sii:InversionSujetoPasivo', VATRateReverseCharge, AmountReverse);
 
-        XMLNode := XMLNodeList.Item(1);
+        XMLNodeList.Get(2, XMLNode);
         VerifyXMLInvoiceDetails(CuotaDeducibleDecValue, XMLNode, 'sii:DesgloseIVA', VATRate, Amount);
 
         ValidateElementByName(XMLDoc, 'sii:CuotaDeducible', SIIXMLCreator.FormatNumber(CuotaDeducibleDecValue));
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyVATInXMLDoc(XMLDoc: DotNet XmlDocument; XMLNodeName: Text; VATRate: Decimal; Amount: Decimal)
+    procedure VerifyVATInXMLDoc(XMLDoc: XmlDocument; XMLNodeName: Text; VATRate: Decimal; Amount: Decimal)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
         CuotaDeducibleDecValue: Decimal;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('sii:DesgloseFactura');
-        XMLNode := XMLNodeList.Item(0);
-        XMLNodeList := XMLNode.ChildNodes;
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'sii:DesgloseFactura');
+        XMLNodeList.Get(1, XMLNode);
+        XMLNodeList := XMLNode.AsXmlElement().GetChildNodes();
         Assert.AreEqual(1, XMLNodeList.Count, 'sii:DesgloseFactura must have 1 child in this case');
 
-        XMLNode := XMLNodeList.Item(0);
+        XMLNodeList.Get(1, XMLNode);
         VerifyXMLInvoiceDetails(CuotaDeducibleDecValue, XMLNode, XMLNodeName, VATRate, Amount);
 
         ValidateElementByName(XMLDoc, 'sii:CuotaDeducible', SIIXMLCreator.FormatNumber(CuotaDeducibleDecValue));
     end;
 
-    local procedure VerifyXMLHeader(XMLDoc: DotNet XmlDocument)
+    local procedure VerifyXMLHeader(XMLDoc: XmlDocument)
     var
-        Attribute: DotNet XmlAttribute;
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        EnvelopeXmlElement: XmlElement;
+        NamespaceUri: Text;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('soapenv:Envelope');
-        XMLNode := XMLNodeList.Item(0);
+        XMLDoc.GetRoot(EnvelopeXmlElement);
+        Assert.AreEqual('soapenv:Envelope', EnvelopeXmlElement.Name, 'Envelope is not the root element');
 
-        Attribute := XMLNode.Attributes.GetNamedItem('xmlns:sii');
-        Assert.AreEqual(Attribute.Value, SiiTxt, 'sii url is not setup correctly');
-        Attribute := XMLNode.Attributes.GetNamedItem('xmlns:siiLR');
-        Assert.AreEqual(Attribute.Value, SiiLRTxt, 'siiLR url is not setup correctly');
+        EnvelopeXmlElement.GetNamespaceOfPrefix('sii', NamespaceUri);
+        Assert.AreEqual(NamespaceUri, SiiTxt, 'sii url is not setup correctly');
+        EnvelopeXmlElement.GetNamespaceOfPrefix('siiLR', NamespaceUri);
+        Assert.AreEqual(NamespaceUri, SiiLRTxt, 'siiLR url is not setup correctly');
     end;
 
-    local procedure VerifyXMLForSalesLedger(XMLDoc: DotNet XmlDocument; var TempVATEntry: Record "VAT Entry" temporary; CustLedgerEntry: Record "Cust. Ledger Entry"; IsCashBasedVAT: Boolean; IsIntraCommunity: Boolean; IsSelfEmpoyed: Boolean)
+    local procedure VerifyXMLForSalesLedger(XMLDoc: XmlDocument; var TempVATEntry: Record "VAT Entry" temporary; CustLedgerEntry: Record "Cust. Ledger Entry"; IsCashBasedVAT: Boolean; IsIntraCommunity: Boolean; IsSelfEmpoyed: Boolean)
     var
         Customer: Record Customer;
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -1344,7 +1343,7 @@ codeunit 143006 "Library - SII"
             VerifyXMLSalesVATEntries(XMLDoc, TempVATEntry);
     end;
 
-    local procedure VerifyXMLForPurchLedger(XMLDoc: DotNet XmlDocument; var TempVATEntry: Record "VAT Entry" temporary; VendorLedgerEntry: Record "Vendor Ledger Entry"; IsCashBasedVAT: Boolean; IsIntraCommunity: Boolean; IsSelfEmpoyed: Boolean)
+    local procedure VerifyXMLForPurchLedger(XMLDoc: XmlDocument; var TempVATEntry: Record "VAT Entry" temporary; VendorLedgerEntry: Record "Vendor Ledger Entry"; IsCashBasedVAT: Boolean; IsIntraCommunity: Boolean; IsSelfEmpoyed: Boolean)
     var
         Vendor: Record Vendor;
         CompanyInformation: Record "Company Information";
@@ -1437,7 +1436,7 @@ codeunit 143006 "Library - SII"
             VerifyXMLPurchVATEntries(XMLDoc, TempVATEntry);
     end;
 
-    local procedure VerifyXMLSalesVATEntries(XMLDoc: DotNet XmlDocument; var TempVATEntry: Record "VAT Entry" temporary)
+    local procedure VerifyXMLSalesVATEntries(XMLDoc: XmlDocument; var TempVATEntry: Record "VAT Entry" temporary)
     var
         AmountVariant: Variant;
         VATVariant: Variant;
@@ -1457,7 +1456,7 @@ codeunit 143006 "Library - SII"
             until TempVATEntry.Next() = 0;
     end;
 
-    local procedure VerifyXMLPurchVATEntries(XMLDoc: DotNet XmlDocument; var TempVATEntry: Record "VAT Entry" temporary)
+    local procedure VerifyXMLPurchVATEntries(XMLDoc: XmlDocument; var TempVATEntry: Record "VAT Entry" temporary)
     var
         VATVariant: Variant;
         Amount: Decimal;
@@ -1483,32 +1482,32 @@ codeunit 143006 "Library - SII"
         ValidateElementByName(XMLDoc, 'sii:CuotaDeducible', SIIXMLCreator.FormatNumber(TotalAmount))
     end;
 
-    local procedure VerifyXMLInvoiceDetails(var CuotaDeducibleDecValue: Decimal; XMLNode: DotNet XmlNode; XMLNodeName: Text; VATRate: Decimal; Amount: Decimal)
+    local procedure VerifyXMLInvoiceDetails(var CuotaDeducibleDecValue: Decimal; XMLNode: XmlNode; XMLNodeName: Text; VATRate: Decimal; Amount: Decimal)
     var
-        XMLNodeDetails: DotNet XmlNodeList;
+        XMLNodeDetails: XmlNodeList;
     begin
         Assert.AreEqual(
-          XMLNodeName, Format(XMLNode.Name), XMLNodeName + ' is not the 1st child of DesgloseFactura');
-        XMLNodeDetails := XMLNode.ChildNodes;
+          XMLNodeName, XMLNode.AsXmlElement().Name, XMLNodeName + ' is not the 1st child of DesgloseFactura');
+        XMLNodeDetails := XMLNode.AsXmlElement().GetChildNodes();
         Assert.AreEqual(1, XMLNodeDetails.Count, 'sii:InversionSujetoPassivo or sii:DesgloseIVA must have 1 child');
-        XMLNode := XMLNodeDetails.Item(0);
-        XMLNodeDetails := XMLNode.ChildNodes;
+        XMLNodeDetails.Get(1, XMLNode);
+        XMLNodeDetails := XMLNode.AsXmlElement().GetChildNodes();
         Assert.AreEqual(3, XMLNodeDetails.Count, 'sii:DetalleIVA must have 3 children');
-        ValidateElementByNameAt(XMLNode, 'sii:TipoImpositivo', SIIXMLCreator.FormatNumber(VATRate), 0);
-        ValidateElementByNameAt(XMLNode, 'sii:BaseImponible', SIIXMLCreator.FormatNumber(Amount), 0);
-        ValidateElementByNameAt(XMLNode, 'sii:CuotaSoportada', SIIXMLCreator.FormatNumber(Amount * VATRate / 100), 0);
+        ValidateChildElementByNameAt(XMLNode, 'sii:TipoImpositivo', SIIXMLCreator.FormatNumber(VATRate), 0);
+        ValidateChildElementByNameAt(XMLNode, 'sii:BaseImponible', SIIXMLCreator.FormatNumber(Amount), 0);
+        ValidateChildElementByNameAt(XMLNode, 'sii:CuotaSoportada', SIIXMLCreator.FormatNumber(Amount * VATRate / 100), 0);
 
         CuotaDeducibleDecValue += Amount * VATRate / 100;
     end;
 
-    local procedure VerifyXMLCustomerPayment(XMLDoc: DotNet XmlDocument; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    local procedure VerifyXMLCustomerPayment(XMLDoc: XmlDocument; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
         ValidateElementByName(XMLDoc, 'sii:Importe', SIIXMLCreator.FormatNumber(-DetailedCustLedgEntry.Amount));
         ValidateElementByName(XMLDoc, 'sii:Fecha', SIIXMLCreator.FormatDate(DetailedCustLedgEntry."Posting Date"));
         ValidateElementByName(XMLDoc, 'sii:Medio', '04');
     end;
 
-    local procedure VerifyXMLVendorPayment(XMLDoc: DotNet XmlDocument; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    local procedure VerifyXMLVendorPayment(XMLDoc: XmlDocument; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
         ValidateElementByName(XMLDoc, 'sii:Importe', SIIXMLCreator.FormatNumber(DetailedVendorLedgEntry.Amount));
         ValidateElementByName(XMLDoc, 'sii:Fecha', SIIXMLCreator.FormatDate(DetailedVendorLedgEntry."Posting Date"));
@@ -1516,119 +1515,156 @@ codeunit 143006 "Library - SII"
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyNodeCountWithValueByXPath(var XMLDoc: DotNet XmlDocument; BasePath: Text; NodeToken: Text; ExpectedValue: Text; ExpectedCount: Integer)
+    procedure VerifyNodeCountWithValueByXPath(var XMLDoc: XmlDocument; BasePath: Text; NodeToken: Text; ExpectedValue: Text; ExpectedCount: Integer)
+    var
+        XmlText: Text;
     begin
-        LibraryXPathXMLReader.InitializeWithText(XMLDoc.OuterXml, '');
+        XMLDoc.WriteTo(XmlText);
+        LibraryXPathXMLReader.InitializeWithText(XmlText, '');
         SetupXMLNamespaces();
         LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath(BasePath + NodeToken, ExpectedValue, ExpectedCount);
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyOneNodeWithValueByXPath(XMLDoc: DotNet XmlDocument; BasePath: Text; NodeToken: Text; ExpectedValue: Text)
+    procedure VerifyOneNodeWithValueByXPath(XMLDoc: XmlDocument; BasePath: Text; NodeToken: Text; ExpectedValue: Text)
     begin
         VerifyNodeCountWithValueByXPath(XMLDoc, BasePath, NodeToken, ExpectedValue, 1);
     end;
 
     [Scope('OnPrem')]
-    procedure VerifySequenceOfTwoChildNodes(XMLDoc: DotNet XmlDocument; ParentNodeName: Text; FirstNodeName: Text; SecondNodeName: Text)
+    procedure VerifySequenceOfTwoChildNodes(XMLDoc: XmlDocument; ParentNodeName: Text; FirstNodeName: Text; SecondNodeName: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ParentNodeName);
-        XMLNode := XMLNodeList.Item(0);
-        XMLNodeList := XMLNode.ChildNodes;
+        XMLNodeList := GetElementsByTagName(XMLDoc, ParentNodeName);
+        XMLNodeList.Get(1, XMLNode);
+        XMLNodeList := XMLNode.AsXmlElement().GetChildNodes();
         Assert.AreEqual(2, XMLNodeList.Count, 'Incorrect count of child nodes');
-        XMLNode := XMLNodeList.Item(0);
-        Assert.AreEqual(FirstNodeName, XMLNode.Name, 'Incorrect Node Name');
-        XMLNode := XMLNodeList.Item(1);
-        Assert.AreEqual(SecondNodeName, XMLNode.Name, 'Incorrect Node Name');
+        XMLNodeList.Get(1, XMLNode);
+        Assert.AreEqual(FirstNodeName, XMLNode.AsXmlElement().Name, 'Incorrect Node Name');
+        XMLNodeList.Get(2, XMLNode);
+        Assert.AreEqual(SecondNodeName, XMLNode.AsXmlElement().Name, 'Incorrect Node Name');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyTwoLevelChildNodes(XMLDoc: DotNet XmlDocument; ParentNodeName: Text; FirstNodeName: Text; SecondNodeName: Text)
+    procedure VerifyTwoLevelChildNodes(XMLDoc: XmlDocument; ParentNodeName: Text; FirstNodeName: Text; SecondNodeName: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName(ParentNodeName);
-        XMLNode := XMLNodeList.Item(0);
+        XMLNodeList := GetElementsByTagName(XMLDoc, ParentNodeName);
+        XMLNodeList.Get(1, XMLNode);
 
-        XMLNodeList := XMLNode.ChildNodes;
-        XMLNode := XMLNodeList.Item(0);
-        Assert.AreEqual(FirstNodeName, XMLNode.Name, 'Incorrect Node Name');
+        XMLNodeList := XMLNode.AsXmlElement().GetChildNodes();
+        XMLNodeList.Get(1, XMLNode);
+        Assert.AreEqual(FirstNodeName, XMLNode.AsXmlElement().Name, 'Incorrect Node Name');
 
-        XMLNodeList := XMLNode.ChildNodes;
-        XMLNode := XMLNodeList.Item(0);
-        Assert.AreEqual(SecondNodeName, XMLNode.Name, 'Incorrect Node Name');
+        XMLNodeList := XMLNode.AsXmlElement().GetChildNodes();
+        XMLNodeList.Get(1, XMLNode);
+        Assert.AreEqual(SecondNodeName, XMLNode.AsXmlElement().Name, 'Incorrect Node Name');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLSalesDocHeaderCnt(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer)
+    procedure VerifyXMLSalesDocHeaderCnt(XMLDoc: XmlDocument; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('siiLR:SuministroLRFacturasEmitidas');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'siiLR:SuministroLRFacturasEmitidas');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag SuministroLRFacturasEmitidas');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLSalesCrMemoRemovalHeaderCnt(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer)
+    procedure VerifyXMLSalesCrMemoRemovalHeaderCnt(XMLDoc: XmlDocument; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('siiLR:BajaLRFacturasEmitidas');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'siiLR:BajaLRFacturasEmitidas');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag BajaLRFacturasEmitidas');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLSalesDocCnt(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer)
+    procedure VerifyXMLSalesDocCnt(XMLDoc: XmlDocument; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('siiLR:RegistroLRFacturasEmitidas');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'siiLR:RegistroLRFacturasEmitidas');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag RegistroLRFacturasEmitidas');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLPurchDocHeaderCnt(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer)
+    procedure VerifyXMLPurchDocHeaderCnt(XMLDoc: XmlDocument; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('siiLR:SuministroLRFacturasRecibidas');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'siiLR:SuministroLRFacturasRecibidas');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag SuministroLRFacturasRecibidas');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLPurchCrMemoRemovalHeaderCnt(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer)
+    procedure VerifyXMLPurchCrMemoRemovalHeaderCnt(XMLDoc: XmlDocument; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('siiLR:BajaLRFacturasRecibidas');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'siiLR:BajaLRFacturasRecibidas');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag BajaLRFacturasRecibidas');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLPurchDocCnt(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer)
+    procedure VerifyXMLPurchDocCnt(XMLDoc: XmlDocument; ExpectedCount: Integer)
     var
-        XMLNodeList: DotNet XmlNodeList;
+        XMLNodeList: XmlNodeList;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('siiLR:RegistroLRFacturasRecibidas');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'siiLR:RegistroLRFacturasRecibidas');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag RegistroLRFacturasRecibidas');
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyXMLTipoComunicacionValue(XMLDoc: DotNet XmlDocument; ExpectedCount: Integer; ExpectedValue: Text)
+    procedure VerifyXMLTipoComunicacionValue(XMLDoc: XmlDocument; ExpectedCount: Integer; ExpectedValue: Text)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('sii:TipoComunicacion');
+        XMLNodeList := GetElementsByTagName(XMLDoc, 'sii:TipoComunicacion');
         Assert.AreEqual(ExpectedCount, XMLNodeList.Count, 'Wrong count of XML tag TipoComunicacion');
         if ExpectedCount > 0 then begin
-            XMLNode := XMLNodeList.Item(0);
-            Assert.AreEqual(ExpectedValue, XMLNode.InnerText, 'Wrong XML TipoComunicacion value');
+            XMLNodeList.Get(1, XMLNode);
+            Assert.AreEqual(ExpectedValue, XMLNode.AsXmlElement().InnerText, 'Wrong XML TipoComunicacion value');
         end;
+    end;
+
+    local procedure ValidateChildElementByNameAt(ParentXmlNode: XmlNode; ElementName: Text; ExpectedValue: Text; Position: Integer)
+    var
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
+    begin
+        ParentXmlNode.SelectNodes('.//' + ElementName, GetXmlNamespaceManager(ParentXmlNode), XMLNodeList);
+        Assert.IsTrue(XMLNodeList.Get(Position + 1, XMLNode), StrSubstNo(ElementNotFoundAtPositionErr, ElementName, Position));
+        Assert.AreEqual(ExpectedValue, XMLNode.AsXmlElement().InnerText, StrSubstNo(InvalidElementValueErr, ElementName));
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetElementsByTagName(XMLDoc: XmlDocument; ElementName: Text) XMLNodeList: XmlNodeList
+    begin
+        XMLDoc.SelectNodes('//' + ElementName, GetXmlNamespaceManager(XMLDoc.AsXmlNode()), XMLNodeList);
+    end;
+
+    local procedure GetXmlNamespaceManager(ContextXmlNode: XmlNode) XmlNamespaceManager: XmlNamespaceManager
+    var
+        XMLDoc: XmlDocument;
+        RootXmlElement: XmlElement;
+        NamespaceUri: Text;
+    begin
+        ContextXmlNode.GetDocument(XMLDoc);
+        XmlNamespaceManager.NameTable(XMLDoc.NameTable());
+        if not XMLDoc.GetRoot(RootXmlElement) then
+            exit;
+        if RootXmlElement.GetNamespaceOfPrefix('soapenv', NamespaceUri) then
+            XmlNamespaceManager.AddNamespace('soapenv', NamespaceUri);
+        if RootXmlElement.GetNamespaceOfPrefix('sii', NamespaceUri) then
+            XmlNamespaceManager.AddNamespace('sii', NamespaceUri);
+        if RootXmlElement.GetNamespaceOfPrefix('siiLR', NamespaceUri) then
+            XmlNamespaceManager.AddNamespace('siiLR', NamespaceUri);
     end;
 
     [Scope('OnPrem')]

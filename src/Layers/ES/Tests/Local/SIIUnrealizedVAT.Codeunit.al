@@ -31,7 +31,7 @@ codeunit 147555 "SII Unrealized VAT"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263648] Purchase invoice with G/L Account has one details line in XML file
@@ -71,7 +71,7 @@ codeunit 147555 "SII Unrealized VAT"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263648] Sales invoice with G/L Account has one details line in XML file
