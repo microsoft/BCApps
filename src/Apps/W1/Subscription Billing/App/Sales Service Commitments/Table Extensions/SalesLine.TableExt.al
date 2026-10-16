@@ -67,6 +67,10 @@ tableextension 8054 "Sales Line" extends "Sales Line"
                 if xRec."No." = Rec."No." then
                     exit;
                 CheckAndDeleteServiceCommitmentsForSalesLine(Rec, xRec);
+                // During Explode BOM the Subscription Lines are added from OnExplodeBOMCompLinesOnAfterToSalesLineInsert,
+                // where the line is inserted and the quantity is set. Adding them here as well offers the Subscription Packages twice per component.
+                if SalesServiceCommitmentMgmt.IsSalesLineBeingExploded(Rec) then
+                    exit;
                 SalesServiceCommitmentMgmt.AddSalesServiceCommitmentsForSalesLine(Rec, false);
             end;
         }
