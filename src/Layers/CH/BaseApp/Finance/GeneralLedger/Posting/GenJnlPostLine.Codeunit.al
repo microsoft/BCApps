@@ -3305,6 +3305,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure InsertPmtDiscVATForGLEntry(GenJnlLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; VATEntry2: Record "VAT Entry"; var VATPostingSetup: Record "VAT Posting Setup"; var TaxJurisdiction: Record "Tax Jurisdiction"; EntryType: Enum "Detailed CV Ledger Entry Type"; VATAmount: Decimal; VATAmountAddCurr: Decimal; NonDedVATAmount: Decimal; NonDedVATAmountAddCurr: Decimal)
     var
+        NonDedVATAccountNo: Code[20];
         IsHandled: Boolean;
     begin
         DtldCVLedgEntryBuf.Init();
@@ -3355,7 +3356,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                 InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetRevChargeAccount(false), '',
                                   -VATAmount, -VATAmountAddCurr, false);
                                 if NonDedVATAmount <> 0 then begin
-                                    InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetPurchAccount(false), '',
+                                    NonDedVATAccountNo := VATPostingSetup.GetPurchAccount(false);
+                                    if EntryType = EntryType::"Payment Discount (VAT Excl.)" then
+                                        NonDedVATAccountNo := GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry2, NonDedVATAmount);
+                                    InitGLEntryVAT(GenJnlLine, NonDedVATAccountNo, '',
                                     NonDedVATAmount, NonDedVATAmountAddCurr, false);
                                     InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetRevChargeAccount(false), '',
                                     -NonDedVATAmount, -NonDedVATAmountAddCurr, false);
@@ -8824,6 +8828,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesReceivablesSetup.SetLoadFields("Appln. between Currencies");
         SalesReceivablesSetup.GetRecordOnce();
         exit(SalesReceivablesSetup."Appln. between Currencies" = SalesReceivablesSetup."Appln. between Currencies"::All);
+    end;
+
+    local procedure GetPaymentDiscountVATExclNonDedVATAccountNo(VatEntry2: Record "VAT Entry"; NonDedVATAmount: Decimal): Code[20]
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.SetLoadFields("Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
+        GeneralPostingSetup.Get(VatEntry2."Gen. Bus. Posting Group", VatEntry2."Gen. Prod. Posting Group");
+        exit(GeneralPostingSetup.GetPurchPmtDiscountAccount(NonDedVATAmount > 0));
     end;
 
     [IntegrationEvent(true, false)]
