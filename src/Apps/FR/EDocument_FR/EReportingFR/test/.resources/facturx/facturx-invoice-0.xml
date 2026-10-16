@@ -43,7 +43,11 @@
     <ram:ApplicableHeaderTradeAgreement>
       <ram:BuyerReference>SERVICE-ACHATS</ram:BuyerReference>
       <ram:SellerTradeParty>
+        <ram:ID>12345678901234</ram:ID>
         <ram:Name>Fournisseur SARL</ram:Name>
+        <ram:SpecifiedLegalOrganization>
+          <ram:ID schemeID="0002">123456789</ram:ID>
+        </ram:SpecifiedLegalOrganization>
         <ram:PostalTradeAddress>
           <ram:LineOne>12 Rue de la Paix</ram:LineOne>
           <ram:CityName>Paris</ram:CityName>
