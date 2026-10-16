@@ -1217,7 +1217,6 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
             PeriodLengthDays := 365;
     end;
 
-    [Scope('OnPrem')]
     procedure SetMandatoryFields(DepreciationBookCodeFrom: Code[10]; StartingDateFrom: Date; EndingDateFrom: Date)
     begin
         DeprBookCode := DepreciationBookCodeFrom;
@@ -1234,7 +1233,6 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
         UseAccountingPeriodFlag := UseAccountingPeriodFrom;
     end;
 
-    [Scope('OnPrem')]
     procedure SetTotalFields(GroupTotalsFrom: Option; PrintDetailsFrom: Boolean)
     begin
         GroupTotalsOption := GroupTotalsFrom;
@@ -1355,4 +1353,3 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
         exit(0);
     end;
 }
-

@@ -49,6 +49,24 @@ codeunit 139597 "AAC Accrual Accounting"
           -AllocationPct * GenJournalLine.Amount / 100, GenJournalLine."Posting Date");
     end;
 
+    [Test]
+    procedure VerifyBalanceAcceptsAccountWithoutEntries()
+    var
+        AACAutoAccGroupPosting: Codeunit "AAC Auto. Acc. Group Posting";
+    begin
+        AACAutoAccGroupPosting.VerifyGLEntriesBalance(LibraryERM.CreateGLAccountNo(), 0, 0);
+    end;
+
+    [Test]
+    procedure VerifyBalanceRejectsIncorrectAmount()
+    var
+        GLEntry: Record "G/L Entry";
+        AACAutoAccGroupPosting: Codeunit "AAC Auto. Acc. Group Posting";
+    begin
+        asserterror AACAutoAccGroupPosting.VerifyGLEntriesBalance(LibraryERM.CreateGLAccountNo(), 1, 0);
+        Assert.ExpectedError(GLEntry.FieldCaption(Amount));
+    end;
+
     local procedure CreateAutomaticAccountGroup(AllocationPct: Decimal): Code[10]
     var
         AutomaticAccountHeader: Record "Automatic Account Header";
@@ -129,4 +147,3 @@ codeunit 139597 "AAC Accrual Accounting"
         Assert.AreNearlyEqual(Amount, GLEntry.Amount, (LibraryERM.GetAmountRoundingPrecision()), AmountMustBeEqualMsg);
     end;
 }
-
