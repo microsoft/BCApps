@@ -206,6 +206,7 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseUser: Record "Expense User";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
         ConsumptionSourceSystemId: Guid;
         ConsumptionId: Guid;
         ExpectedUniqueId: Text[1024];
@@ -214,6 +215,8 @@ codeunit 148299 "Expense Consumption Test"
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Logging consumption creates an environment consumption record
         Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
 
         // [GIVEN] Expense User "U" and an expense source
         LibraryExpense.CreateExpenseUser(ExpenseUser);
@@ -240,6 +243,7 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseUser: Record "Expense User";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
         ConsumptionSourceSystemId: Guid;
         FirstConsumptionId: Guid;
         SecondConsumptionId: Guid;
@@ -248,6 +252,8 @@ codeunit 148299 "Expense Consumption Test"
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Logging the same consumption twice returns the existing record
         Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(2);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
 
         // [GIVEN] Expense User "U" and a logged expense consumption
         LibraryExpense.CreateExpenseUser(ExpenseUser);
@@ -276,6 +282,7 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseUser: Record "Expense User";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
         ConsumptionSourceSystemId: Guid;
         FirstConsumptionId: Guid;
         SecondConsumptionId: Guid;
@@ -283,6 +290,8 @@ codeunit 148299 "Expense Consumption Test"
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Logging different operations for one source creates distinct records
         Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(2);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
 
         // [GIVEN] Expense User "U" and an expense source
         LibraryExpense.CreateExpenseUser(ExpenseUser);

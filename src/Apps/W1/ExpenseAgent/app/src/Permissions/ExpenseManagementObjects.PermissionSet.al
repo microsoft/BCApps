@@ -174,6 +174,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense Event Subscriber" = X,
         codeunit "Expense Agent Privacy Subs." = X,
         codeunit "Expense Consumption Handler" = X,
+        codeunit "Expense Agent Quota Impl." = X,
         codeunit "Expense Currency" = X,
         codeunit "Expense Manual Release" = X,
         codeunit "Expense Manual Reopen" = X,

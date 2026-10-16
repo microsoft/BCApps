@@ -12,9 +12,8 @@ codeunit 6969 "Expense Consumption Handler"
 
     var
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
-        CopilotQuota: Codeunit "Copilot Quota";
-        CopilotFeatureTrial: Codeunit "Copilot Feature Trial";
-        ExpenseAgentFeatureTrialIdTok: Label 'ExpenseAgentTrial', Locked = true;
+        QuotaProvider: Interface "Expense Agent Quota";
+        IsQuotaProviderSet: Boolean;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4. Trial available: %5.', Locked = true;
         PolicyEvaluationTrialSkippedTelemetryMsg: Label 'Skipped incrementing the Expense Agent feature trial for a policy evaluation operation.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
@@ -62,7 +61,7 @@ codeunit 6969 "Expense Consumption Handler"
         UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
         IsTrial := TrialQuotaAvailable();
 
-        Session.LogMessage('0000W42', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId), IsTrial),
+        Session.LogMessage('0000W42', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, QuotaProvider.IsConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId), IsTrial),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         // LogAgentUserAiConsumption is idempotent, and so should be inserting in the companion table
@@ -85,14 +84,7 @@ codeunit 6969 "Expense Consumption Handler"
         if IsTrial then
             IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation)
         else
-            CopilotQuota.LogAgentUserAIConsumption(
-                Enum::"Copilot Capability"::"Expense Agent",
-                Usage,
-                CopilotQuotaUsageType,
-                0, // We have no Agent Task ID
-                ActionsSummary,
-                ActionsDescription,
-                UniqueId);
+            QuotaProvider.LogPaidConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, UniqueId);
 
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
@@ -127,15 +119,17 @@ codeunit 6969 "Expense Consumption Handler"
 
     internal procedure GetRemainingFeatureTrialQuota(): Integer
     begin
-        if not CopilotFeatureTrial.IsTrialStarted(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent") then
+        InitializeQuotaProvider();
+        if not QuotaProvider.IsTrialStarted() then
             exit(TrialQuota());
 
-        exit(CopilotFeatureTrial.GetQuotaRemaining(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent"));
+        exit(QuotaProvider.GetRemainingTrialQuota());
     end;
 
     local procedure TrialQuotaAvailable(): Boolean
     begin
-        exit(CopilotFeatureTrial.HasQuotaRemaining(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent"));
+        InitializeQuotaProvider();
+        exit(QuotaProvider.TrialQuotaAvailable());
     end;
 
     local procedure IncrementTrial(ConsumptionId: Guid; Operation: Code[50])
@@ -151,8 +145,7 @@ codeunit 6969 "Expense Consumption Handler"
             exit;
         end;
 
-        CopilotFeatureTrial.ReportNonRecurringFeatureTrialQuota(ConsumptionId, ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent",
-            TrialQuota(), TrialQuota(), TrialQuota(), TrialQuota(), '');
+        QuotaProvider.ReportTrialConsumption(ConsumptionId, TrialQuota());
     end;
 
     internal procedure TrialQuota(): Integer
@@ -165,7 +158,21 @@ codeunit 6969 "Expense Consumption Handler"
         if TrialQuotaAvailable() then
             exit(true);
 
-        exit(CopilotQuota.CanConsume());
+        exit(QuotaProvider.CanConsumePaidQuota());
+    end;
+
+    internal procedure SetQuotaProvider(NewQuotaProvider: Interface "Expense Agent Quota")
+    begin
+        QuotaProvider := NewQuotaProvider;
+        IsQuotaProviderSet := true;
+    end;
+
+    local procedure InitializeQuotaProvider()
+    var
+        ExpenseAgentQuotaImpl: Codeunit "Expense Agent Quota Impl.";
+    begin
+        if not IsQuotaProviderSet then
+            SetQuotaProvider(ExpenseAgentQuotaImpl);
     end;
 
     local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
