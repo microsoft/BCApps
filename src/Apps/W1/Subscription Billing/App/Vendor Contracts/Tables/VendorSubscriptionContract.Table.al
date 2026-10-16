@@ -1596,6 +1596,7 @@ table 8063 "Vendor Subscription Contract"
         SourceCodeSetup: Record "Source Code Setup";
     begin
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
+        OnCreateVendorContractLineFromServiceCommitmentOnBeforeInitFromServiceCommitment(ServiceCommitment, VendorContractLine);
         VendorContractLine.InitFromServiceCommitment(ServiceCommitment, ContractNo);
         VendorContractLine.Insert(false);
 
@@ -1611,6 +1612,7 @@ table 8063 "Vendor Subscription Contract"
             ServiceCommitment.RecalculateAmountsFromCurrencyData();
         end;
         ServiceCommitment."Exclude from Price Update" := VendorContract.DefaultExcludeFromPriceUpdate;
+        OnCreateVendorContractLineFromServiceCommitmentOnBeforeModifyServiceCommitment(ServiceCommitment, VendorContractLine);
         ServiceCommitment.Modify(false);
     end;
 
@@ -1802,6 +1804,16 @@ table 8063 "Vendor Subscription Contract"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsPayToAddressEqualToBuyFromAddress(VendorContractWithBuyFrom: Record "Vendor Subscription Contract"; VendorContractWithPayTo: Record "Vendor Subscription Contract"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateVendorContractLineFromServiceCommitmentOnBeforeInitFromServiceCommitment(var SubscriptionLine: Record "Subscription Line"; var VendSubContractLine: Record "Vend. Sub. Contract Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateVendorContractLineFromServiceCommitmentOnBeforeModifyServiceCommitment(var SubscriptionLine: Record "Subscription Line"; VendSubContractLine: Record "Vend. Sub. Contract Line")
     begin
     end;
 }
