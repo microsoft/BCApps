@@ -389,7 +389,6 @@ table 7000020 "Payment Order"
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;
 
-    [Scope('OnPrem')]
     procedure FilterSourceForExport(var GenJnlLine: Record "Gen. Journal Line")
     begin
         GenJnlLine.SetRange("Journal Template Name", '');
@@ -398,7 +397,6 @@ table 7000020 "Payment Order"
         GenJnlLine."Bal. Account No." := "Bank Account No.";
     end;
 
-    [Scope('OnPrem')]
     procedure ExportToFile()
     var
         GenJnlLine: Record "Gen. Journal Line";
