@@ -121,7 +121,6 @@ table 14102 "CD FA Information"
         CDNumberHeader: Record "CD Number Header";
         InventorySetup: Record "Inventory Setup";
 
-    [Scope('OnPrem')]
     procedure GetCountryName(): Text[50]
     var
         CountryRegion: Record "Country/Region";
@@ -135,7 +134,6 @@ table 14102 "CD FA Information"
         exit(CountryRegion.Name);
     end;
 
-    [Scope('OnPrem')]
     procedure GetCountryLocalCode(): Code[10]
     var
         CountryRegion: Record "Country/Region";
