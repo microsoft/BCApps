@@ -156,6 +156,8 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

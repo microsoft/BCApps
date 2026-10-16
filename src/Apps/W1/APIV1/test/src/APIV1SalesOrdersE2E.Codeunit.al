@@ -4,6 +4,7 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -40,6 +41,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         TargetURL: Text;
     begin
         // [SCENARIO 184721] Create Sales Orders and use a GET method to retrieve them
+
+        Initialize();
 
         // [GIVEN] 2 orders in the table
         LibrarySales.CreateSalesOrder(SalesHeader);
@@ -78,6 +81,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         OrderWithComplexJSON: Text;
     begin
         // [SCENARIO 184721] Create sales orders JSON and use HTTP POST to create them
+
+        Initialize();
 
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
@@ -128,6 +133,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
     begin
         // [SCENARIO 184721] Create sales order for customer with location and use HTTP POST to create it
 
+        Initialize();
+
         // [GIVEN] an order with customer with location code
         LibrarySales.CreateCustomer(Customer);
         LibraryWarehouse.CreateLocation(Location);
@@ -171,6 +178,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
     begin
         // [SCENARIO 184721] Create sales order with specific currency set and use HTTP POST to create it
 
+        Initialize();
+
         // [GIVEN] an order with a non-LCY currencyCode set
         LibrarySales.CreateCustomer(Customer);
         CustomerNo := Customer."No.";
@@ -204,19 +213,30 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
     [Test]
     procedure TestModifyOrders()
     begin
+        Initialize();
+
         TestMultipleModifyOrders(false, false);
     end;
 
     [Test]
     procedure TestEmptyModifyOrders()
     begin
+        Initialize();
+
         TestMultipleModifyOrders(true, false);
     end;
 
     [Test]
     procedure TestPartialModifyOrders()
     begin
+        Initialize();
+
         TestMultipleModifyOrders(false, true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     local procedure TestMultipleModifyOrders(EmptyData: Boolean; PartiallyEmptyData: Boolean)
@@ -292,6 +312,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
     begin
         // [SCENARIO 184721] Create sales orders and use HTTP DELETE to delete them
 
+        Initialize();
+
         // [GIVEN] 2 orders in the table
         LibrarySales.CreateSalesOrder(SalesHeader);
         OrderNo[1] := SalesHeader."No.";
@@ -337,6 +359,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         OrderWithComplexJSON: Text;
     begin
         // [SCENARIO 184721] Create an order both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
+        Initialize();
+
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -397,6 +421,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
     begin
         // [SCENARIO 184721] When an order is created, the GET Method should update the order and assign a total
 
+        Initialize();
+
         // [GIVEN] an order without totals assigned
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Order);
         SalesHeader.CalcFields("Recalculate Invoice Disc.");
@@ -426,6 +452,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         InvDiscountAmount: Decimal;
     begin
         // [SCENARIO 184721] When an order is created, the GET Method should update the order and redistribute the discount amount
+
+        Initialize();
 
         // [GIVEN] an order with discount amount that should be redistributed
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Order);
@@ -461,6 +489,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         OrderId: Guid;
     begin
         // [SCENARIO 184721] Create Sales Order, use a PATCH method to change it and then verify the changes
+
+        Initialize();
 
         // [GIVEN] an order with lines
         CreateOrderWithLines(SalesHeader);
@@ -498,6 +528,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
     begin
         // [SCENARIO 184721] Clearing manually set discount
 
+        Initialize();
+
         // [GIVEN] an order
         CreateOrderWithLines(SalesHeader);
         OrderNo := SalesHeader."No.";
@@ -533,6 +565,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can ship and invoice a sales order through the API.
+
+        Initialize();
 
         // [GIVEN] a sales order with lines
         CreateOrderWithLines(SalesHeader);
