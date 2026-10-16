@@ -36,6 +36,52 @@ page 6991 "Expense Agent Setup Wizard"
                 ApplicationArea = All;
                 UpdatePropagation = Both;
             }
+
+            group(GetStarted)
+            {
+                Caption = 'Start for free';
+                InstructionalText = 'The first receipts you upload to the Expense Agent will be processed for free. After you run out of free expenses, standard billing applies.';
+
+                group(TrialRemaining)
+                {
+                    Caption = 'You still have free expenses remaining';
+                    InstructionalText = 'The number of free expenses is shared across all expense users and companies in this environment.';
+                    Visible = TrialExpensesRemaining > 0;
+
+                    field(RemainingExpenses; TrialExpensesText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the number of free expenses left.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ExpenseDashboardUrl <> '' then
+                                Hyperlink(ExpenseDashboardUrl);
+                        end;
+                    }
+
+                }
+                group(TrialEnded)
+                {
+                    Caption = 'You don''t have any free expenses remaining';
+                    InstructionalText = 'You can continue using the Expense Agent, and normal billing applies.';
+                    Visible = TrialExpensesRemaining <= 0;
+
+                    field(UseExpenseAgent; ExpenseDashboardLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Opens the Expense app in a new browser tab so registered users can submit and review their expenses.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ExpenseDashboardUrl <> '' then
+                                Hyperlink(ExpenseDashboardUrl);
+                        end;
+                    }
+                }
+            }
             group(AccessAndSubmission)
             {
                 Caption = 'Access and submission';
@@ -932,7 +978,6 @@ page 6991 "Expense Agent Setup Wizard"
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
 
         FeatureTelemetry.LogUptake('0000UBU', Rec.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
-
         if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
@@ -945,6 +990,7 @@ page 6991 "Expense Agent Setup Wizard"
         UpdateAgentSetupBuffer();
 
         InitialState := TempAgentSetupBuffer.State;
+        InitializeRemainingTrial();
         UpdateControls();
     end;
 
@@ -966,22 +1012,18 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
-
         if not ValidateManagementRulesDependencies() then
             exit(false);
 
         UpdateAgentSetupBuffer();
-
         if AgentBeingEnabled() then
             if not ConfirmMissingAccountWarnings() then
                 exit(false);
 
         VerifySchedulingMailboxAccess();
-
         if AgentBeingEnabled() and StateChanged() then
             if not ActivateAgent() then
                 exit(false);
-
         if AgentBeingDisabled() and StateChanged() then
             if not DeactivateAgent() then
                 exit(false);
@@ -995,6 +1037,7 @@ page 6991 "Expense Agent Setup Wizard"
     var
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
+        TrialExpensesRemaining: Integer;
         InitialState: Option;
         EnableMailboxChanged: Boolean;
         IsConfigUpdated: Boolean;
@@ -1015,6 +1058,7 @@ page 6991 "Expense Agent Setup Wizard"
         ExpenseDashboardUrl: Text;
         PartialDayRuleSummary: Text;
         MealReductionsSummary: Text;
+        TrialExpensesText: Text;
         PartialDayRuleEnabled: Boolean;
         UseCanaryEndpoint: Boolean;
         CanaryToggleVisible: Boolean;
@@ -1030,6 +1074,7 @@ page 6991 "Expense Agent Setup Wizard"
         RulesLinkTxt: Label 'Preview the default management rules that will be added';
         RulesAppliedLinkTxt: Label 'View management rules including new defaults';
         ExpensePoliciesLinkTxt: Label 'View expense policies';
+        TrialExpensesRemainingTxt: Label '%1 free expenses remaining', Comment = '%1=Number of free expenses remaining';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
         MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
@@ -1080,7 +1125,6 @@ page 6991 "Expense Agent Setup Wizard"
         IncludeManagementRules := Rec."Management Rules Applied";
         ApplyNoSeries := Rec."No. Series Applied";
         UseCanaryEndpoint := Rec."Use Canary Endpoint";
-
         if IsFirstTimeSetup then begin
             Rec."Use Rules" := true;
             ApplyAccountingDefaultsSelection(true);
@@ -1105,7 +1149,6 @@ page 6991 "Expense Agent Setup Wizard"
             end;
             exit;
         end;
-
         if not NoSeriesLocked then
             ApplyNoSeries := false;
         if not PaymentMethodsLocked then
@@ -1130,11 +1173,18 @@ page 6991 "Expense Agent Setup Wizard"
             end;
             exit;
         end;
-
         if not ExpLocationsLocked then
             ApplyExpLocations := false;
         if not ManagementRulesLocked then
             IncludeManagementRules := false;
+    end;
+
+    local procedure InitializeRemainingTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+    begin
+        TrialExpensesRemaining := ExpenseConsumptionHandler.GetRemainingFeatureTrialQuota();
+        TrialExpensesText := StrSubstNo(TrialExpensesRemainingTxt, TrialExpensesRemaining);
     end;
 
     local procedure IsNoSeriesDataEmpty(): Boolean
@@ -1202,7 +1252,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if ExpenseAgentSetup.Get() then
             AgentUserSecurityID := ExpenseAgentSetup."User Security ID";
-
         if not IsNullGuid(AgentUserSecurityID) then
             if Agent.Get(AgentUserSecurityID) then
                 exit(AgentUserSecurityID);
@@ -1252,7 +1301,6 @@ page 6991 "Expense Agent Setup Wizard"
             ConfirmQst := IncludeCategoriesAndPostingGroupsForRulesQst
         else
             ConfirmQst := IncludeCategoriesForRulesQst;
-
         if not Confirm(ConfirmQst, true) then
             exit(false);
 
@@ -1270,22 +1318,16 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if not ExpenseAgentSetup.Get() then
             exit;
-
         if ApplyNoSeries and not NoSeriesLocked then
             ExpenseAgentSetup.CreateNoSeriesDefaults();
-
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
-
         if ApplyPostingGroups and not PostingGroupsLocked then
             ExpenseAgentSetup.CreatePostingGroupsDefaults();
-
         if IncludeExpCategories and not ExpCategoriesLocked then
             ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
-
         if ApplyExpLocations and not ExpLocationsLocked then
             ExpenseAgentSetup.CreateExpenseLocationsDefaults();
-
         if IncludeManagementRules and not ManagementRulesLocked then
             ExpenseAgentSetup.CreateManagementRulesDefaults();
     end;
@@ -1332,7 +1374,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if Rec."Full Per-Diem Calculation" = Rec."Full Per-Diem Calculation"::None then
             exit(NotApplicableLbl);
-
         case Rec."Partial Day Rules" of
             Rec."Partial Day Rules"::"Flat Percentage Of Full Rate":
                 exit(StrSubstNo(FlatRateSummaryLbl, FormatPercentage(Rec."Percentage For Partial Day")));
@@ -1445,7 +1486,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if ExpPrivacyNoticeReg.IsPrivacyNoticeApproved() then
             exit;
-
         if not ExpPrivacyNoticeReg.ConfirmPrivacyNoticeApproval() then
             Error(PrivacyNoticeNotAcceptedMsg);
     end;
@@ -1495,7 +1535,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         ValidatePrivacyNoticeApproval();
         ValidateCapabilityIsEnabled();
-
         if Rec."Enable Approval Workflow" then
             Error(ApprovalWorkflowConflictErr, Rec.FieldCaption("Enable Approval Workflow"));
 
@@ -1574,7 +1613,6 @@ page 6991 "Expense Agent Setup Wizard"
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             if Confirm(CapabilityDisabledQst, false, Enum::"Copilot Capability"::"Expense Agent", CopilotAiCapabilities.Caption) then
                 if CopilotAiCapabilities.RunModal() in [Action::OK] then;
-
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
     end;
@@ -1631,13 +1669,10 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if EnvironmentInfo.IsOnPrem() then
             exit(ExpenseDashboardUrlOnPremTxt);
-
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit('');
-
         if URLHelper.IsTIE() or URLHelper.IsPPE() then
             exit(ExpenseDashboardUrlTieTxt);
-
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit(ExpenseDashboardUrlProdTxt);
 
