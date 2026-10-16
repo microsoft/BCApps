@@ -36,18 +36,23 @@ report 99 "Delete Empty G/L Registers"
             trigger OnAfterGetRecord()
             begin
                 GLEntry.SetRange("Entry No.", "From Entry No.", "To Entry No.");
+                GLEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                 if GLEntry.FindFirst() then
                     CurrReport.Skip();
                 CustLedgEntry.SetRange("Entry No.", "From Entry No.", "To Entry No.");
+                CustLedgEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                 if CustLedgEntry.FindFirst() then
                     CurrReport.Skip();
                 VendLedgEntry.SetRange("Entry No.", "From Entry No.", "To Entry No.");
+                VendLedgEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                 if VendLedgEntry.FindFirst() then
                     CurrReport.Skip();
                 VATEntry.SetRange("Entry No.", "From VAT Entry No.", "To VAT Entry No.");
+                VATEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                 if VATEntry.FindFirst() then
                     CurrReport.Skip();
                 BankAccLedgEntry.SetRange("Entry No.", "From Entry No.", "To Entry No.");
+                BankAccLedgEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                 if BankAccLedgEntry.FindFirst() then
                     CurrReport.Skip();
 
@@ -57,9 +62,11 @@ report 99 "Delete Empty G/L Registers"
                 FAReg.SetRange("G/L Register No.", "No.");
                 if FAReg.FindFirst() then begin
                     FALedgEntry.SetRange("Entry No.", FAReg."From Entry No.", FAReg."To Entry No.");
+                    FALedgEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                     if FALedgEntry.FindFirst() then
                         CurrReport.Skip();
                     MaintLedgEntry.SetRange("Entry No.", FAReg."From Maintenance Entry No.", FAReg."To Maintenance Entry No.");
+                    MaintLedgEntry.SetFilter("G/L Register No.", '0|%1', "No.");
                     if MaintLedgEntry.FindFirst() then
                         CurrReport.Skip();
                 end;

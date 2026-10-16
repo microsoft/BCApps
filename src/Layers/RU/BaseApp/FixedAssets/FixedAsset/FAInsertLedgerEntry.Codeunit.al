@@ -244,6 +244,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 CalcSalesGainLoss(FALedgEntry);
         end;
 
+        FALedgEntry."G/L Register No." := GLRegisterNo;
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -334,6 +335,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         end;
         if MaintenanceLedgEntry."G/L Entry No." > 0 then
             FAInsertGLAcc.InsertMaintenanceAccNo(MaintenanceLedgEntry);
+        MaintenanceLedgEntry."G/L Register No." := GLRegisterNo;
         MaintenanceLedgEntry.Insert(true);
         SetMaintenanceLastDate(MaintenanceLedgEntry);
         InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
@@ -661,6 +663,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 FALedgEntry3."Journal Batch Name" := '';
                 FALedgEntry3."FA No./Budgeted FA No." := '';
                 OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
+                FALedgEntry3."G/L Register No." := GLRegisterNo;
                 FALedgEntry3.Insert(true);
                 if FADeprBook.Get(FALedgEntry3."FA No.", FALedgEntry3."Depreciation Book Code") then
                     if FADeprBook."Initial Acquisition" and (FALedgEntry3.Quantity < 0) then begin
@@ -716,6 +719,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             MaintenanceLedgEntry3."Journal Batch Name" := '';
             MaintenanceLedgEntry3."FA No./Budgeted FA No." := '';
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntry(MaintenanceLedgEntry3);
+            MaintenanceLedgEntry3."G/L Register No." := GLRegisterNo;
             MaintenanceLedgEntry3.Insert();
             InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
         end;
@@ -845,6 +849,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         DeprBookCode := FALedgEntry."Depreciation Book Code";
         SetFAPostingType(FALedgEntry);
         FALedgEntry."Reclassification Entry" := true;
+        FALedgEntry."G/L Register No." := GLRegisterNo;
         FALedgEntry.Insert(true);
 
         InsertRegister("FA Register Called From"::"Fixed Asset", NextEntryNo);

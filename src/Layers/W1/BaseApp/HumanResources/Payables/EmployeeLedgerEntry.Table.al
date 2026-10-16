@@ -226,7 +226,8 @@ table 5222 "Employee Ledger Entry"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the balancing account that is used for the entry.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -357,10 +358,8 @@ table 5222 "Employee Ledger Entry"
             begin
                 TestField(Open, true);
                 CalcFields("Remaining Amount");
-
                 if AreOppositeSign("Amount to Apply", "Remaining Amount") then
                     FieldError("Amount to Apply", MustHaveSameSignErr);
-
                 if Abs("Amount to Apply") > Abs("Remaining Amount") then
                     FieldError("Amount to Apply", MustNotBeLargerErr);
             end;
@@ -524,6 +523,9 @@ table 5222 "Employee Ledger Entry"
         {
         }
         key(ClosedByEntryNo; "Closed by Entry No.")
+        {
+        }
+        key(LedgerEntries; "Document No.", "Document Type", "Posting Date")
         {
         }
     }

@@ -582,6 +582,7 @@ codeunit 2580 "Dimension Correction Mgt"
 
         repeat
             GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+            GLEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
             TransferSelectionFilterToRecordRef(GLEntry, GLEntryRecordRef);
             InsertNewDimCorrectSelectionCriteria(GLEntryRecordRef, DimCorrectSelectionCriteria."Filter Type"::Manual, DimCorrectSelectionCriteria, NewEntryNo);
             Clear(DimCorrectSelectionCriteria);
