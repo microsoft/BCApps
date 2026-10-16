@@ -43,7 +43,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ReleaseMustBeDisabledErr: Label 'Release action must be disabled.';
         ReleaseMustBeEnabledErr: Label 'Release action must be enabled.';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
-        OnlyBCUserCanApproveErr: Label 'In order to be an expense approver there must be a user in Business Central for email %1 for expense user %2.', Comment = '%1 - Email, %2 - Expense User No.';
+        OnlyBCUserCanApproveErr: Label 'Expense user %2 cannot be an approver because no user in Business Central has %1 as their Microsoft 365 authentication email. Make sure a Business Central user exists whose Microsoft 365 authentication email matches the expense user''s email.', Comment = '%1 - Email, %2 - Expense User No.';
         CannotDisableApprovalWorkflowErr: Label 'You cannot disable approval workflow because there are expense reports pending approval. Please complete or cancel the approval process for those expense reports before disabling this feature.';
         ApproveActionMustBeVisibleErr: Label 'Approve action must be visible for the assigned approver.';
         RejectActionMustBeVisibleErr: Label 'Reject action must be visible for the assigned approver.';
