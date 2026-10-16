@@ -22,6 +22,8 @@ codeunit 139906 "APIV2 - FA Locations E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
