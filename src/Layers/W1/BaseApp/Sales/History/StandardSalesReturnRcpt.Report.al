@@ -671,7 +671,7 @@ report 1309 "Standard Sales - Return Rcpt."
         if Header.GetFilters = '' then
             Error(NoFilterSetErr);
 
-        CompanyLogoPosition := SalesSetup."Logo Position on Documents";
+        CompanyLogoPosition := SalesSetup."Logo Position on Documents".AsInteger();
     end;
 
     var
@@ -857,4 +857,3 @@ report 1309 "Standard Sales - Return Rcpt."
     begin
     end;
 }
-

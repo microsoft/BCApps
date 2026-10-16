@@ -1395,7 +1395,7 @@ report 1306 "Standard Sales - Invoice"
         if Header.GetFilters = '' then
             Error(NoFilterSetErr);
 
-        CompanyLogoPosition := SalesSetup."Logo Position on Documents";
+        CompanyLogoPosition := SalesSetup."Logo Position on Documents".AsInteger();
     end;
 
     var
@@ -1937,4 +1937,3 @@ report 1306 "Standard Sales - Invoice"
     begin
     end;
 }
-

@@ -1108,7 +1108,7 @@ report 1303 "Standard Sales - Draft Invoice"
         if Header.GetFilters = '' then
             Error(NoFilterSetErr);
 
-        CompanyLogoPosition := SalesSetup."Logo Position on Documents";
+        CompanyLogoPosition := SalesSetup."Logo Position on Documents".AsInteger();
     end;
 
     trigger OnPostReport()
