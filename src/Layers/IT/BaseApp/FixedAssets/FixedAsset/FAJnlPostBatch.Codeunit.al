@@ -128,6 +128,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
             end;
             CheckRecurringLine(FAJnlLine);
             FAJnlCheckLine.CheckFAJnlLine(FAJnlLine);
+            CheckRestrictions(FAJnlLine);
             if FAJnlLine.Next() = 0 then
                 FAJnlLine.Find('-');
         until FAJnlLine."Line No." = StartLineNo;
@@ -514,6 +515,12 @@ codeunit 5633 "FA Jnl.-Post Batch"
                     exit;
             FAJnlLine.TestField(FAJnlLine."Document No.", CompareNextNo);
         end
+    end;
+
+    local procedure CheckRestrictions(var FAJournalLine: Record "FA Journal Line")
+    begin
+        if not PreviewMode then
+            FAJournalLine.OnCheckFAJournalLinePostRestrictions();
     end;
 
     [IntegrationEvent(false, false)]
