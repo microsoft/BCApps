@@ -377,10 +377,11 @@ codeunit 4014 "Notification Handler"
     var
         DetailsJson: JsonObject;
     begin
-        if Details <> '' then
-            if not DetailsJson.ReadFrom(Details) then
-                Error('');
-        GetJsonTokenText(DetailsJson, 'pipelineRunId', PipelineRunId)
+        // Fail when the details are not JSON or don't identify a pipeline run, so the caller falls back to the replication run ID.
+        if not DetailsJson.ReadFrom(Details) then
+            Error('');
+        if not GetJsonTokenText(DetailsJson, 'pipelineRunId', PipelineRunId) or (PipelineRunId = '') then
+            Error('');
     end;
 
     local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean

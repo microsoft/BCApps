@@ -385,7 +385,6 @@ codeunit 6369 "Pagero Processing"
         HttpContentResponse: HttpContent;
         ResponseJson: JsonObject;
         ItemJson: JsonObject;
-        ErrorJson: JsonObject;
         ItemsToken: JsonToken;
         ErrorToken: JsonToken;
         Result: Text;
@@ -411,11 +410,9 @@ codeunit 6369 "Pagero Processing"
         ItemJson := ItemsToken.AsObject();
         Status := ItemJson.GetText('status', true);
         FilepartID := ItemJson.GetText('id', true);
-        if ItemJson.Get('error', ErrorToken) and ErrorToken.IsObject() then begin
-            ErrorJson := ErrorToken.AsObject();
-            if ErrorJson.Get('description', ErrorToken) and ErrorToken.IsArray() then
+        if ItemJson.SelectToken('$.error.description', ErrorToken) then
+            if ErrorToken.IsArray() then
                 ErrorToken.AsArray().WriteTo(ErrorDescription);
-        end;
         exit(false);
     end;
 

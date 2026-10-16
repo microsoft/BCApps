@@ -133,7 +133,6 @@ codeunit 6419 "ForNAV Processing"
     local procedure ParseSendFileResponse(HttpContentResponse: HttpContent): Text
     var
         ResponseJson: JsonObject;
-        IdToken: JsonToken;
         Result: Text;
     begin
         Result := ParseJsonString(HttpContentResponse);
@@ -142,11 +141,7 @@ codeunit 6419 "ForNAV Processing"
 
         if not ResponseJson.ReadFrom(Result) then
             exit('');
-        if ResponseJson.Get('id', IdToken) and IdToken.IsValue() then begin
-            if IdToken.AsValue().IsNull() or IdToken.AsValue().IsUndefined() then
-                exit('');
-            exit(IdToken.AsValue().AsText());
-        end;
+        exit(ResponseJson.GetText('id', true));
     end;
 
     local procedure SetEDocument(EDocEntryNo: Integer; FileId: Text)

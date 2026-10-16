@@ -28,6 +28,7 @@ codeunit 101017 "Demo Data Importer"
             TablesArray := JsonObject.GetArray('tables');
             Clear(OptionsTable);
             Clear(RefrencesTable);
+            Clear(IndexedRefrenceAddresses);
             foreach TableToken in TablesArray do
                 ImportTable(TableToken.AsObject());
         until DemoDataFile.Next() = 0;
@@ -38,6 +39,7 @@ codeunit 101017 "Demo Data Importer"
         OptionsTable: Dictionary of [Text, Integer];
         RefrencesTable: Dictionary of [Text, Text];
         CachedRefrencesTable: Dictionary of [Text, Text];
+        IndexedRefrenceAddresses: List of [Text];
         JsonObject: JsonObject;
         JsonTxt: Text;
         LanguageCode: Code[10];
@@ -205,21 +207,9 @@ codeunit 101017 "Demo Data Importer"
 
     local procedure GetRefrencedValue("Key": Text; RefValue: Text): Text
     var
-        TablesToken: JsonToken;
-        TableToken: JsonToken;
-        RowsToken: JsonToken;
-        RowToken: JsonToken;
-        FieldToken: JsonToken;
-        LanguageToken: JsonToken;
-        TableObject: JsonObject;
-        RowObject: JsonObject;
-        FieldObject: JsonObject;
-        ReferenceParts: List of [Text];
         ReferenceAddress: Text;
         CacheKey: Text;
         Result: Text;
-        ReferenceTableId: Integer;
-        ReferenceFieldName: Text;
     begin
         if RefValue = '' then
             exit('');
@@ -232,42 +222,73 @@ codeunit 101017 "Demo Data Importer"
         if CachedRefrencesTable.Get(CacheKey, Result) then
             exit(Result);
 
+        // Index each referenced table/field once per document instead of scanning it for every value.
+        if IndexedRefrenceAddresses.Contains(ReferenceAddress) then
+            exit('');
+        IndexRefrenceAddress(ReferenceAddress);
+
+        if CachedRefrencesTable.Get(CacheKey, Result) then
+            exit(Result);
+        exit('');
+    end;
+
+    local procedure IndexRefrenceAddress(ReferenceAddress: Text)
+    var
+        TablesToken: JsonToken;
+        TableToken: JsonToken;
+        ReferenceParts: List of [Text];
+        ReferenceTableId: Integer;
+    begin
+        IndexedRefrenceAddresses.Add(ReferenceAddress);
+
         ReferenceParts := ReferenceAddress.Split('/');
         Evaluate(ReferenceTableId, ReferenceParts.Get(1));
-        ReferenceFieldName := ReferenceParts.Get(2);
 
-        if not JsonObject.Get('tables', TablesToken) then
-            exit('');
-        if not TablesToken.IsArray() then
-            exit('');
+        if not JsonObject.Get('tables', TablesToken) or not TablesToken.IsArray() then
+            exit;
+
         foreach TableToken in TablesToken.AsArray() do
-            if TableToken.IsObject() then begin
-                TableObject := TableToken.AsObject();
-                if TableObject.GetInteger('table') = ReferenceTableId then
-                    if TableObject.Get('rows', RowsToken) then
-                        if RowsToken.IsArray() then
-                            foreach RowToken in RowsToken.AsArray() do
-                                if RowToken.IsObject() then begin
-                                    RowObject := RowToken.AsObject();
-                                    if RowObject.Get(ReferenceFieldName, FieldToken) then
-                                        if FieldToken.IsObject() then begin
-                                            FieldObject := FieldToken.AsObject();
-                                            if FieldObject.Get('ENU', LanguageToken) then
-                                                if LanguageToken.IsValue() then
-                                                    if not LanguageToken.AsValue().IsNull() then
-                                                        if not LanguageToken.AsValue().IsUndefined() then
-                                                            if LanguageToken.AsValue().AsText() = RefValue then
-                                                                if FieldObject.Get(LanguageCode, LanguageToken) then
-                                                                    if LanguageToken.IsValue() then
-                                                                        if not LanguageToken.AsValue().IsNull() then
-                                                                            if not LanguageToken.AsValue().IsUndefined() then begin
-                                                                                Result := LanguageToken.AsValue().AsText();
-                                                                                CachedRefrencesTable.Add(CacheKey, Result);
-                                                                                exit(Result);
-                                                                            end;
-                                        end;
-                                end;
-            end;
+            if TableToken.IsObject() then
+                if TableToken.AsObject().GetInteger('table') = ReferenceTableId then
+                    IndexRefrenceRows(TableToken.AsObject(), ReferenceAddress, ReferenceParts.Get(2));
+    end;
+
+    local procedure IndexRefrenceRows(TableObject: JsonObject; ReferenceAddress: Text; ReferenceFieldName: Text)
+    var
+        RowsToken: JsonToken;
+        RowToken: JsonToken;
+        FieldToken: JsonToken;
+        CacheKey: Text;
+        EnuValue: Text;
+        LocalizedValue: Text;
+    begin
+        if not TableObject.Get('rows', RowsToken) or not RowsToken.IsArray() then
+            exit;
+
+        foreach RowToken in RowsToken.AsArray() do
+            if RowToken.IsObject() then
+                if RowToken.AsObject().Get(ReferenceFieldName, FieldToken) then
+                    if FieldToken.IsObject() then
+                        if TryGetLanguageValue(FieldToken.AsObject(), 'ENU', EnuValue) and
+                           TryGetLanguageValue(FieldToken.AsObject(), LanguageCode, LocalizedValue)
+                        then begin
+                            CacheKey := ReferenceAddress + '/' + EnuValue;
+                            if not CachedRefrencesTable.ContainsKey(CacheKey) then
+                                CachedRefrencesTable.Add(CacheKey, LocalizedValue);
+                        end;
+    end;
+
+    local procedure TryGetLanguageValue(FieldObject: JsonObject; Language: Text; var Value: Text): Boolean
+    var
+        LanguageToken: JsonToken;
+    begin
+        Clear(Value);
+        if not FieldObject.Get(Language, LanguageToken) or not LanguageToken.IsValue() then
+            exit(false);
+        if LanguageToken.AsValue().IsNull() or LanguageToken.AsValue().IsUndefined() then
+            exit(false);
+        Value := LanguageToken.AsValue().AsText();
+        exit(true);
     end;
 
 }
