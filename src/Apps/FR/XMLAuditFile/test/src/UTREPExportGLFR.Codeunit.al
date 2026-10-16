@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Company;
 using Microsoft.Utilities;
+using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
 codeunit 148006 "UT REP Export G/L FR"
@@ -128,6 +129,120 @@ codeunit 148006 "UT REP Export G/L FR"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure ExportFileNameIsIndependentOfLanguage()
+    var
+        AuditFileExportLine: Record "Audit File Export Line";
+        DataHandlingXML: Codeunit "Data Handling XML";
+        OriginalLanguage: Integer;
+        FrenchFileName: Text;
+        EnglishFileName: Text;
+    begin
+        AuditFileExportLine."Ending Date" := DMY2Date(9, 4, 2026);
+        OriginalLanguage := GlobalLanguage();
+
+        GlobalLanguage(1036);
+        FrenchFileName := DataHandlingXML.GetFileNameForAuditFileExportLine(AuditFileExportLine);
+        GlobalLanguage(1033);
+        EnglishFileName := DataHandlingXML.GetFileNameForAuditFileExportLine(AuditFileExportLine);
+        GlobalLanguage(OriginalLanguage);
+
+        Assert.AreEqual('GLEntries_20260409.xml', FrenchFileName, 'The filename must use a file-safe invariant date.');
+        Assert.AreEqual(FrenchFileName, EnglishFileName, 'The filename must not depend on the session language.');
+    end;
+
+    [Test]
+    procedure MissingXMLFormatSetupShowsRecoveryError()
+    var
+        AuditFileExportHeader: Record "Audit File Export Header";
+        AuditFileExportFormatSetup: Record "Audit File Export Format Setup";
+    begin
+        Initialize();
+        AuditFileExportFormatSetup.Get("Audit File Export Format"::"GL Entries XML FR");
+        AuditFileExportFormatSetup.Delete(true);
+
+        asserterror AuditFileExportHeader.Validate("Audit File Export Format", "Audit File Export Format"::"GL Entries XML FR");
+
+        Assert.ExpectedError('XML export format setup not found. Add the XML format in Audit File Export Format Setup, and then try again.');
+        AuditFileExportFormatSetup.InitSetup("Audit File Export Format"::"GL Entries XML FR", '', false);
+    end;
+
+    [Test]
+    procedure SetupVisibilityUpdatesWhenFormatChanges()
+    var
+        AuditFileExportSetupPage: TestPage "Audit File Export Setup";
+    begin
+        Initialize();
+        AuditFileExportSetupPage.OpenEdit();
+
+        AuditFileExportSetupPage.AuditFileExportFormatCode.SetValue("Audit File Export Format"::None);
+        Assert.IsTrue(AuditFileExportSetupPage.CheckCompanyInformation.Visible(), 'Other formats must retain data-quality settings.');
+
+        AuditFileExportSetupPage.AuditFileExportFormatCode.SetValue("Audit File Export Format"::"GL Entries XML FR");
+        Assert.IsFalse(AuditFileExportSetupPage.CheckCompanyInformation.Visible(), 'XML must hide data-quality settings immediately.');
+
+        AuditFileExportSetupPage.AuditFileExportFormatCode.SetValue("Audit File Export Format"::None);
+        Assert.IsTrue(AuditFileExportSetupPage.CheckCompanyInformation.Visible(), 'Data-quality settings must reappear without reopening the page.');
+        AuditFileExportSetupPage.Close();
+    end;
+
+    [Test]
+    procedure DocumentVisibilityUpdatesWhenFormatChanges()
+    var
+        AuditFileExportHeader: Record "Audit File Export Header";
+        AuditFileExportSetup: Record "Audit File Export Setup";
+        AuditFileExportDocCard: TestPage "Audit File Export Doc. Card";
+    begin
+        Initialize();
+        AuditFileExportSetup.InitSetup("Audit File Export Format"::None);
+        CreateAuditFileExportDoc(AuditFileExportHeader, WorkDate(), WorkDate());
+        AuditFileExportDocCard.OpenEdit();
+        AuditFileExportDocCard.GoToRecord(AuditFileExportHeader);
+
+        Assert.IsFalse(AuditFileExportDocCard.Contact.Visible(), 'Other installed formats must not override the hidden XML contact.');
+        Assert.IsFalse(AuditFileExportDocCard.SplitByMonth.Visible(), 'Other installed formats must not override hidden XML fields.');
+        Assert.IsFalse(AuditFileExportDocCard.DataCheck.Visible(), 'Other installed formats must not override the hidden XML action.');
+
+        AuditFileExportDocCard.AuditFileExportFormat.SetValue("Audit File Export Format"::None);
+        Assert.IsTrue(AuditFileExportDocCard.Contact.Visible(), 'The default format must restore contact visibility.');
+        Assert.IsTrue(AuditFileExportDocCard.SplitByMonth.Visible(), 'The default format must restore field visibility.');
+        Assert.IsTrue(AuditFileExportDocCard.DataCheck.Visible(), 'The default format must restore action visibility.');
+
+        AuditFileExportDocCard.AuditFileExportFormat.SetValue("Audit File Export Format"::"GL Entries XML FR");
+        Assert.IsFalse(AuditFileExportDocCard.Contact.Visible(), 'Switching back to XML must hide the contact immediately.');
+        Assert.IsFalse(AuditFileExportDocCard.SplitByMonth.Visible(), 'Switching back to XML must hide unsupported fields immediately.');
+        Assert.IsFalse(AuditFileExportDocCard.DataCheck.Visible(), 'Switching back to XML must hide data check immediately.');
+        AuditFileExportDocCard.Close();
+    end;
+
+    [Test]
+    procedure XMLExportPermissionsRequireDedicatedRole()
+    var
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        ExpandedPermission: Record "Expanded Permission";
+    begin
+        AggregatePermissionSet.SetRange("Role ID", 'XML Audit - Export');
+        AggregatePermissionSet.FindFirst();
+        ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::XMLport, XmlPort::"Export G/L Entries FR");
+        ExpandedPermission.TestField("Execute Permission", ExpandedPermission."Execute Permission"::Yes);
+        ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::Codeunit, Codeunit::"Generate File XML");
+        ExpandedPermission.TestField("Execute Permission", ExpandedPermission."Execute Permission"::Yes);
+        ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::"Table Data", Database::"G/L Entry");
+        ExpandedPermission.TestField("Read Permission", ExpandedPermission."Read Permission"::Indirect);
+
+        AggregatePermissionSet.SetFilter("Role ID", '%1|%2|%3|%4|%5|%6',
+            'D365 BASIC ISV', 'D365 BASIC', 'D365 READ', 'D365 TEAM MEMBER', 'INTELLIGENT CLOUD', 'LOCAL');
+        AggregatePermissionSet.FindSet();
+        repeat
+            Assert.IsFalse(
+                ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::XMLport, XmlPort::"Export G/L Entries FR"),
+                StrSubstNo('The standard role %1 must not grant XML export access.', AggregatePermissionSet."Role ID"));
+            Assert.IsFalse(
+                ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::Codeunit, Codeunit::"Generate File XML"),
+                StrSubstNo('The standard role %1 must not grant XML generation access.', AggregatePermissionSet."Role ID"));
+        until AggregatePermissionSet.Next() = 0;
+    end;
+
     local procedure InsertGLEntry(var GLEntry: Record "G/L Entry"; PostingDate: Date)
     var
         EntryNo: Integer;
@@ -153,6 +268,7 @@ codeunit 148006 "UT REP Export G/L FR"
 
         SetupXML();
         LibrarySetupStorage.Save(Database::"Company Information");
+        LibrarySetupStorage.Save(Database::"Audit File Export Setup");
         Commit();
 
         IsInitialized := true;

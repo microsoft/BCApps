@@ -11,6 +11,10 @@ interface "Audit File Export Page Visibility"
     /// The page initializes all visibility to true before calling this method.
     /// Implementations can selectively hide elements by setting dictionary values to false.
     /// </summary>
+    /// <remarks>
+    /// Page extensions must use this interface rather than override base-control visibility,
+    /// so installed formats do not override the visibility selected by another format.
+    /// </remarks>
     /// <param name="FieldVisibility">Dictionary with field control names as keys and visibility state as values.</param>
     /// <param name="ActionVisibility">Dictionary with action control names as keys and visibility state as values.</param>
     procedure GetUIVisibility(var FieldVisibility: Dictionary of [Text, Boolean]; var ActionVisibility: Dictionary of [Text, Boolean])

@@ -10,7 +10,6 @@ codeunit 10805 "Data Check XML" implements "Audit File Export Data Check"
 {
     Access = Internal;
     InherentEntitlements = X;
-    InherentPermissions = X;
     Permissions = tabledata Contact = r;
 
     procedure CheckDataToExport(var AuditFileExportHeader: Record "Audit File Export Header"): Enum "Audit Data Check Status"

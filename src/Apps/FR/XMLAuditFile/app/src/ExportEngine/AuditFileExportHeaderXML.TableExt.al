@@ -15,10 +15,16 @@ tableextension 10803 "Audit File Export Header XML" extends "Audit File Export H
             trigger OnBeforeValidate()
             var
                 AuditFileExportFormatSetup: Record "Audit File Export Format Setup";
+                MissingSetupErrorInfo: ErrorInfo;
             begin
                 if Rec."Audit File Export Format" = Rec."Audit File Export Format"::"GL Entries XML FR" then
-                    if not AuditFileExportFormatSetup.Get(Rec."Audit File Export Format"::"GL Entries XML FR") then
-                        Error(AuditExportFormatSetupNotExistErr);
+                    if not AuditFileExportFormatSetup.Get(Rec."Audit File Export Format"::"GL Entries XML FR") then begin
+                        MissingSetupErrorInfo.Message(AuditExportFormatSetupNotExistErr);
+                        MissingSetupErrorInfo.DataClassification := DataClassification::SystemMetadata;
+                        MissingSetupErrorInfo.PageNo(Page::"Audit File Export Format Setup");
+                        MissingSetupErrorInfo.AddNavigationAction(OpenFormatSetupLbl);
+                        Error(MissingSetupErrorInfo);
+                    end;
             end;
 
             trigger OnAfterValidate()
@@ -37,6 +43,7 @@ tableextension 10803 "Audit File Export Header XML" extends "Audit File Export H
     }
 
     var
-        AuditExportFormatSetupNotExistErr: Label 'XML export format setup not found. Reinstall extension or add XML format in Audit File Export Format setup.';
+        AuditExportFormatSetupNotExistErr: Label 'XML export format setup not found. Add the XML format in Audit File Export Format Setup, and then try again.';
+        OpenFormatSetupLbl: Label 'Open format setup';
         FRGeneralLedgerXMLTok: Label 'FR Export General Ledger Entries to XML File', Locked = true;
 }

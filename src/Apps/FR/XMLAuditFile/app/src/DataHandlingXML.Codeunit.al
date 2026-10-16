@@ -10,7 +10,6 @@ codeunit 10806 "Data Handling XML" implements "Audit File Export Data Handling"
 {
     Access = Internal;
     InherentEntitlements = X;
-    InherentPermissions = X;
 
     var
         GLEntriesXMLLbl: Label 'G/L Entries XML';
@@ -40,7 +39,7 @@ codeunit 10806 "Data Handling XML" implements "Audit File Export Data Handling"
 
     procedure GetFileNameForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line"): Text[1024]
     begin
-        exit('GLEntries_' + Format(AuditFileExportLine."Ending Date") + '.xml');
+        exit('GLEntries_' + Format(AuditFileExportLine."Ending Date", 0, '<Year4><Month,2><Day,2>') + '.xml');
     end;
 
     procedure InitAuditExportDataTypeSetup();

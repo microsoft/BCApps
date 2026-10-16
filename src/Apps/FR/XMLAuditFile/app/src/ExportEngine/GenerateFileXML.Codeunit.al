@@ -12,13 +12,12 @@ codeunit 10811 "Generate File XML"
 {
     Access = Internal;
     InherentEntitlements = X;
-    InherentPermissions = X;
 
     var
         StartingDate: Date;
         EndingDate: Date;
         FRGeneralLedgerXMLTok: Label 'FR Export General Ledger Entries to XML File', Locked = true;
-        FRGLXMLFrameworkTok: Label 'FR General Ledger Entries XML generated via Audit File Export Framework';
+        FRGLXMLFrameworkTok: Label 'FR General Ledger Entries XML generated via Audit File Export Framework', Locked = true;
 
     procedure GenerateXMLFile(AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
     var

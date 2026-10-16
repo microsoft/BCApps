@@ -203,8 +203,8 @@ xmlport 10803 "Export G/L Entries FR"
 
     var
         Text001Lbl: Label 'Exporting G/L Entries to XML File...\\';
-        Text002Lbl: Label 'Entry No.           #1######\', Comment = '%1 = Value';
-        Text003Lbl: Label 'Posting Date        #2######', Comment = '%2 = Date';
+        Text002Lbl: Label 'Entry No.           #1######\', Comment = '%1 = Entry No.';
+        Text003Lbl: Label 'Posting Date        #2######', Comment = '%2 = Posting Date';
         NoEntriesToExportErr: Label 'There are no entries to export within the defined filter. The file was not created.';
         Window: Dialog;
         NextProgressUpdate: DateTime;

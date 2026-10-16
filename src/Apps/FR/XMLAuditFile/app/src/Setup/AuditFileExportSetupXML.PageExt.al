@@ -8,6 +8,14 @@ pageextension 10805 "Audit File Export Setup XML" extends "Audit File Export Set
 {
     layout
     {
+        modify(AuditFileExportFormatCode)
+        {
+            trigger OnAfterValidate()
+            begin
+                XMLFormat := IsXMLFormat();
+                CurrPage.Update();
+            end;
+        }
         modify("Data Quality")
         {
             Enabled = not XMLFormat;
@@ -19,6 +27,11 @@ pageextension 10805 "Audit File Export Setup XML" extends "Audit File Export Set
         XMLFormat: Boolean;
 
     trigger OnOpenPage()
+    begin
+        XMLFormat := IsXMLFormat();
+    end;
+
+    trigger OnAfterGetCurrRecord()
     begin
         XMLFormat := IsXMLFormat();
     end;
