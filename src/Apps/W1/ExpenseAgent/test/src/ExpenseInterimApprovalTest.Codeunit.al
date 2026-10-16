@@ -38,7 +38,7 @@ codeunit 148346 "Expense Interim Approval Test"
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
-        AlternateApproverStatusErr: Label 'An alternate approver can only be assigned while the expense report is %1.', Comment = '%1 = Pending Approval status caption';
+        AlternateApproverStatusErr: Label 'An alternate approver can only be assigned while the expense report is %1 or %2.', Comment = '%1 = Pending Approval status caption, %2 = Interim Approved status caption';
         NoActiveAlternateApproverForDateErr: Label 'No active alternate approver is configured for final approver %1 on %2.', Comment = '%1 = final approver no., %2 = reference date';
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
@@ -625,7 +625,11 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror ExpenseReportHeader.AssignAlternateApprover('');
 
         // [THEN] A status validation error is raised.
-        Assert.ExpectedError(StrSubstNo(AlternateApproverStatusErr, Format(ExpenseReportHeader.Status::"Pending Approval")));
+        Assert.ExpectedError(
+            StrSubstNo(
+                AlternateApproverStatusErr,
+                Format(ExpenseReportHeader.Status::"Pending Approval"),
+                Format(ExpenseReportHeader.Status::"Interim Approved")));
         WorkDate(OriginalWorkDate);
     end;
 
