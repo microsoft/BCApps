@@ -550,7 +550,8 @@ codeunit 144044 "UT REP Number To Text"
         SelectedUserId := CreateGuid();
         TenantReportLayoutSelection.Init();
         TenantReportLayoutSelection."Report ID" := Report::Check;
-        TenantReportLayoutSelection."Company Name" := CompanyName();
+        TenantReportLayoutSelection."Company Name" :=
+            CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
         TenantReportLayoutSelection."User ID" := SelectedUserId;
         TenantReportLayoutSelection."Layout Name" := 'USER CHECK';
         TenantReportLayoutSelection.Insert();
@@ -691,19 +692,20 @@ codeunit 144044 "UT REP Number To Text"
         TenantReportLayoutSelection.DeleteAll();
     end;
 
-    local procedure CreateLayoutSelection(SelectedCompany: Text[30]; LayoutName: Text[250]; AppId: Guid)
+    local procedure CreateLayoutSelection(SelectedCompany: Text; LayoutName: Text[250]; AppId: Guid)
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
     begin
         TenantReportLayoutSelection.Init();
         TenantReportLayoutSelection."Report ID" := Report::Check;
-        TenantReportLayoutSelection."Company Name" := SelectedCompany;
+        TenantReportLayoutSelection."Company Name" :=
+            CopyStr(SelectedCompany, 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
         TenantReportLayoutSelection."Layout Name" := LayoutName;
         TenantReportLayoutSelection."App ID" := AppId;
         TenantReportLayoutSelection.Insert();
     end;
 
-    local procedure VerifyLayoutSelection(SelectedCompany: Text[30]; LayoutName: Text[250]; AppId: Guid)
+    local procedure VerifyLayoutSelection(SelectedCompany: Text; LayoutName: Text[250]; AppId: Guid)
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         EmptyGuid: Guid;
@@ -839,9 +841,11 @@ codeunit 144044 "UT REP Number To Text"
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+        SelectedCompany: Code[30];
     begin
+        SelectedCompany := CopyStr(CompanyName(), 1, MaxStrLen(SelectedCompany));
         if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag(), CompanyName());
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagPayment.GetCheckLayoutUpgradeTag(), SelectedCompany);
     end;
 
     local procedure ChangeCompanyLayoutSelection(LayoutName: Text[250]; AppId: Guid)
@@ -872,13 +876,13 @@ codeunit 144044 "UT REP Number To Text"
         CustomReportLayout.Init();
         CustomReportLayout.Code := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(CustomReportLayout.Code));
         CustomReportLayout."Report ID" := Report::Check;
-        CustomReportLayout."Company Name" := CompanyName();
+        CustomReportLayout."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(CustomReportLayout."Company Name"));
         CustomReportLayout.Type := CustomReportLayout.Type::RDLC;
         CustomReportLayout.Insert();
 
         ReportLayoutSelection.Init();
         ReportLayoutSelection."Report ID" := Report::Check;
-        ReportLayoutSelection."Company Name" := CompanyName();
+        ReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ReportLayoutSelection."Company Name"));
         ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
         ReportLayoutSelection.Validate("Custom Report Layout Code", CustomReportLayout.Code);
         ReportLayoutSelection.Insert();

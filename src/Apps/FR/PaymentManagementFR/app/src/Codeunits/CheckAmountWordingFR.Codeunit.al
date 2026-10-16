@@ -127,7 +127,7 @@ codeunit 10832 "Check Amount Wording FR"
                 Error(TooLongErr, AddText);
         end;
 
-        NoText[NoTextIndex] := DelChr(NoText[NoTextIndex] + ' ' + AddText, '<');
+        NoText[NoTextIndex] := CopyStr(DelChr(NoText[NoTextIndex] + ' ' + AddText, '<'), 1, MaxStrLen(NoText[NoTextIndex]));
     end;
 
     /// <summary>

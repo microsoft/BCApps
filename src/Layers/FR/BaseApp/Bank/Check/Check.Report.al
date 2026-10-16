@@ -1633,15 +1633,15 @@ report 1401 Check
 #else
     local procedure GetAmtDecimalPosition(): Decimal
     var
-        Currency: Record Currency;
+        CurrencyForRounding: Record Currency;
     begin
         if GenJnlLine."Currency Code" = '' then
-            Currency.InitRoundingPrecision()
+            CurrencyForRounding.InitRoundingPrecision()
         else begin
-            Currency.Get(GenJnlLine."Currency Code");
-            Currency.TestField("Amount Rounding Precision");
+            CurrencyForRounding.Get(GenJnlLine."Currency Code");
+            CurrencyForRounding.TestField("Amount Rounding Precision");
         end;
-        exit(1 / Currency."Amount Rounding Precision");
+        exit(1 / CurrencyForRounding."Amount Rounding Precision");
     end;
 #endif
 
