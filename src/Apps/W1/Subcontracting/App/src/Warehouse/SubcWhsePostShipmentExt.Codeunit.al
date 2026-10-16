@@ -142,4 +142,17 @@ codeunit 20563 "Subc. WhsePostShipment Ext"
             WarehouseShipmentLine.Validate("Qty. to Ship", WarehouseShipmentLine."Qty. Outstanding");
         IsHandled := true;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", OnCodeOnBeforeTestBinCode, '', false, false)]
+    local procedure HandleWipTransferOnCodeOnBeforeTestBinCode(WarehouseShipmentLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if WarehouseShipmentLine."Transfer WIP Item" then
+            IsHandled := true;
+    end;
 }
