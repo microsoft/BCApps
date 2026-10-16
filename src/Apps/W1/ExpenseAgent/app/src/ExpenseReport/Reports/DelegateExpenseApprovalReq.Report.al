@@ -15,7 +15,7 @@ report 6900 "Delegate Expense Approval Req"
     {
         dataitem(ExpenseReportHeader; "Expense Report Header")
         {
-            DataItemTableView = sorting("No.") where(Status = const("Pending Approval"));
+            DataItemTableView = sorting("No.") where(Status = filter("Pending Approval" | "Interim Approved"));
             RequestFilterFields = "No.", "Expense User No.", "Final Approver No.", "Interim Approver No.", "Alternate Approver No.";
 
             trigger OnAfterGetRecord()

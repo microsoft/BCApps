@@ -1686,6 +1686,135 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportDelegatesFinalStageAfterInterimApproval()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        FinalAlternate: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ReportFilter: Record "Expense Report Header";
+        DelegateExpenseApprovalRequest: Report "Delegate Expense Approval Req";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 626975] An alternate can take the final stage after interim approval without restarting that stage.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A report whose interim stage is complete and whose final approver has active alternate coverage.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+        CreateApproverExpenseUser(FinalAlternate);
+        CreateAlternateApproverCoverage(FinalApprover."No.", FinalAlternate."No.", WorkDate(), WorkDate());
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+
+        // [WHEN] The delegation report runs for this report.
+        ReportFilter.SetRange("No.", ExpenseReportHeader."No.");
+        DelegateExpenseApprovalRequest.SetTableView(ReportFilter);
+        DelegateExpenseApprovalRequest.UseRequestPage(false);
+        DelegateExpenseApprovalRequest.RunModal();
+
+        // [THEN] The interim stage remains complete while the alternate owns the final stage.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Interim Approved");
+        ExpenseReportHeader.TestField("Interim Approver No.", InterimApprover."No.");
+        ExpenseReportHeader.TestField("Final Approver No.", FinalAlternate."No.");
+        ExpenseReportHeader.TestField("Approver Expense User No.", FinalAlternate."No.");
+        ExpenseReportHeader.TestField("Alternate Approver No.", FinalAlternate."No.");
+
+        // [WHEN] The final alternate approves the report.
+        ExpenseReportHeader.PerformManualApproved(FinalAlternate."No.", true);
+
+        // [THEN] The report completes approval.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportRevertsFinalApproverWhenCoverageEnds()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        FinalAlternate: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 626975] A report still unapproved after the alternate's coverage ends returns to the original final approver.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A pending report delegated to the final approver's alternate for today only.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        CreateApproverExpenseUser(FinalAlternate);
+        CreateAlternateApproverCoverage(FinalApprover."No.", FinalAlternate."No.", WorkDate(), WorkDate());
+        RunDelegationReport(ExpenseReportHeader."No.");
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField("Alternate Approver No.", FinalAlternate."No.");
+
+        // [WHEN] The coverage has ended and the delegation report runs again.
+        WorkDate(Today() + 1);
+        RunDelegationReport(ExpenseReportHeader."No.");
+
+        // [THEN] The report is back with the original final approver and the revert is logged.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField("Alternate Approver No.", '');
+        ExpenseReportHeader.TestField("Primary Final Approver No.", '');
+        VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverReverted);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportRevertsInterimApproverWhenCoverageEnds()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 626975] A report still awaiting interim approval after the interim alternate's coverage ends returns to the original interim approver.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A report whose interim approver is covered by an alternate for today only.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateAlternateApproverCoverage(InterimApprover."No.", InterimAlternate."No.", WorkDate(), WorkDate());
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        VerifyInterimApprover(ExpenseReportHeader, InterimAlternate."No.");
+
+        // [WHEN] The coverage has ended and the delegation report runs.
+        WorkDate(Today() + 1);
+        RunDelegationReport(ExpenseReportHeader."No.");
+
+        // [THEN] The interim stage is back with the original interim approver.
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", '');
+        ExpenseReportHeader.TestField("Approver Expense User No.", InterimApprover."No.");
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
     procedure ProcessingReportSkipsFailingReportAndProcessesOthers()
     var
         SubmitterFailing: Record "Expense User";
@@ -1846,6 +1975,17 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseAlternateApprover.Validate("Effective Start Date", StartDate);
         ExpenseAlternateApprover.Validate("Effective End Date", EndDate);
         ExpenseAlternateApprover.Insert(true);
+    end;
+
+    local procedure RunDelegationReport(ExpenseReportNo: Code[20])
+    var
+        ReportFilter: Record "Expense Report Header";
+        DelegateExpenseApprovalRequest: Report "Delegate Expense Approval Req";
+    begin
+        ReportFilter.SetRange("No.", ExpenseReportNo);
+        DelegateExpenseApprovalRequest.SetTableView(ReportFilter);
+        DelegateExpenseApprovalRequest.UseRequestPage(false);
+        DelegateExpenseApprovalRequest.RunModal();
     end;
 
     local procedure CreateSubmittedUnlimitedApprovalScenario(var Submitter: Record "Expense User"; var Approver: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header"; Amount: Decimal)

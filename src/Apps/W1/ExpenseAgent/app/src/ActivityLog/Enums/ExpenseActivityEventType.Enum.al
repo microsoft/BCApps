@@ -62,6 +62,10 @@ enum 6922 "Expense Activity Event Type"
     {
         Caption = 'Alternate approver assigned';
     }
+    value(26; AlternateApproverReverted)
+    {
+        Caption = 'Alternate approver reverted';
+    }
     value(30; CommentAdded)
     {
         Caption = 'Comment added';
