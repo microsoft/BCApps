@@ -110,8 +110,13 @@ codeunit 1890 "Reminder Communication"
 
         if ReminderLine.FindLast() then
             NextLineNo := ReminderLine."Line No."
-        else
-            NextLineNo := 0;
+        else begin
+            ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Beginning Text");
+            if ReminderLine.FindLast() then
+                NextLineNo := ReminderLine."Line No."
+            else
+                NextLineNo := 0;
+        end;
 
         ReminderLine.SetRange("Line Type");
         ReminderLine2 := ReminderLine;

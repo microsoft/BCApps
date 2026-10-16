@@ -10,6 +10,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
+using System.Agents;
 
 codeunit 148307 "Expense Test Handler API"
 {
@@ -24,6 +25,64 @@ codeunit 148307 "Expense Test Handler API"
     begin
         LibraryExpense.CleanTransactionalData();
         exit('Initialize completed');
+    end;
+
+    /// <summary>
+    /// Explicitly provisions and enables Expense Agent setup for E2E tests.
+    /// </summary>
+    /// <returns>A completion message after the Expense Agent setup is configured.</returns>
+    [ServiceEnabled]
+    procedure Configure(): Text[30]
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
+        CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
+        LibraryExpense: Codeunit "Library - Expense";
+    begin
+        if ExpenseAgentSetupIsComplete() then
+            exit('Configure completed');
+
+        CreateExpenseAgentSetup.Run();
+        CreateExpenseGLAccount.Run();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.CreateDefaultSettings();
+        LibraryExpense.EnsureExpenseAgentEnabled();
+        exit('Configure completed');
+    end;
+
+    local procedure ExpenseAgentSetupIsComplete(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        Agent: Record Agent;
+        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+        AgentSetup: Codeunit "Agent Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        if not ExpenseAgentSetup."Enable Agent" then
+            exit(false);
+        if IsNullGuid(ExpenseAgentSetup."User Security ID") then
+            exit(false);
+        if not Agent.Get(ExpenseAgentSetup."User Security ID") then
+            exit(false);
+        AgentSetup.GetSetupRecord(
+            TempAgentSetupBuffer,
+            ExpenseAgentSetup."User Security ID",
+            "Agent Metadata Provider"::"Expense Agent",
+            '',
+            '',
+            '');
+        if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled then
+            exit(false);
+
+        exit(
+            ExpenseAgentSetup."No. Series Applied" and
+            ExpenseAgentSetup."Payment Methods Applied" and
+            ExpenseAgentSetup."Posting Groups Applied" and
+            ExpenseAgentSetup."Exp. Categories Applied" and
+            ExpenseAgentSetup."Exp. Locations Applied" and
+            ExpenseAgentSetup."Management Rules Applied" and
+            ExpenseAgentSetup."VAT Rates Applied");
     end;
 
     /// <summary>
@@ -74,6 +133,7 @@ codeunit 148307 "Expense Test Handler API"
     /// Configures two existing Expense Users as a submitter and approver for integration tests.
     /// The approver uses the current BC service user's ID without exercising the email-based
     /// Expense User onboarding validation, which is outside the lifecycle test's scope.
+    /// The approver gets unlimited approval so report submission is not blocked by approval limits.
     /// </summary>
     /// <remarks>
     /// This endpoint intentionally mutates approval master data in the dedicated integration-test company.
@@ -107,6 +167,7 @@ codeunit 148307 "Expense Test Handler API"
         ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
         ApproverExpenseUser."User Id For Approvals" := CurrentApprovalUserId;
         ApproverExpenseUser.Validate("Can Approve", true);
+        ApproverExpenseUser.Validate("Unlimited Approval", true);
         ApproverExpenseUser.Modify(true);
 
         if ExpenseApprovalSetup.Get(SubmitterExpenseUser."No.") then begin

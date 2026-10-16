@@ -481,6 +481,14 @@ report 107 "Customer - Order Summary"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
+            Caption = 'Body-only: Customer Order Summary Word';
+            Summary = 'Landscape orientated. Groups outstanding sales order amounts by customer and currency, split across the periods before, within, and after the date range. Shows a total for each line and overall totals, in LCY.';
+        }
     }
     labels
     {

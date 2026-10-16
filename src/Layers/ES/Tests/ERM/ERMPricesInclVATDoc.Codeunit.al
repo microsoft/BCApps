@@ -973,8 +973,7 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
     end;
 
     [Test]
-    [Scope('OnPrem')]
-    procedure DirectUnitCostInclVATUpdatesWhenVATProdPostGrpChangedForGLAccount()
+    procedure DirectUnitCostInclVATDoesNotUpdateWhenVATProdPostGrpChangedForGLAccount()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -982,41 +981,38 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
         NewVATPostingSetup: Record "VAT Posting Setup";
         GLAccountNo: Code[20];
         DirectUnitCost: Decimal;
-        ExpectedDirectUnitCost: Decimal;
+        LineAmount: Decimal;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] Direct Unit Cost Incl. VAT is recalculated when VAT Prod. Posting Group is changed on a G/L Account line with Prices Including VAT enabled
+        // [SCENARIO 648146] Direct Unit Cost Incl. VAT is preserved when VAT Prod. Posting Group is changed on a G/L Account line
 
         Initialize();
 
-        // [GIVEN] VAT Posting Setup "VS1" with VAT % = 21
+        // [GIVEN] Two VAT Posting Setups with VAT rates 21% and 0%
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 21);
-
-        // [GIVEN] A second VAT Posting Setup "VS2" with same VAT Bus. Posting Group and VAT % = 0
         LibraryERM.CreateVATPostingSetupWithAccounts(NewVATPostingSetup, NewVATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
         NewVATPostingSetup.Rename(VATPostingSetup."VAT Bus. Posting Group", NewVATPostingSetup."VAT Prod. Posting Group");
 
-        // [GIVEN] G/L Account "G" with VAT Prod. Posting Group from "VS1"
+        // [GIVEN] A purchase invoice with a G/L Account line and Direct Unit Cost 1000
         GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
-
-        // [GIVEN] Purchase Invoice with Prices Including VAT enabled
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
         PurchaseHeader.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         PurchaseHeader.Validate("Prices Including VAT", true);
         PurchaseHeader.Modify(true);
-
-        // [GIVEN] Purchase line with Type = G/L Account, Direct Unit Cost = 1000 (incl. VAT at 21%)
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
         PurchaseLine.Validate("Direct Unit Cost", 1000);
         PurchaseLine.Modify(true);
-        DirectUnitCost := PurchaseLine."Direct Unit Cost";
 
-        // [WHEN] VAT Prod. Posting Group is changed to "VS2" (0% VAT)
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        DirectUnitCost := PurchaseLine."Direct Unit Cost";
+        LineAmount := PurchaseLine."Line Amount";
+
+        // [WHEN] VAT Prod. Posting Group is changed to the setup with 0% VAT
         PurchaseLine.Validate("VAT Prod. Posting Group", NewVATPostingSetup."VAT Prod. Posting Group");
 
-        // [THEN] Direct Unit Cost is recalculated: 1000 * (100 + 0) / (100 + 21) = 826.45 (approx)
-        ExpectedDirectUnitCost := Round(DirectUnitCost * (100 + NewVATPostingSetup."VAT %") / (100 + VATPostingSetup."VAT %"), LibraryERM.GetUnitAmountRoundingPrecision());
-        Assert.AreEqual(ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost", 'Direct Unit Cost should be recalculated when VAT Prod. Posting Group changes on G/L Account line');
+        // [THEN] Direct Unit Cost Incl. VAT and Line Amount are preserved
+        PurchaseLine.TestField("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.TestField("Line Amount", LineAmount);
     end;
 
     local procedure Initialize()

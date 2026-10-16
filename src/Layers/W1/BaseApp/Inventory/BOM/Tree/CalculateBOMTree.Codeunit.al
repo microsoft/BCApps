@@ -450,6 +450,10 @@ codeunit 5870 "Calculate BOM Tree"
                     end;
                 IsFirst := false;
             end;
+        if IsFirst then begin
+            ParentBOMBuffer."Able to Make Parent" := 0;
+            ParentBOMBuffer."Able to Make Top Item" := 0;
+        end;
 
         BOMBuffer := ParentBOMBuffer;
         UpdateMinAbleToMake(BOMBuffer, AvailToUse2);

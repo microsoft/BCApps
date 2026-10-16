@@ -6,6 +6,7 @@ namespace Microsoft.Service.Posting;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
@@ -77,6 +78,16 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         Clear(ResJnlPostLine);
         Clear(ItemJnlPostLine);
         Clear(ServLedgEntriesPost);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeCheckSalesExtDocNo, '', false, false)]
+    local procedure SkipSalesExtDocNoCheckForService(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    var
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        SourceCodeSetup.Get();
+        if GenJnlLine."Source Code" = SourceCodeSetup."Service Management" then
+            IsHandled := true;
     end;
 
     procedure SetPostingOptions(PassedConsume: Boolean; PassedInvoice: Boolean)

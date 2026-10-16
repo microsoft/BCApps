@@ -1500,6 +1500,7 @@ codeunit 148148 "Factur-X CII XML Tests"
             GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
     end;
+
     #endregion
 
     #region Validation
