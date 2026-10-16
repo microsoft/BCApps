@@ -709,6 +709,7 @@ codeunit 8060 "Create Billing Documents"
         TranslationHelper.RestoreGlobalLanguage();
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Modify(false);
+        OnAfterCreatePurchaseHeaderForVendorNo(PurchaseHeader, TempBillingLine."Subscription Contract No.");
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
     end;
 
@@ -1385,6 +1386,11 @@ codeunit 8060 "Create Billing Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateSalesHeaderForCustomerNo(var SalesHeader: Record "Sales Header"; ContractNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCreatePurchaseHeaderForVendorNo(var PurchaseHeader: Record "Purchase Header"; SubscriptionContractNo: Code[20])
     begin
     end;
 
