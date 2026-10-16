@@ -160,6 +160,8 @@ codeunit 139813 "APIV2 - Currencies E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

@@ -4,6 +4,7 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -63,6 +64,8 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

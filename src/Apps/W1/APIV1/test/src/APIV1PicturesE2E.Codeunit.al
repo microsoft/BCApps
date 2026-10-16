@@ -29,6 +29,7 @@ codeunit 139742 "APIV1 - Pictures E2E"
     [Scope('OnPrem')]
     procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         if IsInitialized then
             exit;
 
@@ -47,6 +48,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Customer]
         // [SCENARIO] Get value picture from Customer Record
+
+        Initialize();
 
         // [GIVEN] a customer with image attached
         CreateTestCustomerWithImage(Customer, TempBlobExpected);
@@ -73,6 +76,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Customer]
         // [SCENARIO] Get a picture metadata from Customer Record
 
+        Initialize();
+
         // [GIVEN] a customer with image attached
         CreateTestCustomerWithImage(Customer, TempBlobExpected);
         Commit();
@@ -97,6 +102,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Customer]
         // [SCENARIO] Get value picture from Customer Record when no image exist
 
+        Initialize();
+
         // [GIVEN] a customer without image
         LibrarySales.CreateCustomer(Customer);
         Commit();
@@ -118,6 +125,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Customer]
         // [SCENARIO] Get a picture metadata from Customer Record when no image is present
+
+        Initialize();
 
         // [GIVEN] a customer with image attached
         LibrarySales.CreateCustomer(Customer);
@@ -144,6 +153,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Customer]
         // [SCENARIO] Set Picture on a customer without picture
+
+        Initialize();
 
         // [GIVEN] a customer with image attached
         LibrarySales.CreateCustomer(Customer);
@@ -178,6 +189,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Customer]
         // [SCENARIO] Replace the Picture on a customer
 
+        Initialize();
+
         // [GIVEN] a customer with image attached
         CreateTestCustomerWithImage(Customer, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -210,6 +223,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Customer]
         // [SCENARIO] Replace the Picture on a customer
 
+        Initialize();
+
         // [GIVEN] a customer with image attached
         CreateTestCustomerWithImage(Customer, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -238,6 +253,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Vendor]
         // [SCENARIO] Get value picture from Vendor Record
 
+        Initialize();
+
         // [GIVEN] a Vendor with image attached
         CreateTestVendorWithImage(Vendor, TempBlobExpected);
         Commit();
@@ -263,6 +280,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Vendor]
         // [SCENARIO] Get a picture metadata from Vendor Record
 
+        Initialize();
+
         // [GIVEN] a Vendor with image attached
         CreateTestVendorWithImage(Vendor, TempBlobExpected);
         Commit();
@@ -287,6 +306,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Vendor]
         // [SCENARIO] Get value picture from Vendor Record when no image exist
 
+        Initialize();
+
         // [GIVEN] a Vendor without image
         LibraryPurchase.CreateVendor(Vendor);
         Commit();
@@ -308,6 +329,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Vendor]
         // [SCENARIO] Get a picture metadata from Vendor Record when no image is present
+
+        Initialize();
 
         // [GIVEN] a Vendor with image attached
         LibraryPurchase.CreateVendor(Vendor);
@@ -334,6 +357,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Vendor]
         // [SCENARIO] Set Picture on a Vendor without picture
+
+        Initialize();
 
         // [GIVEN] a Vendor with image attached
         LibraryPurchase.CreateVendor(Vendor);
@@ -368,6 +393,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Vendor]
         // [SCENARIO] Replace the Picture on a Vendor
 
+        Initialize();
+
         // [GIVEN] a Vendor with image attached
         CreateTestVendorWithImage(Vendor, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -400,6 +427,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Vendor]
         // [SCENARIO] Replace the Picture on a Vendor
 
+        Initialize();
+
         // [GIVEN] a Vendor with image attached
         CreateTestVendorWithImage(Vendor, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -428,6 +457,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Employee]
         // [SCENARIO] Get value picture from Employee Record
 
+        Initialize();
+
         // [GIVEN] an Employee with image attached
         CreateTestEmployeeWithImage(Employee, TempBlobExpected);
         Commit();
@@ -453,6 +484,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Employee]
         // [SCENARIO] Get a picture metadata from Employee Record
 
+        Initialize();
+
         // [GIVEN] a Employee with image attached
         CreateTestEmployeeWithImage(Employee, TempBlobExpected);
         Commit();
@@ -477,6 +510,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Employee]
         // [SCENARIO] Get value picture from Employee Record when no image exist
 
+        Initialize();
+
         // [GIVEN] a Employee without image
         LibraryHumanResource.CreateEmployee(Employee);
         Commit();
@@ -498,6 +533,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Employee]
         // [SCENARIO] Get a picture metadata from Employee Record when no image is present
+
+        Initialize();
 
         // [GIVEN] a Employee with image attached
         LibraryHumanResource.CreateEmployee(Employee);
@@ -524,6 +561,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Employee]
         // [SCENARIO] Set Picture on a Employee without picture
+
+        Initialize();
 
         // [GIVEN] a Employee with image attached
         LibraryHumanResource.CreateEmployee(Employee);
@@ -558,6 +597,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Employee]
         // [SCENARIO] Replace the Picture on a Employee
 
+        Initialize();
+
         // [GIVEN] a Employee with image attached
         CreateTestEmployeeWithImage(Employee, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -590,6 +631,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Employee]
         // [SCENARIO] Replace the Picture on a Employee
 
+        Initialize();
+
         // [GIVEN] a Employee with image attached
         CreateTestEmployeeWithImage(Employee, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -618,6 +661,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Item]
         // [SCENARIO] Get value picture from Item Record
 
+        Initialize();
+
         // [GIVEN] a Item with image attached
         CreateTestItemWithImage(Item, TempBlobExpected);
         Commit();
@@ -643,6 +688,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Item]
         // [SCENARIO] Get a picture metadata from Item Record
 
+        Initialize();
+
         // [GIVEN] a Item with image attached
         CreateTestItemWithImage(Item, TempBlobExpected);
         Commit();
@@ -667,6 +714,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Item]
         // [SCENARIO] Get value picture from Item Record when no image exist
 
+        Initialize();
+
         // [GIVEN] a Item without image
         LibraryInventory.CreateItem(Item);
         Commit();
@@ -688,6 +737,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Item]
         // [SCENARIO] Get a picture metadata from Item Record when no image is present
+
+        Initialize();
 
         // [GIVEN] a Item with image attached
         LibraryInventory.CreateItem(Item);
@@ -714,6 +765,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Item]
         // [SCENARIO] Set Picture on a Item without picture
+
+        Initialize();
 
         // [GIVEN] a Item with image attached
         LibraryInventory.CreateItem(Item);
@@ -748,6 +801,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
         // [FEATURE] [Item]
         // [SCENARIO] Replace the Picture on a Item
 
+        Initialize();
+
         // [GIVEN] a Item with image attached
         CreateTestItemWithImage(Item, TempBlobOriginal);
         GetBlueImageTempBlob(TempBlobExpected);
@@ -779,6 +834,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
     begin
         // [FEATURE] [Item]
         // [SCENARIO] Replace the Picture on a Item
+
+        Initialize();
 
         // [GIVEN] a Item with image attached
         CreateTestItemWithImage(Item, TempBlobOriginal);

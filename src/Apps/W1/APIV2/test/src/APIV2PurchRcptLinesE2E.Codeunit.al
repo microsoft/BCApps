@@ -4,6 +4,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -31,6 +32,8 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
         LineNo: Integer;
         SequenceValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Line of a purchase receipt
         // [GIVEN] A receipt with a line.
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -65,6 +68,8 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of a Purchase Receipt
         // [GIVEN] A purchase receipt with lines.
         CreatePurchaseOrderMultipleLines(PurchaseHeader);
@@ -107,6 +112,8 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of a purchase receipt
         // [GIVEN] A purchase receipt with lines.
         CreatePurchaseOrderMultipleLines(PurchaseHeader);
@@ -141,6 +148,8 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
         LineIdTxt: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Line of a purchase receipt and expand the dimension set lines
         // [GIVEN] A receipt with a line.
         PurchRcptHeader.FindFirst();
@@ -261,5 +270,10 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

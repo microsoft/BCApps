@@ -65,6 +65,7 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

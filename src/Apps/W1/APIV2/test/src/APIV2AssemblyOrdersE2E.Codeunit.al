@@ -28,6 +28,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an assembly order and use GET to retrieve it
         // [GIVEN] An assembly order
         LibraryInventory.CreateItem(Item);
@@ -51,6 +53,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an assembly order and GET it by SystemId
         // [GIVEN] An assembly order
         LibraryInventory.CreateItem(Item);
@@ -76,6 +80,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET an assembly order with $expand=dimensionSetLines
         // [GIVEN] An assembly order
         if not AssemblyHeader.FindFirst() then begin
@@ -104,6 +110,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET an assembly order with $expand=attachments
         // [GIVEN] An assembly order
         if not AssemblyHeader.FindFirst() then begin
@@ -132,6 +140,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET an assembly order with $expand=documentAttachments
         // [GIVEN] An assembly order
         if not AssemblyHeader.FindFirst() then begin
@@ -160,6 +170,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET an assembly order with $expand=pdfDocument
         // [GIVEN] An assembly order
         if not AssemblyHeader.FindFirst() then begin
@@ -188,6 +200,8 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET an assembly order with $expand=assemblyOrderLines
         // [GIVEN] An assembly order
         if not AssemblyHeader.FindFirst() then begin
@@ -218,5 +232,10 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

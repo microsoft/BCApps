@@ -12,6 +12,7 @@ codeunit 148348 "Expense VAT Spec. API Test"
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
@@ -20,7 +21,6 @@ codeunit 148348 "Expense VAT Spec. API Test"
         LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseVATSpecifications', Locked = true;
 
@@ -91,7 +91,6 @@ codeunit 148348 "Expense VAT Spec. API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);

@@ -26,6 +26,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         UnitOfMeasure: Record "Unit of Measure";
         Response: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can get the units of measure.
 
         // [GIVEN] Units of measure.
@@ -47,6 +49,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         Response: Text;
         OldDescription: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can update a unit of measure.
 
         // [GIVEN] Units of measure.
@@ -77,6 +81,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         UnitOfMeasure: Record "Unit of Measure";
         Response: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can delete a unit of measure.
 
         // [GIVEN] Units of measure.
@@ -99,6 +105,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         Request: Text;
         "Code": Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can insert a unit of measure.
 
         // [GIVEN] A new unit of measure.
@@ -197,6 +205,11 @@ codeunit 139812 "APIV2 - UofM E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }
 

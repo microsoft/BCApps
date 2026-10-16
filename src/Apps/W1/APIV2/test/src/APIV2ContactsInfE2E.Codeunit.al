@@ -4,6 +4,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -32,6 +33,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get all contact information for a customer
 
@@ -63,6 +66,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get all contact information for a customer
 
@@ -96,6 +101,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get all contact information for a vendor
 
@@ -127,6 +134,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get all contact information for a Vendor
 
@@ -188,5 +197,10 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

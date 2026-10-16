@@ -26,6 +26,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

@@ -2,6 +2,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -30,6 +31,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
     [Scope('OnPrem')]
     procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
@@ -46,6 +49,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobExpected: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get value picture from Customer Record
 
@@ -71,6 +76,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get a picture metadata from Customer Record
 
@@ -95,6 +102,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobResponse: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get value picture from Customer Record when no image exist
 
@@ -117,6 +126,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get a picture metadata from Customer Record when no image is present
 
@@ -143,6 +154,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Set Picture on a customer without picture
 
@@ -176,6 +189,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Replace the Picture on a customer
 
@@ -208,6 +223,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Replace the Picture on a customer
 
@@ -236,6 +253,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobExpected: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get value picture from Vendor Record
 
@@ -261,6 +280,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get a picture metadata from Vendor Record
 
@@ -285,6 +306,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobResponse: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get value picture from Vendor Record when no image exist
 
@@ -307,6 +330,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get a picture metadata from Vendor Record when no image is present
 
@@ -333,6 +358,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Set Picture on a Vendor without picture
 
@@ -366,6 +393,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Replace the Picture on a Vendor
 
@@ -398,6 +427,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Replace the Picture on a Vendor
 
@@ -426,6 +457,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobExpected: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Get value picture from Employee Record
 
@@ -451,6 +484,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Get a picture metadata from Employee Record
 
@@ -475,6 +510,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobResponse: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Get value picture from Employee Record when no image exist
 
@@ -497,6 +534,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Get a picture metadata from Employee Record when no image is present
 
@@ -523,6 +562,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Set Picture on a Employee without picture
 
@@ -556,6 +597,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Replace the Picture on a Employee
 
@@ -588,6 +631,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Employee]
         // [SCENARIO] Replace the Picture on a Employee
 
@@ -616,6 +661,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobExpected: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Get value picture from Item Record
 
@@ -641,6 +688,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Get a picture metadata from Item Record
 
@@ -665,6 +714,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobResponse: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Get value picture from Item Record when no image exist
 
@@ -687,6 +738,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Get a picture metadata from Item Record when no image is present
 
@@ -713,6 +766,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Set Picture on a Item without picture
 
@@ -746,6 +801,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Replace the Picture on a Item
 
@@ -778,6 +835,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Item]
         // [SCENARIO] Replace the Picture on a Item
 
@@ -806,6 +865,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobExpected: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Get value picture from Contact Record
 
@@ -831,6 +892,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Get a picture metadata from Contact Record
 
@@ -855,6 +918,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TempBlobResponse: Codeunit "Temp Blob";
         TargetURL: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Get value picture from Contact Record when no image exist
 
@@ -877,6 +942,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Get a picture metadata from Contact Record when no image is present
 
@@ -903,6 +970,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Set Picture on a contact without picture
 
@@ -936,6 +1005,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Replace the Picture on a contact
 
@@ -968,6 +1039,8 @@ codeunit 139842 "APIV2 - Pictures E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Contact]
         // [SCENARIO] Replace the Picture on a contact
 

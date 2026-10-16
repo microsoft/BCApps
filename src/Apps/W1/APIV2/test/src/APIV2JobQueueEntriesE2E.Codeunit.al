@@ -27,6 +27,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry and use a GET method to retrieve it·
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry
         JobQueueEntry.DeleteAll();
@@ -54,6 +56,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         ResponseText: Text;
         JobQueueEntryJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry and use a GET method to retrieve it.
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry and one corresponding JobQueueLogEntry
         JobQueueEntry.DeleteAll();
@@ -83,6 +87,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         ResponseText: Text;
         JobQueueLogEntryJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry with 2 corresponding JobQueueLogEntries and use a GET method to retrieve it.
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry and 3 corresponding JobQueueLogEntries
         JobQueueEntry.DeleteAll();
@@ -110,6 +116,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry with status error. Use an action to reschedule the JobQueueEntry
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry with status error
         JobQueueEntry.DeleteAll();
@@ -212,5 +220,10 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

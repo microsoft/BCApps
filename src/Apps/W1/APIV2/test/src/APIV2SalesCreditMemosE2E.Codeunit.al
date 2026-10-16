@@ -4,6 +4,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -58,6 +59,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted sales credit memos and use a GET method to retrieve them
         // [GIVEN] 2 credit memos, one posted and one unposted
         CreateSalesCreditMemos(CreditMemoNo1, CreditMemoNo2);
@@ -91,9 +94,12 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         TargetURL: Text;
         CreditMemo: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted Sales credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
 
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
         LibrarySales.CreateCustomerWithAddress(BillToCustomer);
         CustomerNo := SellToCustomer."No.";
@@ -137,6 +143,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         CreditMemoJSON: Text;
         CurrencyCode: Code[10];
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted with specific currency set and use HTTP POST to create them
 
         // [GIVEN] an CreditMemo with a non-LCY currencyCode set
@@ -170,6 +178,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemos()
     begin
+        Initialize();
+
         TestMultipleModifyCreditMemos(false, false);
     end;
 
@@ -177,6 +187,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyCreditMemos()
     begin
+        Initialize();
+
         TestMultipleModifyCreditMemos(true, false);
     end;
 
@@ -184,6 +196,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyCreditMemos()
     begin
+        Initialize();
+
         TestMultipleModifyCreditMemos(false, true);
     end;
 
@@ -260,6 +274,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         CreditMemoNo: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create unposted sales credit memo and use HTTP DELETE to delete it
         // [GIVEN] An unposted credit memo
         CreateDraftSalesCreditMemo(SalesHeader);
@@ -292,9 +308,12 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         CreditMemoPostingDate: Date;
         CreditMemoJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);
@@ -326,6 +345,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         TargetURL: Text;
         DiscountPct: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO] When an credit memo is created,the GET Method should update the credit memo and assign a total
         // [GIVEN] 2 credit memos, one posted and one unposted without totals assigned
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
@@ -359,6 +380,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         DiscountAmt: Decimal;
         InvDiscAmount: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO] When an credit memo is created, the GET Method should update the credit memo and assign a total
         // [GIVEN] 2 credit memos, one posted and one unposted with discount amount that should be redistributed
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
@@ -399,6 +422,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Credit Memo, use a PATCH method to change it and then verify the changes
         LibrarySales.CreateCustomerWithAddress(Customer);
 
@@ -446,6 +471,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Clearing manually set discount
 
         // [GIVEN] an item with unit price and unit cost
@@ -502,6 +529,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         PostedCreditMemoEmailAddress: Text;
         PostedCreditMemoEmailSubject: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can post a sales credit memo through the API.
 
         // [GIVEN] Draft sales credit memo exists
@@ -550,6 +579,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can post and send a sales credit memo through the API.
         InitializeForSending();
 
@@ -589,6 +620,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted sales credit memo through API.
 
         // [GIVEN] Non-corrective sales credit memo exists
@@ -618,6 +651,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted sales credit memo through API.
 
         // [GIVEN] Corrective sales credit memo exists
@@ -651,6 +686,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted sales credit memo through API.
         InitializeForSending();
 
@@ -688,6 +725,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can send a posted sales credit memo through the API.
         InitializeForSending();
 
@@ -721,6 +760,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Sending a draft sales credit memo through the API throws an error
         InitializeForSending();
 
@@ -751,6 +792,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can send a draft sales credit memo through the API.
         InitializeForSending();
 
@@ -1070,6 +1113,11 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }
 

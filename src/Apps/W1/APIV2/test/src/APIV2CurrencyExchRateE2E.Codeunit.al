@@ -2,6 +2,7 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
 
     var
         LibraryERM: Codeunit "Library - ERM";
@@ -110,6 +111,7 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         Currency.DeleteAll();
         CurrencyExchangeRate.DeleteAll();
     end;

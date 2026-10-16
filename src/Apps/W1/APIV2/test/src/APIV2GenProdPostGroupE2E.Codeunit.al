@@ -2,6 +2,7 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -23,6 +24,8 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a General Product Posting Group and use a GET method to retrieve it
         // [GIVEN] A Gen. Prod. Post. Group
         ERMVATToolHelper.CreateGenProdPostingGroup(GenProductPostingGroup, true);
@@ -48,5 +51,10 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

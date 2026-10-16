@@ -4,6 +4,7 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -28,6 +29,8 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 2 purchase receipts (post sales order) and use a GET method to retrieve them
         // [GIVEN] 2 posted purchase receipts
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -59,6 +62,8 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
         ReceiptIdTxt: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on purchase receipt and expand the dimension set lines
         // [GIVEN] A purchase receipt.
 
@@ -115,5 +120,10 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

@@ -23,6 +23,8 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Use a GET method to retrieve Job Queue Log Entries
         // [GIVEN] A new Job Queue Log Entry created 
         JobQueueLogEntry.DeleteAll();
@@ -71,5 +73,10 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

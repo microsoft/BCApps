@@ -2,6 +2,7 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    RequiredTestIsolation = Disabled;
 
     var
         Assert: Codeunit "Assert";
@@ -15,6 +16,8 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
         GeneralLedgerSetup: Record "General Ledger Setup";
         Response, TargetURL : Text;
     begin
+        Initialize();
+
         GeneralLedgerSetup.Get();
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"APIV2 - G/L Setup", ServiceNameTxt);
         LibraryGraphMgt.GetFromWebService(Response, TargetURL);
@@ -67,5 +70,10 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
     begin
         Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
         exit(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

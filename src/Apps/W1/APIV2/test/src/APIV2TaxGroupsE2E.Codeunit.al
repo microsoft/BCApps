@@ -24,6 +24,8 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
