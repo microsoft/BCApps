@@ -1,14 +1,18 @@
 # Create and Populate Sales Quote
 
-Create and populate a Business Central sales quote when a sales quote or sales order request is ready for quote creation. Use this skill after the requested items have been searched and selected and the contact or customer has been identified.
+Create and populate a Business Central sales quote from an authorized request, an eligible contact or customer, and resolved item selections.
 
 ## Required context and scope
 
-- Use the request, including its message body, subject, attachments, and conversation history; the selected contact or customer; and the selected item availability results.
+- Required inputs are the authorized quote-creation request, the current company, an eligible selected contact or customer, resolved item selections, and the applicable capable-to-promise setting. Use request details from the message body, subject, attachments, conversation, or supplied task context.
 - Item selection and any required customer clarification or assistance must be resolved before creating the quote. The selected contact or customer is authoritative even if its name or email address differs from the conversation history.
-- Apply the capable-to-promise shipment-date rule below only when the current agent instructions explicitly state that capable-to-promise is enabled for this task. Otherwise, skip that rule; do not infer enablement from the presence of a date in the search results.
+- Resolve the capable-to-promise setting from authorized task context or available BC configuration. Apply its shipment-date rule only when enabled. Do not infer enablement from the presence of a date in the search results.
 - Follow the numbered steps one by one. After creating the quote, perform the field and line steps on the Sales Quote page (page 41) and its lines (page 301), opening the required lookups from there.
-- This skill covers quote creation and population only. It does not authorize sending the quote, converting it to an order, or bypassing the agent's review, inventory, safety, or communication requirements.
+- This skill covers quote creation and population only. It does not authorize sending the quote, converting it to an order, or bypassing applicable review, inventory, safety, or communication requirements.
+
+## Missing context and resume
+
+If item selections are missing, retrieve the complete "Find Requested Items" skill through BusinessIQ. If a contact or customer has not been resolved, retrieve "Resolve Contact or Customer". Retain this skill's progress while resolving these dependencies. Do not create the quote while their results require clarification or assistance. If required guidance, authorization, or configuration is unavailable, request assistance rather than guessing or treating a missing setting as disabled.
 
 When resuming this skill after an interruption or history summary, use the recorded quote and continue from the first unfinished step. Do not create another quote if creation already succeeded. Check the current page when the outcome of an earlier action is uncertain.
 
@@ -57,7 +61,7 @@ After selecting the item number, populate "Variant Code" with the selected item'
 
 ## 6. Apply capable-to-promise shipment dates when enabled
 
-Skip this step unless the current agent instructions explicitly enable capable-to-promise for this task.
+Skip this step when the resolved capable-to-promise setting is disabled.
 
 For each selected item, carefully check whether the search results provide an earliest shipment date. If they do, always populate that line's "Shipment Date" with the earliest shipment date or the requested delivery date, whichever is later. Use the requested delivery date resolved in step 2. If it is blank or in the past, use the earliest shipment date.
 
@@ -71,4 +75,4 @@ If the request explicitly specifies a unit, search and populate the unit of meas
 
 Confirm that the requested header information and all requested lines are present on the current quote. Retain its identifier and the completed population step in the task's progress before returning control.
 
-Return to the main agent instructions for the applicable quote review, low-inventory notification handling, PDF download, customer confirmation, and order-conversion steps. Do not proceed past a required review or unresolved assistance request.
+Complete with the quote identifier, the applied item/quantity/unit and delivery/address decisions, and any assumptions, notifications, or unresolved issues. The result is a populated draft, not a sent or converted document. Report Needs clarification with unresolved items when a prerequisite needs the customer's choice, or Needs assistance when blocked on assistance. Leave review, sending, and conversion to separately authorized operations.

@@ -5,9 +5,15 @@ Clarify requested items with the customer when search results are ambiguous, inc
 ## Required context and scope
 
 - Use the original requested items and the completed item search results, including matching status, Variant Codes, descriptions, prices including discounts, units of measure, and applicable availability information.
-- Use the current agent instructions for availability and capable-to-promise settings and customer communication rules.
+- Use explicit availability and capable-to-promise settings from authorized task context or BC configuration. Before customer contact, require permission to send the clarification, an identified recipient, and the applicable communication and review requirements, including signature mode and supplied signature content when required.
 - Ordinary missing-item and pricing errors belong to the item-search assistance flow. This skill handles the specific-variant no-result exception and customer selection from returned options.
 - This skill does not authorize creating a quote or selecting an alternative without resolving the customer's choice.
+
+## Missing context and resume
+
+If item search has not been completed, retrieve the complete "Find Requested Items" skill through BusinessIQ and use its results before deciding whether clarification is needed. Retain this skill's progress while resolving that dependency. If required guidance, settings, or customer-contact authorization are missing or incomplete, request assistance and do not send a message.
+
+If a clarification message was already sent or is pending review, retain its identifier and wait for the outcome or customer response instead of sending it again. Honor required review before customer contact.
 
 ## 1. Decide whether clarification is required
 
@@ -34,10 +40,12 @@ For a result marked as a non-matching item, distinguish these cases:
 
 Only when capable-to-promise is explicitly enabled, also provide a table of items that are currently unavailable but can ship later. Include descriptions, earliest shipment dates, prices including discounts, and units of measure.
 
-## 4. Send the clarification and return to the main workflow
+## 4. Send the clarification
 
-Include any delivery-date handling disclosures carried forward from item search. Before sending, retrieve and follow the "Format Customer Emails" skill for tone and HTML table formatting, using the active signature instruction from the main instructions.
+Include any delivery-date handling disclosures carried forward from item search. Before sending, retrieve the complete "Format Customer Emails" skill through BusinessIQ and supply the required message content, signature mode, and signature content when applicable. If the formatting skill is unavailable or incomplete, request assistance instead of sending.
 
 Use `send_message` with `requestsInformation` set to true because the customer's selection or revised request is needed. Record the message outcome only after the tool returns; preparing the text or updating a todo does not establish that the message was sent.
 
-Do not advance to quote creation while item selection is unresolved. When the customer responds, return their selection or revised request to the main workflow for any necessary item search and subsequent processing.
+## Completion
+
+Complete with a confirmed item selection when one is available; otherwise report Awaiting customer response, Awaiting review, or Needs assistance, with the message identifier and unresolved choices. When the customer responds, capture their selection or revised request and identify which items need another search. Do not create a quote as part of this skill.

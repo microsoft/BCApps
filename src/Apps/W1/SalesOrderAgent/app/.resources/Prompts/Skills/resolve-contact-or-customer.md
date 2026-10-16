@@ -1,10 +1,16 @@
 # Resolve Contact or Customer
 
-Identify the contact or customer to use for a Business Central sales quote after the requested items and any required item clarification have been resolved.
+Resolve supplied buyer information to an eligible Business Central contact or customer in the current company.
 
 ## Required context and scope
 
-Use the conversation history, including the sender's email address, name, company name, and phone number. This skill selects an existing contact or customer; it does not create the sales quote.
+Use buyer information from the authorized request or conversation, including the sender's email address, name, company name, and phone number, together with the current company's eligible contact/customer records. Respect the runtime's record filters and permissions. This skill selects an existing contact or customer; it does not require item search or create a document.
+
+## Missing context and resume
+
+Request assistance when required identity information is unavailable or the available evidence cannot distinguish eligible records. Do not guess a different legal entity.
+
+If resuming with an already confirmed selection, verify that the record is still eligible for the unchanged request and reuse it. Search again when the request or selection has changed.
 
 ## 1. Check that identity information is available
 
@@ -32,4 +38,6 @@ If neither a contact nor a customer is found, request assistance.
 
 The selected contact or customer is authoritative, even if its name or email address does not exactly match the conversation history. Incoming emails can be mapped to another contact for response routing. Do not request assistance solely because of that mismatch.
 
-Return the selected record and whether it is a contact or customer to the main workflow so quote creation can proceed.
+## Completion
+
+Complete with the selected record's identifier, whether it is a contact or customer, and the evidence used to select it. If selection remains unresolved, report the ambiguity and required assistance. Do not start quote creation as part of this skill.

@@ -1,13 +1,20 @@
 # Confirm Sales Quote
 
-Prepare and send a populated Business Central sales quote to the customer for review and confirmation when the main agent instructions permit sending quotes.
+Prepare and send an authorized Business Central sales quote confirmation using current document data and the applicable review and communication settings.
 
 ## Required context and scope
 
-- Use the sales quote created in the current conversation and the latest data on its current page.
-- Quote population, any required internal quote review, and applicable inventory-notification handling must be complete. Do not proceed past an unresolved review or assistance request.
-- Do not use this skill when the main instructions prohibit sending the quote. Sending a quote does not authorize converting it to an order.
-- Follow the main instructions for signature and safety, and the "Format Customer Emails" skill for tone and HTML formatting.
+- Required inputs are an explicitly identified, populated quote in the current company, authorization to send it, the recipient, and applicable quote-review, availability, capable-to-promise, and communication settings.
+- Obtain review status, inventory-handling results, delivery-date disclosures, and signature mode/content from authorized task context or available BC records and configuration. Do not assume another procedure has already completed them.
+- Sending a quote does not authorize converting it to an order. Follow runtime permissions, safety policies, and required message reviews.
+
+## Missing context and resume
+
+If the target quote, sending authorization, recipient, or required settings cannot be determined, request assistance without sending. Do not interpret missing settings as disabled.
+
+Open the quote. If an internal quote review is required and incomplete, request it and wait. If availability checking is enabled and unresolved low-inventory notifications remain, retrieve the complete "Handle Quote Inventory Warnings" skill through BusinessIQ and resolve them before continuing. If required guidance is unavailable or incomplete, request assistance. Retain the quote identifier and progress while resolving dependencies.
+
+If a confirmation message was already sent or is pending review, report that state and its identifier instead of sending a duplicate. After a review changes the quote, read its current data and obtain an updated PDF.
 
 ## 1. Read the current quote
 
@@ -21,9 +28,7 @@ Use "Download as PDF" on the sales quote after the required review and inventory
 
 ## 3. Send the confirmation request
 
-Retrieve and follow the "Format Customer Emails" skill before sending, preserving all message content and disclosures required below.
-
-Use `send_message` to reply with the current quote summary. Include the downloaded quote's actual file identifier in `filesToAttach` and set `requestsInformation` to true.
+Prepare the reply with the current quote summary and the following confirmation request and disclosures.
 
 Ask the customer to review the quote and confirm whether they want to proceed with converting it into a sales order.
 
@@ -33,8 +38,12 @@ Include the applicable delivery and shipment information:
 - If several requested delivery dates were found, state which dates were found and which furthest date in the future was used. If all were in the past, state that they were ignored and no requested delivery date was applied. Still send the quote in the same reply.
 - If quote inventory handling recalculated shipment dates, explicitly include the new shipment dates in the email.
 
+Retrieve the complete "Format Customer Emails" skill through BusinessIQ and supply the assembled message content, signature mode, and signature content when applicable. If that skill is unavailable or incomplete, request assistance and do not send.
+
+Use `send_message` to reply with the formatted message. Include the downloaded quote's actual file identifier in `filesToAttach` and set `requestsInformation` to true.
+
 ## Completion
 
 Record the message outcome only after `send_message` returns. A downloaded PDF, drafted reply, or updated todo is not evidence that the message was sent. Honor any pending review reported by the tools before advancing.
 
-Return to the main instructions to handle the customer's response. Do not convert the quote as part of this skill; the main workflow decides whether conversion is enabled and authorized.
+Complete with the quote identifier, PDF identifier, and confirmed message outcome. Report Awaiting review or Awaiting customer response when applicable, or Needs assistance when blocked. Do not convert the quote as part of this skill.

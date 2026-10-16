@@ -5,8 +5,14 @@ Find and evaluate every item requested in a Business Central sales inquiry, sale
 ## Required context and scope
 
 - Use the message body, every attachment, and relevant conversation history. An item identifier can be an item number, SKU, product code, vendor item number, catalog number, or another identifying code.
-- Use the current agent instructions to determine whether item availability checking and capable-to-promise are enabled. Apply capable-to-promise rules only when explicitly enabled; never infer enablement from the presence of an earliest shipment date.
+- Required context includes the current company, the designated customer/contact and location filters, and explicit enabled/disabled settings for item availability checking and capable-to-promise. Resolve these from authorized task context or available BC configuration. Apply capable-to-promise only when both settings enable it; never infer enablement from the presence of an earliest shipment date.
 - This skill searches and evaluates items. It does not authorize selecting an unconfirmed alternative, creating a quote, or replying outside the agent's communication rules.
+
+## Missing context and resume
+
+If required configuration or pricing context cannot be determined, request assistance before searching. Do not interpret an unknown setting as disabled or replace a designated customer, contact, or location to obtain a result.
+
+Reuse confirmed search results only while the requested item, quantity, unit, date, and pricing/location context are unchanged. Search changed items again; do not duplicate results already retained by the runtime.
 
 ## 1. Identify every requested item
 
@@ -50,7 +56,7 @@ Invoke search only after all search text and filters are ready. Search must be t
 
 If a notification says that price calculation for the customer ran with an error, always request assistance showing the full error from the notification. Do not proceed until it is resolved.
 
-If a search returns no result for a customer-requested specific variant, do not request assistance for the missing result or lack of an earliest shipment date. Return to the main instructions for "Clarify Item Selection" with the requested item and variant and the no-result outcome. Do not choose another item or variant or create a quote.
+If a search returns no result for a customer-requested specific variant, do not request assistance for the missing result or lack of an earliest shipment date. Mark that requested item and variant as needing customer clarification with no safe alternative. Include this outcome in the results for use by "Clarify Item Selection"; do not choose another item or variant, contact the customer, or create a quote as part of this search skill.
 
 For any other requested item with no search result, request assistance mentioning the item and adding: "Please make such items available or stop the task and handle manually."
 
@@ -72,4 +78,8 @@ Return the results for every requested item, including matching status, identifi
 
 Ignore past requested delivery dates and continue as if they had not been requested. Do not stop, call the request unsupported, or ask for a revised date because of a past date. For multiple requested delivery dates, including dates split between the message and attachments, use the furthest date in the future; do not ask which date to use. If all are in the past, proceed as if no delivery date was requested.
 
-Whenever the agent next replies to the customer, it must explain that a past requested delivery date was ignored or, when several dates were found, which date was used. Do not withhold a reply or stop processing for this reason. Carry these required disclosures forward to the main workflow.
+Whenever the agent next replies to the customer, it must explain that a past requested delivery date was ignored or, when several dates were found, which date was used. Do not withhold a reply or stop processing for this reason.
+
+## Completion
+
+Complete with the results for every requested item, the effective filters/settings, and required delivery-date disclosures. Distinguish resolved matches, items needing customer clarification, and items blocked on assistance. An unresolved result is not authorization to substitute an item or create a document.
