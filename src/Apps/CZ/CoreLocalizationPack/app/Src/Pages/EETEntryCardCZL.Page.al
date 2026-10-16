@@ -13,6 +13,7 @@ page 31146 "EET Entry Card CZL"
     Editable = false;
     PageType = Card;
     SourceTable = "EET Entry CZL";
+    ApplicationArea = Basic, Suite;
 
     layout
     {
@@ -23,54 +24,33 @@ page 31146 "EET Entry Card CZL"
                 Caption = 'General';
                 field("Business Premises Code"; Rec."Business Premises Code")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the business premises.';
                 }
                 field("Cash Register Code"; Rec."Cash Register Code")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the EET cash register.';
                 }
                 field("Cash Register Type"; Rec."Cash Register Type")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the source type of the entry.';
                 }
                 field("Cash Register No."; Rec."Cash Register No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the source number of the entry.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the EET entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s document number.';
                 }
                 field("Applied Document Type"; Rec."Applied Document Type")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the applied document.';
                 }
                 field("Applied Document No."; Rec."Applied Document No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the applied document.';
                 }
                 field("Receipt Serial No."; Rec."Receipt Serial No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the serial no. of the EET receipt.';
                 }
                 field("Created By"; Rec."Created By")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who created the entry.';
-
                     trigger OnDrillDown()
                     var
                         UserMgt: Codeunit "User Management";
@@ -80,14 +60,24 @@ page 31146 "EET Entry Card CZL"
                 }
                 field(CreatedAt; Rec.GetFormattedCreatedAt())
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Created At';
                     ToolTip = 'Specifies the date and time when the entry was created.';
                 }
                 field("Canceled By Entry No."; Rec."Canceled By Entry No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of entry to be canceled.';
+                }
+            }
+            group(TaxpayerAuthorization)
+            {
+                Caption = 'Taxpayer and Authorization';
+                field("Taxpayer ID"; Rec."Taxpayer ID")
+                {
+                }
+                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
+                {
+                }
+                field("Multiple Taxpayer Auth."; Rec."Multiple Taxpayer Auth.")
+                {
                 }
             }
             group(Sale)
@@ -95,74 +85,68 @@ page 31146 "EET Entry Card CZL"
                 Caption = 'Sale';
                 field("Total Sales Amount"; Rec."Total Sales Amount")
                 {
-                    ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the total amount of cash document.';
-                }
-                field("Amount Exempted From VAT"; Rec."Amount Exempted From VAT")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of cash document VAT-exempt.';
-                }
-                field("VAT Base (Basic)"; Rec."VAT Base (Basic)")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT base amount.';
-                }
-                field("VAT Amount (Basic)"; Rec."VAT Amount (Basic)")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the base VAT amount.';
-                }
-                field("VAT Base (Reduced)"; Rec."VAT Base (Reduced)")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduced VAT base amount.';
-                }
-                field("VAT Amount (Reduced)"; Rec."VAT Amount (Reduced)")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduced VAT amount.';
-                }
-                field("VAT Base (Reduced 2)"; Rec."VAT Base (Reduced 2)")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduced VAT base amount.';
-                }
-                field("VAT Amount (Reduced 2)"; Rec."VAT Amount (Reduced 2)")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduced VAT amount 2.';
-                }
-                field("Amount - Art.89"; Rec."Amount - Art.89")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount under paragraph 89th.';
-                }
-                field("Amount (Basic) - Art.90"; Rec."Amount (Basic) - Art.90")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the base amount under paragraph 90th.';
-                }
-                field("Amount (Reduced) - Art.90"; Rec."Amount (Reduced) - Art.90")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduced amount under paragraph 90th.';
-                }
-                field("Amount (Reduced 2) - Art.90"; Rec."Amount (Reduced 2) - Art.90")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduced amount 2 under paragraph 90th.';
                 }
                 field("Amt. For Subseq. Draw/Settle"; Rec."Amt. For Subseq. Draw/Settle")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of the payments for subsequent drawdown or settlement.';
                 }
                 field("Amt. Subseq. Drawn/Settled"; Rec."Amt. Subseq. Drawn/Settled")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of the subsequent drawing or settlement.';
+                }
+                field("Amount Exempted From VAT"; Rec."Amount Exempted From VAT")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("VAT Base (Basic)"; Rec."VAT Base (Basic)")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("VAT Amount (Basic)"; Rec."VAT Amount (Basic)")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("VAT Base (Reduced)"; Rec."VAT Base (Reduced)")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("VAT Amount (Reduced)"; Rec."VAT Amount (Reduced)")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("VAT Base (Reduced 2)"; Rec."VAT Base (Reduced 2)")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("VAT Amount (Reduced 2)"; Rec."VAT Amount (Reduced 2)")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("Amount - Art.89"; Rec."Amount - Art.89")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("Amount (Basic) - Art.90"; Rec."Amount (Basic) - Art.90")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("Amount (Reduced) - Art.90"; Rec."Amount (Reduced) - Art.90")
+                {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("Amount (Reduced 2) - Art.90"; Rec."Amount (Reduced 2) - Art.90")
+                {
+                    Visible = false;
+                    Enabled = false;
                 }
             }
             group(Communication)
@@ -170,17 +154,14 @@ page 31146 "EET Entry Card CZL"
                 Caption = 'Communication';
                 field("Status"; Rec."Status")
                 {
-                    ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleExpr;
-                    ToolTip = 'Specifies the current state of the EET entries.';
                 }
                 field(StatusLastChangedAt; Rec.GetFormattedStatusLastChangedAt())
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Status Last Changed At';
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date and time of the last status change for the EET entry.';
+                    ToolTip = 'Specifies the date and time of the last status change of the entry. Select the field to display the log of the status changes.';
 
                     trigger OnDrillDown()
                     begin
@@ -189,24 +170,26 @@ page 31146 "EET Entry Card CZL"
                 }
                 field("Message UUID"; Rec."Message UUID")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the UUID of the data message.';
+                }
+                field("Acknowledgement Code"; Rec."Acknowledgement Code")
+                {
                 }
                 field(SignatureCode; SignatureCode)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Taxpayer''s Signature Code';
-                    ToolTip = 'Specifies the content of the field for the Signing code of the taxpayer.';
+                    ToolTip = 'Specifies the taxpayer''s signature code (PKP). The code was used in the EET system version 1.0 and it is not used in version 2.0.';
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Taxpayer's Security Code"; Rec."Taxpayer's Security Code")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the content of the field for the Security code of the taxpayer.';
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Fiscal Identification Code"; Rec."Fiscal Identification Code")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the content of the field for the Fiscal identification code of the receipt.';
+                    Visible = false;
+                    Enabled = false;
                 }
             }
         }
@@ -231,7 +214,6 @@ page 31146 "EET Entry Card CZL"
         {
             action("Entry Status Log")
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Entry Status Log';
                 Image = Status;
                 ToolTip = 'Displays a log of the EET entry status changes.';
@@ -243,7 +225,6 @@ page 31146 "EET Entry Card CZL"
             }
             action("Show Document")
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Show Document';
                 Image = Document;
                 ToolTip = 'Displays the document related to the entry.';
@@ -258,10 +239,9 @@ page 31146 "EET Entry Card CZL"
         {
             action(Send)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Send';
                 Image = SendElectronicDocument;
-                ToolTip = 'Sends the selected entry to the EET service to register.';
+                ToolTip = 'Sends the selected entry to the EET service to register the sale.';
 
                 trigger OnAction()
                 begin
@@ -271,10 +251,9 @@ page 31146 "EET Entry Card CZL"
             }
             action(Verify)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Verify';
                 Image = SendApprovalRequest;
-                ToolTip = 'Sends the selected entry to the EET service to verification.';
+                ToolTip = 'Sends the selected entry to the EET service in the verification mode. The sale is only checked, it is not registered and no acknowledgement code is assigned.';
 
                 trigger OnAction()
                 begin
@@ -283,10 +262,9 @@ page 31146 "EET Entry Card CZL"
             }
             action(Cancel)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Cancel';
                 Image = Cancel;
-                ToolTip = 'Sends the selected entry to the EET service to cancel.';
+                ToolTip = 'Creates an entry with the opposite amounts that cancels the selected entry and sends it to the EET service.';
 
                 trigger OnAction()
                 begin
@@ -298,7 +276,6 @@ page 31146 "EET Entry Card CZL"
         {
             action(Confirmation)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Confirmation';
                 Image = PrintReport;
                 ToolTip = 'Print Confirmation of EET Entry';
