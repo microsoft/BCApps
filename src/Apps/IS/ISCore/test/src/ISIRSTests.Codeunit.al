@@ -173,22 +173,20 @@ codeunit 139643 "IS IRS - Tests"
 
     local procedure VerifyIRSTrialBalance(var IRS_GLAcc: Record "G/L Account")
     begin
-        with LibraryReportDataset do begin
-            LoadDataSetFile();
-            IRS_GLAcc.FindFirst();
-            while GetNextRow() do begin
-                GetNextRow(); // This report outputs alternating empty lines
-                AssertCurrentRowValueEquals('No_GLAcc', IRS_GLAcc."No.");
-                AssertCurrentRowValueEquals('IRSNumber_GLAcc', IRS_GLAcc."IRS No.");
+        LibraryReportDataset.LoadDataSetFile();
+        IRS_GLAcc.FindFirst();
+        while LibraryReportDataset.GetNextRow() do begin
+            LibraryReportDataset.GetNextRow(); // This report outputs alternating empty lines
+            LibraryReportDataset.AssertCurrentRowValueEquals('No_GLAcc', IRS_GLAcc."No.");
+            LibraryReportDataset.AssertCurrentRowValueEquals('IRSNumber_GLAcc', IRS_GLAcc."IRS No.");
 
-                IRS_GLAcc.CalcFields("Balance at Date");
-                AssertCurrentRowValueEquals('BalanceAtDate_GLAcc', IRS_GLAcc."Balance at Date");
+            IRS_GLAcc.CalcFields("Balance at Date");
+            LibraryReportDataset.AssertCurrentRowValueEquals('BalanceAtDate_GLAcc', IRS_GLAcc."Balance at Date");
 
-                IRS_GLAcc.Next();
-            end;
-
-            Assert.IsTrue(IRS_GLAcc.Next() = 0, '');
+            IRS_GLAcc.Next();
         end;
+
+        Assert.IsTrue(IRS_GLAcc.Next() = 0, '');
     end;
 
     local procedure CreateSalesDocWithMultipleVAT(var SalesHeader: Record "Sales Header"; DocType: Option)
