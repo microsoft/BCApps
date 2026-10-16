@@ -18,6 +18,9 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 #if not CLEAN30
 using System.Environment.Configuration;
+#endif
+using System.Security.AccessControl;
+#if not CLEAN30
 using System.TestLibraries.Upgrade;
 #endif
 using System.TestLibraries.Utilities;
@@ -113,6 +116,22 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         InitializeTest();
         ContosoCoffeeDemoDataSetup.InitRecord();
         ContosoDemoDataModule.DeleteAll();
+    end;
+
+    [Test]
+    procedure PostingBufferHasLocalPermissions()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+    begin
+        // [SCENARIO] LOCAL grants full data access to the FI depreciation difference posting buffer.
+        ExpandedPermission.SetRange("Role ID", 'LOCAL');
+        ExpandedPermission.SetRange("Object Type", ExpandedPermission."Object Type"::"Table Data");
+        ExpandedPermission.SetRange("Object ID", Database::"Depr. Diff. Posting Buffer FI");
+        ExpandedPermission.SetRange("Read Permission", ExpandedPermission."Read Permission"::Yes);
+        ExpandedPermission.SetRange("Insert Permission", ExpandedPermission."Insert Permission"::Yes);
+        ExpandedPermission.SetRange("Modify Permission", ExpandedPermission."Modify Permission"::Yes);
+        ExpandedPermission.SetRange("Delete Permission", ExpandedPermission."Delete Permission"::Yes);
+        Assert.IsFalse(ExpandedPermission.IsEmpty(), 'LOCAL must grant full data access to the depreciation difference posting buffer.');
     end;
 
 #if not CLEAN30
