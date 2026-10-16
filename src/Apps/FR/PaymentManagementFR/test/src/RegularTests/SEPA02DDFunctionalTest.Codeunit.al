@@ -34,7 +34,11 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryXMLRead: Codeunit "Library - XML Read";
+        LibraryXMLRead: Codeunit "Library - XML Read OnServer";
+#if not CLEAN28
+        PaymentMgtFeatureSubscriber: Codeunit "SEPA.02 DD Functional Test";
+#endif
+        IsInitialized: Boolean;
         SEPA_PartnerType: Option ,Company,Person;
         UnexpectedEmptyNodeErr: Label 'Unexpected empty value for node <%1> of subtree <%2>.', Comment = '%1 = Node Name, %2 = Subtree Root Name';
         OneToManyNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents.';
@@ -521,6 +525,142 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         VerifySEPAMandate(PaymentLine."Direct Debit Mandate ID", 1);
     end;
 
+    [Test]
+    [HandlerFunctions('PaymentClassHandler,ConfirmHandler,SuggestCustPaymentsSummarizedReqPageHandler')]
+    procedure ExportSEPAFileWithInvoiceAndCreditMemoForSameCustomer()
+    var
+        Customer: Record Customer;
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        NetAmount: Decimal;
+        SEPAFilePath: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 644993] Suggesting a Person customer's payments with summarization nets an invoice and an unapplied credit memo into a single line; the SEPA file collects the net balance.
+
+        // [GIVEN] A Person customer with a posted invoice and a posted unapplied credit memo (half the invoice) sharing the same direct debit mandate.
+        CreateCustomerWithInvoice(Customer, InvoiceCustLedgerEntry, SEPA_PartnerType::Person);
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        CreateCustomerCreditMemoLedgerEntry(
+          CreditMemoCustLedgerEntry, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID",
+          Round(InvoiceCustLedgerEntry."Remaining Amount" / 2, 0.01));
+        CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
+        NetAmount := InvoiceCustLedgerEntry."Remaining Amount" + CreditMemoCustLedgerEntry."Remaining Amount";
+
+        // [GIVEN] A SEPA direct debit payment slip for the Person partner type.
+        CreatePaymentHeader(PaymentHeader, SEPA_PartnerType::Person);
+
+        // [WHEN] Customer payments are suggested with Summarize per Customer.
+        SuggestCustomerPaymentsSummarized(PaymentHeader, Customer."No.");
+
+        // [THEN] A single net payment line is created for the customer's balance.
+        PaymentLine.SetRange("No.", PaymentHeader."No.");
+        Assert.RecordCount(PaymentLine, 1);
+        PaymentLine.FindFirst();
+        Assert.AreEqual(NetAmount, PaymentLine."Credit Amount", 'Suggested payment should collect the net customer balance.');
+
+        // [GIVEN] The summarized line is assigned the customer's direct debit mandate.
+        PaymentLine.Validate("Direct Debit Mandate ID", InvoiceCustLedgerEntry."Direct Debit Mandate ID");
+        PaymentLine.Modify(true);
+
+        // [WHEN] The SEPA direct debit file is exported.
+        SEPAFilePath := ExportSEPAFile(PaymentHeader);
+        Commit();
+        LibraryXMLRead.Initialize(SEPAFilePath);
+
+        // [THEN] A single net transaction is exported and the mandate is debited once.
+        LibraryXMLRead.VerifyNodeValueInSubtree('GrpHdr', 'NbOfTxs', '1');
+        LibraryXMLRead.VerifyNodeValueInSubtree('GrpHdr', 'CtrlSum', Format(PaymentLine."Credit Amount", 0, 9));
+        LibraryXMLRead.VerifyNodeValueInSubtree('DrctDbtTxInf', 'InstdAmt', PaymentLine."Credit Amount");
+        VerifySEPAMandate(InvoiceCustLedgerEntry."Direct Debit Mandate ID", 1);
+
+        // Clean data
+        PaymentHeader.Delete(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentClassHandler,ConfirmHandler')]
+    procedure ExportPmtLineWithCreditMemoIsNettedWithoutError()
+    var
+        Customer: Record Customer;
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        SEPAFilePath: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 644993] A credit memo collected with an invoice is netted into the payment and no longer raises the "must be applied to a customer invoice" error.
+
+        // [GIVEN] A Person customer with a posted invoice and a posted credit memo (half the invoice).
+        CreateCustomerWithInvoice(Customer, InvoiceCustLedgerEntry, SEPA_PartnerType::Person);
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        CreateCustomerCreditMemoLedgerEntry(
+          CreditMemoCustLedgerEntry, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID",
+          Round(InvoiceCustLedgerEntry."Remaining Amount" / 2, 0.01));
+
+        // [GIVEN] A single payment slip line collecting the net balance, with the invoice and the credit memo applied to it.
+        CreatePaymentSlip(PaymentHeader, PaymentLine, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID", SEPA_PartnerType::Person);
+        ApplyInvoiceAndCreditMemoToPaymentLine(PaymentLine, InvoiceCustLedgerEntry, CreditMemoCustLedgerEntry);
+
+        // [WHEN] The SEPA direct debit file is exported.
+        SEPAFilePath := ExportSEPAFile(PaymentHeader);
+        Commit();
+        LibraryXMLRead.Initialize(SEPAFilePath);
+
+        // [THEN] The export succeeds collecting the net amount, with no payment file error for the line.
+        Assert.AreNotEqual('', SEPAFilePath, 'SEPA file should be generated.');
+        LibraryXMLRead.VerifyNodeValueInSubtree('DrctDbtTxInf', 'InstdAmt', PaymentLine."Credit Amount");
+        VerifyPaymentErrors(
+          DATABASE::"Payment Header FR", PaymentHeader."No.", PaymentLine."Line No.",
+          StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."), 0);
+
+        // Clean data
+        PaymentHeader.Delete(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentClassHandler,ConfirmHandler')]
+    procedure ExportInvoiceAppliedByIDWithCreditMemoSucceeds()
+    var
+        Customer: Record Customer;
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        SEPAFilePath: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 644993] When an invoice and a credit memo of the same customer share the Applies-to ID, the SEPA export collects the net balance and succeeds without the "multiple documents" error.
+
+        // [GIVEN] A Person customer with a posted invoice and a posted credit memo (half the invoice).
+        CreateCustomerWithInvoice(Customer, InvoiceCustLedgerEntry, SEPA_PartnerType::Person);
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        CreateCustomerCreditMemoLedgerEntry(
+          CreditMemoCustLedgerEntry, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID",
+          Round(InvoiceCustLedgerEntry."Remaining Amount" / 2, 0.01));
+
+        // [GIVEN] A payment slip line collecting the net balance, with the invoice and the credit memo applied by a shared Applies-to ID.
+        CreatePaymentSlip(PaymentHeader, PaymentLine, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID", SEPA_PartnerType::Person);
+        ApplyInvoiceAndCreditMemoToPaymentLine(PaymentLine, InvoiceCustLedgerEntry, CreditMemoCustLedgerEntry);
+
+        // [WHEN] The SEPA direct debit file is exported.
+        SEPAFilePath := ExportSEPAFile(PaymentHeader);
+        Commit();
+        LibraryXMLRead.Initialize(SEPAFilePath);
+
+        // [THEN] The export collects the net amount and succeeds without the "multiple documents" error, and the mandate is debited once.
+        Assert.AreNotEqual('', SEPAFilePath, 'SEPA file should be generated.');
+        LibraryXMLRead.VerifyNodeValueInSubtree('DrctDbtTxInf', 'InstdAmt', PaymentLine."Credit Amount");
+        VerifyPaymentErrors(DATABASE::"Payment Header FR", PaymentHeader."No.", PaymentLine."Line No.", OneToManyNotAllowedErr, 0);
+        VerifySEPAMandate(InvoiceCustLedgerEntry."Direct Debit Mandate ID", 1);
+
+        // Clean data
+        PaymentHeader.Delete(true);
+    end;
+
     local procedure CreateSEPABankAccount(var BankAccount: Record "Bank Account")
     begin
         LibraryERM.CreateBankAccount(BankAccount);
@@ -591,6 +731,17 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         PaymentHeader[2].Delete(true);
     end;
 
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        IsInitialized := true;
+#if not CLEAN28
+        // Bind the manual subscription so "Payment Management Feature FR".IsEnabled() is forced on, independent of the feature key state.
+        BindSubscription(PaymentMgtFeatureSubscriber);
+#endif
+    end;
+
     local procedure CreatePaymentClass(): Text[30]
     var
         PaymentClass: Record "Payment Class FR";
@@ -619,6 +770,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         BankAccount: Record "Bank Account";
         PaymentClassCode: Code[30];
     begin
+        Initialize();
         PaymentClassCode := CreatePaymentClass();
         LibraryVariableStorage.Enqueue(PaymentClassCode);
         LibraryFRLocalization.CreatePaymentHeader(PaymentHeader);
@@ -639,6 +791,18 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         PaymentLine.Validate("Credit Amount", LibraryRandom.RandDec(100, 2));
         PaymentLine.Validate("Direct Debit Mandate ID", MandateID);
         PaymentLine.Modify(true);
+    end;
+
+    local procedure SuggestCustomerPaymentsSummarized(var PaymentHeader: Record "Payment Header FR"; CustomerNo: Code[20])
+    var
+        Customer: Record Customer;
+        SuggestCustomerPayments: Report "Suggest Cust. Payments";
+    begin
+        Commit();  // Required for running the report modally.
+        SuggestCustomerPayments.SetGenPayLine(PaymentHeader);
+        Customer.SetRange("No.", CustomerNo);
+        SuggestCustomerPayments.SetTableView(Customer);
+        SuggestCustomerPayments.RunModal();
     end;
 
     local procedure CreateCustomerWithInvoice(var Customer: Record Customer; var CustLedgerEntry: Record "Cust. Ledger Entry"; SEPAPartnerType: Option)
@@ -699,6 +863,40 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         CustLedgerEntry.SetRange("Customer No.", GenJournalLine."Account No.");
         CustLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
         CustLedgerEntry.FindLast();
+    end;
+
+    local procedure CreateCustomerCreditMemoLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; SEPADirectDebitMandateID: Code[35]; CreditMemoAmount: Decimal)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::"Credit Memo", GenJournalLine."Account Type"::Customer,
+          CustomerNo, -CreditMemoAmount);
+        GenJournalLine."Direct Debit Mandate ID" := SEPADirectDebitMandateID;
+        GenJournalLine."Payment Method Code" := '';
+        GenJournalLine.Modify();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CustLedgerEntry.SetRange("Customer No.", GenJournalLine."Account No.");
+        CustLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.FindLast();
+    end;
+
+    local procedure ApplyInvoiceAndCreditMemoToPaymentLine(var PaymentLine: Record "Payment Line FR"; var InvoiceCustLedgerEntry: Record "Cust. Ledger Entry"; var CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+        PaymentLine.Validate("Applies-to ID", PaymentLine."Document No.");
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
+        // Collect the customer's net balance: invoice remaining plus the negative credit memo remaining.
+        PaymentLine.Validate("Credit Amount", InvoiceCustLedgerEntry."Remaining Amount" + CreditMemoCustLedgerEntry."Remaining Amount");
+        PaymentLine.Modify(true);
+        InvoiceCustLedgerEntry."Applies-to ID" := PaymentLine."Document No.";
+        InvoiceCustLedgerEntry.Modify();
+        CreditMemoCustLedgerEntry."Applies-to ID" := PaymentLine."Document No.";
+        CreditMemoCustLedgerEntry.Modify();
     end;
 
     local procedure CreateCustomerAddress(var Customer: Record Customer)
@@ -937,6 +1135,16 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     procedure SuggestCustPaymentsReqPageHandler(var SuggestCustomerPayments: TestRequestPage "Suggest Cust. Payments")
     begin
         SuggestCustomerPayments.LastPaymentDate.SetValue(WorkDate());
+        SuggestCustomerPayments.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SuggestCustPaymentsSummarizedReqPageHandler(var SuggestCustomerPayments: TestRequestPage "Suggest Cust. Payments")
+    var
+        SummarizePer: Option " ",Customer,"Due date";
+    begin
+        SuggestCustomerPayments.LastPaymentDate.SetValue(WorkDate());
+        SuggestCustomerPayments.Summarize_Per.SetValue(SummarizePer::Customer);
         SuggestCustomerPayments.OK().Invoke();
     end;
 

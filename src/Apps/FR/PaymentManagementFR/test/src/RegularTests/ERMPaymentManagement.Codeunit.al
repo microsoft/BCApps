@@ -1922,6 +1922,61 @@ codeunit 144013 "ERM Payment Management"
         PaymentSlipSubform.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('PaymentClassListModalPageHandler,SuggestCustomerPaymentsSummarizedRequestPageHandler,ConfirmHandlerTrue')]
+    procedure PostPaymentSlipNetsCreditMemoAgainstInvoice()
+    var
+        PaymentClass: Record "Payment Class FR";
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentStepLedger: Record "Payment Step Ledger FR";
+        SummarizePer: Option " ",Customer,"Due date";
+        CustomerNo: Code[20];
+        InvoiceAmount: Decimal;
+        CreditMemoAmount: Decimal;
+        NetAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 644993] A payment slip suggested for a customer with an open invoice and an unapplied credit memo posts a single net payment; the credit memo is applied to the invoice and no refund entry is created.
+        Initialize();
+
+        // [GIVEN] Customer "C" with an open posted invoice of 2062.80 and an open unapplied posted credit memo of 229.20.
+        InvoiceAmount := 2062.8;
+        CreditMemoAmount := 229.2;
+        NetAmount := InvoiceAmount - CreditMemoAmount;
+        CustomerNo := CreateCustomer('');
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+          GenJournalLine."Document Type"::Invoice, InvoiceAmount, WorkDate());
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+          GenJournalLine."Document Type"::"Credit Memo", -CreditMemoAmount, WorkDate());
+
+        // [GIVEN] A postable payment slip whose payment class posts to the ledger, with the customer's entries suggested (Summarize per Customer).
+        PaymentClass.Get(SetupForPaymentSlipPost(PaymentStepLedger."Detail Level"::Account, PaymentClass.Suggestions::Customer));
+        CreatePaymentHeader(PaymentHeader);
+        Commit();  // Required for execute report.
+        SuggestCustomerPaymentLinesSummarized(CustomerNo, SummarizePer::Customer, PaymentHeader."No.");
+
+        // [THEN] A single net payment line of 1833.60 is created.
+        PaymentLine.SetRange("No.", PaymentHeader."No.");
+        Assert.RecordCount(PaymentLine, 1);
+        PaymentHeader.CalcFields("Amount (LCY)");
+        Assert.AreEqual(NetAmount, Abs(PaymentHeader."Amount (LCY)"), UnexpectedErr);
+
+        // [WHEN] The payment slip is posted.
+        PostPaymentSlipHeaderNo(PaymentHeader."No.");
+
+        // [THEN] The credit memo is applied to the invoice and a single net payment of 1833.60 closes it with no refund entry.
+        VerifyCustomerEntriesNettedAndClosed(CustomerNo, NetAmount);
+
+        // [THEN] The bank G/L account is debited 1833.60 and the receivables G/L account is credited 1833.60.
+        VerifyBankAccountLedgerEntry(PaymentHeader, 1);
+        VerifyGenLedgerEntry(PaymentHeader, 1);
+        VerifyReceivablesGLCreditEntry(CustomerNo, PaymentHeader."No.", NetAmount);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Payment Management");
@@ -2840,6 +2895,16 @@ codeunit 144013 "ERM Payment Management"
         SuggestCustomerPayments.RunModal();
     end;
 
+    local procedure SuggestCustomerPaymentLinesSummarized(CustomerNo: Code[20]; SummarizePer: Option; PaymentHeaderNo: Code[20])
+    var
+        PaymentSlip: TestPage "Payment Slip FR";
+    begin
+        OpenPaymentSlip(PaymentSlip, PaymentHeaderNo);
+        LibraryVariableStorage.Enqueue(CustomerNo);
+        LibraryVariableStorage.Enqueue(SummarizePer);
+        PaymentSlip.SuggestCustomerPayments.Invoke();  // Page closes on scope exit.
+    end;
+
     local procedure SuggestVendorPaymentLines(Value: Variant; Value2: Variant; PaymentHeader: Record "Payment Header FR")
     var
         SuggestVendorPaymentsFR: Report "Suggest Vend. Payments";
@@ -2899,6 +2964,47 @@ codeunit 144013 "ERM Payment Management"
         until GLEntry.Next() = 0;
         Assert.AreEqual(Abs(PaymentHeader."Amount (LCY)"), GLAmount, UnexpectedErr);
         Assert.AreEqual(GLEntry.Count, NoOfRecord, UnexpectedErr);
+    end;
+
+    local procedure VerifyReceivablesGLCreditEntry(CustomerNo: Code[20]; PaymentHeaderNo: Code[20]; ExpectedCreditAmount: Decimal)
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLEntry: Record "G/L Entry";
+    begin
+        Customer.Get(CustomerNo);
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        GLEntry.SetRange("Document No.", PaymentHeaderNo);
+        GLEntry.SetRange("G/L Account No.", CustomerPostingGroup."Receivables Account");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField("Credit Amount", ExpectedCreditAmount);
+        GLEntry.TestField("Debit Amount", 0);
+    end;
+
+    local procedure VerifyCustomerEntriesNettedAndClosed(CustomerNo: Code[20]; NetAmount: Decimal)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+
+        // No refund entry is created for the credit memo.
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Refund);
+        Assert.RecordCount(CustLedgerEntry, 0);
+
+        // A single net payment settles the balance.
+        CustLedgerEntry.SetFilter(
+          "Document Type", '<>%1&<>%2',
+          CustLedgerEntry."Document Type"::Invoice, CustLedgerEntry."Document Type"::"Credit Memo");
+        Assert.RecordCount(CustLedgerEntry, 1);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields(Amount);
+        Assert.AreEqual(-NetAmount, CustLedgerEntry.Amount, UnexpectedErr);
+
+        // The invoice, credit memo and net payment are all fully applied.
+        CustLedgerEntry.SetRange("Document Type");
+        CustLedgerEntry.SetRange(Open, true);
+        Assert.RecordCount(CustLedgerEntry, 0);
     end;
 
     local procedure ClearPaymentSlipData()

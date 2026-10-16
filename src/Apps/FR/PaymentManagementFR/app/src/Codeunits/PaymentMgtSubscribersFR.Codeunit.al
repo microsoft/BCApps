@@ -118,7 +118,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     ToDirectDebitCollectionEntry.Validate("Applies-to Entry No.", AppliesToEntryNo);
                     ToDirectDebitCollectionEntry."Transfer Date" := PaymentHeader."Posting Date";
                     ToDirectDebitCollectionEntry."Currency Code" := PaymentLine."Currency Code";
-                    ToDirectDebitCollectionEntry.Validate("Transfer Amount", PaymentLine."Credit Amount");
+                    ToDirectDebitCollectionEntry.Validate("Transfer Amount", GetNetTransferAmount(PaymentLine));
                     ToDirectDebitCollectionEntry.Validate("Mandate ID", PaymentLine."Direct Debit Mandate ID");
                     OnCreateTempCollectionEntriesOnBeforeInsert(ToDirectDebitCollectionEntry, PaymentHeader, PaymentLine);
                     ToDirectDebitCollectionEntry.Insert();
@@ -319,10 +319,12 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        SharedInvoiceLine: Record "Payment Line FR";
         SummarizeNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents. Make sure that the Summarize per field in the Suggest Customer Payments window is blank.';
         UnappliedLinesNotAllowedErr: Label 'Payment slip line %1 must be applied to a customer invoice.', Comment = '%1 = No.';
         AccTypeErr: Label 'Only customer transactions are allowed.';
         BankAccErr: Label 'You must use customer bank account, %1, which you specified in the selected direct debit mandate.', Comment = '%1 = code';
+        CreditMemoAmount: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -340,16 +342,43 @@ codeunit 10838 "PaymentMgt Subscribers FR"
         if (PaymentLine."Applies-to Doc. No." = '') and (PaymentLine."Applies-to ID" = '') then
             DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."))
         else begin
+            if (PaymentLine."Applies-to Doc. Type" = PaymentLine."Applies-to Doc. Type"::"Credit Memo") and
+                PaymentLine.TryGetCustomerNettingContext(SharedInvoiceLine, CreditMemoAmount)
+             then
+                exit(false);
             PaymentLine.GetAppliesToDocCustLedgEntry(CustLedgerEntry);
-            if CustLedgerEntry.Count > 1 then
-                DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
-            CustLedgerEntry.FindFirst();
-            if CustLedgerEntry."Document Type" <> CustLedgerEntry."Document Type"::Invoice then
-                DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
-            AppliesToEntryNo := CustLedgerEntry."Entry No.";
+            CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+            case CustLedgerEntry.Count of
+                0:
+                    DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
+                1:
+                    begin
+                        CustLedgerEntry.FindFirst();
+                        AppliesToEntryNo := CustLedgerEntry."Entry No.";
+                    end;
+                else
+                    DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
+            end;
         end;
 
         exit(not DirectDebitCollectionEntry.HasPaymentFileErrors());
+    end;
+
+    local procedure GetNetTransferAmount(PaymentLine: Record "Payment Line FR") TransferAmount: Decimal
+    var
+        SharedInvoiceLine: Record "Payment Line FR";
+        CreditMemoAmount: Decimal;
+    begin
+        TransferAmount := PaymentLine."Credit Amount";
+
+        if PaymentLine."Applies-to Doc. Type" <> PaymentLine."Applies-to Doc. Type"::Invoice then
+            exit;
+
+        if not PaymentLine.TryGetCustomerNettingContext(SharedInvoiceLine, CreditMemoAmount) then
+            exit;
+
+        if SharedInvoiceLine."Line No." = PaymentLine."Line No." then
+            TransferAmount += CreditMemoAmount;
     end;
 
     local procedure PostDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line")

@@ -359,11 +359,11 @@ codeunit 10837 "Payment Management FR"
                 SetAccountNo();
                 InvPostingBuffer[1]."System-Created Entry" := true;
                 if StepLedger.Sign = StepLedger.Sign::Debit then begin
-                    InvPostingBuffer[1].Validate(Amount, Abs(PaymentLine.Amount));
-                    InvPostingBuffer[1].Validate("Amount (LCY)", Abs(PaymentLine."Amount (LCY)"));
+                    InvPostingBuffer[1].Validate(Amount, GetSettlementAmount(PaymentLine.Amount));
+                    InvPostingBuffer[1].Validate("Amount (LCY)", GetSettlementAmount(PaymentLine."Amount (LCY)"));
                 end else begin
-                    InvPostingBuffer[1].Validate(Amount, Abs(PaymentLine.Amount) * -1);
-                    InvPostingBuffer[1].Validate("Amount (LCY)", Abs(PaymentLine."Amount (LCY)") * -1);
+                    InvPostingBuffer[1].Validate(Amount, GetSettlementAmount(PaymentLine.Amount) * -1);
+                    InvPostingBuffer[1].Validate("Amount (LCY)", GetSettlementAmount(PaymentLine."Amount (LCY)") * -1);
                 end;
                 InvPostingBuffer[1]."Currency Code" := PaymentLine."Currency Code";
                 InvPostingBuffer[1]."Currency Factor" := PaymentLine."Currency Factor";
@@ -413,6 +413,8 @@ codeunit 10837 "Payment Management FR"
                 InvPostingBuffer[1]."Source No." := PaymentLine."Account No.";
                 InvPostingBuffer[1]."External Document No." := PaymentLine."External Document No.";
                 InvPostingBuffer[1]."Dimension Set ID" := PaymentLine."Dimension Set ID";
+                NormalizeAccountLevelSign();
+                NetCustomerSettlement();
                 OnGenerInvPostingBufferOnBeforeUpdtBuffer(InvPostingBuffer, PaymentLine, StepLedger);
                 UpdtBuffer();
                 if (InvPostingBuffer[1].Amount >= 0) xor InvPostingBuffer[1].Correction then
@@ -430,6 +432,74 @@ codeunit 10837 "Payment Management FR"
             StrSubstNo(StepLedger.Description, PaymentLine."Due Date", PaymentLine."Account No.", PaymentLine."Document No.");
 
         OnAfterGetDescriptionForInvPostingBuffer(StepLedger, PaymentLine, Description);
+    end;
+
+    local procedure GetSettlementAmount(PaymentLineAmount: Decimal): Decimal
+    begin
+        if PaymentLine."Applies-to Doc. Type" = PaymentLine."Applies-to Doc. Type"::"Credit Memo" then
+            exit(-Abs(PaymentLineAmount));
+        exit(Abs(PaymentLineAmount));
+    end;
+
+    local procedure NormalizeAccountLevelSign()
+    begin
+        if StepLedger."Detail Level" <> StepLedger."Detail Level"::Account then
+            exit;
+        if StepLedger.Sign = StepLedger.Sign::Debit then
+            InvPostingBuffer[1].Sign := InvPostingBuffer[1].Sign::Positive
+        else
+            InvPostingBuffer[1].Sign := InvPostingBuffer[1].Sign::Negative;
+    end;
+
+    local procedure NetCustomerSettlement()
+    var
+        SharedInvoiceLine: Record "Payment Line FR";
+        CreditMemoAmount: Decimal;
+    begin
+        if InvPostingBuffer[1]."Account Type" <> InvPostingBuffer[1]."Account Type"::Customer then
+            exit;
+        if not (PaymentLine."Applies-to Doc. Type" in
+            [PaymentLine."Applies-to Doc. Type"::Invoice, PaymentLine."Applies-to Doc. Type"::"Credit Memo"])
+        then
+            exit;
+
+        if not PaymentLine.TryGetCustomerNettingContext(SharedInvoiceLine, CreditMemoAmount) then begin
+            if (PaymentLine."Applies-to Doc. Type" = PaymentLine."Applies-to Doc. Type"::"Credit Memo") and
+               (InvPostingBuffer[1]."Document Type" = InvPostingBuffer[1]."Document Type"::Payment)
+            then
+                InvPostingBuffer[1]."Document Type" := InvPostingBuffer[1]."Document Type"::Refund;
+            exit;
+        end;
+
+        InvPostingBuffer[1]."Applies-to ID" := SharedInvoiceLine."Applies-to ID";
+        InvPostingBuffer[1]."Due Date" := SharedInvoiceLine."Due Date";
+        if StepLedger."Detail Level" = StepLedger."Detail Level"::Line then
+            InvPostingBuffer[1]."Payment Line No." := SharedInvoiceLine."Line No.";
+        if StepLedger."Document No." <> StepLedger."Document No."::"Header No." then
+            InvPostingBuffer[1]."Document No." := SharedInvoiceLine."Document No.";
+        InvPostingBuffer[1].Sign := InvPostingBuffer[1].Sign::Negative;
+
+        if (PaymentLine."Applies-to Doc. Type" = PaymentLine."Applies-to Doc. Type"::Invoice) and
+           (PaymentLine."Line No." = SharedInvoiceLine."Line No.")
+        then
+            exit;
+        ApplyCreditMemoToSharedInvoice(PaymentLine."Applies-to Doc. Type", PaymentLine."Applies-to Doc. No.", SharedInvoiceLine."Applies-to ID");
+    end;
+
+    local procedure ApplyCreditMemoToSharedInvoice(DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; AppliesToID: Code[50])
+    var
+        DocumentCustLedgEntry: Record "Cust. Ledger Entry";
+    begin
+        DocumentCustLedgEntry.SetRange("Customer No.", PaymentLine."Account No.");
+        DocumentCustLedgEntry.SetRange("Document Type", DocumentType);
+        DocumentCustLedgEntry.SetRange("Document No.", DocumentNo);
+        DocumentCustLedgEntry.SetRange(Open, true);
+        if not DocumentCustLedgEntry.FindFirst() then
+            exit;
+        DocumentCustLedgEntry."Applies-to ID" := AppliesToID;
+        DocumentCustLedgEntry.CalcFields("Remaining Amount");
+        DocumentCustLedgEntry.Validate("Amount to Apply", DocumentCustLedgEntry."Remaining Amount");
+        DocumentCustLedgEntry.Modify();
     end;
 
     procedure SetPostingGroup()
