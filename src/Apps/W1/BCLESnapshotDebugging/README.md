@@ -57,20 +57,28 @@ contains `NoDimensionsConsolidatesClosingJournalLinesWithoutARC`.
 The test posts three transactions for 100, 200, and 300 to a new income statement
 account, explicitly clears the user's selected dimensions for report 70955,
 **My Demo Close Income Statement**, and closes into an empty journal batch. It
-expects a closing total of -600 and exactly one closing line. The report reuses
-buffer entries for each business unit, selected dimension combination, and source
-currency, including the empty dimension combination. The pre-fix version created
-three lines and failed the line-count assertion. The additional reporting
-currency variation is not covered.
+expects a closing total of -600 and exactly one closing line.
+
+The current test deliberately contains a fixture mistake for the snapshot demo:
+the 300 transaction is posted one day after the fiscal year ends, while the
+expected amount still includes all three transactions. The fixed report correctly
+creates one closing line for -300, and the test intentionally fails the amount
+assertion. The original consolidation bug is not reintroduced. To restore the
+passing regression, post the third transaction on `FiscalYearEndingDate` again.
+The additional reporting currency variation is not covered.
 
 The test uses automatic rollback and ignores nested commits so its setup changes,
 accounts, fiscal year, and journal/ledger entries are rolled back even on failure.
 Its fixtures use public application APIs and the installed test libraries without
 requiring **Tests-TestLibraries** or provisioning another environment.
 
-For snapshot debugging, arm report snappoints in `GetEntryNo`, the G/L Entry
-`OnAfterGetRecord` trigger before buffer lookup and after accumulation, and the
-`OnPostDataItem` trigger before emitting closing lines. Initialize the snapshot
+For snapshot debugging, arm report snappoints in the G/L Entry `OnPreDataItem`
+trigger after setting its posting-date range, `OnAfterGetRecord` after buffer
+accumulation, and `OnPostDataItem` before emitting closing lines. An additional
+snappoint before `RunWithCheck` in the test's posting helper shows each original
+transaction's posting date and amount. The snapshot should explain why only the
+100 and 200 transactions fall within the report's fiscal-year filter.
+Initialize the snapshot
 context for **WebClient**, run codeunit 99998 through the snapshot proxy's
 `run_tests`, and always finalize the context with `stop_snapshot_debugging`,
 including after a test failure. The test itself reproduces the

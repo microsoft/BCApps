@@ -40,7 +40,7 @@ codeunit 99998 "My Demo Close Income Tests"
         ClosingDocumentNo: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Closing three entries without ARC or selected dimensions creates one line totaling -600.
+        // [SCENARIO] Snapshot demo: the closing journal total differs from the test's expected posted balance.
         Initialize();
 
         // [GIVEN] Dimension-free income account "A", balancing account "B", and a closed fiscal year.
@@ -51,8 +51,8 @@ codeunit 99998 "My Demo Close Income Tests"
         // [GIVEN] Three separate transactions for "A" totaling 600, with no currency, dimensions, or business unit.
         PostGeneralJournalTransaction(OutputJournalBatch, IncomeAccount."No.", BalancingAccount."No.", FiscalYearEndingDate, 100);
         PostGeneralJournalTransaction(OutputJournalBatch, IncomeAccount."No.", BalancingAccount."No.", FiscalYearEndingDate, 200);
-        PostGeneralJournalTransaction(OutputJournalBatch, IncomeAccount."No.", BalancingAccount."No.", FiscalYearEndingDate, 300);
-        VerifyPostedEntries(IncomeAccount."No.", FiscalYearEndingDate);
+        PostGeneralJournalTransaction(OutputJournalBatch, IncomeAccount."No.", BalancingAccount."No.", CalcDate('<1D>', FiscalYearEndingDate), 300);
+        VerifyPostedEntries(IncomeAccount."No.");
 
         // [GIVEN] No saved dimension selections for this user and report, and an empty output batch "J".
         ClearSelectedDimensions();
@@ -183,17 +183,16 @@ codeunit 99998 "My Demo Close Income Tests"
         GeneralJournalPostLine.RunWithCheck(GeneralJournalLine);
     end;
 
-    local procedure VerifyPostedEntries(IncomeAccountNo: Code[20]; PostingDate: Date)
+    local procedure VerifyPostedEntries(IncomeAccountNo: Code[20])
     var
         GeneralLedgerEntry: Record "G/L Entry";
     begin
         GeneralLedgerEntry.SetRange("G/L Account No.", IncomeAccountNo);
         Assert.AreEqual(3, GeneralLedgerEntry.Count(), 'The income account must have exactly three original entries.');
-        GeneralLedgerEntry.SetRange("Posting Date", PostingDate);
         GeneralLedgerEntry.SetRange("Dimension Set ID", 0);
         GeneralLedgerEntry.SetRange("Source Currency Code", '');
         GeneralLedgerEntry.SetRange("Business Unit Code", '');
-        Assert.AreEqual(3, GeneralLedgerEntry.Count(), 'All original entries must have the fiscal year ending date and no grouping attributes.');
+        Assert.AreEqual(3, GeneralLedgerEntry.Count(), 'All original entries must have no grouping attributes.');
         GeneralLedgerEntry.CalcSums(Amount);
         Assert.AreEqual(600, GeneralLedgerEntry.Amount, 'The original balance must be 600.');
     end;
@@ -246,9 +245,9 @@ codeunit 99998 "My Demo Close Income Tests"
         GeneralJournalLine.SetRange("Account Type", GeneralJournalLine."Account Type"::"G/L Account");
         GeneralJournalLine.SetRange("Account No.", IncomeAccountNo);
         GeneralJournalLine.SetRange("Posting Date", ClosingDate(FiscalYearEndingDate));
+        Assert.AreEqual(1, GeneralJournalLine.Count(), 'Entries without selected dimensions must consolidate into one closing journal line.');
         GeneralJournalLine.CalcSums(Amount);
         Assert.AreEqual(-600, GeneralJournalLine.Amount, 'Closing lines must reverse the entire income account balance.');
-        Assert.AreEqual(1, GeneralJournalLine.Count(), 'Entries without selected dimensions must consolidate into one closing journal line.');
     end;
 
     local procedure NewCode(): Code[20]
