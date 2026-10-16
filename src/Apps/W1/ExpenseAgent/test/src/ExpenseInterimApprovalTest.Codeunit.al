@@ -41,6 +41,7 @@ codeunit 148346 "Expense Interim Approval Test"
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
         ApproverRequiredErr: Label 'Expense report %1 exceeds the %2 for approver %3. Configure the approver in Expense Approval Setup.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
+        CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = Unlimited Approval field caption';
@@ -1230,6 +1231,41 @@ codeunit 148346 "Expense Interim Approval Test"
         // [THEN] An authorization error explains that only the submitter or an unlimited approver can recall it.
         Assert.ExpectedError(StrSubstNo(NotAuthorizedToRecallExpReportErr, Approver.FieldCaption("Unlimited Approval")));
         Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure CannotDisableApproverAssignedToPendingExpenseReport()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 652243] An approver assigned to an expense report awaiting approval cannot have approval rights removed.
+        Initialize();
+
+        // [GIVEN] A pending report with both a final approver and an assigned interim approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [WHEN] Approval rights are removed from either approver.
+        asserterror InterimApprover.Validate("Can Approve", false);
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, InterimApprover."No.", ExpenseReportHeader."No."));
+
+        FinalApprover.Get(FinalApprover."No.");
+        asserterror FinalApprover.Validate("Can Approve", false);
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
+
+        // [WHEN] The report advances to the final approver after interim approval.
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+        FinalApprover.Get(FinalApprover."No.");
+        asserterror FinalApprover.Validate("Can Approve", false);
+
+        // [THEN] Approval rights remain protected while the report is Interim Approved.
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
     end;
 
     local procedure Initialize()
