@@ -22,6 +22,7 @@ using Microsoft.Sales.Archive;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
@@ -353,6 +354,12 @@ codeunit 31302 IntrastatReportManagementCZ
     local procedure CopyFieldsOnAfterTransferFromArchToSalesLine(var SalesLine: Record "Sales Line"; var SalesLineArchive: Record "Sales Line Archive")
     begin
         SalesLine."Country/Reg. of Orig. Code CZ" := SalesLineArchive."Country/Reg. of Orig. Code CZ";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service Document Archive Mgmt.", 'OnAfterTransferFromArchToServiceLine', '', false, false)]
+    local procedure CopyFieldsOnAfterTransferFromArchToServiceLine(var ServiceLine: Record "Service Line"; var ServiceLineArchive: Record "Service Line Archive")
+    begin
+        ServiceLine."Country/Reg. of Orig. Code CZ" := ServiceLineArchive."Country/Reg. of Orig. Code CZ";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnUpdatePurchLinesByChangedFieldName', '', false, false)]

@@ -26,6 +26,7 @@ using Microsoft.Sales.History;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Service.Item;
 using Microsoft.Service.Test;
 using Microsoft.Utilities;
 using System.IO;
@@ -5194,6 +5195,58 @@ codeunit 148125 "Intrastat CZ Test"
         ServiceLineArchive.SetRange("Document No.", ServiceHeader."No.");
         ServiceLineArchive.FindFirst();
         VerifyCountryOfOrigin(ManualCountryCode, ServiceLineArchive."Country/Reg. of Orig. Code CZ", ServiceLineArchive.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerEmpty')]
+    internal procedure CountryOfOriginArchiveAndRestoreServiceOrder()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceItem: Record "Service Item";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceHeaderArchive: Record "Service Header Archive";
+        ServiceLineArchive: Record "Service Line Archive";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Service] [Archive]
+        // [SCENARIO] Restoring a service order preserves the archived country of origin when Service Item No. is revalidated
+        Initialize();
+
+        // [GIVEN] Service Order with an item from country "A", a linked service item and manual country of origin "B"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateServiceLineWithOrigin(ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Order, ItemNo, ManualCountryCode);
+        LibraryService.CreateServiceItem(ServiceItem, ServiceHeader."Customer No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+        ServiceLine.Validate("Service Item Line No.", ServiceItemLine."Line No.");
+        ServiceLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        ServiceLine.Modify(true);
+
+        // [GIVEN] The order is archived with country of origin "B"
+        ServiceDocumentArchiveMgmt.ArchServiceDocumentNoConfirm(ServiceHeader);
+        ServiceLineArchive.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLineArchive.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLineArchive.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceLineArchive."Country/Reg. of Orig. Code CZ", ServiceLineArchive.TableCaption());
+        ServiceLineArchive.TestField("Service Item No.", ServiceItem."No.");
+
+        // [GIVEN] The current service line has country of origin "A"
+        ServiceLine.Validate("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+        ServiceLine.Modify(true);
+
+        // [WHEN] Restore the order from the archive
+        ServiceHeaderArchive.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceHeaderArchive.SetRange("No.", ServiceHeader."No.");
+        ServiceHeaderArchive.FindLast();
+        ServiceDocumentArchiveMgmt.RestoreServiceDocument(ServiceHeaderArchive);
+
+        // [THEN] The restored service line has archived country of origin "B", not item-card country "A"
+        ServiceLine.Get(ServiceLine."Document Type", ServiceLine."Document No.", ServiceLine."Line No.");
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceLine."Country/Reg. of Orig. Code CZ", ServiceLine.TableCaption());
     end;
 
     [Test]
