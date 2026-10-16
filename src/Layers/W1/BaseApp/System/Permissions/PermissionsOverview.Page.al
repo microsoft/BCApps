@@ -138,6 +138,77 @@ page 9883 "Permissions Overview"
                         end;
                     }
                 }
+
+                group(PermissionFilterGroup)
+                {
+                    ShowCaption = false;
+
+                    field(ReadFilter; ReadFilter)
+                    {
+                        Caption = 'Read';
+                        ToolTip = 'Specifies whether permissions are filtered by read access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.FilterGroup(2);
+                            Rec.SetFilter("Read Permission", GetPermFieldFilter(ReadFilter));
+                            Rec.FilterGroup(0);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(InsertFilter; InsertFilter)
+                    {
+                        Caption = 'Insert';
+                        ToolTip = 'Specifies whether permissions are filtered by insert access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.FilterGroup(2);
+                            Rec.SetFilter("Insert Permission", GetPermFieldFilter(InsertFilter));
+                            Rec.FilterGroup(0);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(ModifyFilter; ModifyFilter)
+                    {
+                        Caption = 'Modify';
+                        ToolTip = 'Specifies whether permissions are filtered by modify access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.FilterGroup(2);
+                            Rec.SetFilter("Modify Permission", GetPermFieldFilter(ModifyFilter));
+                            Rec.FilterGroup(0);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(DeleteFilter; DeleteFilter)
+                    {
+                        Caption = 'Delete';
+                        ToolTip = 'Specifies whether permissions are filtered by delete access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.FilterGroup(2);
+                            Rec.SetFilter("Delete Permission", GetPermFieldFilter(DeleteFilter));
+                            Rec.FilterGroup(0);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(ExecuteFilter; ExecuteFilter)
+                    {
+                        Caption = 'Execute';
+                        ToolTip = 'Specifies whether permissions are filtered by execute access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.FilterGroup(2);
+                            Rec.SetFilter("Execute Permission", GetPermFieldFilter(ExecuteFilter));
+                            Rec.FilterGroup(0);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                }
             }
             repeater(Group)
             {
@@ -294,7 +365,6 @@ page 9883 "Permissions Overview"
         QueryMetadata: Record "Query Metadata";
     begin
         PublishedApplication.SetLoadFields(Name);
-
         if ExpandedPermission.FindSet() then
             repeat
                 Rec := ExpandedPermission;
@@ -309,7 +379,6 @@ page 9883 "Permissions Overview"
         AddInherentPermissions(Rec."Object Type"::Query, Database::"Query Metadata", QueryMetadata.FieldNo(ID), QueryMetadata.FieldNo(InherentPermissions));
 
         ApplyInitialFilters();
-
         if Rec.FindFirst() then;
     end;
 
@@ -337,6 +406,7 @@ page 9883 "Permissions Overview"
         InitialRoleIDFilter: Text[30];
         InitialObjTypeFilter: Option None,"Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         InitialObjIDFilter: Text;
+        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter, ExecuteFilter : Enum "Permission Filter";
 
     local procedure AddInherentPermissions(ForObjectType: Option; MetadataTableId: Integer; ObjectIdFieldId: Integer; InherentPermissionFieldId: Integer)
     var
@@ -416,7 +486,6 @@ page 9883 "Permissions Overview"
 
             IsBuffered := true;
         end;
-
         if (Rec."Role ID" = LastExpandedPermission."Role ID") and (Rec."App ID" = LastExpandedPermission."App ID") then
             exit;
 
@@ -434,7 +503,6 @@ page 9883 "Permissions Overview"
         User: Record User;
     begin
         LoadIncludedPermissions(ByAppId, ByRoleId);
-
         if StrLen(ByRoleId) > MaxStrLen(TempAccessControl."Role ID") then
             exit; // Permissions sets with Id over 20 characters cannot be assigned via access control;
 
@@ -555,7 +623,6 @@ page 9883 "Permissions Overview"
                     Rec.SetRange(Scope, Rec.Scope::Tenant);
                 end;
         end;
-
         if not IsNullGuid(AppIDFilter) then begin
             Rec.SetRange("App ID", AppIDFilter);
             if AppNameFilter = '' then
@@ -586,14 +653,12 @@ page 9883 "Permissions Overview"
             Rec.SetFilter("Role ID", RoleIDFilter);
             Rec.FilterGroup(0);
         end;
-
         if InitialObjTypeFilter <> InitialObjTypeFilter::None then begin
             ObjTypeFilter := InitialObjTypeFilter;
             Rec.FilterGroup(2);
             Rec.SetRange("Object Type", ObjTypeFilter - 1);
             Rec.FilterGroup(0);
         end;
-
         if InitialObjIDFilter <> '' then begin
             ObjIDFilter := InitialObjIDFilter;
             Rec.FilterGroup(2);
@@ -612,6 +677,14 @@ page 9883 "Permissions Overview"
             else
                 PermSetScope := PermSetScope::System;
         end;
+    end;
+
+    local procedure GetPermFieldFilter(PageFilter: Enum "Permission Filter"): Text
+    begin
+        if PageFilter = PageFilter::" " then
+            exit('');
+
+        exit(Format(PageFilter.AsInteger() - 1));
     end;
 
     /// <summary>
