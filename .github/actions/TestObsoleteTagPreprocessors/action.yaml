@@ -1,0 +1,13 @@
+name: Test Obsolete Tag Preprocessors
+author: Microsoft Corporation
+description: Verifies that ObsoleteTag properties on .al files are surrounded by preprocessor symbols
+runs:
+  using: composite
+  steps:
+    - name: Test Obsolete Tag Preprocessors
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue

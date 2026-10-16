@@ -141,11 +141,7 @@ pageextension 10735 "Service Credit Memo ES" extends "Service Credit Memo"
                 end;
             }
         }
-#if not CLEAN27
-        modify("Calculate Inv. and Pmt. Disc.")
-#else
         modify("Calculate Invoice Discount")
-#endif
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
             ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';

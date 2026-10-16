@@ -13,8 +13,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
-#pragma warning disable AS0031
-#pragma warning disable AA0073
 page 6991 "Expense Agent Setup Wizard"
 {
     PageType = ConfigurationDialog;
@@ -166,7 +164,13 @@ page 6991 "Expense Agent Setup Wizard"
                                         ConfigUpdated();
                                         CurrPage.Update(true);
                                     end;
-                                end;
+                                end else
+                                    if Rec."Default Approver No." <> '' then
+                                        if Confirm(ClearDefaultApproverQst, false) then begin
+                                            Rec."Default Approver No." := '';
+                                            ConfigUpdated();
+                                            CurrPage.Update(true);
+                                        end;
                             end;
                         }
                     }
@@ -735,6 +739,7 @@ page 6991 "Expense Agent Setup Wizard"
                 {
                     Caption = 'Rate per unit';
                     ToolTip = 'Specifies the reimbursement amount per unit of distance used to calculate mileage expenses.';
+                    Enabled = StandardRateOfMileageEnabled;
 
                     trigger OnValidate()
                     begin
@@ -928,6 +933,7 @@ page 6991 "Expense Agent Setup Wizard"
 
         FeatureTelemetry.LogUptake('0000UBU', Rec.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
 
+        if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
         ExpenseDashboardUrl := GetExpenseDashboardUrl();
@@ -938,26 +944,34 @@ page 6991 "Expense Agent Setup Wizard"
         CurrPage.AgentSetupPart.Page.Initialize(AgentUserSecurityID, "Agent Metadata Provider"::"Expense Agent", AgentUserName(), AgentDisplayNameLbl, AgentSummaryLbl);
         UpdateAgentSetupBuffer();
 
-        InitialState := AgentSetupBuffer.State;
+        InitialState := TempAgentSetupBuffer.State;
         UpdateControls();
     end;
 
     trigger OnAfterGetCurrRecord()
     var
+        MileageRateSetup: Record "Mileage Rate Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
     begin
         UpdateAgentSetupBuffer();
-        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(AgentSetupBuffer);
+        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
         EnableSendingEmailWithReceipts := EnableSendingEmailWithReceipts or (Rec."Email Address" <> '');
         if Rec."Default Mileage UOM" = '' then
             Rec."Default Mileage UOM" := CreateExpenseAgentSetup.GetDefaultMileageUOM();
         RefreshPerDiemSummaries();
+        StandardRateOfMileageEnabled := MileageRateSetup.IsEmpty();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        EAHttpClient: Codeunit "EA Http Client";
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
+
+        if StateChanged() then
+            if EAHttpClient.IsCurrentUserGuestUser() then
+                Error(GuestUserErr);
 
         if not ValidateManagementRulesDependencies() then
             exit(false);
@@ -985,7 +999,7 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     var
-        AgentSetupBuffer: Record "Agent Setup Buffer";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
         InitialState: Option;
         EnableMailboxChanged: Boolean;
@@ -1010,6 +1024,7 @@ page 6991 "Expense Agent Setup Wizard"
         PartialDayRuleEnabled: Boolean;
         UseCanaryEndpoint: Boolean;
         CanaryToggleVisible: Boolean;
+        StandardRateOfMileageEnabled: Boolean;
         PaymentMethodsLinkTxt: Label 'Preview the default payment methods that will be added';
         PaymentMethodsAppliedLinkTxt: Label 'View payment methods including new defaults';
         PostingGroupsLinkTxt: Label 'Preview the default expense posting groups that will be added';
@@ -1037,12 +1052,14 @@ page 6991 "Expense Agent Setup Wizard"
         PrivacyNoticeNotAcceptedMsg: Label 'To use the Expense Agent, you must first accept the privacy notice. Please accept the privacy notice and try again.';
         NoExpenseUsersErr: Label 'You must first specify who can access.';
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
+        GuestUserErr: Label 'You cannot enable or disable Expense Agent. Guest users and external administrators have currently limited access to the Expense Agent.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
         ApprovalWorkflowConflictErr: Label 'You must turn off "%1" in Expense Agent Setup to enable Expense Agent.', Comment = '%1 = Field Caption';
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
         AgentSummaryLbl: Label 'Processes employee expense reports by extracting receipt data, validating against company policies, and routing for approval.';
+        ClearDefaultApproverQst: Label 'Do you want to remove the current default approver?';
 
     local procedure LoadSetup()
     var
@@ -1179,8 +1196,8 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Insert(true);
         ExpenseAgentSetup.TransferFields(Rec, false);
-        if not IsNullGuid(AgentSetupBuffer."User Security ID") then
-            ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
+        if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            ExpenseAgentSetup."User Security ID" := TempAgentSetupBuffer."User Security ID";
         ExpenseAgentSetup.Modify(true);
     end;
 
@@ -1282,7 +1299,7 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure UpdateAgentSetupBuffer()
     begin
-        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(AgentSetupBuffer);
+        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
     end;
 
     local procedure EditPerDiemPartialSettings()
@@ -1369,21 +1386,21 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure StateChanged(): Boolean
     begin
-        exit(AgentSetupBuffer.State <> InitialState);
+        exit(TempAgentSetupBuffer.State <> InitialState);
     end;
 
     local procedure ValidateSelectedMailboxExists()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailAccountCU: Codeunit "Email Account";
     begin
         if IsNullGuid(Rec."Email Account ID") then
             exit;
 
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Email Connector");
-        if not EmailAccount.IsEmpty() then
+        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", Rec."Email Account ID");
+        TempEmailAccount.SetRange(Connector, Rec."Email Connector");
+        if not TempEmailAccount.IsEmpty() then
             exit;
 
         // Stage the repair only; validating Enable Agent here would cancel live tasks before Update.
@@ -1395,16 +1412,16 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure ValidateNoreplyMailboxExists()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailAccountCU: Codeunit "Email Account";
     begin
         if IsNullGuid(Rec."Noreply Email Account ID") then
             exit;
 
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
-        if not EmailAccount.IsEmpty() then
+        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
+        TempEmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
+        if not TempEmailAccount.IsEmpty() then
             exit;
 
         Rec."Noreply Email Address" := '';
@@ -1457,12 +1474,12 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure AgentBeingEnabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled);
     end;
 
     local procedure AgentBeingDisabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Disabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled);
     end;
 
     local procedure ScheduleAffectingChange(): Boolean
@@ -1523,10 +1540,10 @@ page 6991 "Expense Agent Setup Wizard"
         // creating a duplicate through the platform CreateAgent branch.
         ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if ExpenseAgentSetup.Get() then;
-        if IsNullGuid(AgentSetupBuffer."User Security ID") then
-            AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
+        if IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            TempAgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
 
-        AgentSetup.SaveChanges(AgentSetupBuffer);
+        AgentSetup.SaveChanges(TempAgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
     end;
@@ -1634,4 +1651,3 @@ page 6991 "Expense Agent Setup Wizard"
         exit('');
     end;
 }
-#pragma warning restore AS0031

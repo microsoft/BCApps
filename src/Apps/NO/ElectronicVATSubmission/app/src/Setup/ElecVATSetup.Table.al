@@ -5,9 +5,9 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Environment;
-using System.Integration;
 using System.Privacy;
 using System.Telemetry;
+using System.Utilities;
 
 table 10686 "Elec. VAT Setup"
 {
@@ -176,8 +176,10 @@ table 10686 "Elec. VAT Setup"
 
     local procedure CheckUrl(Url: Text[250])
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         EnvironmentInformation: Codeunit "Environment Information";
+        Uri: Codeunit Uri;
+        InvalidUrlErr: Label 'The URL is not valid.';
+        NonSecureUrlErr: Label 'The URL is not secure.';
     begin
         if Url = '' then
             exit;
@@ -185,7 +187,12 @@ table 10686 "Elec. VAT Setup"
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
 
-        HttpWebRequestMgt.CheckUrl(Url);
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUrlErr);
+
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUrlErr);
     end;
 
     [NonDebuggable]
