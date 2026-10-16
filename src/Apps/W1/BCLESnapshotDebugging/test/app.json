@@ -1,7 +1,7 @@
 {
   "id": "ae4b0e19-8757-4f42-88d8-4fb93319db99",
   "name": "BCLE Snapshot Debugging Tests",
-  "publisher": "Microsoft",
+  "publisher": "Artur Ventsel",
   "version": "29.0.0.0",
   "brief": "Tests for the BCLE Snapshot Debugging extension.",
   "description": "Tests for the purchase document posting checks in the BCLE Snapshot Debugging extension.",
@@ -16,13 +16,7 @@
     {
       "id": "57277244-daa0-406a-9be4-4d1088ac1ff3",
       "name": "BCLE Snapshot Debugging",
-      "publisher": "Microsoft",
-      "version": "29.0.0.0"
-    },
-    {
-      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
-      "name": "Tests-TestLibraries",
-      "publisher": "Microsoft",
+      "publisher": "Artur Ventsel",
       "version": "29.0.0.0"
     },
     {

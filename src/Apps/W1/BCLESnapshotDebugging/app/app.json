@@ -1,10 +1,10 @@
 {
   "id": "57277244-daa0-406a-9be4-4d1088ac1ff3",
   "name": "BCLE Snapshot Debugging",
-  "publisher": "Microsoft",
+  "publisher": "Artur Ventsel",
   "version": "29.0.0.0",
-  "brief": "Adds advanced checks before posting purchase documents.",
-  "description": "Validates that payment terms, payment method, and payment reference are specified before a purchase document is posted.",
+  "brief": "Snapshot debugging and sampling profiler demonstrations.",
+  "description": "Demonstrates purchase document posting checks for snapshot debugging and deliberately inefficient background SQL and BLOB workloads for sampling profiling.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://learn.microsoft.com/dynamics365/business-central/",
@@ -13,6 +13,10 @@
   "application": "29.0.0.0",
   "platform": "29.0.0.0",
   "idRanges": [
+    {
+      "from": 70950,
+      "to": 70959
+    },
     {
       "from": 99999,
       "to": 99999
