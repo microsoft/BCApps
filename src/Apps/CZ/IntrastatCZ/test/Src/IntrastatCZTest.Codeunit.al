@@ -800,11 +800,9 @@ codeunit 148125 "Intrastat CZ Test"
         // [GIVEN] Purchase Order with empty Country/Region Code on 01.Jan with Item "X"
         LibraryPurchase.CreatePurchHeader(
           PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryCZIntrastat.CreateVendor(LibraryCZIntrastat.GetCountryRegionCode()));
-        with PurchaseHeader do begin
-            Validate("Posting Date", CalcDate('<+1Y-CM>', WorkDate()));
-            Validate("Buy-from Country/Region Code", '');
-            Modify(true);
-        end;
+        PurchaseHeader.Validate("Posting Date", CalcDate('<+1Y-CM>', WorkDate()));
+        PurchaseHeader.Validate("Buy-from Country/Region Code", '');
+        PurchaseHeader.Modify(true);
         LibraryCZIntrastat.CreatePurchaseLine(PurchaseHeader, PurchaseLine, PurchaseLine.Type::Item, LibraryCZIntrastat.CreateItem());
 
         // [GIVEN] Item Charge Purchase Line
@@ -912,22 +910,20 @@ codeunit 148125 "Intrastat CZ Test"
 
         LibraryMarketing.CreateCompanyContact(Contact);
         LibraryPurchase.CreateVendor(Vendor);
-        with IntrastatReportSetup do begin
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Contact);
-            Validate("Intrastat Contact No.", Contact."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Vendor);
-            TestField("Intrastat Contact No.", '');
-            Validate("Intrastat Contact No.", Vendor."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Contact);
-            TestField("Intrastat Contact No.", '');
-            Validate("Intrastat Contact No.", Contact."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::" ");
-            TestField("Intrastat Contact No.", '');
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Vendor);
-            Validate("Intrastat Contact No.", Vendor."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::" ");
-            TestField("Intrastat Contact No.", '');
-        end;
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Contact);
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Contact."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Vendor);
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Vendor."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Contact);
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Contact."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::" ");
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Vendor);
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Vendor."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::" ");
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
     end;
 
     [Test]
@@ -4388,6 +4384,38 @@ codeunit 148125 "Intrastat CZ Test"
         Assert.ExpectedError(PurchaseHeader.FieldName("Transport Method"));
     end;
 
+    [Test]
+    procedure ExportLineReadsPreservePositionAndEncoding()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Content: TextBuilder;
+        OutStrm: OutStream;
+        DetailLine: Text;
+        SpecialChar: Char;
+    begin
+        SpecialChar := 233;
+        DetailLine := 'DETAIL' + Format(SpecialChar);
+        Content.AppendLine('HEADER');
+        Content.AppendLine('');
+        Content.Append(DetailLine);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::MSDos);
+        OutStrm.WriteText(Content.ToText());
+
+        Assert.AreEqual(DetailLine, ReadExportLine(TempBlob, 3), 'The last line must retain MS-DOS characters without a final newline.');
+        Assert.AreEqual('HEADER', ReadExportLine(TempBlob, 1), 'Reading an earlier line must restart from the beginning.');
+        Assert.AreEqual('', ReadExportLine(TempBlob, 2), 'An empty line must not be skipped.');
+        Assert.AreEqual(DetailLine, ReadExportLine(TempBlob, 3), 'Repeated reads must return the same line.');
+    end;
+
+    local procedure ReadExportLine(TempBlob: Codeunit "Temp Blob"; LineNumber: Integer): Text
+    var
+        LibraryTextFileValidation: Codeunit "Library - Text File Validation";
+        InStrm: InStream;
+    begin
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
+        exit(LibraryTextFileValidation.ReadLineFromStream(InStrm, LineNumber));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4479,12 +4507,10 @@ codeunit 148125 "Intrastat CZ Test"
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
     begin
-        with IntrastatReportSetup do begin
-            Get();
-            Validate("Intrastat Contact Type", ContactType);
-            Validate("Intrastat Contact No.", ContactNo);
-            Modify(true);
-        end;
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.Validate("Intrastat Contact Type", ContactType);
+        IntrastatReportSetup.Validate("Intrastat Contact No.", ContactNo);
+        IntrastatReportSetup.Modify(true);
     end;
 
     local procedure VerifyIntrastatReportLine(DocumentNo: Code[20]; IntrastatReportNo: Code[20]; Type: Enum "Intrastat Report Line Type"; CountryRegionCode: Code[10];
@@ -4579,24 +4605,20 @@ codeunit 148125 "Intrastat CZ Test"
     var
         IntrastatReportLine: Record "Intrastat Report Line";
     begin
-        with IntrastatReportLine do begin
-            SetRange("Intrastat No.", IntrastatReportNo);
-            SetRange("Document No.", DocumentNo);
-            Assert.AreEqual(
-              LineCount, Count,
-              StrSubstNo(LineCountErr, TableCaption));
-        end;
+        IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
+        IntrastatReportLine.SetRange("Document No.", DocumentNo);
+        Assert.AreEqual(
+          LineCount, IntrastatReportLine.Count,
+          StrSubstNo(LineCountErr, IntrastatReportLine.TableCaption));
     end;
 
     local procedure VerifyIntrastatContact(ContactType: Enum "Intrastat Report Contact Type"; ContactNo: Code[20])
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
     begin
-        with IntrastatReportSetup do begin
-            Get();
-            TestField("Intrastat Contact Type", ContactType);
-            TestField("Intrastat Contact No.", ContactNo);
-        end;
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.TestField("Intrastat Contact Type", ContactType);
+        IntrastatReportSetup.TestField("Intrastat Contact No.", ContactNo);
     end;
 
     local procedure VerifyPartnerID(IntrastatReportHeader: Record "Intrastat Report Header"; ItemNo: Code[20]; PartnerID: Text[50])
@@ -4660,10 +4682,8 @@ codeunit 148125 "Intrastat CZ Test"
     local procedure CheckFileContent(var IntrastatReportPage: TestPage "Intrastat Report"; TabChar: Char)
     var
         DataExch: Record "Data Exch.";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Line: Text;
         DecVar: Decimal;
     begin
@@ -4672,10 +4692,7 @@ codeunit 148125 "Intrastat CZ Test"
             DataExch.CalcFields("File Content");
             TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-            FileName := FileMgt.ServerTempFileName('txt');
-            FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
-            Line := LibraryTextFileValidation.ReadLine(FileName, 1);
+            Line := ReadExportLine(TempBlob, 1);
 
             IntrastatReportPage.IntrastatLines."Tariff No.".AssertEquals(LibraryTextFileValidation.ReadField(Line, 1, TabChar).Trim());
             IntrastatReportPage.IntrastatLines."Country/Region Code".AssertEquals(LibraryTextFileValidation.ReadField(Line, 2, TabChar).Trim());
@@ -4694,10 +4711,8 @@ codeunit 148125 "Intrastat CZ Test"
     local procedure CheckOneFileContent(var IntrastatReportPage: TestPage "Intrastat Report"; TabChar: Char)
     var
         DataExch: Record "Data Exch.";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Line: Text;
         DecVar: Decimal;
         I: Integer;
@@ -4709,12 +4724,9 @@ codeunit 148125 "Intrastat CZ Test"
             DataExch.CalcFields("File Content");
             TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-            FileName := FileMgt.ServerTempFileName('txt');
-            FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
             I := 1;
-            while LibraryTextFileValidation.ReadLine(FileName, I) <> '' do begin
-                Line := LibraryTextFileValidation.ReadLine(FileName, I);
+            while ReadExportLine(TempBlob, I) <> '' do begin
+                Line := ReadExportLine(TempBlob, I);
 
                 IntrastatReportPage.IntrastatLines."Tariff No.".AssertEquals(LibraryTextFileValidation.ReadField(Line, 1, TabChar).Trim());
                 IntrastatReportPage.IntrastatLines."Country/Region Code".AssertEquals(LibraryTextFileValidation.ReadField(Line, 2, TabChar).Trim());
@@ -4737,10 +4749,8 @@ codeunit 148125 "Intrastat CZ Test"
     local procedure CheckSplitFileContent(var IntrastatReportPage: TestPage "Intrastat Report"; TabChar: Char)
     var
         DataExch: Record "Data Exch.";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Line: Text;
         DecVar: Decimal;
         I: Integer;
@@ -4754,12 +4764,9 @@ codeunit 148125 "Intrastat CZ Test"
                 DataExch.CalcFields("File Content");
                 TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-                FileName := FileMgt.ServerTempFileName('txt');
-                FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
                 I := 1;
-                while LibraryTextFileValidation.ReadLine(FileName, I) <> '' do begin
-                    Line := LibraryTextFileValidation.ReadLine(FileName, I);
+                while ReadExportLine(TempBlob, I) <> '' do begin
+                    Line := ReadExportLine(TempBlob, I);
 
                     IntrastatReportPage.IntrastatLines."Tariff No.".AssertEquals(LibraryTextFileValidation.ReadField(Line, 1, TabChar).Trim());
                     IntrastatReportPage.IntrastatLines."Country/Region Code".AssertEquals(LibraryTextFileValidation.ReadField(Line, 2, TabChar).Trim());
