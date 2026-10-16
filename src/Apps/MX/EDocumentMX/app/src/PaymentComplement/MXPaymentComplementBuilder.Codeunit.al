@@ -10,6 +10,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
@@ -49,7 +50,8 @@ codeunit 3356 "MX Payment Complement Builder"
         XmlDoc.GetRoot(Root);
         Root.SetAttribute('Version', '4.0');
         Root.SetAttribute('Folio', Payment."Document No.");
-        Root.SetAttribute('Fecha', FormatDateTime(Payment."Posting Date"));
+        // Issue date must not be in the future for the PAC; use the current local time, same as FechaPago
+        Root.SetAttribute('Fecha', FormatPaymentDateTime(Payment));
         Root.SetAttribute('Sello', '');
         Root.SetAttribute('NoCertificado', CertificateNo);
         Root.SetAttribute('Certificado', Certificate);
@@ -120,6 +122,7 @@ codeunit 3356 "MX Payment Complement Builder"
         Base0: Decimal;
         Tax0: Decimal;
         BaseExempt: Decimal;
+        TipoCambioP: Decimal;
     begin
         Payment.CalcFields(Amount, "Amount (LCY)");
         Amount := Abs(Payment.Amount);
@@ -129,13 +132,16 @@ codeunit 3356 "MX Payment Complement Builder"
         Helper.AddAttribute(Pagos, 'Version', '2.0');
         Dom.AddElementWithPrefix(Pagos, 'Totales', '', 'pago20', PagosNamespaceTok, Totals);
         Dom.AddElementWithPrefix(Pagos, 'Pago', '', 'pago20', PagosNamespaceTok, Pago);
-        Helper.AddAttribute(Pago, 'FechaPago', FormatPaymentDateTime(Payment));
+        Helper.AddAttribute(Pago, 'FechaPago', FormatPaymentReceivedDateTime(Payment."Posting Date"));
         Helper.AddAttribute(Pago, 'FormaDePagoP', GetSATMethod(Payment."Payment Method Code"));
         Helper.AddAttribute(Pago, 'MonedaP', Currency(Payment."Currency Code", LCY));
-        if Currency(Payment."Currency Code", LCY) <> LCY then
-            Helper.AddAttribute(Pago, 'TipoCambioP', FormatDecimal(Round(Abs(Payment."Amount (LCY)") / Amount, 0.000001), 6))
-        else
+        if Currency(Payment."Currency Code", LCY) <> LCY then begin
+            TipoCambioP := Round(Abs(Payment."Amount (LCY)") / Amount, 0.000001);
+            Helper.AddAttribute(Pago, 'TipoCambioP', FormatDecimal(TipoCambioP, 6));
+        end else begin
+            TipoCambioP := 1;
             Helper.AddAttribute(Pago, 'TipoCambioP', '1');
+        end;
         Helper.AddAttribute(Pago, 'Monto', Helper.FormatAmount(Amount));
         if Currency(Payment."Currency Code", LCY) <> LCY then begin
             CustomerBankAccount.SetRange("Customer No.", Payment."Customer No.");
@@ -157,8 +163,10 @@ codeunit 3356 "MX Payment Complement Builder"
                     if Currency(Applied."Currency Code", LCY) <> Currency(Payment."Currency Code", LCY) then begin
                         EquivalenciaDR := GetEquivalenciaDR(Detail, Payment, Applied, LCY);
                         Helper.AddAttribute(Related, 'EquivalenciaDR', FormatDecimal(EquivalenciaDR, 10));
-                    end else
+                    end else begin
+                        EquivalenciaDR := 1;
                         Helper.AddAttribute(Related, 'EquivalenciaDR', '1');
+                    end;
                     GetPartialPaymentData(Applied, Detail, BalanceBefore, PartialNo);
                     BalanceAfter := BalanceBefore - Abs(Detail.Amount);
                     if BalanceAfter < 0 then
@@ -167,17 +175,17 @@ codeunit 3356 "MX Payment Complement Builder"
                     Helper.AddAttribute(Related, 'ImpSaldoAnt', Helper.FormatAmount(BalanceBefore));
                     Helper.AddAttribute(Related, 'ImpPagado', Helper.FormatAmount(Abs(Detail.Amount)));
                     Helper.AddAttribute(Related, 'ImpSaldoInsoluto', Helper.FormatAmount(BalanceAfter));
-                    if BalanceBefore <> 0 then
-                        AddRelatedTaxes(Related, Applied, Abs(Detail.Amount) / BalanceBefore, Helper, Dom, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt)
+                    if Applied.Amount <> 0 then
+                        AddRelatedTaxes(Related, Applied, Abs(Detail.Amount) / Abs(Applied.Amount), EquivalenciaDR, Helper, Dom, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt)
                     else
                         Helper.AddAttribute(Related, 'ObjetoImpDR', '01');
                 end
             until Detail.Next() = 0;
         AddPaymentTaxes(Pago, Helper, Dom, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt);
-        AddTotals(Totals, Helper, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt, Abs(Payment."Amount (LCY)"));
+        AddTotals(Totals, Helper, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt, TipoCambioP, Abs(Payment."Amount (LCY)"));
     end;
 
-    local procedure AddRelatedTaxes(Related: XmlNode; Applied: Record "Cust. Ledger Entry"; Ratio: Decimal; Helper: Codeunit "CFDI XML Helper MX"; Dom: Codeunit "XML DOM Management"; var Base16: Decimal; var Tax16: Decimal; var Base8: Decimal; var Tax8: Decimal; var Base0: Decimal; var Tax0: Decimal; var BaseExempt: Decimal)
+    local procedure AddRelatedTaxes(Related: XmlNode; Applied: Record "Cust. Ledger Entry"; Ratio: Decimal; EquivalenciaDR: Decimal; Helper: Codeunit "CFDI XML Helper MX"; Dom: Codeunit "XML DOM Management"; var Base16: Decimal; var Tax16: Decimal; var Base8: Decimal; var Tax8: Decimal; var Base0: Decimal; var Tax0: Decimal; var BaseExempt: Decimal)
     var
         VATEntry: Record "VAT Entry";
         TaxesNode: XmlNode;
@@ -186,7 +194,12 @@ codeunit 3356 "MX Payment Complement Builder"
         Base: Decimal;
         Tax: Decimal;
         Rate: Decimal;
+        DocCurrencyFactor: Decimal;
     begin
+        // VAT entries are in LCY; BaseDR/ImporteDR must be in the invoice currency (MonedaDR)
+        DocCurrencyFactor := GetCurrencyFactor(Applied);
+        if EquivalenciaDR = 0 then
+            EquivalenciaDR := 1;
         VATEntry.SetRange("Document No.", Applied."Document No.");
         if not VATEntry.FindSet() then begin
             Helper.AddAttribute(Related, 'ObjetoImpDR', '01');
@@ -196,8 +209,8 @@ codeunit 3356 "MX Payment Complement Builder"
         Dom.AddElementWithPrefix(Related, 'ImpuestosDR', '', 'pago20', PagosNamespaceTok, TaxesNode);
         Dom.AddElementWithPrefix(TaxesNode, 'TrasladosDR', '', 'pago20', PagosNamespaceTok, TransfersNode);
         repeat
-            Base := Round(Abs(VATEntry.Base) * Ratio, 0.01);
-            Tax := Round(Abs(VATEntry.Amount) * Ratio, 0.01);
+            Base := Round(Abs(VATEntry.Base) * DocCurrencyFactor * Ratio, 0.01);
+            Tax := Round(Abs(VATEntry.Amount) * DocCurrencyFactor * Ratio, 0.01);
             Rate := GetVATRate(VATEntry);
             if (Base = 0) and (Tax = 0) then
                 continue;
@@ -206,7 +219,8 @@ codeunit 3356 "MX Payment Complement Builder"
             Helper.AddAttribute(TransferNode, 'ImpuestoDR', '002');
             if (Rate = 0) and (VATEntry.Base = 0) then begin
                 Helper.AddAttribute(TransferNode, 'TipoFactorDR', 'Exento');
-                BaseExempt += Base;
+                // BaseP/ImporteP are in the payment currency (MonedaP): DR amount / EquivalenciaDR
+                BaseExempt += Base / EquivalenciaDR;
             end else begin
                 Helper.AddAttribute(TransferNode, 'TipoFactorDR', 'Tasa');
                 Helper.AddAttribute(TransferNode, 'TasaOCuotaDR', FormatDecimal(Rate / 100, 6));
@@ -214,18 +228,18 @@ codeunit 3356 "MX Payment Complement Builder"
                 case Rate of
                     16:
                         begin
-                            Base16 += Base;
-                            Tax16 += Tax;
+                            Base16 += Base / EquivalenciaDR;
+                            Tax16 += Tax / EquivalenciaDR;
                         end;
                     8:
                         begin
-                            Base8 += Base;
-                            Tax8 += Tax;
+                            Base8 += Base / EquivalenciaDR;
+                            Tax8 += Tax / EquivalenciaDR;
                         end;
                     0:
                         begin
-                            Base0 += Base;
-                            Tax0 += Tax;
+                            Base0 += Base / EquivalenciaDR;
+                            Tax0 += Tax / EquivalenciaDR;
                         end;
                 end;
             end;
@@ -248,10 +262,15 @@ codeunit 3356 "MX Payment Complement Builder"
     end;
 
     local procedure GetVATRate(VATEntry: Record "VAT Entry"): Decimal
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
         if VATEntry.Base = 0 then
             exit(0);
-        exit(Round(Abs(VATEntry.Amount / VATEntry.Base) * 100, 0.000001));
+        // TasaOCuotaDR must be an exact c_TasaOCuota value; Amount/Base in LCY carries rounding (e.g. 16.0001)
+        if VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group") then
+            exit(VATPostingSetup."VAT %");
+        exit(Round(Abs(VATEntry.Amount / VATEntry.Base) * 100, 1));
     end;
 
     local procedure AddPaymentTransfer(TransfersNode: XmlNode; Helper: Codeunit "CFDI XML Helper MX"; Dom: Codeunit "XML DOM Management"; Base: Decimal; Tax: Decimal; Rate: Decimal; Exempt: Boolean)
@@ -272,8 +291,16 @@ codeunit 3356 "MX Payment Complement Builder"
         end;
     end;
 
-    local procedure AddTotals(Totals: XmlNode; Helper: Codeunit "CFDI XML Helper MX"; Base16: Decimal; Tax16: Decimal; Base8: Decimal; Tax8: Decimal; Base0: Decimal; Tax0: Decimal; BaseExempt: Decimal; MontoTotalPagos: Decimal)
+    local procedure AddTotals(Totals: XmlNode; Helper: Codeunit "CFDI XML Helper MX"; Base16: Decimal; Tax16: Decimal; Base8: Decimal; Tax8: Decimal; Base0: Decimal; Tax0: Decimal; BaseExempt: Decimal; TipoCambioP: Decimal; MontoTotalPagos: Decimal)
     begin
+        // Base*/Tax* are accumulated in the payment currency (MonedaP); Totales must be in MXN
+        Base16 := Round(Base16 * TipoCambioP, 0.01);
+        Tax16 := Round(Tax16 * TipoCambioP, 0.01);
+        Base8 := Round(Base8 * TipoCambioP, 0.01);
+        Tax8 := Round(Tax8 * TipoCambioP, 0.01);
+        Base0 := Round(Base0 * TipoCambioP, 0.01);
+        Tax0 := Round(Tax0 * TipoCambioP, 0.01);
+        BaseExempt := Round(BaseExempt * TipoCambioP, 0.01);
         if Base16 <> 0 then begin
             Helper.AddAttribute(Totals, 'TotalTrasladosBaseIVA16', FormatDecimal(Base16, 2));
             Helper.AddAttribute(Totals, 'TotalTrasladosImpuestoIVA16', FormatDecimal(Tax16, 2));
@@ -298,13 +325,20 @@ codeunit 3356 "MX Payment Complement Builder"
     begin
         if Currency(Payment."Currency Code", LCY) = Currency(Applied."Currency Code", LCY) then
             exit(1);
-        if Payment."Original Currency Factor" = 0 then
-            exit(1);
-        if Detail."Amount (LCY)" = 0 then
-            exit(Round(Applied."Original Currency Factor" / Payment."Original Currency Factor", 0.0000000001));
-        DocumentFactor := Detail.Amount / Detail."Amount (LCY)";
-        PaymentFactor := Payment."Original Currency Factor";
+        PaymentFactor := GetCurrencyFactor(Payment);
+        if Detail."Amount (LCY)" <> 0 then
+            DocumentFactor := Detail.Amount / Detail."Amount (LCY)"
+        else
+            DocumentFactor := GetCurrencyFactor(Applied);
         exit(Round(DocumentFactor / PaymentFactor, 0.0000000001));
+    end;
+
+    local procedure GetCurrencyFactor(CustLedgerEntry: Record "Cust. Ledger Entry"): Decimal
+    begin
+        // LCY entries may carry a zero currency factor; treat it as 1 (1 LCY per LCY)
+        if (CustLedgerEntry."Currency Code" = '') or (CustLedgerEntry."Original Currency Factor" = 0) then
+            exit(1);
+        exit(CustLedgerEntry."Original Currency Factor");
     end;
 
     local procedure GetPartialPaymentData(Applied: Record "Cust. Ledger Entry"; CurrentDetail: Record "Detailed Cust. Ledg. Entry"; var BalanceBefore: Decimal; var PartialNo: Integer)
@@ -314,23 +348,22 @@ codeunit 3356 "MX Payment Complement Builder"
         PreviousPaid: Decimal;
     begin
         Applied.CalcFields(Amount);
-        BalanceBefore := Abs(Applied.Amount);
         PartialNo := 1;
-        Detail.SetRange("Applied Cust. Ledger Entry No.", Applied."Entry No.");
+        // Application entries on the invoice; the applying payment is in "Applied Cust. Ledger Entry No."
+        Detail.SetRange("Cust. Ledger Entry No.", Applied."Entry No.");
         Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
         Detail.SetRange(Unapplied, false);
+        Detail.SetFilter("Entry No.", '<%1', CurrentDetail."Entry No.");
         if Detail.FindSet() then
             repeat
-                if Detail."Entry No." = CurrentDetail."Entry No." then
-                    continue;
-                if PreviousPayment.Get(Detail."Cust. Ledger Entry No.") and
+                if PreviousPayment.Get(Detail."Applied Cust. Ledger Entry No.") and
                    (PreviousPayment."Document Type" = PreviousPayment."Document Type"::Payment) and
                    (PreviousPayment."Fiscal Invoice Number PAC" <> '') then begin
                     PreviousPaid += Abs(Detail.Amount);
                     PartialNo += 1;
                 end;
             until Detail.Next() = 0;
-        BalanceBefore += PreviousPaid;
+        BalanceBefore := Abs(Applied.Amount) - PreviousPaid;
     end;
 
     local procedure FormatDecimal(Value: Decimal; Decimals: Integer): Text
@@ -377,8 +410,8 @@ codeunit 3356 "MX Payment Complement Builder"
         LocalDT: DateTime;
         TimeZone: Text;
     begin
-        // Use current datetime in the company's local timezone so FechaPago is never in the future
-        // (hardcoding noon with the posting date fails PAC validation when noon CST > current UTC)
+        // Issue date (Fecha): current datetime in the customer's timezone, so the PAC never sees it in the future.
+        // Using the posting date at noon fails PAC validation when noon CST > current UTC.
         Customer.Get(Payment."Customer No.");
         if PostCode.Get(Customer."Post Code", Customer.City) then
             TimeZone := PostCode."Time Zone";
@@ -386,9 +419,10 @@ codeunit 3356 "MX Payment Complement Builder"
         exit(Format(LocalDT, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 
-    local procedure FormatDateTime(D: Date): Text
+    local procedure FormatPaymentReceivedDateTime(PostingDate: Date): Text
     begin
-        exit(Format(CreateDateTime(D, 120000T), 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
+        // FechaPago is the date the payment was received: the payment posting date at noon (legacy parity)
+        exit(Format(CreateDateTime(PostingDate, 120000T), 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 
     local procedure GetCertificate(Id: Code[10]; var Certificate: Text; var No: Text[250])

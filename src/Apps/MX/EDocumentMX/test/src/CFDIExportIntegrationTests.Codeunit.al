@@ -21,6 +21,7 @@ codeunit 148754 "CFDI Export Integration Tests"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
     Permissions = tabledata "E-Document" = rimd,
                   tabledata "E-Document Service" = rimd,
                   tabledata "MX Connection Setup" = rimd,
@@ -106,6 +107,8 @@ codeunit 148754 "CFDI Export Integration Tests"
         CompanyInformation: Record "Company Information";
         EDocumentService: Record "E-Document Service";
     begin
+        // Signing requires a SAT certificate with its private key; these tests validate XML structure only
+        if BindSubscription(this) then;
         EDocumentService.DeleteAll();
         CompanyInformation.Get();
         CompanyInformation.Validate("RFC Number", 'MME910620Q85');
@@ -275,5 +278,12 @@ codeunit 148754 "CFDI Export Integration Tests"
         NamespaceManager.NameTable(Document.NameTable());
         NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
         exit(Document.SelectSingleNode('//' + XPath, NamespaceManager, FoundNode));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Digital Sign MX", 'OnBeforeCreateDigitalSignature', '', false, false)]
+    local procedure MockCreateDigitalSignature(OriginalString: Text; SetupId: Code[10]; var SignedString: Text; var IsHandled: Boolean)
+    begin
+        SignedString := 'TEST-SELLO';
+        IsHandled := true;
     end;
 }

@@ -41,28 +41,33 @@ codeunit 148757 "Payment Complement Tests"
     end;
 
     [Test]
-    procedure PaymentComplementPaymentEntryNoMustBeUnique()
+    procedure ReappliedPaymentKeepsReversedComplement()
     var
+        ReversedPaymentComplement: Record "MX Payment Complement";
+        NewPaymentComplement: Record "MX Payment Complement";
         PaymentComplement: Record "MX Payment Complement";
-        DuplicatePaymentComplement: Record "MX Payment Complement";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] Only one payment complement can exist for a payment ledger entry
+        // [SCENARIO] A payment that is unapplied and reapplied keeps the reversed complement next to the new one
         Initialize();
 
-        // [GIVEN] A payment complement for payment ledger entry 1
-        PaymentComplement.Init();
-        PaymentComplement."Payment Entry No." := 1;
-        PaymentComplement.Insert();
+        // [GIVEN] A reversed payment complement for payment ledger entry 1
+        ReversedPaymentComplement.Init();
+        ReversedPaymentComplement."Payment Entry No." := 1;
+        ReversedPaymentComplement.Reversed := true;
+        ReversedPaymentComplement.Insert();
 
-        // [WHEN] Another payment complement is inserted for the same payment ledger entry
-        DuplicatePaymentComplement.Init();
-        DuplicatePaymentComplement."Payment Entry No." := PaymentComplement."Payment Entry No.";
-        asserterror DuplicatePaymentComplement.Insert();
+        // [WHEN] A new payment complement is created for the same payment ledger entry
+        NewPaymentComplement.Init();
+        NewPaymentComplement."Payment Entry No." := ReversedPaymentComplement."Payment Entry No.";
+        NewPaymentComplement.Insert();
 
-        // [THEN] The duplicate payment complement is rejected
-        Assert.ExpectedError('Ya existe un registro');
-        Assert.ExpectedErrorCode('DB:RecordExists');
+        // [THEN] Both complements exist and only the new one is current
+        PaymentComplement.SetRange("Payment Entry No.", 1);
+        Assert.RecordCount(PaymentComplement, 2);
+        PaymentComplement.SetRange(Reversed, false);
+        PaymentComplement.FindFirst();
+        Assert.AreEqual(NewPaymentComplement."Entry No.", PaymentComplement."Entry No.", 'The current payment complement is incorrect.');
     end;
 
     [Test]
@@ -92,6 +97,9 @@ codeunit 148757 "Payment Complement Tests"
     end;
 
     local procedure Initialize()
+    var
+        PaymentComplement: Record "MX Payment Complement";
     begin
+        PaymentComplement.DeleteAll();
     end;
 }

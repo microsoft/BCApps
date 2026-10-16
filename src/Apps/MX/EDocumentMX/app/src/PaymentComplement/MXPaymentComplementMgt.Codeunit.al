@@ -7,9 +7,7 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
-using Microsoft.Service.History;
 using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
@@ -30,12 +28,12 @@ codeunit 3357 "MX Payment Complement Mgt."
         if not FindPayment(Detail, Payment) then
             exit;
         if EDocPaymentOccurrence.Type = EDocPaymentOccurrence.Type::Applied then
-            Create(Payment, EDocPaymentOccurrence."Source Occurrence ID")
+            Create(Payment, EDocPaymentOccurrence)
         else
             MarkReversed(Payment."Entry No.");
     end;
 
-    local procedure Create(Payment: Record "Cust. Ledger Entry"; SourceOccurrenceId: Guid)
+    local procedure Create(Payment: Record "Cust. Ledger Entry"; EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     var
         Parent: Record "E-Document";
         Complement: Record "MX Payment Complement";
@@ -45,7 +43,9 @@ codeunit 3357 "MX Payment Complement Mgt."
         PaymentRef: RecordRef;
         Payload: Codeunit "Temp Blob";
     begin
+        // Only the current complement counts; reversed ones belong to a previous application of the payment
         Complement.SetRange("Payment Entry No.", Payment."Entry No.");
+        Complement.SetRange(Reversed, false);
         if Complement.FindFirst() then begin
             // Idempotency: the occurrence may be retried after a failed task spawn.
             // Re-queue the message if it never left Created state.
@@ -56,16 +56,24 @@ codeunit 3357 "MX Payment Complement Mgt."
                 TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
             exit;
         end;
-        if not FindParent(Payment, Parent) then
+        // The occurrence already identifies the invoice E-Document
+        if not Parent.Get(EDocPaymentOccurrence."E-Document Entry No.") then
             exit;
         if not ResolveService(Parent) then
             exit;
+        if Parent."Clearance Date" = 0DT then begin
+            // Another E-Document of the same invoice may already be stamped; its occurrence creates the complement
+            if HasClearedEDocument(Parent."Document Record ID") then
+                exit;
+            // Fail so Core retries the occurrence once the invoice is stamped, instead of marking it processed
+            Error(InvoiceNotStampedErr, Parent."Document No.");
+        end;
         PaymentRef.GetTable(Payment);
         Validation.CheckPaymentDocument(PaymentRef);
         Complement.Init();
         Complement."Payment Entry No." := Payment."Entry No.";
         Complement."Parent E-Document Entry No." := Parent."Entry No";
-        Complement."Source Occurrence ID" := SourceOccurrenceId;
+        Complement."Source Occurrence ID" := EDocPaymentOccurrence."Source Occurrence ID";
         Complement."Created At" := CurrentDateTime();
         Complement.Insert();
         Builder.Build(Payment, Payload);
@@ -80,6 +88,7 @@ codeunit 3357 "MX Payment Complement Mgt."
         Complement: Record "MX Payment Complement";
     begin
         Complement.SetRange("Payment Entry No.", PaymentEntryNo);
+        Complement.SetRange(Reversed, false);
         if Complement.FindFirst() then begin
             Complement.Reversed := true;
             Complement.Modify();
@@ -102,30 +111,6 @@ codeunit 3357 "MX Payment Complement Mgt."
             end;
     end;
 
-    local procedure FindParent(Payment: Record "Cust. Ledger Entry"; var Parent: Record "E-Document"): Boolean
-    var
-        Detail: Record "Detailed Cust. Ledg. Entry";
-        Applied: Record "Cust. Ledger Entry";
-        SalesInvoice: Record "Sales Invoice Header";
-        ServiceInvoice: Record "Service Invoice Header";
-    begin
-        Detail.SetRange("Applied Cust. Ledger Entry No.", Payment."Entry No.");
-        Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
-        Detail.SetRange(Unapplied, false);
-        Detail.SetFilter("Cust. Ledger Entry No.", '<>%1', Payment."Entry No.");
-        if Detail.FindSet() then
-            repeat
-                if Applied.Get(Detail."Cust. Ledger Entry No.") and (Applied."Document Type" = Applied."Document Type"::Invoice) then begin
-                    if SalesInvoice.Get(Applied."Document No.") then
-                        if FindClearedEDocument(SalesInvoice.RecordId(), Parent) then
-                            exit(true);
-                    if ServiceInvoice.Get(Applied."Document No.") then
-                        if FindClearedEDocument(ServiceInvoice.RecordId(), Parent) then
-                            exit(true);
-                end;
-            until Detail.Next() = 0;
-    end;
-
     local procedure ResolveService(var EDocument: Record "E-Document"): Boolean
     var
         EDocumentService: Record "E-Document Service";
@@ -145,10 +130,15 @@ codeunit 3357 "MX Payment Complement Mgt."
             until EDocumentServiceStatus.Next() = 0;
     end;
 
-    local procedure FindClearedEDocument(DocumentId: RecordId; var Parent: Record "E-Document"): Boolean
+    local procedure HasClearedEDocument(DocumentId: RecordId): Boolean
+    var
+        EDocument: Record "E-Document";
     begin
-        Parent.SetRange("Document Record ID", DocumentId);
-        Parent.SetFilter("Clearance Date", '<>%1', 0DT);
-        exit(Parent.FindFirst());
+        EDocument.SetRange("Document Record ID", DocumentId);
+        EDocument.SetFilter("Clearance Date", '<>%1', 0DT);
+        exit(not EDocument.IsEmpty());
     end;
+
+    var
+        InvoiceNotStampedErr: Label 'The payment complement cannot be created yet because invoice %1 is not stamped. It will be retried automatically.', Comment = '%1 = invoice document number';
 }

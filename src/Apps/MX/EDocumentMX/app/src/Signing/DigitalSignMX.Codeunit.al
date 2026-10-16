@@ -356,7 +356,12 @@ codeunit 3358 "Digital Sign MX"
         CertBase64: Text;
         CertPassword: SecretText;
         SignedString: Text;
+        IsHandled: Boolean;
     begin
+        OnBeforeCreateDigitalSignature(OriginalString, SetupId, SignedString, IsHandled);
+        if IsHandled then
+            exit(SignedString);
+
         if not MXConnectionSetup.Get(SetupId) then
             Error('MX Connection Setup %1 not found.', SetupId);
 
@@ -498,5 +503,10 @@ codeunit 3358 "Digital Sign MX"
             LastUsedCertificateSN := SerialNo;
             LastUsedCert := CertBase64;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateDigitalSignature(OriginalString: Text; SetupId: Code[10]; var SignedString: Text; var IsHandled: Boolean)
+    begin
     end;
 }

@@ -766,9 +766,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
 
             HasAppliedDocuments := true;
             TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo(Amount), TempErrorMessage."Message Type"::Error);
-            // Empty Currency Code is valid — BC uses blank for LCY (MXN); the builder converts it via ConvertCurrency.
-            if AppliedCustLedgerEntry."Currency Code" <> CustLedgerEntry."Currency Code" then
-                TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo("Remaining Pmt. Disc. Possible"), TempErrorMessage."Message Type"::Error);
             case AppliedCustLedgerEntry."Document Type" of
                 AppliedCustLedgerEntry."Document Type"::Invoice:
                     begin

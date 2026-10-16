@@ -93,6 +93,7 @@ codeunit 3370 "EDoc CFDI Email MX"
             exit(false);
         if not RecordRef.Get(EDocument."Document Record ID") then
             exit(false);
+        RecordRef.SetRecFilter();
 
         case RecordRef.Number of
             Database::"Sales Invoice Header":

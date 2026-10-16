@@ -29,13 +29,10 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
             Database::"Sales Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesHeader);
-                    if ShouldValidateSalesHeaderAsCartaPorte(SalesHeader) then begin
-                        SourceDocumentHeader.GetTable(SalesHeader);
-                        EDocCartaPorteValidationMX.CheckShipmentDocument(SourceDocumentHeader);
-                    end else begin
-                        SourceDocumentHeader.GetTable(SalesHeader);
+                    if ShouldValidateSalesHeaderAsCFDI(SalesHeader, EDocumentProcessingPhase) then
                         EDocCFDIValidationMX.CheckSalesDocument(SourceDocumentHeader);
-                    end;
+                    if ShouldValidateSalesHeaderAsCartaPorte(SalesHeader, EDocumentProcessingPhase) then
+                        EDocCartaPorteValidationMX.CheckShipmentDocument(SourceDocumentHeader);
                 end;
             Database::"Sales Invoice Header":
                 EDocCFDIValidationMX.CheckSalesDocument(SourceDocumentHeader);
@@ -63,9 +60,21 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EDocCFDIValidationMX.CheckCertificate(EDocumentService);
     end;
 
-    local procedure ShouldValidateSalesHeaderAsCartaPorte(SalesHeader: Record "Sales Header"): Boolean
+    local procedure ShouldValidateSalesHeaderAsCFDI(SalesHeader: Record "Sales Header"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"): Boolean
     begin
-        exit(SalesHeader."Document Type" = SalesHeader."Document Type"::Order);
+        // A ship-only posting of an order does not produce an invoice CFDI
+        if (EDocumentProcessingPhase = EDocumentProcessingPhase::Post) and (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) then
+            exit(SalesHeader.Invoice);
+        exit(true);
+    end;
+
+    local procedure ShouldValidateSalesHeaderAsCartaPorte(SalesHeader: Record "Sales Header"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"): Boolean
+    begin
+        // Carta Porte belongs to the posted shipment; validate it only when the order is actually shipped
+        exit(
+            (EDocumentProcessingPhase = EDocumentProcessingPhase::Post) and
+            (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) and
+            SalesHeader.Ship);
     end;
 
     /// <summary>

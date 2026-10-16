@@ -1,3 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.EServices.EDocument.Interfactura;
+
+using Microsoft.eServices.EDocument;
+
 permissionset 3352 "E-Documents MX User"
 {
     Assignable = true;
@@ -32,6 +41,7 @@ permissionset 3352 "E-Documents MX User"
         page "MX PAC Web Service Details" = X,
         page "MX PAC WS Detail Edit Dlg" = X,
         page "MX CFDI Cancel Reason Dlg" = X,
+        page "E-Doc. Payment Occurrences MX" = X,
         page "SAT Transport Types MX" = X,
         page "SAT ISTMO Regions MX" = X,
         report "EDoc CFDI Sales Invoice MX" = X,
