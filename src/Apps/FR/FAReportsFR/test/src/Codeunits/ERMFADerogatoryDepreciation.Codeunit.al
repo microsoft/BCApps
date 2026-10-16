@@ -55,6 +55,24 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
         FAProjectedValueReport(LibraryRandom.RandIntInRange(1, 7), true);  // Using Random value in range for GroupTotals and TRUE for Print Details.
     end;
 
+    [Test]
+    [HandlerFunctions('FAProjValueDerogRPH,ConfirmHandler')]
+    procedure FAProjectedValueGroupedWithoutDetails()
+    var
+        GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
+    begin
+        FAProjectedValueReport(GroupTotals::"FA Class", false);
+    end;
+
+    [Test]
+    [HandlerFunctions('FAProjValueDerogRPH,ConfirmHandler')]
+    procedure FAProjectedValueUngroupedWithDetails()
+    var
+        GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
+    begin
+        FAProjectedValueReport(GroupTotals::" ", true);
+    end;
+
     local procedure FAProjectedValueReport(GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group"; PrintDetails: Boolean)
     var
         FADepreciationBook: Record "FA Depreciation Book";

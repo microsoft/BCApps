@@ -61,5 +61,5 @@
     "NoImplicitWith",
     "TranslationFile"
   ],
-  "target": "OnPrem"
+  "target": "Cloud"
 }

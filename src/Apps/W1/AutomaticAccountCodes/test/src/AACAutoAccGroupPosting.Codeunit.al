@@ -913,20 +913,18 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
 
     local procedure CreateBalancedAutoAccLines(var AutomaticAccountLine: Record "Automatic Account Line"; AutomaticAccNo: Code[10]; AllocationPct: Decimal; DimSetID: Integer)
     begin
-        with AutomaticAccountLine do begin
-            Init();
-            Validate("Automatic Acc. No.", AutomaticAccNo);
-            Validate("Line No.", 10000);
-            Validate("G/L Account No.", LibraryERM.CreateGLAccountNo());
-            Validate("Allocation %", AllocationPct);
-            Validate("Dimension Set ID", DimSetID);
-            Insert(true);
+        AutomaticAccountLine.Init();
+        AutomaticAccountLine.Validate("Automatic Acc. No.", AutomaticAccNo);
+        AutomaticAccountLine.Validate("Line No.", 10000);
+        AutomaticAccountLine.Validate("G/L Account No.", LibraryERM.CreateGLAccountNo());
+        AutomaticAccountLine.Validate("Allocation %", AllocationPct);
+        AutomaticAccountLine.Validate("Dimension Set ID", DimSetID);
+        AutomaticAccountLine.Insert(true);
 
-            Validate("Line No.", "Line No." + 10000);
-            Validate("G/L Account No.", LibraryERM.CreateGLAccountNo());
-            Validate("Allocation %", -AllocationPct);
-            Insert(true);
-        end;
+        AutomaticAccountLine.Validate("Line No.", AutomaticAccountLine."Line No." + 10000);
+        AutomaticAccountLine.Validate("G/L Account No.", LibraryERM.CreateGLAccountNo());
+        AutomaticAccountLine.Validate("Allocation %", -AllocationPct);
+        AutomaticAccountLine.Insert(true);
     end;
 
     local procedure CreateAutoAccGroupWithTwoLines(var GLAccountNo: Code[20]; var DimValue1Code: Code[20]; var DimValue2Code: Code[20]; var AllocationPct1: Decimal; var AllocationPct2: Decimal) AutoAccGroupNo: Code[10]
@@ -972,16 +970,14 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         AutomaticAccountLine: Record "Automatic Account Line";
         RecRef: RecordRef;
     begin
-        with AutomaticAccountLine do begin
-            Init();
-            Validate("Automatic Acc. No.", AutomaticAccNo);
-            RecRef.GetTable(AutomaticAccountLine);
-            Validate("Line No.", LibraryUtility.GetNewLineNo(RecRef, FieldNo("Line No.")));
-            Validate("G/L Account No.", GLAccountNo);
-            Validate("Allocation %", AllocationPct);
-            Validate("Shortcut Dimension 1 Code", ShortcutDim1Code);
-            Insert(true);
-        end;
+        AutomaticAccountLine.Init();
+        AutomaticAccountLine.Validate("Automatic Acc. No.", AutomaticAccNo);
+        RecRef.GetTable(AutomaticAccountLine);
+        AutomaticAccountLine.Validate("Line No.", LibraryUtility.GetNewLineNo(RecRef, AutomaticAccountLine.FieldNo("Line No.")));
+        AutomaticAccountLine.Validate("G/L Account No.", GLAccountNo);
+        AutomaticAccountLine.Validate("Allocation %", AllocationPct);
+        AutomaticAccountLine.Validate("Shortcut Dimension 1 Code", ShortcutDim1Code);
+        AutomaticAccountLine.Insert(true);
     end;
 
     local procedure CreateAutoAccLineWithDimValue(DimensionValue: Record "Dimension Value"; AutoAccGroupNo: Code[10]; GLAccountNo: Code[20]; AllocationPct: Decimal): Code[20]
@@ -995,13 +991,11 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
     var
         Customer: Record Customer;
     begin
-        with Customer do begin
-            LibrarySales.CreateCustomer(Customer);
-            Validate("Gen. Bus. Posting Group", GenBusPostGroupCode);
-            Validate("VAT Bus. Posting Group", VATBusPostGroupCode);
-            Modify(true);
-            exit("No.");
-        end;
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Gen. Bus. Posting Group", GenBusPostGroupCode);
+        Customer.Validate("VAT Bus. Posting Group", VATBusPostGroupCode);
+        Customer.Modify(true);
+        exit(Customer."No.");
     end;
 
     local procedure CreateDeferralCode(var DeferralTemplate: Record "Deferral Template"; CalcMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date"; NumOfPeriods: Integer): Code[10]
@@ -1071,13 +1065,11 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
 
     local procedure CreateSalesLineWithAccGroup(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; GLAccNo: Code[20]; AccGroupNo: Code[10])
     begin
-        with SalesLine do begin
-            LibrarySales.CreateSalesLine(
-              SalesLine, SalesHeader, Type::"G/L Account", GLAccNo, LibraryRandom.RandInt(100));
-            Validate("Unit Price", LibraryRandom.RandDec(100, 2));
-            Validate("Automatic Account Group", AccGroupNo);
-            Modify(true);
-        end;
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccNo, LibraryRandom.RandInt(100));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Validate("Automatic Account Group", AccGroupNo);
+        SalesLine.Modify(true);
     end;
 
     local procedure CreateSalesLineWithAccGroupAndDeferral(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; GLAccountNo: Code[20]; AutoAccGroupNo: Code[10]; DeferralCode: Code[10])
@@ -1106,20 +1098,18 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         DimSetEntry: Record "Dimension Set Entry";
     begin
         GLSetup.Get();
-        with GenJnlLine do begin
-            InitGenJnlLineWithBatch(GenJnlLine);
-            LibraryERM.CreateGeneralJnlLine(
-              GenJnlLine, "Journal Template Name", "Journal Batch Name", "Document Type"::" ",
-              "Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 1); // pass 1 for amount because value is not important
-            Validate("Bal. Account Type", "Bal. Account Type"::"G/L Account");
-            Validate("Bal. Account No.", LibraryERM.CreateGLAccountNo());
-            Validate("Dimension Set ID", DimSetID);
-            if DimSetEntry.Get(DimSetID, GLSetup."Shortcut Dimension 1 Code") then
-                "Shortcut Dimension 1 Code" := DimSetEntry."Dimension Value Code";
-            if DimSetEntry.Get(DimSetID, GLSetup."Shortcut Dimension 2 Code") then
-                "Shortcut Dimension 2 Code" := DimSetEntry."Dimension Value Code";
-            Modify(true);
-        end;
+        InitGenJnlLineWithBatch(GenJnlLine);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJnlLine, GenJnlLine."Journal Template Name", GenJnlLine."Journal Batch Name", GenJnlLine."Document Type"::" ",
+          GenJnlLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 1); // pass 1 for amount because value is not important
+        GenJnlLine.Validate("Bal. Account Type", GenJnlLine."Bal. Account Type"::"G/L Account");
+        GenJnlLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNo());
+        GenJnlLine.Validate("Dimension Set ID", DimSetID);
+        if DimSetEntry.Get(DimSetID, GLSetup."Shortcut Dimension 1 Code") then
+            GenJnlLine."Shortcut Dimension 1 Code" := DimSetEntry."Dimension Value Code";
+        if DimSetEntry.Get(DimSetID, GLSetup."Shortcut Dimension 2 Code") then
+            GenJnlLine."Shortcut Dimension 2 Code" := DimSetEntry."Dimension Value Code";
+        GenJnlLine.Modify(true);
     end;
 
     local procedure CreatePostGenJnlLineWithDimSetIDAndAccGroup(AutomaticAccGroupNo: Code[10]; DimSetID: Integer): Code[20]
@@ -1139,34 +1129,30 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         DocumentNo: Code[20];
     begin
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), 1);
-        with GenJournalLine do begin
-            LibraryJournals.CreateGenJournalLineWithBatch(
-              GenJournalLine, "Document Type"::" ", "Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
-              LibraryRandom.RandDecInRange(1000, 2000, 2));
-            Validate("Bal. Account No.", '');
-            Validate("Automatic Account Group", AutomaticAccGroupNo);
-            Validate("Currency Code", CurrencyCode);
-            Modify();
-            DocumentNo := "Document No.";
+        LibraryJournals.CreateGenJournalLineWithBatch(
+          GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+          LibraryRandom.RandDecInRange(1000, 2000, 2));
+        GenJournalLine.Validate("Bal. Account No.", '');
+        GenJournalLine.Validate("Automatic Account Group", AutomaticAccGroupNo);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Modify();
+        DocumentNo := GenJournalLine."Document No.";
 
-            LibraryERM.CreateGeneralJnlLine(
-              GenJournalLine, "Journal Template Name", "Journal Batch Name",
-              "Document Type"::" ", "Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -Amount);
-            Validate("Document No.", DocumentNo);
-            Validate("Currency Code", CurrencyCode);
-            Modify();
-        end;
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",
+          GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -GenJournalLine.Amount);
+        GenJournalLine.Validate("Document No.", DocumentNo);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Modify();
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     local procedure CreateGenJnlLineWithAutoAccGroup(var GenJnlLine: Record "Gen. Journal Line"; AutoAccGroupNo: Code[10]; GLAccountNo: Code[20]; GLAmount: Decimal)
     begin
-        with GenJnlLine do begin
-            LibraryJournals.CreateGenJournalLineWithBatch(GenJnlLine, "Document Type"::" ", "Account Type"::"G/L Account",
-              GLAccountNo, GLAmount);
-            Validate("Automatic Account Group", AutoAccGroupNo);
-            Modify(true);
-        end;
+        LibraryJournals.CreateGenJournalLineWithBatch(GenJnlLine, GenJnlLine."Document Type"::" ", GenJnlLine."Account Type"::"G/L Account",
+          GLAccountNo, GLAmount);
+        GenJnlLine.Validate("Automatic Account Group", AutoAccGroupNo);
+        GenJnlLine.Modify(true);
     end;
 
     local procedure CreateTwoDimSets(var GLSetup: Record "General Ledger Setup"; var DimensionValue: array[5] of Record "Dimension Value"; var AutomaticAccDimSetID: Integer; var GenJnlLineDimSetID: Integer)
@@ -1226,11 +1212,9 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
 
     local procedure FilterGLEntryWithDocument(var GLEntry: Record "G/L Entry"; DocNo: Code[20])
     begin
-        with GLEntry do begin
-            SetRange("Posting Date", WorkDate());
-            SetRange("Document Type", "Document Type"::Invoice);
-            SetRange("Document No.", DocNo);
-        end;
+        GLEntry.SetRange("Posting Date", WorkDate());
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
+        GLEntry.SetRange("Document No.", DocNo);
     end;
 
     local procedure PostGenJnlLineWithAccGroupAndDimensions(var GLAccountNo: Code[20]; AutomaticAccDimSetID: Integer; GenJnlLineDimSetID: Integer): Code[20]
@@ -1352,17 +1336,15 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         ExchRate := CurrencyExchRate.GetCurrentCurrencyFactor(GLSetup."Additional Reporting Currency");
         FilterGLEntryWithDocument(GLEntry, DocNo);
 
-        with AutomaticAccountLine do begin
-            SetRange("Automatic Acc. No.", SalesLine."Automatic Account Group");
-            FindSet();
-            repeat
-                GLEntry.SetRange("G/L Account No.", "G/L Account No.");
-                GLEntry.FindLast();
-                Assert.AreEqual(
-                  Round(GLEntry.Amount * ExchRate), GLEntry."Additional-Currency Amount",
-                  StrSubstNo(WrongValueErr, GLEntry.FieldCaption("Additional-Currency Amount"), GLEntry.TableCaption(), GLEntry."Entry No."));
-            until Next() = 0;
-        end;
+        AutomaticAccountLine.SetRange("Automatic Acc. No.", SalesLine."Automatic Account Group");
+        AutomaticAccountLine.FindSet();
+        repeat
+            GLEntry.SetRange("G/L Account No.", AutomaticAccountLine."G/L Account No.");
+            GLEntry.FindLast();
+            Assert.AreEqual(
+              Round(GLEntry.Amount * ExchRate), GLEntry."Additional-Currency Amount",
+              StrSubstNo(WrongValueErr, GLEntry.FieldCaption("Additional-Currency Amount"), GLEntry.TableCaption(), GLEntry."Entry No."));
+        until AutomaticAccountLine.Next() = 0;
     end;
 
     local procedure VerifyAllocationGLEntry(GLAccountNo: Code[20]; GLAmount: Decimal; DimValueCode: Code[20]; AllocationPct: Decimal)
@@ -1370,14 +1352,15 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         GLEntry: Record "G/L Entry";
         ExpectedAmount: Decimal;
     begin
-        with GLEntry do begin
-            SetRange("G/L Account No.", GLAccountNo);
-            SetRange("Bal. Account No.", GLAccountNo);
-            SetRange("Global Dimension 1 Code", DimValueCode);
-            FindLast();
-            ExpectedAmount := GLAmount * AllocationPct / 100;
-            Assert.AreNearlyEqual(ExpectedAmount, -Amount, LibraryERM.GetAmountRoundingPrecision(), WrongAmountGLEntriesErr);
-        end;
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        // This existing assertion filter has no dedicated index.
+#pragma warning disable AA0210
+        GLEntry.SetRange("Bal. Account No.", GLAccountNo);
+#pragma warning restore AA0210
+        GLEntry.SetRange("Global Dimension 1 Code", DimValueCode);
+        GLEntry.FindLast();
+        ExpectedAmount := GLAmount * AllocationPct / 100;
+        Assert.AreNearlyEqual(ExpectedAmount, -GLEntry.Amount, LibraryERM.GetAmountRoundingPrecision(), WrongAmountGLEntriesErr);
     end;
 
     local procedure VerifyAccGroupPostingWithACY()
@@ -1409,7 +1392,6 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         VerifyGLEntriesBalance(AutoGroupGLAccountNo, DocumentAmount, DeferralTemplate."No. of Periods" * AccGroupLineNo);
     end;
 
-    [Scope('OnPrem')]
     procedure VerifyGLEntriesBalance(GLAccountNo: Code[20]; ExpectedBalanceAmount: Decimal; ExpectedRecordNo: Integer)
     var
         GLEntry: Record "G/L Entry";
@@ -1704,4 +1686,3 @@ codeunit 139598 "AAC Auto. Acc. Group Posting"
         Reply := false;
     end;
 }
-

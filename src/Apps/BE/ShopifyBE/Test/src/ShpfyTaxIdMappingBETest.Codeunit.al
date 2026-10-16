@@ -106,6 +106,54 @@ codeunit 148710 "Shpfy Tax Id Mapping BE Test"
         LibraryAssert.AreEqual(NewTaxRegistrationId, Customer."Enterprise No.", 'Enterprise No. should be updated.');
     end;
 
+    [Test]
+    procedure UpdateTaxRegistrationIdTruncatesToEnterpriseNoLength()
+    var
+        Customer: Record Customer;
+        ShpfyTaxIdMappingBETest: Codeunit "Shpfy Tax Id Mapping BE Test";
+        TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
+        NewTaxRegistrationId: Text[150];
+    begin
+        Initialize();
+        CreateCustomerWithEnterpriseNo(Customer, '');
+        NewTaxRegistrationId := PadStr('TaxId', MaxStrLen(NewTaxRegistrationId), 'A');
+        TaxRegistrationIdMapping := Enum::"Shpfy Comp. Tax Id Mapping"::"Enterprise No.";
+
+        BindSubscription(ShpfyTaxIdMappingBETest);
+        TaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, NewTaxRegistrationId);
+        UnbindSubscription(ShpfyTaxIdMappingBETest);
+
+        Customer.Get(Customer."No.");
+        LibraryAssert.AreEqual(
+            CopyStr(NewTaxRegistrationId, 1, MaxStrLen(Customer."Enterprise No.")), Customer."Enterprise No.",
+            'The mapping must truncate to the Enterprise No. field length.');
+    end;
+
+    [Test]
+    procedure MappingFilterExcludesOtherEnterpriseNumbers()
+    var
+        Customer: Record Customer;
+        OtherCustomer: Record Customer;
+        CompanyLocation: Record "Shpfy Company Location";
+        TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
+        EnterpriseNo: Text[50];
+        CustomerNo: Code[20];
+    begin
+        Initialize();
+        EnterpriseNo := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(EnterpriseNo));
+        CreateCustomerWithEnterpriseNo(Customer, EnterpriseNo);
+        CustomerNo := Customer."No.";
+        CreateCustomerWithEnterpriseNo(OtherCustomer, '');
+        CreateLocationWithTaxId(CompanyLocation, EnterpriseNo);
+        TaxRegistrationIdMapping := Enum::"Shpfy Comp. Tax Id Mapping"::"Enterprise No.";
+
+        TaxRegistrationIdMapping.SetMappingFiltersForCustomers(Customer, CompanyLocation);
+
+        LibraryAssert.AreEqual(1, Customer.Count(), 'Only the customer with the matching Enterprise No. must remain.');
+        Customer.FindFirst();
+        LibraryAssert.AreEqual(CustomerNo, Customer."No.", 'The matching customer must be selected.');
+    end;
+
     local procedure Initialize()
     begin
         Any.SetDefaultSeed();
