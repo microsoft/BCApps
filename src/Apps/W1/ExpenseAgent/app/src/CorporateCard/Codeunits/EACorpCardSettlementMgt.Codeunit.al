@@ -35,6 +35,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
         GLRegister: Record "G/L Register";
         GenJournalLine: Record "Gen. Journal Line";
         PaymentBankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
         CorpCardSettlement.LockTable();
@@ -66,6 +67,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
         CorpCardSettlement."Transaction No." := CorpCardBankAccountLedgerEntry."Transaction No.";
         CorpCardSettlement.Status := CorpCardSettlement.Status::Posted;
         CorpCardSettlement.Modify(true);
+        AuditSubscribers.LogSettlementPosted(CorpCardSettlement."Provider Code", CorpCardSettlement."Settlement Entry No.");
     end;
 
     internal procedure Reopen(var CorpCardSettlement: Record "EA Corp Card Settlement")
@@ -112,6 +114,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
         PaymentReversalBankEntry: Record "Bank Account Ledger Entry";
         ReversalGLRegister: Record "G/L Register";
         ReversalEntry: Record "Reversal Entry";
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
     begin
         CorpCardSettlement.LockTable();
         CorpCardSettlement.Get(CorpCardSettlement."Settlement Entry No.");
@@ -150,6 +153,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
         CorpCardSettlement."Reversed By User ID" := CopyStr(UserId(), 1, MaxStrLen(CorpCardSettlement."Reversed By User ID"));
         CorpCardSettlement.Status := CorpCardSettlement.Status::Reversed;
         CorpCardSettlement.Modify(true);
+        AuditSubscribers.LogSettlementReversed(CorpCardSettlement."Provider Code", CorpCardSettlement."Settlement Entry No.");
     end;
 
     local procedure ValidateSettlement(CorpCardSettlement: Record "EA Corp Card Settlement")

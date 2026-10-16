@@ -19,7 +19,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 3. **Configurable Creation Mode** - AutoDraft can create one draft per imported transaction
 4. **Job Queue Setup** - Creates a daily job on hold; an administrator must enable it
 5. **Standard Workflows** - Leverages platform Expense Report approval and G/L posting
-6. **Observability** - Telemetry for imports, matching, drafts, and job scheduling
+6. **Observability** - Feature Telemetry for imports, matching, drafts, scheduling, and accounting transitions
 7. **Accounting Boundary** - A dedicated corporate-card bank account represents the provider liability; the payment bank account represents real cash
 
 ### Workflow Stages
@@ -388,37 +388,42 @@ Both static sample files use the same seeded card-ID convention:
 
 ## Telemetry Events
 
-Defined events log to platform telemetry with:
-- **DataClassification:** SystemMetadata
-- **TelemetryScope:** ExtensionPublisher except `0000UD1` (All)
-- **Category:** "Corporate Card"
+Corporate-card events use `Feature Telemetry` under the existing Expense Agent feature name (`ExpenseAgentSetup.GetFeatureName()`). Each event has its own ID and name, so they appear in the standard Expense Agent feature usage reports. Import failures use `LogError`; the other events use `LogUsage`. The import failure records the controlled import stage, not the raw error text.
 
-### Import Lifecycle (0000UCS - 0000UCT)
+### Import Lifecycle (0000UCS - 0000UCU)
 
 | Event ID | Event | Trigger | Verbosity | Data |
 |----------|-------|---------|-----------|------|
-| 0000UCS | ImportStarted | Provider starts import | Normal | Provider Code, Statement No. |
-| 0000UCT | ImportCompleted | Statement finishes successfully | Normal | Provider Code, Statement Entry No., Imported count, Exception count, Duplicate count |
-| 0000UCU | ImportFailed | Statement fails | Warning | Provider Code, Statement Entry No., Import stage (not error text) |
+| 0000UCS | ImportStarted | Provider starts import | Usage | Provider Code, Statement Entry No. |
+| 0000UCT | ImportCompleted | Statement finishes successfully | Usage | Provider Code, Statement Entry No., Imported count, Exception count, Duplicate count |
+| 0000UCU | ImportFailed | Statement fails | Error | Provider Code, Statement Entry No., Import stage (not raw error text) |
 
 ### Processing Pipeline (0000UCV - 0000UCX)
 
 | Event ID | Event | Trigger | Verbosity | Data |
 |----------|-------|---------|-----------|------|
-| 0000UCV | MatchingCompleted | Post-import matching finishes | Normal | Matched count, Unmatched count |
-| 0000UCW | DraftCreated | New expense draft created | Normal | Transaction Entry No., Expense No. |
-| 0000UCX | JobQueueScheduled | Import job queued | Normal | Provider Code, Frequency |
+| 0000UCV | MatchingCompleted | Post-import matching finishes | Usage | Matched count, Unmatched count |
+| 0000UCW | DraftCreated | New expense draft created | Usage | Transaction Entry No., Expense No. |
+| 0000UCX | JobQueueScheduled | Import job queued | Usage | Provider Code, Frequency |
 
 ### Report Workflow (0000UCY - 0000UD1)
 
 | Event ID | Event | Trigger | Verbosity | Data |
 |----------|-------|---------|-----------|------|
-| 0000UCY | ReportCreatedFromCorpCard | Unused ReportMgt helper | Normal | Category only |
-| 0000UCZ | ReportSubmittedForApproval | Unused ApprovalMgt helper | Normal | Category only |
-| 0000UD0 | ReportApprovedForPosting | Unused ApprovalMgt helper | Normal | Category only |
-| 0000UD1 | ReportRejected | Unused ApprovalMgt helper | Warning | Category only (scope: All) |
+| 0000UCY | ReportCreatedFromCorpCard | Unused ReportMgt helper | Usage | No custom dimensions |
+| 0000UCZ | ReportSubmittedForApproval | Unused ApprovalMgt helper | Usage | No custom dimensions |
+| 0000UD0 | ReportApprovedForPosting | Unused ApprovalMgt helper | Usage | No custom dimensions |
+| 0000UD1 | ReportRejected | Unused ApprovalMgt helper | Usage | No custom dimensions |
 
 `0000UCY`–`0000UD1` have no active callers through the standard report workflow; they are defined but do not fire in normal corporate-card processing.
+
+### Accounting Lifecycle (0000UD2 - 0000UD4)
+
+| Event ID | Event | Trigger | Type | Data |
+|----------|-------|---------|------|------|
+| 0000UD2 | StatementClosed | Statement reconciliation closes | Usage | Provider Code, Statement Entry No. |
+| 0000UD3 | SettlementPosted | Provider settlement posts | Usage | Provider Code, Settlement Entry No. |
+| 0000UD4 | SettlementReversed | Posted settlement reverses | Usage | Provider Code, Settlement Entry No. |
 
 ---
 
@@ -540,10 +545,9 @@ Pages are interlinked with drill-down actions:
 
 ### Comprehensive Logging
 
-- **Import and Processing Telemetry:** Started, completed, failed, matched, drafted, and scheduled events
+- **Feature Telemetry:** Expense Agent usage and error events for imports, matching, drafts, scheduling, statement closure, and settlement posting/reversal
 - **Defined but Unused:** Four report/approval events have no active callers
-- **Error Tracking:** Import failures log their stage; detailed errors surface separately
-- **Classification:** SystemMetadata for all defined events
+- **Error Tracking:** Import failures log a controlled stage through `LogError`; detailed errors surface separately
 
 ### Expense Posting Boundary
 

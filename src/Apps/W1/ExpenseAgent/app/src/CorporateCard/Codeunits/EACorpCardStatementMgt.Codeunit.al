@@ -83,6 +83,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
         CorpCardTrans: Record "EA Corp Card Trans";
         TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary;
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
         ReconciledAmount: Decimal;
         ReconciledTransactions: Integer;
@@ -127,6 +128,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardStatement."Closed By User ID" := CopyStr(UserId(), 1, MaxStrLen(CorpCardStatement."Closed By User ID"));
         CorpCardStatement.Status := CorpCardStatement.Status::Closed;
         CorpCardStatement.Modify(false);
+        AuditSubscribers.LogStatementClosed(CorpCardStatement."Provider Code", CorpCardStatement."Statement Entry No.");
     end;
 
     internal procedure InvalidateReconciliation(var CorpCardStatement: Record "EA Corp Card Statement"; InvalidationReason: Text[250])
