@@ -53,6 +53,60 @@ codeunit 139540 "Sales Forecast Tests"
 
 
     [Test]
+    procedure UserDefinedAPIKeyCanBeStoredAndCleared()
+    var
+        TempForecastSetup: Record "MS - Sales Forecast Setup" temporary;
+        APIKey: SecretText;
+        StoredKeyId: Guid;
+    begin
+        TempForecastSetup.Insert();
+        APIKey := Format(MockServiceKeyTxt);
+
+        TempForecastSetup.SetUserDefinedAPIKey(APIKey);
+        StoredKeyId := TempForecastSetup."API Key ID";
+        Assert.IsFalse(IsNullGuid(StoredKeyId), 'A nonempty key must allocate a credential identifier.');
+        TempForecastSetup.Modify();
+        TempForecastSetup.Get();
+        Assert.AreEqual(StoredKeyId, TempForecastSetup."API Key ID", 'The credential identifier must be persistable.');
+
+        Clear(APIKey);
+        TempForecastSetup.SetUserDefinedAPIKey(APIKey);
+
+        TempForecastSetup.Get();
+        Assert.IsTrue(IsNullGuid(TempForecastSetup."API Key ID"), 'Clearing the key must persist the empty identifier.');
+    end;
+
+    [Test]
+    procedure ClearingAPIKeyWithMissingCredentialClearsIdentifier()
+    var
+        TempForecastSetup: Record "MS - Sales Forecast Setup" temporary;
+        EmptyAPIKey: SecretText;
+    begin
+        TempForecastSetup."API Key ID" := CreateGuid();
+        TempForecastSetup.Insert();
+
+        TempForecastSetup.SetUserDefinedAPIKey(EmptyAPIKey);
+
+        TempForecastSetup.Get();
+        Assert.IsTrue(IsNullGuid(TempForecastSetup."API Key ID"), 'A missing credential must not prevent clearing its identifier.');
+    end;
+
+    [Test]
+    procedure ClearingEmptyAPIKeyCanBeRepeated()
+    var
+        TempForecastSetup: Record "MS - Sales Forecast Setup" temporary;
+        EmptyAPIKey: SecretText;
+    begin
+        TempForecastSetup.Insert();
+
+        TempForecastSetup.SetUserDefinedAPIKey(EmptyAPIKey);
+        TempForecastSetup.SetUserDefinedAPIKey(EmptyAPIKey);
+
+        TempForecastSetup.Get();
+        Assert.IsTrue(IsNullGuid(TempForecastSetup."API Key ID"), 'Repeated clearing must leave the identifier empty.');
+    end;
+
+    [Test]
     [HandlerFunctions('SendNotificationHandler,ConfirmHandler')]
     procedure TestCreatePurchaseLineAction();
     var
@@ -1209,4 +1263,3 @@ codeunit 139540 "Sales Forecast Tests"
         ConsentMicrosoftConfirm.Accept.Invoke();
     end;
 }
-
