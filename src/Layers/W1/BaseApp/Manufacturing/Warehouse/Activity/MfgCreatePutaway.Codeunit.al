@@ -987,6 +987,7 @@ codeunit 99000893 "Mfg. Create Put-away"
             Qty := TempProdOrdLineTrackingBuff."Qty. split for Put Away (Base)"
         else
             Qty := ProdOrderLine.GetRemainingPutAwayQty();
+        OnCreateBreakPackageLinesOnAfterCalculateQuantity(TempProdOrdLineTrackingBuff, ProdOrderLine, CalledFromPutAwayWorksheet, Qty);
 
         LineNo := LineNo + 10000;
         BreakbulkNo := BreakbulkNo + 1;
@@ -1275,6 +1276,11 @@ codeunit 99000893 "Mfg. Create Put-away"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateWhsePutAwayForProdOrder(var ProductionOrder: Record "Production Order")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateBreakPackageLinesOnAfterCalculateQuantity(var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary; ProdOrderLine: Record "Prod. Order Line"; CalledFromPutAwayWorksheet: Boolean; var Quantity: Decimal)
     begin
     end;
 
