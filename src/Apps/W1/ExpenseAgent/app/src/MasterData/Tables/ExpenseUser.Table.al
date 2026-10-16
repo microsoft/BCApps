@@ -113,8 +113,10 @@ table 6923 "Expense User"
             trigger OnValidate()
             begin
                 if not "Can Approve" then begin
+                    CheckNoPendingApprovals();
                     if not ConfirmApproverReassignment() then
                         Error('');
+                    Rec."User Id For Approvals" := '';
                 end else
                     UpdateApprovalUserId();
             end;
@@ -258,12 +260,13 @@ table 6923 "Expense User"
         ApproverReassignToDefaultQst: Label 'Expense user %1 was an approver for some users. These users will now be assigned the default approver. Continue?', Comment = '%1 = Expense User No.';
         ApproverRemoveQst: Label 'Expense user %1 was an approver for some users. These users will now have no approver. Continue?', Comment = '%1 = Expense User No.';
         CannotRemoveDefaultApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is the default approver. Change the default approver in %2 first.', Comment = '%1 = Expense User No., %2 = Expense Agent Setup table caption';
+        CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
         ConfirmOverwriteExpenseUserInformationQst: Label 'Do you want to overwrite the employee Name and E-Mail on Expense User from Employee information of %1?', Comment = '%1 - Employee No.';
         ExistingExpenseTeamManagerErr: Label 'There is already a Team Manager (%1) for Expense Team %2.', Comment = '%1 - Expense User No. %2 -Expense Team Code';
         ExpenseApprovalSetupErr: Label 'You cannot remove approval rights from expense user %1. This expense user is currently configured as an approver in the %2.', Comment = '%1 - Expense User No., %2 - Table Caption';
         DuplicateEmailErr: Label '%1 %2 is already used by another %3. %1 must be unique.', Comment = '%1 = Email Caption, %2 = Email address, %3 = Expense User Table Caption';
         DuplicateEmployeeNoErr: Label '%1 %2 is already linked to another %3. Each employee can only be linked to one %3.', Comment = '%1 = Employee No. Caption, %2 = Employee No., %3 = Expense User Table Caption';
-        OnlyBCUserCanApproveErr: Label 'In order to be an expense approver there must be a user in Business Central for email %1 for expense user %2.', Comment = '%1 - Email, %2 - Expense User No.';
+        OnlyBCUserCanApproveErr: Label 'Expense user %2 cannot be an approver because no user in Business Central has %1 as their Microsoft 365 authentication email. Make sure a Business Central user exists whose Microsoft 365 authentication email matches the expense user''s email.', Comment = '%1 - Email, %2 - Expense User No.';
         CannotDeleteExpenseUserWithExpenseErr: Label 'You cannot delete Expense User %1 because they have active expense.', Comment = '%1 = Expense User No.';
         CannotDeleteExpenseUserWithExpenseReportErr: Label 'You cannot delete Expense User %1 because they have active expense report.', Comment = '%1 = Expense User No.';
         CannotDeleteExpenseUserWithPostedExpenseReportErr: Label 'You cannot delete Expense User %1 because they have posted expense report.', Comment = '%1 = Expense User No.';
@@ -508,7 +511,7 @@ table 6923 "Expense User"
             Error(CurrentBCUserHasNoAuthEmailErr);
 
         ExpenseUser.SetLoadFields("No.");
-        ExpenseUser.SetRange("E-mail", User."Authentication Email");
+        ExpenseUser.SetFilter("E-mail", '@%1', User."Authentication Email");
         if not ExpenseUser.FindFirst() then
             Error(CurrentBCUserNotMatchedToExpenseUserErr, User."Authentication Email");
 
@@ -566,12 +569,8 @@ table 6923 "Expense User"
         if Email = '' then
             exit('');
 
-        User.SetRange("Authentication Email", Email);
-        if User.FindFirst() then
-            exit(User."User Name");
-
-        User.SetRange("Authentication Email");
-        User.SetRange("Contact Email", Email);
+        User.SetLoadFields("User Name");
+        User.SetFilter("Authentication Email", '@%1', Email);
         if User.FindFirst() then
             exit(User."User Name");
     end;
@@ -828,5 +827,20 @@ table 6923 "Expense User"
             repeat
                 ExpenseUser.SetWelcomeEmailDelivered(Delivered);
             until ExpenseUser.Next() = 0;
+    end;
+
+    local procedure CheckNoPendingApprovals()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        ExpenseReportHeader.SetFilter(Status, '%1|%2', ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status::"Interim Approved");
+        ExpenseReportHeader.SetRange("Interim Approver No.", Rec."No.");
+        if ExpenseReportHeader.FindFirst() then
+            Error(CannotRemovePendingApproverErr, Rec."No.", ExpenseReportHeader."No.");
+
+        ExpenseReportHeader.SetRange("Interim Approver No.");
+        ExpenseReportHeader.SetRange("Final Approver No.", Rec."No.");
+        if ExpenseReportHeader.FindFirst() then
+            Error(CannotRemovePendingApproverErr, Rec."No.", ExpenseReportHeader."No.");
     end;
 }
