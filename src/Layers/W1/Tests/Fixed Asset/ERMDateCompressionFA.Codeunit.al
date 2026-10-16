@@ -64,8 +64,7 @@ codeunit 134049 "ERM Date Compression FA"
         AccountingPeriod.FindFirst(); // accouting periods were created in Initialize so we know these exist
         AccountingPeriod.SetRange("New Fiscal Year");
         AccountingPeriod.SetFilter("Starting Date", '>=%1', AccountingPeriod."Starting Date");
-        AccountingPeriod.ModifyAll(Closed, false);
-        AccountingPeriod.ModifyAll("Date Locked", false);
+        AccountingPeriod.ModifyAll(Closed, false, "Date Locked", false);
 
         FANo := CreateFixedAssetWithDimension();
         CreateGenJournalBatch(GenJournalBatch);

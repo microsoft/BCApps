@@ -394,9 +394,7 @@ codeunit 31302 IntrastatReportManagementCZ
         if Rec.IsTemporary() then
             exit;
         TariffNumber.SetRange("Suppl. Unit of Measure", Rec.Code);
-        TariffNumber.ModifyAll("Suppl. Unit of Measure", '');
-        TariffNumber.ModifyAll("Supplementary Units", false);
-        TariffNumber.ModifyAll("Suppl. Conversion Factor", 0);
+        TariffNumber.ModifyAll("Suppl. Unit of Measure", '', "Supplementary Units", false, "Suppl. Conversion Factor", 0);
     end;
 
     [EventSubscriber(ObjectType::XmlPort, XmlPort::"Import Tariff Numbers CZL", 'OnBeforeInsertTariffNumber', '', false, false)]
