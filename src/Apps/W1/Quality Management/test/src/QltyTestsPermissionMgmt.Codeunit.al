@@ -5,6 +5,7 @@
 namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Test.QualityManagement.TestLibraries;
+using Microsoft.Warehouse.Structure;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Utilities;
@@ -24,6 +25,27 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
         InspectorRoleIDTok: Label 'QltyMgmt - Inspector', Locked = true;
         SuperRoleIDTok: Label 'SUPER', Locked = true;
+        BinLookupRoleIDTok: Label 'QltyMgmt - Bin View', Locked = true;
+
+    [Test]
+    procedure VerifyCanSelectDestinationBin_Inspector()
+    begin
+        // [SCENARIO] A quality inspector can select destination bins with the additional bin lookup role.
+        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+
+        VerifyCanSelectDestinationBin();
+    end;
+
+    [Test]
+    procedure VerifyCanSelectDestinationBin_Admin()
+    begin
+        // [SCENARIO] A quality supervisor can select destination bins with the additional bin lookup role.
+        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+
+        VerifyCanSelectDestinationBin();
+    end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -160,6 +182,16 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryAssert.IsTrue(QltyInspectionUtility.CanDeleteFinishedInspection(TestUser."User Security ID"), 'allowed with SUPER');
         LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeOtherInspections(TestUser."User Security ID"), 'allowed with SUPER');
         LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeSourceQuantity(TestUser."User Security ID"), 'allowed with SUPER');
+    end;
+
+    local procedure VerifyCanSelectDestinationBin()
+    var
+        Bin: Record Bin;
+        BinList: TestPage "Bin List";
+    begin
+        LibraryAssert.IsTrue(Bin.ReadPermission(), 'The bin lookup role should grant read permission on bins.');
+        BinList.OpenView();
+        BinList.Close();
     end;
 
     local procedure InitializePermissions(PermissionSetRoleID: Code[20])
