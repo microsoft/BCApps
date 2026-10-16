@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item.Catalog;
 
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Inventory.Counting.Document;
 using Microsoft.Inventory.Counting.Recording;
 using Microsoft.Inventory.Document;
@@ -554,10 +553,10 @@ codeunit 5720 "Item Reference Management"
     procedure SalesReferenceNoLookup(var SalesLine: Record "Sales Line"; SalesHeader: record "Sales Header")
     var
         ItemReference2: Record "Item Reference";
-        ICGLAcc: Record "IC G/L Account";
         ToDate: Date;
         IsHandled: Boolean;
     begin
+
         IsHandled := false;
         OnBeforeSalesReferenceNoLookup(SalesLine, SalesHeader, IsHandled);
         if IsHandled then
@@ -583,12 +582,7 @@ codeunit 5720 "Item Reference Management"
                     end;
                 end;
             SalesLine.Type::"G/L Account", SalesLine.Type::Resource:
-                begin
-                    SalesLine.SetSalesHeader(SalesHeader);
-                    SalesHeader.TestField("Sell-to IC Partner Code");
-                    if PAGE.RunModal(PAGE::"IC G/L Account List", ICGLAcc) = ACTION::LookupOK then
-                        SalesLine."Item Reference No." := ICGLAcc."No.";
-                end;
+                OnSalesReferenceNoLookupForGLAccountAndResource(SalesLine, SalesHeader);
         end;
     end;
 
@@ -654,7 +648,6 @@ codeunit 5720 "Item Reference Management"
         end;
 
         SalesLine.UpdateUnitPrice(SalesLine.FieldNo("Item Reference No."));
-        SalesLine.UpdateICPartner();
 
         OnAfterValidateSalesReferenceNo(SalesLine, ItemReference, ReturnedItemReference);
     end;
@@ -742,7 +735,6 @@ codeunit 5720 "Item Reference Management"
             end;
 
             PurchaseLine.UpdateDirectUnitCost(PurchaseLine.FieldNo("Item Reference No."));
-            PurchaseLine.UpdateICPartner();
         end;
         OnAfterValidatePurchaseReferenceNo(PurchaseLine, ItemReference, ReturnedItemReference);
     end;
@@ -1152,6 +1144,11 @@ codeunit 5720 "Item Reference Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesReferenceNoLookup(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSalesReferenceNoLookupForGLAccountAndResource(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
     end;
 

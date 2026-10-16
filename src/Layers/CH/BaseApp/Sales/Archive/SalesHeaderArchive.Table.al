@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,8 +24,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
@@ -947,53 +945,6 @@ table 5107 "Sales Header Archive"
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
             Caption = 'Invoice Discount Value';
-        }
-        /// <summary>
-        /// Indicates whether the document should be sent to an intercompany partner.
-        /// </summary>
-        field(123; "Send IC Document"; Boolean)
-        {
-            Caption = 'Send IC Document';
-        }
-        /// <summary>
-        /// Specifies the intercompany processing status of the document.
-        /// </summary>
-        field(124; "IC Status"; Enum "Sales Document IC Status")
-        {
-            Caption = 'IC Status';
-        }
-        /// <summary>
-        /// Specifies the intercompany partner code for the sell-to customer in intercompany transactions.
-        /// </summary>
-        field(125; "Sell-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Sell-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Specifies the intercompany partner code for the bill-to customer in intercompany transactions.
-        /// </summary>
-        field(126; "Bill-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Bill-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Specifies the document number used by the intercompany partner to reference this transaction.
-        /// </summary>
-        field(127; "IC Reference Document No."; Code[20])
-        {
-            Caption = 'IC Reference Document No.';
-            Editable = false;
-        }
-        /// <summary>
-        /// Specifies the direction of the intercompany transaction, either outgoing or incoming.
-        /// </summary>
-        field(129; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
         }
         /// <summary>
         /// Specifies the percentage of the order amount that must be prepaid before processing.

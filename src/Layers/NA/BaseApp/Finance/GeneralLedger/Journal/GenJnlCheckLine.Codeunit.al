@@ -19,9 +19,6 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
@@ -113,8 +110,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
     /// </remarks>
     procedure RunCheck(var GenJnlLine: Record "Gen. Journal Line")
     var
-        ICGLAcount: Record "IC G/L Account";
-        ICBankAccount: Record "IC Bank Account";
         ErrorMessageHandler: Codeunit "Error Message Handler";
         ErrorContextElement: Codeunit "Error Context Element";
         IsHandled: Boolean;
@@ -176,14 +171,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
 
         if GenJnlLine."Bal. Account No." <> '' then
             CheckBalAccountNo(GenJnlLine);
-        if GenJnlLine."IC Account No." <> '' then begin
-            if GenJnlLine."IC Account Type" = GenJnlLine."IC Account Type"::"G/L Account" then
-                if ICGLAcount.Get(GenJnlLine."IC Account No.") then
-                    ICGLAcount.TestField(Blocked, false, ErrorInfo.Create());
-            if GenJnlLine."IC Account Type" = GenJnlLine."IC Account Type"::"Bank Account" then
-                if ICBankAccount.Get(GenJnlLine."IC Account No.") then
-                    ICBankAccount.TestField(Blocked, false, ErrorInfo.Create());
-        end;
+        OnRunCheckOnAfterCheckAccountNoAndBalAccountNo(GenJnlLine);
 
         if ((GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and
             (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account")) or
@@ -562,8 +550,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
 
     local procedure CheckAccountNo(GenJnlLine: Record "Gen. Journal Line")
     var
-        GenJournalTemplate: Record "Gen. Journal Template";
-        ICPartner: Record "IC Partner";
         CheckDone: Boolean;
         IsHandled: Boolean;
     begin
@@ -650,15 +636,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
                     CheckElectronicPaymentFields(GenJnlLine, GenJnlLine."Account No.");
                 end;
             GenJnlLine."Account Type"::"IC Partner":
-                begin
-                    ICPartner.Get(GenJnlLine."Account No.");
-                    ICPartner.CheckICPartner();
-                    if GenJnlLine."Journal Template Name" <> '' then begin
-                        GenJournalTemplate.Get(GenJnlLine."Journal Template Name");
-                        if GenJnlTemplate.Type <> GenJnlTemplate.Type::Intercompany then
-                            GenJnlLine.FieldError("Account Type", ErrorInfo.Create());
-                    end;
-                end;
+                OnCheckAccountNoOnAccountTypeICPartner(GenJnlLine);
         end;
 
         OnAfterCheckAccountNo(GenJnlLine);
@@ -666,7 +644,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
 
     local procedure CheckBalAccountNo(GenJnlLine: Record "Gen. Journal Line")
     var
-        ICPartner: Record "IC Partner";
         CheckDone: Boolean;
     begin
         OnBeforeCheckBalAccountNo(GenJnlLine, CheckDone);
@@ -738,12 +715,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
                     CheckElectronicPaymentFields(GenJnlLine, GenJnlLine."Bal. Account No.");
                 end;
             GenJnlLine."Bal. Account Type"::"IC Partner":
-                begin
-                    ICPartner.Get(GenJnlLine."Bal. Account No.");
-                    ICPartner.CheckICPartner();
-                    if GenJnlTemplate.Type <> GenJnlTemplate.Type::Intercompany then
-                        GenJnlLine.FieldError("Bal. Account Type", ErrorInfo.Create());
-                end;
+                OnCheckBalAccountNoOnBalAccountTypeICPartner(GenJnlLine);
         end;
 
         OnAfterCheckBalAccountNo(GenJnlLine);
@@ -892,7 +864,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
     var
         Customer: Record Customer;
         Vendor: Record Vendor;
-        ICPartner: Record "IC Partner";
         Employee: Record Employee;
         CheckDone: Boolean;
     begin
@@ -904,18 +875,12 @@ codeunit 11 "Gen. Jnl.-Check Line"
             AccountType::Customer:
                 if Customer.Get(AccountNo) then begin
                     Customer.CheckBlockedCustOnJnls(Customer, DocumentType, true);
-                    if (Customer."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) and
-                       ICPartner.Get(Customer."IC Partner Code")
-                    then
-                        ICPartner.CheckICPartnerIndirect(Format(AccountType), AccountNo);
+                    OnCheckICPartnerOnAfterCheckCustomer(AccountType, AccountNo, DocumentType.AsInteger(), Customer, GenJnlLine);
                 end;
             AccountType::Vendor:
                 if Vendor.Get(AccountNo) then begin
                     Vendor.CheckBlockedVendOnJnls(Vendor, DocumentType, true);
-                    if (Vendor."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) and
-                       ICPartner.Get(Vendor."IC Partner Code")
-                    then
-                        ICPartner.CheckICPartnerIndirect(Format(AccountType), AccountNo);
+                    OnCheckICPartnerOnAfterCheckVendor(AccountType, AccountNo, DocumentType.AsInteger(), Vendor, GenJnlLine);
                 end;
             AccountType::Employee:
                 if Employee.Get(AccountNo) then
@@ -1741,6 +1706,31 @@ codeunit 11 "Gen. Jnl.-Check Line"
     /// <param name="IsHandled">Set to true to skip standard IC partner checking logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAccountNoOnBeforeCheckICPartner(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRunCheckOnAfterCheckAccountNoAndBalAccountNo(var GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckAccountNoOnAccountTypeICPartner(var GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckBalAccountNoOnBalAccountTypeICPartner(var GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICPartnerOnAfterCheckCustomer(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentType: Option; Customer: Record Customer; GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICPartnerOnAfterCheckVendor(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentType: Option; Vendor: Record Vendor; GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 }

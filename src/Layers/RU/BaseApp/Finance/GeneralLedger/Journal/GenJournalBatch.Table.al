@@ -10,7 +10,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Automation;
@@ -107,9 +106,7 @@ table 232 "Gen. Journal Batch"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
-            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner";
+            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
 
             trigger OnValidate()
             begin
@@ -118,7 +115,6 @@ table 232 "Gen. Journal Batch"
                     UpdateBalAccountId();
                 end;
                 CheckJnlIsNotRecurring();
-                UpdateBalAccountId();
             end;
         }
         /// <summary>
@@ -368,10 +364,6 @@ table 232 "Gen. Journal Batch"
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'Only the %1 field can be filled in on recurring journals.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text001: Label 'must not be %1';
 #pragma warning restore AA0470
 #pragma warning restore AA0074

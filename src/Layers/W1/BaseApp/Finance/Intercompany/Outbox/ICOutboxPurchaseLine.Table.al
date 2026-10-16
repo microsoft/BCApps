@@ -313,9 +313,9 @@ table 429 "IC Outbox Purchase Line"
 
     trigger OnDelete()
     var
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"IC Outbox Purchase Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
     end;
 

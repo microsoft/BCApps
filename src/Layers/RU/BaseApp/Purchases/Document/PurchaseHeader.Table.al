@@ -32,9 +32,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -157,10 +154,7 @@ table 38 "Purchase Header"
                         TestField("Gen. Bus. Posting Group", xRec."Gen. Bus. Posting Group");
                     end;
 
-                "Buy-from IC Partner Code" := Vend."IC Partner Code";
-                "Send IC Document" := ("Buy-from IC Partner Code" <> '') and ("IC Direction" = "IC Direction"::Outgoing);
-
-                OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(Rec);
+                OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(Rec, Vend);
                 if Vend."Pay-to Vendor No." <> '' then
                     Validate("Pay-to Vendor No.", Vend."Pay-to Vendor No.")
                 else begin
@@ -322,8 +316,6 @@ table 38 "Purchase Header"
 
                 if not SkipPayToContact then
                     UpdatePayToCont("Pay-to Vendor No.");
-
-                "Pay-to IC Partner Code" := Vend."IC Partner Code";
 
                 OnValidatePayToVendorNoOnBeforeRecallModifyAddressNotification(Rec, xRec, Vend);
                 if (xRec."Pay-to Vendor No." <> '') and (xRec."Pay-to Vendor No." <> "Pay-to Vendor No.") then
@@ -1925,56 +1917,6 @@ table 38 "Purchase Header"
             Caption = 'Invoice Discount Value';
             Editable = false;
         }
-        field(123; "Send IC Document"; Boolean)
-        {
-            Caption = 'Send IC Document';
-
-            trigger OnValidate()
-            var
-                IsHandled: Boolean;
-            begin
-                IsHandled := false;
-                OnBeforeValidateSendICDocument(Rec, xRec, IsHandled);
-                if IsHandled then
-                    exit;
-
-                if "Send IC Document" then begin
-                    TestField("Buy-from IC Partner Code");
-                    TestField("IC Direction", "IC Direction"::Outgoing);
-                end;
-            end;
-        }
-        field(124; "IC Status"; Enum "Purchase Document IC Status")
-        {
-            Caption = 'IC Status';
-        }
-        field(125; "Buy-from IC Partner Code"; Code[20])
-        {
-            Caption = 'Buy-from IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        field(126; "Pay-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Pay-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        field(127; "IC Reference Document No."; Code[20])
-        {
-            Caption = 'IC Reference Document No.';
-            Editable = false;
-        }
-        field(129; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
-
-            trigger OnValidate()
-            begin
-                if "IC Direction" = "IC Direction"::Incoming then
-                    "Send IC Document" := false;
-            end;
-        }
         field(130; "Prepayment No."; Code[20])
         {
             Caption = 'Prepayment No.';
@@ -3446,17 +3388,9 @@ table 38 "Purchase Header"
 #pragma warning disable AA0470
         Text007: Label '%1 is greater than %2 in the %3 table.\';
 #pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text008: Label 'Confirm change?';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text009: Label 'Deleting this document will cause a gap in the number series for receipts. An empty receipt %1 will be created to fill this gap in the number series.\\Do you want to continue?', Comment = '%1 = Document No.';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text012: Label 'Deleting this document will cause a gap in the number series for posted invoices. An empty posted invoice %1 will be created to fill this gap in the number series.\\Do you want to continue?', Comment = '%1 = Document No.';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text014: Label 'Deleting this document will cause a gap in the number series for posted credit memos. An empty posted credit memo %1 will be created to fill this gap in the number series.\\Do you want to continue?', Comment = '%1 = Document No.';
 #pragma warning restore AA0074
         RecreatePurchLinesMsg: Label 'If you change %1, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.\\Do you want to continue?', Comment = '%1: FieldCaption';
@@ -3476,24 +3410,10 @@ table 38 "Purchase Header"
         AffectExchangeRateMsg: Label 'The change may affect the exchange rate that is used for price calculation on the purchase lines.';
 #pragma warning disable AA0074
         Text022: Label 'Do you want to update the exchange rate?';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
 #pragma warning disable AA0470
         Text023: Label 'You cannot delete this document. Your identification is set up to process from %1 %2 only.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text025: Label 'You have modified the %1 field. Note that the recalculation of VAT may cause penny differences, so you must check the amounts afterwards. ';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text027: Label 'Do you want to update the %2 field on the lines to reflect the new value of %1?';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text028: Label 'Your identification is set up to process from %1 %2 only.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -3553,55 +3473,17 @@ table 38 "Purchase Header"
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text034: Label 'You cannot change the %1 when the %2 has been filled in.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text037: Label 'Contact %1 %2 is not related to vendor %3.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text038: Label 'Contact %1 %2 is related to a different company than vendor %3.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text039: Label 'Contact %1 %2 is not related to a vendor.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text040: Label 'You can not change the %1 field because %2 %3 has %4 = %5 and the %6 has already been assigned %7 %8.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text042: Label 'You must cancel the approval process if you wish to change the %1.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text045: Label 'Deleting this document will cause a gap in the number series for prepayment invoices. An empty prepayment invoice %1 will be created to fill this gap in the number series.\\Do you want to continue?';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text046: Label 'Deleting this document will cause a gap in the number series for prepayment credit memos. An empty prepayment credit memo %1 will be created to fill this gap in the number series.\\Do you want to continue?';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text049: Label '%1 is set up to process from %2 %3 only.';
 #pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text050: Label 'Reservations exist for this order. These reservations will be canceled if a date conflict is caused by this change.\\Do you want to continue?';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text051: Label 'You may have changed a dimension.\\Do you want to update the lines?';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
 #pragma warning disable AA0470
         Text052: Label 'The %1 field on the purchase order %2 must be the same as on sales order %3.';
 #pragma warning restore AA0470
@@ -3620,30 +3502,10 @@ table 38 "Purchase Header"
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text12400: Label 'Document No. %1 does not exist for Vendor No. %2.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text12401: Label '%1 cannot be less then %2';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text12402: Label 'You can not update %1 while %2 is not blank.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text12403: Label 'Agreement %1 should be no earlier than %2.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text12404: Label 'Agreement %1 should be no later than %2.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text12405: Label 'Posting Date %1 should be no earlier than %2.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -8481,17 +8343,6 @@ table 38 "Purchase Header"
         "Doc. Amount VAT" := CalcDocAmountVAT(DocAmountInclVAT, VATAmount, TotalPurchLineAmtInclVAT, CurrencyAmtRoundingPrecision);
     end;
 
-    procedure SendICPurchaseDoc(var PurchaseHeader: Record "Purchase Header")
-    var
-        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-    begin
-        if PurchaseHeader.FindSet() then
-            repeat
-                if ApprovalsMgmt.PrePostApprovalCheckPurch(PurchaseHeader) then
-                    ICInOutboxMgt.SendPurchDoc(PurchaseHeader, false);
-            until PurchaseHeader.Next() = 0;
-    end;
-
     procedure UpdatePurchaseOrderLineIfExist()
     var
         PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
@@ -9435,7 +9286,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(var PurchaseHeader: Record "Purchase Header")
+    local procedure OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor)
     begin
     end;
 
@@ -9851,11 +9702,6 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateExpectedReceiptDate(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; CallingFieldNo: Integer)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateSendICDocument(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 

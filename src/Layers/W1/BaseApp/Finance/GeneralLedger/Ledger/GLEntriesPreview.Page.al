@@ -82,11 +82,6 @@ page 122 "G/L Entries Preview"
                     ApplicationArea = Dimensions;
                     Visible = Dim2Visible;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;

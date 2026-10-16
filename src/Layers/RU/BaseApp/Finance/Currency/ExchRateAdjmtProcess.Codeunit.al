@@ -1980,7 +1980,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                             AdjExchRateBufIndex :=
                                 ExchRateAdjmtBufferUpdate(
                                     CustLedgerEntry."Currency Code", CustLedgerEntry."Customer Posting Group", GetCustAccountNo(CustLedgerEntry),
-                                    0, 0, -OldAdjAmount, -OldAdjAmount, 0, DimEntryNo, PostingDate2, Customer."IC Partner Code",
+                                    0, 0, -OldAdjAmount, -OldAdjAmount, 0, DimEntryNo, PostingDate2, Customer.GetPartnerCode(),
                                     CustLedgerEntry."Entry No.");
                             TagExchRateAdjmtLedgEntry(AdjExchRateBufIndex);
                             TempDtldCustLedgEntry."Transaction No." := AdjExchRateBufIndex;
@@ -2016,7 +2016,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 ExchRateAdjmtBufferUpdate(
                     CustLedgerEntry."Currency Code", CustLedgerEntry."Customer Posting Group", GetCustAccountNo(CustLedgerEntry),
                     CustLedgerEntry."Remaining Amount", CustLedgerEntry."Remaining Amt. (LCY)", TempDtldCustLedgEntry."Amount (LCY)",
-                    GainsAmount, LossesAmount, DimEntryNo, PostingDate2, Customer."IC Partner Code",
+                    GainsAmount, LossesAmount, DimEntryNo, PostingDate2, Customer.GetPartnerCode(),
                     CustLedgerEntry."Entry No.");
             TagExchRateAdjmtLedgEntry(AdjExchRateBufIndex);
             TempDtldCustLedgEntry."Transaction No." := AdjExchRateBufIndex;
@@ -2138,7 +2138,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                             AdjExchRateBufIndex :=
                                 ExchRateAdjmtBufferUpdate(
                                     VendLedgerEntry."Currency Code", VendLedgerEntry."Vendor Posting Group", GetVendAccountNo(VendLedgerEntry),
-                                    0, 0, -OldAdjAmount, 0, -OldAdjAmount, DimEntryNo, PostingDate2, Vendor."IC Partner Code",
+                                    0, 0, -OldAdjAmount, 0, -OldAdjAmount, DimEntryNo, PostingDate2, Vendor.GetPartnerCode(),
                                     VendLedgerEntry."Entry No.");
                             TagExchRateAdjmtLedgEntry(AdjExchRateBufIndex);
                             TempDtldVendLedgEntry."Transaction No." := AdjExchRateBufIndex;
@@ -2177,7 +2177,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                             AdjExchRateBufIndex :=
                                 ExchRateAdjmtBufferUpdate(
                                     VendLedgerEntry."Currency Code", VendLedgerEntry."Vendor Posting Group", GetVendAccountNo(VendLedgerEntry),
-                                    0, 0, -OldAdjAmount, -OldAdjAmount, 0, DimEntryNo, PostingDate2, Vendor."IC Partner Code",
+                                    0, 0, -OldAdjAmount, -OldAdjAmount, 0, DimEntryNo, PostingDate2, Vendor.GetPartnerCode(),
                                     VendLedgerEntry."Entry No.");
                             TagExchRateAdjmtLedgEntry(AdjExchRateBufIndex);
                             TempDtldVendLedgEntry."Transaction No." := AdjExchRateBufIndex;
@@ -2213,7 +2213,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 ExchRateAdjmtBufferUpdate(
                     VendLedgerEntry."Currency Code", VendLedgerEntry."Vendor Posting Group", GetVendAccountNo(VendLedgerEntry),
                     VendLedgerEntry."Remaining Amount", VendLedgerEntry."Remaining Amt. (LCY)",
-                    TempDtldVendLedgEntry."Amount (LCY)", GainsAmount, LossesAmount, DimEntryNo, PostingDate2, Vendor."IC Partner Code",
+                    TempDtldVendLedgEntry."Amount (LCY)", GainsAmount, LossesAmount, DimEntryNo, PostingDate2, Vendor.GetPartnerCode(),
                     VendLedgerEntry."Entry No.");
             TagExchRateAdjmtLedgEntry(AdjExchRateBufIndex);
             TempDtldVendLedgEntry."Transaction No." := AdjExchRateBufIndex;

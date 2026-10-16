@@ -333,7 +333,6 @@ report 113 "Customer/Item Sales"
         Profit: Decimal;
         ProfitPct: Decimal;
         RoundingNO: Integer;
-
         Text000: Label 'Period: %1';
         Customer_Item_SalesCaptionLbl: Label 'Customer/Item Sales';
         CurrReport_PAGENOCaptionLbl: Label 'Page';

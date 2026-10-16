@@ -32,9 +32,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -152,10 +149,7 @@ table 38 "Purchase Header"
                         TestField("Gen. Bus. Posting Group", xRec."Gen. Bus. Posting Group");
                     end;
 
-                "Buy-from IC Partner Code" := Vend."IC Partner Code";
-                "Send IC Document" := ("Buy-from IC Partner Code" <> '') and ("IC Direction" = "IC Direction"::Outgoing);
-
-                OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(Rec);
+                OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(Rec, Vend);
                 if Vend."Pay-to Vendor No." <> '' then
                     Validate("Pay-to Vendor No.", Vend."Pay-to Vendor No.")
                 else begin
@@ -318,8 +312,6 @@ table 38 "Purchase Header"
 
                 if not SkipPayToContact then
                     UpdatePayToCont("Pay-to Vendor No.");
-
-                "Pay-to IC Partner Code" := Vend."IC Partner Code";
 
                 OnValidatePayToVendorNoOnBeforeRecallModifyAddressNotification(Rec, xRec, Vend);
                 if (xRec."Pay-to Vendor No." <> '') and (xRec."Pay-to Vendor No." <> "Pay-to Vendor No.") then
@@ -1971,56 +1963,6 @@ table 38 "Purchase Header"
             AutoFormatType = 1;
             Caption = 'Invoice Discount Value';
             Editable = false;
-        }
-        field(123; "Send IC Document"; Boolean)
-        {
-            Caption = 'Send IC Document';
-
-            trigger OnValidate()
-            var
-                IsHandled: Boolean;
-            begin
-                IsHandled := false;
-                OnBeforeValidateSendICDocument(Rec, xRec, IsHandled);
-                if IsHandled then
-                    exit;
-
-                if "Send IC Document" then begin
-                    TestField("Buy-from IC Partner Code");
-                    TestField("IC Direction", "IC Direction"::Outgoing);
-                end;
-            end;
-        }
-        field(124; "IC Status"; Enum "Purchase Document IC Status")
-        {
-            Caption = 'IC Status';
-        }
-        field(125; "Buy-from IC Partner Code"; Code[20])
-        {
-            Caption = 'Buy-from IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        field(126; "Pay-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Pay-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        field(127; "IC Reference Document No."; Code[20])
-        {
-            Caption = 'IC Reference Document No.';
-            Editable = false;
-        }
-        field(129; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
-
-            trigger OnValidate()
-            begin
-                if "IC Direction" = "IC Direction"::Incoming then
-                    "Send IC Document" := false;
-            end;
         }
         field(130; "Prepayment No."; Code[20])
         {
@@ -5892,6 +5834,7 @@ table 38 "Purchase Header"
     begin
         exit("Document Type" in ["Document Type"::Order, "Document Type"::"Blanket Order", "Document Type"::"Return Order"])
     end;
+
 #if not CLEAN27
     [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
     procedure GetStatisticsPageID(): Integer
@@ -8011,17 +7954,6 @@ table 38 "Purchase Header"
         "Doc. Amount VAT" := CalcDocAmountVAT(DocAmountInclVAT, VATAmount, TotalPurchLineAmtInclVAT, CurrencyAmtRoundingPrecision);
     end;
 
-    procedure SendICPurchaseDoc(var PurchaseHeader: Record "Purchase Header")
-    var
-        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-    begin
-        if PurchaseHeader.FindSet() then
-            repeat
-                if ApprovalsMgmt.PrePostApprovalCheckPurch(PurchaseHeader) then
-                    ICInOutboxMgt.SendPurchDoc(PurchaseHeader, false);
-            until PurchaseHeader.Next() = 0;
-    end;
-
     procedure UpdatePurchaseOrderLineIfExist()
     var
         PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
@@ -8966,7 +8898,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(var PurchaseHeader: Record "Purchase Header")
+    local procedure OnValidateBuyFromVendorNoOnValidateBuyFromVendorNoOnBeforeValidatePayToVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor)
     begin
     end;
 
@@ -9382,11 +9314,6 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateExpectedReceiptDate(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; CallingFieldNo: Integer)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateSendICDocument(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 

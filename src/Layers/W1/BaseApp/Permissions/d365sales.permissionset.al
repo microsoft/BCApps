@@ -14,8 +14,6 @@ permissionset 2918 "D365 SALES"
                              "D365 CUSTOMER, EDIT",
                              "D365 CUSTOMER, VIEW",
                              "D365 DYN CRM MGT",
-                             "D365 IC, EDIT",
-                             "D365 IC, VIEW",
                              "D365 ITEM, EDIT",
                              "D365 ITEM, VIEW",
                              "D365 ITEM AVAIL CALC",

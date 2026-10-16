@@ -10,7 +10,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
@@ -506,8 +505,6 @@ codeunit 230 GenJnlManagement
         [SecurityFiltering(SecurityFilter::Filtered)]
         FA: Record "Fixed Asset";
         [SecurityFiltering(SecurityFilter::Filtered)]
-        ICPartner: Record "IC Partner";
-        [SecurityFiltering(SecurityFilter::Filtered)]
         Employee: Record Employee;
         [SecurityFiltering(SecurityFilter::Filtered)]
         AllocationAccount: Record "Allocation Account";
@@ -543,12 +540,6 @@ codeunit 230 GenJnlManagement
                     FA.SetloadFields(Description);
                     if FA.Get(AccNo) then
                         AccName := FA.Description;
-                end;
-            AccType::"IC Partner":
-                begin
-                    ICPartner.SetloadFields(Name);
-                    if ICPartner.Get(AccNo) then
-                        AccName := ICPartner.Name;
                 end;
             AccType::Employee:
                 begin

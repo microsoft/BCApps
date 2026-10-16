@@ -43,10 +43,6 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Task;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Costing;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -92,10 +88,6 @@ page 9027 "Accountant Role Center"
             part(Control1902304208; "Accountant Activities")
             {
                 ApplicationArea = Basic, Suite;
-            }
-            part("Intercompany Activities"; "Intercompany Activities")
-            {
-                ApplicationArea = Intercompany;
             }
             part("User Tasks Activities"; "User Tasks Activities")
             {
@@ -580,27 +572,6 @@ page 9027 "Accountant Role Center"
                     RunObject = Page Dimensions;
                     ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
                 }
-                action(Partners)
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Partners';
-                    RunObject = Page "IC Partner List";
-                    ToolTip = 'Set up each company or department within the group of companies as an intercompany partner of type Vendor or Customer. Intercompany partners can then be inserted on regular sales and purchase documents or journal lines that are exchanged through the intercompany inbox/outbox system and posted to agreed accounts in an intercompany chart of accounts.';
-                }
-                action(Action171)
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'IC Chart of Accounts';
-                    RunObject = Page "IC Chart of Accounts";
-                    ToolTip = 'Manage intercompany transactions within your group of companies in an aligned chart of accounts that uses the same account numbers and settings. In the setup phase, the parent company of the group can create a simplified version of their own chart of accounts and exports it to an XML file that each subsidiary can quickly implement.';
-                }
-                action(Action173)
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Intercompany Dimensions';
-                    RunObject = Page "IC Dimensions";
-                    ToolTip = 'Enable companies within a group to exchange transactions with dimensions and to perform financial analysis by dimensions across the group. The parent company of the group can create a simplified version of their own set of dimensions and export them to an XML file that each subsidiary can import into the intercompany Dimensions window and then map them to their own dimensions.';
-                }
                 action("Accounting Periods")
                 {
                     ApplicationArea = Basic, Suite;
@@ -665,15 +636,6 @@ page 9027 "Accountant Role Center"
                     RunPageView = where("Template Type" = const(Sales),
                                         Recurring = const(false));
                     ToolTip = 'Post any sales-related transaction directly to a customer, bank, or general ledger account instead of using dedicated documents. You can post all types of financial sales transactions, including payments, refunds, and finance charge amounts. Note that you cannot post item quantities with a sales journal.';
-                }
-                action(ICGeneralJournals)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'IC General Journals';
-                    RunObject = Page "General Journal Batches";
-                    RunPageView = where("Template Type" = const(Intercompany),
-                                        Recurring = const(false));
-                    ToolTip = 'Post intercompany transactions. IC general journal lines must contain either an IC partner account or a customer or vendor account that has been assigned an intercompany partner code.';
                 }
                 action(PostedGeneralJournals)
                 {
