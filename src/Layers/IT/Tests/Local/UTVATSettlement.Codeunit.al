@@ -116,11 +116,7 @@ codeunit 144186 "UT VAT Settlement"
 
     local procedure OnValidateVATPeriodPeriodicSettlement(VATPeriod: Code[10])
     var
-#if not CLEAN27
-        PeriodicVATSettlementCard: TestPage "Periodic VAT Settlement Card";
-#else
         PeriodicVATSettlementCard: TestPage "Periodic VAT Settl. Card";
-#endif
     begin
         // Setup.
         PeriodicVATSettlementCard.OpenNew();

@@ -125,19 +125,4 @@ codeunit 107 "Import and Consolidate"
     end;
 
     // No other event should be required in this codeunit.
-#if not CLEAN27
-    /// <summary>
-    /// Integration event raised before setting consolidation process parameters.
-    /// OBSOLETE: Use OnAfterGetBusinessUnitConsolidationImplementations instead with custom interface implementations.
-    /// </summary>
-    /// <param name="ConsolidationProcess">Consolidation Process record being configured</param>
-    /// <param name="BusUnitInConsProcess">Business Unit in Consolidation Process record</param>
-    /// <param name="IsHandled">Set to true to bypass standard parameter setting</param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('Please use OnAfterGetBusinessUnitConsolidationImplementations instead. You can override the behavior by providing your own implementations of the interfaces "Import Consolidation Data" and "Consolidation Method"', '27.0')]
-    local procedure OnImportAndConsolidateOnBeforeSetConsolidationProcessParameters(var ConsolidationProcess: Record "Consolidation Process"; var BusUnitInConsProcess: Record "Bus. Unit In Cons. Process"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
 }
