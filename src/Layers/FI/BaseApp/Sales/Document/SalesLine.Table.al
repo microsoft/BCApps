@@ -10904,6 +10904,26 @@ table 37 "Sales Line"
     end;
 
     /// <summary>
+    /// Applies a security filter based on the user's responsibility center setup.
+    /// </summary>
+    procedure SetSecurityFilterOnRespCenter()
+    var
+        UserSetupMgt: Codeunit "User Setup Management";
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
+        if IsHandled then
+            exit;
+
+        if UserSetupMgt.GetSalesFilter() <> '' then begin
+            FilterGroup(2);
+            SetRange("Responsibility Center", UserSetupMgt.GetSalesFilter());
+            FilterGroup(0);
+        end;
+    end;
+
+    /// <summary>
     /// Gets the date to use in calculations for the sales line. Used in finding item references and price calculations.
     /// </summary>
     /// <returns>The date for calculations.</returns>
@@ -15615,6 +15635,16 @@ table 37 "Sales Line"
     /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterClearVATDifference(var SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before setting the security filter on responsibility center for the sales line.
+    /// </summary>
+    /// <param name="SalesLine">The sales line record.</param>
+    /// <param name="IsHandled">Set to true to skip the default logic.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetSecurityFilterOnRespCenter(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
