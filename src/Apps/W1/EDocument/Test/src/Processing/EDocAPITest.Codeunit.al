@@ -165,7 +165,7 @@ codeunit 135575 "E-Doc. API Test"
     end;
 
     [HttpClientHandler]
-    procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Assert: Codeunit Assert;
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
