@@ -8,6 +8,7 @@ using Microsoft;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.TaxEngine.TaxTypeHandler;
@@ -174,12 +175,15 @@ codeunit 18544 "Tax Base Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeInitVAT', '', false, false)]
-    local procedure OnBeforeInitVAT(var IsHandled: Boolean; var GenJournalLine: Record "Gen. Journal Line")
+    local procedure OnBeforeInitVAT(var IsHandled: Boolean; var GenJournalLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry")
     var
         VATPostingSetup: Record "VAT Posting Setup";
     begin
-        if not VATPostingSetup.Get(GenJournalLine."VAT Bus. Posting Group", GenJournalLine."VAT Prod. Posting Group") then
+        if not VATPostingSetup.Get(GenJournalLine."VAT Bus. Posting Group", GenJournalLine."VAT Prod. Posting Group") then begin
+            if GenJournalLine."System-Created Entry" then
+                GLEntry."Source Currency VAT Amount" := GenJournalLine."Source Curr. VAT Amount";
             IsHandled := true;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeValidateVATProdPostingGroup', '', false, false)]
