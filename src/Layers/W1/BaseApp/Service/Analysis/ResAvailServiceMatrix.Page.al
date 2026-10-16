@@ -762,6 +762,7 @@ page 9229 "Res. Avail. (Service) Matrix"
         end;
 
         SetVisible();
+        OnAfterMatrixOnAfterGetRecord(Rec, MATRIX_CellData, MatrixColumnDateFilters);
     end;
 
     local procedure MatrixOnDrillDown(Column: Integer)
@@ -835,6 +836,11 @@ page 9229 "Res. Avail. (Service) Matrix"
     local procedure QualifiedForServItemsOnAfterVa()
     begin
         CurrPage.Update(false);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterMatrixOnAfterGetRecord(Resource: Record Resource; var MatrixCellData: array[32] of Decimal; MatrixColumnDateFilters: array[32] of Record Date)
+    begin
     end;
 
     [IntegrationEvent(false, false)]
