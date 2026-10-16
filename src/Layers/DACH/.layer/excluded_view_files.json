@@ -1808,7 +1808,6 @@
     "Tests\\User\\ReservOrderPromisingE2E.Codeunit.al",
     "Tests\\User\\ReturnOrderPlanbasedE2E.Codeunit.al",
     "Tests\\User\\RTCAdminUserPermissionSet.Codeunit.al",
-    "Tests\\User\\TestUserTasks.Codeunit.al",
     "Tests\\VAT\\AssistedSetupDemodataUT.Codeunit.al",
     "Tests\\VAT\\ERMChangeVATOnVATAmtLine.Codeunit.al",
     "Tests\\VAT\\ERMInvDiscVATSalePurchase.Codeunit.al",
