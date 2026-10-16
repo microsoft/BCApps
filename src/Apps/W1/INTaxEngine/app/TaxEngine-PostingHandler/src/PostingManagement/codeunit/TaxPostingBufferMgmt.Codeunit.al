@@ -317,7 +317,7 @@ codeunit 20343 "Tax Posting Buffer Mgmt."
         InvoiceQty: Decimal)
     var
         TaxTransactionValue: Record "Tax Transaction Value";
-        NextID: Integer;
+        NextID: BigInteger;
     begin
         TempTransactionValue.Reset();
         NextID := TempTransactionValue.Count();
