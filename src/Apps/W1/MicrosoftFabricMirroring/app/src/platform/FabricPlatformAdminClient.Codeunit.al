@@ -202,13 +202,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         FabricPrivacyNotice.EnsureApproved();
 
         PrincipalId := CredMgt.GetPrincipalId();
-#if not CLEAN27
-#pragma warning disable AL0432
         if (PrincipalId = '') and not CredMgt.IsCustomAppEnabled() then begin
-#pragma warning restore AL0432
-#else
-        if PrincipalId = '' then begin
-#endif
             GraphAccessToken := CredMgt.AcquireGraphApiTokenDelegated();
             PrincipalId := GetServicePrincipalId(CredMgt.GetClientId(), GraphAccessToken);
             CredMgt.SetPrincipalId(PrincipalId);

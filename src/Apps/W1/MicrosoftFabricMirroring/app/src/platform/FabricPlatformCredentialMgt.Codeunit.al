@@ -3,9 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Security.Authentication;
-#if not CLEAN27
 using System.Security.Encryption;
-#endif
 
 codeunit 48524 "Fabric Platform Credential Mgt"
 {
@@ -20,14 +18,11 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         AdminConsentFailedErr: Label 'Admin consent was not granted. %1', Comment = '%1 = error details returned by Microsoft Entra ID';
         FabricApiTokenErr: Label 'Failed to acquire a Microsoft Fabric API token. Sign in again and verify that admin consent was granted.';
         GraphApiTokenErr: Label 'Failed to acquire a Microsoft Graph token. Sign in again and verify that admin consent was granted.';
-#if not CLEAN27
         FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration in Microsoft Entra ID and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
         OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
         OAuthAuthorityUrlTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = tenant ID', Locked = true;
-#endif
 
-#if not CLEAN27
     internal procedure IsCustomAppEnabled(): Boolean
     begin
         exit(IsolatedStorage.Contains('FabricPlat.UseCustomApp', DataScope::Module));
@@ -37,9 +32,34 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     begin
         if Enabled then
             IsolatedStorage.Set('FabricPlat.UseCustomApp', 'true', DataScope::Module)
-        else
-            if IsolatedStorage.Contains('FabricPlat.UseCustomApp', DataScope::Module) then
-                IsolatedStorage.Delete('FabricPlat.UseCustomApp', DataScope::Module);
+        else begin
+            DeleteStoredValue('FabricPlat.UseCustomApp');
+            ClearClientSecret();
+        end;
+        ClearTokenCache();
+    end;
+
+    internal procedure ClearClientSecret()
+    begin
+        DeleteStoredValue('FabricPlat.ClientSecret');
+        ClearTokenCache();
+    end;
+
+    internal procedure ClearEnvironmentCredentials()
+    begin
+        ClearClientSecret();
+        DeleteStoredValue('FabricPlat.UseCustomApp');
+        DeleteStoredValue('FabricPlat.ClientId');
+        DeleteStoredValue('FabricPlat.PrincipalId');
+        DeleteStoredValue('FabricPlat.FirstPartyPrincipalId');
+        DeleteStoredValue('FabricPlat.OpenMirroringDatabaseName');
+        DeleteStoredValue('FabricPlat.LastEnableRequestedAt');
+    end;
+
+    local procedure DeleteStoredValue(StorageKey: Text)
+    begin
+        if IsolatedStorage.Contains(StorageKey, DataScope::Module) then
+            IsolatedStorage.Delete(StorageKey, DataScope::Module);
     end;
 
     internal procedure SetClientId(ClientId: Text)
@@ -56,7 +76,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
             exit(Value);
         exit('');
     end;
-#endif
 
     /// <summary>Returns the client ID of the active app: the Microsoft first-party app unless a custom app registration is enabled.</summary>
     [NonDebuggable]
@@ -67,10 +86,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         Dimensions: Dictionary of [Text, Text];
         ClientId: Text;
     begin
-#if not CLEAN27
         if IsCustomAppEnabled() then
             exit(GetCustomClientId());
-#endif
         if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
             FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
         else
@@ -101,10 +118,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     // Each app has its own service principal, so the first-party and custom apps keep separate values.
     local procedure PrincipalIdStorageKey(): Text
     begin
-#if not CLEAN27
         if IsCustomAppEnabled() then
             exit('FabricPlat.PrincipalId');
-#endif
         exit('FabricPlat.FirstPartyPrincipalId');
     end;
 
@@ -138,7 +153,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         exit(0DT);
     end;
 
-#if not CLEAN27
     [NonDebuggable]
     internal procedure SetClientSecret(ClientSecret: SecretText)
     var
@@ -169,7 +183,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     begin
         exit(GetClientSecretSecure());
     end;
-#endif
 
     procedure ClearTokenCache()
     var
@@ -236,10 +249,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if LookupState.HasFabricApiToken() then
             exit(LookupState.GetFabricApiToken());
 
-#if not CLEAN27
         if IsCustomAppEnabled() then
             exit(AcquireFabricApiTokenWithCustomApp());
-#endif
 
         Scopes.Add('https://api.fabric.microsoft.com/Workspace.Read.All');
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
@@ -249,7 +260,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         exit(AccessToken);
     end;
 
-#if not CLEAN27
     [NonDebuggable]
     local procedure AcquireFabricApiTokenWithCustomApp(): SecretText
     var
@@ -303,5 +313,4 @@ codeunit 48524 "Fabric Platform Credential Mgt"
 #pragma warning restore LC0043
         exit(EmptySecret);
     end;
-#endif
 }
