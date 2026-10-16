@@ -146,7 +146,7 @@ page 6968 "Expense User Cons. API"
             Error(EmptyConsumptionOperationErr);
         if not IsNullGuid(Rec."Entra Id") then
             if Rec."Entra Id" <> ExpenseUserEntraId then
-                Session.LogMessage('0000VKU', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
+                Session.LogMessage('0000W40', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
                     TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         ModelJson := AiConsumptionRequestJson.GetObject('model');
@@ -157,7 +157,7 @@ page 6968 "Expense User Cons. API"
         TelemetryDimensions.Add('outputTokenCount', GetModelTelemetryValue(ModelJson, 'outputTokenCount'));
         TelemetryDimensions.Add('promptCacheReadTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheReadTokenCount'));
         TelemetryDimensions.Add('promptCacheCreationTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheCreationTokenCount'));
-        Session.LogMessage('0000VKT', LogV2QuotaStartedTelemetryMsg,
+        Session.LogMessage('0000W41', LogV2QuotaStartedTelemetryMsg,
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
         exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson,

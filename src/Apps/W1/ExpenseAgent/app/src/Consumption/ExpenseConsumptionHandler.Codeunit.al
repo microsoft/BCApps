@@ -62,7 +62,7 @@ codeunit 6969 "Expense Consumption Handler"
         UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
         IsTrial := TrialAvailable();
 
-        Session.LogMessage('0000ROU', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId), IsTrial),
+        Session.LogMessage('0000W42', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId), IsTrial),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         // LogAgentUserAiConsumption is idempotent, and so should be inserting in the companion table
@@ -146,7 +146,7 @@ codeunit 6969 "Expense Consumption Handler"
 
         OperationText := Operation; // Code types do not support startswith
         if OperationText.StartsWith('PE:') then begin
-            Session.LogMessage('0000VYH', PolicyEvaluationTrialSkippedTelemetryMsg,
+            Session.LogMessage('0000W43', PolicyEvaluationTrialSkippedTelemetryMsg,
                 Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
             exit;
         end;
