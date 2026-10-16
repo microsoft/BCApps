@@ -25,7 +25,7 @@
       "to": 9999
     }
   ],
-  "target": "OnPrem",
+  "target": "Cloud",
   "features": [
     "NoImplicitWith"
   ]

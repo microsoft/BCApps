@@ -47,6 +47,26 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
+    /// Checks whether the URI uses the secure HTTP scheme (https).
+    /// </summary>
+    /// <remarks>Call Init first. The comparison is case-insensitive because the scheme of a URI is always normalized to lowercase.</remarks>
+    /// <returns>True if the scheme of the URI is https; otherwise, false.</returns>
+    procedure IsSecureHttpUrl(): Boolean
+    begin
+        exit(Uri.Scheme = 'https');
+    end;
+
+    /// <summary>
+    /// Checks whether the URI uses an HTTP scheme (http or https).
+    /// </summary>
+    /// <remarks>Call Init first. The comparison is case-insensitive because the scheme of a URI is always normalized to lowercase.</remarks>
+    /// <returns>True if the scheme of the URI is http or https; otherwise, false.</returns>
+    procedure IsHttpUrl(): Boolean
+    begin
+        exit((Uri.Scheme = 'http') or (Uri.Scheme = 'https'));
+    end;
+
+    /// <summary>
     /// Gets the host name of the URI.
     /// </summary>
     /// <remarks>Visit https://learn.microsoft.com/dotnet/api/system.uri.host for more information.</remarks>

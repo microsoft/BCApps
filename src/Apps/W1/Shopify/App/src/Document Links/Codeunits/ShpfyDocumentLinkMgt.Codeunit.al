@@ -140,6 +140,8 @@ codeunit 30262 "Shpfy Document Link Mgt."
                     if not SalesShipments.Contains(SalesInvoiceLine."Shipment No.") then
                         if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then begin
                             SalesShipments.Add(SalesInvoiceLine."Shipment No.");
+                            DocLinkToBCDoc.SetRange("Shopify Document Type");
+                            DocLinkToBCDoc.SetRange("Shopify Document Id");
                             DocLinkToBCDoc.SetRange("Document Type", DocLinkToBCDoc."Document Type"::"Posted Sales Shipment");
                             DocLinkToBCDoc.SetRange("Document No.", SalesShipmentHeader."No.");
                             if DocLinkToBCDoc.FindFirst() then begin

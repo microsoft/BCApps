@@ -33,6 +33,15 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
                 RunObject = page "FR E-Invoice Messages";
                 RunPageLink = "E-Document Entry No." = field("Entry No");
             }
+            action(ViewPaymentOccurrences)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Payment Occurrences';
+                Image = PaymentHistory;
+                ToolTip = 'View payment occurrences, processing errors, and retry details associated with this E-Document.';
+                RunObject = page "E-Document Payment Occurrences";
+                RunPageLink = "E-Document Entry No." = field("Entry No");
+            }
             action(RefuseFREInvoice)
             {
                 ApplicationArea = Basic, Suite;

@@ -189,6 +189,8 @@ codeunit 135005 "ERM Financial Report Schedules"
 
         // [GIVEN] A financial report schedule with a recipient
         FinancialReportSchedule := CreateSchedule(AccScheduleName.Name, true, true, true);
+        FinancialReportSchedule."Email Subject" := 'Custom subject test!';
+        FinancialReportSchedule.Modify();
         CreateUserRecipient(NewUserId, AccScheduleName.Name, FinancialReportSchedule.Code);
 
         Commit();
@@ -205,6 +207,7 @@ codeunit 135005 "ERM Financial Report Schedules"
         EmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", Recipients);
         Assert.AreEqual(1, Recipients.Count(), 'There should be 1 recipient');
         Assert.AreEqual(UserEmail, Recipients.Get(1), 'Recipient email does not match');
+        Assert.AreEqual(FinancialReportSchedule."Email Subject", EmailMessage.GetSubject(), 'The custom email subject does not match');
 
         AttachmentTypes.Add(ExcelContentTypeTxt);
         AttachmentTypes.Add(PDFContentTypeTxt);
@@ -221,6 +224,56 @@ codeunit 135005 "ERM Financial Report Schedules"
         Assert.IsTrue(ReportInbox.FindFirst(), 'The PDF report inbox entry was not created');
         ReportInbox.SetRange("Report ID", Report::"Export Acc. Sched. to Excel");
         Assert.IsFalse(ReportInbox.IsEmpty(), 'The Excel report inbox entry was not created');
+    end;
+
+    [Test]
+    procedure ExportScheduleToEmailUsesDefaultSubjectWhenBlank()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        TempEmailAccount: Record "Email Account";
+        FinancialReportSchedule: Record "Financial Report Schedule";
+        FinancialReport: Record "Financial Report";
+        User: Record User;
+        EmailMessage: Codeunit "Email Message";
+        EmailScenario: Codeunit "Email Scenario";
+        FinancialReportExportJob: Codeunit "Financial Report Export Job";
+        NewUserId: Code[50];
+        UserEmail: Text[100];
+        ExpectedSubject: Text;
+    begin
+        // [SCENARIO] When the schedule has no custom Email Subject, the export email falls back to the default subject.
+        Initialize();
+        ClearSchedules();
+        ClearScheduleJobQueueEntry();
+
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector");
+        EmailScenario.SetEmailAccount(Enum::"Email Scenario"::"Financial Report", TempEmailAccount);
+
+        NewUserId := LibraryUtility.GenerateRandomCode(User.FieldNo("User Name"), Database::User);
+        UserEmail := 'user@cronus.com';
+        CreateUserSetupWithEmail(NewUserId, UserEmail);
+
+        // [GIVEN] A financial report with an amount line
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithAmount(AccScheduleName.Name);
+
+        // [GIVEN] A financial report schedule with a recipient and no custom email subject
+        FinancialReportSchedule := CreateSchedule(AccScheduleName.Name, true, true, true);
+        CreateUserRecipient(NewUserId, AccScheduleName.Name, FinancialReportSchedule.Code);
+
+        Commit();
+
+        // [WHEN] The financial report schedule export job is run
+        FinancialReportExportJob.Run();
+
+        // [THEN] The email uses the default subject built from the report and schedule descriptions, not a custom one
+        FinancialReport.Get(FinancialReportSchedule."Financial Report Name");
+        ExpectedSubject := 'Financial Report: ' +
+            (FinancialReport.Description = '' ? Format(FinancialReport.Name) : FinancialReport.Description) + ' - ' +
+            (FinancialReportSchedule.Description = '' ? Format(FinancialReportSchedule.Code) : FinancialReportSchedule.Description);
+        EmailMessage.Get(ConnectorMock.GetEmailMessageID());
+        Assert.AreEqual(ExpectedSubject, EmailMessage.GetSubject(), 'The default email subject should be used when Email Subject is blank.');
     end;
 
     [Test]
@@ -513,6 +566,41 @@ codeunit 135005 "ERM Financial Report Schedules"
             LibraryReportDataset.LoadFromInStream(InStr);
             LibraryReportDataset.AssertElementWithValueExists('ColumnValuesAsText', Format(GLAccount.Balance));
         end;
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PrintPackageUsesPackageCodeAsFileName()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FinancialReportPackage: Record "Financial Report Package";
+        FinRepPackageSchedule: Record "Fin. Report Package Schedule";
+        FinReportExportHandler: Codeunit "Fin. Report Export Handler";
+        FinancialReportPackages: TestPage "Financial Report Packages";
+    begin
+        // [SCENARIO] Printing a financial report package uses the package code as the PDF file name
+        Initialize();
+
+        // [GIVEN] A financial report package with a report
+        FinRepPackageSchedule := CreatePackageSchedule(false);
+        FinancialReportPackage.Get(FinRepPackageSchedule."Package Code");
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithAmount(AccScheduleName.Name);
+        CreatePackageReport(FinRepPackageSchedule."Package Code", AccScheduleName.Name);
+        Commit();
+
+        // [WHEN] The package is printed
+        BindSubscription(FinReportExportHandler);
+        FinancialReportPackages.OpenEdit();
+        FinancialReportPackages.GoToRecord(FinancialReportPackage);
+        FinancialReportPackages.Print.Invoke();
+        UnbindSubscription(FinReportExportHandler);
+
+        // [THEN] The downloaded PDF file name is based on the package code
+        Assert.AreEqual(
+            FinancialReportPackage.Code + '.pdf',
+            FinReportExportHandler.GetOutputFileName(),
+            'The financial report package file name is not correct');
     end;
 
     [RequestPageHandler]
