@@ -9,9 +9,8 @@ using System.Utilities;
 
 reportextension 10586 "Sales - Shipment" extends "Sales - Shipment"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/SalesShipment.rdlc';
-#endif
+
     dataset
     {
         add("Sales Shipment Header")
@@ -98,21 +97,6 @@ reportextension 10586 "Sales - Shipment" extends "Sales - Shipment"
             }
         }
     }
-
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Sales Shipment GB localization';
-            LayoutFile = './src/ReportExtensions/SalesShipment.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         CompanyInfoBankBranchNoCaptionLbl: Label 'Bank Branch No.';

@@ -12,9 +12,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
-#if not CLEAN27
-    EventSubscriberInstance = Manual;
-#endif
 
     var
         Assert: Codeunit Assert;
@@ -23,6 +20,72 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         CurrentSaveValuesId: Integer;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsCopiesNonEmptyGuid()
+    var
+        GovTalkSetup: Record "Gov Talk Setup";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+        SourceGuid: Guid;
+    begin
+        GovTalkSetup.DeleteAll();
+        SourceGuid := CreateGuid();
+        GovTalkSetup.Id := 'GUID';
+        GovTalkSetup.Password := SourceGuid;
+        GovTalkSetup.Insert();
+
+        GovTalkHelperProcedures.TransferFields(Database::"Gov Talk Setup", GovTalkSetup.FieldNo(Password), GovTalkSetup.FieldNo("Vendor ID"));
+
+        GovTalkSetup.Get('GUID');
+        Assert.AreEqual(SourceGuid, GovTalkSetup."Vendor ID", 'A non-empty source GUID must be copied to the target field.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsSkipsEmptyGuid()
+    var
+        GovTalkSetup: Record "Gov Talk Setup";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+        TargetGuid: Guid;
+    begin
+        GovTalkSetup.DeleteAll();
+        TargetGuid := CreateGuid();
+        GovTalkSetup.Id := 'GUID';
+        GovTalkSetup."Vendor ID" := TargetGuid;
+        GovTalkSetup.Insert();
+
+        GovTalkHelperProcedures.TransferFields(Database::"Gov Talk Setup", GovTalkSetup.FieldNo(Password), GovTalkSetup.FieldNo("Vendor ID"));
+
+        GovTalkSetup.Get('GUID');
+        Assert.AreEqual(TargetGuid, GovTalkSetup."Vendor ID", 'An empty source GUID must not overwrite the target field.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsCopiesNonZeroIntegerAndSkipsZero()
+    var
+        GovTalkMessage: Record "GovTalk Message";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+    begin
+        GovTalkMessage.DeleteAll();
+        GovTalkMessage.ReportNo := 'NONZERO';
+        GovTalkMessage.PollInterval := 100;
+        GovTalkMessage.Insert();
+        GovTalkMessage.Init();
+        GovTalkMessage.ReportNo := 'ZERO';
+        GovTalkMessage."Polling Count" := 200;
+        GovTalkMessage.Insert();
+
+        GovTalkHelperProcedures.TransferFields(Database::"GovTalk Message", GovTalkMessage.FieldNo(PollInterval), GovTalkMessage.FieldNo("Polling Count"));
+
+        GovTalkMessage.Get(GovTalkMessage.ReportConfigCode, 'NONZERO');
+        Assert.AreEqual(100, GovTalkMessage."Polling Count", 'A non-zero source value must be copied to the target field.');
+        GovTalkMessage.Get(GovTalkMessage.ReportConfigCode, 'ZERO');
+        Assert.AreEqual(200, GovTalkMessage."Polling Count", 'A zero source value must not overwrite the target field.');
+    end;
+    [Test]
     [HandlerFunctions('ECSalesListReportRPH')]
     [Scope('OnPrem')]
     procedure ECSalesListRequestPageFieldsBasicApplicationArea()
@@ -30,9 +93,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [FEATURE] [ECSL] [Application Area] [UI] [UT]
         // [SCENARIO 331168] ReportLayout and "Create XML File" fields are enabled on EC Sales List Request page when Application Area = #basic
         Initialize();
-#if not CLEAN27
-        BindSubscription(this);
-#endif
 
         // [GIVEN] Enabled Application Area = #basic setup
         LibraryApplicationArea.EnableBasicSetup();
@@ -42,9 +102,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [THEN] ReportLayout and "Create XML File" fields are enabled (check in RPH)
         REPORT.Run(REPORT::"EC Sales List");
         LibraryApplicationArea.DisableApplicationAreaSetup();
-#if not CLEAN27
-        UnbindSubscription(this);
-#endif
     end;
 
     [Test]
@@ -55,9 +112,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [FEATURE] [ECSL] [Application Area] [UI] [UT]
         // [SCENARIO 331168] ReportLayout and "Create XML File" fields are enabled on EC Sales List Request page when Application Area = #suite
         Initialize();
-#if not CLEAN27
-        BindSubscription(this);
-#endif
         // [GIVEN] Enabled Application Area = #suite setup
         LibraryApplicationArea.EnableFoundationSetup();
         Commit();
@@ -66,9 +120,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [THEN] ReportLayout and "Create XML File" fields are enabled (check in RPH)
         REPORT.Run(REPORT::"EC Sales List");
         LibraryApplicationArea.DisableApplicationAreaSetup();
-#if not CLEAN27
-        UnbindSubscription(this);
-#endif
     end;
 
     [RequestPageHandler]
@@ -92,12 +143,4 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
     begin
         LibraryReportValidation.DeleteObjectOptions(CurrentSaveValuesId);
     end;
-
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GovTalk, OnAfterCheckFeatureEnabled, '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
-    begin
-        IsEnabled := true;
-    end;
-#endif
 }

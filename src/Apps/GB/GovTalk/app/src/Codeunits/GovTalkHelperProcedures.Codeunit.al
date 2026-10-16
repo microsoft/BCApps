@@ -67,10 +67,18 @@ codeunit 10561 "GovTalk Helper Procedures"
         RecRef: RecordRef;
         TargetFieldRef: FieldRef;
         SourceFieldRef: FieldRef;
+        EmptyGuid: Guid;
     begin
         RecRef.Open(TableId, false);
         SourceFieldRef := RecRef.Field(SourceFieldNo);
-        SourceFieldRef.SetFilter('<>%1', '');
+        case SourceFieldRef.Type of
+            FieldType::GUID:
+                SourceFieldRef.SetFilter('<>%1', EmptyGuid);
+            FieldType::Integer:
+                SourceFieldRef.SetFilter('<>%1', 0);
+            else
+                SourceFieldRef.SetFilter('<>%1', '');
+        end;
 
         if RecRef.FindSet() then
             repeat

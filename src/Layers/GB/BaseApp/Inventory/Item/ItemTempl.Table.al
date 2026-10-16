@@ -1161,20 +1161,8 @@ table 1382 "Item Templ."
         {
             Caption = 'Reverse Charge Applies';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-
-#if not CLEAN27
-            trigger OnValidate()
-            begin
-                ValidateItemField(FieldNo("Reverse Charge Applies"));
-            end;
-#endif
         }
 #endif
     }

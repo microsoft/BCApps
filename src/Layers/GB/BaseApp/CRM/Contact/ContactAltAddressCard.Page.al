@@ -4,10 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CRM.Contact;
 
-#if not CLEAN27
-using Microsoft.Foundation.Address;
-#endif
-
 page 5056 "Contact Alt. Address Card"
 {
     Caption = 'Contact Alt. Address Card';
@@ -22,30 +18,6 @@ page 5056 "Contact Alt. Address Card"
             group(General)
             {
                 Caption = 'General';
-#if not CLEAN27
-                group(Control1040008)
-                {
-                    ShowCaption = false;
-                    Visible = IsAddressLookupTextEnabled;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Functionality has been moved to the GetAddress.io UK Postcodes.';
-                    ObsoleteTag = '27.0';
-                    field(LookupAddress; LookupAddressLbl)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Field has been moved to the GetAddress.io UK Postcodes.';
-                        ObsoleteTag = '27.0';
-                        ShowCaption = false;
-
-                        trigger OnDrillDown()
-                        begin
-                            ShowPostcodeLookup(true);
-                        end;
-                    }
-                }
-#endif
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
@@ -58,14 +30,6 @@ page 5056 "Contact Alt. Address Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the customer''s address. This address will appear on all sales documents for the customer.';
-#if not CLEAN27
-                    trigger OnValidate()
-                    var
-                        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-                    begin
-                        PostcodeBusinessLogic.ShowDiscoverabilityNotificationIfNeccessary();
-                    end;
-#endif
                 }
                 field("Address 2"; Rec."Address 2")
                 {
@@ -86,26 +50,11 @@ page 5056 "Contact Alt. Address Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ToolTip = 'Specifies the postal code.';
-#if not CLEAN27
-                    trigger OnValidate()
-                    var
-                        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-                    begin
-                        PostcodeBusinessLogic.ShowDiscoverabilityNotificationIfNeccessary();
-                        ShowPostcodeLookup(false);
-                    end;
-#endif                    
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the country/region code for the contact''s alternate address. To see the country/region codes in the Country/Region table, click the field.';
-#if not CLEAN27
-                    trigger OnValidate()
-                    begin
-                        HandleAddressLookupVisibility();
-                    end;
-#endif
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
@@ -188,21 +137,10 @@ page 5056 "Contact Alt. Address Card"
         }
     }
 
-#if not CLEAN27
-    trigger OnAfterGetCurrRecord()
-    begin
-        HandleAddressLookupVisibility();
-    end;
-#endif
-
     var
 #pragma warning disable AA0074
         Text000: Label 'untitled';
 #pragma warning restore AA0074
-#if not CLEAN27
-        IsAddressLookupTextEnabled: Boolean;
-        LookupAddressLbl: Label 'Lookup address from postcode';
-#endif
 
     procedure Caption(): Text
     var
@@ -213,50 +151,5 @@ page 5056 "Contact Alt. Address Card"
 
         exit(Text000);
     end;
-
-#if not CLEAN27
-    [Obsolete('Functionality has been moved to the GetAddress.io UK Postcodes.', '27.0')]
-    local procedure ShowPostcodeLookup(ShowInputFields: Boolean)
-    var
-        TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary;
-        TempAutocompleteAddress: Record "Autocomplete Address" temporary;
-        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-    begin
-        if not PostcodeBusinessLogic.SupportedCountryOrRegionCode(Rec."Country/Region Code") then
-            exit;
-
-        if not PostcodeBusinessLogic.IsConfigured() or ((Rec."Post Code" = '') and not ShowInputFields) then
-            exit;
-
-        TempEnteredAutocompleteAddress.Address := Rec.Address;
-        TempEnteredAutocompleteAddress.Postcode := Rec."Post Code";
-
-        if not PostcodeBusinessLogic.ShowLookupWindow(TempEnteredAutocompleteAddress, ShowInputFields, TempAutocompleteAddress) then
-            exit;
-
-        CopyAutocompleteFields(TempAutocompleteAddress);
-        HandleAddressLookupVisibility();
-    end;
-
-    local procedure CopyAutocompleteFields(var TempAutocompleteAddress: Record "Autocomplete Address" temporary)
-    begin
-        Rec.Address := TempAutocompleteAddress.Address;
-        Rec."Address 2" := TempAutocompleteAddress."Address 2";
-        Rec."Post Code" := TempAutocompleteAddress.Postcode;
-        Rec.City := TempAutocompleteAddress.City;
-        Rec.County := TempAutocompleteAddress.County;
-        Rec."Country/Region Code" := TempAutocompleteAddress."Country / Region";
-    end;
-
-    local procedure HandleAddressLookupVisibility()
-    var
-        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-    begin
-        if not CurrPage.Editable or not PostcodeBusinessLogic.IsConfigured() then
-            IsAddressLookupTextEnabled := false
-        else
-            IsAddressLookupTextEnabled := PostcodeBusinessLogic.SupportedCountryOrRegionCode(Rec."Country/Region Code");
-    end;
-#endif
 }
 

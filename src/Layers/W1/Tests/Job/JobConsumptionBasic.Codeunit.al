@@ -44,6 +44,7 @@ codeunit 136300 "Job Consumption Basic"
         IsNonInventoryTypeItemErr: Label 'Is Non-inventory Type item';
         IsInventoryTypeItemErr: Label 'Is Inventory Type item';
         TotalCostErr: Label '%1 must be %2 in %3', Comment = '%1 Total Cost, %2 = Unit Cost * Quanity of Job Ledger Entry, %3 = Job Ledger Entry';
+        JobJournalLineAccountTypeNotSupportedErr: Label 'Job journal line account type %1 not supported.', Comment = '%1 = Job Journal Line Type';
 
     local procedure Initialize()
     var
@@ -398,9 +399,11 @@ codeunit 136300 "Job Consumption Basic"
 
         // Verify (planning lines, job ledger)
         LibraryJob.VerifyPurchaseDocPostingForJob(TempPurchaseLine);
+#pragma warning disable AA0210
         JobLedgerEntry.SetRange(Description, TempPurchaseLine.Description);
         Assert.AreEqual(1, JobLedgerEntry.Count, '# job ledger entries');
         JobLedgerEntry.FindFirst();
+#pragma warning restore AA0210
 
         LibraryJob.VerifyGLEntries(JobLedgerEntry);
 
@@ -919,7 +922,7 @@ codeunit 136300 "Job Consumption Basic"
                     UnitPrice := JobJournalLine."Unit Price (LCY)"
                 end;
             else
-                Assert.Fail(StrSubstNo('Job journal line account type %1 not supported.', Format(JobJournalLine.Type)))
+                Assert.Fail(StrSubstNo(JobJournalLineAccountTypeNotSupportedErr, Format(JobJournalLine.Type)))
         end;
         GeneralLedgerSetup.Get();
         Assert.AreNearlyEqual(UnitCost, JobJournalLine."Unit Cost (LCY)",
