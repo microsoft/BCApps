@@ -19,6 +19,7 @@ using Microsoft.Sales.Receivables;
 report 1200 "Create Direct Debit Collection"
 {
     Caption = 'Create Direct Debit Collection';
+    ToolTip = 'Create a direct-debit collection to collect invoice payments directly from a customer''s bank account based on direct-debit mandates.';
     ProcessingOnly = true;
     TransactionType = Update;
 
