@@ -228,7 +228,7 @@ report 105 "Customer - Summary Aging"
                         DtldCustLedgEntry.SetRange("Customer No.", Customer."No.");
                         DtldCustLedgEntry.SetRange("Initial Entry Due Date", PeriodStartDate[i], PeriodStartDate[i + 1] - 1);
                         DtldCustLedgEntry.SetRange("Currency Code", TempCurrency.Code);
-                        DtldCustLedgEntry.SetFilter("Agreement No.", Customer.GetFilter("Agreement Filter"));
+                        DtldCustLedgEntry.SetFilter("Agreement No.", Customer.GetFilter("Agreement Filter")); // RU
                         DtldCustLedgEntry.CalcSums(Amount);
                         CustBalanceDue[i] := DtldCustLedgEntry.Amount;
                         InCustBalanceDueLCY[i] := InCustBalanceDueLCY2[i];
@@ -273,7 +273,7 @@ report 105 "Customer - Summary Aging"
                     DtldCustLedgEntry.SetCurrentKey("Customer No.", "Initial Entry Due Date");
                     DtldCustLedgEntry.SetRange("Customer No.", "No.");
                     DtldCustLedgEntry.SetRange("Initial Entry Due Date", PeriodStartDate[i], PeriodStartDate[i + 1] - 1);
-                    DtldCustLedgEntry.SetFilter("Agreement No.", GetFilter("Agreement Filter"));
+                    DtldCustLedgEntry.SetFilter("Agreement No.", GetFilter("Agreement Filter")); // RU
                     DtldCustLedgEntry.CalcSums("Amount (LCY)");
                     CustBalanceDue[i] := DtldCustLedgEntry."Amount (LCY)";
                     CustBalanceDueLCY[i] := DtldCustLedgEntry."Amount (LCY)";
@@ -325,7 +325,7 @@ report 105 "Customer - Summary Aging"
                         NotBlank = true;
                         ToolTip = 'Specifies the date for the beginning of the period covered by the report.';
                     }
-                    field(PeriodLength; PeriodLength)
+                    field(PeriodLength; PeriodLengthReq)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Period Length';
@@ -349,8 +349,8 @@ report 105 "Customer - Summary Aging"
         begin
             if PeriodStartDate[2] = 0D then
                 PeriodStartDate[2] := WorkDate();
-            if Format(PeriodLength) = '' then
-                Evaluate(PeriodLength, '<1M>');
+            if Format(PeriodLengthReq) = '' then
+                Evaluate(PeriodLengthReq, '<1M>');
         end;
     }
 
@@ -374,14 +374,14 @@ report 105 "Customer - Summary Aging"
     begin
         CustFilter := FormatDocument.GetRecordFiltersWithCaptions(Customer);
         for i := 3 to 5 do
-            PeriodStartDate[i] := CalcDate(PeriodLength, PeriodStartDate[i - 1]);
+            PeriodStartDate[i] := CalcDate(PeriodLengthReq, PeriodStartDate[i - 1]);
         PeriodStartDate[6] := DMY2Date(31, 12, 9999);
     end;
 
     var
         Currency: Record Currency;
         TempCurrency: Record Currency temporary;
-        PeriodLength: DateFormula;
+        PeriodLengthReq: DateFormula;
         CustFilter: Text;
         PrintAmountsInLCY: Boolean;
         PeriodStartDate: array[6] of Date;
@@ -405,13 +405,13 @@ report 105 "Customer - Summary Aging"
     /// <summary>
     /// Initializes the report request options for the Customer Summary Aging report.
     /// </summary>
-    /// <param name="StartingDate">The starting date for the aging periods.</param>
+    /// <param name="NewStartingDate">The starting date for the aging periods.</param>
     /// <param name="SetPeriodLength">The period length formula as text.</param>
     /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
-    procedure InitializeRequest(StartingDate: Date; SetPeriodLength: Text[1024]; ShowAmountInLCY: Boolean)
+    procedure InitializeRequest(NewStartingDate: Date; SetPeriodLength: Text[1024]; ShowAmountInLCY: Boolean)
     begin
-        PeriodStartDate[2] := StartingDate;
-        Evaluate(PeriodLength, SetPeriodLength);
+        PeriodStartDate[2] := NewStartingDate;
+        Evaluate(PeriodLengthReq, SetPeriodLength);
         PrintAmountsInLCY := ShowAmountInLCY;
     end;
 
@@ -435,4 +435,3 @@ report 105 "Customer - Summary Aging"
     begin
     end;
 }
-

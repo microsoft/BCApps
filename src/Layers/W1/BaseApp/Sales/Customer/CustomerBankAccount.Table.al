@@ -171,8 +171,8 @@ table 287 "Customer Bank Account"
         field(14; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
-            ToolTip = 'Specifies the number used by the bank for the bank account.';
             MaskType = Concealed;
+            ToolTip = 'Specifies the number used by the bank for the bank account.';
 
             trigger OnValidate()
             begin
@@ -262,13 +262,7 @@ table 287 "Customer Bank Account"
         /// <summary>
         /// Specifies the bank's website URL.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(23; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ExtendedDatatype = URL;
@@ -280,8 +274,8 @@ table 287 "Customer Bank Account"
         field(24; IBAN; Code[50])
         {
             Caption = 'IBAN';
-            ToolTip = 'Specifies the bank account''s international bank account number.';
             MaskType = Concealed;
+            ToolTip = 'Specifies the bank account''s international bank account number.';
 
             trigger OnValidate()
             var

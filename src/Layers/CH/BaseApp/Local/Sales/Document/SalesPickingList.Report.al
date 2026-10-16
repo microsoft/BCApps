@@ -7,9 +7,6 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
-#if not CLEAN27
-using Microsoft.Sales.Customer;
-#endif
 using System.Utilities;
 
 report 11512 "Sales Picking List"
@@ -237,11 +234,7 @@ report 11512 "Sales Picking List"
                 trigger OnPreDataItem()
                 begin
                     CopyTxt := '';
-#if not CLEAN27
-                    CopiesToPrint := ReqCopies + Customer."Invoice Copies" + 1;
-#else
                     CopiesToPrint := ReqCopies + 1;
-#endif
 
                     SetRange(Number, 1, CopiesToPrint);  // Integer table
                     OutputNo := 1;
@@ -295,9 +288,6 @@ report 11512 "Sales Picking List"
 
     var
         CompanyInfo: Record "Company Information";
-#if not CLEAN27
-        Customer: Record Customer;
-#endif
         FormatAdr: Codeunit "Format Address";
         Adr: array[8] of Text[100];
         CompanyAdr: array[8] of Text[100];

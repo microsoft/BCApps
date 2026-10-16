@@ -971,10 +971,8 @@ report 5911 "Service - Invoice"
         if "Service Invoice Line"."Shipment No." <> '' then
             if ServiceShipmentHeader.Get("Service Invoice Line"."Shipment No.") then
                 exit(ServiceShipmentHeader."Posting Date");
-
         if "Service Invoice Header"."Order No." = '' then
             exit("Service Invoice Header"."Posting Date");
-
         if "Service Invoice Line".Type = "Service Invoice Line".Type::" " then
             exit(0D);
 
@@ -1064,7 +1062,6 @@ report 5911 "Service - Invoice"
         ServiceShipmentLine.SetRange("No.", ServiceInvoiceLine."No.");
         ServiceShipmentLine.SetRange("Unit of Measure Code", ServiceInvoiceLine."Unit of Measure Code");
         ServiceShipmentLine.SetFilter(Quantity, '<>%1', 0);
-
         if ServiceShipmentLine.Find('-') then
             repeat
                 if Abs(ServiceShipmentLine.Quantity) <= Abs(TotalQuantity - ServiceInvoiceLine.Quantity) then
@@ -1077,7 +1074,6 @@ report 5911 "Service - Invoice"
 
                     TotalQuantity := TotalQuantity - ServiceShipmentLine.Quantity;
                     ServiceInvoiceLine.Quantity := ServiceInvoiceLine.Quantity - Quantity;
-
                     if ServiceShipmentHeader.Get(ServiceShipmentLine."Document No.") then
                         AddBufferEntry(
                           ServiceInvoiceLine,
@@ -1158,7 +1154,6 @@ report 5911 "Service - Invoice"
         CustLedgerEntry.SetRange("Document No.", SalesInvoiceHeaderNo);
         if not CustLedgerEntry.FindFirst() then
             exit;
-
         if not Customer.Get("Service Invoice Header"."Bill-to Customer No.") then
             exit;
 
