@@ -3490,7 +3490,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferRouteUpgradeTag());
     end;
 
-    internal procedure UpgradeDirectTransferOnTransferHeader()
+    local procedure UpgradeDirectTransferOnTransferHeader()
     var
         InventorySetup: Record "Inventory Setup";
         TransferHeader: Record "Transfer Header";
