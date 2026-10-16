@@ -8,7 +8,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Utilities;
@@ -20,29 +19,30 @@ codeunit 12173 "Vendor Bill List - Post"
 
     trigger OnRun()
     begin
-        if not Confirm(Text1130000) then
+        if not Confirm(Text1130000Err) then
             exit;
 
         Code(Rec);
 
-        Message(Text1130026);
+        Message(Text1130026Err);
     end;
 
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
-        MustBeErr: Label '%1 must be %2.', Comment = '%1 = List Status, %2 = Status';
-        SelectionTxt: Label 'Open,Sent';
+        TaxType: Option " ",Withhold,"Free Lance",Company;
         Window: Dialog;
         LineNo: Integer;
         BalanceAmount: Decimal;
         BalanceAmountLCY: Decimal;
 
-        Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.';
-        Text1130000: Label 'Do you want to post the lines?';
-        Text1130011: Label 'Posting Vendor Bill...\\';
-        Text1130012: Label 'Post Line #1##########\';
-        Text1130026: Label 'The lines has been successfully posted.';
+        MustBeErr: Label '%1 must be %2.', Comment = '%1 = List Status, %2 = Status';
+        SelectionTxt: Label 'Open,Sent';
+        HasBeenModifiedErr: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.', Comment = '%1 = Remaining Amount, %2 = Document No., %3 = Document Occurrence, %4 = Document Type, %5 = Document Date, %6 = Remaining Amount';
+        Text1130000Err: Label 'Do you want to post the lines?';
+        Text1130011Err: Label 'Posting Vendor Bill...\\';
+        Text1130012Err: Label 'Post Line #1##########\', Comment = '%1 - LineNo';
+        Text1130026Err: Label 'The lines has been successfully posted.';
 
     [Scope('OnPrem')]
     procedure "Code"(var LocalVendorBillHeader: Record "Vendor Bill Header")
@@ -53,12 +53,9 @@ codeunit 12173 "Vendor Bill List - Post"
         VendorBillLine: Record "Vendor Bill Line";
         TempVendorBillLine: Record "Vendor Bill Line" temporary;
         PostedVendorBillHeader: Record "Posted Vendor Bill Header";
-        TempWithholdingSocSec: Record "Tmp Withholding Contribution" temporary;
         VendBillWithhTax: Record "Vendor Bill Withholding Tax";
         BillPostingGroup: Record "Bill Posting Group";
         BillCode: Record Bill;
-        WithholdingSocSec: Codeunit "Withholding - Contribution";
-        TaxType: Option " ",Withhold,"Free Lance",Company;
         AmountLCY: Decimal;
         IsHandled: Boolean;
     begin
@@ -73,7 +70,7 @@ codeunit 12173 "Vendor Bill List - Post"
         if not VendorBillLine.Find('-') then
             Error(DocumentErrorsMgt.GetNothingToPostErrorMsg());
 
-        Window.Open(Text1130011 + Text1130012);
+        Window.Open(Text1130011Err + Text1130012Err);
 
         InsertPostedBillHeader(PostedVendorBillHeader, VendorBillHeader, VendorBillHeader."Vendor Bill List No.", VendorBillHeader."No.");
         InsertTempVendorBillLine(VendorBillLine, TempVendorBillLine);
@@ -87,7 +84,7 @@ codeunit 12173 "Vendor Bill List - Post"
                     VendLedgEntry.Get(VendorBillLine."Vendor Entry No.");
                     VendLedgEntry.CalcFields("Remaining Amount");
                     if VendLedgEntry."Remaining Amount" + VendorBillLine."Remaining Amount" <> 0 then
-                        Error(Text12100,
+                        Error(HasBeenModifiedErr,
                           VendLedgEntry.FieldCaption("Remaining Amount"),
                           VendLedgEntry.FieldCaption("Document No."),
                           VendLedgEntry."Document No.",
@@ -103,19 +100,8 @@ codeunit 12173 "Vendor Bill List - Post"
                 end;
 
                 BalanceAmountLCY := BalanceAmountLCY + GenJnlLine."Amount (LCY)";
-                if VendBillWithhTax.Get(VendorBillLine."Vendor Bill List No.", VendorBillLine."Line No.") then begin
-                    if (VendBillWithhTax."Withholding Tax Code" <> '') and (VendBillWithhTax."Withholding Tax Amount" <> 0) then
-                        PostTax(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType::Withhold);
-                    if (VendBillWithhTax."Social Security Code" <> '') and (VendBillWithhTax."Free-Lance Amount" <> 0) then
-                        PostTax(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType::"Free Lance");
-                    if (VendBillWithhTax."Social Security Code" <> '') and (VendBillWithhTax."Company Amount" <> 0) then
-                        PostTax(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType::Company);
 
-                    OnAfterPostTax(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType);
-
-                    TempWithholdingSocSec.TransferFields(VendBillWithhTax);
-                    WithholdingSocSec.PostPayments(TempWithholdingSocSec, GenJnlLine, true);
-                end;
+                OnAfterPostVendorBillLine(VendorBillHeader, VendorBillLine, VendLedgEntry, GenJnlLine, BillCode, TaxType, GenJnlPostLine);
 
                 IsHandled := false;
                 OnBeforeInsertPostedBillLine(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType, PostedVendorBillHeader, BalanceAmountLCY, IsHandled);
@@ -159,7 +145,7 @@ codeunit 12173 "Vendor Bill List - Post"
         PostedVendorBillHeader.TransferFields(VendorBillHeader);
         PostedVendorBillHeader."No." := ListNo;
         PostedVendorBillHeader."Temporary Bill No." := BillNo;
-        PostedVendorBillHeader."User ID" := UserId;
+        PostedVendorBillHeader."User ID" := CopyStr(UserId(), 1, MaxStrLen(PostedVendorBillHeader."User ID"));
         PostedVendorBillHeader.Insert();
     end;
 
@@ -177,7 +163,6 @@ codeunit 12173 "Vendor Bill List - Post"
     [Scope('OnPrem')]
     procedure PostVendorBillLine(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal)
     var
-        Tax: Option " ",Withhold,"Free Lance",Company;
         CurrencyCodeHandled: Boolean;
     begin
         GenJnlLine.Init();
@@ -192,13 +177,13 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlLine.Validate(Amount, VendorBillLine."Amount to Pay");
 
         CurrencyCodeHandled := false;
-        OnPostVendorBillLineOnBeforeValidateCurrencyCode(GenJnlLine,VendorBillHeader,VendorBillLine,VendLedgEntry,Bill,AmountLCY,CurrencyCodeHandled);
+        OnPostVendorBillLineOnBeforeValidateCurrencyCode(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, Bill, AmountLCY, CurrencyCodeHandled);
         if not CurrencyCodeHandled then
             GenJnlLine.Validate("Currency Code", VendorBillHeader."Currency Code");
-        
+
         if not VendorBillLine."Manual Line" then begin
             GenJnlLine.Validate("Salespers./Purch. Code", VendLedgEntry."Purchaser Code");
-            ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax::" ");
+            ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, TaxType::" ");
         end else
             GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
         GenJnlLine.Description := Bill.Description;
@@ -281,67 +266,12 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlPostLine.RunWithCheck(GenJnlLine);
     end;
 
+#if not CLEAN30
+    [Obsolete('Moved to codeunit WHTVendorBillListPost', '30.0')]
     procedure PostTax(VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; Tax: Option " ",Withhold,"Free Lance",Company)
-    var
-        GenJnlLine: Record "Gen. Journal Line";
-        WithholdCode: Record "Withhold Code";
-        ContributionCode: Record "Contribution Code";
     begin
-        GenJnlLine.Init();
-        GenJnlLine.Validate("Posting Date", VendorBillHeader."Posting Date");
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-        GenJnlLine."Document No." := VendorBillHeader."Vendor Bill List No.";
-        GenJnlLine."Document Date" := VendorBillHeader."List Date";
-        GenJnlLine."External Document No." := VendorBillLine."Vendor Bill List No.";
-        case Tax of
-            Tax::Withhold:
-                begin
-                    WithholdCode.Get(VendorBillWithholdingTax."Withholding Tax Code");
-                    GenJnlLine."Account Type" := GenJnlLine."Account Type"::Vendor;
-                    GenJnlLine.Validate("Account No.", VendorBillLine."Vendor No.");
-                    GenJnlLine.Validate(Amount, VendorBillLine."Withholding Tax Amount");
-                    WithholdCode.TestField("Withholding Taxes Payable Acc.");
-                    GenJnlLine."Bal. Account No." := WithholdCode."Withholding Taxes Payable Acc.";
-                end;
-            Tax::"Free Lance":
-                begin
-                    ContributionCode.Get(VendorBillWithholdingTax."Social Security Code");
-                    GenJnlLine."Account Type" := GenJnlLine."Account Type"::Vendor;
-                    GenJnlLine.Validate("Account No.", VendorBillLine."Vendor No.");
-                    GenJnlLine.Validate(Amount, VendorBillWithholdingTax."Free-Lance Amount");
-                    ContributionCode.TestField("Social Security Payable Acc.");
-                    GenJnlLine."Bal. Account No." := ContributionCode."Social Security Payable Acc.";
-                end;
-            Tax::Company:
-                begin
-                    ContributionCode.Get(VendorBillWithholdingTax."Social Security Code");
-                    GenJnlLine."Account Type" := GenJnlLine."Account Type"::"G/L Account";
-                    ContributionCode.TestField("Social Security Charges Acc.");
-                    GenJnlLine.Validate("Account No.", ContributionCode."Social Security Charges Acc.");
-                    GenJnlLine.Validate(Amount, VendorBillWithholdingTax."Company Amount");
-                    ContributionCode.TestField("Social Security Payable Acc.");
-                    GenJnlLine."Bal. Account No." := ContributionCode."Social Security Payable Acc.";
-                end;
-        end;
-        GenJnlLine.Validate("Currency Code", VendorBillHeader."Currency Code");
-        if not VendorBillLine."Manual Line" then begin
-            GenJnlLine.Validate("Salespers./Purch. Code", VendLedgEntry."Purchaser Code");
-            ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax);
-        end;
-        GenJnlLine.Description := Bill.Description;
-        GenJnlLine."Source Code" := Bill."Vend. Bill Source Code";
-        GenJnlLine."System-Created Entry" := true;
-        GenJnlLine."Reason Code" := VendorBillHeader."Reason Code";
-        GenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-        GenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-        if not VendorBillLine."Manual Line" then
-            GenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID"
-        else
-            GenJnlLine."Dimension Set ID" := VendorBillLine."Dimension Set ID";
-
-        OnBeforePostWithholdingTax(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, VendorBillWithholdingTax);
-        GenJnlPostLine.RunWithCheck(GenJnlLine);
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure ApplyInvAndUpdateLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; VendorBillLine: Record "Vendor Bill Line"; Tax: Option " ",Withhold,"Free Lance",Company)
@@ -405,10 +335,18 @@ codeunit 12173 "Vendor Bill List - Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnAfterPostTax(var VendorBillHeader: Record "Vendor Bill Header"; var VendorBillLine: Record "Vendor Bill Line"; var VendBillWithhTax: Record "Vendor Bill Withholding Tax"; var VendLedgEntry: Record "Vendor Ledger Entry"; BillCode: Record Bill; TaxType2: Option);
+    begin
+        OnAfterPostTax(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType2);
+    end;
+
+    [Obsolete('Moved to codeunit WHTVendorBillListPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostTax(var VendorBillHeader: Record "Vendor Bill Header"; var VendorBillLine: Record "Vendor Bill Line"; var VendBillWithhTax: Record "Vendor Bill Withholding Tax"; var VendLedgEntry: Record "Vendor Ledger Entry"; BillCode: Record Bill; TaxType: Option);
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePost(var VendorBillHeader: Record "Vendor Bill Header")
@@ -430,10 +368,18 @@ codeunit 12173 "Vendor Bill List - Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforePostWithholdingTax(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax")
+    begin
+        OnBeforePostWithholdingTax(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, VendorBillWithholdingTax);
+    end;
+
+    [Obsolete('Moved to codeunit WHTVendorBillListPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostWithholdingTax(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPostedBillLine(VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendBillWithhTax: Record "Vendor Bill Withholding Tax"; VendLedgEntry: Record "Vendor Ledger Entry"; BillCode: Record Bill; TaxType: Option " ",Withhold,"Free Lance",Company; PostedVendorBillHeader: Record "Posted Vendor Bill Header"; BalanceAmountLCY: Decimal; var IsHandled: Boolean)
@@ -441,7 +387,12 @@ codeunit 12173 "Vendor Bill List - Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostVendorBillLineOnBeforeValidateCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal;var IsHandled:Boolean)
+    local procedure OnPostVendorBillLineOnBeforeValidateCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPostVendorBillLine(VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; GenJnlLine: Record "Gen. Journal Line"; BillCode: Record Bill; TaxType: Option " ",Withhold,"Free Lance",Company; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 }

@@ -12,6 +12,7 @@ tableextension 5032 "Serv. Decl. Serv. Inv. Header" extends "Service Invoice Hea
         {
             Caption = 'Applicable For Service Declaration';
             Editable = false;
+            DataClassification = CustomerContent;
         }
     }
 }
