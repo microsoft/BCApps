@@ -509,8 +509,7 @@ codeunit 99000830 "Create Reserv. Entry"
                         NewReservEntry."Expected Receipt Date" := 0D
                     else
                         NewReservEntry."Shipment Date" := DMY2Date(31, 12, 9999);
-                    if NewTrackingTransferred then
-                        InsertReservEntry.ClearNewTracking(); // The remaining entry stays on the original source
+
                     OnTransferReservEntryOnBeforeNewReservEntryModify(NewReservEntry, true);
                     NewReservEntry.Modify();
                 end;
