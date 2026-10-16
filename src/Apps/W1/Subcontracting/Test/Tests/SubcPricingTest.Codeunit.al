@@ -996,17 +996,24 @@ codeunit 139982 "Subc. Pricing Test"
     procedure TimeBasedSubcontractorPriceConvertsProductionUOMOnce()
     begin
         Initialize();
-        VerifyTimeBasedPriceForProductionUOM(false);
+        VerifyTimeBasedPriceForProductionUOM(false, '');
     end;
 
     [Test]
     procedure TimeBasedSubcontractorPriceUsesMatchingProductionUOM()
     begin
         Initialize();
-        VerifyTimeBasedPriceForProductionUOM(true);
+        VerifyTimeBasedPriceForProductionUOM(true, '');
     end;
 
-    local procedure VerifyTimeBasedPriceForProductionUOM(PriceMatchesProductionUOM: Boolean)
+    [Test]
+    procedure TimeBasedSubcontractorPriceConvertsProductionUOMAndCurrency()
+    begin
+        Initialize();
+        VerifyTimeBasedPriceForProductionUOM(false, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1));
+    end;
+
+    local procedure VerifyTimeBasedPriceForProductionUOM(PriceMatchesProductionUOM: Boolean; DocumentCurrencyCode: Code[10])
     var
         Item: Record Item;
         ItemUOM: Record "Item Unit of Measure";
@@ -1022,8 +1029,9 @@ codeunit 139982 "Subc. Pricing Test"
         AltUOMCode: Code[10];
         PriceUOMCode: Code[10];
     begin
-        // [GIVEN] One production UOM contains 10 base units, with Run Time 2 and price 100
-        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, '', 2);
+        // [GIVEN] One production UOM contains 10 base units, with Run Time 2 and an LCY price of 100
+        // [GIVEN] The subcontractor and its documents use DocumentCurrencyCode (blank for LCY, 1:1 otherwise)
+        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, DocumentCurrencyCode, 2);
         AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
         LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, 10);
         if PriceMatchesProductionUOM then
@@ -1042,19 +1050,21 @@ codeunit 139982 "Subc. Pricing Test"
         ProdOrderLine.Modify(true);
 
         // [WHEN] Worksheet and purchase pricing run in the production UOM
-        StageTimeBasedRequisitionLine(RequisitionLine, Vendor, WorkCenter, Item, ProdOrderRoutingLine, '');
+        StageTimeBasedRequisitionLine(RequisitionLine, Vendor, WorkCenter, Item, ProdOrderRoutingLine, DocumentCurrencyCode);
         RequisitionLine."Unit of Measure Code" := AltUOMCode;
         RequisitionLine."Qty. per Unit of Measure" := 10;
         RequisitionLine."Quantity (Base)" := 10;
         SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
         CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
         PurchaseLine.TestField("Unit of Measure Code", AltUOMCode);
+        PurchaseLine.TestField("Currency Code", DocumentCurrencyCode);
         Assert.AreEqual(2000, PurchaseLine."Direct Unit Cost", DirectlyCreatedPurchaseLineDirectUnitCostErr);
         PurchaseLine."Order Date" := WorkDate();
         PurchaseLine."Direct Unit Cost" := 0;
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
 
-        // [THEN] The production UOM multiplier is applied once, whether the price UOM matches or defaults to base
+        // [THEN] The production UOM multiplier is applied once, whether the price UOM matches or defaults to base,
+        // and the UOM-converted cost is what gets exchanged into the document currency
         Assert.AreEqual(2000, RequisitionLine."Direct Unit Cost", WorksheetDirectUnitCostErr);
         Assert.AreEqual(2000, PurchaseLine."Direct Unit Cost", AutomaticPurchaseLineRepricingErr);
     end;
