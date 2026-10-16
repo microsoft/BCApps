@@ -16,6 +16,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -26,8 +27,10 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using System.IO;
 using System.Text;
@@ -89,6 +92,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreditMemoCustomerPartyIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
         CreditMemoCustomerLegalEntityIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         CreditMemoDeliveryLocationIdTok: Label '/ns0:CreditNote/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
+        InvoiceDeliveryTok: Label '/ubl:Invoice/cac:Delivery', Locked = true;
+        InvoiceDeliveryAddressTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cac:Address', Locked = true;
+        CreditMemoDeliveryTok: Label '/ns0:CreditNote/cac:Delivery', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -820,6 +826,186 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := InvoiceTaxCategoryTok + '/cbc:TaxExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatPartialShipToAddressFails()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 9815] A partially filled deliver-to address must still be complete
+        Initialize();
+
+        // [GIVEN] Sales Invoice where only "Ship-to City" is filled
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesHeader);
+        SalesHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the Sales Invoice for XRechnung
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] "Ship-to Address" must have a value
+        Assert.ExpectedTestFieldError(SalesHeader.FieldCaption("Ship-to Address"), '');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateOnlyOmitsDeliveryLocation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A delivery with only a delivery date exports no empty DeliveryLocation
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date", without ship-to address and delivery GLN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader.TestField("Shipment Date");
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Delivery holds the ActualDeliveryDate and no DeliveryLocation
+        Assert.AreEqual(
+            FormatDate(SalesInvoiceHeader."Shipment Date"), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cac:DeliveryLocation');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipToCityOnlyOmitsEmptyAddressFields()
+    var
+        CompanyInfo: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A partially filled deliver-to address exports no empty StreetName or PostalZone
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice where only "Ship-to City" is filled
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Address holds the CityName and the company country, and no empty StreetName or PostalZone
+        Assert.AreEqual(
+            SalesInvoiceHeader."Ship-to City", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:CityName'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:CityName'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:StreetName');
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:PostalZone');
+        CompanyInfo.Get();
+        CountryRegion.Get(CompanyInfo."Country/Region Code");
+        Assert.AreEqual(
+            CountryRegion."ISO Code", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cac:Country/cbc:IdentificationCode'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cac:Country/cbc:IdentificationCode'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatAnyShipToFieldExportsDeliveryAddress()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ShipToFieldNo: Integer;
+    begin
+        // [SCENARIO 9815] Each ship-to address field on its own makes the delivery Address exported
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice without "Shipment Date", for a customer that does not use GLN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        foreach ShipToFieldNo in GetShipToAddressFieldNos() do begin
+            // [GIVEN] Only one ship-to address field is filled
+            SetSingleShipToAddressField(SalesInvoiceHeader, ShipToFieldNo);
+
+            // [WHEN] Export XRechnung Electronic Document
+            TempXMLBuffer.Reset();
+            TempXMLBuffer.DeleteAll();
+            ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+            // [THEN] DeliveryLocation holds an Address without empty elements
+            Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceDeliveryAddressTok), StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok));
+            VerifyNoEmptyDeliveryAddressElement(TempXMLBuffer);
+        end;
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyDeliveryCountrySubentity()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] The deliver-to country subdivision (BT-79) is exported from "Ship-to County"
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with a ship-to address and a "Ship-to County"
+        ResetPostingNoSeriesDateUsage();
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Ship-to County" := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The delivery Address holds the county in CountrySubentity
+        Assert.AreEqual(
+            SalesInvoiceHeader."Ship-to County", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:CountrySubentity'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:CountrySubentity'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateTodayExportsActualDeliveryDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A shipment on the current date is exported as the actual delivery date (BT-72)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date" = today
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Shipment Date" := Today();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate = today
+        Assert.AreEqual(
+            FormatDate(Today()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateWorkDateExportsActualDeliveryDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A shipment on the work date is exported as the actual delivery date (BT-72)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date" = work date
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Shipment Date" := WorkDate();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate = work date
+        Assert.AreEqual(
+            FormatDate(WorkDate()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
     #endregion
 
     #region ServiceInvoice
@@ -1173,6 +1359,55 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] XRechnung Electronic Document contains 2 AdditionalDocumentReference nodes
         VerifyCSVAttachments(TempXMLBuffer, 'attachment.csv', CSVText1, 'document.csv', CSVText2);
     end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatWithoutShipToAddressOmitsDelivery()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A service invoice without a deliver-to address is released, posted and exported without Delivery
+        Initialize();
+
+        // [GIVEN] Service Invoice without ship-to address, for a customer that does not use GLN
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ClearShipToAddress(ServiceHeader);
+        ServiceHeader.Modify(false);
+
+        // [WHEN] Check the Service Invoice for release, post it and export XRechnung Electronic Document
+        CheckServiceHeader(ServiceHeader);
+        ResetPostingNoSeriesDateUsage();
+        ServiceInvoiceHeader.Get(PostServiceDocument(ServiceHeader));
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No Delivery is exported, the rest of the document is
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok);
+        VerifyHeaderData(ServiceInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatOmitsActualDeliveryDate()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A service document has no shipment date, so no actual delivery date (BT-72) is exported
+        Initialize();
+
+        // [GIVEN] Posted Service Invoice with a ship-to address
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The delivery address is exported without an ActualDeliveryDate
+        Assert.AreEqual(
+            ServiceInvoiceHeader."Ship-to Address", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:StreetName'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:StreetName'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+    end;
+
     #endregion
 
     #region SalesCreditMemo
@@ -1624,6 +1859,34 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := '/ns0:CreditNote/cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID';
         Assert.AreEqual(CompanyInformation.IBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatWithoutShipToAddressOmitsDelivery()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A sales credit memo without a deliver-to address is released, posted and exported without Delivery
+        Initialize();
+
+        // [GIVEN] Sales Credit Memo without ship-to address and "Shipment Date", for a customer that does not use GLN
+        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesHeader);
+        SalesHeader."Shipment Date" := 0D;
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the Sales Credit Memo for release, post it and export XRechnung Electronic Document
+        CheckSalesHeader(SalesHeader);
+        ResetPostingNoSeriesDateUsage();
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No Delivery is exported, the rest of the document is
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok);
+        VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
     #endregion
 
     #region ServiceCreditMemo
@@ -1924,6 +2187,33 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] XRechnung Electronic Document is created with company data as accounting supplier party
         VerifyAccountingSupplierParty(TempXMLBuffer, '/ns0:CreditNote/cac:AccountingSupplierParty/cac:Party', ResponsibilityCenter);
     end;
+
+    [Test]
+    procedure ExportPostedServiceCrMemoInXRechnungFormatWithoutShipToAddressOmitsDelivery()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceHeader: Record "Service Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A service credit memo without a deliver-to address is released, posted and exported without Delivery
+        Initialize();
+
+        // [GIVEN] Service Credit Memo without ship-to address, for a customer that does not use GLN
+        ServiceHeader.Get(ServiceHeader."Document Type"::"Credit Memo", CreateServiceCrMemoDocumentWithLine());
+        ClearShipToAddress(ServiceHeader);
+        ServiceHeader.Modify(false);
+
+        // [WHEN] Check the Service Credit Memo for release, post it and export XRechnung Electronic Document
+        CheckServiceHeader(ServiceHeader);
+        ResetPostingNoSeriesDateUsage();
+        ServiceCrMemoHeader.Get(PostServiceCrMemoDocument(ServiceHeader));
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No Delivery is exported, the rest of the document is
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok);
+        VerifyHeaderData(ServiceCrMemoHeader, TempXMLBuffer);
+    end;
+
     #endregion
 
     #region InvoiceDiscount
@@ -2252,6 +2542,31 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok + '/@schemeID'));
     end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithGLNOnlyOmitsDeliveryAddress()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A delivery location with only a GLN exports the ID and no empty Address
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice for a customer that uses GLN, without ship-to address and "Shipment Date"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), '', true));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] DeliveryLocation holds the customer GLN, and neither an Address nor an ActualDeliveryDate is exported
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+    end;
+
     #endregion
 
     #region PurchaseInvoice
@@ -5829,6 +6144,94 @@ codeunit 13918 "XRechnung XML Document Tests"
         VATPostingSetup.Get(VATBusPostingGroup, VATProductPostingGroup);
         VATPostingSetup.Validate("VAT Clause Code", VATClauseCode);
         VATPostingSetup.Modify(true);
+    end;
+
+    local procedure ClearShipToAddress(var SalesHeader: Record "Sales Header")
+    begin
+        SalesHeader."Ship-to Code" := '';
+        SalesHeader."Ship-to Address" := '';
+        SalesHeader."Ship-to Address 2" := '';
+        SalesHeader."Ship-to City" := '';
+        SalesHeader."Ship-to Post Code" := '';
+        SalesHeader."Ship-to County" := '';
+        SalesHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure ClearShipToAddress(var SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        SalesInvoiceHeader."Ship-to Code" := '';
+        SalesInvoiceHeader."Ship-to Address" := '';
+        SalesInvoiceHeader."Ship-to Address 2" := '';
+        SalesInvoiceHeader."Ship-to City" := '';
+        SalesInvoiceHeader."Ship-to Post Code" := '';
+        SalesInvoiceHeader."Ship-to County" := '';
+        SalesInvoiceHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure ClearShipToAddress(var ServiceHeader: Record "Service Header")
+    begin
+        ServiceHeader."Ship-to Code" := '';
+        ServiceHeader."Ship-to Address" := '';
+        ServiceHeader."Ship-to Address 2" := '';
+        ServiceHeader."Ship-to City" := '';
+        ServiceHeader."Ship-to Post Code" := '';
+        ServiceHeader."Ship-to County" := '';
+        ServiceHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure GetShipToAddressFieldNos() ShipToFieldNos: List of [Integer]
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Address"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Address 2"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to City"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Post Code"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to County"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Country/Region Code"));
+    end;
+
+    local procedure SetSingleShipToAddressField(var SalesInvoiceHeader: Record "Sales Invoice Header"; ShipToFieldNo: Integer)
+    var
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeaderRecRef: RecordRef;
+    begin
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader.Modify(false);
+        SalesInvoiceHeaderRecRef.GetTable(SalesInvoiceHeader);
+        if ShipToFieldNo = SalesInvoiceHeader.FieldNo("Ship-to Country/Region Code") then begin
+            CountryRegion.SetFilter("ISO Code", '<>%1', '');
+            CountryRegion.FindFirst();
+            SalesInvoiceHeaderRecRef.Field(ShipToFieldNo).Value := CountryRegion.Code;
+        end else
+            SalesInvoiceHeaderRecRef.Field(ShipToFieldNo).Value := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeaderRecRef.Modify(false);
+        SalesInvoiceHeaderRecRef.SetTable(SalesInvoiceHeader);
+    end;
+
+    local procedure VerifyNoEmptyDeliveryAddressElement(var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        ElementName: Text;
+    begin
+        foreach ElementName in '/cbc:StreetName,/cbc:AdditionalStreetName,/cbc:CityName,/cbc:PostalZone,/cbc:CountrySubentity'.Split(',') do
+            if NodeExistsByPath(TempXMLBuffer, InvoiceDeliveryAddressTok + ElementName) then
+                Assert.AreNotEqual('', GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + ElementName), StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + ElementName));
+    end;
+
+    local procedure ResetPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        ServiceMgtSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2|%3|%4|%5|%6',
+            SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.",
+            SalesReceivablesSetup."Posted Credit Memo Nos.", SalesReceivablesSetup."Posted Return Receipt Nos.",
+            ServiceMgtSetup."Posted Service Invoice Nos.", ServiceMgtSetup."Posted Serv. Credit Memo Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     local procedure Initialize();
