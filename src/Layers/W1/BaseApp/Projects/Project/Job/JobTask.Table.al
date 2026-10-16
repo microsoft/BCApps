@@ -1367,8 +1367,17 @@ table 1001 "Job Task"
     local procedure BillToCustomerNoUpdated(var JobTask: Record "Job Task"; var xJobTask: Record "Job Task")
     var
         BillToCustomer: Record Customer;
+        IsHandled: Boolean;
     begin
         OnBeforeBillToCustomerNoUpdated(JobTask, xJobTask, CurrFieldNo);
+
+        if JobTask."Bill-to Customer No." <> '' then begin
+            BillToCustomer.Get(JobTask."Bill-to Customer No.");
+            IsHandled := false;
+            OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(JobTask, BillToCustomer, IsHandled);
+            if not IsHandled then
+                BillToCustomer.CheckBlockedCustOnDocs(BillToCustomer, Enum::"Sales Document Type"::Order, false, false);
+        end;
 
         CheckBillToCustomerAssosEntriesExist(JobTask, xJobTask);
 
@@ -1996,6 +2005,11 @@ table 1001 "Job Task"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBillToCustomerNoUpdated(var JobTask: Record "Job Task"; xJobTask: Record "Job Task"; CallingFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var JobTask: Record "Job Task"; var Cust: Record Customer; var IsHandled: Boolean)
     begin
     end;
 

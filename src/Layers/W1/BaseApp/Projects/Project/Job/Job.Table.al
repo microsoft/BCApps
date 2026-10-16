@@ -2675,6 +2675,14 @@ table 167 Job
         if IsHandled then
             exit;
 
+        if Job."Bill-to Customer No." <> '' then begin
+            BillToCustomer.Get(Job."Bill-to Customer No.");
+            IsHandled := false;
+            OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(Rec, BillToCustomer, IsHandled);
+            if not IsHandled then
+                BillToCustomer.CheckBlockedCustOnDocs(BillToCustomer, Enum::"Sales Document Type"::Order, false, false);
+        end;
+
         CheckBillToCustomerAssosEntriesExist(Job, xJob);
 
         if (xJob."Bill-to Customer No." <> '') and (xJob."Bill-to Customer No." <> Job."Bill-to Customer No.") and (not GetHideValidationDialog()) and GuiAllowed() then
@@ -3396,6 +3404,11 @@ table 167 Job
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateSellToCustomerNoOnBeforeCheckBlockedCustOnDocs(var Job: Record Job; var Cust: Record Customer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var Job: Record Job; var Cust: Record Customer; var IsHandled: Boolean)
     begin
     end;
 

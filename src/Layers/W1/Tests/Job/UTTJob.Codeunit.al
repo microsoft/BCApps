@@ -1327,6 +1327,114 @@ codeunit 136350 "UT T Job"
     end;
 
     [Test]
+    procedure CheckBlockedBillToCustomerOnJob()
+    var
+        Job: Record Job;
+        BlockedCustomer: Record Customer;
+    begin
+        // [FEATURE] [Job] [Customer]
+        // [SCENARIO 9559] A blocked customer cannot be set as bill-to customer on a project.
+        Initialize();
+
+        // [GIVEN] A project with a sell-to customer that is not blocked
+        LibraryJob.CreateJob(Job);
+
+        // [GIVEN] Another customer with blocked as All
+        LibrarySales.CreateCustomer(BlockedCustomer);
+        BlockedCustomer.Validate(Blocked, BlockedCustomer.Blocked::All);
+        BlockedCustomer.Modify(true);
+
+        // [WHEN] Setting the blocked customer as bill-to customer.
+        Job.SetHideValidationDialog(true);
+        asserterror Job.Validate("Bill-to Customer No.", BlockedCustomer."No.");
+
+        // [THEN] Error should appear that customer is blocked
+        Assert.ExpectedError(StrSubstNo(CustomerBlockedErr, BlockedCustomer."No.", BlockedCustomer.Blocked));
+    end;
+
+    [Test]
+    procedure CheckBillToCustomerBlockedForInvoiceOnJob()
+    var
+        Job: Record Job;
+        BlockedCustomer: Record Customer;
+    begin
+        // [FEATURE] [Job] [Customer]
+        // [SCENARIO 9559] A customer that is blocked for invoicing cannot be set as bill-to customer on a project.
+        Initialize();
+
+        // [GIVEN] A project with a sell-to customer that is not blocked
+        LibraryJob.CreateJob(Job);
+
+        // [GIVEN] Another customer with blocked as Invoice
+        LibrarySales.CreateCustomer(BlockedCustomer);
+        BlockedCustomer.Validate(Blocked, BlockedCustomer.Blocked::Invoice);
+        BlockedCustomer.Modify(true);
+
+        // [WHEN] Setting the blocked customer as bill-to customer.
+        Job.SetHideValidationDialog(true);
+        asserterror Job.Validate("Bill-to Customer No.", BlockedCustomer."No.");
+
+        // [THEN] Error should appear that customer is blocked
+        Assert.ExpectedError(StrSubstNo(CustomerBlockedErr, BlockedCustomer."No.", BlockedCustomer.Blocked));
+    end;
+
+    [Test]
+    procedure CheckBlockedBillToCustomerOfSellToCustomerOnJob()
+    var
+        Job: Record Job;
+        SellToCustomer: Record Customer;
+        BlockedCustomer: Record Customer;
+    begin
+        // [FEATURE] [Job] [Customer]
+        // [SCENARIO 9559] A sell-to customer whose default bill-to customer is blocked cannot be set on a project.
+        Initialize();
+
+        // [GIVEN] A customer that is not blocked and that is billed by another customer
+        LibrarySales.CreateCustomer(BlockedCustomer);
+        LibrarySales.CreateCustomer(SellToCustomer);
+        SellToCustomer.Validate("Bill-to Customer No.", BlockedCustomer."No.");
+        SellToCustomer.Modify(true);
+
+        // [GIVEN] The bill-to customer is blocked with type All
+        BlockedCustomer.Validate(Blocked, BlockedCustomer.Blocked::All);
+        BlockedCustomer.Modify(true);
+        Job.Init();
+
+        // [WHEN] Setting the sell-to customer.
+        asserterror Job.Validate("Sell-to Customer No.", SellToCustomer."No.");
+
+        // [THEN] Error should appear that the bill-to customer is blocked
+        Assert.ExpectedError(StrSubstNo(CustomerBlockedErr, BlockedCustomer."No.", BlockedCustomer.Blocked));
+    end;
+
+    [Test]
+    procedure ClearBillToCustomerOnJobWhenCustomerIsBlocked()
+    var
+        Job: Record Job;
+        Customer: Record Customer;
+    begin
+        // [FEATURE] [Job] [Customer]
+        // [SCENARIO 9559] The bill-to customer of a project can still be cleared after that customer has been blocked.
+        Initialize();
+
+        // [GIVEN] A project with a bill-to customer
+        LibrarySales.CreateCustomer(Customer);
+        LibraryJob.CreateJob(Job, Customer."No.");
+        Job.TestField("Bill-to Customer No.", Customer."No.");
+
+        // [GIVEN] The customer is blocked with type All afterwards
+        Customer.Validate(Blocked, Customer.Blocked::All);
+        Customer.Modify(true);
+
+        // [WHEN] Clearing the bill-to customer.
+        Job.SetHideValidationDialog(true);
+        Job.Validate("Bill-to Customer No.", '');
+
+        // [THEN] No error occurs and the bill-to customer is empty
+        Job.TestField("Bill-to Customer No.", '');
+    end;
+
+    [Test]
     [HandlerFunctions('CustomerLookupModalHandler,ConfirmHandlerYes')]
     procedure S463319_SwitchSellToCustomerNameToCustomerWithTheSameName()
     var
