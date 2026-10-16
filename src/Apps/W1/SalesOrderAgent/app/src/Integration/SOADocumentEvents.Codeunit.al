@@ -26,10 +26,8 @@ codeunit 4600 "SOA Document Events"
     begin
         if Rec.IsTemporary() then
             exit;
-
         if Rec."Document Type" = Rec."Document Type"::Order then
             SOABilling.LogOrderModified(Rec.SystemId, AgentTaskID);
-
         if Rec."Document Type" = Rec."Document Type"::Quote then begin
             SOABilling.LogQuoteModified(Rec.SystemId, AgentTaskID);
             AddAttachmentsToDocument(Rec);
@@ -57,12 +55,12 @@ codeunit 4600 "SOA Document Events"
                 CopiedAttachments := 0;
                 AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskID);
                 AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
+                AgentTaskMessageAttachment.SetRange(Ignored, false);
                 if AgentTaskMessageAttachment.FindSet() then
                     repeat
                         if CopyAttachmentToDocument(AgentTaskMessageAttachment, Rec) then
                             CopiedAttachments += 1;
                     until AgentTaskMessageAttachment.Next() = 0;
-
                 if CopiedAttachments > 0 then begin
                     TelemetryDimensions.Set('TaskMessageId', Format(AgentTaskMessage.ID));
                     TelemetryDimensions.Set('CopiedAttachments', Format(CopiedAttachments, 0, 9));
