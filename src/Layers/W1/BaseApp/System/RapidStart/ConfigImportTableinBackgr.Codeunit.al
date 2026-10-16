@@ -1,6 +1,5 @@
 namespace System.IO;
 
-using System;
 using System.Threading;
 
 codeunit 8626 "Config. Import Table in Backgr"
@@ -11,9 +10,10 @@ codeunit 8626 "Config. Import Table in Backgr"
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
         MemoryMappedFile: Codeunit "Memory Mapped File";
-        PackageXML: DotNet XmlDocument;
-        DocumentElement: DotNet XmlElement;
-        TableNode: DotNet XmlNode;
+        PackageXML: XmlDocument;
+        DocumentElement: XmlElement;
+        TableXmlNode: XmlNode;
+        TableNode: XmlElement;
         nodetext: Text;
         PackageCode: Code[20];
     begin
@@ -26,18 +26,15 @@ codeunit 8626 "Config. Import Table in Backgr"
         MemoryMappedFile.ReadTextWithSeparatorsFromMemoryMappedFile(nodetext);
         MemoryMappedFile.Dispose();
 
-        PackageXML := PackageXML.XmlDocument();
-        PackageXML.LoadXml(nodetext);
-        if IsNull(PackageXML) then
+        XmlDocument.ReadFrom(nodetext, PackageXML);
+        if not PackageXML.GetRoot(DocumentElement) then
             exit;
-        DocumentElement := PackageXML.DocumentElement;
-        if IsNull(DocumentElement) then
+        if not DocumentElement.GetChildNodes().Get(1, TableXmlNode) then
             exit;
-        TableNode := DocumentElement.FirstChild;
-        if IsNull(TableNode) then
+        if not TableXmlNode.IsXmlElement() then
             exit;
+        TableNode := TableXmlNode.AsXmlElement();
         ConfigXMLExchange.SetHideDialog(true);
         ConfigXMLExchange.ImportTableFromXMLNode(TableNode, PackageCode);
     end;
 }
-
