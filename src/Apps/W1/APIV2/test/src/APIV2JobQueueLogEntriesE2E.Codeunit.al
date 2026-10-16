@@ -1,7 +1,7 @@
 codeunit 139861 "APIV2JobQueueLogEntriesE2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -16,6 +16,7 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
         ServiceNameTxt: Label 'jobQueueLogEntries';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobQueueLogEntry()
     var
         JobQueueLogEntry: Record "Job Queue Log Entry";
@@ -65,6 +66,13 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
         JobQueueLogEntry.Validate(Status, Status);
         JobQueueLogEntry.Insert();
         exit(JobQueueLogEntry);
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 
     local procedure Initialize()

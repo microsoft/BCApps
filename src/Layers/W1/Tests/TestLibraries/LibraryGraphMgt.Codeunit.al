@@ -297,6 +297,25 @@ codeunit 130618 "Library - Graph Mgt"
         exit(TargetURL);
     end;
 
+    /// <summary>
+    /// Checks whether an intercepted HTTP request targets the local Business Central API endpoint.
+    /// Compares scheme, host and port with the URL returned by GetUrl(ClientType::Api).
+    /// </summary>
+    /// <param name="Request">The request intercepted by an HttpClientHandler.</param>
+    /// <returns>True if the request targets the local Business Central server; otherwise, false.</returns>
+    procedure IsLocalServerRequest(Request: TestHttpRequestMessage): Boolean
+    var
+        RequestUri: Codeunit Uri;
+        ServerUri: Codeunit Uri;
+    begin
+        RequestUri.Init(Request.Path);
+        ServerUri.Init(GetUrl(ClientType::Api));
+        exit(
+            (LowerCase(RequestUri.GetScheme()) = LowerCase(ServerUri.GetScheme())) and
+            (LowerCase(RequestUri.GetHost()) = LowerCase(ServerUri.GetHost())) and
+            (RequestUri.GetPort() = ServerUri.GetPort()));
+    end;
+
     [Normal]
     procedure CreateQueryTargetURL(QueryNumber: Integer; ServiceNameTxt: Text): Text
     var

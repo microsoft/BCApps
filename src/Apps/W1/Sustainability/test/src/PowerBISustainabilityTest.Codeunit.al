@@ -14,7 +14,7 @@ using System.Text;
 codeunit 148215 "PowerBI Sustainability Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     Access = Internal;
     Permissions = tabledata "Employee Ledger Entry" = RIMD, tabledata "Detailed Employee Ledger Entry" = RIMD;
 
@@ -33,6 +33,7 @@ codeunit 148215 "PowerBI Sustainability Test"
         FieldShownMsg: Label '''%1'' field should be shown.', Comment = '%1 - field caption';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestSustainLedgerEntry()
     var
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
@@ -97,6 +98,7 @@ codeunit 148215 "PowerBI Sustainability Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmployeeLedgerEntry()
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
@@ -151,6 +153,7 @@ codeunit 148215 "PowerBI Sustainability Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestSustainabilityGoal()
     var
         SustainabilityGoal: Record "Sustainability Goal";
@@ -368,5 +371,12 @@ codeunit 148215 "PowerBI Sustainability Test"
         Assert.AreEqual(Format(SustainabilityGoal."End Date", 0, 9), JsonMgt.GetValue('endDate'), 'End Date did not match.');
         Assert.AreEqual(Format(SustainabilityGoal."Baseline Start Date", 0, 9), JsonMgt.GetValue('baselineStartDate'), 'Baseline Start Date did not match.');
         Assert.AreEqual(Format(SustainabilityGoal."Baseline End Date", 0, 9), JsonMgt.GetValue('baselineEndDate'), 'Baseline End Date did not match.');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

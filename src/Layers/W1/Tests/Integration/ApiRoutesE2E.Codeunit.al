@@ -1,7 +1,7 @@
 codeunit 135548 "API Routes E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -15,6 +15,7 @@ codeunit 135548 "API Routes E2E"
         ApiRoutesTxt: Label 'apiRoutes', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetApiRoutesMany()
     var
@@ -33,6 +34,7 @@ codeunit 135548 "API Routes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetApiRoutesSingle()
     var
@@ -51,6 +53,7 @@ codeunit 135548 "API Routes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPostApiRoutesNotAllowed()
     var
@@ -69,6 +72,7 @@ codeunit 135548 "API Routes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPatchApiRoutesNotAllowed()
     var
@@ -87,6 +91,7 @@ codeunit 135548 "API Routes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestDeleteApiRoutesNotAllowed()
     var
@@ -102,6 +107,13 @@ codeunit 135548 "API Routes E2E"
 
         // [THEN] Expecting response code 400
         Assert.ExpectedError('400 (BadRequest)');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

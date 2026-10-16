@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148344 "Policy Evaluations API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -27,6 +27,7 @@ codeunit 148344 "Policy Evaluations API Test"
         ExpenseReportLineSubjectTypeTok: Label 'Expense_x0020_Report_x0020_Line', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure PolicyEvaluationAPIInsertsFlagWithRequiredVersions()
     var
         ExpensePolicy: Record "Expense Policy";
@@ -60,6 +61,7 @@ codeunit 148344 "Policy Evaluations API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure PolicyEvaluationAPIRejectsMissingSubjectVersion()
     var
         ExpensePolicy: Record "Expense Policy";
@@ -86,6 +88,7 @@ codeunit 148344 "Policy Evaluations API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure PolicyEvaluationAPIRejectsMissingPolicyVersion()
     var
         ExpensePolicy: Record "Expense Policy";
@@ -188,5 +191,12 @@ codeunit 148344 "Policy Evaluations API Test"
     begin
         LibraryExpense.CleanUpBeforeTesting();
         Commit();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

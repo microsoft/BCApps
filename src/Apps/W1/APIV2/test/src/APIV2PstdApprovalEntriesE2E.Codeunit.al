@@ -1,7 +1,7 @@
 codeunit 139919 "APIV2 PstdApprovalEntries E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -14,6 +14,7 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedApprovalEntries()
     var
         PostedApprovalEntry: Record "Posted Approval Entry";
@@ -61,4 +62,11 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
         PostedApprovalEntry.Insert();
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148345 "Policies To Evaluate API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -23,6 +23,7 @@ codeunit 148345 "Policies To Evaluate API Test"
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure PoliciesToEvaluateAPIRebuildsForChangedSubject()
     var
         ExpensePolicyA: Record "Expense Policy";
@@ -186,5 +187,12 @@ codeunit 148345 "Policies To Evaluate API Test"
     begin
         LibraryExpense.CleanUpBeforeTesting();
         Commit();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

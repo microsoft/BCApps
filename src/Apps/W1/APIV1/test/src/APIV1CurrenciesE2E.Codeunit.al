@@ -3,7 +3,7 @@ codeunit 139713 "APIV1 - Currencies E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -45,6 +45,7 @@ codeunit 139713 "APIV1 - Currencies E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCurrencies()
     var
         CurrencyCode: array[2] of Text;
@@ -71,6 +72,7 @@ codeunit 139713 "APIV1 - Currencies E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCurrency()
     var
         Currency: Record "Currency";
@@ -98,6 +100,7 @@ codeunit 139713 "APIV1 - Currencies E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCurrency()
     var
         Currency: Record "Currency";
@@ -128,6 +131,7 @@ codeunit 139713 "APIV1 - Currencies E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCurrency()
     var
         Currency: Record "Currency";
@@ -217,6 +221,13 @@ codeunit 139713 "APIV1 - Currencies E2E"
         LibraryGraphMgt.VerifyIDInJson(CurrencyJSON);
         VerifyPropertyInJSON(CurrencyJSON, 'code', Currency.Code);
         VerifyPropertyInJSON(CurrencyJSON, 'displayName', Currency.Description);
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

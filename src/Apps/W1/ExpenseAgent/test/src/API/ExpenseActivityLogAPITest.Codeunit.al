@@ -12,7 +12,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148343 "Expense Activity Log API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -38,6 +38,7 @@ codeunit 148343 "Expense Activity Log API Test"
         RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ActivityLogEntryIsExposedThroughReadOnlyAPI()
     var
         ExpenseUser: Record "Expense User";
@@ -94,6 +95,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ActivityLogAPIRejectsWrites()
     var
         ExpenseUser: Record "Expense User";
@@ -147,6 +149,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure NonSnapshotActivityDoesNotExposeCurrencies()
     var
         ExpenseUser: Record "Expense User";
@@ -190,6 +193,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure UnscopedActivityAPIHidesEntries()
     var
         ExpenseUser: Record "Expense User";
@@ -225,6 +229,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure SubmitterHistoryReturnsCompleteTimelinesForSubmittedReports()
     var
         ExpenseUser: array[2] of Record "Expense User";
@@ -299,6 +304,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ApproverHistoryReturnsCompleteTimelinesForActedOnReports()
     var
         ExpenseUser: array[3] of Record "Expense User";
@@ -371,6 +377,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure E2EActivityLogScenario()
     var
         SubmitterExpenseUser: Record "Expense User";
@@ -435,6 +442,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure StandardSubmissionExposesPolicySnapshot()
     var
         SubmitterExpenseUser: Record "Expense User";
@@ -527,6 +535,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TravelRequestSubmissionExposesTotalExpectedAmounts()
     var
         ExpenseUser: Record "Expense User";
@@ -957,4 +966,10 @@ codeunit 148343 "Expense Activity Log API Test"
         end;
     end;
 
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }
