@@ -40,22 +40,8 @@ codeunit 6903 "Expense Currency"
         exit(HasExpense);
     end;
 
-    procedure ShowMissingExchangeRateError(CurrencyDate: Date; CurrencyCode: Code[10])
-    var
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-    begin
-        if CurrencyDate = 0D then
-            CurrencyDate := WorkDate();
-
-        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
-        CurrencyExchangeRate.SetRange("Starting Date", 0D, CurrencyDate);
-        if not CurrencyExchangeRate.FindLast() then
-            Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode);
-    end;
-
     var
         Expense: Record Expense;
         Currency: Record Currency;
         HasExpense: Boolean;
-        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2.\\Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Starting Date, %2 = Currency Code';
 }

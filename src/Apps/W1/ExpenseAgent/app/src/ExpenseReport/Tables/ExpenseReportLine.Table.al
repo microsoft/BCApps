@@ -1202,6 +1202,7 @@ table 6907 "Expense Report Line"
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2.\\Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
@@ -2044,7 +2045,6 @@ table 6907 "Expense Report Line"
 
     local procedure UpdateCurrencyFactor()
     var
-        ExpenseCurrencyMgt: Codeunit "Expense Currency";
         UpdateCurrencyExchangeRates: Codeunit "Update Currency Exchange Rates";
         CurrencyDate: Date;
     begin
@@ -2057,7 +2057,7 @@ table 6907 "Expense Report Line"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Expense Currency Code") then
                 Rec."Expense Currency Factor" := CurrencyExchangeRate.ExchangeRate(CurrencyDate, Rec."Expense Currency Code")
             else
-                ExpenseCurrencyMgt.ShowMissingExchangeRateError(CurrencyDate, Rec."Expense Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Expense Currency Code");
         end else
             Rec."Expense Currency Factor" := 0;
     end;
