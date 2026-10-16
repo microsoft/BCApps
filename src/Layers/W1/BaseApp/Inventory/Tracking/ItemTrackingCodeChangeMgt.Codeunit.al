@@ -437,6 +437,37 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         exit(GetTrackingCodeAtPosting(ItemLedgerEntry) <> Item."Item Tracking Code");
     end;
 
+    internal procedure IsReturnApplicationAcrossTrackingPeriods(
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        AppliedItemLedgerEntry: Record "Item Ledger Entry";
+        AppliedItemLedgerEntryNo: Integer): Boolean
+    begin
+        if AppliedItemLedgerEntryNo <> AppliedItemLedgerEntry."Entry No." then
+            exit(false);
+
+        case ItemLedgerEntry."Entry Type" of
+            ItemLedgerEntry."Entry Type"::Sale:
+                if not ItemLedgerEntry.Positive or
+                   not (ItemLedgerEntry."Document Type" in [
+                       ItemLedgerEntry."Document Type"::"Sales Return Receipt",
+                       ItemLedgerEntry."Document Type"::"Sales Credit Memo"])
+                then
+                    exit(false);
+            ItemLedgerEntry."Entry Type"::Purchase:
+                if ItemLedgerEntry.Positive or
+                   not (ItemLedgerEntry."Document Type" in [
+                       ItemLedgerEntry."Document Type"::"Purchase Return Shipment",
+                       ItemLedgerEntry."Document Type"::"Purchase Credit Memo"])
+                then
+                    exit(false);
+            else
+                exit(false);
+        end;
+
+        exit(IsLinkedApplicationAcrossTrackingPeriods(
+            ItemLedgerEntry."Item No.", AppliedItemLedgerEntry."Entry No."));
+    end;
+
     internal procedure GetTrackingCodeForLinkedApplication(ItemNo: Code[20]; ItemLedgerEntryNo: Integer; var ItemTrackingCode: Code[10]): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";

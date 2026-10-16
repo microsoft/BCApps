@@ -1833,16 +1833,14 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
         OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
 
-        if ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Purchase then
-            if not ItemLedgEntry.Positive then
-                if ItemLedgEntry."Document Type" in [
-                    ItemLedgEntry."Document Type"::"Purchase Return Shipment",
-                    ItemLedgEntry."Document Type"::"Purchase Credit Memo"]
-                then
-                    if ItemLedgEntry."Applies-to Entry" = OldItemLedgEntry."Entry No." then
-                        SkipTrackingValidation :=
-                            ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-                                ItemLedgEntry."Item No.", OldItemLedgEntry."Entry No.");
+        if ItemLedgEntry.Positive then
+            SkipTrackingValidation :=
+                ItemTrackingCodeChangeMgt.IsReturnApplicationAcrossTrackingPeriods(
+                    ItemLedgEntry, OldItemLedgEntry, ItemJnlLine."Applies-from Entry")
+        else
+            SkipTrackingValidation :=
+                ItemTrackingCodeChangeMgt.IsReturnApplicationAcrossTrackingPeriods(
+                    ItemLedgEntry, OldItemLedgEntry, ItemLedgEntry."Applies-to Entry");
 
         if not SkipTrackingValidation then begin
             if ItemTrackingCode."SN Specific Tracking" then
@@ -4043,6 +4041,12 @@ codeunit 22 "Item Jnl.-Post Line"
         TempTrackingSpecification2: Record "Tracking Specification" temporary;
         ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
     begin
+        if ItemJnlLine2."Entry Type" in [
+            ItemJnlLine2."Entry Type"::Purchase,
+            ItemJnlLine2."Entry Type"::Sale]
+        then
+            exit(false);
+
         if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
              ItemJnlLine2."Item No.", ItemJnlLine2."Applies-from Entry", ItemTrackingCode)
         then
