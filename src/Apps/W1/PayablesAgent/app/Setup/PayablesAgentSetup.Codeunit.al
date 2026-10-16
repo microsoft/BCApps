@@ -274,13 +274,8 @@ codeunit 3307 "Payables Agent Setup"
         Agent: Codeunit Agent;
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         PayablesAgentPromptText: Text;
-        AgentDriven: Boolean;
     begin
-        AgentDriven := IsAgentDrivenLineMatchingEnabled();
-        if AgentDriven then
-            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
-        else
-            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
+        PayablesAgentPromptText := GetAgentInstructionsPromptText();
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(PayablesAgentPromptText, SecurityPromptSecretText)
         else begin
@@ -322,9 +317,8 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
-    /// Non-throwing wrapper around EnsureAgentInstructionsMatchConfiguration for callers on a critical path
-    /// (e.g. the e-document import event subscriber) where an instruction-refresh failure must not abort the
-    /// host operation. Returns false on failure so the caller can log and continue with existing instructions.
+    /// Non-throwing wrapper around EnsureAgentInstructionsMatchConfiguration for callers on a critical path.
+    /// Returns false on failure so the caller can log and continue with existing instructions.
     /// </summary>
     [TryFunction]
     internal procedure TryEnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
@@ -333,9 +327,9 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
-    /// Fingerprint of every tenant-level experiment configuration that influences the agent's instructions.
-    /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
-    /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.
+    /// Fingerprint of the selected prompt resource and every tenant-level experiment configuration that influences it.
+    /// Generic on purpose: prompt edits are detected automatically, while a future prompt-affecting experiment only
+    /// needs its key added to GetInstructionsExperimentKeys and its value consumed in prompt selection.
     /// </summary>
     internal procedure GetInstructionsConfigHash(): Text
     var
@@ -345,6 +339,9 @@ codeunit 3307 "Payables Agent Setup"
         Signature: TextBuilder;
         HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
     begin
+        Signature.Append('Prompt=');
+        Signature.Append(GetAgentInstructionsPromptText());
+        Signature.Append(';');
         foreach ConfigKey in GetInstructionsExperimentKeys() do begin
             Signature.Append(ConfigKey);
             Signature.Append('=');
@@ -352,6 +349,13 @@ codeunit 3307 "Payables Agent Setup"
             Signature.Append(';');
         end;
         exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
+    end;
+
+    local procedure GetAgentInstructionsPromptText(): Text
+    begin
+        if IsAgentDrivenLineMatchingEnabled() then
+            exit(NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8));
+        exit(NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8));
     end;
 
     local procedure GetInstructionsExperimentKeys() Keys: List of [Text]

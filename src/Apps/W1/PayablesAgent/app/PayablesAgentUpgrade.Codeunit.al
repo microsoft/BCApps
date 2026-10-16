@@ -72,9 +72,11 @@ codeunit 3305 "Payables Agent Upgrade"
         Agent: Record Agent;
         EnvironmentInformation: Codeunit "Environment Information";
         PayablesAgent: Codeunit "Payables Agent Setup";
+        BusinessSkillsDemoMgt: Codeunit "PA Business Skills Demo Mgt.";
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
+            if not BusinessSkillsDemoMgt.IsConfigured() then
+                exit;
 
         if PayablesAgent.GetAgent(Agent) then
             PayablesAgent.SetAgentInstructions(Agent."User Security ID");
