@@ -59,7 +59,7 @@ page 6968 "Expense User Cons. API"
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         MismatchingEntraIdsTelemetryErr: Label 'The Expense User has an Entra Id saved in the database, but it''s different from the ID used for consumption reporting.', Locked = true;
-        LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log request: ''%1'' Operation name: %2.', Locked = true;
+        LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent.', Locked = true;
         ConsumptionSourceTypeErr: Label 'Consumption Source Type must be provided and valid.';
         AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
@@ -122,6 +122,8 @@ page 6968 "Expense User Cons. API"
         ConsumptionSourceOperationName: Code[50]): Guid
     var
         AiConsumptionRequestJson: JsonObject;
+        ModelJson: JsonObject;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
         if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
@@ -147,9 +149,16 @@ page 6968 "Expense User Cons. API"
                 Session.LogMessage('0000VKU', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
                     TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
-        // Request contains only system metadata about consumption (such as model names and credits consumed).
-        Session.LogMessage('0000VKT', StrSubstNo(LogV2QuotaStartedTelemetryMsg, AiConsumptionRequest, ConsumptionSourceOperationName),
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+        ModelJson := AiConsumptionRequestJson.GetObject('model');
+        TelemetryDimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
+        TelemetryDimensions.Add('OperationName', ConsumptionSourceOperationName);
+        TelemetryDimensions.Add('modelResolvedName', GetModelTelemetryValue(ModelJson, 'modelResolvedName'));
+        TelemetryDimensions.Add('inputTokenCount', GetModelTelemetryValue(ModelJson, 'inputTokenCount'));
+        TelemetryDimensions.Add('outputTokenCount', GetModelTelemetryValue(ModelJson, 'outputTokenCount'));
+        TelemetryDimensions.Add('promptCacheReadTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheReadTokenCount'));
+        TelemetryDimensions.Add('promptCacheCreationTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheCreationTokenCount'));
+        Session.LogMessage('0000VKT', LogV2QuotaStartedTelemetryMsg,
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
         exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson,
             ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
@@ -160,5 +169,19 @@ page 6968 "Expense User Cons. API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
         exit(ExpenseConsumptionHandler.CanConsume());
+    end;
+
+    local procedure GetModelTelemetryValue(ModelJson: JsonObject; FieldName: Text): Text
+    var
+        FieldToken: JsonToken;
+    begin
+        if not ModelJson.Get(FieldName, FieldToken) then
+            exit('');
+        if not FieldToken.IsValue() then
+            exit('');
+        if FieldToken.AsValue().IsNull() then
+            exit('');
+
+        exit(FieldToken.AsValue().AsText());
     end;
 }
