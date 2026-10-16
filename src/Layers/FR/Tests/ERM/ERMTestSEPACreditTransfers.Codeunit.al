@@ -671,18 +671,16 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
     var
         GenJnlLine: Record "Gen. Journal Line";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLDocNode: DotNet XmlNode;
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLDoc: XmlDocument;
+        XMLDocElement: XmlElement;
+        CstmrCdtTrfInitnNode: XmlNode;
+        XMLNode: XmlNode;
         OutStr: OutStream;
         InStr: InStream;
         TransferDate: Date;
         ExpectedNoOfGroups: Integer;
         NoOfPmtsPerGroup: Integer;
         NoOfPmtInf: Integer;
-        i: Integer;
     begin
         Init();
 
@@ -697,17 +695,15 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
 
         // Validation of elements
         TempBlob.CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
-        XMLDocNode := XMLDoc.DocumentElement;
-        if not XMLDocNode.HasChildNodes then
+        XmlDocument.ReadFrom(InStr, XMLDoc);
+        XMLDoc.GetRoot(XMLDocElement);
+        if XMLDocElement.GetChildElements().Count() = 0 then
             Error(XMLNoChildrenErr);
 
-        XMLNode := XMLDocNode.FirstChild;
-        Assert.AreEqual('CstmrCdtTrfInitn', XMLNode.Name, 'CstmrCdtTrfInitn');
-        XMLNodes := XMLNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        CstmrCdtTrfInitnNode := GetFirstChildNode(XMLDocElement.AsXmlNode());
+        Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().Name, 'CstmrCdtTrfInitn');
+        foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, GenJnlLine);
                 'PmtInf':
@@ -717,9 +713,8 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                         TransferDate += 1;
                     end;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
 
         Assert.AreEqual(ExpectedNoOfGroups, NoOfPmtInf, 'Wrong number of PmtInf nodes.');
 
@@ -731,10 +726,10 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
     var
         GenJnlLine: Record "Gen. Journal Line";
         TempBlob: Codeunit "Temp Blob";
-        NodeList: DotNet XmlNodeList;
         OutStr: OutStream;
         ContainsReqCharacters: Boolean;
         i: Integer;
+        NodeCount: Integer;
         RequiredMessageLength: Integer;
     begin
         // [SCENARIO 109389] Message to recipient is not stored in the exported file for FR
@@ -758,20 +753,20 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
 
         // [THEN] TFS 227779: One line only of <Ustrd> can be validated
         // [THEN] The exported file does not contain "Message to recipient" under <Ustrd> tag
-        LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
-        LibraryXPathXMLReader.GetNodeList('//Ustrd', NodeList);
+        LibraryXPathXMLReader.InitializeXml(TempBlob, NamespaceTxt);
+        NodeCount := LibraryXPathXMLReader.GetXmlNodeCountByXPath('//ns:Ustrd');
 
         ContainsReqCharacters := false;
-        for i := 1 to NodeList.Count do
-            if GenJnlLine."Message to Recipient" = NodeList.Item(i - 1).InnerText then
+        for i := 1 to NodeCount do
+            if GenJnlLine."Message to Recipient" = LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//ns:Ustrd', i - 1) then
                 ContainsReqCharacters := true;
         Assert.IsFalse(ContainsReqCharacters, MessageToRecipientNotFoundErr);
 
         // [THEN] One <Ustrd> tag is created
-        Assert.AreEqual(1, NodeList.Count, 'One <Ustrd> node is allowed.');
+        Assert.AreEqual(1, NodeCount, 'One <Ustrd> node is allowed.');
         // [THEN] Invoice Number "Applies-to Ext. Doc. No." is exported under <Ustrd> tag
         Assert.AreEqual(
-          GenJnlLine."Applies-to Ext. Doc. No.", DelChr(NodeList.Item(i - 1).InnerText, '<'),
+          GenJnlLine."Applies-to Ext. Doc. No.", DelChr(LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//ns:Ustrd', i - 1), '<'),
           GenJnlLine.FieldCaption("Applies-to Ext. Doc. No."));
     end;
 
@@ -1672,18 +1667,16 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         GenJnlLine: Record "Gen. Journal Line";
         GeneralLedgerSetup: Record "General Ledger Setup";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLDocNode: DotNet XmlNode;
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLDoc: XmlDocument;
+        XMLDocElement: XmlElement;
+        CstmrCdtTrfInitnNode: XmlNode;
+        XMLNode: XmlNode;
         OutStr: OutStream;
         InStr: InStream;
         TransferDate: Date;
         ExpectedNoOfGroups: Integer;
         NoOfPmtsPerGroup: Integer;
         NoOfPmtInf: Integer;
-        i: Integer;
     begin
         // [SCENARIO 596199] Verify Export Non-Euro payment Transaction in SEPA Format should use 'SHAR' default for 'ChrgBr' tag and 
         // Grouping of payments in XML document.  
@@ -1705,18 +1698,16 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         TempBlob.CreateOutStream(OutStr);
         XMLPORT.Export(BankAccount.GetPaymentExportXMLPortID(), OutStr, GenJnlLine);
         TempBlob.CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
-        XMLDocNode := XMLDoc.DocumentElement;
-        if not XMLDocNode.HasChildNodes then
+        XmlDocument.ReadFrom(InStr, XMLDoc);
+        XMLDoc.GetRoot(XMLDocElement);
+        if XMLDocElement.GetChildElements().Count() = 0 then
             Error(XMLNoChildrenErr);
 
         // [THEN] Verify Grouping of payments in XML document.
-        XMLNode := XMLDocNode.FirstChild;
-        Assert.AreEqual('CstmrCdtTrfInitn', XMLNode.Name, 'CstmrCdtTrfInitn');
-        XMLNodes := XMLNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        CstmrCdtTrfInitnNode := GetFirstChildNode(XMLDocElement.AsXmlNode());
+        Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().Name, 'CstmrCdtTrfInitn');
+        foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, GenJnlLine);
                 'PmtInf':
@@ -1726,9 +1717,8 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                         TransferDate += 1;
                     end;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
 
         // [THEN] Verify number of 'PmtInf' nodes are as expected.
         Assert.AreEqual(ExpectedNoOfGroups, NoOfPmtInf, NodeErr);
@@ -2129,141 +2119,120 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         VendorLedgerEntry.Modify();
     end;
 
-    local procedure ValidateGrpHdr(var XMLParentNode: DotNet XmlNode; var GenJnlLine: Record "Gen. Journal Line")
+    local procedure ValidateGrpHdr(XMLParentNode: XmlNode; var GenJnlLine: Record "Gen. Journal Line")
     var
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        i: Integer;
+        XMLNode: XmlNode;
         dt: DateTime;
     begin
-        XMLNodes := XMLParentNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'MsgId':
                     ;
                 'CreDtTm':
                     begin
-                        Assert.AreNotEqual('', XMLNode.InnerXml, 'Wrong CreDtTm.');
-                        Evaluate(dt, XMLNode.InnerXml, 9);
+                        Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, 'Wrong CreDtTm.');
+                        Evaluate(dt, XMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreNearlyEqual(0, CurrentDateTime - dt, 60000, 'Wrong CreDtTm.');
-                        Assert.AreEqual(19, StrLen(XMLNode.InnerXml), 'Wrong CreDtTm length');
+                        Assert.AreEqual(19, StrLen(XMLNode.AsXmlElement().InnerXml), 'Wrong CreDtTm length');
                     end;
                 'NbOfTxs':
-                    Assert.AreEqual(Format(GenJnlLine.Count, 0, 9), XMLNode.InnerXml, 'Wrong NbOfTxs.');
+                    Assert.AreEqual(Format(GenJnlLine.Count, 0, 9), XMLNode.AsXmlElement().InnerXml, 'Wrong NbOfTxs.');
                 'CtrlSum':
                     begin
                         GenJnlLine.CalcSums(Amount);
-                        Assert.AreEqual(Format(GenJnlLine.Amount, 0, 9), XMLNode.InnerXml, 'Wrong CtrlSum.');
+                        Assert.AreEqual(Format(GenJnlLine.Amount, 0, 9), XMLNode.AsXmlElement().InnerXml, 'Wrong CtrlSum.');
                     end;
                 'InitgPty':
                     ValidatePartyElement(XMLNode);
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
     end;
 
-    local procedure ValidatePartyAddress(var XMLParentNode: DotNet XmlNode)
+    local procedure ValidatePartyAddress(XMLParentNode: XmlNode)
     var
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        i: Integer;
+        XMLNode: XmlNode;
     begin
-        XMLNodes := XMLParentNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'StrtNm', 'PstCd', 'TwnNm', 'Ctry':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
     end;
 
-    local procedure ValidatePartyElement(var XMLParentNode: DotNet XmlNode)
+    local procedure ValidatePartyElement(XMLParentNode: XmlNode)
     var
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        i: Integer;
+        XMLNode: XmlNode;
     begin
-        XMLNodes := XMLParentNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'Nm':
-                    Assert.AreNotEqual('', XMLNode.InnerXml, '');
+                    Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
                 'PstlAdr':
                     ValidatePartyAddress(XMLNode);
                 'Id':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
     end;
 
-    local procedure ValidatePmtInf(var XMLParentNode: DotNet XmlNode; ExpectedNoOfCdtTrfTxInf: Integer; ExpectedCtrlSum: Decimal; ExpectedDate: Date)
+    local procedure ValidatePmtInf(XMLParentNode: XmlNode; ExpectedNoOfCdtTrfTxInf: Integer; ExpectedCtrlSum: Decimal; ExpectedDate: Date)
     var
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        ReqdExctnDtXMLNodes: DotNet XmlNodeList;
-        DtXMLNode: DotNet XMLNode;
+        XMLNode: XmlNode;
+        DtXMLNode: XmlNode;
         ActualDate: Date;
         NoOfCdtTrfTxInf: Integer;
-        i: Integer;
         CtrlSum: Decimal;
         NbOfTxs: Integer;
     begin
-        XMLNodes := XMLParentNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'PmtInfId', 'BtchBookg', 'PmtTpInf', 'Dbtr', 'DbtrAcct', 'DbtrAgt', 'CdtrAgt', 'FinInstnId', 'BICFI', 'AnyBIC':
                     ;
                 'PmtMtd':
-                    Assert.AreEqual('TRF', XMLNode.InnerXml, 'PmtMtd');
+                    Assert.AreEqual('TRF', XMLNode.AsXmlElement().InnerXml, 'PmtMtd');
                 'ChrgBr':
-                    Assert.AreEqual('SLEV', XMLNode.InnerXml, 'ChrgBr');
+                    Assert.AreEqual('SLEV', XMLNode.AsXmlElement().InnerXml, 'ChrgBr');
                 'CtrlSum':
                     begin
-                        Evaluate(CtrlSum, XMLNode.InnerXml, 9);
+                        Evaluate(CtrlSum, XMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreEqual(ExpectedCtrlSum, CtrlSum, 'CtrlSum');
                     end;
                 'NbOfTxs':
                     begin
-                        Evaluate(NbOfTxs, XMLNode.InnerXml, 9);
+                        Evaluate(NbOfTxs, XMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NbOfTxs, 'NbOfTxs');
                     end;
                 'ReqdExctnDt':
                     begin
-                        ReqdExctnDtXMLNodes := XmlNode.ChildNodes;
-                        DtXMLNode := ReqdExctnDtXMLNodes.ItemOf(0);
-                        Evaluate(ActualDate, DtXMLNode.InnerXml, 9);
+                        DtXMLNode := GetFirstChildNode(XMLNode);
+                        Evaluate(ActualDate, DtXMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreEqual(ExpectedDate, ActualDate, 'ReqdExctnDt/Dt');
                     end;
                 'CdtTrfTxInf':
                     NoOfCdtTrfTxInf += 1;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NoOfCdtTrfTxInf, 'Wrong number of DrctDbtTxInf nodes.');
     end;
 
     local procedure VerifySvcLvlCodeIfPresent(var TempBlob: Codeunit "Temp Blob"; ExpectedSvcLvlCode: Text)
     var
-        SvcLvlCodeNodeList: DotNet XmlNodeList;
-        SvcLvlCdXPathTok: Label '//PmtInf/PmtTpInf/SvcLvl/Cd', Locked = true;
+        SvcLvlCdXPathTok: Label '//ns:PmtInf/ns:PmtTpInf/ns:SvcLvl/ns:Cd', Locked = true;
     begin
-        LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
-        LibraryXPathXMLReader.GetNodeList(SvcLvlCdXPathTok, SvcLvlCodeNodeList);
+        LibraryXPathXMLReader.InitializeXml(TempBlob, NamespaceTxt);
         // Some country layers (for example CH) intentionally omit the SvcLvl node for non-local exports.
-        if IsNull(SvcLvlCodeNodeList) then
-            exit;
-        if SvcLvlCodeNodeList.Count() > 0 then
-            LibraryXPathXMLReader.VerifyNodeValueByXPath(SvcLvlCdXPathTok, ExpectedSvcLvlCode);
+        if LibraryXPathXMLReader.GetXmlNodeCountByXPath(SvcLvlCdXPathTok) > 0 then
+            LibraryXPathXMLReader.VerifyXmlNodeValue(SvcLvlCdXPathTok, ExpectedSvcLvlCode);
+    end;
+
+    local procedure GetFirstChildNode(ParentNode: XmlNode) ChildNode: XmlNode
+    begin
+        ParentNode.AsXmlElement().GetChildElements().Get(1, ChildNode);
     end;
 
     local procedure VerifyPaymentJnlExportErr(GenJnlLine: Record "Gen. Journal Line"; ErrText: Text)
@@ -2312,51 +2281,44 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         PaymentJnlExportErrorText.SetRange("Journal Line No.", GenJnlLine."Line No.");
     end;
 
-    local procedure ValidatePmtInfForNonEuroPayment(var XMLParentNode: DotNet XmlNode; ExpectedNoOfCdtTrfTxInf: Integer; ExpectedCtrlSum: Decimal; ExpectedDate: Date)
+    local procedure ValidatePmtInfForNonEuroPayment(XMLParentNode: XmlNode; ExpectedNoOfCdtTrfTxInf: Integer; ExpectedCtrlSum: Decimal; ExpectedDate: Date)
     var
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        ReqdExctnDtXMLNodes: DotNet XmlNodeList;
-        DtXMLNode: DotNet XMLNode;
+        XMLNode: XmlNode;
+        DtXMLNode: XmlNode;
         ActualDate: Date;
         NoOfCdtTrfTxInf: Integer;
-        i: Integer;
         CtrlSum: Decimal;
         NbOfTxs: Integer;
     begin
-        XMLNodes := XMLParentNode.ChildNodes;
-        for i := 0 to XMLNodes.Count - 1 do begin
-            XMLNode := XMLNodes.ItemOf(i);
-            case XMLNode.Name of
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
+            case XMLNode.AsXmlElement().Name of
                 'PmtInfId', 'BtchBookg', 'PmtTpInf', 'Dbtr', 'DbtrAcct', 'DbtrAgt', 'CdtrAgt', 'FinInstnId', 'BICFI', 'AnyBIC':
                     ;
                 'PmtMtd':
-                    Assert.AreEqual('TRF', XMLNode.InnerXml, 'PmtMtd');
+                    Assert.AreEqual('TRF', XMLNode.AsXmlElement().InnerXml, 'PmtMtd');
                 'ChrgBr':
-                    Assert.AreEqual('SHAR', XMLNode.InnerXml, 'ChrgBr');
+                    Assert.AreEqual('SHAR', XMLNode.AsXmlElement().InnerXml, 'ChrgBr');
                 'CtrlSum':
                     begin
-                        Evaluate(CtrlSum, XMLNode.InnerXml, 9);
+                        Evaluate(CtrlSum, XMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreEqual(ExpectedCtrlSum, CtrlSum, 'CtrlSum');
                     end;
                 'NbOfTxs':
                     begin
-                        Evaluate(NbOfTxs, XMLNode.InnerXml, 9);
+                        Evaluate(NbOfTxs, XMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NbOfTxs, 'NbOfTxs');
                     end;
                 'ReqdExctnDt':
                     begin
-                        ReqdExctnDtXMLNodes := XmlNode.ChildNodes;
-                        DtXMLNode := ReqdExctnDtXMLNodes.ItemOf(0);
-                        Evaluate(ActualDate, DtXMLNode.InnerXml, 9);
+                        DtXMLNode := GetFirstChildNode(XMLNode);
+                        Evaluate(ActualDate, DtXMLNode.AsXmlElement().InnerXml, 9);
                         Assert.AreEqual(ExpectedDate, ActualDate, 'ReqdExctnDt/Dt');
                     end;
                 'CdtTrfTxInf':
                     NoOfCdtTrfTxInf += 1;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
             end;
-        end;
         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NoOfCdtTrfTxInf, 'Wrong number of DrctDbtTxInf nodes.');
     end;
 

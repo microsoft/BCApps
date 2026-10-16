@@ -31,20 +31,16 @@ codeunit 131337 "Library - XPath XML Reader"
         UnexpectedElementValueErr: Label 'Unexpected value in xml file for element <%1>', Comment = '%1 - element name';
 
     procedure Initialize(FullFilePath: Text; NameSpace: Text)
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(FullFilePath, XMLDocOut);
+        LoadXMLDocumentFromFile(FullFilePath);
 
         XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDocOut.NameTable);
         XMLNsMgr.AddNamespace(DefaultNamespacePrefixTxt, NameSpace);
     end;
 
     procedure InitializeWithPrefix(FullFilePath: Text; Prefix: Text; NameSpace: Text)
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(FullFilePath, XMLDocOut);
+        LoadXMLDocumentFromFile(FullFilePath);
 
         XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDocOut.NameTable);
         XMLNsMgr.AddNamespace(Prefix, NameSpace);
@@ -52,26 +48,51 @@ codeunit 131337 "Library - XPath XML Reader"
 
     procedure InitializeWithBlob(TempBlob: Codeunit "Temp Blob"; NameSpace: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         InStream: InStream;
     begin
         TempBlob.CreateInStream(InStream);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, XMLDocOut);
+        LoadXMLDocumentFromInStream(InStream);
 
         XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDocOut.NameTable);
         XMLNsMgr.AddNamespace(DefaultNamespacePrefixTxt, NameSpace);
     end;
 
     procedure InitializeWithText(Content: Text; NameSpace: Text)
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlDocumentNode: DotNet XmlNode;
     begin
-        XMLDOMManagement.LoadXMLNodeFromText(Content, XmlDocumentNode);
-        XMLDocOut := XmlDocumentNode.OwnerDocument;
+        LoadXMLDocumentFromText(Content);
 
         XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDocOut.NameTable);
         XMLNsMgr.AddNamespace(DefaultNamespacePrefixTxt, NameSpace);
+    end;
+
+    local procedure LoadXMLDocumentFromFile(FullFilePath: Text)
+    var
+        FileManagement: Codeunit "File Management";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+    begin
+        FileManagement.BLOBImportFromServerFile(TempBlob, FullFilePath);
+        TempBlob.CreateInStream(InStream);
+        LoadXMLDocumentFromInStream(InStream);
+    end;
+
+    local procedure LoadXMLDocumentFromInStream(var InStream: InStream)
+    begin
+        XMLDocOut := XMLDocOut.XmlDocument();
+        XMLDocOut.Load(InStream);
+    end;
+
+    local procedure LoadXMLDocumentFromText(Content: Text)
+    var
+        ByteOrderMark: Char;
+    begin
+        XMLDocOut := XMLDocOut.XmlDocument();
+        if Content = '' then
+            exit;
+        ByteOrderMark := 65279;
+        if Content[1] = ByteOrderMark then
+            Content := CopyStr(Content, 2);
+        XMLDocOut.LoadXml(Content);
     end;
 
     #region NativeXmlTypes
@@ -138,6 +159,14 @@ codeunit 131337 "Library - XPath XML Reader"
         Assert.AreNotEqual(0, NodeList.Count, StrSubstNo(NodeNotFoundErr, XPath));
         Assert.IsTrue(NodeList.Get(Index + 1, Node), StrSubstNo(NodeIndexOutOfBoundsErr, XPath, Index, NodeList.Count));
         exit(Node.AsXmlElement().InnerText());
+    end;
+
+    procedure GetXmlNodeCountByXPath(XPath: Text): Integer
+    var
+        NodeList: XmlNodeList;
+    begin
+        XmlDocumentNative.SelectNodes(XPath, XmlNamespaceManagerNative, NodeList);
+        exit(NodeList.Count);
     end;
 
     procedure VerifyXmlNodeCountByXPath(XPath: Text; ExpectedNodeCount: Integer)
