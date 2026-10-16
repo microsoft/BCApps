@@ -60,7 +60,7 @@ codeunit 6969 "Expense Consumption Handler"
         IsTrial: Boolean;
     begin
         UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
-        IsTrial := TrialAvailable();
+        IsTrial := TrialQuotaAvailable();
 
         Session.LogMessage('0000W42', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId), IsTrial),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
@@ -133,7 +133,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(CopilotFeatureTrial.GetQuotaRemaining(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent"));
     end;
 
-    local procedure TrialAvailable(): Boolean
+    local procedure TrialQuotaAvailable(): Boolean
     begin
         exit(CopilotFeatureTrial.HasQuotaRemaining(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent"));
     end;
@@ -162,6 +162,9 @@ codeunit 6969 "Expense Consumption Handler"
 
     internal procedure CanConsume(): Boolean
     begin
+        if TrialQuotaAvailable() then
+            exit(true);
+
         exit(CopilotQuota.CanConsume());
     end;
 
