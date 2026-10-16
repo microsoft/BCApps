@@ -66,8 +66,6 @@ table 6900 Expense
                         ExpenseUser.Get(Rec."Expense User No.");
                         if not Employee.Get(ExpenseUser."Employee No.") then
                             Error(ExpenseUserMustBeLinkedToAnEmployeeErr, Rec."Expense User No.");
-
-                        ApplyRule(false, true);
                     end;
 
                 CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
