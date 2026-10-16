@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "MyDemoApp - Local W1",
+      "type": "al",
+      "request": "launch",
+      "server": "http://localhost",
+      "serverInstance": "Navision_NAV",
+      "authentication": "Windows",
+      "startupObjectType": "Report",
+      "startupObjectId": 50102,
+      "launchBrowser": true,
+      "breakOnError": true,
+      "dependencyPublishingOption": "Ignore",
+      "enableSqlInformationDebugger": true,
+      "enableLongRunningSqlStatements": true
+    }
+  ]
+}

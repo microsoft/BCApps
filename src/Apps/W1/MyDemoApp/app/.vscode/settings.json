@@ -1,0 +1,11 @@
+{
+  "al.packageCachePath": [
+    "${workspaceFolder}\\..\\..\\..\\..\\..\\..\\..\\Run\\W1\\AllExtensions"
+  ],
+  "al.ruleSetPath": "${workspaceFolder}\\..\\..\\..\\..\\rulesets\\base.ruleset.json",
+  "al.codeAnalyzers": [
+    "${CodeCop}",
+    "${UICop}",
+    "${PerTenantExtensionCop}"
+  ]
+}

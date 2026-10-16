@@ -1,0 +1,25 @@
+{
+  "id": "2c7cf940-60c2-4ff8-a1ca-403148f2d501",
+  "name": "MyDemoApp",
+  "publisher": "Artur Ventsel",
+  "version": "1.0.0.0",
+  "brief": "Directions: What's New in Test Automation",
+  "description": "Demo app containing the Close Income Statement report from BCApps commit 473bb07683d69a4637515209367837b444b3a43e, before the grouping fix in a1d18ab344b9f6adc06f28b809deb3eb2769183c.",
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50149
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith"
+  ],
+  "target": "Cloud"
+}
