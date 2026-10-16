@@ -3,7 +3,7 @@ namespace Microsoft.FixedAssets.Depreciation;
 using Microsoft.DemoData.Finance;
 using Microsoft.DemoData.FixedAsset;
 using Microsoft.DemoTool;
-using Microsoft.DemoTool.Helpers;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
@@ -108,10 +108,11 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     local procedure InitializeContosoDemoTest()
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        ContosoDemoDataModule: Record "Contoso Demo Data Module";
     begin
         InitializeTest();
         ContosoCoffeeDemoDataSetup.InitRecord();
-        ResetContosoGLAccountMappings();
+        ContosoDemoDataModule.DeleteAll();
     end;
 
 #if not CLEAN30
@@ -342,25 +343,22 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     procedure ContosoDemoGeneratorInitializesExtensionAccounts()
     var
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
-        DeprDifferenceAccount: Code[20];
-        DeprDifferenceBalAccount: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Contoso setup generation initializes the extension accounts for all five FI posting groups.
         InitializeContosoDemoTest();
         EnableFeature();
 
-        // [GIVEN] FI accounts exist and fixed asset setup data has not been generated.
-        PrepareContosoFixedAssetSetup(ContosoDemoToolPage, DeprDifferenceAccount, DeprDifferenceBalAccount);
+        // [GIVEN] Fixed asset setup and its dependencies have not been generated.
+        PrepareContosoFixedAssetSetup(ContosoDemoToolPage);
 
         // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
         ContosoDemoToolPage.GenerateSetup.Invoke();
         ContosoDemoToolPage.Close();
-        ResetContosoGLAccountMappings();
         DisableFeature();
 
         // [THEN] All five posting groups have extension accounts instead of legacy accounts.
-        VerifyContosoPostingGroupAccounts(DeprDifferenceAccount, DeprDifferenceBalAccount, true);
+        VerifyContosoPostingGroupAccounts(true);
     end;
 
 #if not CLEAN30
@@ -369,25 +367,22 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     procedure ContosoDemoGeneratorInitializesLegacyAccountsWhenFeatureDisabled()
     var
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
-        DeprDifferenceAccount: Code[20];
-        DeprDifferenceBalAccount: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Contoso setup generation retains legacy FI accounts when the feature is disabled.
         InitializeContosoDemoTest();
         SetFeatureEnabled(false);
 
-        // [GIVEN] FI accounts exist and fixed asset setup data has not been generated.
-        PrepareContosoFixedAssetSetup(ContosoDemoToolPage, DeprDifferenceAccount, DeprDifferenceBalAccount);
+        // [GIVEN] Fixed asset setup and its dependencies have not been generated.
+        PrepareContosoFixedAssetSetup(ContosoDemoToolPage);
 
         // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
         ContosoDemoToolPage.GenerateSetup.Invoke();
         ContosoDemoToolPage.Close();
-        ResetContosoGLAccountMappings();
         DisableFeature();
 
         // [THEN] All five posting groups have legacy accounts and empty extension accounts.
-        VerifyContosoPostingGroupAccounts(DeprDifferenceAccount, DeprDifferenceBalAccount, false);
+        VerifyContosoPostingGroupAccounts(false);
     end;
 
     [Test]
@@ -909,42 +904,21 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         CalcAndPostDeprDifferenceRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
-    local procedure PrepareContosoFixedAssetSetup(var ContosoDemoToolPage: TestPage "Contoso Demo Tool"; var DeprDifferenceAccount: Code[20]; var DeprDifferenceBalAccount: Code[20])
+    local procedure PrepareContosoFixedAssetSetup(var ContosoDemoToolPage: TestPage "Contoso Demo Tool")
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
-        ContosoDemoDataModule: Record "Contoso Demo Data Module";
         FAPostingGroup: Record "FA Posting Group";
-        CreateGLAccountFI: Codeunit "Create FI GL Accounts";
-        ContosoGLAccount: Codeunit "Contoso GL Account";
         PostingGroupCode: Code[20];
     begin
-        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
-        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
-        ContosoGLAccount.AddAccountForLocalization(CreateGLAccountFI.Changeindepreciationreserve4Name(), DeprDifferenceAccount);
-        ContosoGLAccount.AddAccountForLocalization(CreateGLAccountFI.Depreciationdifference3Name(), DeprDifferenceBalAccount);
-
         foreach PostingGroupCode in GetContosoPostingGroupCodes() do
             if FAPostingGroup.Get(PostingGroupCode) then
                 FAPostingGroup.Delete(false);
 
         ContosoDemoToolPage.OpenView();
+        ContosoDemoToolPage.Filter.SetFilter(Module, Format(Enum::"Contoso Demo Data Module"::"Fixed Asset Module"));
         ContosoCoffeeDemoDataSetup.Get();
         ContosoCoffeeDemoDataSetup.Validate("Language ID", 0);
         ContosoCoffeeDemoDataSetup.Modify(true);
-
-        ContosoDemoDataModule.ModifyAll("Data Level", Enum::"Contoso Demo Data Level"::"Setup Data");
-        ContosoDemoDataModule.Get(Enum::"Contoso Demo Data Module"::"Fixed Asset Module");
-        ContosoDemoDataModule.Validate("Data Level", Enum::"Contoso Demo Data Level"::" ");
-        ContosoDemoDataModule.Modify(true);
-        ContosoDemoToolPage.GoToRecord(ContosoDemoDataModule);
-    end;
-
-    local procedure ResetContosoGLAccountMappings()
-    var
-        CreateGLAccount: Codeunit "Create G/L Account";
-    begin
-        // The single-instance mapping is not rolled back with database changes.
-        CreateGLAccount.AddGLAccountsForLocalization();
     end;
 
     local procedure GetContosoPostingGroupCodes() PostingGroupCodes: List of [Code[20]]
@@ -958,11 +932,22 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         PostingGroupCodes.Add(CreateFAPostingGroup.Vehicles());
     end;
 
-    local procedure VerifyContosoPostingGroupAccounts(DeprDifferenceAccount: Code[20]; DeprDifferenceBalAccount: Code[20]; UseExtensionFields: Boolean)
+    local procedure VerifyContosoPostingGroupAccounts(UseExtensionFields: Boolean)
     var
         FAPostingGroup: Record "FA Posting Group";
+        GLAccount: Record "G/L Account";
+        CreateGLAccountFI: Codeunit "Create FI GL Accounts";
+        DeprDifferenceAccount: Code[20];
+        DeprDifferenceBalAccount: Code[20];
         PostingGroupCode: Code[20];
     begin
+        DeprDifferenceAccount := CreateGLAccountFI.Changeindepreciationreserve4();
+        DeprDifferenceBalAccount := CreateGLAccountFI.Depreciationdifference3();
+        Assert.AreNotEqual('', DeprDifferenceAccount, 'The depreciation difference account must be generated.');
+        Assert.AreNotEqual('', DeprDifferenceBalAccount, 'The depreciation difference balancing account must be generated.');
+        GLAccount.Get(DeprDifferenceAccount);
+        GLAccount.Get(DeprDifferenceBalAccount);
+
         foreach PostingGroupCode in GetContosoPostingGroupCodes() do begin
             FAPostingGroup.Get(PostingGroupCode);
             if UseExtensionFields then begin
