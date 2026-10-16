@@ -76,7 +76,8 @@ codeunit 6969 "Expense Consumption Handler"
             ExpenseAgentEnvConsumption."Consumption Source Operation" := Operation;
             ExpenseAgentEnvConsumption."Is Feature Trial" := IsTrial;
             ExpenseAgentEnvConsumption.Insert();
-        end;
+        end else
+            IsTrial := ExpenseAgentEnvConsumption."Is Feature Trial";
 
         // Increment the trial count if this is a trial consumption.
         // Notice platform allows over-reporting trials, so the tenant can use a little
