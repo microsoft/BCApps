@@ -4,10 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CRM.Contact;
 
-#if not CLEAN27
-using Microsoft.Foundation.Address;
-#endif
-
 page 5056 "Contact Alt. Address Card"
 {
     Caption = 'Contact Alt. Address Card';
@@ -145,10 +141,6 @@ page 5056 "Contact Alt. Address Card"
 #pragma warning disable AA0074
         Text000: Label 'untitled';
 #pragma warning restore AA0074
-#if not CLEAN27
-        IsAddressLookupTextEnabled: Boolean;
-        LookupAddressLbl: Label 'Lookup address from postcode';
-#endif
 
     procedure Caption(): Text
     var
