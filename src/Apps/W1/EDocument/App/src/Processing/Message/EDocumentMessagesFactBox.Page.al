@@ -57,17 +57,17 @@ page 6434 "E-Document Messages FactBox"
                 field("Last Attempt At"; Rec."Last Attempt At")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the service last attempted to send the message.';
+                    ToolTip = 'Specifies when sending, response polling, or scheduling was last attempted for the message.';
                 }
                 field("Retry Count"; Rec."Retry Count")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many background send attempts have failed.';
+                    ToolTip = 'Specifies how many sending, response polling, or scheduling attempts have failed.';
                 }
                 field("Last Error"; Rec."Last Error")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the error returned by the most recent failed send attempt.';
+                    ToolTip = 'Specifies the error from the most recent failed sending, response polling, or scheduling attempt.';
                 }
                 field("External Message ID"; Rec."External Message ID")
                 {
@@ -87,6 +87,39 @@ page 6434 "E-Document Messages FactBox"
     {
         area(processing)
         {
+            action(OpenService)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open E-Document Service';
+                ToolTip = 'Open the service setup for this message to review or correct its configuration.';
+                Image = Setup;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    EDocumentService: Record "E-Document Service";
+                begin
+                    EDocumentService.Get(Rec.Service);
+                    Page.Run(Page::"E-Document Service", EDocumentService);
+                end;
+            }
+            action(OpenIntegrationLogs)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Integration Logs';
+                ToolTip = 'View communication logs for this message''s parent E-Document and service, including other messages for the same document.';
+                Image = TransmitElectronicDoc;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    EDocumentIntegrationLog: Record "E-Document Integration Log";
+                begin
+                    EDocumentIntegrationLog.SetRange("E-Doc. Entry No", Rec."E-Document Entry No.");
+                    EDocumentIntegrationLog.SetRange("Service Code", Rec.Service);
+                    Page.Run(Page::"E-Document Integration Logs", EDocumentIntegrationLog);
+                end;
+            }
             action(Retry)
             {
                 ApplicationArea = Basic, Suite;
