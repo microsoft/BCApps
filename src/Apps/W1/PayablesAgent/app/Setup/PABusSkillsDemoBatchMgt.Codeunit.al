@@ -287,10 +287,19 @@ codeunit 3329 "PA Bus. Skills Demo Batch Mgt."
     local procedure VerifyEDocumentOwnership(DemoBatch: Record "PA Business Skills Demo Batch"; DemoBatchDocument: Record "PA Bus. Skills Demo Batch Doc."; EDocument: Record "E-Document")
     var
         ExpectedSourceDetails: Text;
+        ExpectedSourceDetailsSuffix: Text;
+        SourceDetailsMatch: Boolean;
     begin
         ExpectedSourceDetails := GetSourceDetails(DemoBatch."Run ID", DemoBatchDocument."File Name");
+        SourceDetailsMatch := EDocument."Source Details" = CopyStr(ExpectedSourceDetails, 1, MaxStrLen(EDocument."Source Details"));
+        if not SourceDetailsMatch then begin
+            ExpectedSourceDetailsSuffix := StrSubstNo(SourceDetailsSuffixLbl, Format(DemoBatch."Run ID", 0, 4), DemoBatchDocument."File Name");
+            SourceDetailsMatch := EDocument."Source Details".EndsWith(ExpectedSourceDetailsSuffix);
+        end;
+
         if (EDocument.SystemId <> DemoBatchDocument."E-Document System ID") or
-           (EDocument."Source Details" <> CopyStr(ExpectedSourceDetails, 1, MaxStrLen(EDocument."Source Details")))
+           (EDocument."File Name" <> DemoBatchDocument."File Name") or
+           not SourceDetailsMatch
         then
             Error(TrackedRecordChangedErr, DemoBatchDocument."File Name");
     end;
@@ -423,6 +432,7 @@ codeunit 3329 "PA Bus. Skills Demo Batch Mgt."
         TargetCompanyNameTok: Label 'CRONUS W1', Locked = true;
         ResourceFolderTok: Label 'BusinessSkillsDemoInvoices/', Locked = true;
         SourceDetailsLbl: Label 'Business Skills demo %1 | %2', Locked = true, Comment = '%1 = run ID, %2 = file name';
+        SourceDetailsSuffixLbl: Label '%1 | %2', Locked = true, Comment = '%1 = run ID, %2 = file name';
         DemoSetupRequiredErr: Label 'Configure the Business Skills Payables Agent demo before submitting invoices.';
         BatchExistsErr: Label 'A demo invoice batch already exists. Clean Submitted Invoices before creating another batch.';
         NoBatchErr: Label 'No submitted demo invoice batch exists.';

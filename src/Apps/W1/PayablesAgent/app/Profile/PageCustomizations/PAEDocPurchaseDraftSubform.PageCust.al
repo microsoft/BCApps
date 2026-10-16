@@ -22,6 +22,10 @@ pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase D
         {
             Visible = true;
         }
+        modify("Line Amount")
+        {
+            Visible = true;
+        }
         modify(OrderMatched)
         {
             Visible = true;

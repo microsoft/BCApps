@@ -145,12 +145,15 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         if AreBusinessSkillsCurrent(DemoState) then
             exit;
 
-        if AreSupersededBusinessSkillsExact(DemoState) then
-            DeleteSupersededBusinessSkills(DemoState)
-        else begin
-            VerifyPreviousBusinessSkills(DemoState);
-            DeletePreviousBusinessSkills(DemoState);
-        end;
+        if AreFabrikamBusinessSkillsExact(DemoState) then
+            DeleteFabrikamBusinessSkills(DemoState)
+        else
+            if AreSupersededBusinessSkillsExact(DemoState) then
+                DeleteSupersededBusinessSkills(DemoState)
+            else begin
+                VerifyPreviousBusinessSkills(DemoState);
+                DeletePreviousBusinessSkills(DemoState);
+            end;
         CreateBusinessSkills(DemoState);
         DemoState.Modify(true);
     end;
@@ -170,7 +173,10 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     begin
         if not DemoState.Get(StatePrimaryKeyTok) or (DemoState."Setup Version" <> 2) then
             exit(false);
-        exit(AreSupersededBusinessSkillsExact(DemoState) or ArePreviousBusinessSkillsExact(DemoState));
+        exit(
+            AreFabrikamBusinessSkillsExact(DemoState) or
+            AreSupersededBusinessSkillsExact(DemoState) or
+            ArePreviousBusinessSkillsExact(DemoState));
     end;
 
     procedure IsConfigured(): Boolean
@@ -860,6 +866,15 @@ codeunit 3327 "PA Business Skills Demo Mgt."
             IsCompanySkillExact(DemoState."Effective Date Skill ID", SupersededEffectiveDateSkillTitleLbl, SupersededEffectiveDateSkillDescriptionLbl, GetSupersededEffectiveDateSkillText()));
     end;
 
+    local procedure AreFabrikamBusinessSkillsExact(DemoState: Record "PA Business Skills Demo State"): Boolean
+    begin
+        exit(
+            IsCompanySkillExact(DemoState."Line Classification Skill ID", FabrikamLineClassSkillTitleLbl, FabrikamLineClassSkillDescriptionLbl, GetFabrikamLineClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, ElectricityMeterSkillDescriptionLbl, GetElectricityMeterSkillText()) and
+            IsCompanySkillExact(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, ServiceClassificationSkillDescriptionLbl, GetServiceClassificationSkillText()) and
+            IsCompanySkillExact(DemoState."Effective Date Skill ID", EffectiveDateSkillTitleLbl, EffectiveDateSkillDescriptionLbl, GetEffectiveDateSkillText()));
+    end;
+
     local procedure VerifyPreviousBusinessSkill(SkillId: BigInteger; ExpectedTitle: Text[250]; ExpectedDescription: Text[2048]; ExpectedText: Text)
     var
         BusinessSkill: Record "Business Skill";
@@ -885,6 +900,30 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", SupersededElectricitySkillTitleLbl, GetSupersededElectricityMeterSkillText());
         DeleteBusinessSkill(DemoState."Service Class. Skill ID", SupersededServiceClassSkillTitleLbl, GetSupersededServiceClassificationSkillText());
         DeleteBusinessSkill(DemoState."Effective Date Skill ID", SupersededEffectiveDateSkillTitleLbl, GetSupersededEffectiveDateSkillText());
+    end;
+
+    local procedure DeleteFabrikamBusinessSkills(DemoState: Record "PA Business Skills Demo State")
+    begin
+        DeleteBusinessSkill(DemoState."Line Classification Skill ID", FabrikamLineClassSkillTitleLbl, GetFabrikamLineClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Electricity Meter Skill ID", ElectricityMeterSkillTitleLbl, GetElectricityMeterSkillText());
+        DeleteBusinessSkill(DemoState."Service Class. Skill ID", ServiceClassificationSkillTitleLbl, GetServiceClassificationSkillText());
+        DeleteBusinessSkill(DemoState."Effective Date Skill ID", EffectiveDateSkillTitleLbl, GetEffectiveDateSkillText());
+    end;
+
+    local procedure GetFabrikamLineClassificationSkillText(): Text
+    var
+        Instructions: TextBuilder;
+    begin
+        Instructions.AppendLine('Use this policy for purchase invoices from Fabrikam Ltd (vendor 40000).');
+        Instructions.AppendLine('Post replacement parts and materials used for repairs or maintenance to G/L account 8135, Repair Materials.');
+        Instructions.AppendLine('Post office paper and other office consumables to G/L account 8215, Office Consumables.');
+        Instructions.AppendLine('Post maintenance labour or technician work that does not include separately priced materials to G/L account 8140, Maintenance Labour.');
+        Instructions.AppendLine('Use VAT product posting group GB20 when the invoice supports standard-rated UK input VAT.');
+        Instructions.AppendLine('Choose the account from the nature of each purchase, not merely from its VAT percentage. Different categories can legitimately have the same VAT rate.');
+        Instructions.AppendLine('Keep separately priced categories on separate lines. If one charge combines categories without a price breakdown, ask for clarification rather than estimating a split.');
+        Instructions.AppendLine('Retain the department already supported by the invoice or other company policy; do not invent a department when the beneficiary is not stated.');
+        Instructions.Append('If the supplier VAT conflicts with the valid configured treatment, request review and do not change VAT or posting setup to reproduce the supplier total.');
+        exit(Instructions.ToText());
     end;
 
     local procedure GetSupersededLineClassificationSkillText(): Text
@@ -1041,6 +1080,8 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         VerifyCostTypeIsUnchangedAndUnused(OfficeConsumablesAccountNoTok, OfficeConsumablesAccountNameLbl, DemoState."Office Cons. Cost Type Created");
         VerifyCostTypeIsUnchangedAndUnused(TrainingCostsAccountNoTok, TrainingCostsAccountNameLbl, DemoState."Training Cost Type Created");
         if AreBusinessSkillsCurrent(DemoState) then
+            exit;
+        if AreFabrikamBusinessSkillsExact(DemoState) then
             exit;
         if AreSupersededBusinessSkillsExact(DemoState) then
             exit;
@@ -1343,6 +1384,10 @@ codeunit 3327 "PA Business Skills Demo Mgt."
     local procedure DeleteBusinessSkills(DemoState: Record "PA Business Skills Demo State")
     begin
         if not AreBusinessSkillsCurrent(DemoState) then begin
+            if AreFabrikamBusinessSkillsExact(DemoState) then begin
+                DeleteFabrikamBusinessSkills(DemoState);
+                exit;
+            end;
             if AreSupersededBusinessSkillsExact(DemoState) then begin
                 DeleteSupersededBusinessSkills(DemoState);
                 exit;
@@ -1722,6 +1767,8 @@ codeunit 3327 "PA Business Skills Demo Mgt."
         ServiceClassificationSkillDescriptionLbl: Label 'Company accounting policy for vendor 20000 one-off consulting, employee training, learning workshops, and beneficiary departments. Excludes recurring monthly bookkeeping.';
         EffectiveDateSkillTitleLbl: Label 'First Up Consultants monthly bookkeeping cost-centre policy';
         EffectiveDateSkillDescriptionLbl: Label 'Company accounting policy for vendor 20000 recurring bookkeeping and accounting assistance. Use G/L account 8630; allocate service periods before October 2026 to SALES and periods from October 2026 to ADM.';
+        FabrikamLineClassSkillTitleLbl: Label 'Fabrikam purchase coding for repairs, office supplies, and maintenance';
+        FabrikamLineClassSkillDescriptionLbl: Label 'Company accounting policy for invoices from Fabrikam Ltd, vendor 40000. Distinguishes repair materials, office consumables, and maintenance labour using G/L accounts 8135, 8215, and 8140 with standard UK input VAT.';
         SupersededLineClassSkillTitleLbl: Label 'Vendor 40000 repair, maintenance, and office supply invoice coding';
         SupersededLineClassSkillDescriptionLbl: Label 'Purchase invoice policy for vendor 40000. Classifies replacement parts, repair materials, office paper, office consumables, maintenance labour, and technician work to G/L accounts 8135, 8215, or 8140 with GB20 VAT.';
         SupersededElectricitySkillTitleLbl: Label 'GB-ELEC electricity invoice coding by meter number';
