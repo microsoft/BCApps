@@ -1922,6 +1922,20 @@
         "Sandbox"
       ]
     },
+    "BCLE Snapshot Debugging Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\BCLESnapshotDebugging\\test",
+      "isInternal": true,
+      "supportedCountries": "All",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "skipInstallOnPrem": true,
+      "allowedEnvironmentTypes": [
+        "Sandbox"
+      ]
+    },
     "Basic Experience": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\BasicExperience\\app",
       "dvdFolder": "Applications\\BasicExperience\\Source",
