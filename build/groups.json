@@ -9118,23 +9118,6 @@
     ]
   },
   {
-    "name": "Payables Agent",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
     "name": "VAT Audit Reports GB",
     "groups": [
       {
