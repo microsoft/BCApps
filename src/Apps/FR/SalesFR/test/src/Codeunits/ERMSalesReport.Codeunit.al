@@ -604,11 +604,6 @@ codeunit 148004 "ERM Sales Report"
         SalesFR: Codeunit "Sales FR";
     begin
         FeatureKey.Get(SalesFR.GetFeatureKeyId());
-        if Enabled then
-            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
-        else
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-        FeatureKey.Modify();
 
         if not FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then begin
             FeatureDataUpdateStatus.Init();
