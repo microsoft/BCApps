@@ -93,9 +93,9 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnProcessLinesOnProcessICTransaction, '', true, false)]
-    local procedure OnProcessLinesOnProcessICTransaction(var GenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var GenJnlTemplate: Record "Gen. Journal Template")
+    local procedure OnProcessLinesOnProcessICTransaction(var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var GenJournalTemplate: Record "Gen. Journal Template")
     begin
-        ProcessICLines(GenJnlTemplate, GenJnlLine, TempGenJnlLine);
+        ProcessICLines(GenJournalTemplate, GenJournalLine, TempGenJournalLine);
         ProcessICTransaction();
     end;
 
@@ -106,8 +106,8 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
             ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnBlankICPartner, '', true, false)]
-    local procedure OnBlankICPartner(var Result: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnBeforeBlankICPartner, '', true, false)]
+    local procedure OnBeforeBlankICPartner(var Result: Boolean)
     begin
         Result := CurrentICPartner = '';
     end;
