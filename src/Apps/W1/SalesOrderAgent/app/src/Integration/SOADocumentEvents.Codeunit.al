@@ -16,8 +16,7 @@ codeunit 4600 "SOA Document Events"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task Message" = r,
-                  tabledata "SOA Attachment Transfer" = RI;
+    Permissions = tabledata "Agent Task Message" = r;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnAfterModifyEvent, '', false, false)]
     local procedure OnChangeSalesHeader(var Rec: Record "Sales Header")
@@ -83,12 +82,17 @@ codeunit 4600 "SOA Document Events"
 
     local procedure CopyAttachmentToDocument(AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; SalesHeader: Record "Sales Header"): Boolean
     var
-        SOAAttachmentTransfer: Record "SOA Attachment Transfer";
+        DocumentAttachment: Record "Document Attachment";
         AgentTaskFile: Record "Agent Task File";
         FileInStream: InStream;
     begin
-        SOAAttachmentTransfer.LockTable();
-        if SOAAttachmentTransfer.Get(AgentTaskMessageAttachment.SystemId, SalesHeader.SystemId) then
+        DocumentAttachment.LockTable();
+        DocumentAttachment.SetRange("Table ID", Database::"Sales Header");
+        DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type"::Quote);
+        DocumentAttachment.SetRange("No.", SalesHeader."No.");
+        DocumentAttachment.SetRange("Line No.", 0);
+        DocumentAttachment.SetRange("SOA Task Attachment ID", AgentTaskMessageAttachment.SystemId);
+        if not DocumentAttachment.IsEmpty() then
             exit(false);
 
         AgentTaskFile.SetRange(ID, AgentTaskMessageAttachment."File ID");
@@ -104,13 +108,7 @@ codeunit 4600 "SOA Document Events"
         end;
 
         AgentTaskFile.Content.CreateInStream(FileInStream);
-        CopyToDocument(FileInStream, SalesHeader, AgentTaskFile."File Name");
-
-        SOAAttachmentTransfer."Attachment ID" := AgentTaskMessageAttachment.SystemId;
-        SOAAttachmentTransfer."Sales Header ID" := SalesHeader.SystemId;
-        SOAAttachmentTransfer."Task ID" := AgentTaskMessageAttachment."Task ID";
-        SOAAttachmentTransfer."Task Message ID" := AgentTaskMessageAttachment."Message ID";
-        SOAAttachmentTransfer.Insert();
+        CopyToDocument(FileInStream, SalesHeader, AgentTaskFile."File Name", AgentTaskMessageAttachment.SystemId);
         exit(true);
     end;
 
@@ -123,14 +121,15 @@ codeunit 4600 "SOA Document Events"
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessageAttachment."Task ID"));
         TelemetryDimensions.Add('TaskMessageId', Format(AgentTaskMessageAttachment."Message ID"));
         TelemetryDimensions.Add('FileId', Format(AgentTaskMessageAttachment."File ID", 0, 9));
-        FeatureTelemetry.LogError('SOAAttachmentTransferSkipped', SOASetupCU.GetFeatureName(), 'Copy attachment to sales quote', Reason, '', TelemetryDimensions);
+        FeatureTelemetry.LogError('', SOASetupCU.GetFeatureName(), 'Copy attachment to sales quote', Reason, '', TelemetryDimensions);
     end;
 
-    local procedure CopyToDocument(FileInStream: InStream; SalesHeader: Record "Sales Header"; FileName: Text)
+    local procedure CopyToDocument(FileInStream: InStream; SalesHeader: Record "Sales Header"; FileName: Text; SourceAttachmentID: Guid)
     var
         DocumentAttachment: Record "Document Attachment";
     begin
         DocumentAttachment.Init();
+        DocumentAttachment."SOA Task Attachment ID" := SourceAttachmentID;
         DocumentAttachment.SaveAttachmentFromStream(FileInStream, SalesHeader, FileName);
     end;
 
