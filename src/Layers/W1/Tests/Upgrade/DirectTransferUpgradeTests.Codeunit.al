@@ -1,3 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Upgrade;
+
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Transfer;
+using System.TestLibraries.Utilities;
+using System.Upgrade;
+
 codeunit 135978 "Direct Transfer Upgrade Tests"
 {
     Subtype = Test;
