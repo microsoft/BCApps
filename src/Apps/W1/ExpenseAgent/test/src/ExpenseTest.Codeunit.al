@@ -5561,6 +5561,7 @@ codeunit 148305 "Expense Test"
         CurrencyDate := WorkDate() - 1;
         Expense."Expense Date" := CurrencyDate;
         ExpenseReportLine."Expense Date" := CurrencyDate;
+        Commit();
 
         // [WHEN] Validate Currency Code on Expense.
         asserterror Expense.Validate("Currency Code", CurrencyCode);
@@ -5617,6 +5618,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Currency without exchange rates.
         LibraryERM.CreateCurrency(Currency);
+        Commit();
 
         // [WHEN] Validate Currency without exchange rates on Expense.
         asserterror Expense.Validate("Currency Code", Currency.Code);
@@ -5649,6 +5651,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Currency with Exchange Rate starting after WorkDate.
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() + 1, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        Commit();
 
         // [WHEN] Validate Currency Code on Expense with a blank expense date.
         asserterror Expense.Validate("Currency Code", CurrencyCode);
