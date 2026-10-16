@@ -68,6 +68,11 @@ page 460 "Purchases & Payables Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Restore Order Qty. on Return"; Rec."Restore Order Qty. on Return")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field(DefaultGLAccountQuantity; Rec."Default G/L Account Quantity")
                 {
                     ApplicationArea = Basic, Suite;
@@ -461,4 +466,3 @@ page 460 "Purchases & Payables Setup"
         ExtendedPriceEnabled: Boolean;
         JnlTemplateNameVisible: Boolean;
 }
-
