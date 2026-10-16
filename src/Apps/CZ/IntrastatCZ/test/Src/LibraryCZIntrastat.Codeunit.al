@@ -427,12 +427,10 @@ codeunit 148126 "Library - CZ Intrastat"
     begin
         // Create Purchase Order With Random Quantity and Direct Unit Cost.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
-        with PurchaseHeader do begin
-            Validate("Posting Date", PostingDate);
-            LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-            Validate("Location Code", Location.Code);
-            Modify(true);
-        end;
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        PurchaseHeader.Validate("Location Code", Location.Code);
+        PurchaseHeader.Modify(true);
     end;
 
     procedure CreatePurchaseLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Type: Enum "Purchase Line Type"; No: Code[20])

@@ -115,6 +115,38 @@ codeunit 10505 "Intrastat Report Test GB"
         IntrastatReportPage.Close();
     end;
 
+    [Test]
+    procedure ExportLineReadsPreservePositionAndEncoding()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Content: TextBuilder;
+        OutStrm: OutStream;
+        DetailLine: Text;
+        SpecialChar: Char;
+    begin
+        SpecialChar := 233;
+        DetailLine := 'DETAIL' + Format(SpecialChar);
+        Content.AppendLine('HEADER');
+        Content.AppendLine('');
+        Content.Append(DetailLine);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::MSDos);
+        OutStrm.WriteText(Content.ToText());
+
+        Assert.AreEqual(DetailLine, ReadExportLine(TempBlob, 3), 'The last line must retain MS-DOS characters without a final newline.');
+        Assert.AreEqual('HEADER', ReadExportLine(TempBlob, 1), 'Reading an earlier line must restart from the beginning.');
+        Assert.AreEqual('', ReadExportLine(TempBlob, 2), 'An empty line must not be skipped.');
+        Assert.AreEqual(DetailLine, ReadExportLine(TempBlob, 3), 'Repeated reads must return the same line.');
+    end;
+
+    local procedure ReadExportLine(TempBlob: Codeunit "Temp Blob"; LineNumber: Integer): Text
+    var
+        LibraryTextFileValidation: Codeunit "Library - Text File Validation";
+        InStrm: InStream;
+    begin
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
+        exit(LibraryTextFileValidation.ReadLineFromStream(InStrm, LineNumber));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -187,10 +219,8 @@ codeunit 10505 "Intrastat Report Test GB"
     var
         DataExch: Record "Data Exch.";
         CompanyInfo: Record "Company Information";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Header, Line1: Text;
         TabChar: Char;
         DecVar: Decimal;
@@ -201,11 +231,8 @@ codeunit 10505 "Intrastat Report Test GB"
         DataExch.CalcFields("File Content");
         TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-        FileName := FileMgt.ServerTempFileName('txt');
-        FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
         TabChar := ',';
-        Header := LibraryTextFileValidation.ReadLine(FileName, 1);
+        Header := ReadExportLine(TempBlob, 1);
         CompanyInfo.Get();  
 
         // Verify header line
@@ -221,7 +248,7 @@ codeunit 10505 "Intrastat Report Test GB"
         Assert.AreEqual('CSV02', LibraryTextFileValidation.ReadField(Header, 10, TabChar), IntrastatFileOutputErr);
 
         // Verify Line
-        Line1 := LibraryTextFileValidation.ReadLine(FileName, 2);
+        Line1 := ReadExportLine(TempBlob, 2);
         IntrastatReportPage.IntrastatLines."Tariff No.".AssertEquals(LibraryTextFileValidation.ReadField(Line1, 1, TabChar));
         Evaluate(DecVar, LibraryTextFileValidation.ReadField(Line1, 2, TabChar));
         IntrastatReportPage.IntrastatLines."Statistical Value".AssertEquals(DecVar);
@@ -240,10 +267,8 @@ codeunit 10505 "Intrastat Report Test GB"
     var
         DataExch: Record "Data Exch.";
         CompanyInfo: Record "Company Information";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Header, Line1: Text;
         TabChar: Char;
         DecVar: Decimal;
@@ -254,11 +279,8 @@ codeunit 10505 "Intrastat Report Test GB"
         DataExch.CalcFields("File Content");
         TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-        FileName := FileMgt.ServerTempFileName('txt');
-        FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
         TabChar := ',';
-        Header := LibraryTextFileValidation.ReadLine(FileName, 1);
+        Header := ReadExportLine(TempBlob, 1);
         CompanyInfo.Get();  
 
         // Verify header line
@@ -274,7 +296,7 @@ codeunit 10505 "Intrastat Report Test GB"
         Assert.AreEqual('CSV02', LibraryTextFileValidation.ReadField(Header, 10, TabChar), IntrastatFileOutputErr);        
 
         // Verify Line
-        Line1 := LibraryTextFileValidation.ReadLine(FileName, 2);
+        Line1 := ReadExportLine(TempBlob, 2);
         IntrastatReportPage.IntrastatLines."Tariff No.".AssertEquals(LibraryTextFileValidation.ReadField(Line1, 1, TabChar));
         Evaluate(DecVar, LibraryTextFileValidation.ReadField(Line1, 2, TabChar));
         IntrastatReportPage.IntrastatLines."Statistical Value".AssertEquals(DecVar);
