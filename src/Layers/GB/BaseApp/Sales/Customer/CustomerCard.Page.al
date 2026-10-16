@@ -247,41 +247,9 @@ page 21 "Customer Card"
                 group(AddressDetails)
                 {
                     Caption = 'Address';
-#if not CLEAN27
-                    group(Control1040004)
-                    {
-                        ShowCaption = false;
-                        Visible = IsAddressLookupTextEnabled;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Functionality has been moved to the GetAddress.io UK Postcodes.';
-                        ObsoleteTag = '27.0';
-                        field(LookupAddress; LookupAddressLbl)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Editable = false;
-                            ObsoleteState = Pending;
-                            ObsoleteReason = 'Field has been moved to the GetAddress.io UK Postcodes.';
-                            ObsoleteTag = '27.0';
-                            ShowCaption = false;
-
-                            trigger OnDrillDown()
-                            begin
-                                ShowPostcodeLookup(true);
-                            end;
-                        }
-                    }
-#endif
                     field(Address; Rec.Address)
                     {
                         ApplicationArea = Basic, Suite;
-#if not CLEAN27
-                        trigger OnValidate()
-                        var
-                            PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-                        begin
-                            PostcodeBusinessLogic.ShowDiscoverabilityNotificationIfNeccessary();
-                        end;
-#endif
                     }
                     field("Address 2"; Rec."Address 2")
                     {
@@ -293,9 +261,6 @@ page 21 "Customer Card"
                         trigger OnValidate()
                         begin
                             IsCountyVisible := FormatAddress.UseCounty(Rec."Country/Region Code");
-#if not CLEAN27
-                            HandleAddressLookupVisibility();
-#endif
                         end;
                     }
                     field(City; Rec.City)
@@ -315,15 +280,6 @@ page 21 "Customer Card"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Promoted;
-#if not CLEAN27
-                        trigger OnValidate()
-                        var
-                            PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-                        begin
-                            PostcodeBusinessLogic.ShowDiscoverabilityNotificationIfNeccessary();
-                            ShowPostcodeLookup(false);
-                        end;
-#endif
                     }
                     field(ShowMap; ShowMapLbl)
                     {
@@ -2446,10 +2402,8 @@ page 21 "Customer Card"
             StartBackgroundCalculations();
         ActivateFields();
         SetCreditLimitStyle();
-
         if Rec.GetFilter("Date Filter") = '' then
             Rec.SetRange("Date Filter", 0D, WorkDate());
-
         if CRMIntegrationEnabled or CDSIntegrationEnabled then begin
             CRMIsCoupledToRecord := CRMCouplingManagement.IsRecordCoupledToCRM(Rec.RecordId);
             if Rec."No." <> xRec."No." then
@@ -2467,9 +2421,6 @@ page 21 "Customer Card"
             if OpenApprovalEntriesExist then
                 OpenApprovalEntriesExistCurrUser := ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(Rec.RecordId);
         end;
-#if not CLEAN27
-        HandleAddressLookupVisibility();
-#endif
     end;
 
     trigger OnInit()
@@ -2503,7 +2454,6 @@ page 21 "Customer Card"
     trigger OnOpenPage()
     begin
         OnBeforeOnOpenPage(Rec);
-
         if Rec.GetFilter("Date Filter") = '' then
             Rec.SetRange("Date Filter", 0D, WorkDate());
         if GuiAllowed() then
@@ -2559,7 +2509,6 @@ page 21 "Customer Card"
         OnBeforeStartBackgroundCalculations(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if Rec."No." = PrevCustNo then
             exit;
         PrevCustNo := Rec."No.";
@@ -2622,106 +2571,72 @@ page 21 "Customer Card"
         if (TaskId = BackgroundTaskId) then begin
             if Results.Count() = 0 then
                 exit;
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAvgDaysPastDueDateLabel(), DictionaryValue) then
                 Evaluate(DaysPastDueDate, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetExpectedMoneyOwedLabel(), DictionaryValue) then
                 Evaluate(ExpectedMoneyOwed, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAvgDaysToPayLabel(), DictionaryValue) then
                 Evaluate(AvgDaysToPay, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetPaidLateCountLabel(), DictionaryValue) then
                 Evaluate(PaidLateCount, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetPaidOnTimeCountLabel(), DictionaryValue) then
                 Evaluate(PaidOnTimeCount, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetPercentPaidLateLabel(), DictionaryValue) then
                 Evaluate(PercentPaidLate, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetOverdueCountLabel(), DictionaryValue) then
                 Evaluate(OverdueCount, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetLastPaymentDateLabel(), DictionaryValue) then
                 Evaluate(LastPaymentDate, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetLastPaymentAmountLabel(), DictionaryValue) then
                 Evaluate(LastPaymentAmount, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetLastPaymentOnTimeLabel(), DictionaryValue) then
                 Evaluate(LastPaymentOnTime, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetDaysSinceLastSaleLabel(), DictionaryValue) then
                 Evaluate(DaysSinceLastSale, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetDistinctItemsSoldLabel(), DictionaryValue) then
                 Evaluate(DistinctItemsSold, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetInteractionCountLabel(), DictionaryValue) then
                 Evaluate(InteractionCount, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetLastInteractionDateLabel(), DictionaryValue) then
                 Evaluate(LastInteractionDate, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetLastInteractionTypeLabel(), DictionaryValue) then
                 Evaluate(LastInteractionType, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetMostFrequentInteractionTypeLabel(), DictionaryValue) then
                 Evaluate(MostFrequentInteractionType, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAmountOnPostedInvoicesLabel(), DictionaryValue) then
                 Evaluate(AmountOnPostedInvoices, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAmountOnPostedCrMemosLabel(), DictionaryValue) then
                 Evaluate(AmountOnPostedCrMemos, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAmountOnOutstandingInvoicesLabel(), DictionaryValue) then
                 Evaluate(AmountOnOutstandingInvoices, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAmountOnOutstandingCrMemosLabel(), DictionaryValue) then
                 Evaluate(AmountOnOutstandingCrMemos, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetTotalsLabel(), DictionaryValue) then
                 Evaluate(Totals, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAdjmtCostLCYLabel(), DictionaryValue) then
                 Evaluate(AdjmtCostLCY, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAdjCustProfitLabel(), DictionaryValue) then
                 Evaluate(AdjCustProfit, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetAdjProfitPctLabel(), DictionaryValue) then
                 Evaluate(AdjProfitPct, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetCustInvDiscAmountLCYLabel(), DictionaryValue) then
                 Evaluate(CustInvDiscAmountLCY, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetCustPaymentsLCYLabel(), DictionaryValue) then
                 Evaluate(CustPaymentsLCY, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetCustSalesLCYLabel(), DictionaryValue) then
                 Evaluate(CustSalesLCY, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetCustProfitLabel(), DictionaryValue) then
                 Evaluate(CustProfit, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetNoPostedInvoicesLabel(), DictionaryValue) then
                 Evaluate(NoPostedInvoices, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetNoPostedCrMemosLabel(), DictionaryValue) then
                 Evaluate(NoPostedCrMemos, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetNoOutstandingInvoicesLabel(), DictionaryValue) then
                 Evaluate(NoOutstandingInvoices, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetNoOutstandingCrMemosLabel(), DictionaryValue) then
                 Evaluate(NoOutstandingCrMemos, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetOverdueBalanceLabel(), DictionaryValue) then
                 Evaluate(OverdueBalance, DictionaryValue);
-
             if TryGetDictionaryValueFromKey(Results, CustomerCardCalculations.GetLinkedVendorNoLabel(), DictionaryValue) then
                 LinkedVendorNo := CopyStr(DictionaryValue, 1, MaxStrLen(LinkedVendorNo));
             BalanceAsVendorEnabled := LinkedVendorNo <> '';
@@ -2895,11 +2810,9 @@ page 21 "Customer Card"
         CustomerTemplMgt: Codeunit "Customer Templ. Mgt.";
     begin
         OnBeforeCreateCustomerFromTemplate(NewMode, Customer);
-
         if not NewMode then
             exit;
         NewMode := false;
-
         if CustomerTemplMgt.InsertCustomerFromTemplate(Customer) then begin
             VerifyVatRegNo(Customer);
             Rec.Copy(Customer);
@@ -2926,51 +2839,6 @@ page 21 "Customer Card"
                 CustomerRecRef.SetTable(Customer);
             end;
     end;
-
-#if not CLEAN27
-    [Obsolete('Functionality has been moved to the GetAddress.io UK Postcodes.', '27.0')]
-    local procedure ShowPostcodeLookup(ShowInputFields: Boolean)
-    var
-        TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary;
-        TempAutocompleteAddress: Record "Autocomplete Address" temporary;
-        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-    begin
-        if not PostcodeBusinessLogic.SupportedCountryOrRegionCode(Rec."Country/Region Code") then
-            exit;
-
-        if not PostcodeBusinessLogic.IsConfigured() or ((Rec."Post Code" = '') and not ShowInputFields) then
-            exit;
-
-        TempEnteredAutocompleteAddress.Address := Rec.Address;
-        TempEnteredAutocompleteAddress.Postcode := Rec."Post Code";
-
-        if not PostcodeBusinessLogic.ShowLookupWindow(TempEnteredAutocompleteAddress, ShowInputFields, TempAutocompleteAddress) then
-            exit;
-
-        CopyAutocompleteFields(TempAutocompleteAddress);
-        HandleAddressLookupVisibility();
-    end;
-
-    local procedure CopyAutocompleteFields(var TempAutocompleteAddress: Record "Autocomplete Address" temporary)
-    begin
-        Rec.Address := TempAutocompleteAddress.Address;
-        Rec."Address 2" := TempAutocompleteAddress."Address 2";
-        Rec."Post Code" := TempAutocompleteAddress.Postcode;
-        Rec.City := TempAutocompleteAddress.City;
-        Rec.County := TempAutocompleteAddress.County;
-        Rec."Country/Region Code" := TempAutocompleteAddress."Country / Region";
-    end;
-
-    local procedure HandleAddressLookupVisibility()
-    var
-        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-    begin
-        if not CurrPage.Editable or not PostcodeBusinessLogic.IsConfigured() then
-            IsAddressLookupTextEnabled := false
-        else
-            IsAddressLookupTextEnabled := PostcodeBusinessLogic.SupportedCountryOrRegionCode(Rec."Country/Region Code");
-    end;
-#endif
 
     local procedure OpenCurrFiscalYearCustLedgerEntries()
     var

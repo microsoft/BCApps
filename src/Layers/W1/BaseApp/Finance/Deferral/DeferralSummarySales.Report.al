@@ -351,18 +351,6 @@ report 1701 "Deferral Summary - Sales"
             LayoutFile = './Finance/Deferral/DeferralSummarySales.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Deferral Summary Sales RDLC';
-            Type = RDLC;
-            LayoutFile = './Finance/Deferral/DeferralSummarySales.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels

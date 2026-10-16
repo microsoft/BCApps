@@ -116,16 +116,6 @@ codeunit 143000 "Library - IT Localization"
             ItemCostingSetup.Insert(true);
     end;
 
-#if not CLEAN27
-    [Scope('OnPrem')]
-    procedure CreatePeriodicVATSettlementEntry(var PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; PeriodDate: Date)
-    begin
-        PeriodicSettlementVATEntry.Init();
-        PeriodicSettlementVATEntry.Validate(
-          "VAT Period", StrSubstNo(VATPeriodTxt, Date2DMY(PeriodDate, 3), ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0')));
-        PeriodicSettlementVATEntry.Insert(true);
-    end;
-#else
     [Scope('OnPrem')]
     procedure CreatePeriodicSettlementVATEntry(var PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry"; PeriodDate: Date)
     begin
@@ -134,7 +124,7 @@ codeunit 143000 "Library - IT Localization"
           "VAT Period", StrSubstNo(VATPeriodTxt, Date2DMY(PeriodDate, 3), ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0')));
         PeriodicSettlementVATEntry.Insert(true);
     end;
-#endif
+
     [Scope('OnPrem')]
     procedure CreateServiceTariffNumber(var ServiceTariffNumber: Record "Service Tariff Number")
     begin

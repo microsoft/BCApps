@@ -857,7 +857,6 @@ report 202 "Sales Document - Test"
                             else
                                 TempSalesLine.Next();
                             "Sales Line" := TempSalesLine;
-
                             if not "Sales Header"."Prices Including VAT" and
                                ("Sales Line"."VAT Calculation Type" = "Sales Line"."VAT Calculation Type"::"Full VAT")
                             then
@@ -865,7 +864,6 @@ report 202 "Sales Document - Test"
 
                             DimSetEntry2.SetRange("Dimension Set ID", "Sales Line"."Dimension Set ID");
                             DimMgt.GetDimensionSet(TempDimSetEntry, "Sales Line"."Dimension Set ID");
-
                             if "Sales Line"."Document Type" in ["Sales Line"."Document Type"::"Return Order", "Sales Line"."Document Type"::"Credit Memo"]
                             then begin
                                 if "Sales Line"."Document Type" = "Sales Line"."Document Type"::"Credit Memo" then begin
@@ -886,22 +884,18 @@ report 202 "Sales Document - Test"
                                 if "Sales Line"."Return Qty. to Receive" <> 0 then
                                     AddError(StrSubstNo(Text043, "Sales Line".FieldCaption("Return Qty. to Receive")));
                             end;
-
                             if not "Sales Header".Ship then
                                 "Sales Line"."Qty. to Ship" := 0;
                             if not "Sales Header".Receive then
                                 "Sales Line"."Return Qty. to Receive" := 0;
-
                             if ("Sales Line"."Document Type" = "Sales Line"."Document Type"::Invoice) and ("Sales Line"."Shipment No." <> '') then begin
                                 "Sales Line"."Quantity Shipped" := "Sales Line".Quantity;
                                 "Sales Line"."Qty. to Ship" := 0;
                             end;
-
                             if ("Sales Line"."Document Type" = "Sales Line"."Document Type"::"Credit Memo") and ("Sales Line"."Return Receipt No." <> '') then begin
                                 "Sales Line"."Return Qty. Received" := "Sales Line".Quantity;
                                 "Sales Line"."Return Qty. to Receive" := 0;
                             end;
-
                             if "Sales Header".Invoice then begin
                                 if "Sales Line"."Document Type" in ["Sales Line"."Document Type"::"Return Order", "Sales Line"."Document Type"::"Credit Memo"] then
                                     MaxQtyToBeInvoiced := "Sales Line"."Return Qty. to Receive" + "Sales Line"."Return Qty. Received" - "Sales Line"."Quantity Invoiced"
@@ -911,7 +905,6 @@ report 202 "Sales Document - Test"
                                     "Sales Line"."Qty. to Invoice" := MaxQtyToBeInvoiced;
                             end else
                                 "Sales Line"."Qty. to Invoice" := 0;
-
                             if "Sales Line"."Gen. Prod. Posting Group" <> '' then begin
                                 if ("Sales Header"."Document Type" in
                                     ["Sales Header"."Document Type"::"Return Order",
@@ -931,7 +924,6 @@ report 202 "Sales Document - Test"
                                             "Sales Header".FieldCaption("Applies-to Doc. No."), "Sales Header"."Applies-to Doc. No."));
                                     end;
                                 end;
-
                                 if not VATPostingSetup.Get("Sales Line"."VAT Bus. Posting Group", "Sales Line"."VAT Prod. Posting Group") then
                                     AddError(
                                       StrSubstNo(
@@ -945,7 +937,6 @@ report 202 "Sales Document - Test"
                                             Text035, "Sales Header".FieldCaption("VAT Registration No.")));
                                     end;
                             end;
-
                             if "Sales Line".Quantity <> 0 then begin
                                 if "Sales Line"."No." = '' then
                                     AddError(StrSubstNo(Text019, "Sales Line".Type, "Sales Line".FieldCaption("No.")));
@@ -955,7 +946,6 @@ report 202 "Sales Document - Test"
                                 if "Sales Line".Amount <> 0 then
                                     AddError(
                                       StrSubstNo(Text020, "Sales Line".FieldCaption(Amount), "Sales Line".FieldCaption(Quantity)));
-
                             if "Sales Line"."Drop Shipment" then begin
                                 if "Sales Line".Type <> "Sales Line".Type::Item then
                                     AddError(Text021);
@@ -974,14 +964,12 @@ report 202 "Sales Document - Test"
                             end;
 
                             RemQtyToBeInvoiced := SalesLine."Qty. to Invoice";
-
                             case "Sales Line"."Document Type" of
                                 "Sales Line"."Document Type"::"Return Order", "Sales Line"."Document Type"::"Credit Memo":
                                     CheckRcptLines("Sales Line");
                                 "Sales Line"."Document Type"::Order, "Sales Line"."Document Type"::Invoice:
                                     CheckShptLines("Sales Line");
                             end;
-
                             if ("Sales Line".Type <> "Sales Line".Type::" ") and ("Sales Line"."Qty. to Invoice" <> 0) then begin
                                 if not ApplicationAreaMgmt.IsSalesTaxEnabled() then
                                     if not GenPostingSetup.Get("Sales Line"."Gen. Bus. Posting Group", "Sales Line"."Gen. Prod. Posting Group") then
@@ -995,13 +983,11 @@ report 202 "Sales Document - Test"
                                         Text017,
                                         VATPostingSetup.TableCaption(), "Sales Line"."VAT Bus. Posting Group", "Sales Line"."VAT Prod. Posting Group"));
                             end;
-
                             if "Sales Line"."Prepayment %" > 0 then
                                 if not "Sales Line"."Prepayment Line" and ("Sales Line".Quantity > 0) then begin
                                     Fraction := ("Sales Line"."Qty. to Invoice" + "Sales Line"."Quantity Invoiced") / "Sales Line".Quantity;
                                     if Fraction > 1 then
                                         Fraction := 1;
-
                                     case true of
                                         (Fraction * "Sales Line"."Line Amount" < "Sales Line"."Prepmt Amt to Deduct") and
                                       ("Sales Line"."Prepmt Amt to Deduct" <> 0):
@@ -1331,7 +1317,6 @@ report 202 "Sales Document - Test"
                             SetRange(Number, 1, TempVATAmountLine.Count);
                             Clear(VALVATBaseLCY);
                             Clear(VALVATAmountLCY);
-
                             if GLSetup."LCY Code" = '' then
                                 VALSpecLCYHeader := Text050 + Text051
                             else
@@ -1500,16 +1485,13 @@ report 202 "Sales Document - Test"
                 SalesSetup.Get();
 
                 VerifyPostingDate("Sales Header");
-
                 if SalesSetup."Posting Date Check on Posting" then
                     if "Posting Date" <> WorkDate() then
                         AddError(
                           StrSubstNo(DifferentPostingDateToWorkDateTxt, FieldCaption("Posting Date"), "Posting Date", WorkDate()));
-
                 if "Document Date" <> 0D then
                     if "Document Date" <> NormalDate("Document Date") then
                         AddError(StrSubstNo(Text009, FieldCaption("Document Date")));
-
                 case "Document Type" of
                     "Document Type"::Order:
                         Receive := false;
@@ -1528,13 +1510,11 @@ report 202 "Sales Document - Test"
                             Receive := true;
                         end;
                 end;
-
                 if not (Ship or Invoice or Receive) then
                     AddError(
                       StrSubstNo(
                         Text034,
                         FieldCaption(Ship), FieldCaption(Invoice), FieldCaption(Receive)));
-
                 if Invoice then begin
                     SalesLine.Reset();
                     SalesLine.SetRange("Document Type", "Document Type");
@@ -1556,7 +1536,6 @@ report 202 "Sales Document - Test"
                             until Invoice or (SalesLine.Next() = 0);
                         end;
                 end;
-
                 if Ship then begin
                     SalesLine.Reset();
                     SalesLine.SetRange("Document Type", "Document Type");
@@ -1577,15 +1556,12 @@ report 202 "Sales Document - Test"
                     SalesLine.SetRange("Return Receipt No.", '');
                     Receive := SalesLine.Find('-');
                 end;
-
                 if not (Ship or Invoice or Receive) then
                     AddError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
-
                 if Invoice then
                     if not ("Document Type" in ["Document Type"::"Return Order", "Document Type"::"Credit Memo"]) then
                         if "Due Date" = 0D then
                             AddError(StrSubstNo(Text006, FieldCaption("Due Date")));
-
                 if Ship and ("Shipping No." = '') then // Order,Invoice
                     if ("Document Type" = "Document Type"::Order) or
                        (("Document Type" = "Document Type"::Invoice) and SalesSetup."Shipment on Invoice")
@@ -1595,7 +1571,6 @@ report 202 "Sales Document - Test"
                               StrSubstNo(
                                 Text006,
                                 FieldCaption("Shipping No. Series")));
-
                 if Receive and ("Return Receipt No." = '') then // Return Order,Credit Memo
                     if ("Document Type" = "Document Type"::"Return Order") or
                        (("Document Type" = "Document Type"::"Credit Memo") and SalesSetup."Return Receipt on Credit Memo")
@@ -1605,7 +1580,6 @@ report 202 "Sales Document - Test"
                               StrSubstNo(
                                 Text006,
                                 FieldCaption("Return Receipt No. Series")));
-
                 if Invoice and ("Posting No." = '') then
                     if "Document Type" in ["Document Type"::Order, "Document Type"::"Return Order"] then
                         if "Posting No. Series" = '' then
@@ -1636,11 +1610,9 @@ report 202 "Sales Document - Test"
                                             PurchOrderHeader.FieldCaption("Receiving No. Series")));
                             end;
                         until SalesLine.Next() = 0;
-
                 if "Document Type" in ["Document Type"::Order, "Document Type"::Invoice] then
                     if SalesSetup."Ext. Doc. No. Mandatory" and ("External Document No." = '') then
                         AddError(StrSubstNo(Text006, FieldCaption("External Document No.")));
-
                 if not DimMgt.CheckDimIDComb("Dimension Set ID") then
                     AddError(DimMgt.GetDimCombErr());
 
@@ -1657,13 +1629,6 @@ report 202 "Sales Document - Test"
                     AddError(DimMgt.GetDimValuePostingErr());
 
                 OnAfterCheckSalesDoc("Sales Header", ErrorText, ErrorCounter);
-
-#if not CLEAN27
-                if "Document Type" in ["Document Type"::Order, "Document Type"::Invoice] then
-                    ReverseChargeApplies := SalesPost.CheckIfReverseChargeApplies("Sales Header");
-                DisplayPaymentDiscount := "Payment Discount %" <> 0;
-                DiscountText := StrSubstNo(DiscountLbl, "Payment Discount %", "Pmt. Discount Date");
-#endif
             end;
 
             trigger OnPreDataItem()
@@ -2085,7 +2050,6 @@ report 202 "Sales Document - Test"
                           StrSubstNo(
                             Text024,
                             SalesLine2.FieldCaption("Job No.")));
-
                     if -SalesLine."Qty. to Invoice" * SaleShptLine.Quantity < 0 then
                         AddError(
                           StrSubstNo(
@@ -2106,7 +2070,6 @@ report 202 "Sales Document - Test"
                     SalesLine2."Shipment Line No.",
                     SalesLine2."Shipment No."));
         end;
-
         if Abs(RemQtyToBeInvoiced) > Abs(SalesLine2."Qty. to Ship") then
             if SalesLine2."Document Type" = SalesLine2."Document Type"::Invoice then
                 AddError(
@@ -2178,7 +2141,6 @@ report 202 "Sales Document - Test"
                           StrSubstNo(
                             Text038,
                             SalesLine2.FieldCaption("Job No.")));
-
                     if SalesLine."Qty. to Invoice" * ReturnRcptLine.Quantity < 0 then
                         AddError(
                           StrSubstNo(
@@ -2198,7 +2160,6 @@ report 202 "Sales Document - Test"
                     SalesLine2."Return Receipt Line No.",
                     SalesLine2."Return Receipt No."));
         end;
-
         if Abs(RemQtyToBeInvoiced) > Abs(SalesLine2."Return Qty. to Receive") then
             if SalesLine2."Document Type" = SalesLine2."Document Type"::"Credit Memo" then
                 AddError(
@@ -2280,13 +2241,11 @@ report 202 "Sales Document - Test"
         OnBeforeCheckSalesLine(SalesLine2, IsHandled, ErrorCounter, ErrorText);
         if IsHandled then
             exit;
-
         case SalesLine2.Type of
             SalesLine2.Type::"G/L Account":
                 begin
                     if (SalesLine2."No." = '') and (SalesLine2.Amount = 0) then
                         exit;
-
                     if SalesLine2."No." <> '' then
                         if GLAcc.Get(SalesLine2."No.") then begin
                             if GLAcc.Blocked then
@@ -2309,12 +2268,10 @@ report 202 "Sales Document - Test"
                 begin
                     if (SalesLine2."No." = '') and (SalesLine2.Quantity = 0) then
                         exit;
-
                     if SalesLine2."No." <> '' then
                         if Item.Get(SalesLine2."No.") then begin
                             if Item.Blocked then
                                 AddError(StrSubstNo(MustBeForErr, Item.FieldCaption(Blocked), false, Item.TableCaption(), SalesLine2."No."));
-
                             if SalesLine2."Variant Code" <> '' then begin
                                 ItemVariant.SetLoadFields(Blocked);
                                 if ItemVariant.Get(SalesLine2."No.", SalesLine2."Variant Code") then begin
@@ -2323,7 +2280,6 @@ report 202 "Sales Document - Test"
                                 end else
                                     AddError(StrSubstNo(Text008, ItemVariant.TableCaption(), StrSubstNo(ItemItemVariantLbl, SalesLine2."No.", SalesLine2."Variant Code")));
                             end;
-
                             if Item.Reserve = Item.Reserve::Always then begin
                                 SalesLine2.CalcFields("Reserved Quantity");
                                 if SalesLine2."Document Type" in [SalesLine2."Document Type"::"Return Order", SalesLine2."Document Type"::"Credit Memo"] then begin
@@ -2349,7 +2305,6 @@ report 202 "Sales Document - Test"
                 begin
                     if (SalesLine2."No." = '') and (SalesLine2.Quantity = 0) then
                         exit;
-
                     if Res.Get(SalesLine2."No.") then begin
                         if Res."Privacy Blocked" then
                             AddError(
