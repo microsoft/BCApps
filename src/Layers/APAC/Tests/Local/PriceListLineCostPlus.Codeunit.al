@@ -574,6 +574,57 @@ codeunit 141052 "Price List Line Cost Plus"
         Assert.AreEqual(0, PriceListLineCostPlus.GetModifiedLines(PriceListLine[4]."Line No."), 'number of modified Price List Line #4');
     end;
 
+    [Test]
+    procedure UnitBeforeProductCalculatesPriceAfterProductSelection()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PriceListLine: Record "Price List Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Item-based pricing waits until a product is selected after its unit.
+        Initialize();
+
+        // [GIVEN] Item "I" has alternate unit "U" with two base units.
+        CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 2);
+        PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
+        PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
+
+        // [WHEN] Unit "U" is entered before product "I".
+        PriceListLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        PriceListLine.Validate("Product No.", Item."No.");
+
+        // [THEN] Product selection completes the deferred unit-based price calculation.
+        VerifyDeferredUnitPrice(PriceListLine, ItemUnitOfMeasure, Item."Unit Price" * ItemUnitOfMeasure."Qty. per Unit of Measure");
+    end;
+
+    [Test]
+    procedure CostPlusAppliesAfterDeferredUnitIsResolved()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PriceListLine: Record "Price List Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Cost-plus pricing still uses the selected item's unit after deferred product selection.
+        Initialize();
+
+        // [GIVEN] Unit "U" was entered before product "I".
+        CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 2);
+        PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
+        PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
+        PriceListLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        PriceListLine.Validate("Product No.", Item."No.");
+
+        // [WHEN] A cost-plus percentage is applied.
+        PriceListLine.Validate("Cost-plus %", 25);
+
+        // [THEN] The price includes both the markup and unit conversion.
+        VerifyDeferredUnitPrice(PriceListLine, ItemUnitOfMeasure, Item."Unit Cost" * 1.25 * ItemUnitOfMeasure."Qty. per Unit of Measure");
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Price List Line Cost Plus");
@@ -594,6 +645,13 @@ codeunit 141052 "Price List Line Cost Plus"
     begin
         LibrarySales.CreateCustomer(Customer);
         exit(Customer."No.");
+    end;
+
+    local procedure VerifyDeferredUnitPrice(PriceListLine: Record "Price List Line"; ItemUnitOfMeasure: Record "Item Unit of Measure"; ExpectedUnitPrice: Decimal)
+    begin
+        Assert.AreEqual(ItemUnitOfMeasure."Item No.", PriceListLine."Asset No.", 'The selected item must be retained.');
+        Assert.AreEqual(ItemUnitOfMeasure.Code, PriceListLine."Unit of Measure Code", 'The selected unit must be retained.');
+        Assert.AreNearlyEqual(ExpectedUnitPrice, PriceListLine."Unit Price", LibraryERM.GetAmountRoundingPrecision(), UnitPriceMustBeSameMsg);
     end;
 
     local procedure CreateItem(var Item: Record Item)

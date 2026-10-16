@@ -163,9 +163,16 @@ table 7001 "Price List Line"
                 TestStatusDraft();
                 if not FieldLookedUp then begin
                     CopyRecTo(PriceAsset);
+                    // Only validated units are carried forward when resolving the product.
+                    if ("Unit of Measure Code" <> "Unit of Measure Code Lookup") or ("Work Type Code" <> '') then
+                        PriceAsset."Unit of Measure Code" := '';
                     PriceAsset.Validate("Asset No.", "Asset No.");
                 end;
                 CopyFrom(PriceAsset);
+                if (xRec."Asset No." = '') and (xRec."Unit of Measure Code" <> '') and
+                   (xRec."Unit of Measure Code" = xRec."Unit of Measure Code Lookup") and ("Asset No." <> '')
+                then
+                    UpdateUnitPriceByCostPlusPct();
                 "Product No." := "Asset No.";
                 "Variant Code Lookup" := "Variant Code";
                 "Unit of Measure Code Lookup" := "Unit of Measure Code";
@@ -291,7 +298,8 @@ table 7001 "Price List Line"
                     PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
                 end;
                 CopyFrom(PriceAsset);
-                UpdateUnitPriceByCostPlusPct();
+                if "Asset No." <> '' then
+                    UpdateUnitPriceByCostPlusPct();
                 "Unit of Measure Code Lookup" := "Unit of Measure Code";
             end;
 
@@ -722,6 +730,13 @@ table 7001 "Price List Line"
             if ("Source Type" <> "Source Type"::"Customer Price Group") and ("Asset Type" <> "Asset Type"::Item) then
                 "Allow Invoice Disc." := true;
         end;
+        ValidateBlankProductUnitOfMeasure();
+    end;
+
+    trigger OnModify()
+    begin
+        if BlankProductUnitOfMeasureFieldsChanged() then
+            ValidateBlankProductUnitOfMeasure();
     end;
 
     protected var
@@ -1172,6 +1187,12 @@ table 7001 "Price List Line"
 
         VerifySource();
         TestField("Asset Type");
+        if ("Asset No." = '') and ("Unit of Measure Code" <> '') and
+           ("Asset Type" in ["Asset Type"::Item, "Asset Type"::Resource])
+        then begin
+            CopyTo(PriceAsset);
+            PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
+        end;
         if ("Asset Type" = "Asset Type"::Item) and ("Amount Type" <> "Amount Type"::Discount) then
             TestField("Asset No.");
 
@@ -1205,6 +1226,38 @@ table 7001 "Price List Line"
             TestField("Source No.")
         else
             TestField("Source No.", '');
+    end;
+
+    local procedure ValidateBlankProductUnitOfMeasure()
+    begin
+        if ("Asset No." <> '') or ("Unit of Measure Code" = '') or
+           not ("Asset Type" in ["Asset Type"::Item, "Asset Type"::Resource])
+        then
+            exit;
+
+        CopyTo(PriceAsset);
+        PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
+    end;
+
+    local procedure BlankProductUnitOfMeasureFieldsChanged(): Boolean
+    var
+        StoredPriceListLine: Record "Price List Line";
+    begin
+        if ("Asset No." <> '') or ("Unit of Measure Code" = '') or
+           not ("Asset Type" in ["Asset Type"::Item, "Asset Type"::Resource])
+        then
+            exit(false);
+
+        if Rec.IsTemporary() then
+            exit(true);
+
+        if not StoredPriceListLine.Get("Price List Code", "Line No.") then
+            exit(true);
+
+        exit(
+            ("Asset Type" <> StoredPriceListLine."Asset Type") or
+            ("Asset No." <> StoredPriceListLine."Asset No.") or
+            ("Unit of Measure Code" <> StoredPriceListLine."Unit of Measure Code"));
     end;
 
     procedure UseCustomizedLookup(): Boolean
