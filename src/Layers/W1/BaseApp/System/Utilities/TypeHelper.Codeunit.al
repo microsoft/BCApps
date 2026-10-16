@@ -342,6 +342,17 @@ codeunit 10 "Type Helper"
     end;
 
     procedure GetUserTimezoneOffset(var Duration: Duration): Boolean
+    begin
+        exit(GetUserTimezoneOffset(Duration, GetCurrUTCDateTime()));
+    end;
+
+    /// <summary>
+    /// Gets the user's time zone offset for the specified date and time.
+    /// </summary>
+    /// <param name="Duration">The user's time zone offset for the specified date and time.</param>
+    /// <param name="ReferenceDateTime">The date and time for which the time zone offset is calculated.</param>
+    /// <returns>True if the user's time zone is configured; otherwise, false.</returns>
+    procedure GetUserTimezoneOffset(var Duration: Duration; ReferenceDateTime: DateTime): Boolean
     var
         UserPersonalization: Record "User Personalization";
         TimeZoneInfo: DotNet TimeZoneInfo;
@@ -356,17 +367,27 @@ codeunit 10 "Type Helper"
             exit(false);
 
         TimeZoneInfo := TimeZoneInfo.FindSystemTimeZoneById(TimeZone);
-        Duration := TimeZoneInfo.GetUtcOffset(GetCurrUTCDateTime());
+        Duration := TimeZoneInfo.GetUtcOffset(ReferenceDateTime);
         exit(true);
     end;
 
     procedure GetUserClientTypeOffset(var Duration: Duration)
+    begin
+        GetUserClientTypeOffset(Duration, GetCurrUTCDateTime());
+    end;
+
+    /// <summary>
+    /// Gets the user's client type time zone offset for the specified date and time.
+    /// </summary>
+    /// <param name="Duration">The user's time zone offset for web clients; otherwise, zero.</param>
+    /// <param name="ReferenceDateTime">The date and time for which the time zone offset is calculated.</param>
+    procedure GetUserClientTypeOffset(var Duration: Duration; ReferenceDateTime: DateTime)
     var
         ClientTypeManagement: Codeunit "Client Type Management";
     begin
         Duration := 0;
         if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Web then
-            GetUserTimezoneOffset(Duration);
+            GetUserTimezoneOffset(Duration, ReferenceDateTime);
     end;
 
     procedure GetTimezoneOffset(var Duration: Duration; TimeZoneID: Text)
@@ -825,11 +846,11 @@ codeunit 10 "Type Helper"
         if TimeZoneTxt = '' then
             exit(InputDateTime);
 
-        GetUserClientTypeOffset(Offset);
+        GetUserClientTypeOffset(Offset, InputDateTime);
         InputDateTime := InputDateTime - Offset;
 
         TimeZoneInfo := TimeZoneInfo.FindSystemTimeZoneById(TimeZoneTxt);
-        exit(InputDateTime + TimeZoneInfo.BaseUtcOffset);
+        exit(InputDateTime + TimeZoneInfo.GetUtcOffset(InputDateTime));
     end;
 
     /// <summary>
@@ -846,11 +867,11 @@ codeunit 10 "Type Helper"
         if TimeZoneTxt = '' then
             exit(InputDateTime);
 
-        GetUserClientTypeOffset(Offset);
-        InputDateTime := InputDateTime + Offset;
-
         TimeZoneInfo := TimeZoneInfo.FindSystemTimeZoneById(TimeZoneTxt);
-        exit(InputDateTime - TimeZoneInfo.BaseUtcOffset);
+        InputDateTime := InputDateTime - TimeZoneInfo.GetUtcOffset(InputDateTime);
+
+        GetUserClientTypeOffset(Offset, InputDateTime);
+        exit(InputDateTime + Offset);
     end;
 
     procedure IntToHex(IntValue: Integer): Text
