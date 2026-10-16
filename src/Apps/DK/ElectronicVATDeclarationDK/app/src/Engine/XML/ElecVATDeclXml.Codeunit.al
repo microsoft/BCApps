@@ -163,7 +163,7 @@ codeunit 13618 "Elec. VAT Decl. Xml"
         exit(DeadlineNode.SelectSingleNode(DeadlineFilingDateXPathTok, GetCalendarNamespaceManager(DeadlineNode), FilingDateNode));
     end;
 
-    local procedure GetCalendarNamespaceManager(ContextXmlNode: XmlNode) NamespaceManager: XmlNamespaceManager
+    local procedure GetCalendarNamespaceManager(ContextXmlNode: XmlNode): XmlNamespaceManager
     var
         ContextXmlDocument: XmlDocument;
     begin
