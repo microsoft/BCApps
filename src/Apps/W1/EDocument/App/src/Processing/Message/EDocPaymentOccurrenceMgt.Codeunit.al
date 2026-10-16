@@ -11,6 +11,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.Telemetry;
 using System.Threading;
 
 /// <summary>
@@ -131,12 +132,36 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     end;
 
     internal procedure ProcessPaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        ProcessPaymentOccurrence(EDocPaymentOccurrence, false);
+    end;
+
+    /// <summary>
+    /// Immediately retries a failed payment occurrence while preserving any remaining automatic retries.
+    /// </summary>
+    /// <param name="EntryNo">The entry number of the payment occurrence to retry.</param>
+    procedure RetryPaymentOccurrence(EntryNo: Integer)
     var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+    begin
+        EDocPaymentOccurrence.Get(EntryNo);
+        if not (EDocPaymentOccurrence.Status in [EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status::"Retry Pending"]) then
+            Error(RetryNotAllowedErr, EntryNo, EDocPaymentOccurrence.Status);
+
+        ProcessPaymentOccurrence(EDocPaymentOccurrence, true);
+    end;
+
+    local procedure ProcessPaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence"; ManualRetry: Boolean)
+    var
+        LastErrorCode: Text;
         LastErrorText: Text;
     begin
         EDocPaymentOccurrence.LockTable();
         EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
         if (EDocPaymentOccurrence.Status = EDocPaymentOccurrence.Status::Processed) or
+           ((EDocPaymentOccurrence.Status = EDocPaymentOccurrence.Status::Error) and not ManualRetry) or
+           ((EDocPaymentOccurrence.Status = EDocPaymentOccurrence.Status::"Retry Pending") and
+            (EDocPaymentOccurrence."Next Attempt At" > CurrentDateTime()) and not ManualRetry) or
            ((EDocPaymentOccurrence.Status = EDocPaymentOccurrence.Status::Processing) and
             (EDocPaymentOccurrence."Next Attempt At" > CurrentDateTime()))
         then
@@ -144,9 +169,11 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
 
         EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processing;
         EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
-        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay();
+        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + ProcessingLeaseDuration();
         EDocPaymentOccurrence.Modify();
         Commit();
+        EDocPaymentOccurrence.Reset();
+        EDocPaymentOccurrence.SetRecFilter();
         if Codeunit.Run(Codeunit::"E-Doc. Payment Occ. Runner", EDocPaymentOccurrence) then begin
             EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
             EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processed;
@@ -157,14 +184,22 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
             exit;
         end;
 
+        LastErrorCode := GetLastErrorCode();
         LastErrorText := GetLastErrorText();
         EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
-        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
         EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
         EDocPaymentOccurrence."Retry Count" += 1;
-        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay();
         EDocPaymentOccurrence."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
+        if EDocPaymentOccurrence."Retry Count" >= MaxAutomaticRetryCount() then begin
+            EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
+            EDocPaymentOccurrence."Next Attempt At" := 0DT;
+        end else begin
+            EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::"Retry Pending";
+            EDocPaymentOccurrence."Next Attempt At" :=
+                CurrentDateTime() + AutomaticRetryDelay(EDocPaymentOccurrence."Retry Count");
+        end;
         EDocPaymentOccurrence.Modify();
+        LogProcessingFailure(EDocPaymentOccurrence, LastErrorCode, ManualRetry);
         ClearLastError();
     end;
 
@@ -197,7 +232,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     end;
 
     /// <summary>
-    /// Notifies localization and format apps after a payment occurrence has been persisted.
+    /// Notifies localization and format apps after a payment occurrence has been persisted. Subscribers must be idempotent because failed processing can be retried.
     /// </summary>
     /// <param name="EDocPaymentOccurrence">The persisted payment occurrence.</param>
     [IntegrationEvent(false, false)]
@@ -205,8 +240,51 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     begin
     end;
 
-    local procedure RetryDelay(): Duration
+    local procedure AutomaticRetryDelay(RetryCount: Integer): Duration
     begin
-        exit(300000);
+        case RetryCount of
+            1:
+                exit(300000);
+            2:
+                exit(1800000);
+            3:
+                exit(7200000);
+            4:
+                exit(28800000);
+        end;
+
+        exit(0);
     end;
+
+    local procedure ProcessingLeaseDuration(): Duration
+    begin
+        exit(1800000);
+    end;
+
+    local procedure MaxAutomaticRetryCount(): Integer
+    begin
+        exit(5);
+    end;
+
+    local procedure LogProcessingFailure(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence"; ErrorCode: Text; ManualRetry: Boolean)
+    var
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('PaymentOccurrenceEntryNo', Format(EDocPaymentOccurrence."Entry No."));
+        TelemetryDimensions.Add('EDocumentEntryNo', Format(EDocPaymentOccurrence."E-Document Entry No."));
+        TelemetryDimensions.Add('OccurrenceType', Format(EDocPaymentOccurrence.Type));
+        TelemetryDimensions.Add('RetryCount', Format(EDocPaymentOccurrence."Retry Count"));
+        TelemetryDimensions.Add('Status', Format(EDocPaymentOccurrence.Status));
+        TelemetryDimensions.Add('NextAttemptAt', Format(EDocPaymentOccurrence."Next Attempt At", 0, 9));
+        TelemetryDimensions.Add('ErrorCode', ErrorCode);
+        TelemetryDimensions.Add('ManualRetry', Format(ManualRetry));
+        Telemetry.LogMessage(
+            '0000LC9', PaymentOccurrenceFailureTelemetryLbl, Verbosity::Error,
+            DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+    end;
+
+    var
+        PaymentOccurrenceFailureTelemetryLbl: Label 'E-Document payment occurrence processing failed', Locked = true;
+        RetryNotAllowedErr: Label 'Payment occurrence %1 cannot be retried because its status is %2.', Comment = '%1 = payment occurrence entry number, %2 = payment occurrence status';
 }

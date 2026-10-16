@@ -2039,7 +2039,9 @@ codeunit 6154 "API Webhook Notification Send"
 #if not CLEAN30
     [Obsolete('This event is no longer raised. The notification is now sent with the native HttpClient; use OnSendRequestOnBeforeSendHttpRequest instead.', '30.0')]
     [IntegrationEvent(false, false)]
+#pragma warning disable AL0432
     local procedure OnSendRequestOnBeforeSendRequestAndReadTextResponse(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+#pragma warning restore AL0432
     begin
     end;
 #endif

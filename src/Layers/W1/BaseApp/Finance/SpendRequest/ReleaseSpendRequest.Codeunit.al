@@ -9,6 +9,7 @@ using System.Utilities;
 codeunit 6840 "Release Spend Request"
 {
     TableNo = "Spend Request";
+    Permissions = tabledata "Spend Request" = rm;
 
     trigger OnRun()
     begin
