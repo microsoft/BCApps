@@ -56,13 +56,6 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
         "Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
 
-    internal procedure GetPurchaseDocumentSign(): Integer
-    begin
-        if Rec."Document Type" = "Purchase Document Type"::"Credit Memo" then
-            exit(-1);
-        exit(1);
-    end;
-
     /// <summary>
     /// Checks whether this purchase line is linked to a Subscription Billing Line.
     /// </summary>

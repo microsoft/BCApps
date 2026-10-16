@@ -6,11 +6,13 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using System.IO;
 using System.TestLibraries.Utilities;
@@ -89,11 +91,14 @@ codeunit 148153 "Usage Based Billing Test"
         BillingLineStartDateLbl: Label 'Billing Line should start at the earliest Charge Start Date.', Locked = true;
         BillingLineStretchedEndDateLbl: Label 'Billing Line should be stretched to the Charge End Date of the crossing usage entry.', Locked = true;
         BillingLineRhythmEndDateLbl: Label 'Billing Line should end at the billing rhythm period end.', Locked = true;
+        CreditMemoAmountMismatchLbl: Label 'The posted credit memo must credit the negative usage amount as a positive amount.', Locked = true;
+        CustomerNotCreditedLbl: Label 'The customer ledger entry of the credit memo must reduce the customer balance.', Locked = true;
         FirstBillingLineEndDateLbl: Label 'First Billing Line should end at the first rhythm period end.', Locked = true;
         FirstBillingLineStartDateLbl: Label 'First Billing Line should start at the first Charge Start Date.', Locked = true;
         NextBillingDateLbl: Label 'Next Billing Date should follow the stretched billing period.', Locked = true;
         SecondBillingLineEndDateLbl: Label 'Second Billing Line should end at the second rhythm period end.', Locked = true;
         SecondBillingLineStartDateLbl: Label 'Second Billing Line should start at the second rhythm period start.', Locked = true;
+        VendorNotCreditedLbl: Label 'The vendor ledger entry of the credit memo must reduce the amount owed to the vendor.', Locked = true;
 
     #region Tests
 
@@ -234,6 +239,94 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.SetRecFilter();
         asserterror UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
         Assert.ExpectedError(UsageDataImport.FieldCaption("Processing Status"));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
+    procedure CreditMemoFromNegativeUsageCreditsCustomer()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        UsageDataBilling: Record "Usage Data Billing";
+        UsageAmount: Decimal;
+    begin
+        // [SCENARIO] Customer usage with a negative amount is billed as a contract credit memo that credits the customer
+
+        // [GIVEN] Processed customer usage data with a negative usage amount
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        UsageAmount := NegateUsageDataBillingAmounts("Service Partner"::Customer);
+
+        // [WHEN] The contract billing document is created and posted
+        PostDocument := true;
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
+
+        // [THEN] A posted credit memo carries the usage amount as a positive (credited) amount
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Credit Memo");
+        UsageDataBilling.FindFirst();
+        SalesCrMemoLine.SetRange("Document No.", UsageDataBilling."Document No.");
+        SalesCrMemoLine.CalcSums(Amount);
+        Assert.AreEqual(-UsageAmount, SalesCrMemoLine.Amount, CreditMemoAmountMismatchLbl);
+
+        // [THEN] The sign is carried by the quantity, the unit price stays positive
+        SalesCrMemoLine.SetFilter("Unit Price", '<0');
+        Assert.RecordIsEmpty(SalesCrMemoLine);
+
+        // [THEN] The customer ledger entry of the credit memo reduces the customer balance
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.SetRange("Document No.", UsageDataBilling."Document No.");
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields(Amount);
+        Assert.IsTrue(CustLedgerEntry.Amount < 0, CustomerNotCreditedLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
+    procedure CreditMemoFromNegativeUsageCreditsVendor()
+    var
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        UsageDataBilling: Record "Usage Data Billing";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PostedCreditMemoNo: Code[20];
+        UsageCostAmount: Decimal;
+    begin
+        // [SCENARIO] Vendor usage with a negative cost amount is billed as a contract credit memo that credits the vendor
+
+        // [GIVEN] Processed vendor usage data with a negative usage cost amount
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        UsageCostAmount := NegateUsageDataBillingAmounts("Service Partner"::Vendor);
+
+        // [WHEN] The contract billing document is created and posted
+        UsageDataImport.CollectVendorContractsAndCreateInvoices(UsageDataImport);
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Vendor, UsageDataBilling."Document Type"::"Credit Memo");
+        UsageDataBilling.FindFirst();
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::"Credit Memo", UsageDataBilling."Document No.");
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(false);
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostedCreditMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The posted credit memo carries the usage cost amount as a positive (credited) amount
+        PurchCrMemoLine.SetRange("Document No.", PostedCreditMemoNo);
+        PurchCrMemoLine.CalcSums(Amount);
+        Assert.AreEqual(-UsageCostAmount, PurchCrMemoLine.Amount, CreditMemoAmountMismatchLbl);
+
+        // [THEN] The sign is carried by the quantity, the direct unit cost stays positive
+        PurchCrMemoLine.SetFilter("Direct Unit Cost", '<0');
+        Assert.RecordIsEmpty(PurchCrMemoLine);
+
+        // [THEN] The vendor ledger entry of the credit memo reduces the amount owed to the vendor
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::"Credit Memo");
+        VendorLedgerEntry.SetRange("Document No.", PostedCreditMemoNo);
+        VendorLedgerEntry.FindFirst();
+        VendorLedgerEntry.CalcFields(Amount);
+        Assert.IsTrue(VendorLedgerEntry.Amount > 0, VendorNotCreditedLbl);
     end;
 
     [Test]
@@ -3217,6 +3310,23 @@ codeunit 148153 "Usage Based Billing Test"
         NewUsageDataBilling."Document Type" := DocumentType;
         NewUsageDataBilling."Document No." := DocumentNo;
         NewUsageDataBilling.Insert(false);
+    end;
+
+    local procedure NegateUsageDataBillingAmounts(ServicePartner: Enum "Service Partner") TotalAmount: Decimal
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", ServicePartner);
+        UsageDataBilling.FindSet();
+        repeat
+            UsageDataBilling.Amount := -Abs(UsageDataBilling.Amount);
+            UsageDataBilling."Cost Amount" := -Abs(UsageDataBilling."Cost Amount");
+            UsageDataBilling.Modify(false);
+            if ServicePartner = ServicePartner::Customer then
+                TotalAmount += UsageDataBilling.Amount
+            else
+                TotalAmount += UsageDataBilling."Cost Amount";
+        until UsageDataBilling.Next() = 0;
     end;
 
     local procedure PostPurchaseDocuments()
