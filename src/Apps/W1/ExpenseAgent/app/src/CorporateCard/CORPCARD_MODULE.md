@@ -15,11 +15,11 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 ### Design Principles
 
 1. **Automated Import Pipeline** - Provider-driven file import with field mapping validation
-2. **Multi-Format Support** - CSV, XML, ISO20022, CAMT.053, and CAMT.054 mapping profiles
+2. **File Import** - CSV and flat XML through Data Exchange mappings
 3. **Configurable Creation Mode** - AutoDraft can create one draft per imported transaction
-4. **Scheduled Processing** - Job Queue integration for recurring imports with retry resilience
+4. **Job Queue Setup** - Creates a daily job on hold; an administrator must enable it
 5. **Standard Workflows** - Leverages platform Expense Report approval and G/L posting
-6. **Comprehensive Observability** - Telemetry at every step: import → normalization → matching → reporting
+6. **Observability** - Telemetry for imports, matching, drafts, and job scheduling
 7. **Accounting Boundary** - A dedicated corporate-card bank account represents the provider liability; the payment bank account represents real cash
 
 ### Workflow Stages
@@ -35,17 +35,18 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 2: MERCHANT NORMALIZATION                                     │
-│ - Regex patterns applied to normalize merchant names                │
+│ - Case-insensitive substring patterns normalize merchant names      │
 │ - Rules sorted by priority, first match wins                        │
-│ - Normalized name + category stored for later use                   │
+│ - Normalized name stored for later use; MCC maps to category         │
 │ - Codeunit: EACorpCardMerchantNorm (7420)                           │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 3: TRANSACTION MATCHING                                       │
 │ - Strategy 1: Exact amount/date match (score 50-100)                │
-│ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-85%)    │
+│ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-100)     │
 │ - No employee-only fallback: unmatched stays for manual review      │
+│ - Runs in ManualLink mode; AutoDraft does not match                  │
 │ - Match type & score stored; transaction status updated             │
 │ - Codeunit: EACorpCardEnhancedMatchMgt (7426)                       │
 └─────────────────────────────────────────────────────────────────────┘
@@ -54,9 +55,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ STAGE 4: DRAFT CREATION / MANUAL MATCHING                           │
 │ - AutoDraft mode: always creates 1 draft per imported transaction   │
 │ - ManualLink mode: tries matching first, then optional draft create │
-│ - Level 3 detail rows can seed Expense VAT Specification lines      │
-│ - Persisted VAT spec lines rely on table autoincrement for Line No. │
-│ - Warns if Level 3 totals differ from transaction header amount     │
+│ - Level 3 detail import is not implemented                           │
 │ - Codeunit: EACorpCardExpWriter (7422)                              │
 │ - MCC mapping to category: Codeunit EACorpCardMCCMgt (7427)         │
 └─────────────────────────────────────────────────────────────────────┘
@@ -64,18 +63,17 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 5: REPORT AGGREGATION                                         │
 │ - Employee reviews drafts and existing expenses                     │
-│ - Creates/updates Expense Report via UI or EACorpCardReportMgt      │
-│ - Adds individual expenses to report                                │
-│ - Codeunit: EACorpCardReportMgt (7429)                              │
+│ - Creates/updates Expense Report via standard Expense Agent UI      │
+│ - EACorpCardReportMgt (7429) exists but has no callers               │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 6: APPROVAL & POSTING                                         │
 │ - Employee submits Expense Report for approval                      │
 │ - Manager approves via standard Expense Agent workflow              │
-│ - Report released to Posted status                                  │
+│ - Report released, then posted through the standard workflow        │
 │ - GL postings created via platform ExpenseReportPost (6987)         │
-│ - Codeunit: EACorpCardApprovalMgt (7428)                            │
+│ - EACorpCardApprovalMgt (7428) exists but has no callers             │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -83,6 +81,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Credit-card expense posting links the posted report               │
 │ - Source corporate-card transaction status becomes Posted           │
 │ - Credits the provider's Corporate Card Bank Account                │
+│ - Creates a Bank Account Ledger Entry on that account                │
 │ - Creates no activity on the real Payment Bank Account              │
 │ - Codeunit: EA Corp Card Post Mgt (7440)                            │
 └─────────────────────────────────────────────────────────────────────┘
@@ -124,21 +123,23 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 
 ## Objects Created
 
-### Corporate Card Codeunits
+### Corporate Card Codeunits (selected)
+
+The `CorporateCard/Codeunits` folder contains 24 codeunits. The primary workflow codeunits include:
 
 | ID | Name | Purpose | Key Procedures |
 |----|------|---------|-----------------|
-| 7420 | EACorpCardMerchantNorm | Merchant name normalization via regex patterns | NormalizeTransaction, FindMatchingRule, PatternMatches |
+| 7420 | EACorpCardMerchantNorm | Merchant name normalization via case-insensitive substring patterns | NormalizeTransaction, FindMatchingRule, PatternMatches |
 | 7421 | EACorpCardMatchMgt | Basic transaction matching (reference only) | MatchTransaction |
 | 7422 | EACorpCardExpWriter | Draft Expense creation from transactions | CreateDraftFromTrans, LinkPosted, GetExpenseCategoryFromMCC |
 | 7423 | EACorpCardPostImportOrch | Post-import orchestration pipeline | ProcessStatementPostImport |
-| 7424 | EACorpCardAuditSubscribers | Centralized telemetry logging | LogImportStarted/Completed/Failed, LogMatchingCompleted, LogDraftCreated, LogReportCreatedFromCorpCard, LogReportSubmittedForApproval, LogReportApprovedForPosting, LogReportRejected |
+| 7424 | EACorpCardAuditSubscribers | Centralized telemetry logging; report/approval logging methods are not called by the active workflow | LogImportStarted/Completed/Failed, LogMatchingCompleted, LogDraftCreated, LogReportCreatedFromCorpCard, LogReportSubmittedForApproval, LogReportApprovedForPosting, LogReportRejected |
 | 7425 | EACorpCardJQMgt | Job Queue entry lifecycle management | ScheduleProviderImport, UnscheduleProviderImport, UpdateJobQueueFrequency |
 | 7426 | EACorpCardEnhancedMatchMgt | Multi-strategy matching with fuzzy algorithm | EnhancedMatchTransaction, CalculateSimilarity, LevenshteinDistance |
 | 7427 | EACorpCardMCCMgt | MCC validation and category mapping | ValidateAndMapMCC, GetExpenseCategoryForMCC, InitializeDefaultMCCMappings, IsValidMCC |
-| 7428 | EACorpCardApprovalMgt | Expense Report approval workflow | SubmitReportForApproval, ReleaseReportForPosting, RejectReport |
-| 7429 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
-| 7433 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
+| 7428 | EACorpCardApprovalMgt | Unused approval helper; not connected to the standard workflow | SubmitReportForApproval, ReleaseReportForPosting, RejectReport |
+| 7429 | EACorpCardReportMgt | Unused report aggregation helper | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
+| 7433 | EACorpCardJQRunner | Job Queue entry point; no custom retry handling | OnRun (Job Queue trigger) |
 | 7440 | EA Corp Card Post Mgt | Links posted expense reports and propagates posted-expense cancellation to corporate-card reconciliation | LinkPostedExpense, HandleCanceledPostedExpense |
 | 7441 | EA Corp Card Statement Mgt | Validates imports, closes reconciled statement periods, and invalidates closure after corrections | ValidateStatement, ReopenStatement, GetReconciliationSummary, CloseStatement, InvalidateReconciliation |
 | 7443 | EA Corp Card Settlement Mgt | Prepares, posts, validates, and reverses provider settlements | SetReadyToPost, Reopen, PostSettlement, ReverseSettlement |
@@ -147,20 +148,20 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 
 | ID | Name | Type | Purpose |
 |----|------|------|----------|
-| 7431 | EACorpCardCards | List | Corporate card transaction list (import staging) |
+| 7431 | EACorpCardCards | List | Corporate card configuration and assignment |
 | 7432 | EACorpCardExceptions | List | Import exceptions with resolution tracking |
 | 7433 | EACorpCardTransList | List | Imported transaction listing with expense linking |
 | 7434 | EACorpCardProviders | List | Provider administration with scheduling actions |
 | 7435 | EACorpCardMCCMap | List | Merchant category code to expense category mapping |
-| 7437 | EACorpCardMerchantRules | List | Merchant name normalization regex pattern rules |
-| 7438 | EACorpCardDashboard | RoleCenter | Import reconciliation dashboard with navigation |
-| 7439 | EACorpCardJQSchedule | List+Card | Job Queue schedule management UI for providers |
-| 7445 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
+| 7437 | EACorpCardMerchantRules | List | Merchant name substring rules |
+| 7438 | EACorpCardDashboard | Card | Import reconciliation dashboard with navigation |
+| 7439 | EACorpCardJQSchedule | ListPlus | Job Queue schedule management UI for providers |
+| 7445 | EACorpCardJQScheduleSubpage | ListPart | Read-only Job Queue entry details filtered by provider |
 | 7441 | EACorpCardDashboardFactbox | ListPart | Recent import statements sorted chronologically |
 | 7442 | EACorpCardStatisticsFactbox | CardPart | KPI statistics (30-day rolling aggregation) |
 | 7443 | EA Corp Card Statements | List | Provider statement list and status overview |
 | 7444 | EA Corp Card Statement | Document | Provider statement header, matching, and validation |
-| 7099 | EACorpCardL3Details | List | Imported Level 3 VAT/tax detail lines per transaction |
+| 7436 | EA Corp Card Details | List | Level 3 detail view (no current import populates it) |
 | 7446 | EA Corp Card Statement Trans | ListPart | Read-only transactions belonging to the provider statement |
 | 7430 | EA Corp Card Settlements | List | Provider settlement list and status overview |
 | 7447 | EA Corp Card Settlement | Document | Settlement header, statement selection, and readiness validation |
@@ -177,6 +178,7 @@ The module retains its existing Expense Agent records and models provider statem
 - **EA Corp Card Settlement** - Provider settlement identity, amount, account snapshots, posting references, reversal references, and lifecycle status
 - **EA Corp Card Settlement Line** - Links complete validated statements to one settlement, snapshots statement values, and retains inactive reversed relationships for audit
 - **EACorpCardTrans** - Child statement transaction, enrichment, expense matching, workflow, and audit record
+- **EA Corp Card Trans Detail** - Level 3 detail schema; current CSV/XML imports do not populate it
 - **EACorpCard** - Card configuration and employee assignment
 - **Expense** - Individual expense records (platform)
 - **Expense Report Header / Line** - Report aggregation (platform)
@@ -196,46 +198,46 @@ The module retains its existing Expense Agent records and models provider statem
 ```
 Provider.Download()
     → Creates Data Exchange record
-    → Injects source file content (CSV/XML/CAMT)
+    → Injects source file content (CSV/flat XML)
             ↓
 Provider.ParseToStaging()
     → Validates field mappings (EACorpCardMapMgt)
     → Imports data to EACorpCardTrans (Status=Imported)
-    → Includes mapped MCC values for XML/L3 transactions
-    → Imports Level 3 detail rows to EACorpCardTransDetail (when present)
+    → Includes mapped MCC values for CSV/XML transactions
     → Calls EACorpCardPostImportOrch.ProcessStatementPostImport()
             ↓
 EACorpCardPostImportOrch.ProcessStatementPostImport()
     → For each transaction:
         1. EACorpCardMerchantNorm.NormalizeTransaction()
         2. If Create Mode = AutoDraft: EACorpCardExpWriter.CreateDraftFromTrans()
-        3. Else try EACorpCardEnhancedMatchMgt.EnhancedMatchTransaction()
-        4. If unmatched + Auto-Create: EACorpCardExpWriter.CreateDraftFromTrans()
-        5. If Level 3 details exist: create Expense VAT Specification lines
+        3. If Create Mode = ManualLink: try EACorpCardEnhancedMatchMgt.EnhancedMatchTransaction()
+        4. If still unmatched and Auto-Create is enabled: create a draft
     → Log results via AuditSubscribers
             ↓
 Provider.Ack()
-    → Mark statement as Completed
-    → Send audit notification
+    → Raises OnAfterAck (does not change statement status)
+Import orchestrator
+    → Marks successful statement as Imported; failed statement as Failed
+    → Clears uploaded source payload after the attempt
 ```
 
 ### Matching Algorithm
 
-**Strategy Priority (executed in order):**
+**Strategy Priority (ManualLink mode only; AutoDraft skips matching):**
 
 1. **Exact Amount-Date Match** (Score: 50-100)
-   - Query: Same user, Status=Open, Currency match
+   - Query: Same user, Status=Open, not linked to a card transaction, Currency match
    - Criteria: Amount within tolerance, Date within window
    - Score: `100 - (DateDiffDays × 5) - ((AmountDiff / Tolerance) × 10)`
    - Returns: Match Type=Full
 
-2. **Fuzzy Merchant Name Match** (Score: 70-85)
-   - Query: All open expenses for same user
+2. **Fuzzy Merchant Name Match** (Score: 70-100)
+   - Query: Same user, Status=Open, not linked to a card transaction; does not compare amount, currency, date, or sign
    - Algorithm: Levenshtein distance (max 100 char)
    - Similarity: `1 - (EditDistance / MaxLen)`, threshold ≥ 0.70
    - Returns: Match Type=Expense
 
-Transactions with no exact or fuzzy match are not linked to any expense; they remain unmatched for manual review (or draft creation).
+Transactions with no exact or fuzzy match remain Imported for manual review or become drafts when Auto-Create is enabled. There is no employee-only fallback.
 
 **Levenshtein Algorithm:**
 - Dynamic programming 2D matrix (max 100×100)
@@ -246,44 +248,17 @@ Transactions with no exact or fuzzy match are not linked to any expense; they re
 ### Expense Report Creation Flow
 
 ```
-Employee selects "Create Report from Corp Card Expenses"
-    ↓
-EACorpCardReportMgt.CreateReportFromCorpCardExpenses(EmployeeNo)
-    → Finds all Expense records where:
-        - Expense User No. = EmployeeNo
-        - Status in [Open, Released]
-        - Expense Report No. = empty
-    → Creates new Expense Report Header
-    → Links all matching expenses to new report
-    → Returns Report No.
-    ↓
-Employee Reviews & Submits Report
-    → Status: Open → Pending Approval
-    ↓
-EACorpCardApprovalMgt.SubmitReportForApproval(ReportNo)
-    → Validates report has ≥1 expense
-    → Updates Status = Pending Approval
-    → Logs event
-    ↓
-Manager Approval (Standard Expense Agent Workflow)
-    → Uses "Enable Approval Workflow" setup flag
-    → Routes to configured approvers (per setup)
-    ↓
-Report Released & Posted
-    → EACorpCardApprovalMgt.ReleaseReportForPosting()
-    → Status: Pending Approval → Released
-    ↓
-Platform ExpenseReportPost (Codeunit 6987)
-    → Creates GL journal lines
-    → Creates Expense Ledger Entries
-    → Status: Released → Posted
-    → Credit-card lines credit the provider's Corporate Card Bank Account
-    → EA Corp Card Post Mgt links the posted report
-    → EACorpCardTrans status becomes Posted
-    → Does not create Payment Application or Bank Account Ledger entries
+Employee adds draft expenses to an Expense Report in the standard UI
+    → Submits for approval through the standard Expense Agent workflow
+    → Approved report is released and posted by ExpenseReportPost (6987)
+    → For expenses linked to a card transaction, posting credits the
+      provider's Corporate Card Bank Account and creates its bank ledger entry
+    → EA Corp Card Post Mgt links the posted report to the transaction
+    → Transaction status becomes Posted
+    → Does not create a Payment Bank Account settlement entry
 ```
 
-`EACorpCardTrans` remains the source audit record for matching the provider transaction to the expense. Provider-statement settlement and bank reconciliation are separate processes and are not initiated by expense-report posting.
+`EACorpCardTrans` remains the source audit record for matching the provider transaction to the expense. The separate `EACorpCardReportMgt` and `EACorpCardApprovalMgt` helpers have no callers; do not use them as a description of the active workflow. Provider-statement settlement and payment-bank reconciliation are separate processes.
 
 ### Provider Statement Reconciliation
 
@@ -334,8 +309,8 @@ Canceling a posted expense report follows the same correction boundary: the rela
 3. **Configure Import Parameters**
     - Navigate: Expense Agent Setup → Corporate Card
     - Corp Card Create Mode
-    - Corp Card Date Match Window (first-time default: 7)
-    - Corp Card Amount Tolerance (first-time default: 5)
+    - Corp Card Date Match Window (default: 7; applying defaults resets 0 to 7)
+    - Corp Card Amount Tolerance (default: 5; applying defaults resets 0 to 5)
     - Corp Card Auto Create Draft (first-time default: true)
     - Corp Card Default Provider
 
@@ -350,7 +325,7 @@ Canceling a posted expense report follows the same correction boundary: the rela
     - Navigate: Expense Agent Setup → Setup → Apply corp card default settings
     - Runs codeunit EACreateCorpCardSetup and now also initializes MCC mappings and related Expense Categories.
     - Creates the LCY bank account `CORPCARD` for future provider-settlement scenarios, but does not assign it to individual cards.
-    - Reuses `CHECKING`, `PREC`, and `SEPA CAMT` configuration when those standard records are available.
+    - Reuses `CHECKING`, `PREC`, and `SEPA CAMT` configuration when those standard records are available; this does not add CAMT corporate-card import support.
     - MCC/category seeding is idempotent (existing records are not duplicated).
 
     Seeded MCC mappings from sample feeds:
@@ -361,7 +336,7 @@ Canceling a posted expense report follows the same correction boundary: the rela
     - 5111 (Office Supplies) → OFFICESUPPLIES
     - 5541 (Service Stations) → CAR
     - 5812 (Restaurants) → MEALS
-    - 5943 (Stationery and Office Stores) → OFFICESUPPLIES
+    - 5943 (Stationery and Office Stores) → MISC
     - 7011 (Hotels and Lodging) → HOTELS
     - 7523 (Parking Lots and Garages) → PARKING
 
@@ -374,49 +349,48 @@ Canceling a posted expense report follows the same correction boundary: the rela
     - Adds the dedicated LCY bank account `CORPCARD` for corporate card settlement
     - Configures the standard Payment Reconciliation number series and bank statement import format
 
-### VAT Specification Line Numbering
+### Level 3 Details
 
-When VAT specification rows are created from imported Level 3 details:
-
-- Temporary aggregation records may use explicit line numbers for in-memory grouping.
-- Persisted `Expense VAT Specification` rows are inserted with `Line No.` reset, so table autoincrement assigns unique values.
-- This prevents duplicate-key collisions on (`Expense No.`, `Line No.`) while preserving standard table behavior.
+CSV/XML import does not insert `EA Corp Card Trans Detail` rows, so Level 3 VAT specification creation and total-difference warnings are not reached in the current import flow. The expense writer contains a helper for detail rows supplied by another source; if rows are present, it assigns `Expense VAT Specification` line numbers explicitly, starting at 1.
 
 3. **Access Corporate Card Features**
    - Navigate: Expense Management Role Center → Corporate Card group
    - Available actions:
      - **Corp Card Dashboard:** View import statistics & recent statements
      - **Corp Card Providers:** Manage providers & scheduling
-    - **Corp Card Setup:** Opens Expense Agent Setup (Corporate Card group)
-     - **Merchant Normalization Rules:** Add custom regex patterns
+     - **Corp Card Setup:** Opens Expense Agent Setup (Corporate Card group)
+     - **Corporate Cards:** Manage card assignments
+     - **Merchant Normalization Rules:** Add substring patterns
      - **MCC Code Mappings:** Map category codes to expense categories
 
 4. **Add Custom Merchant Rules**
    - From Role Center: Corp Card → Merchant Normalization Rules
-   - For each pattern: Set Regex pattern, normalized name, category, priority
+   - For each pattern: Set text to find, normalized name, and priority. Matching ignores case and strips `*` characters before searching. The rule's Expense Category field is not applied by normalization; draft categorization uses MCC mapping.
    - Active flag: Enable/disable rules without deletion
 
 5. **Schedule Provider Imports**
    - From Role Center: Corp Card → Corp Card Providers
    - For each enabled provider:
      - Action: Schedule Import
-     - Frequency: Immediate/Hourly/Daily/Weekly
-     - Job Queue created with retry logic (max 3 attempts)
+     - Creates a recurring Job Queue entry for 08:00 daily (1440 minutes), regardless of the provider's Import Frequency setting
+     - Entry starts **On Hold**; set it to Ready in Job Queue Entries to run it
+     - Upload a new source payload before each import; an import attempt clears the stored payload
+     - Maximum number of job-queue attempts is 3; the module does not implement a separate retry loop
 
 ### Sample Card-ID Conventions
 
-Static samples use provider-specific card ID prefixes to avoid cross-provider ambiguity:
+Both static sample files use the same seeded card-ID convention:
 
-- CSV sample (`CorpCard-Sample-60.csv`) uses `CRDCSV-xxxx`
-- XML sample (`CorpCard-Sample-60.xml`) uses `CRDXML-xxxx`
+- CSV sample (`CorpCard-Sample-60.csv`) uses `CORPCARD-xxxx`
+- XML sample (`CorpCard-Sample-60.xml`) uses `CORPCARD-xxxx`
 
 ---
 
 ## Telemetry Events
 
-All events logged to platform telemetry with:
-- **DataClassification:** SystemMetadata (no PII)
-- **TelemetryScope:** ExtensionPublisher
+Defined events log to platform telemetry with:
+- **DataClassification:** SystemMetadata
+- **TelemetryScope:** ExtensionPublisher except `0000UD1` (All)
 - **Category:** "Corporate Card"
 
 ### Import Lifecycle (0000UCS - 0000UCT)
@@ -424,8 +398,8 @@ All events logged to platform telemetry with:
 | Event ID | Event | Trigger | Verbosity | Data |
 |----------|-------|---------|-----------|------|
 | 0000UCS | ImportStarted | Provider starts import | Normal | Provider Code, Statement No. |
-| 0000UCT | ImportCompleted | Statement finishes successfully | Normal | Provider Code, Statement No., Imported count, Exception count, Duplicate count |
-| 0000UCU | ImportFailed | Statement fails with error | Warning | Provider Code, Statement No., Error message |
+| 0000UCT | ImportCompleted | Statement finishes successfully | Normal | Provider Code, Statement Entry No., Imported count, Exception count, Duplicate count |
+| 0000UCU | ImportFailed | Statement fails | Warning | Provider Code, Statement Entry No., Import stage (not error text) |
 
 ### Processing Pipeline (0000UCV - 0000UCX)
 
@@ -439,10 +413,12 @@ All events logged to platform telemetry with:
 
 | Event ID | Event | Trigger | Verbosity | Data |
 |----------|-------|---------|-----------|------|
-| 0000UCY | ReportCreatedFromCorpCard | Report auto-created from corp card exps | Normal | Report No., Employee No. |
-| 0000UCZ | ReportSubmittedForApproval | Employee submits report | Normal | Report No., User ID |
-| 0000UD0 | ReportApprovedForPosting | Manager approves & releases | Normal | Report No., Approver ID |
-| 0000UD1 | ReportRejected | Manager rejects report | Warning | Report No., Rejector ID, Reason |
+| 0000UCY | ReportCreatedFromCorpCard | Unused ReportMgt helper | Normal | Category only |
+| 0000UCZ | ReportSubmittedForApproval | Unused ApprovalMgt helper | Normal | Category only |
+| 0000UD0 | ReportApprovedForPosting | Unused ApprovalMgt helper | Normal | Category only |
+| 0000UD1 | ReportRejected | Unused ApprovalMgt helper | Warning | Category only (scope: All) |
+
+`0000UCY`–`0000UD1` have no active callers through the standard report workflow; they are defined but do not fire in normal corporate-card processing.
 
 ---
 
@@ -458,10 +434,10 @@ All events logged to platform telemetry with:
 | **EA Corp Card Statement/Transaction** | Provider statement reconciliation | Verifies imported statement transactions against expenses |
 | **Bank Acc. Reconciliation/Line** | Not used by provider statement validation | Matches the posted settlement withdrawal on the Payment Bank Account to the real bank statement |
 | **Bank Account Ledger Entry** | Corporate-card liability and settlement accounting | Expense posting creates the card-account liability; settlement posting and reversal create the bank-to-bank transfer entries |
-| **Job Queue Entry** | Schedules recurring imports | Retry logic: max 3 attempts, status updates |
+| **Job Queue Entry** | Stores recurring import schedule | Created On Hold at 1440-minute intervals, maximum 3 attempts; administrator must enable it |
 | **Expense Status Enum** | Defines workflow states | Open → Released → Pending Approval → (Posted via Report) |
 | **MCC Merchant Category Codes** | Category mapping | 4-digit codes map to Expense Category for G/L account determination |
-| **Expense Management Role Center** | Navigation hub | New "Corporate Card" group with 5 actions for dashboard/setup/config |
+| **Expense Management Role Center** | Navigation hub | "Corporate Card" group with 6 actions for dashboard/cards/setup/config |
 | **Expense User Page** | Employee integration | CorporateCards action shows employee's corporate card cards |
 ### With External Systems
 
@@ -478,7 +454,7 @@ All events logged to platform telemetry with:
 
 ### Role Center Hub (ExpenseManagementRoleCenter)
 
-A **"Corporate Card"** section is available in the main Expense Management Role Center with 5 key actions:
+A **"Corporate Card"** section is available in the main Expense Management Role Center with 6 actions:
 
 ```
 ExpenseManagementRoleCenter (6933)
@@ -488,10 +464,12 @@ ExpenseManagementRoleCenter (6933)
     │  └─ Actions: Providers, Transactions, Statements, Exceptions, Setup
     ├─ Corp Card Providers (7434)
     │  └─ Manage provider credentials & scheduling
+    ├─ Corporate Cards (7431)
+    │  └─ Manage card configuration and assignments
     ├─ Corp Card Setup
     │  └─ Opens Expense Agent Setup (Corporate Card settings)
     ├─ Merchant Normalization Rules (7437)
-    │  └─ Create/edit regex patterns for merchant standardization
+    │  └─ Create/edit substring patterns for merchant standardization
     └─ MCC Code Mappings (7435)
        └─ Map merchant category codes to expense categories
 ```
@@ -500,7 +478,7 @@ ExpenseManagementRoleCenter (6933)
 
 ### Dashboard Navigation
 
-The **EACorpCardDashboard** (RoleCenter 7438) provides drill-down navigation:
+The **EACorpCardDashboard** (Card page 7438) provides navigation:
 
 | Navigation Area | Target | Purpose |
 |-----------------|--------|---------|
@@ -526,7 +504,7 @@ Pages are interlinked with drill-down actions:
 | Page | Drill-Down Actions |
 |------|-------------------|
 | EA Corp Card Statements (7443) | → Open statement, validate statement |
-| EACorpCardTransList (7433) | → Open Provider Statement, Open Matched Expense, Show Level 3 Details |
+| EACorpCardTransList (7433) | → Open Provider Statement, Open Matched Expense, Level 3 Details (empty for current imports) |
 | EACorpCardExceptions (7432) | → Mark Resolved, View Statement, View Transaction |
 
 ---
@@ -535,10 +513,10 @@ Pages are interlinked with drill-down actions:
 
 ### Intelligent Matching
 
-✅ **Multi-Strategy:** Tries 3 progressively fallback strategies  
-✅ **Fuzzy Algorithm:** Levenshtein distance for typo tolerance  
-✅ **Scoring:** 0-100 scale with degradation for date/amount variance  
-✅ **Configurable:** Match window + amount tolerance via setup  
+- **ManualLink:** Tries exact amount/date match, then fuzzy merchant-name match; no employee-only fallback
+- **Fuzzy Algorithm:** Levenshtein distance with a 70% threshold, considering merchant names only
+- **Scoring:** Exact matching scores 50–100; fuzzy matching scores 70–100
+- **Configurable:** Exact-match window and tolerance via setup; AutoDraft skips matching
 
 ### Draft-Per-Transaction Mode
 
@@ -548,30 +526,30 @@ Pages are interlinked with drill-down actions:
 
 ### Merchant Normalization
 
-✅ **Regex Patterns:** Custom pattern matching for merchant name standardization  
-✅ **Priority-Based:** Rules sorted by priority, first match wins  
-✅ **Category Mapping:** Patterns can assign expense category automatically  
-✅ **MCC Integration:** 4-digit code mapping with auto-created category seeds  
+- **Substring Patterns:** Case-insensitive merchant-name matching (asterisks stripped)
+- **Priority-Based:** Rules sorted by priority, first match wins
+- **Category Mapping:** Drafts use MCC mappings; a merchant rule's Expense Category field is not used by normalization
+- **MCC Integration:** 4-digit code mapping with auto-created category seeds
 
 ### Job Queue Scheduling
 
-✅ **Recurring Imports:** Daily/weekly/hourly frequency options  
-✅ **Automatic Retry:** 3 attempts, status auto-updates  
-✅ **Resilient:** Catches errors, logs, continues next cycle  
-✅ **Manageable:** UI for schedule create/update/delete  
+- **Daily Job Setup:** Creates a 1440-minute recurring entry at 08:00, initially On Hold
+- **Job Queue Attempts:** Configured maximum of 3; no custom retry loop
+- **Manual Enablement:** Administrator must set the entry to Ready and provide a new payload after each run
+- **Manageable:** UI for schedule creation and removal
 
 ### Comprehensive Logging
 
-✅ **10 Telemetry Events:** Full lifecycle visibility  
-✅ **Audit Trail:** All actions timestamped and attributed  
-✅ **Error Tracking:** Warnings on import/rejection failures  
-✅ **No PII:** SystemMetadata classification only  
+- **Import and Processing Telemetry:** Started, completed, failed, matched, drafted, and scheduled events
+- **Defined but Unused:** Four report/approval events have no active callers
+- **Error Tracking:** Import failures log their stage; detailed errors surface separately
+- **Classification:** SystemMetadata for all defined events
 
 ### Expense Posting Boundary
 
 - ✅ **No Employee Reimbursement:** Credit-card expenses do not create employee reimbursement entries
-- ✅ **Liability Posting:** Credit-card lines credit the employee posting group's card-paid account
-- ✅ **No Premature Bank Activity:** Posting an expense report creates no Payment Application or Bank Account Ledger Entry
+- ✅ **Liability Posting:** Card-linked credit-card lines credit the provider's Corporate Card Bank Account and create a Bank Account Ledger Entry; unlinked credit-card lines use the employee posting group's card-paid G/L account
+- ✅ **No Premature Settlement:** Expense posting does not create a Payment Bank Account settlement entry
 - ✅ **Traceability:** The corporate-card transaction retains its linked expense and posted expense report
 
 ### Provider Statement Boundary
@@ -598,31 +576,31 @@ Pages are interlinked with drill-down actions:
 
 | Scenario | Action | Result |
 |----------|--------|--------|
-| Provider file format error | Logged as exception | Transaction marked Status=Exception, statement continues |
-| Field mapping missing | Validation error raised | Import stops, user notified, statement marked Failed |
+| Invalid file format or missing mapping | Import raises an error | Whole statement marked Failed; error shown to user |
+| Missing mapped field on a row | Validation exception recorded when row validation returns false | Row rejected; other valid rows can continue |
+| Unknown/blocked card, card without an Expense User, or blocked MCC mapping | Import raises an error | Whole statement marked Failed, not merely an unmatched row |
 | No data in file | Import fails with explicit error | Statement marked Failed with diagnostics |
 
 ### Matching Errors
 
 | Scenario | Action | Result |
 |----------|--------|--------|
-| Expense User No. missing | Expense draft creation fails, logged | Transaction marked unmatched |
-| Amount tolerance = 0 (exact only) | No exact match found | Falls through to fuzzy/employee match |
-| No open expenses for user | All 3 strategies fail | Status = Imported (awaits manual action) |
+| No eligible open expense in ManualLink mode | Exact and fuzzy matches fail | Draft created if Auto-Create is enabled; otherwise transaction stays Imported |
+| Amount tolerance = 0 | Exact matching permits only an equal amount | Applying setup defaults resets 0 to 5; fuzzy matching does not check amount |
+| Card has no Expense User | Draft creation raises an error | Whole import fails |
 
-### Level 3 Reconciliation Warning
+### Level 3 Details
 
-When Level 3 detail rows are present, draft creation compares the summed detail totals against the transaction header amount.
-
-If values differ (rounded to 2 decimals), processing continues but a warning is written to transaction field `Reject Reason` for manual review before report submission.
+The current import does not populate detail rows, so the VAT specification and total-difference warning paths in `EACorpCardExpenseWriter` do not run for CSV/XML imports. The transaction list has a Level 3 Details action, but it has nothing to show unless another source supplies those rows.
 
 ### Job Queue Errors
 
 | Scenario | Action | Result |
 |----------|--------|--------|
-| Provider import failure | Error caught in JQRunner | Rerun count increments, status=Scheduled |
-| After max attempts (3) | Status set to Error | User must manually retry or investigate |
-| Provider marked disabled | Skipped in RunAllEnabledProviders | No error, silently skipped |
+| Entry remains On Hold | Job Queue does not run it | Administrator must set it to Ready |
+| Provider import failure | Import orchestrator marks the statement Failed and reports the error | Job Queue's configured maximum is 3 attempts; JQRunner has no custom retry loop |
+| Payload consumed by an import attempt | Source payload is cleared, even on failure | Upload a new payload before retrying |
+| Provider marked disabled | JQRunner skips it | Re-enable the provider before scheduling another import |
 
 ---
 
@@ -630,15 +608,13 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 
 ### Statement Processing
 
-- **Typical statement size:** 100-500 transactions per provider per cycle
-- **Matching time:** ~10ms per transaction (Levenshtein + query)
-- **Post-import time:** ~500-2000ms per statement (normalization + matching + draft creation)
-- **Recommendation:** Run imports in background (Job Queue) for statements >1000 records
+- Processing visits each imported transaction to normalize the merchant and either create a draft (AutoDraft) or attempt matching (ManualLink).
+- The Job Queue entry is created On Hold; enable it and provide a source payload before relying on background import. No statement-size or throughput benchmark is guaranteed.
 
 ### Memory
 
 - **Levenshtein matrix:** 100×100 dynamic programming (capped at 100 chars per string)
-- **Merchant rules:** Loaded into memory (cache friendly, typically <1000 rules)
+- **Merchant rules:** Queried in priority order per transaction, using case-insensitive substring matching
 - **Transaction buffer:** ProcessStatementPostImport uses FindSet/Next (streaming, low memory)
 
 ### Database
@@ -654,15 +630,15 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 ## Testing Checklist
 
 - [ ] Import a provider CSV file with 10+ transactions
-- [ ] Verify 3 are matched exactly, 3 are matched fuzzy, 4 are unmatched
-- [ ] Create draft expenses for unmatched (Auto-Create=true)
+- [ ] In ManualLink mode, verify exact and fuzzy matching against eligible open expenses
+- [ ] With Auto-Create enabled, verify unmatched transactions become drafts
 - [ ] Create expense report and add 3-5 expenses
 - [ ] Submit report for approval
 - [ ] Manager approves/rejects (if approval workflow enabled)
 - [ ] Post report and verify GL journal entries created
 - [ ] Verify the corporate-card transaction is linked to the posted expense report and has status Posted
-- [ ] Verify expense-report posting creates no Payment Application reconciliation
-- [ ] Verify credit-card expense posting credits only the provider Corporate Card Bank Account
+- [ ] Verify expense-report posting creates a provider Corporate Card Bank Account Ledger Entry, but no Payment Bank Account settlement entry
+- [ ] Verify card-linked credit-card expense posting credits the provider Corporate Card Bank Account
 - [ ] Import a provider statement with its transactions
 - [ ] Verify missing, duplicate, and expense-unmatched transactions block statement validation
 - [ ] Verify statement period, currency, and total validation
@@ -682,7 +658,7 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 - [ ] Post a replacement settlement and verify the corrected statement can be closed again
 - [ ] Cancel a posted expense and verify its statement requires reconciliation and its transaction returns to Matched
 - [ ] Verify already-reversed, closed, or bank-reconciled settlement entries cannot be reversed
-- [ ] Check telemetry events in Application Insights (if configured)
+- [ ] Check import/matching/draft/job-scheduling telemetry in Application Insights (if configured)
 
 ---
 
@@ -690,11 +666,13 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 
 1. **MCC Category Scope:** Demo MCC/category mappings are seeded for sample coverage; production tenants should review and extend mappings based on local card programs
 2. **Max String Length:** Levenshtein algorithm capped at 100 characters (longer strings truncated)
-3. **Regex Performance:** Complex regex patterns may slow normalization (use specific patterns)
-4. **Single Approver:** Approval workflow uses first approver from setup (no chain routing)
+3. **Pattern Syntax:** Merchant normalization uses substring matching, not regular expressions; `*` characters are stripped
+4. **Report Helpers:** Corporate-card ReportMgt and ApprovalMgt have no callers; approval runs through the standard Expense Agent workflow
 5. **No Receipt Matching:** Does not support image-based receipt OCR (future enhancement)
 6. **Reversal Prerequisites:** Standard Business Central reversal restrictions apply; closed, reconciled, or already-reversed bank entries must be corrected through the relevant standard process
 7. **Runtime Test Infrastructure:** Posting and reversal integration tests require a Business Central AL test runtime; compiler validation alone does not execute them
+8. **Level 3 Import:** No current CSV/XML import creates detail rows or VAT specifications from Level 3 data
+9. **Scheduled Imports:** Schedule action creates an On Hold daily entry and does not use the provider Import Frequency setting
 
 ---
 
@@ -716,18 +694,18 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 **Symptom:** No new transactions in staging  
 **Check:**
 1. Provider enabled? → EACorpCardProvider.Enabled = true
-2. Job Queue scheduled? → EACorpCardProviders page, Schedule Import action
-3. Job Queue running? → Monitor Job Queue Entry table for status
-4. Source payload uploaded? → Check the provider's source file name and payload record count
+2. Job Queue entry created? → EACorpCardProviders page, Schedule Import action
+3. Job Queue entry set to Ready? → New entries start On Hold
+4. Source payload uploaded for this attempt? → Each import clears the provider's payload and record count
 
 ### Matching Accuracy Low
 
 **Symptom:** Many transactions unmatched  
 **Check:**
-1. Date window too narrow? → Increase Expense Agent Setup."Corp Card Date Match Window"
-2. Amount tolerance too strict? → Increase Expense Agent Setup."Corp Card Amount Tolerance"
-3. Merchant names different? → Add regex normalization rules in EACorpCardMerchantRule
-4. No open expenses for employees? → Ensure Open expenses exist before import
+1. Create mode ManualLink? → AutoDraft creates drafts without matching
+2. Exact-match date window or amount tolerance too narrow? → Review Expense Agent Setup settings
+3. Merchant names different? → Add substring normalization rules in EACorpCardMerchantRule
+4. No open unlinked expenses for the user? → Fuzzy matching only checks merchant name and user, not amount/date/currency
 
 ### Draft Expenses Not Created
 
@@ -741,12 +719,13 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 ### File Format Visibility
 
 **Symptom:** Unsure which profile will be used for import  
-**Check:** Corp Card Providers page → `Detected Source Format` column (CSV/XML/CAMT/Not set/Unknown)
+**Check:** Corp Card Providers page → `Detected Source Format` column. CSV and flat XML are supported; a CAMT-looking name may be displayed as CAMT by the detector, but CAMT import is not implemented.
 
 ### Level 3 Detail Visibility
 
-**Symptom:** Need to inspect imported VAT/tax sub-lines for one transaction  
-**Check:** Corp Card Transactions page → action `Show Level 3 Details`
+**Symptom:** Level 3 Details action shows no VAT/tax sub-lines
+
+**Check:** This is expected for current CSV/XML imports; no detail rows are created.
 
 ### "Card Id is missing" Validation Exceptions
 
@@ -760,14 +739,14 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 
 ## Object ID Allocation
 
-**Ranges:** [7420–7449], [7458–7477] (50 IDs per object type)
-**Used:** 8 tables, 4 table extensions, 13 pages, 3 page extensions, 21 codeunits, 6 enums, and 3 permission sets
-**Available:** 42 tables, 46 table extensions, 37 pages, 47 page extensions, 29 codeunits, 44 enums, and 47 permission sets
+**Corporate-card allocation in app.json:** 7420–7449 (30 IDs per object type). The app also declares 6900–6999 and 7073–7137; `EA Corp Card Stats Calculator` uses codeunit 6913.
+
+**Objects in the CorporateCard folder:** 10 tables, 4 table extensions, 18 pages, 3 page extensions, 24 codeunits, 7 enums, 2 interfaces, and 3 permission sets. Corporate-card objects outside that folder include codeunit 7442 and table/page 7449.
 
 ---
 
-**Document Version:** 1.7
+**Document Version:** 1.8
 
-**Last Updated:** 2026-10-01
+**Last Updated:** 2026-10-16
 
-**Module Status:** Active (multi-format import, AutoDraft 1:1, Level 3 details, and expense-posting traceability enabled)
+**Module Status:** Active (CSV/flat XML import, AutoDraft 1:1, manual matching, and provider-bank expense-posting traceability; Level 3 import is not implemented)
