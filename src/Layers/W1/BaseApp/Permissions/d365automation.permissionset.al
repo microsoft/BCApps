@@ -769,9 +769,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Exchange Service Setup" = RIMD,
                   tabledata "Contact Sync User" = RIMD,
                   tabledata "Outlook Contacts" = RIMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = RIMD,
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,

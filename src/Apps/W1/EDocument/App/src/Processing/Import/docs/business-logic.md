@@ -190,7 +190,7 @@ Manual dimensions are preserved because the helper combines the purchase line's 
 
 ### Purchase credit memo finalization
 
-`E-Doc. Create Purch. Cr. Memo` uses the same purchase helper for lines, dimensions, attachments, default posting date, currency validation, and record links. It creates a purchase credit memo, validates duplicate external document numbers against posted vendor ledger entries, carries `Posting Description`, and resolves `Applies-to Doc. No.` directly or through `Applies-to Ext. Invoice No.` when possible.
+`E-Doc. Create Purch. Cr. Memo` uses the same purchase helper for lines, dimensions, attachments, default posting date, currency validation, and record links. It creates a purchase credit memo, validates duplicate external document numbers against posted vendor ledger entries, carries `Posting Description`, and resolves `Applies-to Doc. No.` directly or through `Vendor Invoice No.` when possible.
 
 ### Sales order finalization
 

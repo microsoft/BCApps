@@ -20,8 +20,8 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
-  "target": "OnPrem",
+  "platform": "30.0.0.0",
+  "target": "Cloud",
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,

@@ -7,7 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 /// <summary>
 /// Enum Shpfy Tax Match Review Mode (ID 30471).
-/// Per-shop policy for when a Tax Matching Agent order is held for human review before a Sales
+/// Per-shop policy for when a Shopify Tax Matching order is held for human review before a Sales
 /// Document is created. A rate conflict or an incomplete match always holds the order regardless
 /// of this mode (those are hard safety gates).
 /// </summary>

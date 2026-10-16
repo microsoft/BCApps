@@ -78,28 +78,28 @@ codeunit 163400 "Interface Russian Accounting"
             if StatReport.FindSet() then
                 repeat
                     if Translate.ReportCode(StatReport.Code) = StatReport.FieldName(Code) then
-                        Error('Missing translation for %1 %2 %3', StatReport.TableName, StatReport.FieldName(Code), StatReport.Code);
+                        Error('Missing translation for %1 %2 %3', StatReport.TableCaption, StatReport.FieldCaption(Code), StatReport.Code);
                 until StatReport.Next() = 0;
 
             FormatVersion.Reset();
             if FormatVersion.FindSet() then
                 repeat
                     if Translate.ReportCode(FormatVersion.Code) = FormatVersion.FieldName(Code) then
-                        Error('Missing translation for %1 %2 %3', FormatVersion.TableName, FormatVersion.FieldName(Code), FormatVersion.Code);
+                        Error('Missing translation for %1 %2 %3', FormatVersion.TableCaption, FormatVersion.FieldCaption(Code), FormatVersion.Code);
                 until FormatVersion.Next() = 0;
 
             AccSchName.Reset();
             if AccSchName.FindSet() then
                 repeat
                     if Translate.ReportCode(AccSchName.Name) = AccSchName.FieldName(Name) then
-                        Error('Missing translation for %1 %2 %3', AccSchName.TableName, AccSchName.FieldName(Name), AccSchName.Name);
+                        Error('Missing translation for %1 %2 %3', AccSchName.TableCaption, AccSchName.FieldCaption(Name), AccSchName.Name);
                 until AccSchName.Next() = 0;
 
             ColumnLayoutName.Reset();
             if ColumnLayoutName.FindSet() then
                 repeat
                     if Translate.ReportCode(ColumnLayoutName.Name) = ColumnLayoutName.FieldName(Name) then
-                        Error('Missing translation for %1 %2 %3', ColumnLayoutName.TableName, ColumnLayoutName.FieldName(Name), ColumnLayoutName.Name);
+                        Error('Missing translation for %1 %2 %3', ColumnLayoutName.TableCaption, ColumnLayoutName.FieldCaption(Name), ColumnLayoutName.Name);
                 until ColumnLayoutName.Next() = 0;
         end;
 

@@ -2242,7 +2242,7 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
             repeat
                 if not FieldExclusionList.Contains(ItemField."No.") then
                     if not ItemTemplField.Get(Database::"Item Templ.", ItemField."No.") then
-                        Error('%1 field should exist in "Item Templ." table or added to exclusion list', ItemField.FieldName);
+                        Error('%1 field should exist in "Item Templ." table or added to exclusion list', ItemField."Field Caption");
             until ItemField.Next() = 0;
 
         // Verify controls on "Item Card" and "Item Templ. Card" pages, all controls should match or added in the exclusion list

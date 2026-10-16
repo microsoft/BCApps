@@ -495,6 +495,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 end;
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
+        SalesPostInvoiceEvents.RunOnPostLinesOnBeforeCalcSums(
+            SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, InvoicePostingParameters, JobPostLine);
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := -TempInvoicePostingBuffer.Amount;
 
@@ -1026,7 +1028,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                             if SalesLine."Gen. Prod. Posting Group" = '' then
                                 Error(
                                   GenProdPostingGrDiscErr,
-                                  SalesLine.FieldName("Gen. Prod. Posting Group"), SalesLine.FieldName("Line No."), SalesLine."Line No.")
+                                  SalesLine.FieldCaption("Gen. Prod. Posting Group"), SalesLine.FieldCaption("Line No."), SalesLine."Line No.")
                             else
                                 GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
                     end else
@@ -1035,4 +1037,3 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                     GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
     end;
 }
-

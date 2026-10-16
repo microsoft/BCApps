@@ -13,8 +13,8 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [],
   "screenshots": [],
-  "platform": "29.0.0.0",
-  "target": "OnPrem",
+  "platform": "30.0.0.0",
+  "target": "Cloud",
   "features": [
     "TranslationFile"
   ],

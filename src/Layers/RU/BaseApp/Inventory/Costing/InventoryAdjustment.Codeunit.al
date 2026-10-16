@@ -1916,7 +1916,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
                 end;
 
                 if not SourceInvtAdjmtEntryOrder."Completely Invoiced" then begin
-                    InvtAdjmtEntryOrder.GetCostsFromItem(1);
+                    InvtAdjmtEntryOrder.GetUnitCostsFromItem();
                     InvtAdjmtEntryOrder."Completely Invoiced" := true;
                 end;
                 InvtAdjmtEntryOrder."Allow Online Adjustment" := true;
@@ -3614,13 +3614,6 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetParameters(var CostAdjustmentParameter: Record "Cost Adjustment Parameter")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnExcludeAvgCostOnValuationDateOnAfterGetItemApplicationTrace(var OutbndValueEntry: Record "Value Entry"; var OutbndEntryItemApplicationTrace: Record "Item Application Trace")
     begin

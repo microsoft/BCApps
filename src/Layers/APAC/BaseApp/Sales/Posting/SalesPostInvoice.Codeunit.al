@@ -38,6 +38,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBufferGST: Record "Invoice Posting Buffer" temporary;
         TotalSalesLine: Record "Sales Line";
         TotalSalesLineLCY: Record "Sales Line";
+        ACYCurrency: Record Currency;
         DeferralUtilities: Codeunit "Deferral Utilities";
         DimensionManagement: Codeunit DimensionManagement;
         JobPostLine: Codeunit "Job Post-Line";
@@ -517,6 +518,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 InsertGST(SalesHeader, TempInvoicePostingBuffer, GenJnlPostLine.GetVATEntryNo());
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
+        SalesPostInvoiceEvents.RunOnPostLinesOnBeforeCalcSums(
+            SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, InvoicePostingParameters, JobPostLine);
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := -TempInvoicePostingBuffer.Amount;
 
@@ -539,10 +542,12 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine."Adjustment Applies-to" := SalesHeader."Adjustment Applies-to";
 
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
-        GenJnlLine."VAT Base (ACY)" := InvoicePostingBuffer."VAT Base (ACY)";
-        GenJnlLine."VAT Amount (ACY)" := InvoicePostingBuffer."VAT Amount(ACY)";
-        GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
-        GenJnlLine."Amount Including VAT (ACY)" := InvoicePostingBuffer."Amount Including VAT (ACY)";
+        if GLSetup."Additional Reporting Currency" <> '' then begin
+            GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
+            GenJnlLine."VAT Amount (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount");
+            GenJnlLine."VAT Difference (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference");
+        end;
+        GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
         if GLSetup."Journal Templ. Name Mandatory" then
             GenJnlLine."Journal Template Name" := InvoicePostingBuffer."Journal Templ. Name";
         GenJnlLine."Orig. Pmt. Disc. Possible" := TotalSalesLine."Pmt. Discount Amount";
@@ -836,6 +841,31 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             end;
             UpdateInvoicePostingBufferGST(SalesLine, InvoicePostingBuffer);
         end;
+    end;
+
+    local procedure VATExchangeAmtLCYToACY(PostingDate: Date; AmountLCY: Decimal): Decimal
+    begin
+        if AmountLCY = 0 then
+            exit(0);
+        if not GetACYCurrency() then
+            exit(0);
+        exit(
+            Round(
+                CurrExchRate.ExchangeAmtLCYToFCY(
+                    PostingDate, ACYCurrency.Code, AmountLCY,
+                    CurrExchRate.ExchangeRate(PostingDate, ACYCurrency.Code)),
+                ACYCurrency."Amount Rounding Precision", ACYCurrency.VATRoundingDirection()));
+    end;
+
+    local procedure GetACYCurrency(): Boolean
+    begin
+        GLSetup.Get();
+        if GLSetup."Additional Reporting Currency" = '' then
+            exit(false);
+        GLSetup.TestField("Additional Reporting Currency");
+        ACYCurrency.Get(GLSetup."Additional Reporting Currency");
+        ACYCurrency.TestField("Amount Rounding Precision");
+        exit(true);
     end;
 
     local procedure UpdateInvoicePostingBufferGST(SalesLine: Record "Sales Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer")

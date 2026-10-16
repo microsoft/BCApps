@@ -38,7 +38,7 @@
         }
     ],
     "screenshots": [],
-    "platform": "29.0.0.0",
+    "platform": "30.0.0.0",
     "features": [
         "TranslationFile"
     ],
@@ -54,5 +54,5 @@
         "includeSourceInSymbolFile": true
     },
     "application": "30.0.0.0",
-    "target": "OnPrem"
+    "target": "Cloud"
 }
