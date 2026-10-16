@@ -800,9 +800,12 @@ codeunit 130618 "Library - Graph Mgt"
         ParentObject: JsonObject;
         JsonToken: JsonToken;
     begin
+        // Like the legacy JSON Management helper, a missing or non-object property yields an empty object.
+        Clear(JObject);
         ParentObject.ReadFrom(JSON);
-        ParentObject.Get(PropertyName, JsonToken);
-        JObject := JsonToken.AsObject();
+        if ParentObject.Get(PropertyName, JsonToken) then
+            if JsonToken.IsObject() then
+                JObject := JsonToken.AsObject();
     end;
 
     [Scope('OnPrem')]

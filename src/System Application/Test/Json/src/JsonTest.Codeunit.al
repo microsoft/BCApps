@@ -797,7 +797,7 @@ codeunit 139910 "Json Test"
         Assert.ExpectedError('can''t be evaluated into type');
 
         asserterror Json.GetGuidPropertyValueFromJObjectByName('guid', GuidValue);
-        Assert.ExpectedError('can''t be evaluated into type');
+        Assert.ExpectedError('Invalid format of GUID string');
 
         asserterror Json.GetIntegerPropertyValueFromJObjectByName('integer', IntegerValue);
         Assert.ExpectedError('can''t be evaluated into type');
