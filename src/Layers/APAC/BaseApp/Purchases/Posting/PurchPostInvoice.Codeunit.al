@@ -643,17 +643,20 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
         GenJnlLine."WHT Business Posting Group" := InvoicePostingBuffer."WHT Business Posting Group";
         GenJnlLine."WHT Product Posting Group" := InvoicePostingBuffer."WHT Product Posting Group";
-        if (GLSetup."Additional Reporting Currency" <> '') and not UseVendorExchangeRateACY(PurchHeader) then begin
-            GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
-            GenJnlLine."VAT Amount (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount");
-            GenJnlLine."VAT Difference (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference");
-            GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
-        end else begin
+        if GLSetup."Additional Reporting Currency" = '' then begin
             GenJnlLine."VAT Base (ACY)" := InvoicePostingBuffer."VAT Base (ACY)";
             GenJnlLine."VAT Amount (ACY)" := InvoicePostingBuffer."VAT Amount(ACY)";
             GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
             GenJnlLine."Amount Including VAT (ACY)" := InvoicePostingBuffer."Amount Including VAT (ACY)";
-        end;
+        end else
+            if UseVendorExchangeRateACY(PurchHeader) then
+                SetVendorExchangeRateACYAmounts(PurchHeader, InvoicePostingBuffer, GenJnlLine)
+            else begin
+                GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
+                GenJnlLine."VAT Amount (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount");
+                GenJnlLine."VAT Difference (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference");
+                GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
+            end;
         PurchPostInvoiceEvents.RunOnPrepareGenJnlLineOnAfterCopyToGenJnlLine(GenJnlLine, PurchHeader, InvoicePostingBuffer);
         if GLSetup."Journal Templ. Name Mandatory" then
             GenJnlLine."Journal Template Name" := InvoicePostingBuffer."Journal Templ. Name";
@@ -1018,11 +1021,39 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                 ACYCurrency."Amount Rounding Precision", ACYCurrency.VATRoundingDirection()));
     end;
 
+    local procedure SetVendorExchangeRateACYAmounts(PurchHeader: Record "Purchase Header"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
+    var
+        Factor: Decimal;
+        AmountACY: Decimal;
+    begin
+        GetACYCurrency();
+        Factor := CurrExchRate.ExchangeRateFactorFRS21(GenJnlLine."Posting Date", ACYCurrency.Code, PurchHeader."Vendor Exchange Rate (ACY)");
+        AmountACY := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer.Amount, Factor);
+        GenJnlLine."VAT Base (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount", Factor);
+        GenJnlLine."VAT Difference (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference", Factor);
+        GenJnlLine."Amount Including VAT (ACY)" :=
+            Round(
+                AmountACY + GenJnlLine."VAT Base (ACY)" * InvoicePostingBuffer."VAT %" / 100,
+                ACYCurrency."Amount Rounding Precision") + GenJnlLine."VAT Difference (ACY)";
+        GenJnlLine."VAT Amount (ACY)" := GenJnlLine."Amount Including VAT (ACY)" - GenJnlLine."VAT Base (ACY)";
+    end;
+
+    local procedure VendorExchangeAmtLCYToACY(PostingDate: Date; AmountLCY: Decimal; Factor: Decimal): Decimal
+    begin
+        if AmountLCY = 0 then
+            exit(0);
+        exit(
+            Round(
+                CurrExchRate.ExchangeAmtLCYToFCY(PostingDate, ACYCurrency.Code, AmountLCY, Factor),
+                ACYCurrency."Amount Rounding Precision"));
+    end;
+
     local procedure UseVendorExchangeRateACY(PurchHeader: Record "Purchase Header"): Boolean
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
-        if PurchHeader."Vendor Exchange Rate (ACY)" = 0 then
+        // Purchase Line applies the vendor rate to ACY only for documents in LCY.
+        if (PurchHeader."Vendor Exchange Rate (ACY)" = 0) or (PurchHeader."Currency Code" <> '') then
             exit(false);
         PurchasesPayablesSetup.Get();
         exit(PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)");

@@ -359,9 +359,68 @@ codeunit 145403 "AU Feature Bugs"
         DocumentNo := CreateAndPostPurchaseInvoiceWithLineDiscount(PurchaseHeader, VendorNo, ItemNo, 1, 100, 5);
 
         // [THEN] The main and discount VAT entries have independently calculated Additional-Currency Base and Amount
-        VerifyPurchaseACYCalculatedPerVATEntry(DocumentNo);
+        VerifyPurchaseACYCalculatedPerVATEntry(DocumentNo, 52.87, 7.93, -2.64, -0.4);
 
         // Tear down
+        SetAdditionalReportingCurrency(OldAdditionalReportingCurrency);
+        SetEnableGSTAustralia(OldEnableGSTAustralia);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceWithLineDiscountVendorACYCalculatedPerVATEntry()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        VendorNo: Code[20];
+        ItemNo: Code[20];
+        DocumentNo: Code[20];
+        ACYCurrencyCode: Code[10];
+        OldAdditionalReportingCurrency: Code[10];
+        OldEnableGSTAustralia: Boolean;
+        OldEnableVendorGSTAmountACY: Boolean;
+    begin
+        // [FEATURE] [GST] [Purchase] [ACY]
+        // [SCENARIO 650979] With Vendor GST Amount (ACY) enabled, the main line and the discount line VAT Entries of a
+        // Purchase Invoice with a line discount get Additional-Currency Base and Amount calculated with the vendor
+        // exchange rate from their own amounts, not the whole purchase line.
+
+        // [GIVEN] GST (Australia), an Additional Reporting Currency and Vendor GST Amount (ACY) are enabled
+        OldEnableGSTAustralia := SetEnableGSTAustralia(true);
+        ACYCurrencyCode := CreateCurrencyWithACYExchangeRate();
+        OldAdditionalReportingCurrency := SetAdditionalReportingCurrency(ACYCurrencyCode);
+        PurchasesPayablesSetup.Get();
+        OldEnableVendorGSTAmountACY := PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)";
+        PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := true;
+        PurchasesPayablesSetup.Modify();
+
+        // [GIVEN] A 15% GST posting setup, a vendor using it and an item using it
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+          VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 15);
+        VendorNo := CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group");
+        ItemNo := CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group", 0);
+
+        // [GIVEN] A Purchase Invoice in LCY with Vendor Exchange Rate (ACY) 2, quantity 1, direct unit cost 100 and a 5% line discount
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.TestField("Currency Code", '');
+        PurchaseHeader."Vendor Exchange Rate (ACY)" := 2;
+        PurchaseHeader.Modify();
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Validate("Line Discount %", 5);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The Purchase Invoice is posted
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Main entry (Base 100) has ACY Base 200 and Amount 30; discount entry (Base -5) has ACY Base -10 and Amount -1.5
+        VerifyPurchaseACYCalculatedPerVATEntry(DocumentNo, 200, 30, -10, -1.5);
+
+        // Tear down
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := OldEnableVendorGSTAmountACY;
+        PurchasesPayablesSetup.Modify();
         SetAdditionalReportingCurrency(OldAdditionalReportingCurrency);
         SetEnableGSTAustralia(OldEnableGSTAustralia);
     end;
@@ -839,7 +898,7 @@ codeunit 145403 "AU Feature Bugs"
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
     end;
 
-    local procedure VerifyPurchaseACYCalculatedPerVATEntry(DocumentNo: Code[20])
+    local procedure VerifyPurchaseACYCalculatedPerVATEntry(DocumentNo: Code[20]; MainACYBase: Decimal; MainACYAmount: Decimal; DiscountACYBase: Decimal; DiscountACYAmount: Decimal)
     var
         VATEntry: Record "VAT Entry";
         FirstBase: Decimal;
@@ -863,13 +922,13 @@ codeunit 145403 "AU Feature Bugs"
             case VATEntry.Base of
                 100.0:
                     begin
-                        Assert.AreEqual(52.87, VATEntry."Additional-Currency Base", ACYBaseErr);
-                        Assert.AreEqual(7.93, VATEntry."Additional-Currency Amount", ACYAmountErr);
+                        Assert.AreEqual(MainACYBase, VATEntry."Additional-Currency Base", ACYBaseErr);
+                        Assert.AreEqual(MainACYAmount, VATEntry."Additional-Currency Amount", ACYAmountErr);
                     end;
                 -5.0:
                     begin
-                        Assert.AreEqual(-2.64, VATEntry."Additional-Currency Base", ACYBaseErr);
-                        Assert.AreEqual(-0.4, VATEntry."Additional-Currency Amount", ACYAmountErr);
+                        Assert.AreEqual(DiscountACYBase, VATEntry."Additional-Currency Base", ACYBaseErr);
+                        Assert.AreEqual(DiscountACYAmount, VATEntry."Additional-Currency Amount", ACYAmountErr);
                     end;
                 else
                     Assert.Fail(UnexpectedVATEntryErr);
