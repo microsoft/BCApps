@@ -12,6 +12,7 @@ entitlement "Dynamics 365 Business Central for IWs BaseApp"
                          "D365 BASIC",
                          "D365 BUS PREMIUM",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 MONITOR FIELDS",
                          "LOCAL",
                          "Reten. Pol. Setup - BaseApp",

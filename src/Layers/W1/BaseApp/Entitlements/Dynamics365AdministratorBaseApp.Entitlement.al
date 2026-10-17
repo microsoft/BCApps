@@ -12,6 +12,7 @@ entitlement "Dynamics 365 Administrator BaseApp"
     ObjectEntitlements = "BaseApp Objects - Exec",
                          "D365 BASIC",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 MONITOR FIELDS",
                          "D365 READ",
                          "LOCAL",

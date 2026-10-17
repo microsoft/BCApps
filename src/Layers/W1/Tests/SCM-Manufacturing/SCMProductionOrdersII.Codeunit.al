@@ -86,6 +86,7 @@ codeunit 137072 "SCM Production Orders II"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory to G/L";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
@@ -7615,6 +7616,64 @@ codeunit 137072 "SCM Production Orders II"
 
         // [THEN] Reversal item ledger entry uses the component unit of measure with the correct positive base quantity.
         VerifyReverseItemLedgerEntry(CompItem."No.", UnitOfMeasure2.Code);
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductionJnlPageHandler2,ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseProductionConsumptionAfterComponentChangedFromBlankToLotTracking()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        OriginalConsumptionEntryNo: Integer;
+    begin
+        // [FEATURE] [Item Tracking Code Change]
+        // [SCENARIO] Reverse production consumption uses the historical blank tracking code after lot tracking is enabled.
+        Initialize();
+
+        // [GIVEN] An untracked component is fully consumed by a released production order.
+        LibraryInventory.CreateItem(CompItem);
+        CreateAndPostItemJournalLine(CompItem."No.", 1, '', '', false);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
+        CreateItemWithProductionBOM(FGItem, ProductionBOMHeader."No.");
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, FGItem."No.", 1, '', '');
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        CreateAndPostProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+
+        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.FindFirst();
+        OriginalConsumptionEntryNo := ItemLedgerEntry."Entry No.";
+        CompItem.CalcFields(Inventory);
+        CompItem.TestField(Inventory, 0);
+
+        // [GIVEN] The component costs are finalized and lot tracking is enabled on the following day.
+        WorkDate(WorkDate() + 1);
+        LibraryCosting.AdjustCostItemEntries(CompItem."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), CompItem."No.");
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CompItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        CompItem.Modify(true);
+
+        // [WHEN] The historical consumption entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", OriginalConsumptionEntryNo);
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [THEN] The reversal has no lot and applies from the original consumption.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.TestField(Positive, true);
+        ItemLedgerEntry.TestField("Lot No.", '');
+        ItemLedgerEntry.TestField("Applies-from Entry", OriginalConsumptionEntryNo);
     end;
 
     [Test]

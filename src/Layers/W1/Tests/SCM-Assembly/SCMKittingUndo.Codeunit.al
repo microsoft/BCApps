@@ -61,7 +61,9 @@ codeunit 137097 "SCM Kitting - Undo"
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryAssembly: Codeunit "Library - Assembly";
+        LibraryCosting: Codeunit "Library - Costing";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory to G/L";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryPlanning: Codeunit "Library - Planning";
@@ -2106,6 +2108,71 @@ codeunit 137097 "SCM Kitting - Undo"
     end;
 
     [Test]
+    procedure UndoAssemblyWithComponentChangedFromBlankToLotTracking()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        AsmItem: Record Item;
+        CompItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        OriginalConsumptionEntryNo: Integer;
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Item Tracking Code Change]
+        // [SCENARIO] Undo assembly uses the historical blank tracking code after lot tracking is enabled.
+        Initialize();
+        PostingDate := WorkDate() - 1;
+
+        // [GIVEN] An untracked component is consumed by a posted assembly order.
+        LibraryInventory.CreateItem(AsmItem);
+        AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
+        AsmItem.Modify(true);
+        LibraryInventory.CreateItem(CompItem);
+        AddComponentToAssemblyList(
+            BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, '', '', '', PostingDate, 1);
+        AssemblyHeader.Validate("Posting Date", PostingDate);
+        AssemblyHeader.Modify(true);
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Consumption");
+        ItemLedgerEntry.SetRange("Document No.", PostedAssemblyHeader."No.");
+        ItemLedgerEntry.FindFirst();
+        OriginalConsumptionEntryNo := ItemLedgerEntry."Entry No.";
+        CompItem.CalcFields(Inventory);
+        CompItem.TestField(Inventory, 0);
+        LibraryCosting.AdjustCostItemEntries(CompItem."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), CompItem."No.");
+
+        // [GIVEN] Lot tracking is enabled for the component after it has zero inventory.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CompItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        CompItem.Modify(true);
+
+        // [WHEN] The posted assembly order is undone.
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, '');
+
+        // [THEN] The corrective component entry is posted without a lot and applies to the historical consumption.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Consumption");
+        ItemLedgerEntry.SetRange("Document No.", PostedAssemblyHeader."No.");
+        ItemLedgerEntry.SetRange(Correction, true);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Positive, true);
+        ItemLedgerEntry.TestField("Lot No.", '');
+        ItemLedgerEntry.TestField("Applies-from Entry", OriginalConsumptionEntryNo);
+    end;
+
+    [Test]
     [HandlerFunctions('ItemTrackingLinesModalPageHandler')]
     procedure ItemTrackingLinesForFullyPostedAndUndoneAssembly()
     var
@@ -2423,4 +2490,3 @@ codeunit 137097 "SCM Kitting - Undo"
         Assert.IsTrue(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldBeDeletedErr);
     end;
 }
-
