@@ -205,9 +205,7 @@ codeunit 8060 "Create Billing Documents"
         OnCreatePurchaseDocumentsPerVendorBeforeTempBillingLineFindSet(TempBillingLine);
         if TempBillingLine.FindSet() then
             repeat
-                if (TempBillingLine."Partner No." <> PreviousVendorNo) or
-                    (TempBillingLine."Currency Code" <> PreviousCurrencyCode)
-                then begin
+                if IsNewPurchaseHeaderNeeded(PreviousVendorNo, PreviousCurrencyCode, PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
                     CommitCreatedDocumentCheckpoint();
                     CreatePurchaseHeaderForVendorNo(TempBillingLine."Partner No.");
@@ -1322,6 +1320,14 @@ codeunit 8060 "Create Billing Documents"
         OnAfterIsNewSalesHeaderNeeded(CreateNewSalesHeader, TempBillingLine, PreviousCustomerNo, LastDetailOverview, PreviousCurrencyCode, PreviousContractNo);
     end;
 
+    local procedure IsNewPurchaseHeaderNeeded(PreviousVendorNo: Code[20]; PreviousCurrencyCode: Code[20]; PreviousContractNo: Code[20]) CreateNewPurchaseHeader: Boolean
+    begin
+        CreateNewPurchaseHeader := (TempBillingLine."Partner No." <> PreviousVendorNo) or
+                                   (TempBillingLine."Currency Code" <> PreviousCurrencyCode);
+
+        OnAfterIsNewPurchaseHeaderNeeded(CreateNewPurchaseHeader, TempBillingLine, PreviousVendorNo, PreviousCurrencyCode, PreviousContractNo);
+    end;
+
     local procedure IsNewHeaderNeededPerContract(PreviousSubContractNo: Code[20]) CreateNewHeader: Boolean
     begin
         CreateNewHeader := TempBillingLine."Subscription Contract No." <> PreviousSubContractNo;
@@ -1475,6 +1481,11 @@ codeunit 8060 "Create Billing Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsNewSalesHeaderNeeded(var CreateNewSalesHeader: Boolean; TempBillingLine: Record "Billing Line" temporary; PreviousCustomerNo: Code[20]; LastDetailOverview: Enum "Contract Detail Overview"; PreviousCurrencyCode: Code[20]; PreviousContractNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsNewPurchaseHeaderNeeded(var CreateNewPurchaseHeader: Boolean; TempBillingLine: Record "Billing Line" temporary; PreviousVendorNo: Code[20]; PreviousCurrencyCode: Code[20]; PreviousContractNo: Code[20])
     begin
     end;
 
