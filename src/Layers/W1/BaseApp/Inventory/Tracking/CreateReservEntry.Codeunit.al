@@ -498,6 +498,8 @@ codeunit 99000830 "Create Reserv. Entry"
                     QtyInvoiced := QtyToInvoiceThisLine;
                 SetQtyToHandleAndInvoice(QtyToHandleThisLine - TransferQty, QtyToInvoiceThisLine - QtyInvoiced);
                 OnTransferReservEntryOnBeforeCreateRemainingReservEntry(OldReservEntry, NewReservEntry, TransferQty);
+                if NewTrackingTransferred then
+                    InsertReservEntry.ClearNewTracking(); // The remaining entry stays on the original source
                 CreateRemainingReservEntry(OldReservEntry,
                   0, (OldReservEntry."Quantity (Base)" - TransferQty) * CurrSignFactor);
                 NewReservEntry.Validate("Quantity (Base)", TransferQty);
