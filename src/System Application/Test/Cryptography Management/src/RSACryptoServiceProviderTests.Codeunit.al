@@ -205,6 +205,46 @@ codeunit 132613 RSACryptoServiceProviderTests
         LibraryAssert.ExpectedError('A call to System.Security.Cryptography.RSACryptoServiceProvider.Decrypt failed with this message:');
     end;
 
+    [Test]
+    procedure ImportFromPemAndSignData()
+    var
+        RSA: Codeunit RSA;
+        EncryptingTempBlob: Codeunit "Temp Blob";
+        SignatureTempBlob: Codeunit "Temp Blob";
+        EncryptingOutStream: OutStream;
+        SignatureOutStream: OutStream;
+        EncryptingInStream: InStream;
+        SignatureInStream: InStream;
+        PemPrivateKey: SecretText;
+        PublicKeyXmlText: Text;
+        PublicKeyXmlSecret: SecretText;
+    begin
+        // [SCENARIO] A PEM-encoded private key imported into RSACryptoServiceProvider can be used to sign data.
+
+        // [GIVEN] A PEM private key and its matching XML public key generated via the RSA codeunit
+        RSA.InitializeRSA(2048);
+        PemPrivateKey := RSA.ExportRSAPrivateKeyPem();
+        PublicKeyXmlText := GetXmlString(RSA.ToSecretXmlString(false));
+        PublicKeyXmlSecret := PublicKeyXmlText;
+
+        // [GIVEN] Random data to sign
+        EncryptingTempBlob.CreateOutStream(EncryptingOutStream);
+        SaveRandomTextToOutStream(EncryptingOutStream);
+        EncryptingTempBlob.CreateInStream(EncryptingInStream);
+
+        // [WHEN] The PEM key is imported into RSACryptoServiceProvider and the data is signed
+        RSACryptoServiceProvider.ImportFromPem(PemPrivateKey);
+        SignatureTempBlob.CreateOutStream(SignatureOutStream);
+        RSACryptoServiceProvider.SignData(RSACryptoServiceProvider.ToSecretXmlString(true), EncryptingInStream, Enum::"Hash Algorithm"::SHA256, SignatureOutStream);
+
+        EncryptingTempBlob.CreateInStream(EncryptingInStream);
+        SignatureTempBlob.CreateInStream(SignatureInStream);
+
+        // [THEN] The signature is valid when verified against the matching public key
+        LibraryAssert.IsTrue(RSACryptoServiceProvider.VerifyData(PublicKeyXmlSecret, EncryptingInStream, Enum::"Hash Algorithm"::SHA256, SignatureInStream),
+            'Signature must be valid after ImportFromPem with a private key.');
+    end;
+
     local procedure SaveRandomTextToOutStream(OutStream: OutStream) PlainText: Text
     begin
         PlainText := Any.AlphanumericText(Any.IntegerInRange(80));

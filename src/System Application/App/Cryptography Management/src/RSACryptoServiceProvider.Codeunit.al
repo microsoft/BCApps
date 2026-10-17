@@ -107,4 +107,14 @@ codeunit 1445 RSACryptoServiceProvider
     begin
         RSACryptoServiceProviderImpl.CreateRSAKeyPair(PublicKeyInXml, PrivateKeyInXml);
     end;
+
+    /// <summary>
+    /// Imports the public or private RSA key from a PEM-encoded string into the current RSACryptoServiceProvider instance.
+    /// Supported PEM labels: RSA PRIVATE KEY, PRIVATE KEY, ENCRYPTED PRIVATE KEY, RSA PUBLIC KEY, PUBLIC KEY.
+    /// </summary>
+    /// <param name="PemKey">The PEM-encoded RSA key to import.</param>
+    procedure ImportFromPem(PemKey: SecretText)
+    begin
+        RSACryptoServiceProviderImpl.ImportFromPem(PemKey);
+    end;
 }
