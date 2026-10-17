@@ -1092,11 +1092,15 @@ codeunit 11 "Gen. Jnl.-Check Line"
             not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"])
         then
             exit;
-
         if VATPostingSetup.Get(GenJnlLine."VAT Bus. Posting Group", GenJnlLine."VAT Prod. Posting Group") and
            VATPostingSetup."Adjust for Payment Discount"
-        then
+        then begin
             GenJnlLine.TestField("Gen. Prod. Posting Group", ErrorInfo.Create());
+            if HasPaymentDiscount(GenJnlLine) then
+                CheckGenPostingSetupExists(
+                        GenJnlLine."Gen. Bus. Posting Group",
+                        GenJnlLine."Gen. Prod. Posting Group");
+        end;
     end;
 
     /// <summary>
@@ -1113,11 +1117,15 @@ codeunit 11 "Gen. Jnl.-Check Line"
             not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"])
         then
             exit;
-
         if VATPostingSetup.Get(GenJnlLine."Bal. VAT Bus. Posting Group", GenJnlLine."Bal. VAT Prod. Posting Group") and
            VATPostingSetup."Adjust for Payment Discount"
-        then
+        then begin
             GenJnlLine.TestField("Bal. Gen. Prod. Posting Group", ErrorInfo.Create());
+            if HasPaymentDiscount(GenJnlLine) then
+                CheckGenPostingSetupExists(
+                        GenJnlLine."Bal. Gen. Bus. Posting Group",
+                        GenJnlLine."Bal. Gen. Prod. Posting Group");
+        end;
     end;
 
     local procedure CheckAccountType(GenJnlLine: Record "Gen. Journal Line")
@@ -1372,6 +1380,27 @@ codeunit 11 "Gen. Jnl.-Check Line"
     procedure CheckDeferralPostingAllowed(DeferralPostingAllowed: Boolean)
     begin
         IsDeferralPostingAllowed := DeferralPostingAllowed;
+    end;
+
+    local procedure CheckGenPostingSetupExists(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup);
+    end;
+
+    local procedure HasPaymentDiscount(GenJnlLine: Record "Gen. Journal Line"): Boolean
+    var
+        PaymentLines: Record "Payment Lines";
+    begin
+        PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::" ");
+        PaymentLines.SetRange(Type, PaymentLines.Type::"General Journal");
+        PaymentLines.SetRange(Code, GenJnlLine."Journal Batch Name");
+        PaymentLines.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
+        PaymentLines.SetRange("Journal Line No.", GenJnlLine."Line No.");
+        PaymentLines.SetFilter("Discount %", '>%1', 0);
+        PaymentLines.SetFilter("Pmt. Discount Date", '<>%1', 0D);
+        exit(not PaymentLines.IsEmpty());
     end;
 
     /// <summary>
