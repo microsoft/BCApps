@@ -78,8 +78,10 @@ codeunit 130464 "Test Input Json"
     end;
 
     /// <summary>
-    /// Returns the value as Text with all data tool placeholders resolved.
-    /// Supported: $DateFormula-...$, $DateTimeFormula-...$.
+    /// Returns the value as Text, resolving data tool placeholders when text replacement is enabled.
+    /// Supported: $Placeholder-...$, $DateFormula-...$, $DateTimeFormula-...$.
+    /// Named values use the active tag and current company, then the shared-company fallback.
+    /// The underlying JSON is not changed.
     /// </summary>
     procedure ValueAsText(): Text
     var
@@ -121,7 +123,7 @@ codeunit 130464 "Test Input Json"
     /// Supports optional time (colon format):
     ///   $DateTimeFormula-&lt;formula&gt;$               → time defaults to 0T
     ///   $DateTimeFormula-&lt;formula&gt;-12:30:11$       → explicit time
-    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.1301$  → time with milliseconds
+    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.130$   → time with milliseconds
     /// </summary>
     procedure ValueAsDateTime(): DateTime
     var

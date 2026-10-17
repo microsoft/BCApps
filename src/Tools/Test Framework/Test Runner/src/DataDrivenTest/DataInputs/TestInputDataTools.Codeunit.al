@@ -7,94 +7,259 @@ namespace System.TestTools.TestRunner;
 
 /// <summary>
 /// Resolves data tool placeholders embedded in test input values.
-/// Supports date formulas ($DateFormula-...$) and datetime formulas ($DateTimeFormula-...$).
-///
-/// This codeunit is SingleInstance — cache persists within a test method run
-/// and resets automatically between tests via OnBeforeTestMethodRun.
-///
-/// Performance: On first resolve call per test, the full JSON is scanned to
-/// detect which tool types are present. Tool types not found in the JSON are
-/// skipped on all subsequent resolve calls (single boolean check).
+/// Supports named placeholders, date formulas, and datetime formulas.
+/// Registrations are transactional; the active tag and text-replacement switch are session-local.
 /// </summary>
 codeunit 130465 "Test Input Data Tools"
 {
     SingleInstance = true;
+    Permissions = tabledata "Test Input Placeholder" = RIMD;
 
     #region Lifecycle
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
-    local procedure BeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
-    begin
-        Reset();
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterRunTestSuite', '', false, false)]
     local procedure AfterTestSuite()
     begin
-        Reset();
+        SetTextReplacementsEnabled(false);
     end;
-
-    local procedure Reset()
-    begin
-        HasDateFormulas := false;
-        HasDateTimeFormulas := false;
-        CacheInitialized := false;
-    end;
-
-    #endregion
-
-    #region Cache
-
-    local procedure EnsureCacheInitialized()
-    var
-        TestInput: Codeunit "Test Input";
-        FullJson: Text;
-    begin
-        if CacheInitialized then
-            exit;
-
-        CacheInitialized := true;
-        FullJson := TestInput.GetTestInputValue();
-
-        if FullJson = '' then
-            exit;
-
-        HasDateFormulas := FullJson.Contains(DateFormulaPrefixTok);
-        HasDateTimeFormulas := FullJson.Contains(DateTimeFormulaPrefixTok);
-    end;
-
-    local procedure HasAnyTools(): Boolean
-    begin
-        exit(HasDateFormulas or HasDateTimeFormulas);
-    end;
-
-    #endregion
-
-    #region Public API — Text Resolution
 
     /// <summary>
-    /// Resolves all data tool placeholders in the text.
-    /// If the full test input contains no data tools, returns the text unchanged.
-    /// Handles both full-match values (entire string is one token)
-    /// and embedded tokens (token appears within a larger string).
+    /// Enables or disables all text substitutions. Every call clears the active tag, but not registered values.
+    /// Typed date and datetime formula conversions are unaffected.
+    /// </summary>
+    procedure SetTextReplacementsEnabled(Enabled: Boolean)
+    begin
+        TextReplacementsEnabled := Enabled;
+        Clear(ActiveTag);
+    end;
+
+    /// <summary>
+    /// Sets the tag used by text resolution and operations that omit a tag.
+    /// A blank tag is an exact namespace, not a wildcard.
+    /// </summary>
+    procedure SetTag(Tag: Text)
+    begin
+        ActiveTag := NormalizeTag(Tag);
+    end;
+
+    #endregion
+
+    #region Placeholder Values
+
+    /// <summary>
+    /// Inserts or replaces a value using the active tag and current company.
+    /// </summary>
+    procedure SetPlaceholder(Name: Text; Value: Text)
+    begin
+        SetPlaceholder(Name, Value, ActiveTag);
+    end;
+
+    /// <summary>
+    /// Inserts or replaces a value using the specified tag and current company.
+    /// </summary>
+    procedure SetPlaceholder(Name: Text; Value: Text; Tag: Text)
+    begin
+        SetPlaceholder(Name, Value, Tag, CompanyName());
+    end;
+
+    /// <summary>
+    /// Inserts or replaces the exact name, tag, and company key without committing.
+    /// A blank company registers a shared fallback. Values must not contain supported placeholder tokens.
+    /// </summary>
+    procedure SetPlaceholder(Name: Text; Value: Text; Tag: Text; Company: Text)
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+        NormalizedName: Code[100];
+        NormalizedTag: Code[100];
+        NormalizedCompany: Text[30];
+        EntryExists: Boolean;
+    begin
+        NormalizedName := NormalizeName(Name);
+        NormalizedTag := NormalizeTag(Tag);
+        NormalizedCompany := NormalizeCompany(Company);
+        ValidatePlaceholderValue(Name, Value);
+
+        TestInputPlaceholder.ReadIsolation := IsolationLevel::UpdLock;
+        EntryExists := TestInputPlaceholder.Get(NormalizedName, NormalizedTag, NormalizedCompany);
+        if not EntryExists then begin
+            TestInputPlaceholder.Init();
+            TestInputPlaceholder.Name := NormalizedName;
+            TestInputPlaceholder.Tag := NormalizedTag;
+            TestInputPlaceholder.Company := NormalizedCompany;
+        end;
+
+        TestInputPlaceholder.SetValue(Value);
+        if EntryExists then
+            TestInputPlaceholder.Modify(true)
+        else
+            TestInputPlaceholder.Insert(true);
+    end;
+
+    /// <summary>
+    /// Gets a value using the active tag and current company, then the shared-company fallback.
+    /// Returns false and clears Value when no registration exists.
+    /// </summary>
+    procedure GetPlaceholder(Name: Text; var Value: Text): Boolean
+    begin
+        exit(GetPlaceholder(Name, Value, ActiveTag));
+    end;
+
+    /// <summary>
+    /// Gets a value using the specified tag and current company, then the shared-company fallback.
+    /// </summary>
+    procedure GetPlaceholder(Name: Text; var Value: Text; Tag: Text): Boolean
+    begin
+        exit(GetPlaceholder(Name, Value, Tag, CompanyName()));
+    end;
+
+    /// <summary>
+    /// Gets the exact company value before its shared fallback, within the specified tag only.
+    /// An explicitly blank company reads only the shared row. An empty registered value is a match.
+    /// </summary>
+    procedure GetPlaceholder(Name: Text; var Value: Text; Tag: Text; Company: Text): Boolean
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+        NormalizedName: Code[100];
+        NormalizedTag: Code[100];
+        NormalizedCompany: Text[30];
+    begin
+        Clear(Value);
+        NormalizedName := NormalizeName(Name);
+        NormalizedTag := NormalizeTag(Tag);
+        NormalizedCompany := NormalizeCompany(Company);
+
+        if not TestInputPlaceholder.Get(NormalizedName, NormalizedTag, NormalizedCompany) then begin
+            if NormalizedCompany = '' then
+                exit(false);
+            if not TestInputPlaceholder.Get(NormalizedName, NormalizedTag, '') then
+                exit(false);
+        end;
+
+        Value := TestInputPlaceholder.GetValue();
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Deletes the exact active-tag/current-company registration, without following shared fallback.
+    /// </summary>
+    procedure DeletePlaceholder(Name: Text): Boolean
+    begin
+        exit(DeletePlaceholder(Name, ActiveTag));
+    end;
+
+    /// <summary>
+    /// Deletes the exact specified-tag/current-company registration, without following shared fallback.
+    /// </summary>
+    procedure DeletePlaceholder(Name: Text; Tag: Text): Boolean
+    begin
+        exit(DeletePlaceholder(Name, Tag, CompanyName()));
+    end;
+
+    /// <summary>
+    /// Deletes only the exact key. Blank company targets the shared row, not all companies.
+    /// Returns false if that key does not exist.
+    /// </summary>
+    procedure DeletePlaceholder(Name: Text; Tag: Text; Company: Text): Boolean
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+    begin
+        if not TestInputPlaceholder.Get(NormalizeName(Name), NormalizeTag(Tag), NormalizeCompany(Company)) then
+            exit(false);
+
+        TestInputPlaceholder.Delete(true);
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Deletes registrations with the exact tag in the current company.
+    /// </summary>
+    procedure DeletePlaceholdersByTag(Tag: Text)
+    begin
+        DeletePlaceholdersByTag(Tag, CompanyName());
+    end;
+
+    /// <summary>
+    /// Deletes registrations with the exact tag and company. Blank company targets shared rows only.
+    /// </summary>
+    procedure DeletePlaceholdersByTag(Tag: Text; Company: Text)
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+    begin
+        TestInputPlaceholder.SetRange(Tag, NormalizeTag(Tag));
+        TestInputPlaceholder.SetRange(Company, NormalizeCompany(Company));
+        TestInputPlaceholder.DeleteAll(true);
+    end;
+
+    /// <summary>
+    /// Deletes registrations with the exact tag across all companies, including shared rows.
+    /// </summary>
+    procedure DeletePlaceholdersByTagAcrossCompanies(Tag: Text)
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+    begin
+        TestInputPlaceholder.SetRange(Tag, NormalizeTag(Tag));
+        TestInputPlaceholder.DeleteAll(true);
+    end;
+
+    /// <summary>
+    /// Deletes every placeholder registration across all tags and companies without committing.
+    /// </summary>
+    procedure DeleteAllPlaceholders()
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+    begin
+        TestInputPlaceholder.DeleteAll(true);
+    end;
+
+    #endregion
+
+    #region Text Resolution
+
+    /// <summary>
+    /// Resolves named, date, and datetime tokens when text replacement is enabled.
+    /// Named tokens use the active tag and current company. Unknown names remain unchanged.
+    /// Only the original input is scanned; replacement text is never scanned again.
     /// </summary>
     /// <param name="InputText">The raw text value from the test input.</param>
-    /// <returns>The text with all placeholders resolved.</returns>
+    /// <returns>The text with known placeholders resolved, or the original text when disabled.</returns>
     procedure ResolveText(InputText: Text): Text
+    var
+        Output: TextBuilder;
+        Prefix: Text;
+        Content: Text;
+        Token: Text;
+        Value: Text;
+        Position: Integer;
+        TokenStart: Integer;
+        TokenEnd: Integer;
     begin
-        EnsureCacheInitialized();
-
-        if not HasAnyTools() then
+        if not TextReplacementsEnabled then
             exit(InputText);
 
-        // Process DateTimeFormula before DateFormula (longer prefix avoids false match)
-        if HasDateTimeFormulas then
-            InputText := ResolveDateTimeFormulasInText(InputText);
+        Position := 1;
+        if not FindNextToken(InputText, Position, TokenStart, TokenEnd, Prefix, Content) then
+            exit(InputText);
 
-        if HasDateFormulas then
-            InputText := ResolveDateFormulasInText(InputText);
+        repeat
+            Output.Append(CopyStr(InputText, Position, TokenStart - Position));
+            Token := CopyStr(InputText, TokenStart, TokenEnd - TokenStart + 1);
+            case Prefix of
+                PlaceholderPrefixTok:
+                    if GetPlaceholder(Content, Value) then
+                        Output.Append(Value)
+                    else
+                        Output.Append(Token);
+                DateFormulaPrefixTok:
+                    Output.Append(Format(ResolveAsDate(Token)));
+                DateTimeFormulaPrefixTok:
+                    Output.Append(Format(ResolveAsDateTime(Token)));
+            end;
 
-        exit(InputText);
+            Position := TokenEnd + 1;
+        until not FindNextToken(InputText, Position, TokenStart, TokenEnd, Prefix, Content);
+
+        Output.Append(CopyStr(InputText, Position));
+        exit(Output.ToText());
     end;
 
     #endregion
@@ -125,7 +290,7 @@ codeunit 130465 "Test Input Data Tools"
     /// Supports:
     ///   $DateTimeFormula-&lt;formula&gt;$                  → date + time 0T
     ///   $DateTimeFormula-&lt;formula&gt;-HH:MM:SS$         → date + explicit time
-    ///   $DateTimeFormula-&lt;formula&gt;-HH:MM:SS.FFFF$    → date + time with milliseconds
+    ///   $DateTimeFormula-&lt;formula&gt;-HH:MM:SS.FFF$     → date + time with milliseconds
     /// </summary>
     /// <param name="InputText">The raw text value.</param>
     /// <returns>The resolved DateTime.</returns>
@@ -138,7 +303,7 @@ codeunit 130465 "Test Input Data Tools"
         CloseBracketPos: Integer;
     begin
         if TryExtractSingleToken(InputText, DateTimeFormulaPrefixTok, Content) then begin
-            // Content is "<formula>" or "<formula>-HH:MM:SS" or "<formula>-HH:MM:SS.FFFF"
+            // Content is "<formula>" or "<formula>-HH:MM:SS" or "<formula>-HH:MM:SS.FFF"
             CloseBracketPos := Content.IndexOf('>');
             if CloseBracketPos > 0 then begin
                 Formula := CopyStr(Content, 1, CloseBracketPos);
@@ -182,78 +347,118 @@ codeunit 130465 "Test Input Data Tools"
         exit(true);
     end;
 
-    local procedure ResolveDateFormulasInText(InputText: Text): Text
-    var
-        Token: Text;
-        Formula: Text;
-        ResolvedDate: Date;
-        StartPos: Integer;
-        EndPos: Integer;
+    local procedure FindNextToken(InputText: Text; Position: Integer; var TokenStart: Integer; var TokenEnd: Integer; var Prefix: Text; var Content: Text): Boolean
     begin
-        StartPos := InputText.IndexOf(DateFormulaPrefixTok);
-        while StartPos > 0 do begin
-            EndPos := InputText.IndexOf(TokenSuffixTok, StartPos + StrLen(DateFormulaPrefixTok));
-            if EndPos = 0 then
-                exit(InputText);
+        while Position <= StrLen(InputText) do begin
+            TokenStart := InputText.IndexOf(TokenSuffixTok, Position);
+            if TokenStart = 0 then
+                exit(false);
 
-            Token := CopyStr(InputText, StartPos, EndPos - StartPos + 1);
-            Formula := CopyStr(InputText, StartPos + StrLen(DateFormulaPrefixTok), EndPos - StartPos - StrLen(DateFormulaPrefixTok));
+            if TryReadToken(InputText, TokenStart, TokenEnd, Prefix, Content) then
+                exit(true);
 
-            ResolvedDate := CalcDate(Formula, WorkDate());
-            InputText := InputText.Replace(Token, Format(ResolvedDate));
-
-            StartPos := InputText.IndexOf(DateFormulaPrefixTok);
+            Position := TokenStart + 1;
         end;
-        exit(InputText);
+        exit(false);
     end;
 
-    local procedure ResolveDateTimeFormulasInText(InputText: Text): Text
-    var
-        Token: Text;
-        Content: Text;
-        Formula: Text;
-        TimePart: Time;
-        TimeText: Text;
-        CloseBracketPos: Integer;
-        StartPos: Integer;
-        EndPos: Integer;
+    local procedure TryReadToken(InputText: Text; TokenStart: Integer; var TokenEnd: Integer; var Prefix: Text; var Content: Text): Boolean
     begin
-        StartPos := InputText.IndexOf(DateTimeFormulaPrefixTok);
-        while StartPos > 0 do begin
-            EndPos := InputText.IndexOf(TokenSuffixTok, StartPos + StrLen(DateTimeFormulaPrefixTok));
-            if EndPos = 0 then
-                exit(InputText);
+        if CopyStr(InputText, TokenStart, StrLen(PlaceholderPrefixTok)) = PlaceholderPrefixTok then
+            Prefix := PlaceholderPrefixTok
+        else
+            if CopyStr(InputText, TokenStart, StrLen(DateTimeFormulaPrefixTok)) = DateTimeFormulaPrefixTok then
+                Prefix := DateTimeFormulaPrefixTok
+            else
+                if CopyStr(InputText, TokenStart, StrLen(DateFormulaPrefixTok)) = DateFormulaPrefixTok then
+                    Prefix := DateFormulaPrefixTok
+                else
+                    exit(false);
 
-            Token := CopyStr(InputText, StartPos, EndPos - StartPos + 1);
-            Content := CopyStr(InputText, StartPos + StrLen(DateTimeFormulaPrefixTok), EndPos - StartPos - StrLen(DateTimeFormulaPrefixTok));
+        if TokenStart + StrLen(Prefix) > StrLen(InputText) then
+            exit(false);
 
-            TimePart := 0T;
-            CloseBracketPos := Content.IndexOf('>');
-            if CloseBracketPos > 0 then begin
-                Formula := CopyStr(Content, 1, CloseBracketPos);
-                if CloseBracketPos < StrLen(Content) then begin
-                    TimeText := CopyStr(Content, CloseBracketPos + 2);
-                    if TimeText <> '' then
-                        Evaluate(TimePart, TimeText);
-                end;
-            end else
-                Formula := Content;
+        TokenEnd := InputText.IndexOf(TokenSuffixTok, TokenStart + StrLen(Prefix));
+        if TokenEnd = 0 then
+            exit(false);
 
-            InputText := InputText.Replace(Token, Format(CreateDateTime(CalcDate(Formula, WorkDate()), TimePart)));
+        Content := CopyStr(InputText, TokenStart + StrLen(Prefix), TokenEnd - TokenStart - StrLen(Prefix));
+        if Prefix = PlaceholderPrefixTok then
+            exit(IsValidName(Content));
 
-            StartPos := InputText.IndexOf(DateTimeFormulaPrefixTok);
-        end;
-        exit(InputText);
+        exit(true);
+    end;
+
+    #endregion
+
+    #region Validation
+
+    local procedure NormalizeName(Name: Text): Code[100]
+    var
+        NormalizedName: Code[100];
+    begin
+        if not IsValidName(Name) then
+            Error(InvalidNameErr, MaxStrLen(NormalizedName));
+
+        NormalizedName := CopyStr(UpperCase(Name), 1, MaxStrLen(NormalizedName));
+        exit(NormalizedName);
+    end;
+
+    local procedure IsValidName(Name: Text): Boolean
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+    begin
+        exit((Name <> '') and (StrLen(Name) <= MaxStrLen(TestInputPlaceholder.Name)) and
+            (DelChr(Name, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-') = ''));
+    end;
+
+    local procedure NormalizeTag(Tag: Text): Code[100]
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+        NormalizedTag: Code[100];
+    begin
+        Tag := UpperCase(Tag);
+        if StrLen(Tag) > MaxStrLen(NormalizedTag) then
+            Error(KeyTooLongErr, TestInputPlaceholder.FieldCaption(Tag), MaxStrLen(NormalizedTag));
+
+        NormalizedTag := CopyStr(Tag, 1, MaxStrLen(NormalizedTag));
+        exit(NormalizedTag);
+    end;
+
+    local procedure NormalizeCompany(Company: Text): Text[30]
+    var
+        TestInputPlaceholder: Record "Test Input Placeholder";
+        NormalizedCompany: Text[30];
+    begin
+        if StrLen(Company) > MaxStrLen(NormalizedCompany) then
+            Error(KeyTooLongErr, TestInputPlaceholder.FieldCaption(Company), MaxStrLen(NormalizedCompany));
+
+        NormalizedCompany := CopyStr(Company, 1, MaxStrLen(NormalizedCompany));
+        exit(NormalizedCompany);
+    end;
+
+    local procedure ValidatePlaceholderValue(Name: Text; Value: Text)
+    var
+        Prefix: Text;
+        Content: Text;
+        TokenStart: Integer;
+        TokenEnd: Integer;
+    begin
+        if FindNextToken(Value, 1, TokenStart, TokenEnd, Prefix, Content) then
+            Error(ValueContainsPlaceholderErr, Name);
     end;
 
     #endregion
 
     var
-        HasDateFormulas: Boolean;
-        HasDateTimeFormulas: Boolean;
-        CacheInitialized: Boolean;
+        ActiveTag: Code[100];
+        TextReplacementsEnabled: Boolean;
 
+        PlaceholderPrefixTok: Label '$Placeholder-', Locked = true;
         DateFormulaPrefixTok: Label '$DateFormula-', Locked = true;
         DateTimeFormulaPrefixTok: Label '$DateTimeFormula-', Locked = true;
         TokenSuffixTok: Label '$', Locked = true;
+        InvalidNameErr: Label 'The placeholder name must contain between 1 and %1 characters using only letters, digits, underscores, or hyphens.', Comment = '%1 = Maximum name length';
+        KeyTooLongErr: Label 'The placeholder %1 must not exceed %2 characters.', Comment = '%1 = Key field caption, %2 = Maximum length';
+        ValueContainsPlaceholderErr: Label 'The value of placeholder %1 must not contain placeholder tokens.', Comment = '%1 = Placeholder name';
 }
