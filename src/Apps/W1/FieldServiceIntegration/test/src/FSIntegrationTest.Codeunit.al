@@ -1123,6 +1123,132 @@ codeunit 139204 "FS Integration Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UpdateActualWorkOrderServiceRepeatingDurationsWithRoundingPrecision()
+    var
+        WorkOrderService: Record "FS Work Order Service";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] Actual work order service durations are rounded using the service line quantity rounding precision.
+        Initialize();
+        SetUpServiceManagement();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line where the Item UoM has rounding precision 0.00001.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceLine."Qty. Rounding Precision" := 0.00001;
+
+        // [GIVEN] Actual and billable durations that result in repeating-decimal hour quantities.
+        WorkOrderService.LineStatus := WorkOrderService.LineStatus::Used;
+        WorkOrderService.Duration := 40;
+        WorkOrderService.DurationToBill := 20;
+
+        // [WHEN] Work order service quantities are updated.
+        FSIntegrationTestLibrary.UpdateQuantities(WorkOrderService, ServiceLine, false);
+
+        // [THEN] Quantity, Qty. to Ship, and Qty. to Invoice are rounded.
+        Assert.AreEqual(0.66667, ServiceLine.Quantity, 'Quantity should be 0.66667');
+        Assert.AreEqual(0.66667, ServiceLine."Qty. to Ship", 'Qty. to Ship should be 0.66667');
+        Assert.AreEqual(0.33333, ServiceLine."Qty. to Invoice", 'Qty. to Invoice should be 0.33333');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UpdateActualWorkOrderServiceRepeatingDurationsWithoutRoundingPrecision()
+    var
+        WorkOrderService: Record "FS Work Order Service";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] Actual work order service durations use the default precision when quantity rounding precision is zero.
+        Initialize();
+        SetUpServiceManagement();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line where the Item UoM has no quantity rounding precision.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceLine."Qty. Rounding Precision" := 0;
+
+        // [GIVEN] Actual and billable durations that result in repeating-decimal hour quantities.
+        WorkOrderService.LineStatus := WorkOrderService.LineStatus::Used;
+        WorkOrderService.Duration := 40;
+        WorkOrderService.DurationToBill := 20;
+
+        // [WHEN] Work order service quantities are updated.
+        FSIntegrationTestLibrary.UpdateQuantities(WorkOrderService, ServiceLine, false);
+
+        // [THEN] Quantity, Qty. to Ship, and Qty. to Invoice use the default rounding precision.
+        Assert.AreEqual(0.66667, ServiceLine.Quantity, 'Quantity should be 0.66667');
+        Assert.AreEqual(0.66667, ServiceLine."Qty. to Ship", 'Qty. to Ship should be 0.66667');
+        Assert.AreEqual(0.33333, ServiceLine."Qty. to Invoice", 'Qty. to Invoice should be 0.33333');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UpdateBookingRepeatingDurationWithRoundingPrecision()
+    var
+        FSBookableResourceBooking: Record "FS Bookable Resource Booking";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] Booking duration is rounded using the service line quantity rounding precision.
+        Initialize();
+        SetUpServiceManagement();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line where the Item UoM has rounding precision 0.00001.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceLine."Qty. Rounding Precision" := 0.00001;
+
+        // [GIVEN] Booking duration that results in a repeating-decimal hour quantity.
+        FSBookableResourceBooking.Duration := 20;
+
+        // [WHEN] Booking quantities are updated.
+        FSIntegrationTestLibrary.UpdateQuantities(FSBookableResourceBooking, ServiceLine);
+
+        // [THEN] Quantity and Qty. to Consume are rounded.
+        Assert.AreEqual(0.33333, ServiceLine.Quantity, 'Quantity should be 0.33333');
+        Assert.AreEqual(0.33333, ServiceLine."Qty. to Consume", 'Qty. to Consume should be 0.33333');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UpdateBookingRepeatingDurationWithoutRoundingPrecision()
+    var
+        FSBookableResourceBooking: Record "FS Bookable Resource Booking";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] Booking duration uses the default precision when quantity rounding precision is zero.
+        Initialize();
+        SetUpServiceManagement();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line where the Item UoM has no quantity rounding precision.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceLine."Qty. Rounding Precision" := 0;
+
+        // [GIVEN] Booking duration that results in a repeating-decimal hour quantity.
+        FSBookableResourceBooking.Duration := 20;
+
+        // [WHEN] Booking quantities are updated.
+        FSIntegrationTestLibrary.UpdateQuantities(FSBookableResourceBooking, ServiceLine);
+
+        // [THEN] Quantity and Qty. to Consume use the default rounding precision.
+        Assert.AreEqual(0.33333, ServiceLine.Quantity, 'Quantity should be 0.33333');
+        Assert.AreEqual(0.33333, ServiceLine."Qty. to Consume", 'Qty. to Consume should be 0.33333');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateFSBookableResourceBookingDefault()
     var
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
