@@ -5,6 +5,7 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
+#if not CLEAN30
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -13,6 +14,7 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
 
+#pragma warning disable AL0432
 report 13402 "Calc. and Post Depr. Diff."
 {
     DefaultLayout = RDLC;
@@ -21,6 +23,9 @@ report 13402 "Calc. and Post Depr. Diff."
     Caption = 'Calculate and Post Deprication Difference';
     Permissions = TableData "FA Ledger Entry" = rimd;
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     dataset
     {
@@ -378,4 +383,5 @@ report 13402 "Calc. and Post Depr. Diff."
         DeprDiffPostingBuffer.Insert();
     end;
 }
-
+#pragma warning restore AL0432
+#endif
