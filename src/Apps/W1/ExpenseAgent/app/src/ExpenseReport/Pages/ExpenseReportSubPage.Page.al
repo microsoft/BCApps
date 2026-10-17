@@ -44,6 +44,20 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if there are any rule violations for the expense line.';
                 }
+                field("No Receipt Type"; Rec."No Receipt Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the original receipt was replaced by a no receipt declaration.';
+                    Style = Unfavorable;
+                    StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                }
+                field("Compliance Status"; Rec."Compliance Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the compliance status assigned to the expense.';
+                    Style = Unfavorable;
+                    StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
+                }
                 field(PolicyStatus; PolicyStatus)
                 {
                     ApplicationArea = Basic, Suite;

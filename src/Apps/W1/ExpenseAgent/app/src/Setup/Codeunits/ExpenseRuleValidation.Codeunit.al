@@ -274,40 +274,46 @@ codeunit 6902 "Expense Rule Validation"
 
     local procedure CheckForAttachmentsByRuleOnExpense(AttachmentEnforcement: Enum "Expense Attachment Enforcement"; Expense: Record Expense)
     var
-        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        RecRef: RecordRef;
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+        HasAcceptableProof: Boolean;
     begin
         RecallExpenseAttachmentNotification();
-        RecRef.GetTable(Expense);
+        if Expense."No Receipt Type" = Expense."No Receipt Type"::"Lost Receipt" then
+            HasAcceptableProof := NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense)
+        else
+            HasAcceptableProof := NoReceiptDeclarationMgt.HasOriginalReceipt(Expense);
 
         case AttachmentEnforcement of
             Enum::"Expense Attachment Enforcement"::" ":
                 exit;
             Enum::"Expense Attachment Enforcement"::Warning:
-                if not DocumentAttachmentMgmt.AttachedDocumentsExist(RecRef) then
+                if not HasAcceptableProof then
                     ShowMissingAttachmentNotification(Expense);
             Enum::"Expense Attachment Enforcement"::Error:
-                if not DocumentAttachmentMgmt.AttachedDocumentsExist(RecRef) then
+                if not HasAcceptableProof then
                     AddMissingAttachmentViolation(Expense);
         end;
     end;
 
     local procedure CheckForAttachmentsByRuleOnExpenseReportLine(AttachmentEnforcement: Enum "Expense Attachment Enforcement"; ExpenseReportLine: Record "Expense Report Line")
     var
-        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        RecRef: RecordRef;
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+        HasAcceptableProof: Boolean;
     begin
         RecallExpenseReportLineAttachmentNotification();
-        RecRef.GetTable(ExpenseReportLine);
+        if ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::"Lost Receipt" then
+            HasAcceptableProof := NoReceiptDeclarationMgt.HasDeclaration(ExpenseReportLine)
+        else
+            HasAcceptableProof := NoReceiptDeclarationMgt.HasOriginalReceipt(ExpenseReportLine);
 
         case AttachmentEnforcement of
             Enum::"Expense Attachment Enforcement"::" ":
                 exit;
             Enum::"Expense Attachment Enforcement"::Warning:
-                if not DocumentAttachmentMgmt.AttachedDocumentsExist(RecRef) then
+                if not HasAcceptableProof then
                     ShowMissingAttachmentNotification(ExpenseReportLine);
             Enum::"Expense Attachment Enforcement"::Error:
-                if not DocumentAttachmentMgmt.AttachedDocumentsExist(RecRef) then
+                if not HasAcceptableProof then
                     AddMissingAttachmentViolation(ExpenseReportLine);
         end;
     end;

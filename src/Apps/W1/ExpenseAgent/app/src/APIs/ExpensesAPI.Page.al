@@ -240,6 +240,31 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Rule Violations';
                 }
+                field(noReceiptType; Rec."No Receipt Type")
+                {
+                    Caption = 'No Receipt Type';
+                    Editable = false;
+                }
+                field(noReceiptReason; Rec."No Receipt Reason")
+                {
+                    Caption = 'No Receipt Reason';
+                    Editable = false;
+                }
+                field(noReceiptDeclarationId; Rec."No Receipt Declaration ID")
+                {
+                    Caption = 'No Receipt Declaration Id';
+                    Editable = false;
+                }
+                field(complianceStatus; Rec."Compliance Status")
+                {
+                    Caption = 'Compliance Status';
+                    Editable = false;
+                }
+                field(complianceReason; Rec."Compliance Reason")
+                {
+                    Caption = 'Compliance Reason';
+                    Editable = false;
+                }
                 field(createdDateTime; Rec."Created Date-Time")
                 {
                     Caption = 'Created Date Time';
