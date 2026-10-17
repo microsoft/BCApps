@@ -6,12 +6,14 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -22,11 +24,14 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.History;
+using System.IO;
 using System.Utilities;
 
 codeunit 148148 "Factur-X CII XML Tests"
 {
     Subtype = Test;
+    EventSubscriberInstance = Manual;
     Permissions = tabledata "E-Document Service" = rimd,
                   tabledata "Company Information" = rimd,
                   tabledata "Sales Invoice Header" = m,
@@ -147,8 +152,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [THEN] SellerTradeParty/ID = SIRET No.
         Assert.AreEqual(CompanyInformation."SIRET No.",
-            GetCIINodeValue(TempBlob, '//ram:SellerTradeParty/ram:ID'),
-            StrSubstNo(IncorrectValueErr, '//ram:SellerTradeParty/ram:ID'));
+            GetCIINodeValue(TempBlob, '//ram:SellerTradeParty/ram:GlobalID[@schemeID="0009"]'),
+            StrSubstNo(IncorrectValueErr, 'Seller SIRET GlobalID with scheme 0009'));
     end;
 
     [Test]
@@ -283,7 +288,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Initialize();
 
         // [GIVEN] Customer with FR Electronic Address in SIREN_suffix format
-        ElecAddress := '987654321_001';
+        ElecAddress := '123456789_001';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress(ElecAddress));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
 
@@ -302,14 +307,14 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
-    procedure FacturXSalesInvoiceXMLBuyerFallsBackToRegistrationNumber()
+    procedure FacturXSalesInvoiceXMLBuyerUsesDedicatedSIREN()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X CII XML uses buyer Registration Number (first 9 digits) with schemeID 0225 when FR Electronic Address is blank
+        // [SCENARIO] Factur-X uses dedicated buyer SIREN with scheme 0225 when the explicit route is blank
         Initialize();
 
         // [GIVEN] Posted sales invoice with customer having no FR Electronic Address but having a Registration Number
@@ -320,7 +325,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
         // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID = first 9 digits of Registration Number
-        Assert.AreEqual(CopyStr(Customer."Registration Number", 1, 9),
+        Assert.AreEqual(Customer."SIREN No.",
             GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
 
@@ -1122,8 +1127,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [THEN] SellerTradeParty/ID = SIRET No.
         Assert.AreEqual(CompanyInformation."SIRET No.",
-            GetCIINodeValue(TempBlob, '//ram:SellerTradeParty/ram:ID'),
-            StrSubstNo(IncorrectValueErr, '//ram:SellerTradeParty/ram:ID'));
+            GetCIINodeValue(TempBlob, '//ram:SellerTradeParty/ram:GlobalID[@schemeID="0009"]'),
+            StrSubstNo(IncorrectValueErr, 'Seller SIRET GlobalID with scheme 0009'));
     end;
 
     [Test]
@@ -1306,6 +1311,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."VAT Registration No." := '533435789';
         Customer."Registration Number" := '';
         Customer."FR Electronic Address" := '123456789_FOREIGN';
+        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::"0225";
         Customer.Modify(true);
         CustomerNo := Customer."No.";
 
@@ -1531,7 +1537,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
+        AssertExpectedDialogError('Specify a SIREN or a valid SIRET');
     end;
 
     [Test]
@@ -1550,6 +1556,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CustomerNo := CreateCustomer('');
         Customer.Get(CustomerNo);
         Customer."FR Electronic Address" := 'ABCDEFGHI';
+        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::"0225";
         Customer."Registration Number" := '';
         Customer.Modify(true);
 
@@ -1561,21 +1568,19 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about malformed buyer identifier is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
-            Customer.FieldCaption("FR Electronic Address"), CustomerNo));
+        AssertExpectedDialogError('valid scheme-specific format');
     end;
 
     [Test]
-    procedure FacturXCheckPassesAndExportsURIIDFromFrenchVAT()
+    procedure FacturXCheckDoesNotDeriveLegalIdentityFromFrenchVAT()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
-        TempBlob: Codeunit "Temp Blob";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X uses SIREN extracted from French VAT as BuyerTradeParty URIID when FR Electronic Address and Registration Number are blank
+        // [SCENARIO] Factur-X requires confirmed legal identity instead of deriving SIREN from VAT
         Initialize();
 
         // [GIVEN] Customer "C" with French VAT but no FR Electronic Address or Registration Number
@@ -1584,6 +1589,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."FR Electronic Address" := '';
         Customer."Registration Number" := '';
         Customer."VAT Registration No." := 'FR78945627890';
+        Customer."SIREN No." := '';
         Customer.Modify(true);
 
         // [GIVEN] Posted sales invoice for "C"
@@ -1591,20 +1597,10 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader.GetTable(SalesInvoiceHeader);
 
         // [WHEN] Factur-X Format Check is called
-        CheckFacturX(SourceDocumentHeader);
+        asserterror CheckFacturX(SourceDocumentHeader);
 
-        // [WHEN] Create CII XML
-        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
-
-        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID = '945627890'
-        Assert.AreEqual('945627890',
-            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
-            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
-
-        // [THEN] schemeID = '0225'
-        Assert.AreEqual('0225',
-            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
-            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
+        // [THEN] The unconfirmed VAT suffix is not used as SIREN
+        AssertExpectedDialogError('Specify a SIREN or a valid SIRET');
     end;
 
     [Test]
@@ -1625,6 +1621,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."FR Electronic Address" := '';
         Customer."Registration Number" := '';
         Customer."VAT Registration No." := 'DE123456789';
+        Customer."SIREN No." := '';
         Customer.Modify(true);
 
         // [GIVEN] Posted sales invoice for "C"
@@ -1635,7 +1632,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
+        AssertExpectedDialogError('Specify a SIREN or a valid SIRET');
     end;
     #endregion
 
@@ -1858,6 +1855,301 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
     #endregion
 
+    [Test]
+    procedure CIICompanySIRETOnlyDerivesQualifiedLegalSIREN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] CII derives company SIREN from SIRET without changing stored identity
+        Initialize();
+
+        // [GIVEN] A posted invoice and SIRET-only company setup
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        CompanyInformation."Registration No." := '';
+        CompanyInformation.Modify();
+
+        // [WHEN] CII is generated
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, Blob);
+
+        // [THEN] BT-29 and BT-30 are separately qualified
+        VerifyCIILegalIdentity(Blob, 'SellerTradeParty', '123456789', '12345678901234');
+        CompanyInformation.Get();
+        Assert.AreEqual('', CompanyInformation."Registration No.", 'Export must not backfill Company Information.');
+    end;
+
+    [Test]
+    procedure CIICompanySIRENOnlyOmitsOptionalSIRET()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] CII accepts company SIREN without requiring an establishment identifier
+        Initialize();
+
+        // [GIVEN] A SIREN-only company
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        CompanyInformation."SIRET No." := '';
+        CompanyInformation.Modify();
+
+        // [WHEN] CII is generated
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, Blob);
+
+        // [THEN] No empty or fabricated SIRET term is emitted
+        VerifyCIILegalIdentity(Blob, 'SellerTradeParty', '123456789', '');
+        Assert.AreEqual(0, GetCIINodeCount(Blob, '//ram:SellerTradeParty/ram:GlobalID[@schemeID="0009"]'), 'Optional SIRET must be omitted.');
+    end;
+
+    [Test]
+    procedure CIIRejectsConflictingCompanyIdentifiers()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] CII rejects company coherence errors just as UBL does
+        Initialize();
+
+        // [GIVEN] The company SIRET belongs to another SIREN
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        CompanyInformation."SIRET No." := '98765432100011';
+        CompanyInformation.Modify();
+
+        // [WHEN] CII is generated
+        asserterror CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, Blob);
+
+        // [THEN] The conflict is reported
+        AssertExpectedDialogError('first nine digits of SIRET must match SIREN');
+    end;
+
+    [Test]
+    procedure CIIRejectsMalformedCompanySIREN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] CII does not truncate populated malformed SIREN
+        Initialize();
+
+        // [GIVEN] Company registration contains ten digits
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        CompanyInformation."Registration No." := '1234567890';
+        CompanyInformation.Modify();
+
+        // [WHEN] CII is generated
+        asserterror CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, Blob);
+
+        // [THEN] The complete input is rejected
+        AssertExpectedDialogError('exactly nine digits');
+    end;
+
+    [Test]
+    procedure CIIBuyerSIRETOnlyProducesLegalAndReceivingIdentifiers()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Buyer BT-46, BT-47, and BT-49 share a coherent resolved identity
+        Initialize();
+
+        // [GIVEN] The buyer has only canonical SIRET
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer."SIREN No." := '';
+        Customer."FR SIRET No." := '12345678901234';
+        Customer.Modify();
+
+        // [WHEN] CII is generated
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, Blob);
+
+        // [THEN] SIRET and derived SIREN are qualified separately and the route uses 0225
+        VerifyCIILegalIdentity(Blob, 'BuyerTradeParty', '123456789', '12345678901234');
+        VerifyCIIReceivingEndpoint(Blob, '123456789');
+        Assert.AreEqual(0, GetCIINodeCount(Blob, '//ram:BuyerTradeParty/ram:GlobalID[@schemeID="0088"]'), 'SIRET must not be emitted as GLN.');
+    end;
+
+    [Test]
+    procedure CIIRenderingUsesSelectedServiceForAllSupportedHeaders()
+    var
+        Source: RecordRef;
+        ServiceCode: Code[20];
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] All six rendering overloads propagate service context into the actual attachment payload
+        Initialize();
+
+        // [GIVEN] A customer has a selected-service route different from its default
+        CustomerNo := CreateCustomer('');
+        ServiceCode := CreateRenderingService(CustomerNo, '123456789_SELECTED');
+
+        // [WHEN] Each supported header produces its rendering attachment
+        Source := CreateRenderingHeader(Database::"Sales Invoice Header", CustomerNo);
+        VerifyServiceRendering(Source, ServiceCode, '123456789_SELECTED');
+        Source := CreateRenderingHeader(Database::"Sales Cr.Memo Header", CustomerNo);
+        VerifyServiceRendering(Source, ServiceCode, '123456789_SELECTED');
+        Source := CreateRenderingHeader(Database::"Service Invoice Header", CustomerNo);
+        VerifyServiceRendering(Source, ServiceCode, '123456789_SELECTED');
+        Source := CreateRenderingHeader(Database::"Service Cr.Memo Header", CustomerNo);
+        VerifyServiceRendering(Source, ServiceCode, '123456789_SELECTED');
+        Source := CreateRenderingHeader(Database::"Issued Reminder Header", CustomerNo);
+        VerifyServiceRendering(Source, ServiceCode, '123456789_SELECTED');
+        Source := CreateRenderingHeader(Database::"Issued Fin. Charge Memo Header", CustomerNo);
+        VerifyServiceRendering(Source, ServiceCode, '123456789_SELECTED');
+    end;
+
+    [Test]
+    procedure CIIRenderingSequentialServicesAndDirectPrintDoNotLeak()
+    var
+        Source: RecordRef;
+        FirstService: Code[20];
+        SecondService: Code[20];
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Sequential exports and direct rendering retain separate routing contexts
+        Initialize();
+
+        // [GIVEN] Two service-specific routes for the same source document
+        CustomerNo := CreateCustomer('');
+        FirstService := CreateRenderingService(CustomerNo, '123456789_FIRST');
+        SecondService := CreateRenderingService(CustomerNo, '123456789_SECOND');
+        Source := CreateRenderingHeader(Database::"Sales Invoice Header", CustomerNo);
+
+        // [WHEN] The document is rendered for each service and then without one
+        VerifyServiceRendering(Source, FirstService, '123456789_FIRST');
+        VerifyServiceRendering(Source, SecondService, '123456789_SECOND');
+        VerifyServiceRendering(Source, '', '123456789');
+    end;
+
+    [Test]
+    procedure CIIRenderingDoesNotApplyAnotherRecordsService()
+    var
+        Integration: Codeunit "Factur-X Report Integration";
+        Blob: Codeunit "Temp Blob";
+        FirstSource: RecordRef;
+        OtherSource: RecordRef;
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A bound service context only applies to its exact source record
+        Initialize();
+
+        // [GIVEN] A context bound to one of two invoices
+        CustomerNo := CreateCustomer('');
+        FirstSource := CreateRenderingHeader(Database::"Sales Invoice Header", CustomerNo);
+        OtherSource := CreateRenderingHeader(Database::"Sales Invoice Header", CustomerNo);
+        Integration.SetServiceContext(FirstSource.RecordId, CreateRenderingService(CustomerNo, '123456789_SELECTED'));
+        BindSubscription(Integration);
+
+        // [WHEN] The other invoice renders
+        Blob := GetRenderingAttachment(OtherSource);
+        UnbindSubscription(Integration);
+
+        // [THEN] It uses its own default route
+        VerifyCIIReceivingEndpoint(Blob, '123456789');
+    end;
+
+    [Test]
+    procedure FacturXPDFEmbedsSelectedServiceAndPreservesExistingPayload()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+        OriginalXML: Codeunit "Temp Blob";
+        ExtractedXML: Codeunit "Temp Blob";
+        PDFDocument: Codeunit "PDF Document";
+        ServiceCode: Code[20];
+        PDFStream: InStream;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A real Factur-X PDF embeds the selected route and stays unchanged after master-data edits
+        Initialize();
+
+        // [GIVEN] A posted invoice with a selected-service route
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        ServiceCode := CreateRenderingService(SalesInvoiceHeader."Sell-to Customer No.", '123456789_PDF');
+        SetSalesInvoiceReportSelection();
+
+        // [WHEN] The actual PDF is generated through the format implementation
+        CreateFacturXPDF(SalesInvoiceHeader, ServiceCode, false, Blob);
+        Blob.CreateInStream(PDFStream);
+        Assert.IsTrue(PDFDocument.GetDocumentAttachmentStream(PDFStream, OriginalXML), 'The PDF must contain factur-x.xml.');
+
+        // [THEN] Its embedded XML uses the selected service
+        VerifyCIIReceivingEndpoint(OriginalXML, '123456789_PDF');
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer."SIREN No." := '987654321';
+        Customer.Modify();
+        Blob.CreateInStream(PDFStream);
+        Assert.IsTrue(PDFDocument.GetDocumentAttachmentStream(PDFStream, ExtractedXML), 'Existing payload must retain its attachment.');
+        VerifyCIIReceivingEndpoint(ExtractedXML, '123456789_PDF');
+    end;
+
+    [Test]
+    procedure FacturXBatchPDFEmbedsSelectedService()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Blob: Codeunit "Temp Blob";
+        XMLBlob: Codeunit "Temp Blob";
+        PDFDocument: Codeunit "PDF Document";
+        ServiceCode: Code[20];
+        PDFStream: InStream;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Batch generation carries the selected service into the final PDF attachment
+        Initialize();
+
+        // [GIVEN] A batch source invoice with a selected-service route
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        ServiceCode := CreateRenderingService(SalesInvoiceHeader."Sell-to Customer No.", '123456789_BATCH');
+        SetSalesInvoiceReportSelection();
+
+        // [WHEN] The existing batch format path renders the invoice
+        CreateFacturXPDF(SalesInvoiceHeader, ServiceCode, true, Blob);
+        Blob.CreateInStream(PDFStream);
+
+        // [THEN] The rendered attachment retains batch service context
+        Assert.IsTrue(PDFDocument.GetDocumentAttachmentStream(PDFStream, XMLBlob), 'The batch PDF must contain factur-x.xml.');
+        VerifyCIIReceivingEndpoint(XMLBlob, '123456789_BATCH');
+    end;
+
+    [Test]
+    procedure FacturXRenderingFailureReleasesServiceContext()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        FailureSubscriber: Codeunit "Factur-X CII XML Tests";
+        ExportDocument: Codeunit "Export Factur-X Document";
+        Blob: Codeunit "Temp Blob";
+        Source: RecordRef;
+        ServiceCode: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An error after binding the report integration does not leak service context
+        Initialize();
+
+        // [GIVEN] A valid export and a simulated failure inside PDF generation
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        ServiceCode := CreateRenderingService(SalesInvoiceHeader."Sell-to Customer No.", '123456789_FAILED');
+        BindSubscription(FailureSubscriber);
+
+        // [WHEN] Rendering fails after service context was bound
+        asserterror CreateFacturXPDF(SalesInvoiceHeader, ServiceCode, false, Blob);
+        AssertExpectedDialogError('Simulated PDF rendering failure.');
+        UnbindSubscription(FailureSubscriber);
+
+        // [THEN] Subsequent rendering has neither a print flag nor the failed export's service
+        Assert.IsFalse(ExportDocument.IsFacturXFRPrintProcess(), 'An exceptional export must release its print subscription.');
+        Source.GetTable(SalesInvoiceHeader);
+        Blob := GetRenderingAttachment(Source);
+        VerifyCIIReceivingEndpoint(Blob, '123456789');
+    end;
+
     local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
     begin
         Assert.ExpectedError(ExpectedErrorText);
@@ -1907,6 +2199,170 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, ''));
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure VerifyCIILegalIdentity(var Blob: Codeunit "Temp Blob"; PartyName: Text; SIREN: Text; SIRET: Text)
+    begin
+        Assert.AreEqual(SIREN, GetCIINodeValue(Blob, '//ram:' + PartyName + '/ram:SpecifiedLegalOrganization/ram:ID[@schemeID="0002"]'), 'Incorrect qualified legal SIREN.');
+        Assert.AreEqual(SIRET, GetCIINodeValue(Blob, '//ram:' + PartyName + '/ram:GlobalID[@schemeID="0009"]'), 'Incorrect qualified establishment SIRET.');
+    end;
+
+    local procedure VerifyCIIReceivingEndpoint(var Blob: Codeunit "Temp Blob"; ExpectedAddress: Text)
+    begin
+        Assert.AreEqual(ExpectedAddress, GetCIINodeValue(Blob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'), 'Incorrect rendered receiving address.');
+        Assert.AreEqual('0225', GetCIIAttributeValue(Blob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'), 'Incorrect rendered receiving scheme.');
+    end;
+
+    local procedure CreateRenderingService(CustomerNo: Code[20]; Address: Text[200]): Code[20]
+    var
+        Service: Record "E-Document Service";
+        Participant: Record "Service Participant";
+    begin
+        Service.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Service.Code));
+        Service."Document Format" := Service."Document Format"::"Factur-X FR";
+        Service.Insert();
+        Participant.Service := Service.Code;
+        Participant."Participant Type" := Participant."Participant Type"::Customer;
+        Participant.Participant := CustomerNo;
+        Participant."Participant Identifier" := Address;
+        Participant."FR Identifier Scheme" := Participant."FR Identifier Scheme"::"0225";
+        Participant.Insert();
+        exit(Service.Code);
+    end;
+
+    local procedure CreateRenderingHeader(TableNo: Integer; CustomerNo: Code[20]) Source: RecordRef
+    var
+        Field: FieldRef;
+    begin
+        Source.Open(TableNo);
+        Source.Init();
+        Assert.IsTrue(EDocHelpers.FindFieldByName(Source, 'No.', Field), 'Source must have a document number.');
+        Field.Value := CopyStr(LibraryUtility.GenerateGUID(), 1, 20);
+        Assert.IsTrue(EDocHelpers.FindFieldByName(Source, 'Document Date', Field), 'Source must have a document date.');
+        Field.Value := WorkDate();
+        case TableNo of
+            Database::"Sales Invoice Header", Database::"Sales Cr.Memo Header":
+                Assert.IsTrue(EDocHelpers.FindFieldByName(Source, 'Sell-to Customer No.', Field), 'Sales source must have a customer.');
+            else
+                Assert.IsTrue(EDocHelpers.FindFieldByName(Source, 'Customer No.', Field), 'Source must have a customer.');
+        end;
+        Field.Value := CustomerNo;
+        Source.Insert();
+    end;
+
+    local procedure VerifyServiceRendering(var Source: RecordRef; ServiceCode: Code[20]; ExpectedAddress: Text)
+    var
+        Integration: Codeunit "Factur-X Report Integration";
+        Blob: Codeunit "Temp Blob";
+    begin
+        Integration.SetServiceContext(Source.RecordId, ServiceCode);
+        BindSubscription(Integration);
+        Blob := GetRenderingAttachment(Source);
+        UnbindSubscription(Integration);
+        VerifyCIIReceivingEndpoint(Blob, ExpectedAddress);
+    end;
+
+    local procedure GetRenderingAttachment(var Source: RecordRef) Blob: Codeunit "Temp Blob"
+    var
+        SalesInvoice: Record "Sales Invoice Header";
+        SalesCreditMemo: Record "Sales Cr.Memo Header";
+        ServiceInvoice: Record "Service Invoice Header";
+        ServiceCreditMemo: Record "Service Cr.Memo Header";
+        Reminder: Record "Issued Reminder Header";
+        FinanceCharge: Record "Issued Fin. Charge Memo Header";
+        ExportDocument: Codeunit "Export Factur-X Document";
+        Payload: JsonObject;
+        Attachment: JsonToken;
+        Attachments: JsonArray;
+        AttachmentFile: File;
+        FileStream: InStream;
+        BlobStream: OutStream;
+        FileName: Text;
+    begin
+        case Source.Number of
+            Database::"Sales Invoice Header":
+                begin
+                    Source.SetTable(SalesInvoice);
+                    ExportDocument.CreateAndAddXMLAttachmentToRenderingPayload(SalesInvoice, Payload);
+                end;
+            Database::"Sales Cr.Memo Header":
+                begin
+                    Source.SetTable(SalesCreditMemo);
+                    ExportDocument.CreateAndAddXMLAttachmentToRenderingPayload(SalesCreditMemo, Payload);
+                end;
+            Database::"Service Invoice Header":
+                begin
+                    Source.SetTable(ServiceInvoice);
+                    ExportDocument.CreateAndAddXMLAttachmentToRenderingPayload(ServiceInvoice, Payload);
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    Source.SetTable(ServiceCreditMemo);
+                    ExportDocument.CreateAndAddXMLAttachmentToRenderingPayload(ServiceCreditMemo, Payload);
+                end;
+            Database::"Issued Reminder Header":
+                begin
+                    Source.SetTable(Reminder);
+                    ExportDocument.CreateAndAddXMLAttachmentToRenderingPayload(Reminder, Payload);
+                end;
+            Database::"Issued Fin. Charge Memo Header":
+                begin
+                    Source.SetTable(FinanceCharge);
+                    ExportDocument.CreateAndAddXMLAttachmentToRenderingPayload(FinanceCharge, Payload);
+                end;
+        end;
+        Attachments := Payload.GetArray('attachments');
+        Assert.AreEqual(1, Attachments.Count, 'Rendering must produce one invoice XML attachment.');
+        Attachments.Get(0, Attachment);
+        Assert.AreEqual('factur-x.xml', Attachment.AsObject().GetText('name'), 'Unexpected attachment name.');
+        FileName := Attachment.AsObject().GetText('filename');
+        AttachmentFile.Open(FileName);
+        AttachmentFile.CreateInStream(FileStream);
+        Blob.CreateOutStream(BlobStream);
+        CopyStream(BlobStream, FileStream);
+        AttachmentFile.Close();
+        Erase(FileName);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export Factur-X Document", OnBeforeGenerateSalesInvoicePDFAttachment, '', false, false)]
+    local procedure FailPDFRendering(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
+    begin
+        Error('Simulated PDF rendering failure.');
+    end;
+
+    local procedure SetSalesInvoiceReportSelection()
+    var
+        ReportSelections: Record "Report Selections";
+    begin
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"S.Invoice");
+        ReportSelections.DeleteAll();
+        ReportSelections.Init();
+        ReportSelections.Usage := ReportSelections.Usage::"S.Invoice";
+        ReportSelections.Sequence := '1';
+        ReportSelections."Report ID" := Report::"Standard Sales - Invoice";
+        ReportSelections."Use for Email Attachment" := true;
+        ReportSelections.Insert();
+    end;
+
+    local procedure CreateFacturXPDF(SalesInvoiceHeader: Record "Sales Invoice Header"; ServiceCode: Code[20]; Batch: Boolean; var Blob: Codeunit "Temp Blob")
+    var
+        Service: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        Lines: Record "Sales Invoice Line";
+        Source: RecordRef;
+        SourceLines: RecordRef;
+    begin
+        Service.Get(ServiceCode);
+        SalesInvoiceHeader.SetRange("No.", SalesInvoiceHeader."No.");
+        Source.GetTable(SalesInvoiceHeader);
+        Lines.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SourceLines.GetTable(Lines);
+        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
+        if Batch then
+            FacturXFormat.CreateBatch(Service, EDocument, Source, SourceLines, Blob)
+        else
+            FacturXFormat.Create(Service, EDocument, Source, SourceLines, Blob);
+        Assert.IsTrue(Blob.HasValue(), 'Rendering must return an actual PDF.');
     end;
 
     local procedure CreateAndPostSalesInvoiceForCustomer(CustomerNo: Code[20]): Code[20]
@@ -2215,8 +2671,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("Post Code", '75001');
         Customer.City := 'Paris';
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
-        Customer."Registration Number" := '123456789';
+        Customer."Registration Number" := '';
+        Customer."SIREN No." := '123456789';
         Customer.Validate("FR Electronic Address", FRElecAddress);
+        if FRElecAddress <> '' then
+            Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::"0225";
         Customer.Modify(true);
         exit(Customer."No.");
     end;
@@ -2231,6 +2690,8 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::" ";
         Customer."VAT Registration No." := '';
         Customer."Registration Number" := '';
+        Customer."SIREN No." := '';
+        Customer."FR SIRET No." := '';
         Customer.Modify(true);
         exit(Customer."No.");
     end;

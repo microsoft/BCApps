@@ -11,6 +11,15 @@ tableextension 10972 "E-Reporting Customer" extends Customer
 {
     fields
     {
+        modify("SIREN No.")
+        {
+            trigger OnAfterValidate()
+            var
+                FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
+            begin
+                FRLegalIdentifiers.ValidatePair("SIREN No.", "FR SIRET No.", Rec);
+            end;
+        }
         field(10972; "FR E-Reporting Trans. Type"; Enum "FR E-Reporting Trans. Type")
         {
             Caption = 'E-Reporting Transaction Type';
@@ -21,13 +30,27 @@ tableextension 10972 "E-Reporting Customer" extends Customer
         {
             Caption = 'Electronic Address';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the electronic address used for PDP routing in French e-invoicing. Enter a nine-digit SIREN, optionally followed by an underscore and a suffix. The electronic address scheme is 0225.';
+            ToolTip = 'Specifies the electronic routing address, separate from the legal SIREN and SIRET. Domestic B2B receiving addresses use scheme 0225 and start with the customer''s SIREN.';
         }
         field(10977; "FR Elec. Address Scheme"; Enum "Electronic Address Scheme")
         {
             Caption = 'Electronic Address Scheme';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the legacy electronic address scheme. French buyer electronic addresses use scheme 0225.';
+            InitValue = " ";
+            ToolTip = 'Specifies the scheme of the electronic routing address. The scheme must be permitted for the transaction and match the address format.';
+        }
+        field(10978; "FR SIRET No."; Code[14])
+        {
+            Caption = 'SIRET No.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the fourteen-digit establishment identifier, composed of the nine-digit SIREN and the five-digit NIC.';
+
+            trigger OnValidate()
+            var
+                FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
+            begin
+                FRLegalIdentifiers.ValidatePair("SIREN No.", "FR SIRET No.", Rec);
+            end;
         }
     }
 }
