@@ -1248,6 +1248,7 @@ codeunit 148346 "Expense Interim Approval Test"
         // [GIVEN] A pending report with both a final approver and an assigned interim approver.
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetCurrentUser(Submitter);
         CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
         ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
 
@@ -1259,8 +1260,9 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror FinalApprover.Validate("Can Approve", false);
         Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
 
-        // [WHEN] The report advances to the final approver after interim approval.
-        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+        // [WHEN] The report is Interim Approved and assigned to the final approver.
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Interim Approved";
+        ExpenseReportHeader.Modify(false);
         FinalApprover.Get(FinalApprover."No.");
         asserterror FinalApprover.Validate("Can Approve", false);
 
