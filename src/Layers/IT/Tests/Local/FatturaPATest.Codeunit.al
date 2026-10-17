@@ -2,6 +2,7 @@ codeunit 144200 "FatturaPA Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -109,6 +110,62 @@ codeunit 144200 "FatturaPA Test"
         VerifyFatturaPAFileHeaderPublicCompany(TempXMLBuffer, DocumentRecRef, CustomerNo);
         VerifyFatturaPAFileBody(TempXMLBuffer, DocumentRecRef, CustLedgerEntry."Document Type"::Invoice, ExportFromType::Sales, '', true, '');
         VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithAdditionalDataPerLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        FatturaPATest: Codeunit "FatturaPA Test";
+        ClientFileName: Text[250];
+        FirstLineNo: Integer;
+        SecondLineNo: Integer;
+    begin
+        // [SCENARIO] A subscriber adds schema-valid line-specific data to each DettaglioLinee.
+        Initialize();
+
+        // [GIVEN] A sales invoice containing two item lines.
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        LibrarySales.FindFirstSalesLine(SalesLine, SalesHeader);
+        // Fattura Doc. Helper renumbers exported document lines sequentially.
+        FirstLineNo := 1;
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        SecondLineNo := 2;
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The document is exported with an additional per-line data subscriber.
+        BindSubscription(FatturaPATest);
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        UnbindSubscription(FatturaPATest);
+
+        // [THEN] Each exported line contains its own additional data in document order.
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        TempXMLBuffer.FindNodesByXPath(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/TipoDato');
+        Assert.RecordCount(TempXMLBuffer, 2);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                Assert.AreEqual('RYRTEST', TempXMLBuffer.Value, 'Unexpected additional data type.');
+            until TempXMLBuffer.Next() = 0;
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindNodesByXPath(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/RiferimentoTesto');
+        Assert.RecordCount(TempXMLBuffer, 2);
+        TempXMLBuffer.FindFirst();
+        Assert.AreEqual(Format(FirstLineNo), TempXMLBuffer.Value, 'Incorrect additional data on first line.');
+        TempXMLBuffer.Next();
+        Assert.AreEqual(Format(SecondLineNo), TempXMLBuffer.Value, 'Incorrect additional data on second line.');
     end;
 
     [Test]
@@ -3313,5 +3370,14 @@ codeunit 144200 "FatturaPA Test"
     begin
         exit(Format(Amount, 0, '<Sign><Integer><Decimals,8><Comma,.>'))
     end;
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export FatturaPA Document", 'OnPopulateLineDataOnBeforeCloseLine', '', false, false)]
+    local procedure AddAdditionalDataToFatturaPALine(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+        TempXMLBuffer.AddGroupElement('AltriDatiGestionali');
+        TempXMLBuffer.AddNonEmptyElement('TipoDato', 'RYRTEST');
+        TempXMLBuffer.AddNonEmptyLastElement('RiferimentoTesto', Format(TempFatturaLine."Line No."));
+    end;
+
+
 }
 
