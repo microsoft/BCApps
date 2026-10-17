@@ -264,12 +264,10 @@ table 149034 "AIT Log Entry"
     procedure GetMessage(): Text
     var
         MessageInStream: InStream;
-        MessageText: Text;
     begin
         CalcFields("Message Text");
         "Message Text".CreateInStream(MessageInStream, GetDefaultTextEncoding());
-        MessageInStream.ReadText(MessageText);
-        exit(MessageText);
+        exit(ReadStreamToEnd(MessageInStream));
     end;
 
     procedure SetErrorCallStack(ErrorCallStack: Text)
@@ -284,12 +282,23 @@ table 149034 "AIT Log Entry"
     procedure GetErrorCallStack(): Text
     var
         ErrorCallStackInStream: InStream;
-        ErrorCallStackText: Text;
     begin
         CalcFields("Error Call Stack");
         "Error Call Stack".CreateInStream(ErrorCallStackInStream, GetDefaultTextEncoding());
-        ErrorCallStackInStream.ReadText(ErrorCallStackText);
-        exit(ErrorCallStackText);
+        exit(ReadStreamToEnd(ErrorCallStackInStream));
+    end;
+
+    local procedure ReadStreamToEnd(var Source: InStream): Text
+    var
+        Content: TextBuilder;
+        Chunk: Text;
+    begin
+        while not Source.EOS() do begin
+            // Read preserves the line endings that ReadText discards.
+            Source.Read(Chunk);
+            Content.Append(Chunk);
+        end;
+        exit(Content.ToText());
     end;
 
     local procedure GetDefaultTextEncoding(): TextEncoding
