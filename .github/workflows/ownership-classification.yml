@@ -55,7 +55,7 @@ jobs:
           ) && (
             !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) ||
             github.event.label.name == 'Ownership: Manual' ||
-            contains(fromJSON('["Team: Finance","Team: SCM","Team: Integrations","Team: Other"]'), github.event.label.name)
+            startsWith(github.event.label.name, 'Team: ')
           )
         )
       )
@@ -76,32 +76,83 @@ jobs:
           SUBJECT_NUMBER: ${{ env.SUBJECT_NUMBER }}
         with:
           script: |
-            // A team NAME and the LABEL recording it stopped being the same
-            // string when this repository namespaced its team labels. The agent
-            // speaks in names; the repository stores labels. Map, do not assume.
-            const teamLabels = {
-              Finance: 'Team: Finance',
-              SCM: 'Team: SCM',
-              Integrations: 'Team: Integrations',
-              Other: 'Team: Other',
-            };
-            // The rename also corrected Integration to the plural the team uses.
-            // Accepting the old spelling from the agent keeps this workflow and
-            // BCAppsTriage from having to deploy in lockstep.
-            // Accepted spellings for the agent's answer: the pre-rename
-            // "Integration", and the label form of every team. The agent is
-            // expected to send a name, but rejecting a label would be a hard
-            // failure over a cosmetic difference, and the two repositories
-            // deploy independently.
-            const teamAliases = Object.assign(
-              { Integration: 'Integrations' },
-              Object.fromEntries(Object.entries(teamLabels).map(([name, label]) => [label, name])),
-            );
-            const canonicalTeam = name => teamAliases[name] || name;
-            const teams = Object.keys(teamLabels);
-            const teamLabelNames = Object.values(teamLabels);
+            // The team taxonomy belongs to the repository's label set, not to
+            // this workflow. It is DISCOVERED from the "Team: " namespace, so
+            // adding a team or renaming one is a label change with no code
+            // change here. Hardcoding the list is what broke this workflow when
+            // the labels were namespaced.
+            const TEAM_LABEL_PREFIX = 'Team: ';
+            // A floor, so that discovery finding nothing fails loudly rather
+            // than quietly deciding the repository has no teams.
+            const MIN_TEAM_LABELS = 2;
+            // Semantic rules, not taxonomy: these mean something to this
+            // workflow whichever teams happen to exist.
+            const UNRESOLVED_TEAM = 'Other';
             const ownershipLabels = ['Ownership: Manual', 'Ownership: Needs Review'];
-            const valid = [...teamLabelNames, ...ownershipLabels];
+
+            // Compare team names loosely, so a cosmetic rename -- case,
+            // punctuation, or the singular-to-plural change that turned
+            // Integration into Integrations -- does not require BCAppsTriage to
+            // redeploy in lockstep with this repository. A genuine rename to a
+            // different word still needs the agent updated, and is rejected
+            // here rather than guessed at.
+            const normaliseTeam = value => String(value ?? '')
+              .replace(/^team:\s*/i, '')
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, '')
+              .replace(/s$/, '');
+
+            const deriveTeams = repoLabels => {
+              const labelNames = repoLabels
+                .map(label => label.name)
+                .filter(name => name.startsWith(TEAM_LABEL_PREFIX));
+              if (labelNames.length < MIN_TEAM_LABELS) {
+                throw new Error(
+                  `Found ${labelNames.length} "${TEAM_LABEL_PREFIX}" label(s), expected at least ` +
+                  `${MIN_TEAM_LABELS}. Team ownership labels are missing from this repository.`,
+                );
+              }
+              const labelByTeam = new Map();
+              const teamByNormalised = new Map();
+              for (const label of labelNames) {
+                const team = label.slice(TEAM_LABEL_PREFIX.length).trim();
+                const key = normaliseTeam(team);
+                // Emptiness is checked after normalising, not before: a label
+                // like "Team: !!!" has a name but not a comparable one, and an
+                // empty key would become a bucket that every unusable answer
+                // -- null, "", [] -- silently normalises into.
+                if (!key) {
+                  throw new Error(`Label "${label}" has no usable team name after the prefix.`);
+                }
+                if (teamByNormalised.has(key)) {
+                  throw new Error(
+                    `Team labels "${teamByNormalised.get(key)}" and "${team}" are indistinguishable ` +
+                    'once normalised, so the agent\'s answer would be ambiguous. Rename one.',
+                  );
+                }
+                labelByTeam.set(team, label);
+                teamByNormalised.set(key, team);
+              }
+              // The unresolved bucket is load-bearing -- it is what
+              // "Ownership: Needs Review" keys off -- and discovery cannot
+              // infer which team it is, so it is required by name. Without
+              // this, deleting the label makes every unresolved answer look
+              // like a malformed one from BCAppsTriage, and renaming it stops
+              // anything being flagged for review without saying so.
+              if (!teamByNormalised.has(normaliseTeam(UNRESOLVED_TEAM))) {
+                throw new Error(
+                  `No "${TEAM_LABEL_PREFIX}${UNRESOLVED_TEAM}" label exists; found ` +
+                  `${[...labelByTeam.keys()].map(name => `"${name}"`).join(', ')}. This repository ` +
+                  'needs that label for work the agent cannot attribute to a team.',
+                );
+              }
+              return {
+                teamLabelNames: [...labelByTeam.values()],
+                labelFor: team => labelByTeam.get(team),
+                canonicalTeam: value => teamByNormalised.get(normaliseTeam(value)) ?? null,
+              };
+            };
+
             const subjectKind = process.env.SUBJECT_KIND;
             const issue_number = Number(process.env.SUBJECT_NUMBER);
             const action = context.payload.action;
@@ -135,7 +186,8 @@ jobs:
               github.rest.issues.listLabelsForRepo, { ...context.repo, per_page: 100 },
             );
             const available = new Set(repoLabels.map(label => label.name));
-            const missing = valid.filter(name => !available.has(name));
+            const { teamLabelNames } = deriveTeams(repoLabels);
+            const missing = ownershipLabels.filter(name => !available.has(name));
             if (missing.length) {
               throw new Error(`Provision required ownership labels before running automation: ${missing.join(', ')}`);
             }
@@ -265,28 +317,60 @@ jobs:
           script: |
             const fs = require('fs');
             const { TextDecoder } = require('util');
-            // See the preflight step: team names and team labels are different
-            // strings since the labels were namespaced, and are mapped here too.
-            const teamLabels = {
-              Finance: 'Team: Finance',
-              SCM: 'Team: SCM',
-              Integrations: 'Team: Integrations',
-              Other: 'Team: Other',
-            };
-            // Accepted spellings for the agent's answer: the pre-rename
-            // "Integration", and the label form of every team. The agent is
-            // expected to send a name, but rejecting a label would be a hard
-            // failure over a cosmetic difference, and the two repositories
-            // deploy independently.
-            const teamAliases = Object.assign(
-              { Integration: 'Integrations' },
-              Object.fromEntries(Object.entries(teamLabels).map(([name, label]) => [label, name])),
-            );
-            const canonicalTeam = name => teamAliases[name] || name;
-            const teams = Object.keys(teamLabels);
-            const teamLabelNames = Object.values(teamLabels);
+            // See the preflight step: the team taxonomy is discovered from the
+            // repository's "Team: " labels rather than hardcoded here.
+            const TEAM_LABEL_PREFIX = 'Team: ';
+            const MIN_TEAM_LABELS = 2;
+            const UNRESOLVED_TEAM = 'Other';
             const ownershipLabels = ['Ownership: Manual', 'Ownership: Needs Review'];
-            const valid = [...teamLabelNames, ...ownershipLabels];
+
+            const normaliseTeam = value => String(value ?? '')
+              .replace(/^team:\s*/i, '')
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, '')
+              .replace(/s$/, '');
+
+            const deriveTeams = repoLabels => {
+              const labelNames = repoLabels
+                .map(label => label.name)
+                .filter(name => name.startsWith(TEAM_LABEL_PREFIX));
+              if (labelNames.length < MIN_TEAM_LABELS) {
+                throw new Error(
+                  `Found ${labelNames.length} "${TEAM_LABEL_PREFIX}" label(s), expected at least ` +
+                  `${MIN_TEAM_LABELS}. Team ownership labels are missing from this repository.`,
+                );
+              }
+              const labelByTeam = new Map();
+              const teamByNormalised = new Map();
+              for (const label of labelNames) {
+                const team = label.slice(TEAM_LABEL_PREFIX.length).trim();
+                const key = normaliseTeam(team);
+                if (!key) {
+                  throw new Error(`Label "${label}" has no usable team name after the prefix.`);
+                }
+                if (teamByNormalised.has(key)) {
+                  throw new Error(
+                    `Team labels "${teamByNormalised.get(key)}" and "${team}" are indistinguishable ` +
+                    'once normalised, so the agent\'s answer would be ambiguous. Rename one.',
+                  );
+                }
+                labelByTeam.set(team, label);
+                teamByNormalised.set(key, team);
+              }
+              if (!teamByNormalised.has(normaliseTeam(UNRESOLVED_TEAM))) {
+                throw new Error(
+                  `No "${TEAM_LABEL_PREFIX}${UNRESOLVED_TEAM}" label exists; found ` +
+                  `${[...labelByTeam.keys()].map(name => `"${name}"`).join(', ')}. This repository ` +
+                  'needs that label for work the agent cannot attribute to a team.',
+                );
+              }
+              return {
+                teamLabelNames: [...labelByTeam.values()],
+                labelFor: team => labelByTeam.get(team),
+                canonicalTeam: value => teamByNormalised.get(normaliseTeam(value)) ?? null,
+              };
+            };
+
             const confidenceValues = ['high', 'medium', 'low'];
             const sources = [
               'issue:path', 'issue:localization', 'issue:title-object',
@@ -312,6 +396,19 @@ jobs:
               throw new Error('ownership-result.json must contain the v1 result object');
             }
             const reason = result.ownership.reason;
+            // Discovery has to happen before the result is validated, because
+            // the set of valid teams IS the set of team labels in the
+            // repository. The label list was already being fetched a few lines
+            // below; it is simply read earlier now.
+            const repoLabels = await github.paginate(
+              github.rest.issues.listLabelsForRepo, { ...context.repo, per_page: 100 },
+            );
+            const available = new Set(repoLabels.map(label => label.name));
+            const { teamLabelNames, labelFor, canonicalTeam } = deriveTeams(repoLabels);
+            const missing = ownershipLabels.filter(name => !available.has(name));
+            if (missing.length) {
+              throw new Error(`Required ownership labels disappeared: ${missing.join(', ')}`);
+            }
             if (
               result.schemaVersion !== 1 ||
               result.correlationToken !== process.env.CORRELATION_TOKEN ||
@@ -319,7 +416,12 @@ jobs:
               result.subject.kind !== process.env.SUBJECT_KIND ||
               result.subject.number !== issue_number ||
               !Number.isSafeInteger(result.subject.number) ||
-              !teams.includes(canonicalTeam(result.ownership.team)) ||
+              // Checked as a string before it is normalised. normaliseTeam
+              // coerces, so without this ["Finance"] from the artifact would
+              // stringify to a valid team name -- something the hardcoded
+              // teams.includes() rejected for free.
+              typeof result.ownership.team !== 'string' ||
+              canonicalTeam(result.ownership.team) === null ||
               !confidenceValues.includes(result.ownership.confidence) ||
               !sources.includes(result.ownership.source) ||
               typeof reason !== 'string' ||
@@ -329,15 +431,6 @@ jobs:
               /[\u0000-\u001F\u007F]/.test(reason)
             ) {
               throw new Error('The ownership result from BCAppsTriage was malformed, so no labels were changed.');
-            }
-
-            const repoLabels = await github.paginate(
-              github.rest.issues.listLabelsForRepo, { ...context.repo, per_page: 100 },
-            );
-            const available = new Set(repoLabels.map(label => label.name));
-            const missing = valid.filter(name => !available.has(name));
-            if (missing.length) {
-              throw new Error(`Required ownership labels disappeared: ${missing.join(', ')}`);
             }
 
             const getLabels = async () => (await github.paginate(github.rest.issues.listLabelsOnIssue, {
@@ -373,8 +466,12 @@ jobs:
             }
 
             const team = canonicalTeam(result.ownership.team);
-            const teamLabel = teamLabels[team];
-            const needsReview = team === 'Other' || result.ownership.confidence === 'low';
+            const teamLabel = labelFor(team);
+            // Compared loosely for the same reason the team name is: the
+            // unresolved bucket is a semantic rule, and should survive its
+            // label being spelled slightly differently.
+            const needsReview = normaliseTeam(team) === normaliseTeam(UNRESOLVED_TEAM)
+              || result.ownership.confidence === 'low';
             const safeReason = reason.replace(/[\r\n|]+/g, ' ').trim();
             await core.summary.addHeading('Ownership decision').addTable([
               [{ data: 'Field', header: true }, { data: 'Value', header: true }],
