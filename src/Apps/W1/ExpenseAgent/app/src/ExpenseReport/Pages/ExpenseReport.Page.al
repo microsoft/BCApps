@@ -430,6 +430,19 @@ page 6910 "Expense Report"
                         ProcessApprovalAction(RefActionType::Approve);
                     end;
                 }
+                action(ViewInExpenseApp)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'View in Expense App';
+                    Image = LinkWeb;
+                    Visible = AgentEnabled and (ExpenseReportUrl <> '');
+                    ToolTip = 'Opens the expense report in the Expense App.';
+
+                    trigger OnAction()
+                    begin
+                        Hyperlink(ExpenseReportUrl);
+                    end;
+                }
                 action(Reject)
                 {
                     ApplicationArea = Basic, Suite;
@@ -483,7 +496,7 @@ page 6910 "Expense Report"
                     Caption = 'Assign Interim Approver';
                     Image = UserSetup;
                     ToolTip = 'Assign an optional interim approver who approves before the final approver.';
-                    Visible = AgentEnabled;
+                    Visible = InterimApproverAssignmentVisible;
                     Enabled = Rec.Status = Rec.Status::"Pending Approval";
 
                     trigger OnAction()
@@ -662,6 +675,9 @@ page 6910 "Expense Report"
                 actionref(Approve_Promoted; Approve)
                 {
                 }
+                actionref(ViewInExpenseApp_Promoted; ViewInExpenseApp)
+                {
+                }
                 actionref(Reject_Promoted; Reject)
                 {
                 }
@@ -714,7 +730,6 @@ page 6910 "Expense Report"
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
-
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
             ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
             if not ExpenseUser."Unlimited Approval" then begin
@@ -761,6 +776,8 @@ page 6910 "Expense Report"
         SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
+        InterimApproverAssignmentVisible: Boolean;
+        ExpenseReportUrl: Text;
 
     protected var
         SubmitEnabled: Boolean;
@@ -770,8 +787,10 @@ page 6910 "Expense Report"
 
     local procedure UpdateControls()
     var
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
     begin
+        ExpenseReportUrl := EAHttpClient.GetExpenseReportUrl(Rec.SystemId);
         SubmitEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Submit);
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
@@ -779,6 +798,7 @@ page 6910 "Expense Report"
 
         ExpenseAgentSetup.GetRecordOnce();
         AgentEnabled := ExpenseAgentSetup."Enable Agent";
+        InterimApproverAssignmentVisible := ExpenseAgentSetup."Enable Agent" and ExpenseAgentSetup."Allow Interim Approvers";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
 
@@ -853,7 +873,6 @@ page 6910 "Expense Report"
         ExpenseReportLine.SetRange("Document No.", Rec."No.");
         if ExpenseReportLine.IsEmpty() then
             ExpenseReportApprovalMgt.NoExpenseLinesToProcess(ActionType);
-
         case ActionType of
             ActionType::Approve:
                 Rec.PerformManualApproved(Rec."Approver Expense User No.");
@@ -896,13 +915,11 @@ page 6910 "Expense Report"
     begin
         ExpenseReportPost.PostExpenseReport(Rec);
         DocumentIsPosted := (not ExpenseReportHeader.Get(Rec."No."));
-
         case Navigate of
             Enum::"Navigate After Posting"::"Posted Document":
                 begin
                     if InstructionMgt.IsEnabled(InstructionMgt.ShowPostedConfirmationMessageCode()) then
                         ShowPostedConfirmationMessage();
-
                     if DocumentIsPosted then
                         CurrPage.Close();
                 end;

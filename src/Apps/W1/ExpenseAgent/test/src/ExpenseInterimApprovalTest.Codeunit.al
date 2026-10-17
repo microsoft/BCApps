@@ -34,6 +34,7 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
         IsInitialized: Boolean;
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
+        InterimApproverNotAllowedErr: Label 'An interim approver cannot be assigned because %1 is turned off in %2.', Comment = '%1 = Allow Interim Approvers field caption, %2 = Expense Agent Setup table caption';
         InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1.', Comment = '%1 = Pending Approval status caption';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
@@ -260,6 +261,71 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverRequiresSettingEnabled()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An interim approver cannot be assigned when interim approvers are disabled.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, interim approvers are disabled, and a submitted expense report exists.
+        EnableAgent(true);
+        SetAllowInterimApprovers(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+
+        // [WHEN] The submitter assigns an interim approver.
+        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [THEN] An error explains that interim approvers are disabled in Expense Agent Setup.
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverNotAllowedErr,
+                ExpenseAgentSetup.FieldCaption("Allow Interim Approvers"),
+                ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignedInterimApproverCompletesApprovalWhenSettingDisabled()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Disabling interim approvers does not strand a report with an existing assignment.
+        Initialize();
+
+        // [GIVEN] A submitted report is assigned to an interim approver before interim approvers are disabled.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        SetAllowInterimApprovers(false);
+
+        // [WHEN] The interim approver approves the report.
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+
+        // [THEN] The report advances to interim approved and is routed to the final approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+
+        // [WHEN] The final approver approves the report.
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+
+        // [THEN] The report completes approval.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
     procedure AssignInterimApproverRequiresPendingApproval()
     var
         Submitter: Record "Expense User";
@@ -437,6 +503,69 @@ codeunit 148346 "Expense Interim Approval Test"
         VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
         VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
         VerifyActiveApprover(ExpenseReportHeader, InterimApprover);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ResubmitRejectedReportClearsInterimWhenSettingDisabled()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Resubmitting a rejected report does not reactivate its interim approver when interim approvers are disabled.
+        Initialize();
+
+        // [GIVEN] An interim approver rejects an assigned report, then interim approvers are disabled.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualRejected(InterimApprover."No.", 'Rejected by interim approver.');
+        SetAllowInterimApprovers(false);
+
+        // [WHEN] The submitter resubmits the rejected report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
+
+        // [THEN] The stale interim assignment is cleared and the report routes directly to the final approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
+        VerifyInterimApprover(ExpenseReportHeader, '');
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ResubmitReopenedReportClearsInterimWhenSettingDisabled()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Resubmitting a reopened report does not reactivate its interim approver when interim approvers are disabled.
+        Initialize();
+
+        // [GIVEN] A submitted report has an interim approver, is reopened by its submitter, and interim approvers are disabled.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetCurrentUser(Submitter);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportApprovalMgmt.ReopenSubmitted(ExpenseReportHeader);
+        ReleaseExpenseReportDocument.PerformManualCheckAndRelease(ExpenseReportHeader);
+        SetAllowInterimApprovers(false);
+
+        // [WHEN] The submitter resubmits the reopened report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
+
+        // [THEN] The stale interim assignment is cleared and the report routes directly to the final approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
+        VerifyInterimApprover(ExpenseReportHeader, '');
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
     end;
 
     [Test]
@@ -1250,6 +1379,7 @@ codeunit 148346 "Expense Interim Approval Test"
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
+        SetAllowInterimApprovers(true);
         LibraryWorkflow.DisableAllWorkflows();
         UserSetup.DeleteAll();
         // Remove test-created users to stay within the CI license user cap; keep the current session user.
@@ -1428,6 +1558,15 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseAgentSetup.GetRecordOnce();
         ExpenseAgentSetup."Enable Agent" := Enable;
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure SetAllowInterimApprovers(Allow: Boolean)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup."Allow Interim Approvers" := Allow;
+        ExpenseAgentSetup.Modify();
     end;
 
     local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])

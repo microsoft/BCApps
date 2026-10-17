@@ -97,4 +97,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// Interim approvers can be assigned to expense reports.
+    /// </summary>
+    value(9; InterimApproval)
+    {
+        Caption = 'Interim Approval', Locked = true;
+    }
 }
