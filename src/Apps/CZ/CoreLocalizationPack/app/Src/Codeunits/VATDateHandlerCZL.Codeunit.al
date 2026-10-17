@@ -159,6 +159,7 @@ codeunit 11742 "VAT Date Handler CZL"
     procedure CheckVATDateCZL(var PurchaseHeader: Record "Purchase Header")
     var
         MustBeLessOrEqualErr: Label 'must be less or equal to %1', Comment = '%1 = fieldcaption of VAT Date';
+        CheckOriginalDocVATDateCZL: Boolean;
     begin
         if not VATReportingDateMgt.IsVATDateEnabled() then begin
             PurchaseHeader.TestField("VAT Reporting Date", PurchaseHeader."Posting Date");
@@ -171,7 +172,9 @@ codeunit 11742 "VAT Date Handler CZL"
             VATPeriodCZLCheck(PurchaseHeader."VAT Reporting Date");
 #pragma warning restore AL0432
 #endif
-        if PurchaseHeader.Invoice then
+        CheckOriginalDocVATDateCZL := PurchaseHeader.Invoice;
+        OnCheckVATDateCZLOnBeforeTestFieldOriginalDocVATDateCZL(PurchaseHeader, CheckOriginalDocVATDateCZL);
+        if CheckOriginalDocVATDateCZL then
             PurchaseHeader.TestField("Original Doc. VAT Date CZL");
         if PurchaseHeader."Original Doc. VAT Date CZL" > PurchaseHeader."VAT Reporting Date" then
             PurchaseHeader.FieldError("Original Doc. VAT Date CZL", StrSubstNo(MustBeLessOrEqualErr, PurchaseHeader.FieldCaption("VAT Reporting Date")));
@@ -223,5 +226,10 @@ codeunit 11742 "VAT Date Handler CZL"
             exit;
 
         Rec."VAT Reporting Date Usage" := Rec."VAT Reporting Date Usage"::"Enabled (Prevent modification)";
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckVATDateCZLOnBeforeTestFieldOriginalDocVATDateCZL(var PurchaseHeader: Record "Purchase Header"; var CheckOriginalDocVATDateCZL: Boolean)
+    begin
     end;
 }
