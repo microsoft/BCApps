@@ -130,7 +130,9 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
     var
         AuditExportDataTypeSetup: Record "Audit Export Data Type Setup";
     begin
+#pragma warning disable AA0210
         AuditExportDataTypeSetup.SetRange("Export Enabled", true);
+#pragma warning restore AA0210
         AuditExportDataTypeSetup.SetRange("Export Data Class", AuditFileExportDataClass);
         exit(not AuditExportDataTypeSetup.IsEmpty());
     end;

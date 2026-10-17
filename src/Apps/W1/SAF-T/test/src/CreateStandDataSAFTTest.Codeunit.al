@@ -1,4 +1,6 @@
+#pragma warning disable AA0247
 codeunit 139513 "Create Stand. Data SAF-T Test" implements CreateStandardDataSAFT
+#pragma warning restore AA0247
 {
     var
         TypeHelper: Codeunit "Type Helper";
