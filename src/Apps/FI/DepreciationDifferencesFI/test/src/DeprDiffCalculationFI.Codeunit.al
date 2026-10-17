@@ -9,6 +9,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
+#if not CLEAN30
+using Microsoft.FixedAssets.Reports;
+#endif
 using Microsoft.FixedAssets.Setup;
 #if not CLEANSCHEMA33
 using Microsoft.Foundation.AuditCodes;
@@ -51,6 +54,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 #if not CLEAN30
         TestCU: Codeunit "Depr. Diff. Calculation FI";
         FeatureEnabled: Boolean;
+        FeatureCheckCount: Integer;
 #endif
         isInitialized: Boolean;
         PleaseEnterPostingDateTxt: Label 'Please enter the Posting Date.';
@@ -73,6 +77,100 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         CompletionStatsTok: Label 'The depreciation has been calculated.';
 #if not CLEAN30
         FeatureNotEnabledErr: Label 'The Depreciation Differences FI feature must be enabled before you can run this report.';
+#endif
+
+#if not CLEAN30
+    [Test]
+    [HandlerFunctions('FixedAssetListRequestPageHandler')]
+    procedure UnrelatedReportDoesNotInitializeFeatureStatus()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+        RequestPageParameters: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A feature lookup is read-only and an unrelated report does not repeat it.
+        Initialize();
+
+        // [GIVEN] The company has no depreciation differences feature status.
+        ClearFeatureDataUpdateStatus();
+        SetFeatureEnabled(false);
+        Commit();
+
+        // [WHEN] The feature is queried and an unrelated report request page is opened.
+        DepreciationDifferencesFIFeature.IsEnabled();
+        RequestPageParameters := Report.RunRequestPage(Report::"Fixed Asset - List");
+
+        // [THEN] Only the explicit lookup ran, no status was inserted, and the report was not substituted.
+        VerifyUnrelatedReportFeatureCheck(RequestPageParameters);
+        DisableFeature();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubstitutedDeprDiffRequestPageHandler')]
+    procedure LegacyReportIsSubstitutedWhenFeatureEnabled()
+    var
+        RequestPageParameters: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An enabled company feature substitutes the legacy depreciation differences report.
+        Initialize();
+
+        // [GIVEN] The depreciation differences feature is enabled for the company.
+        PrepareReportFeatureStatus(Enum::"Feature Status"::Enabled);
+        Commit();
+
+        // [WHEN] The legacy report request page is opened.
+        RequestPageParameters := Report.RunRequestPage(13402);
+
+        // [THEN] The extension report opens and the feature status is unchanged.
+        VerifyReportFeatureStatus(Report::"Calc. and Post Depr. Diff. FI", Enum::"Feature Status"::Enabled, RequestPageParameters);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('LegacyDeprDiffRequestPageHandler')]
+    procedure LegacyReportIsNotSubstitutedWhenFeatureDisabled()
+    var
+        RequestPageParameters: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A disabled company feature preserves the legacy depreciation differences report.
+        Initialize();
+
+        // [GIVEN] The depreciation differences feature is disabled for the company.
+        PrepareReportFeatureStatus(Enum::"Feature Status"::Disabled);
+        Commit();
+
+        // [WHEN] The legacy report request page is opened.
+        RequestPageParameters := Report.RunRequestPage(13402);
+
+        // [THEN] The legacy report opens and the feature status remains disabled.
+        VerifyReportFeatureStatus(13402, Enum::"Feature Status"::Disabled, RequestPageParameters);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('LegacyDeprDiffRequestPageHandler')]
+    procedure LegacyReportIsNotSubstitutedWhileMigrationPending()
+    var
+        RequestPageParameters: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Pending feature migration preserves the legacy depreciation differences report.
+        Initialize();
+
+        // [GIVEN] The depreciation differences feature migration is pending for the company.
+        PrepareReportFeatureStatus(Enum::"Feature Status"::Pending);
+        Commit();
+
+        // [WHEN] The legacy report request page is opened.
+        RequestPageParameters := Report.RunRequestPage(13402);
+
+        // [THEN] The legacy report opens and the pending status is preserved.
+        VerifyReportFeatureStatus(13402, Enum::"Feature Status"::Pending, RequestPageParameters);
+        LibraryVariableStorage.AssertEmpty();
+    end;
 #endif
 
     local procedure Initialize()
@@ -1357,6 +1455,56 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
 
 #if not CLEAN30
+    local procedure ClearFeatureDataUpdateStatus()
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        FeatureKey.Get(DepreciationDifferencesFIFeature.GetFeatureKeyId());
+        FeatureDataUpdateStatus.SetRange("Feature Key", FeatureKey.ID);
+        FeatureDataUpdateStatus.SetRange("Company Name", CompanyName());
+        FeatureDataUpdateStatus.DeleteAll();
+    end;
+
+    local procedure PrepareReportFeatureStatus(FeatureStatus: Enum "Feature Status")
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        DisableFeature();
+        ClearFeatureDataUpdateStatus();
+        FeatureDataUpdateStatus.Init();
+        FeatureDataUpdateStatus."Feature Key" := DepreciationDifferencesFIFeature.GetFeatureKeyId();
+        FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+        FeatureDataUpdateStatus."Feature Status" := FeatureStatus;
+        FeatureDataUpdateStatus.Insert();
+    end;
+
+    local procedure VerifyUnrelatedReportFeatureCheck(RequestPageParameters: Text)
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        Assert.AreEqual(1, TestCU.GetFeatureCheckCount(), 'An unrelated report must not check the FI feature.');
+        Assert.IsFalse(
+            FeatureDataUpdateStatus.Get(DepreciationDifferencesFIFeature.GetFeatureKeyId(), CompanyName()),
+            'Checking the feature must not insert a company feature status.');
+        Assert.AreEqual(Report::"Fixed Asset - List", LibraryVariableStorage.DequeueInteger(), 'The unrelated report must not be substituted.');
+        Assert.AreEqual('', RequestPageParameters, 'The request page must be canceled without running the report.');
+    end;
+
+    local procedure VerifyReportFeatureStatus(ExpectedReportId: Integer; ExpectedFeatureStatus: Enum "Feature Status"; RequestPageParameters: Text)
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        Assert.AreEqual(ExpectedReportId, LibraryVariableStorage.DequeueInteger(), 'Unexpected report substitution.');
+        FeatureDataUpdateStatus.Get(DepreciationDifferencesFIFeature.GetFeatureKeyId(), CompanyName());
+        Assert.AreEqual(ExpectedFeatureStatus, FeatureDataUpdateStatus."Feature Status", 'Report substitution must not change feature status.');
+        Assert.AreEqual('', RequestPageParameters, 'The request page must be canceled without running the report.');
+    end;
+
     local procedure EnableFeature()
     begin
         SetFeatureEnabled(true);
@@ -1372,6 +1520,12 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     procedure SetFeatureEnabledValue(Enabled: Boolean)
     begin
         FeatureEnabled := Enabled;
+        FeatureCheckCount := 0;
+    end;
+
+    procedure GetFeatureCheckCount(): Integer
+    begin
+        exit(FeatureCheckCount);
     end;
 
     local procedure DisableFeature()
@@ -1382,7 +1536,29 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"FI Depreciation Diff. Feature", OnAfterCheckFeatureEnabled, '', false, false)]
     local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
     begin
+        FeatureCheckCount += 1;
         IsEnabled := FeatureEnabled;
+    end;
+
+    [RequestPageHandler]
+    procedure FixedAssetListRequestPageHandler(var FixedAssetList: TestRequestPage "Fixed Asset - List")
+    begin
+        LibraryVariableStorage.Enqueue(Report::"Fixed Asset - List");
+        FixedAssetList.Cancel().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SubstitutedDeprDiffRequestPageHandler(var DeprDiffReport: TestRequestPage "Calc. and Post Depr. Diff. FI")
+    begin
+        LibraryVariableStorage.Enqueue(Report::"Calc. and Post Depr. Diff. FI");
+        DeprDiffReport.Cancel().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure LegacyDeprDiffRequestPageHandler(var DeprDiffReport: TestRequestPage "Calc. and Post Depr. Diff.")
+    begin
+        LibraryVariableStorage.Enqueue(13402);
+        DeprDiffReport.Cancel().Invoke();
     end;
 #else
     local procedure EnableFeature()

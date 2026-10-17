@@ -22,10 +22,13 @@ codeunit 13467 "Dep Diff FI Subscribers"
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
     begin
+        if ReportId <> 13402 then
+            exit;
+
         if not DepreciationDifferencesFIFeature.IsEnabled() then
             exit;
-        if ReportId = 13402 then
-            NewReportId := Report::"Calc. and Post Depr. Diff. FI";
+
+        NewReportId := Report::"Calc. and Post Depr. Diff. FI";
     end;
 }
 #endif

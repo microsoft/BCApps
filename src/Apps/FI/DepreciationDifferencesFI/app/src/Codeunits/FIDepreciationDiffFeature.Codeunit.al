@@ -24,7 +24,7 @@ codeunit 13466 "FI Depreciation Diff. Feature"
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
-        Enabled := FeatureManagementFacade.IsEnabled(FeatureKeyIdTok);
+        Enabled := FeatureManagementFacade.IsEnabled(FeatureKeyIdTok, false);
         OnAfterCheckFeatureEnabled(Enabled);
     end;
 
