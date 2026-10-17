@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -87,6 +87,14 @@ page 20502 "Subc. Routing Info Factbox"
                     ShowProdOrderComponents();
                 end;
             }
+            field(ShowQuantityReadyToStart; GetQuantityReadyToStart())
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Quantity Ready to Start';
+                DecimalPlaces = 0 : 5;
+                ToolTip = 'Specifies the quantity that is ready to start for this production routing operation.';
+                Visible = true;
+            }
             field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
             {
             }
@@ -118,6 +126,19 @@ page 20502 "Subc. Routing Info Factbox"
     local procedure ShowProdOrderComponents()
     begin
         SubcRoutingFactboxMgmt.ShowProdOrderComponents(Rec);
+    end;
+
+
+    local procedure GetQuantityReadyToStart(): Decimal
+    var
+        RecordRef: RecordRef;
+        FieldRef: FieldRef;
+    begin
+        RecordRef.GetTable(Rec);
+        if not RecordRef.FieldExist(7308) then
+            exit(0);
+        FieldRef := RecordRef.Field(7308);
+        exit(FieldRef.Value);
     end;
 
     var

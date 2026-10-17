@@ -216,6 +216,11 @@ page 99000817 "Prod. Order Routing"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
+                field("Quantity Ready to Start"; Rec."Quantity Ready to Start")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Manufacturing;

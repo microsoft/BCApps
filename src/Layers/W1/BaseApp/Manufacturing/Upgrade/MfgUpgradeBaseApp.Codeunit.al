@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
 #endif
 
         UpgradeProdDefinitionDisplaySetup();
+        UpgradeQuantityReadyToStart();
     end;
 
 #if not CLEANSCHEMA29
@@ -87,6 +88,52 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
         end;
 
         UpgradeTagLocal.SetUpgradeTag(UpgradeTagDefinitionsLocal.GetProdDefinitionDisplaySetupUpgradeTag());
+    end;
+
+
+    local procedure UpgradeQuantityReadyToStart()
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        UpgradeTagLocal: Codeunit System.Upgrade."Upgrade Tag";
+        UpgradeTagDefinitionsLocal: Codeunit "Upgrade Tag Definitions";
+        LastProdOrderNo: Code[20];
+        LastRoutingNo: Code[20];
+        LastRoutingReferenceNo: Integer;
+        LastStatus: Enum "Production Order Status";
+        ProductionOrdersProcessedCount: Integer;
+    begin
+        if UpgradeTagLocal.HasUpgradeTag(UpgradeTagDefinitionsLocal.GetQuantityReadyToStartUpgradeTag()) then
+            exit;
+
+        ProdOrderRoutingLine.SetCurrentKey(Status, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.");
+        ProdOrderRoutingLine.SetFilter(Status, '%1|%2', ProdOrderRoutingLine.Status::Released, ProdOrderRoutingLine.Status::"Firm Planned");
+        if ProdOrderRoutingLine.IsEmpty() then begin
+            UpgradeTagLocal.SetUpgradeTag(UpgradeTagDefinitionsLocal.GetQuantityReadyToStartUpgradeTag());
+            UpgradeTagLocal.SetSkippedUpgrade(UpgradeTagDefinitionsLocal.GetQuantityReadyToStartUpgradeTag(), true);
+            exit;
+        end;
+
+        if ProdOrderRoutingLine.FindSet() then
+            repeat
+                if (LastStatus <> ProdOrderRoutingLine.Status) or (LastProdOrderNo <> ProdOrderRoutingLine."Prod. Order No.") then begin
+                    LastStatus := ProdOrderRoutingLine.Status;
+                    LastProdOrderNo := ProdOrderRoutingLine."Prod. Order No.";
+                    ProductionOrdersProcessedCount += 1;
+                end;
+
+                if (LastRoutingReferenceNo <> ProdOrderRoutingLine."Routing Reference No.") or
+                   (LastRoutingNo <> ProdOrderRoutingLine."Routing No.") or
+                   (LastStatus <> ProdOrderRoutingLine.Status) or
+                   (LastProdOrderNo <> ProdOrderRoutingLine."Prod. Order No.")
+                then begin
+                    LastRoutingReferenceNo := ProdOrderRoutingLine."Routing Reference No.";
+                    LastRoutingNo := ProdOrderRoutingLine."Routing No.";
+                    ProdOrderRoutingLine.RecalculateQuantityReadyToStartForRouting();
+                end;
+            until ProdOrderRoutingLine.Next() = 0;
+
+        UpgradeTagLocal.SetUpgradeTag(UpgradeTagDefinitionsLocal.GetQuantityReadyToStartUpgradeTag());
+        Session.LogMessage('QRTS-0002', 'Quantity Ready to Start upgrade recalculation completed', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'CompanyName', CompanyName(), 'ProductionOrdersProcessedCount', Format(ProductionOrdersProcessedCount));
     end;
 
 #if not CLEANSCHEMA29
