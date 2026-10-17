@@ -1440,7 +1440,14 @@ table 274 "Bank Acc. Reconciliation Line"
     local procedure IsTransactionPostedAndNotReconciled(): Boolean
     var
         PostedPaymentReconLine: Record "Posted Payment Recon. Line";
+        ReturnValue: Boolean;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeIsTransactionPostedAndNotReconciled(Rec, ReturnValue, IsHandled);
+        if IsHandled then
+            exit(ReturnValue);
+
         if "Transaction ID" <> '' then begin
             PostedPaymentReconLine.SetRange("Bank Account No.", "Bank Account No.");
             PostedPaymentReconLine.SetRange("Transaction ID", "Transaction ID");
@@ -1453,7 +1460,14 @@ table 274 "Bank Acc. Reconciliation Line"
     local procedure IsTransactionAlreadyImported(): Boolean
     var
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        ReturnValue: Boolean;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeIsTransactionAlreadyImported(Rec, ReturnValue, IsHandled);
+        if IsHandled then
+            exit(ReturnValue);
+
         if "Transaction ID" <> '' then begin
             BankAccReconciliationLine.SetRange("Statement Type", "Statement Type");
             BankAccReconciliationLine.SetRange("Bank Account No.", "Bank Account No.");
@@ -1654,6 +1668,16 @@ table 274 "Bank Acc. Reconciliation Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsTransactionPostedAndReconciled(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var ReturnValue: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsTransactionPostedAndNotReconciled(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var ReturnValue: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsTransactionAlreadyImported(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var ReturnValue: Boolean; var IsHandled: Boolean)
     begin
     end;
 
