@@ -1122,7 +1122,6 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateActualWorkOrderServiceRepeatingDurationsWithRoundingPrecision()
     var
         WorkOrderService: Record "FS Work Order Service";
@@ -1155,7 +1154,6 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateActualWorkOrderServiceRepeatingDurationsWithoutRoundingPrecision()
     var
         WorkOrderService: Record "FS Work Order Service";
@@ -1188,7 +1186,6 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateBookingRepeatingDurationWithRoundingPrecision()
     var
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
@@ -1218,7 +1215,6 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateBookingRepeatingDurationWithoutRoundingPrecision()
     var
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
