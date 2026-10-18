@@ -11,7 +11,7 @@ table 7422 "EA Corp Card Statement"
 {
     Caption = 'Corp Card Statement';
     DataClassification = CustomerContent;
-    LookupPageId = "EA Corp Card Statements";
+    LookupPageId = "EA Corp Card Statement Lookup";
     DrillDownPageId = "EA Corp Card Statement";
     ReplicateData = false;
 

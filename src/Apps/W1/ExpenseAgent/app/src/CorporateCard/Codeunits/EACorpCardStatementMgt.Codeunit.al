@@ -50,6 +50,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
 
         CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         CorpCardTrans.SetRange("Provider Code", CorpCardStatement."Provider Code");
+        CorpCardTrans.SetLoadFields("Provider Trans Id", "Card Id", "Trans Date", "Currency Code", "Expense No.", Amount);
         if not CorpCardTrans.FindSet() then
             Error(NoStatementTransactionsErr, CorpCardStatement."Statement No.");
         repeat

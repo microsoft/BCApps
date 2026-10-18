@@ -38,7 +38,12 @@ page 7433 "EA Corp Card Trans List"
                 field("Card Id"; Rec."Card Id")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the mapped corporate card identifier.';
+                    Editable = false;
+                    ToolTip = 'Specifies the internal corporate card identifier resolved in Business Central, not a card number supplied by the provider.';
+                }
+                field("Card Last 4"; Rec."Card Last 4")
+                {
+                    ApplicationArea = Basic, Suite;
                 }
                 field("Provider Trans Id"; Rec."Provider Trans Id")
                 {

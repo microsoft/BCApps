@@ -726,6 +726,9 @@ table 6900 Expense
         {
             Clustered = true;
         }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
     }
     fieldgroups
     {

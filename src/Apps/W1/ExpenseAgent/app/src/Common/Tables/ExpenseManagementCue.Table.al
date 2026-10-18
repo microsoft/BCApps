@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7449 "Expense Management Cue"
+table 7449 "EA Expense Management Cue"
 {
     Access = Internal;
     Caption = 'Expense Management Cue';

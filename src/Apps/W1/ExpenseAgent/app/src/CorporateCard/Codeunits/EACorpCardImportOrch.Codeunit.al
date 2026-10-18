@@ -37,7 +37,10 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+        PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         ImportStage: Text;
+        ImportTransactionSucceeded: Boolean;
     begin
         ImportErrorText := '';
         ImportErrorInfo := ErrorInfo.Create();
@@ -52,10 +55,19 @@ codeunit 7432 "EA Corp Card Import Orch"
 
         Commit();
         CorpCardErrorContext.ClearErrorInfo();
-        if not CorpCardImportOrch.Run(CorpCardStatement) then begin
+        ClearLastError();
+        ImportTransactionSucceeded := CorpCardImportOrch.Run(CorpCardStatement);
+        if not ImportTransactionSucceeded then
             ImportErrorText := GetLastErrorText();
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        if not ImportTransactionSucceeded or (CorpCardStatement.Status = CorpCardStatement.Status::Failed) then begin
             ImportStage := CorpCardErrorContext.GetImportStage();
             HasStructuredErrorInfo := CorpCardErrorContext.TryGetErrorInfo(ImportErrorInfo);
+            if ImportTransactionSucceeded then
+                if HasStructuredErrorInfo then
+                    ImportErrorText := ImportErrorInfo.Message
+                else
+                    ImportErrorText := StrSubstNo(StatementValidationFailedErr, CorpCardStatement."Statement Entry No.", CorpCardProvider.Code);
             CorpCardErrorContext.ClearErrorInfo();
             MarkImportFailed(CorpCardStatement);
             AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", ImportStage);
@@ -70,15 +82,9 @@ codeunit 7432 "EA Corp Card Import Orch"
             exit(false);
         end;
 
-        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
-        if CorpCardStatement.Status <> CorpCardStatement.Status::Failed then
-            CorpCardStatement.Status := CorpCardStatement.Status::Imported;
-
+        CorpCardStatement.Status := CorpCardStatement.Status::Imported;
         CorpCardStatement."Ended DT" := CurrentDateTime();
         CorpCardStatement.Modify();
-
-        if CorpCardStatement.Status = CorpCardStatement.Status::Imported then
-            AuditSubscribers.LogImportCompleted(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", CorpCardStatement.Imported, CorpCardStatement.Exceptions, CorpCardStatement.Duplicates);
 
         ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
 
@@ -87,6 +93,9 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardProvider."Last Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardProvider.Modify();
         CorpCardErrorContext.ClearErrorInfo();
+        Commit();
+        AuditSubscribers.LogImportCompleted(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", CorpCardStatement.Imported, CorpCardStatement.Exceptions, CorpCardStatement.Duplicates);
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
         exit(true);
     end;
 
@@ -104,6 +113,9 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardProviderImpl.Download(CorpCardStatement);
         CorpCardErrorContext.SetImportStage('Parse');
         CorpCardProviderImpl.ParseToStaging(CorpCardStatement."Statement Entry No.");
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        if CorpCardStatement.Status = CorpCardStatement.Status::Failed then
+            exit;
         CorpCardErrorContext.SetImportStage('Acknowledge');
         CorpCardProviderImpl.Ack(CorpCardStatement."Statement Entry No.");
     end;
@@ -145,5 +157,6 @@ codeunit 7432 "EA Corp Card Import Orch"
     end;
 
     var
+        StatementValidationFailedErr: Label 'Corporate card statement %1 for provider %2 failed validation. Review its import exceptions.', Comment = '%1 = statement entry number, %2 = provider code';
         ImportFailedErr: Label 'Corporate card import failed: %1', Comment = '%1 = error detail returned by the import';
 }

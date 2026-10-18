@@ -17,6 +17,80 @@ codeunit 148359 EACorpCardStatementTests
     var
         Assert: Codeunit Assert;
         CorpCardTestLib: Codeunit EACorpCardTestLib;
+        ExpectedStatementEntryNo: Integer;
+
+    [Test]
+    [HandlerFunctions('StatementLookupHandler')]
+    procedure SettlementLineUsesLightweightStatementLookup()
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        SettlementLines: TestPage "EA Corp Card Settlement Lines";
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-LOOKUP', 2000, 1);
+        CorpCardStatement.Status := CorpCardStatement.Status::Validated;
+        CorpCardStatement.Modify();
+        ExpectedStatementEntryNo := CorpCardStatement."Statement Entry No.";
+        CorpCardSettlement."Provider Code" := CorpCardStatement."Provider Code";
+        CorpCardSettlement."Currency Code" := CorpCardStatement."Currency Code";
+        CorpCardSettlement.Insert(false);
+        CorpCardSettlementLine."Settlement Entry No." := CorpCardSettlement."Settlement Entry No.";
+        CorpCardSettlementLine."Line No." := 10000;
+        CorpCardSettlementLine.Insert(false);
+        SettlementLines.OpenEdit();
+        SettlementLines.GoToRecord(CorpCardSettlementLine);
+
+        SettlementLines."Statement Entry No.".Lookup();
+
+        Assert.AreEqual(Format(ExpectedStatementEntryNo), SettlementLines."Statement Entry No.".Value, 'The lookup must select the statement on the settlement line.');
+        Assert.AreEqual(CorpCardStatement."Statement No.", SettlementLines."Statement No.".Value, 'The lookup must retain statement snapshot validation.');
+        SettlementLines.Close();
+    end;
+
+    [ModalPageHandler]
+    procedure StatementLookupHandler(var StatementLookup: TestPage "EA Corp Card Statement Lookup")
+    begin
+        StatementLookup.Filter.SetFilter("Statement Entry No.", Format(ExpectedStatementEntryNo));
+        Assert.IsTrue(StatementLookup.First(), 'The statement must be available on the lightweight lookup.');
+        StatementLookup.OK().Invoke();
+    end;
+
+    [Test]
+    procedure StatementLookupShowsStatementDetails()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        StatementLookup: TestPage "EA Corp Card Statement Lookup";
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-LOOKUP-DETAILS', 2000, 1);
+
+        StatementLookup.OpenView();
+        StatementLookup.GoToRecord(CorpCardStatement);
+
+        Assert.AreEqual(CorpCardStatement."Statement No.", StatementLookup."Statement No.".Value, 'The lookup must show the provider statement number.');
+        Assert.AreEqual(CorpCardStatement."Currency Code", StatementLookup."Currency Code".Value, 'The lookup must show the statement currency.');
+        StatementLookup.Close();
+    end;
+
+    [Test]
+    procedure ValidateStatementIncludesAllTransactionsWithPartialRecords()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-MULTI', 3000, 2);
+        CreateTransaction(CorpCardTrans, CorpCardStatement, 'TRANS-MULTI-A', 1000, 'EXP-MULTI-A');
+        CreateTransaction(CorpCardTrans, CorpCardStatement, 'TRANS-MULTI-B', 2000, 'EXP-MULTI-B');
+
+        CorpCardStatementMgt.ValidateStatement(CorpCardStatement);
+
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        Assert.AreEqual(CorpCardStatement.Status::Validated, CorpCardStatement.Status, 'Validation must read and total every transaction with partial records.');
+    end;
 
     [Test]
     procedure ValidateStatementUsesImportedTransactionsAsLines()

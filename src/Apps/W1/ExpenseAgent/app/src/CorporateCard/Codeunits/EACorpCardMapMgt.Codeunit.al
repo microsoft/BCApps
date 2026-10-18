@@ -13,6 +13,7 @@ codeunit 7437 "EA Corp Card Map Mgt"
 
     var
         MandatoryFieldMapMissingErr: Label 'Missing Data Exchange field mapping for %1 on provider %2 (Definition: %3).', Comment = '%1 = Field caption, %2 = Provider code, %3 = Data Exchange Definition Code';
+        InternalFieldMappingErr: Label '%1 is an internal field and cannot be imported. Map Card Last 4 instead.', Comment = '%1 = field caption';
 
     internal procedure InitTransForStatement(var CorpCardTrans: Record "EA Corp Card Trans"; StatementEntryNo: Integer; ProviderCode: Code[20])
     begin
@@ -26,10 +27,23 @@ codeunit 7437 "EA Corp Card Map Mgt"
     var
         CorpCardTrans: Record "EA Corp Card Trans";
     begin
-        EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Card Id"), CorpCardTrans.FieldCaption("Card Id"));
+        EnsureInternalFieldNotMapped(CorpCardProvider, CorpCardTrans.FieldNo("Card Id"), CorpCardTrans.FieldCaption("Card Id"));
+        EnsureInternalFieldNotMapped(CorpCardProvider, CorpCardTrans.FieldNo("Expense Match No."), CorpCardTrans.FieldCaption("Expense Match No."));
         EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Provider Trans Id"), CorpCardTrans.FieldCaption("Provider Trans Id"));
         EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Trans Date"), CorpCardTrans.FieldCaption("Trans Date"));
         EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Amount"), CorpCardTrans.FieldCaption("Amount"));
+    end;
+
+    local procedure EnsureInternalFieldNotMapped(CorpCardProvider: Record "EA Corp Card Provider"; FieldId: Integer; FieldCaption: Text)
+    var
+        DataExchFieldMapping: Record "Data Exch. Field Mapping";
+    begin
+        DataExchFieldMapping.SetRange("Data Exch. Def Code", CorpCardProvider."Data Exch Def Code");
+        DataExchFieldMapping.SetRange("Data Exch. Line Def Code", CorpCardProvider."Data Exch Map Code");
+        DataExchFieldMapping.SetRange("Table ID", Database::"EA Corp Card Trans");
+        DataExchFieldMapping.SetRange("Field ID", FieldId);
+        if not DataExchFieldMapping.IsEmpty() then
+            Error(InternalFieldMappingErr, FieldCaption);
     end;
 
     local procedure EnsureFieldMappingExists(CorpCardProvider: Record "EA Corp Card Provider"; FieldId: Integer; FieldCaption: Text)
@@ -84,8 +98,6 @@ codeunit 7437 "EA Corp Card Map Mgt"
             exit;
 
         case DataExchFieldMapping."Field ID" of
-            CorpCardTrans.FieldNo("Card Id"):
-                NormalizedValue := ExtractTaggedValueCaseInsensitive(TransformedValue, 'CARDID=');
             CorpCardTrans.FieldNo(MCC):
                 NormalizedValue := ExtractTaggedValueCaseInsensitive(TransformedValue, 'MCC=');
             else

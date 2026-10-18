@@ -31,6 +31,20 @@ codeunit 148300 "Library - Expense"
         NameTxt: Label 'Name';
         AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
         AttachmentRetrievalFailureEnabled: Boolean;
+        CorpCardDraftFailureEnabled: Boolean;
+        CorpCardDraftFailedErr: Label 'Corporate card draft creation failed after inserting the expense.', Locked = true;
+
+    internal procedure SetCorpCardDraftFailureEnabled(Enabled: Boolean)
+    begin
+        CorpCardDraftFailureEnabled := Enabled;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Expense, OnAfterInsertEvent, '', false, false)]
+    local procedure FailOnAfterCorpCardExpenseInsert(var Rec: Record Expense; RunTrigger: Boolean)
+    begin
+        if CorpCardDraftFailureEnabled and (Rec."Credit Card Feed No." <> 0) then
+            Error(CorpCardDraftFailedErr);
+    end;
 
     internal procedure SetAttachmentRetrievalFailureEnabled(Enabled: Boolean)
     begin

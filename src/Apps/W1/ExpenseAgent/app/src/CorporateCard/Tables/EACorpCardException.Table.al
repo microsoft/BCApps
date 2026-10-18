@@ -85,6 +85,12 @@ table 7423 "EA Corp Card Exception"
         key(OpenByDate; Resolved, "Created DT")
         {
         }
+        key(StatementExceptions; "Statement Entry No.", Resolved)
+        {
+        }
+        key(TransactionExceptions; "Trans Entry No.", "Exception Type")
+        {
+        }
     }
 
     trigger OnModify()

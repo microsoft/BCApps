@@ -59,14 +59,11 @@ page 7445 "EA Corp Card JQ Schedule Sub"
         }
     }
 
-    trigger OnAfterGetRecord()
-    var
-        EmptyRecordId: RecordId;
+    trigger OnOpenPage()
     begin
-        if Rec."Record ID to Process" = EmptyRecordId then
-            CurrPage.Close();
-
-        if Rec."Record ID to Process".TableNo() = 0 then
-            CurrPage.Close();
+        Rec.FilterGroup(2);
+        Rec.SetRange("Object Type to Run", Rec."Object Type to Run"::Codeunit);
+        Rec.SetRange("Object ID to Run", Codeunit::"EA Corp Card JQ Runner");
+        Rec.FilterGroup(0);
     end;
 }

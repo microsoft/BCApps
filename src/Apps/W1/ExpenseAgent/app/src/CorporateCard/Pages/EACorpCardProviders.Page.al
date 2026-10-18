@@ -269,8 +269,8 @@ page 7434 "EA Corp Card Providers"
         CsvLbl: Label 'CSV', Locked = true;
         XmlLbl: Label 'XML', Locked = true;
         CamtLbl: Label 'CAMT', Locked = true;
-        NotSetLbl: Label 'Not set', Locked = true;
-        UnknownLbl: Label 'Unknown', Locked = true;
+        NotSetLbl: Label 'Not set';
+        UnknownLbl: Label 'Unknown';
 
     local procedure UploadSourcePayloadForProvider()
     var

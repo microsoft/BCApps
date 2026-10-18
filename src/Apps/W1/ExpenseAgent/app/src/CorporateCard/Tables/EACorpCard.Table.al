@@ -21,7 +21,7 @@ table 7421 "EA Corp Card"
         {
             Caption = 'Card Id';
             DataClassification = AccountData;
-            ToolTip = 'Specifies the unique identifier for the card.';
+            ToolTip = 'Specifies the internal Business Central identifier for the card, not its card number. Statement files must not contain this identifier.';
         }
         field(2; "Provider Code"; Code[20])
         {
@@ -40,7 +40,7 @@ table 7421 "EA Corp Card"
         {
             Caption = 'Masked Card No.';
             DataClassification = AccountData;
-            ToolTip = 'Specifies the masked card number.';
+            ToolTip = 'Specifies the masked card number ending in its last four digits. Imports use those digits together with the provider to identify the internal card.';
         }
         field(5; "Expense User No."; Code[20])
         {

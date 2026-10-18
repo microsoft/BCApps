@@ -36,11 +36,14 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
 
     internal procedure LogImportStarted(ProviderCode: Code[20]; StatementEntryNo: Integer)
     var
+        ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         Dimensions: Dictionary of [Text, Text];
     begin
+        Dimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
+        Dimensions.Add('FeatureName', ExpenseAgentSetup.GetFeatureName());
         Dimensions.Add('ProviderCode', ProviderCode);
         Dimensions.Add('StatementEntryNo', Format(StatementEntryNo));
-        FeatureTelemetry.LogUsage('0000UCS', ExpenseAgentSetup.GetFeatureName(), ImportStartedMsg, Dimensions);
+        Session.LogMessage('0000UCS', ImportStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure LogImportCompleted(ProviderCode: Code[20]; StatementEntryNo: Integer; Imported: Integer; Exceptions: Integer; Duplicates: Integer)
@@ -74,12 +77,11 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
         FeatureTelemetry.LogUsage('0000UCV', ExpenseAgentSetup.GetFeatureName(), MatchingCompletedMsg, Dimensions);
     end;
 
-    internal procedure LogDraftCreated(TransEntryNo: Integer; ExpenseNo: Code[20])
+    internal procedure LogDraftCreated(TransEntryNo: Integer)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
         Dimensions.Add('TransactionEntryNo', Format(TransEntryNo));
-        Dimensions.Add('ExpenseNo', ExpenseNo);
         FeatureTelemetry.LogUsage('0000UCW', ExpenseAgentSetup.GetFeatureName(), DraftCreatedMsg, Dimensions);
     end;
 

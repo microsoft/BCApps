@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Threading;
 
-codeunit 6913 "EA Corp Card Stats Calculator"
+codeunit 7445 "EA Corp Card Stats Calculator"
 {
     Access = Internal;
     InherentEntitlements = X;

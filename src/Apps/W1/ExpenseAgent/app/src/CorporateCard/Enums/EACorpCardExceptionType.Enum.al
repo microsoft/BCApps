@@ -33,4 +33,8 @@ enum 7434 "EA Corp Card Exception Type"
     {
         Caption = 'Integration';
     }
+    value(6; PostImportProcessing)
+    {
+        Caption = 'Post-Import Processing';
+    }
 }

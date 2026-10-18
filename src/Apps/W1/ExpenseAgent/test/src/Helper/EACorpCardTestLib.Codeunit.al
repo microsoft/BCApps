@@ -123,6 +123,7 @@ codeunit 148357 EACorpCardTestLib
             CorpCard."Card Id" := GetCorpCardId(CardSequenceNo);
             CorpCard."Provider Code" := CorpCardCsvProviderCodeTok;
             CorpCard."Expense User No." := ExpenseUser."No.";
+            CorpCard."Masked Card No." := CopyStr('****' + PadNumberLeft(CardSequenceNo, 4), 1, MaxStrLen(CorpCard."Masked Card No."));
             CorpCard.Insert(true);
         until (ExpenseUser.Next() = 0) or (CardSequenceNo = GetCorpCardCount());
 
@@ -130,6 +131,7 @@ codeunit 148357 EACorpCardTestLib
         CorpCard."Card Id" := CorpCardXmlSampleCardIdTok;
         CorpCard."Provider Code" := CorpCardXmlProviderCodeTok;
         CorpCard."Expense User No." := ExpenseUser."No.";
+        CorpCard."Masked Card No." := '****9001';
         CorpCard.Insert(true);
     end;
 
@@ -143,13 +145,13 @@ codeunit 148357 EACorpCardTestLib
         CsvPayloadBuilder: TextBuilder;
         TransactionNo: Integer;
     begin
-        CsvPayloadBuilder.AppendLine('ProviderTransId,CardId,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
+        CsvPayloadBuilder.AppendLine('ProviderTransId,CardLast4,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
         for TransactionNo := 1 to GetCorpCardTransactionCount() do
             CsvPayloadBuilder.AppendLine(
 #pragma warning disable AA0217
                 StrSubstNo(
                     'TXN%1,%2,2026-06-02,2026-06-03,19.63,USD,Contoso Air,4511,US,Test transaction %1',
-                    PadNumberLeft(TransactionNo, 5), GetCorpCardId(((TransactionNo - 1) mod GetCorpCardCount()) + 1)));
+                    PadNumberLeft(TransactionNo, 5), PadNumberLeft(((TransactionNo - 1) mod GetCorpCardCount()) + 1, 4)));
 #pragma warning restore AA0217
         exit(CsvPayloadBuilder.ToText());
     end;
@@ -161,7 +163,7 @@ codeunit 148357 EACorpCardTestLib
             '<CorporateCardTransactions>' +
                 '<Transaction>' +
                     '<ProviderTransId>XMLTXN0001</ProviderTransId>' +
-                    '<CardId>' + CorpCardXmlSampleCardIdTok + '</CardId>' +
+                    '<CardLast4>9001</CardLast4>' +
                     '<TransDate>2026-06-02</TransDate>' +
                     '<PostingDate>2026-06-03</PostingDate>' +
                     '<Amount>19.63</Amount>' +

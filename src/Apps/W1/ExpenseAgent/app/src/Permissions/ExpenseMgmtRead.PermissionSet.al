@@ -43,7 +43,7 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Report Line Particip." = R,
         tabledata "Expense Report Line Per Diem" = R,
         tabledata "Expense Subcategory" = R,
-        tabledata "Expense Management Cue" = RIMD,
+        tabledata "EA Expense Management Cue" = RI,
         tabledata "Expense Per Diem" = R,
         tabledata "Posted Expense Report Header" = R,
         tabledata "Posted Expense Report Line" = R,

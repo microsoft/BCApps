@@ -1023,6 +1023,7 @@ codeunit 6987 "Expense Report-Post"
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardTrans: Record "EA Corp Card Trans";
     begin
+        CorpCardTrans.LockTable();
         CorpCardTrans.Get(CorpCardTransEntryNo);
         CorpCard.Get(CorpCardTrans."Card Id");
         CorpCard.TestField(Blocked, false);

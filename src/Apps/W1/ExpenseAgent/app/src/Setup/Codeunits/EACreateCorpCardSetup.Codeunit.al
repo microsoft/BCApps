@@ -448,9 +448,9 @@ codeunit 7442 "EA Create Corp Card Setup"
 
     local procedure GetProviderSamplePayload(ProviderCode: Code[20]; var SamplePayload: Text; var SampleFileName: Text[250]): Boolean
     var
-        PrimaryCardId: Code[50];
+        PrimaryCardLast4: Code[4];
     begin
-        PrimaryCardId := BuildProviderSampleCardId(1);
+        PrimaryCardLast4 := '0001';
 
         case ProviderCode of
             CorpCardCsvProviderCodeTok:
@@ -461,7 +461,7 @@ codeunit 7442 "EA Create Corp Card Setup"
                 end;
             CorpCardXmlProviderCodeTok:
                 begin
-                    SamplePayload := BuildXmlSamplePayload(PrimaryCardId);
+                    SamplePayload := BuildXmlSamplePayload(PrimaryCardLast4);
                     SampleFileName := CorpCardXmlSampleFileNameTok;
                     exit(true);
                 end;
@@ -480,7 +480,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CsvPayloadBuilder: TextBuilder;
         TransactionNo: Integer;
     begin
-        CsvPayloadBuilder.AppendLine('ProviderTransId,CardId,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
+        CsvPayloadBuilder.AppendLine('ProviderTransId,CardLast4,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
         for TransactionNo := 1 to GetCorpCardSampleTransactionCount() do
             AppendCsvSampleTransaction(CsvPayloadBuilder, TransactionNo, PeriodStartDate, PeriodEndDate);
 
@@ -596,14 +596,14 @@ codeunit 7442 "EA Create Corp Card Setup"
         exit(60);
     end;
 
-    local procedure BuildXmlSamplePayload(CardId: Code[50]): Text
+    local procedure BuildXmlSamplePayload(CardLast4: Code[4]): Text
     begin
         exit(
             '<?xml version="1.0" encoding="utf-8"?>' +
             '<CorporateCardTransactions>' +
                 '<Transaction>' +
                     '<ProviderTransId>XMLTXN0001</ProviderTransId>' +
-                    '<CardId>' + CardId + '</CardId>' +
+                    '<CardLast4>' + CardLast4 + '</CardLast4>' +
                     '<TransDate>2026-06-02</TransDate>' +
                     '<PostingDate>2026-06-03</PostingDate>' +
                     '<Amount>19.63</Amount>' +
@@ -1168,7 +1168,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         end;
 
         EnsureColumnDef(DataExchDefCode, LineDefCode, 1, 'ProviderTransId', ResolveXmlPath(IsXml, 'ProviderTransId'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 2, 'CardId', ResolveXmlPath(IsXml, 'CardId'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 2, 'CardLast4', ResolveXmlPath(IsXml, 'CardLast4'));
         EnsureColumnDef(DataExchDefCode, LineDefCode, 3, 'TransDate', ResolveXmlPath(IsXml, 'TransDate'));
         EnsureColumnDef(DataExchDefCode, LineDefCode, 4, 'PostingDate', ResolveXmlPath(IsXml, 'PostingDate'));
         EnsureColumnDef(DataExchDefCode, LineDefCode, 5, 'Amount', ResolveXmlPath(IsXml, 'Amount'));
@@ -1276,9 +1276,15 @@ codeunit 7442 "EA Create Corp Card Setup"
     local procedure EnsureFieldMappings(DataExchDefCode: Code[20]; LineDefCode: Code[20])
     var
         CorpCardTrans: Record "EA Corp Card Trans";
+        DataExchFieldMapping: Record "Data Exch. Field Mapping";
     begin
+        DataExchFieldMapping.SetRange("Data Exch. Def Code", DataExchDefCode);
+        DataExchFieldMapping.SetRange("Data Exch. Line Def Code", LineDefCode);
+        DataExchFieldMapping.SetRange("Table ID", Database::"EA Corp Card Trans");
+        DataExchFieldMapping.SetRange("Field ID", CorpCardTrans.FieldNo("Card Id"));
+        DataExchFieldMapping.DeleteAll(true);
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 1, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Provider Trans Id"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 2, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Card Id"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 2, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Card Last 4"));
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 3, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Trans Date"));
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 4, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Posting Date"));
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 5, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Amount));
@@ -1331,7 +1337,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-STATEMENT-%1', Comment = '%1 = statement sequence number', MaxLength = 50, Locked = true;
         CorpCardSampleCardIdTok: Label 'CORPCARD-%1', Comment = '%1 = card sequence number', MaxLength = 50, Locked = true;
         CorpCardSampleCurrencyCodeTok: Label 'USD', MaxLength = 10, Locked = true;
-        CorpCardSampleCsvLineTok: Label 'TXN%1,CORPCARD-%2,%3,%3,%4,USD,%5,%6,US,Sample transaction %7', Comment = '%1 = transaction sequence number, %2 = card sequence number, %3 = transaction and posting date, %4 = amount, %5 = merchant name, %6 = merchant category code, %7 = sample transaction number', Locked = true;
+        CorpCardSampleCsvLineTok: Label 'TXN%1,%2,%3,%3,%4,USD,%5,%6,US,Sample transaction %7', Comment = '%1 = transaction sequence number, %2 = card last four digits, %3 = transaction and posting date, %4 = amount, %5 = merchant name, %6 = merchant category code, %7 = sample transaction number', Locked = true;
         CorpCardBankAccountTok: Label 'CORPCARD', Locked = true;
         CorpCardBankAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
         CorpCardBankAccountNoTok: Label '99-55-000', Locked = true;

@@ -130,6 +130,7 @@ page 7447 "EA Corp Card Settlement"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = Rec.Status = Rec.Status::Posted;
+                    ShowMandatory = Rec.Status = Rec.Status::Posted;
                     ToolTip = 'Specifies why the posted settlement must be reversed.';
                 }
                 field("Reversal Transaction No."; Rec."Reversal Transaction No.")

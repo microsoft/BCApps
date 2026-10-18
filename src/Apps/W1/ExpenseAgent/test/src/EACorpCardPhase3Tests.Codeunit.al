@@ -4,8 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
+using Microsoft.Bank.Ledger;
 using Microsoft.ExpenseAgent;
 using System.IO;
+using System.Threading;
 
 codeunit 148353 EACorpCardPhase3Tests
 {
@@ -19,6 +21,8 @@ codeunit 148353 EACorpCardPhase3Tests
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        PostedTransactionDeletionErr: Label 'cannot be deleted because it has been posted or is referenced by a posted expense report or bank account ledger entry.', Locked = true;
+        LinkedTransactionDeletionErr: Label 'cannot be deleted because it is linked to an expense or expense report.', Locked = true;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
@@ -44,6 +48,139 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'Failed imports must finalize the statement as failed.');
         Assert.IsTrue(CorpCardStatement."Ended DT" <> 0DT, 'Failed imports must record the statement end date and time.');
         Assert.AreEqual(CorpCardStatement."Statement Entry No.", CorpCardProvider."Last Statement Entry No.", 'Failed imports must update the provider with the failed statement entry number.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure AllRejectedCsvImportRetainsRowDiagnostics()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+    begin
+        Initialize();
+        SetAllRejectedCsvPayload();
+
+        asserterror CorpCardFeedMgt.RunImport(CorpCardCsvProviderCodeTok);
+
+        Assert.ExpectedError('All 2 transaction lines');
+        AssertRejectedCsvStatement(CorpCardStatement);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure AllRejectedCsvReturnsActionableFailureWithoutUpdatingLastImport()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+        ImportErrorInfo: ErrorInfo;
+        ImportErrorText: Text;
+        HasStructuredErrorInfo: Boolean;
+        LastSuccessfulImport: DateTime;
+    begin
+        Initialize();
+        SetAllRejectedCsvPayload();
+        LastSuccessfulImport := CreateDateTime(DMY2Date(1, 1, 2026), 120000T);
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        CorpCardProvider."Last Import DT" := LastSuccessfulImport;
+        CorpCardProvider.Modify(true);
+
+        Assert.IsFalse(
+            CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo),
+            'All-rejected CSV input must return a failed import outcome.');
+
+        AssertRejectedCsvStatement(CorpCardStatement);
+        Assert.IsTrue(HasStructuredErrorInfo, 'The validation failure must retain structured error information.');
+        Assert.AreEqual(ImportErrorText, ImportErrorInfo.Message, 'The returned error must explain the validation failure.');
+        Assert.AreEqual(Page::"EA Corp Card Statement", ImportErrorInfo.PageNo, 'The recovery action must open the statement with the retained exceptions.');
+        Assert.AreEqual(CorpCardStatement.RecordId, ImportErrorInfo.RecordId, 'The recovery action must target the failed statement.');
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        Assert.AreEqual(LastSuccessfulImport, CorpCardProvider."Last Import DT", 'A validation failure must not overwrite the last successful import time.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure AllRejectedCsvStagingCommitsDiagnosticsWithoutAcknowledgment()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+    begin
+        Initialize();
+        SetAllRejectedCsvPayload();
+        CorpCardStatement.Init();
+        CorpCardStatement."Provider Code" := CorpCardCsvProviderCodeTok;
+        CorpCardStatement.Status := CorpCardStatement.Status::Importing;
+        CorpCardStatement.Insert(true);
+        CorpCardErrorContext.ClearErrorInfo();
+        Commit();
+
+        Assert.IsTrue(CorpCardImportOrch.Run(CorpCardStatement), 'Row validation failures must return without rolling back their diagnostics.');
+
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'The committed staging outcome must indicate validation failure.');
+        Assert.AreEqual(2, CorpCardStatement.Rejected, 'The staging transaction must retain the exact rejection count.');
+        Assert.AreEqual(2, CorpCardStatement.Exceptions, 'The staging transaction must retain its exception count.');
+        Assert.AreEqual('Parse', CorpCardErrorContext.GetImportStage(), 'Failed validation must not advance to provider acknowledgment.');
+        CorpCardErrorContext.ClearErrorInfo();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ScheduleShowsOnlyCorporateCardImportsIncludingAllProviders()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        JobQueueEntry: Record "Job Queue Entry";
+        EmptyRecordId: RecordId;
+        SchedulePage: TestPage "EA Corp Card JQ Schedule";
+        VisibleCount: Integer;
+        AllProvidersVisible: Boolean;
+    begin
+        Initialize();
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-SCHEDULE-TEST-CSV', CorpCardProvider.RecordId);
+        CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-SCHEDULE-TEST-XML', CorpCardProvider.RecordId);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-SCHEDULE-TEST-ALL', EmptyRecordId);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-SCHEDULE-TEST-OTHER', EmptyRecordId);
+        JobQueueEntry."Object ID to Run" := Codeunit::Assert;
+        JobQueueEntry.Modify(false);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-SCHEDULE-TEST-REPORT', EmptyRecordId);
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Report;
+        JobQueueEntry.Modify(false);
+
+        SchedulePage.OpenView();
+        SchedulePage.Schedule.Filter.SetFilter(Description, 'CORP-SCHEDULE-TEST-*');
+        Assert.IsTrue(SchedulePage.Schedule.First(), 'The schedule must contain the corporate-card import entries.');
+        repeat
+            Assert.IsTrue(
+                SchedulePage.Schedule.Description.Value() in ['CORP-SCHEDULE-TEST-CSV', 'CORP-SCHEDULE-TEST-XML', 'CORP-SCHEDULE-TEST-ALL'],
+                'Unrelated codeunits and reports must not appear in the corporate-card schedule.');
+            AllProvidersVisible := AllProvidersVisible or (SchedulePage.Schedule.Description.Value() = 'CORP-SCHEDULE-TEST-ALL');
+            VisibleCount += 1;
+        until not SchedulePage.Schedule.Next();
+        Assert.AreEqual(3, VisibleCount, 'The schedule must show both providers and the all-providers import entry.');
+        Assert.IsTrue(AllProvidersVisible, 'An empty record ID is valid for an all-providers import and must not close the schedule.');
+        SchedulePage.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ScheduleWithNoMatchingImportsRemainsOpen()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        EmptyRecordId: RecordId;
+        SchedulePage: TestPage "EA Corp Card JQ Schedule";
+    begin
+        Initialize();
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-SCHEDULE-EMPTY-OTHER', EmptyRecordId);
+        JobQueueEntry."Object ID to Run" := Codeunit::Assert;
+        JobQueueEntry.Modify(false);
+
+        SchedulePage.OpenView();
+        SchedulePage.Schedule.Filter.SetFilter(Description, 'CORP-SCHEDULE-EMPTY-*');
+        Assert.IsFalse(SchedulePage.Schedule.First(), 'The schedule must be empty when only unrelated entries match the user filter.');
+        SchedulePage.Close();
     end;
 
     [Test]
@@ -144,7 +281,7 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.IsTrue(CorpCardTrans.IsEmpty(), 'A rejected transaction must not be staged with an arbitrary provider card.');
         CorpCardException.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         Assert.IsTrue(CorpCardException.FindFirst(), 'The rejected transaction must create an import exception.');
-        Assert.AreEqual('Card Id is missing.', CorpCardException.Message, 'The import exception must identify the missing card identifier.');
+        Assert.IsTrue(StrPos(CorpCardException.Message, 'No corporate card could be identified') > 0, 'The import exception must identify the unresolved card.');
         Assert.AreEqual(ExpenseCountBeforeImport, Expense.Count(), 'A rejected transaction must not create or match an expense.');
     end;
 
@@ -224,6 +361,166 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.IsTrue(CorpCardTransDetail.IsEmpty(), 'Deleting a statement must delete transaction detail lines.');
         CorpCardException.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         Assert.IsTrue(CorpCardException.IsEmpty(), 'Deleting a statement must delete its exceptions.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingPostedTransactionWithStaleBufferFails()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        CorpCardTrans.Status := CorpCardTrans.Status::Posted;
+        CorpCardTrans.Modify(true);
+        CorpCardTrans.Status := CorpCardTrans.Status::Imported;
+
+        AssertTransactionDeletionFails(CorpCardTrans, PostedTransactionDeletionErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingTransactionWithPostedReportNumberFails()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        CorpCardTrans."Posted Expense Report No." := 'DELETE-POSTED';
+        CorpCardTrans.Modify(true);
+
+        AssertTransactionDeletionFails(CorpCardTrans, PostedTransactionDeletionErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingCanceledTransactionWithPostedLineFails()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        CorpCardTrans.Status := CorpCardTrans.Status::Matched;
+        CorpCardTrans.Modify(true);
+        PostedExpenseReportLine.Init();
+        PostedExpenseReportLine."Document No." := 'DELETE-POSTED';
+        PostedExpenseReportLine."Line No." := 10000;
+        PostedExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        PostedExpenseReportLine.Insert(false);
+
+        AssertTransactionDeletionFails(CorpCardTrans, PostedTransactionDeletionErr);
+        Assert.IsTrue(
+            PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No."),
+            'Rejecting transaction deletion must preserve the posted expense line.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingTransactionWithReversedBankLedgerEntryFails()
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        EntryNo: Integer;
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        CorpCardTrans.Status := CorpCardTrans.Status::Matched;
+        CorpCardTrans.Modify(true);
+        EntryNo := 1;
+        if BankAccountLedgerEntry.FindLast() then
+            EntryNo := BankAccountLedgerEntry."Entry No." + 1;
+        BankAccountLedgerEntry.Init();
+        BankAccountLedgerEntry."Entry No." := EntryNo;
+        BankAccountLedgerEntry."EA Corp Card Trans Entry No." := CorpCardTrans."Entry No.";
+        BankAccountLedgerEntry.Reversed := true;
+        BankAccountLedgerEntry.Insert(false);
+
+        AssertTransactionDeletionFails(CorpCardTrans, PostedTransactionDeletionErr);
+        Assert.IsTrue(BankAccountLedgerEntry.Get(EntryNo), 'Rejecting transaction deletion must preserve the bank ledger entry.');
+
+        BankAccountLedgerEntry.Delete(false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingTransactionWithExpenseNumberFails()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        CorpCardTrans."Expense No." := 'DELETE-EXPENSE';
+        CorpCardTrans.Modify(true);
+
+        AssertTransactionDeletionFails(CorpCardTrans, LinkedTransactionDeletionErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingTransactionReferencedByExpenseFails()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        Expense.Init();
+        Expense."No." := 'DELETE-EXPENSE';
+        Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        Expense.Insert(false);
+
+        AssertTransactionDeletionFails(CorpCardTrans, LinkedTransactionDeletionErr);
+        Assert.IsTrue(Expense.Get(Expense."No."), 'Rejecting transaction deletion must preserve the linked expense.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingTransactionReferencedByReportLineFails()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        Initialize();
+        CreateTransactionForDeletionTest(CorpCardTrans);
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := 'DELETE-REPORT';
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        ExpenseReportLine.Insert(false);
+
+        AssertTransactionDeletionFails(CorpCardTrans, LinkedTransactionDeletionErr);
+        Assert.IsTrue(
+            ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No."),
+            'Rejecting transaction deletion must preserve the expense report line.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DeletingStatementWithPostedTransactionRollsBackCascade()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+        PostedCorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardDedupMgt: Codeunit "EA Corp Card Dedup Mgt";
+    begin
+        Initialize();
+        CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
+        PostedCorpCardTrans := CorpCardTrans;
+        PostedCorpCardTrans."Entry No." := 0;
+        PostedCorpCardTrans."Provider Trans Id" := 'DELETE-POSTED';
+        PostedCorpCardTrans.Status := PostedCorpCardTrans.Status::Posted;
+        PostedCorpCardTrans.Insert(true);
+        Commit();
+
+        asserterror CorpCardStatement.Delete(true);
+
+        Assert.ExpectedError(PostedTransactionDeletionErr);
+        AssertTransactionAndOwnedDataExist(CorpCardTrans."Entry No.");
+        Assert.IsTrue(PostedCorpCardTrans.Get(PostedCorpCardTrans."Entry No."), 'The posted transaction must survive statement deletion.');
+        Assert.IsTrue(CorpCardDedupMgt.IsDuplicate(PostedCorpCardTrans), 'The posted transaction must retain its duplicate-check identity.');
     end;
 
     [Test]
@@ -374,7 +671,7 @@ codeunit 148353 EACorpCardPhase3Tests
             '<CorporateCardTransactions>' +
                 '<Transaction>' +
                     '<ProviderTransId>XMLNEG0001</ProviderTransId>' +
-                    '<CardId>CORPCARD-0001</CardId>' +
+                    '<CardLast4>0001</CardLast4>' +
                     '<TransDate>2026-07-01</TransDate>' +
                     '<PostingDate>2026-07-01</PostingDate>' +
                     '<Amount>19.63</Amount>' +
@@ -462,6 +759,95 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardException."Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardException."Trans Entry No." := CorpCardTrans."Entry No.";
         CorpCardException.Insert(true);
+    end;
+
+    local procedure SetAllRejectedCsvPayload()
+    var
+        CsvPayload: TextBuilder;
+    begin
+        CsvPayload.AppendLine('ProviderTransId,CardLast4,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
+        CsvPayload.AppendLine('REJECT-1,,2026-06-02,2026-06-03,19.63,USD,Rejected merchant,4511,US,Missing card');
+        CsvPayload.AppendLine(',0001,2026-06-02,2026-06-03,19.63,USD,Rejected merchant,4511,US,Missing transaction ID');
+        SetProviderSourcePayload(CorpCardCsvProviderCodeTok, CsvPayload.ToText(), 'All-rejected.csv');
+    end;
+
+    local procedure AssertRejectedCsvStatement(var CorpCardStatement: Record "EA Corp Card Statement")
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+    begin
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        Assert.IsTrue(CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No."), 'The failed statement must remain accessible from its provider.');
+        Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'An all-rejected CSV import must finalize as failed.');
+        Assert.AreEqual(0, CorpCardStatement.Imported, 'Invalid rows must not be counted as imported.');
+        Assert.AreEqual(2, CorpCardStatement.Rejected, 'The rejection count must reflect rows without an additional synthetic rejection.');
+        Assert.AreEqual(2, CorpCardStatement.Exceptions, 'The exception count must survive failure finalization.');
+        Assert.IsTrue(CorpCardStatement."Ended DT" <> 0DT, 'The failed statement must retain its completion time.');
+        Assert.AreEqual('All-rejected.csv', CorpCardStatement."Source File Name", 'The failed statement must retain the source file name.');
+        Assert.IsTrue(CorpCardStatement."Source Payload Hash" <> '', 'The failed statement must retain its source hash.');
+        Assert.AreEqual(0, CorpCardStatement."Data Exch Entry No.", 'Failure finalization must remove the temporary data exchange record.');
+        CorpCardProvider.CalcFields("Source Payload");
+        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Failure finalization must clear the source payload without losing diagnostics.');
+        Assert.AreEqual(0, CorpCardProvider."Source Payload Record Count", 'Failure finalization must clear the source payload record count.');
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.IsTrue(CorpCardTrans.IsEmpty(), 'Rejected rows must not create staged transactions.');
+        Assert.IsTrue(Expense.IsEmpty(), 'Failed validation must not run post-import draft creation.');
+        CorpCardException.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.AreEqual(2, CorpCardException.Count(), 'Every rejected row must retain its exception record.');
+        CorpCardException.SetFilter(Message, 'No corporate card could be identified*');
+        Assert.AreEqual(1, CorpCardException.Count(), 'The missing-card diagnostic must survive the failed import.');
+        CorpCardException.SetRange(Message, 'Provider Trans Id is missing.');
+        Assert.AreEqual(1, CorpCardException.Count(), 'The missing-transaction-ID diagnostic must survive the failed import.');
+    end;
+
+    local procedure CreateScheduleTestEntry(var JobQueueEntry: Record "Job Queue Entry"; Description: Text[100]; ProviderRecordId: RecordId)
+    begin
+        JobQueueEntry.Init();
+        JobQueueEntry.ID := CreateGuid();
+        JobQueueEntry.Description := Description;
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"EA Corp Card JQ Runner";
+        JobQueueEntry."Record ID to Process" := ProviderRecordId;
+        JobQueueEntry.Status := JobQueueEntry.Status::"On Hold";
+        JobQueueEntry.Insert(false);
+    end;
+
+    local procedure CreateTransactionForDeletionTest(var CorpCardTrans: Record "EA Corp Card Trans")
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+        CorpCardException: Record "EA Corp Card Exception";
+    begin
+        CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
+    end;
+
+    local procedure AssertTransactionDeletionFails(var CorpCardTrans: Record "EA Corp Card Trans"; ExpectedError: Text)
+    begin
+        Commit();
+
+        asserterror CorpCardTrans.Delete(true);
+
+        Assert.ExpectedError(ExpectedError);
+        AssertTransactionAndOwnedDataExist(CorpCardTrans."Entry No.");
+    end;
+
+    local procedure AssertTransactionAndOwnedDataExist(TransactionEntryNo: Integer)
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardDedupMgt: Codeunit "EA Corp Card Dedup Mgt";
+    begin
+        Assert.IsTrue(CorpCardTrans.Get(TransactionEntryNo), 'Rejecting deletion must preserve the transaction.');
+        Assert.IsTrue(CorpCardStatement.Get(CorpCardTrans."Statement Entry No."), 'Rejecting deletion must preserve the statement.');
+        Assert.IsTrue(CorpCardDedupMgt.IsDuplicate(CorpCardTrans), 'Rejecting deletion must preserve the duplicate-check identity.');
+        CorpCardTransDetail.SetRange("Trans Entry No.", TransactionEntryNo);
+        Assert.IsFalse(CorpCardTransDetail.IsEmpty(), 'Rejecting deletion must preserve transaction details.');
+        CorpCardException.SetRange("Trans Entry No.", TransactionEntryNo);
+        Assert.IsFalse(CorpCardException.IsEmpty(), 'Rejecting deletion must preserve transaction exceptions.');
     end;
 
     local procedure CreateCorpCard(var CorpCard: Record "EA Corp Card"; CardId: Code[50])

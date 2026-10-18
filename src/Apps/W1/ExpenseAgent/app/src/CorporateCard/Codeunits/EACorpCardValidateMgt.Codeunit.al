@@ -12,7 +12,12 @@ codeunit 7435 "EA Corp Card Validate Mgt"
 
     var
         MissingProviderCodeErr: Label 'Provider Code is missing.';
-        MissingCardIdErr: Label 'Card Id is missing.';
+        NoCardMatchErr: Label 'No corporate card could be identified from the last four digits or an existing expense with the same date, amount, and currency.';
+        InvalidCardLast4Err: Label 'Card Last 4 must contain exactly four digits. Full card numbers and internal card identifiers are not accepted.';
+        AmbiguousCardErr: Label 'More than one corporate card matches the last four digits for this provider.';
+        AmbiguousExpenseErr: Label 'More than one expense or corporate card matches this transaction. Review the card and expense setup.';
+        CardNotFoundErr: Label 'The corporate card could not be found.';
+        BlockedCardErr: Label 'The corporate card is blocked.';
         MissingProviderTransIdErr: Label 'Provider Trans Id is missing.';
         MissingTransDateErr: Label 'Trans Date is missing.';
         CardProviderMismatchErr: Label 'Card %1 belongs to provider %2, not provider %3.', Comment = '%1 = card id, %2 = card provider code, %3 = transaction provider code';
@@ -34,16 +39,6 @@ codeunit 7435 "EA Corp Card Validate Mgt"
             ValidationReason := MissingProviderCodeErr;
             exit(false);
         end;
-        if CorpCardTrans."Card Id" = '' then begin
-            ValidationReason := MissingCardIdErr;
-            exit(false);
-        end;
-        CorpCard.Get(CorpCardTrans."Card Id");
-        CorpCard.TestField(Blocked, false);
-        if CorpCard."Provider Code" <> CorpCardTrans."Provider Code" then begin
-            ValidationReason := CopyStr(StrSubstNo(CardProviderMismatchErr, CorpCardTrans."Card Id", CorpCard."Provider Code", CorpCardTrans."Provider Code"), 1, MaxStrLen(ValidationReason));
-            exit(false);
-        end;
         if CorpCardTrans."Provider Trans Id" = '' then begin
             ValidationReason := MissingProviderTransIdErr;
             exit(false);
@@ -53,8 +48,101 @@ codeunit 7435 "EA Corp Card Validate Mgt"
             exit(false);
         end;
 
+        if CorpCardTrans."Card Id" = '' then begin
+            if CorpCardTrans."Card Last 4" <> '' then begin
+                if not ResolveCardFromLast4(CorpCardTrans, CorpCard, ValidationReason) then
+                    exit(false);
+            end else
+                if not ResolveCardFromExpense(CorpCardTrans, CorpCard, CorpCardTrans."Expense Match No.", ValidationReason) then
+                    exit(false);
+            CorpCardTrans."Card Id" := CorpCard."Card Id";
+        end;
+        if not CorpCard.Get(CorpCardTrans."Card Id") then begin
+            ValidationReason := CardNotFoundErr;
+            exit(false);
+        end;
+        if CorpCard.Blocked then begin
+            ValidationReason := BlockedCardErr;
+            exit(false);
+        end;
+        if CorpCard."Provider Code" <> CorpCardTrans."Provider Code" then begin
+            ValidationReason := CopyStr(StrSubstNo(CardProviderMismatchErr, CorpCardTrans."Card Id", CorpCard."Provider Code", CorpCardTrans."Provider Code"), 1, MaxStrLen(ValidationReason));
+            exit(false);
+        end;
         ValidationReason := '';
 
+        exit(true);
+    end;
+
+    internal procedure TrySetCardLast4(CardLast4: Text; var CorpCardTrans: Record "EA Corp Card Trans"; var ValidationReason: Text[250]): Boolean
+    begin
+        if (CardLast4 <> '') and ((StrLen(CardLast4) <> 4) or (DelChr(CardLast4, '=', '0123456789') <> '')) then begin
+            ValidationReason := InvalidCardLast4Err;
+            exit(false);
+        end;
+        CorpCardTrans."Card Last 4" := CopyStr(CardLast4, 1, MaxStrLen(CorpCardTrans."Card Last 4"));
+        exit(true);
+    end;
+
+    local procedure ResolveCardFromLast4(CorpCardTrans: Record "EA Corp Card Trans"; var CorpCard: Record "EA Corp Card"; var ValidationReason: Text[250]): Boolean
+    begin
+        if not TrySetCardLast4(CorpCardTrans."Card Last 4", CorpCardTrans, ValidationReason) then
+            exit(false);
+        CorpCard.SetRange("Provider Code", CorpCardTrans."Provider Code");
+        CorpCard.SetFilter("Masked Card No.", '%1', '*' + CorpCardTrans."Card Last 4");
+        if not CorpCard.FindFirst() then begin
+            ValidationReason := NoCardMatchErr;
+            exit(false);
+        end;
+        if CorpCard.Next() <> 0 then begin
+            ValidationReason := AmbiguousCardErr;
+            exit(false);
+        end;
+        exit(true);
+    end;
+
+    internal procedure ResolveCardFromExpense(CorpCardTrans: Record "EA Corp Card Trans"; var CorpCard: Record "EA Corp Card"; var ExpenseNo: Code[20]; var ValidationReason: Text[250]): Boolean
+    var
+        Expense: Record Expense;
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        MatchedCardId: Code[50];
+    begin
+        ExpenseNo := '';
+        Expense.SetRange(Status, Expense.Status::Open);
+        Expense.SetRange("Credit Card Feed No.", 0);
+        Expense.SetRange("Expense Date", CorpCardTrans."Trans Date");
+        Expense.SetRange(Amount, CorpCardTrans.Amount);
+        Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
+        Expense.SetLoadFields("Expense User No.", "Payment Method Code");
+        if Expense.FindSet() then
+            repeat
+                if Expense."Expense User No." = '' then
+                    continue;
+                if not ExpensePaymentMethod.Get(Expense."Payment Method Code") then
+                    continue;
+                if ExpensePaymentMethod."Reimbursement Type" <> ExpensePaymentMethod."Reimbursement Type"::"Credit Card" then
+                    continue;
+                CorpCard.Reset();
+                CorpCard.SetRange("Provider Code", CorpCardTrans."Provider Code");
+                CorpCard.SetRange("Expense User No.", Expense."Expense User No.");
+                if not CorpCard.FindFirst() then
+                    continue;
+                if (ExpenseNo <> '') or (CorpCard.Next() <> 0) then begin
+                    ValidationReason := AmbiguousExpenseErr;
+                    exit(false);
+                end;
+                ExpenseNo := Expense."No.";
+                MatchedCardId := CorpCard."Card Id";
+            until Expense.Next() = 0;
+        if ExpenseNo = '' then begin
+            ValidationReason := NoCardMatchErr;
+            exit(false);
+        end;
+        CorpCard.Get(MatchedCardId);
+        if CorpCard.Blocked then begin
+            ValidationReason := BlockedCardErr;
+            exit(false);
+        end;
         exit(true);
     end;
 

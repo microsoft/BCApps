@@ -53,7 +53,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 4: DRAFT CREATION / MANUAL MATCHING                           │
-│ - AutoDraft mode: always creates 1 draft per imported transaction   │
+│ - AutoDraft creates a draft unless a no-suffix expense match exists │
 │ - ManualLink mode: tries matching first, then optional draft create │
 │ - Level 3 detail import is not implemented                           │
 │ - Codeunit: EACorpCardExpWriter (7422)                              │
@@ -377,12 +377,17 @@ CSV/XML import does not insert `EA Corp Card Trans Detail` rows, so Level 3 VAT 
      - Upload a new source payload before each import; an import attempt clears the stored payload
      - Maximum number of job-queue attempts is 3; the module does not implement a separate retry loop
 
-### Sample Card-ID Conventions
+### Statement Card Identification
 
-Both static sample files use the same seeded card-ID convention:
+`Card Id` is an internal Business Central code, not a credit card number. Do not include it in statement files or Data Exchange mappings. Both static samples and generated demo payloads use `CardLast4` instead: a CSV column or XML element containing only the last **four** digits (`0001` through `0006` in the static samples). Full numbers and other values are rejected without copying the supplied value into diagnostics.
 
-- CSV sample (`CorpCard-Sample-60.csv`) uses `CORPCARD-xxxx`
-- XML sample (`CorpCard-Sample-60.xml`) uses `CORPCARD-xxxx`
+Card resolution is provider-scoped:
+
+- A supplied `CardLast4` must identify exactly one card whose `Masked Card No.` ends in those digits. Configure only a masked value ending in the last four digits on the Corporate Cards page. A blocked or ambiguous card produces a row exception; an unrecognized suffix never falls back to another employee's expense.
+- If `CardLast4` is empty, the importer requires exactly one open, unlinked credit-card expense with the same transaction date, amount, and currency, and exactly one card for that expense user and provider. The resolved internal card and expense candidate are saved in staging.
+- Post-import processing rechecks the fallback match under an expense-table lock before linking. If it changed or is no longer unique, the transaction becomes an exception rather than creating a new draft or guessing another expense. A valid fallback links the existing expense even in AutoDraft mode.
+
+Unknown or blocked cards, missing references without a unique expense match, and invalid suffixes are reported as row-level validation exceptions. Other valid rows can still import. Existing custom mappings to `Card Id` must be changed; the built-in mapping setup replaces its legacy card-ID mapping with `Card Last 4`.
 
 ---
 
@@ -731,13 +736,14 @@ The current import does not populate detail rows, so the VAT specification and t
 
 **Check:** This is expected for current CSV/XML imports; no detail rows are created.
 
-### "Card Id is missing" Validation Exceptions
+### Unresolved Card Validation Exceptions
 
-**Symptom:** Import exceptions show `Card Id is missing.` and no transactions are inserted  
+**Symptom:** Import exceptions report that no card could be identified, or that the supplied suffix is ambiguous or blocked.
 **Check:**
-1. Provider has corporate card links (`EACorpCard`) for that provider code
-2. Sample payload card IDs match cards linked to the same provider
-3. Verify provider `Data Exch Def Code`/`Data Exch Map Code` still point to the expected line definition
+1. The file supplies `CardLast4`, not the internal `Card Id` or a full number.
+2. Exactly one card for the provider has a masked number ending in those four digits and is not blocked.
+3. Without a suffix, exactly one open, unlinked credit-card expense matches the transaction date, amount, and currency, with exactly one provider card for its expense user.
+4. Verify provider `Data Exch Def Code`/`Data Exch Map Code` still point to the expected line definition and do not map internal card identifiers.
 
 ---
 

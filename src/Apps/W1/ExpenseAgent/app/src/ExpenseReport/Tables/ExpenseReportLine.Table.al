@@ -1117,6 +1117,9 @@ table 6907 "Expense Report Line"
         {
             Clustered = true;
         }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
         key(SpendRequestNo; "Spend Request No.")
         {
         }

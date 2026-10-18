@@ -86,6 +86,21 @@ page 7444 "EA Corp Card Statement"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total number of statement lines.';
                 }
+                field(Exceptions; Rec.Exceptions)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    ToolTip = 'Specifies the number of unresolved import and post-import processing exceptions. Choose the number to review the errors.';
+
+                    trigger OnDrillDown()
+                    var
+                        CorpCardException: Record "EA Corp Card Exception";
+                    begin
+                        CorpCardException.SetRange("Statement Entry No.", Rec."Statement Entry No.");
+                        CorpCardException.SetRange(Resolved, false);
+                        Page.Run(Page::"EA Corp Card Exceptions", CorpCardException);
+                    end;
+                }
                 field("Settlement Entry No."; Rec."Settlement Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -219,6 +234,25 @@ page 7444 "EA Corp Card Statement"
     {
         area(Processing)
         {
+            action(ProcessTransactions)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Process transactions';
+                Enabled = Rec.Status = Rec.Status::Imported;
+                Image = Process;
+                ToolTip = 'Matches imported transactions and creates draft expenses. Retries transactions whose post-import processing failed after their setup has been corrected.';
+
+                trigger OnAction()
+                var
+                    PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+                    ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+                begin
+                    CurrPage.SaveRecord();
+                    PostImportOrch.ProcessStatementPostImport(Rec."Statement Entry No.", ExpenseWriter);
+                    Rec.Get(Rec."Statement Entry No.");
+                    CurrPage.Update(false);
+                end;
+            }
             action(ValidateStatement)
             {
                 ApplicationArea = Basic, Suite;
@@ -297,6 +331,9 @@ page 7444 "EA Corp Card Statement"
             {
                 Caption = 'Home';
 
+                actionref(ProcessTransactions_Promoted; ProcessTransactions)
+                {
+                }
                 group(Category_Validation)
                 {
                     Caption = 'Validation';

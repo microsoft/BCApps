@@ -31,7 +31,12 @@ page 7446 "EA Corp Card Statement Trans"
                 field("Card Id"; Rec."Card Id")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the corporate card used for the transaction.';
+                    Editable = false;
+                    ToolTip = 'Specifies the internal corporate card identifier resolved in Business Central, not a card number supplied by the provider.';
+                }
+                field("Card Last 4"; Rec."Card Last 4")
+                {
+                    ApplicationArea = Basic, Suite;
                 }
                 field("Trans Date"; Rec."Trans Date")
                 {

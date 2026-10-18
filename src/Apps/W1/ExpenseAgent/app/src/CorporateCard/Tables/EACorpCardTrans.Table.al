@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Bank.Ledger;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 
@@ -169,6 +170,21 @@ table 7428 "EA Corp Card Trans"
             Editable = false;
             ToolTip = 'Specifies the transaction amount posted to the corporate card liability in the local currency.';
         }
+        field(26; "Card Last 4"; Code[4])
+        {
+            Caption = 'Card Last 4';
+            DataClassification = AccountData;
+            Editable = false;
+            ToolTip = 'Specifies the last four card-number digits supplied by the provider. The internal card identifier is resolved in Business Central.';
+        }
+        field(27; "Expense Match No."; Code[20])
+        {
+            Caption = 'Expense Match No.';
+            DataClassification = AccountData;
+            Editable = false;
+            TableRelation = Expense."No.";
+            ToolTip = 'Specifies the unique existing expense used to identify the card when no last-four value was supplied. The match is checked again before linking.';
+        }
     }
 
     keys
@@ -201,7 +217,10 @@ table 7428 "EA Corp Card Trans"
         CorpCardException: Record "EA Corp Card Exception";
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
     begin
+        LockTable();
+        Get("Entry No.");
         EnsureStatementNotClosed();
+        EnsureTransactionCanBeDeleted();
 
         CorpCardTransDetail.SetRange("Trans Entry No.", "Entry No.");
         CorpCardTransDetail.DeleteAll(true);
@@ -213,6 +232,36 @@ table 7428 "EA Corp Card Trans"
     trigger OnModify()
     begin
         EnsureStatementNotClosed();
+    end;
+
+    local procedure EnsureTransactionCanBeDeleted()
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        if (Status = Status::Posted) or ("Posted Expense Report No." <> '') then
+            Error(PostedTransactionCannotDeleteErr, "Entry No.");
+
+        PostedExpenseReportLine.SetRange("Credit Card Feed No.", "Entry No.");
+        if not PostedExpenseReportLine.IsEmpty() then
+            Error(PostedTransactionCannotDeleteErr, "Entry No.");
+
+        BankAccountLedgerEntry.SetRange("EA Corp Card Trans Entry No.", "Entry No.");
+        if not BankAccountLedgerEntry.IsEmpty() then
+            Error(PostedTransactionCannotDeleteErr, "Entry No.");
+
+        if "Expense No." <> '' then
+            Error(LinkedTransactionCannotDeleteErr, "Entry No.");
+
+        Expense.SetRange("Credit Card Feed No.", "Entry No.");
+        if not Expense.IsEmpty() then
+            Error(LinkedTransactionCannotDeleteErr, "Entry No.");
+
+        ExpenseReportLine.SetRange("Credit Card Feed No.", "Entry No.");
+        if not ExpenseReportLine.IsEmpty() then
+            Error(LinkedTransactionCannotDeleteErr, "Entry No.");
     end;
 
     local procedure EnsureStatementNotClosed()
@@ -258,6 +307,8 @@ table 7428 "EA Corp Card Trans"
     end;
 
     var
+        PostedTransactionCannotDeleteErr: Label 'Corporate card transaction %1 cannot be deleted because it has been posted or is referenced by a posted expense report or bank account ledger entry.', Comment = '%1 = transaction entry number';
+        LinkedTransactionCannotDeleteErr: Label 'Corporate card transaction %1 cannot be deleted because it is linked to an expense or expense report.', Comment = '%1 = transaction entry number';
         ClosedStatementTransactionCannotChangeErr: Label 'Corporate card transaction %1 cannot be changed because statement %2 is closed.', Comment = '%1 = transaction entry number, %2 = statement number';
         UnsupportedSettlementCurrencyErr: Label 'Corporate card transaction %1 cannot be settled from currency %2 in currency %3.', Comment = '%1 = transaction entry number, %2 = transaction currency code, %3 = settlement currency code';
 }

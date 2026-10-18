@@ -101,7 +101,7 @@ page 6951 "Expense Users"
             action(CreateEmployee)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Create Employee';
+                Caption = 'Create employee';
                 Image = Create;
                 ToolTip = 'Checks for an existing employee by email and creates an employee if no match exists.';
                 Visible = IsCreateEmployeeVisible;
@@ -116,7 +116,7 @@ page 6951 "Expense Users"
             }
             action("Send Welcome Email")
             {
-                Caption = 'Send Welcome Email';
+                Caption = 'Send welcome email';
                 ApplicationArea = Basic, Suite;
                 Image = Email;
                 ToolTip = 'Sends a welcome email to the selected expense user.';

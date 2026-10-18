@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Visualization;
 
-page 7449 "Expense Mgmt Activities"
+page 7449 "EA Expense Mgmt Activities"
 {
     Caption = 'Activities';
     PageType = CardPart;
@@ -15,7 +15,7 @@ page 7449 "Expense Mgmt Activities"
     Extensible = false;
     RefreshOnActivate = true;
     ShowFilter = false;
-    SourceTable = "Expense Management Cue";
+    SourceTable = "EA Expense Management Cue";
 
     layout
     {

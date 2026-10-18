@@ -19,7 +19,7 @@ page 6933 "Expense Management Role Center"
     {
         area(RoleCenter)
         {
-            part(Activities; "Expense Mgmt Activities")
+            part(Activities; "EA Expense Mgmt Activities")
             {
                 ApplicationArea = Basic, Suite;
             }
