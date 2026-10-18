@@ -290,6 +290,26 @@ codeunit 138041 "O365 Company Information"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PlatformReceivesEmptyDescriptionForUnknownCompany()
+    var
+        CompanyInformation: Record "Company Information";
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        Description: Text;
+    begin
+        // [SCENARIO] A company that does not exist gets an empty description instead of an error or the current company's description.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CreateMultilineDescription('Current company'));
+        Description := 'Previous description';
+
+        // [WHEN] The platform requests the description of a company that does not exist.
+        SystemActionTriggers.GetCompanyDescription(LibraryUtility.GenerateGUID(), Description);
+
+        // [THEN] An empty description is returned.
+        Assert.AreEqual('', Description, 'The platform should receive an empty description for a company that does not exist.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PlatformReceivesEmptyCompanyDescription()
     var
         CompanyInformation: Record "Company Information";

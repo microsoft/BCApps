@@ -121,8 +121,9 @@ codeunit 1306 "Company Information Mgt."
     var
         CompanyInformation: Record "Company Information";
     begin
-        CompanyInformation.ChangeCompany(CompanyName);
         Clear(Description);
+        if not CompanyInformation.ChangeCompany(CompanyName) then
+            exit;
         if CompanyInformation.Get() then
             Description := CompanyInformation.GetCompanyDescription();
     end;
