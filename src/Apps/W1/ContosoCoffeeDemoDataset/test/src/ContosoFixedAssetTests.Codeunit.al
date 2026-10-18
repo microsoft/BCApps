@@ -6,6 +6,7 @@ namespace Microsoft.Test.DemoTool;
 
 using Microsoft.DemoData.FixedAsset;
 using Microsoft.DemoTool.Helpers;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
@@ -18,6 +19,7 @@ codeunit 148452 "Contoso Fixed Asset Tests"
     var
         Assert: Codeunit Assert;
         ContosoFixedAsset: Codeunit "Contoso Fixed Asset";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
@@ -47,6 +49,7 @@ codeunit 148452 "Contoso Fixed Asset Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure InsertFADepreciationBookWithPostingGroupPreservesRelationship()
     var
+        GeneralPostingSetup: Record "General Posting Setup";
         FixedAsset: Record "Fixed Asset";
         DepreciationBook: Record "Depreciation Book";
         FAPostingGroup: Record "FA Posting Group";
@@ -57,6 +60,7 @@ codeunit 148452 "Contoso Fixed Asset Tests"
 
         // [GIVEN] Asset A, tax book T linked to accounting book C, and posting group P.
         CreateDerogatoryBookFixture(FixedAsset, DepreciationBook);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
         LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
 
         // [WHEN] The helper inserts the FA book with posting group P.
@@ -94,6 +98,7 @@ codeunit 148452 "Contoso Fixed Asset Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure OverwriteFADepreciationBookWithPostingGroupPreservesRelationship()
     var
+        GeneralPostingSetup: Record "General Posting Setup";
         FixedAsset: Record "Fixed Asset";
         DepreciationBook: Record "Depreciation Book";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -106,6 +111,7 @@ codeunit 148452 "Contoso Fixed Asset Tests"
         // [GIVEN] Asset A has tax book T linked to accounting book C, and posting group P exists.
         CreateDerogatoryBookFixture(FixedAsset, DepreciationBook);
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
         LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
         ContosoFixedAsset.SetOverwriteData(true);
 

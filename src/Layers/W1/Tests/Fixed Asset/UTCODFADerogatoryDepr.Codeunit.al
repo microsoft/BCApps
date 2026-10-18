@@ -321,6 +321,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         GenJournalLine."Depreciation Book Code" := DepreciationBookCode;
         GenJournalLine."Account Type" := GenJournalLine."Account Type"::"Fixed Asset";
         GenJournalLine."Account No." := AccountNo;
+        GenJournalLine.Description := AccountNo;
         GenJournalLine.Insert();
     end;
 

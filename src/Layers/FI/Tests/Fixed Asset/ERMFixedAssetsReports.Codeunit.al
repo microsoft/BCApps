@@ -1941,6 +1941,8 @@ codeunit 134978 "ERM Fixed Assets Reports"
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         CreateFAJournalBatch(FAJournalBatch);
+        FAJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
+        FAJournalBatch.Modify(true);
         CreateGeneralJournalBatch(GenJournalBatch);
         GenJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
         GenJournalBatch.Modify(true);
