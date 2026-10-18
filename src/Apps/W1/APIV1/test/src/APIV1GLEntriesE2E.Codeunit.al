@@ -4,6 +4,7 @@ codeunit 139730 "APIV1 - GLEntries E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -25,6 +26,7 @@ codeunit 139730 "APIV1 - GLEntries E2E"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryApplicationArea.EnableFoundationSetup();
         IF IsInitialized THEN
             EXIT;
