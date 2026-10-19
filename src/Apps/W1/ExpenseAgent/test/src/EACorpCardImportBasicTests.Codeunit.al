@@ -19,6 +19,42 @@ codeunit 148356 EACorpCardImportBasicTests
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        RecordNotFoundForCardErr: Label '%1 not found for card %2.', Locked = true;
+        ExpenseUserNotSpecifiedForCardErr: Label 'Specify %1 for corporate card %2 before creating expenses.', Locked = true;
+
+    [Test]
+    procedure DraftCreationWithMissingCardReportsCardNotFound()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        ExpenseNo: Code[20];
+    begin
+        CorpCardTrans."Card Id" := Format(CreateGuid());
+
+        asserterror ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
+
+        Assert.ExpectedError(StrSubstNo(RecordNotFoundForCardErr, CorpCard.TableCaption(), CorpCardTrans."Card Id"));
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DraftCreationWithUnassignedCardReportsMissingExpenseUser()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        ExpenseNo: Code[20];
+    begin
+        CorpCard."Card Id" := Format(CreateGuid());
+        CorpCard.Insert(true);
+        CorpCardTrans."Card Id" := CorpCard."Card Id";
+
+        asserterror ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
+
+        Assert.ExpectedError(
+            StrSubstNo(ExpenseUserNotSpecifiedForCardErr, CorpCard.FieldCaption("Expense User No."), CorpCard."Card Id"));
+    end;
 
     [Test]
     procedure CsvFallbackHandlesQuotedCommasAndEscapedQuotes()

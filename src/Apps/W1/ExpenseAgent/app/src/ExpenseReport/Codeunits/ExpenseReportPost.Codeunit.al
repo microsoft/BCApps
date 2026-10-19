@@ -19,6 +19,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
+using System.Agents;
 using System.Telemetry;
 using System.Utilities;
 
@@ -79,6 +80,9 @@ codeunit 6987 "Expense Report-Post"
         AgentNotEnabledErr: Label 'Please make sure the Expense Agent is active.';
         CommunicationDisabledErr: Label 'Sending emails to users is turned off. Turn on Communication for the Expense Agent before sending reimbursement notifications.';
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending reimbursement notifications.';
+        ReimbursementSetupTitleErr: Label 'Reimbursement notification setup is incomplete';
+        ReimbursementSetupDetailedErr: Label 'Open Configure Expense Agent to activate the agent, turn on Communication, and select an account under Send mail. Then send the reimbursement notification again. If you do not have permission to configure the agent, contact your administrator.';
+        ConfigureExpenseAgentLbl: Label 'Configure Expense Agent';
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
         PendingVATSpecTitleErr: Label 'VAT reclaim status is pending';
@@ -1372,11 +1376,11 @@ codeunit 6987 "Expense Report-Post"
     begin
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Agent" then
-            Error(AgentNotEnabledErr);
+            Error(GetReimbursementSetupErrorInfo(AgentNotEnabledErr));
         if not ExpenseAgentSetup."Enable Communication" then
-            Error(CommunicationDisabledErr);
+            Error(GetReimbursementSetupErrorInfo(CommunicationDisabledErr));
         if IsNullGuid(ExpenseAgentSetup."Noreply Email Account ID") then
-            Error(NoNoreplyAccountErr);
+            Error(GetReimbursementSetupErrorInfo(NoNoreplyAccountErr));
 
         ExpenseUser.Get(PostedExpReportHeader."Expense User No.");
         ExpenseUser.TestField("E-mail");
@@ -1386,6 +1390,23 @@ codeunit 6987 "Expense Report-Post"
             Error(ReimbursementNotificationCannotBeSentErr);
 
         exit(SendReimbursementNotification(PostedExpReportHeader, ExpenseUser));
+    end;
+
+    local procedure GetReimbursementSetupErrorInfo(ErrorMessage: Text): ErrorInfo
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+        ReimbursementSetupErrorInfo: ErrorInfo;
+    begin
+        ReimbursementSetupErrorInfo.Title := ReimbursementSetupTitleErr;
+        ReimbursementSetupErrorInfo.Message := ErrorMessage;
+        ReimbursementSetupErrorInfo.DetailedMessage := ReimbursementSetupDetailedErr;
+        ReimbursementSetupErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        ReimbursementSetupErrorInfo.ErrorType := ErrorType::Client;
+        if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then begin
+            ReimbursementSetupErrorInfo.PageNo := Page::"Expense Agent Setup Wizard";
+            ReimbursementSetupErrorInfo.AddNavigationAction(ConfigureExpenseAgentLbl);
+        end;
+        exit(ReimbursementSetupErrorInfo);
     end;
 
     local procedure SendReimbursementNotification(PostedExpReportHeader: Record "Posted Expense Report Header"; ExpenseUser2: Record "Expense User"): Boolean

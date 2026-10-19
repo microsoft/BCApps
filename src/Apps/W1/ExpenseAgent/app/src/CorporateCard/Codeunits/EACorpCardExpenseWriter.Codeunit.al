@@ -17,24 +17,24 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         CreditCardPaymentMethodMissingErr: Label 'An expense payment method with reimbursement type Credit Card must exist before corporate card expenses can be created.';
         OpenPaymentMethodsLbl: Label 'Open payment methods';
         RecordNotFoundForCardErr: Label '%1 not found for card %2.', Comment = '%1 = table caption, %2 = card id.';
+        ExpenseUserNotSpecifiedForCardErr: Label 'Specify %1 for corporate card %2 before creating expenses.', Comment = '%1 = Expense User No. field caption, %2 = card id.';
         Level3ReconcileWarnLbl: Label 'Level 3 detail total %1 does not match transaction amount %2.', Comment = '%1 = detail total, %2 = transaction amount';
 
     procedure CreateDraftFromTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20])
     var
         Expense: Record Expense;
         ExpensePaymentMethod: Record "Expense Payment Method";
-        ExpenseUser: Record "Expense User";
         CorpCard: Record "EA Corp Card";
         ExpenseUserNo: Code[20];
         ExpenseCategory: Code[20];
     begin
         if not CorpCard.Get(CorpCardTrans."Card Id") then
-            Error(RecordNotFoundForCardErr, ExpenseUser.TableCaption(), CorpCardTrans."Card Id");
+            Error(RecordNotFoundForCardErr, CorpCard.TableCaption(), CorpCardTrans."Card Id");
         CorpCard.TestField(Blocked, false);
 
         ExpenseUserNo := CorpCard."Expense User No.";
         if ExpenseUserNo = '' then
-            Error(RecordNotFoundForCardErr, ExpenseUser.TableCaption(), CorpCardTrans."Card Id");
+            Error(ExpenseUserNotSpecifiedForCardErr, CorpCard.FieldCaption("Expense User No."), CorpCard."Card Id");
 
         ExpenseCategory := GetExpenseCategoryFromMCC(CorpCardTrans.MCC);
 
