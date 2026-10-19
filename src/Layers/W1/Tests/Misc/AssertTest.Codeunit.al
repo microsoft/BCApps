@@ -50,6 +50,8 @@ codeunit 132536 "Assert Test"
     begin
         Assert.AreEqual(true, true, 'Comparing booleans');
         Assert.AreEqual(2, 2, 'Comparing integers');
+        Assert.AreEqual(2, 2L, 'Comparing integer to BigInteger');
+        Assert.AreEqual(2, '2', 'Comparing integer to integer text');
         Assert.AreEqual(2.0, 2.0, 'Comparing decimals');
         Assert.AreEqual('A', 'A', 'Comparing chars');
         Assert.AreEqual('ABC', 'ABC', 'Comparing texts');
@@ -63,10 +65,6 @@ codeunit 132536 "Assert Test"
 
         asserterror Assert.AreEqual(1.1, 1, '');
         Assert.AreEqual(StrSubstNo(AreEqualFailedMsg, 1.1, 'Decimal', 1, 'Integer', ''),
-          GetLastErrorText, 'Unexpected error message for Assert.AreEqual');
-
-        asserterror Assert.AreEqual(1, '1', '');
-        Assert.AreEqual(StrSubstNo(AreEqualFailedMsg, 1, 'Integer', 1, 'Text', ''),
           GetLastErrorText, 'Unexpected error message for Assert.AreEqual');
 
         asserterror Assert.AreEqual(Assert, Assert, '');
