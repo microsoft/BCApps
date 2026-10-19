@@ -662,7 +662,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnVatWithIncorrectLength()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number with length <> 14.
@@ -672,7 +672,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL1234567891B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about incorrect VAT length is thrown.
         Assert.ExpectedError(VatLengthErr);
@@ -682,7 +682,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL12345678B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about incorrect VAT length is thrown.
         Assert.ExpectedError(VatLengthErr);
@@ -692,7 +692,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnNonNLVatInNonNLCompany()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         CountryRegion: Record "Country/Region";
         VATRegNo: Text[20];
     begin
@@ -706,7 +706,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'AB123456789B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
 
@@ -716,7 +716,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'AB123456789B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
     end;
@@ -724,7 +724,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnVatWithIncorrectLastTwoChars()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number with last two chars "1A" or "00".
@@ -734,7 +734,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL123456789B1A';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about incorrect last two characters of VAT is thrown.
         Assert.ExpectedError(VatLastTwoCharsErr);
@@ -744,7 +744,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL123456789B00';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about incorrect last two characters of VAT is thrown.
         Assert.ExpectedError(VatLastTwoCharsErr);
@@ -754,7 +754,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnVatWithLowercaseLetters()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number with lowercase letters.
@@ -764,7 +764,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL1234m6789B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about incorrect characters in VAT is thrown.
         Assert.ExpectedError(VatMod97NotAllowedCharErr);
@@ -774,7 +774,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL12345&789B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about incorrect characters in VAT is thrown.
         Assert.ExpectedError(VatMod97NotAllowedCharErr);
@@ -784,7 +784,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnNotValidMod97Vat()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number that is not valid according to Modulus-97 algorithm.
@@ -794,7 +794,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL123456789B12';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about invalid VAT according to Mod-97 is thrown.
         Assert.ExpectedError(VatMod97Err);
@@ -804,7 +804,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnValidMod97Vat()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number that is valid according to Modulus-97 algorithm.
@@ -814,7 +814,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL123456789B13';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
 
@@ -822,7 +822,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL003714803B30';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
     end;
@@ -830,7 +830,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnValidMod97VatWithLetterOrPlusOrAsterisk()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number that is valid according to Modulus-97 algorithm.
@@ -840,7 +840,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL0023K2672B25';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
 
@@ -848,7 +848,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL0023+2672B87';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
 
@@ -856,7 +856,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL0023*2672B06';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
     end;
@@ -864,7 +864,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnNotValidMod97Mod11Vat()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
         ErrorText: Text;
     begin
@@ -875,7 +875,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL0023K2672B24';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        asserterror VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        asserterror VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] Error about not allowed characters in VAT according to Mod-11 and about invalid VAT according to Mod-97 is thrown.
         ErrorText := GetLastErrorText();
@@ -887,7 +887,7 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnValidMod11Vat()
     var
-        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number that is valid according to Modulus-11 algorithm.
@@ -897,7 +897,7 @@ codeunit 144050 "UT TAB EVAT"
         VATRegNo := 'NL777777770B77';
 
         // [WHEN] Run CheckCompanyInfo function of VAT Registration No. Format table on this VAT number.
-        VATRegistrationNoFormat.CheckCompanyInfo(VATRegNo);
+        VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
 
         // [THEN] No errors are thrown.
     end;
@@ -973,7 +973,6 @@ codeunit 144050 "UT TAB EVAT"
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"UT TAB EVAT");
         ElecTaxDeclVATCategory.DeleteAll();
         LibrarySetupStorage.Restore();
-
         if IsInitialized then
             exit;
 

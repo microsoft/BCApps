@@ -713,8 +713,8 @@ table 1226 "Payment Export Data"
         "Recipient Bank Acc. No." := CopyStr(CustomerBankAccount.GetBankAccountNo(), 1, MaxStrLen("Recipient Bank Acc. No."));
         "Recipient Bank Clearing Std." := CustomerBankAccount."Bank Clearing Standard";
         "Recipient Bank Clearing Code" := CustomerBankAccount."Bank Clearing Code";
-
         FillSwissFieldsFromCustomerBankAccount(CustomerBankAccount);
+
         OnAfterSetCustomerAsRecipient(Rec, Customer, CustomerBankAccount);
     end;
 
@@ -737,8 +737,8 @@ table 1226 "Payment Export Data"
         "Recipient Bank Acc. No." := CopyStr(VendorBankAccount.GetBankAccountNo(), 1, MaxStrLen("Recipient Bank Acc. No."));
         "Recipient Bank Clearing Std." := VendorBankAccount."Bank Clearing Standard";
         "Recipient Bank Clearing Code" := VendorBankAccount."Bank Clearing Code";
-
         FillSwissFieldsFromVendorBankAccount(VendorBankAccount);
+
         OnAfterSetVendorAsRecipient(Rec, Vendor, VendorBankAccount);
     end;
 

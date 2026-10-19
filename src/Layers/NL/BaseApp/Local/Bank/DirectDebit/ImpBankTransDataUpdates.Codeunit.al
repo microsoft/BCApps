@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.DirectDebit;
 
+using Microsoft.Finance.GeneralLedger.Journal;
 using System.IO;
 
 codeunit 11408 "Imp. Bank Trans. Data Updates"
@@ -12,6 +13,23 @@ codeunit 11408 "Imp. Bank Trans. Data Updates"
 
     trigger OnRun()
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", 'OnBeforeProcessAllLinesColumnMapping', '', false, false)]
+    local procedure OnBeforeProcessAllLinesColumnMapping(DataExch: Record "Data Exch."; DataExchLineDef: Record "Data Exch. Line Def"; RecRef: RecordRef; var IsHandled: Boolean)
+    var
+        DataExchMapping: Record "Data Exch. Mapping";
+    begin
+        if RecRef.Number <> Database::"Gen. Journal Line" then
+            exit;
+
+        DataExchMapping.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
+        DataExchMapping.SetRange("Table ID", Database::"Gen. Journal Line");
+        DataExchMapping.SetRange("Mapping Codeunit", Codeunit::"Imp. SEPA CAMT Gen. Jnl.");
+        if DataExchMapping.IsEmpty() then
+            exit;
+
+        InheritDataFromParentToChildNodes(DataExch."Entry No.");
     end;
 
     [Scope('OnPrem')]

@@ -288,13 +288,13 @@ report 11000021 "Import Rabobank mut.asc"
 
     local procedure FindBankAcct(AcctNo: Text[30]): Code[20]
     var
-        BankAcct: Record "Bank Account";
+        BankAccount: Record "Bank Account";
     begin
-        if BankAcct.FindSet(false, false) then
+        if BankAccount.FindSet() then
             repeat
-                if TextFilter(BankAcct."Bank Account No.", '0123456789') = TextFilter(AcctNo, '0123456789') then
-                    exit(BankAcct."No.");
-            until BankAcct.Next() = 0;
+                if TextFilter(BankAccount."Bank Account No.", '0123456789') = TextFilter(AcctNo, '0123456789') then
+                    exit(BankAccount."No.");
+            until BankAccount.Next() = 0;
     end;
 
     local procedure TextFilter(String: Text[1024]; "Filter": Text[1024]): Text[1024]

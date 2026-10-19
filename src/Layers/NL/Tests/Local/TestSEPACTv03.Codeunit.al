@@ -627,7 +627,6 @@ codeunit 144101 "Test SEPA CT v03"
         // [SCENARIO 363009] COD 11400 "Local Functionality Mgt.".GetPmtHistLineCountAndAmtForSEPAISO20022Pain() in case of several lines
         // [SCENARIO 363009] with only foreign amounts
         MockPaymentHistory(PaymentHistory);
-
         for ForeignCount := 1 to LibraryRandom.RandIntInRange(10, 20) do begin
             Amount := LibraryRandom.RandDec(1000, 2);
             TotalForeign += Amount;
@@ -659,13 +658,11 @@ codeunit 144101 "Test SEPA CT v03"
         // [SCENARIO 363009] COD 11400 "Local Functionality Mgt.".GetPmtHistLineCountAndAmtForSEPAISO20022Pain() in case of several lines
         // [SCENARIO 363009] with local and foreign amounts
         MockPaymentHistory(PaymentHistory);
-
         for LocalCount := 1 to LibraryRandom.RandIntInRange(10, 20) do begin
             Amount := LibraryRandom.RandDec(1000, 2);
             TotalLocal += Amount;
             MockPaymentHistoryLineWithAmounts(PaymentHistoryLine, PaymentHistory, Amount, 0);
         end;
-
         for ForeignCount := 1 to LibraryRandom.RandIntInRange(10, 20) do begin
             Amount := LibraryRandom.RandDec(1000, 2);
             TotalForeign += Amount;
@@ -2449,7 +2446,6 @@ codeunit 144101 "Test SEPA CT v03"
           '//ns:Document/ns:CstmrCdtTrfInitn/ns:GrpHdr/ns:CtrlSum',
           FormatCtrlSumValue(TotalAmount));
         XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:BtchBookg', 'false');
-
         if GeneratedByReport then begin
             XMLReadHelper.GetNodeByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp', Node);
             XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp/ns:Cd', 'SUPP');
@@ -2490,7 +2486,6 @@ codeunit 144101 "Test SEPA CT v03"
           '//ns:Document/ns:CstmrCdtTrfInitn/ns:GrpHdr/ns:CtrlSum',
           FormatCtrlSumValue(TotalAmount));
         XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:BtchBookg', 'false');
-
         if GeneratedByReport then begin
             XMLReadHelper.GetNodeByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp', Node);
             XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp/ns:Cd', 'SUPP');
@@ -2687,10 +2682,9 @@ codeunit 144101 "Test SEPA CT v03"
         ExportBTL91ABNAMRO.OK().Invoke();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority', '', false, false)]
-    local procedure OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnBeforeSetSEPAInstructionPriority', '', false, false)]
+    local procedure OnBeforeSetSEPAInstructionPriority(var PaymentExportData: Record "Payment Export Data"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
     begin
         IsHandled := true;
     end;
 }
-
