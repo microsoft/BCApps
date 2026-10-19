@@ -216,10 +216,7 @@ table 5260 "G/L Account Mapping Header"
         GLAccountMappingLine.SetRange("G/L Account Mapping Code", Code);
         case UpdateFieldNo of
             FieldNo("Standard Account Category No."):
-                begin
-                    GLAccountMappingLine.ModifyAll("Standard Account Category No.", "Standard Account Category No.");
-                    GLAccountMappingLine.ModifyAll("Standard Account No.", '');
-                end;
+                GLAccountMappingLine.ModifyAll("Standard Account Category No.", "Standard Account Category No.", "Standard Account No.", '');
             FieldNo("Standard Account No."):
                 GLAccountMappingLine.ModifyAll("Standard Account No.", "Standard Account No.");
         end;
