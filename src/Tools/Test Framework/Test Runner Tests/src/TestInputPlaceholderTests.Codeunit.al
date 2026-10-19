@@ -20,7 +20,6 @@ codeunit 130482 "Test Input Placeholder Tests"
         TestTag: Text;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SetGetsAndOverwritesCaseInsensitiveName()
     var
         Value: Text;
@@ -36,7 +35,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure MissingValueClearsOutput()
     var
         Value: Text;
@@ -48,7 +46,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExplicitTagDoesNotChangeActiveTag()
     var
         Value: Text;
@@ -66,7 +63,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure BlankTagIsNotWildcard()
     var
         Value: Text;
@@ -79,7 +75,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TagsAreCaseInsensitive()
     var
         Value: Text;
@@ -92,7 +87,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure CompanyValueWinsOverSharedValue()
     var
         Value: Text;
@@ -108,7 +102,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure CompanyFallbackDoesNotCrossTags()
     begin
         Initialize();
@@ -118,7 +111,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure LocalEmptyValueSuppressesFallback()
     var
         Value: Text;
@@ -132,7 +124,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure BlobPreservesLongMultilineUnicodeText()
     var
         Builder: TextBuilder;
@@ -161,7 +152,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure MaximumKeyLengthsAreAccepted()
     var
         Name: Text;
@@ -179,7 +169,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure InvalidNamesAreRejected()
     var
         Names: List of [Text];
@@ -199,7 +188,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure OverlongTagAndCompanyAreRejected()
     var
         Value: Text;
@@ -215,7 +203,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure RegistrationRejectsEverySupportedTokenType()
     var
         Values: List of [Text];
@@ -253,7 +240,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure LiteralDollarsAreAllowed()
     begin
         Initialize();
@@ -265,7 +251,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ResolvesWholeEmbeddedRepeatedAndAdjacentTokens()
     begin
         Initialize();
@@ -279,7 +264,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UnknownTokensDoNotBlockLaterTokens()
     begin
         Initialize();
@@ -291,7 +275,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure MalformedTokensDoNotBlockLaterTokens()
     var
         Prefix: Text;
@@ -306,7 +289,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure OverlongInputNameRemainsLiteral()
     var
         InputText: Text;
@@ -318,7 +300,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ReplacementOutputIsNotScannedAgain()
     begin
         Initialize();
@@ -331,7 +312,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure PrefixSpellingRemainsCaseSensitive()
     begin
         Initialize();
@@ -340,7 +320,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExistingWrapperObservesLateRegistrationAndOverwrite()
     var
         Input: Codeunit "Test Input Json";
@@ -363,7 +342,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure RawExportsKeepTemplates()
     var
         Input: Codeunit "Test Input Json";
@@ -390,7 +368,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure NativeNumericAndBooleanReadersAreUnchanged()
     var
         Input: Codeunit "Test Input Json";
@@ -403,7 +380,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SuccessiveTurnReadsKeepActiveTag()
     var
         Input: Codeunit "Test Input Json";
@@ -419,7 +395,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ResolvesMixedDateDateTimeAndNamedTokens()
     var
         Expected: Text;
@@ -435,7 +410,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DateTimeSupportsDefaultAndFractionalTime()
     var
         ExpectedTime: Time;
@@ -454,7 +428,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure InvalidDateFormulaStillRaisesError()
     begin
         Initialize();
@@ -463,7 +436,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DisableAffectsAllTextButNotExplicitValueOperations()
     var
         Value: Text;
@@ -483,7 +455,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure RepeatedEnableAndDisableBothClearTag()
     var
         Value: Text;
@@ -505,7 +476,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TypedDatesWorkWithTextReplacementDisabled()
     var
         Input: Codeunit "Test Input Json";
@@ -519,7 +489,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeleteLocalDoesNotDeleteSharedOrOtherTag()
     var
         Value: Text;
@@ -537,7 +506,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExplicitSharedDeletionIsNotWildcard()
     var
         Value: Text;
@@ -552,7 +520,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TagCleanupIsCompanyScoped()
     var
         Value: Text;
@@ -574,7 +541,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TagCleanupTreatsFilterCharactersLiterally()
     var
         LiteralTag: Text;
@@ -591,7 +557,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure AcrossCompanyTagCleanupKeepsOtherTags()
     var
         Value: Text;
@@ -608,7 +573,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeleteAllClearsAllScopesWithoutCommit()
     var
         Value: Text;
@@ -657,7 +621,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure AllowedNameCharactersResolve()
     begin
         Initialize();
@@ -668,7 +631,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure MaximumLengthNameResolves()
     var
         Name: Text;
@@ -682,7 +644,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExistingWrapperUsesCurrentTag()
     var
         Input: Codeunit "Test Input Json";
@@ -704,7 +665,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExistingWrapperObservesDeletionAndFallback()
     var
         Input: Codeunit "Test Input Json";
@@ -726,7 +686,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ReplacementOutputDoesNotExpandDateTokens()
     begin
         Initialize();
@@ -740,7 +699,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExistingWrapperFollowsTextReplacementSwitch()
     var
         Input: Codeunit "Test Input Json";
@@ -768,7 +726,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ExplicitTagDeletionKeepsActiveTag()
     var
         Value: Text;
@@ -782,7 +739,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ReadAndDeleteRejectInvalidKeys()
     var
         Value: Text;
@@ -805,7 +761,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure PlaceholderApiWorksWithExactRunnerPermissions()
     var
         PermissionsMock: Codeunit "Permissions Mock";

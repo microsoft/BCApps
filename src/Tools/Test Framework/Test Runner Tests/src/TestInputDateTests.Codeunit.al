@@ -17,7 +17,6 @@ codeunit 130486 "Test Input Date Tests"
         Assert: Codeunit "Library Assert";
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure PositiveAndNegativeDateOffsetsUseWorkDate()
     var
         Input: Codeunit "Test Input Json";
@@ -32,7 +31,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure CurrentMonthAndYearBoundariesResolve()
     var
         NextMonthStart: Date;
@@ -54,7 +52,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DateFormulaCanBeReadAsDateTimeAtMidnight()
     var
         Input: Codeunit "Test Input Json";
@@ -67,7 +64,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure RepeatedAndAdjacentDateTokensResolve()
     begin
         Initialize();
@@ -78,7 +74,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure RepeatedAndAdjacentDateTimeTokensResolve()
     var
         Midnight: DateTime;
@@ -95,7 +90,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DateTokensStayRawInJsonExports()
     var
         Input: Codeunit "Test Input Json";
@@ -119,7 +113,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure IncompleteDateTokensRemainLiteral()
     begin
         Initialize();
@@ -132,7 +125,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DatePrefixSpellingRemainsCaseSensitive()
     var
         Template: Text;
@@ -143,7 +135,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure InvalidDateTimeDateFormulaRaisesError()
     begin
         Initialize();
@@ -152,7 +143,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure InvalidDateTimeTimeRaisesError()
     begin
         Initialize();
@@ -161,7 +151,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DisabledTextSkipsInvalidDateFormulas()
     var
         Input: Codeunit "Test Input Json";
@@ -178,7 +167,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DateResolutionWorksAfterUnrelatedTextRead()
     var
         Input: Codeunit "Test Input Json";
@@ -195,7 +183,6 @@ codeunit 130486 "Test Input Date Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure DateTimeBoundariesPreserveMilliseconds()
     var
         Input: Codeunit "Test Input Json";

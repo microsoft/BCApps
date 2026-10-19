@@ -21,7 +21,6 @@ codeunit 130483 "Test Input Lifecycle Tests"
         SetupTag: Text;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure BeforeMethodEnablesBeforeSubscribersSetTag()
     var
         Suite: Record "AL Test Suite";
@@ -40,7 +39,6 @@ codeunit 130483 "Test Input Lifecycle Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SkippedMethodDisablesAndClearsTag()
     var
         Suite: Record "AL Test Suite";
@@ -59,7 +57,6 @@ codeunit 130483 "Test Input Lifecycle Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UnselectedMethodDoesNotEnableReplacement()
     var
         Suite: Record "AL Test Suite";
@@ -75,7 +72,6 @@ codeunit 130483 "Test Input Lifecycle Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure CodeunitNotificationsDoNotEnableReplacement()
     var
         Suite: Record "AL Test Suite";
@@ -94,7 +90,6 @@ codeunit 130483 "Test Input Lifecycle Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure NoLoggingPathEnablesAndDisablesReplacement()
     var
         Suite: Record "AL Test Suite";
