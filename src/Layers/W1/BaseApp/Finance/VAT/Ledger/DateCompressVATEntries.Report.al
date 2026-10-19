@@ -25,6 +25,7 @@ report 95 "Date Compress VAT Entries"
     Caption = 'Date Compress VAT Entries';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "G/L Register" = rimd,
+                  TableData "G/L Transaction" = rimd,
                   TableData "Date Compr. Register" = rimd,
                   TableData "G/L Entry - VAT Entry Link" = rimd,
                   TableData "VAT Entry" = rimd;

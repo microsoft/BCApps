@@ -24,7 +24,10 @@ codeunit 4764 "Create Mfg Location"
         if ManufacturingDemoDataSetup."Manufacturing Location" = '' then
             ManufacturingDemoDataSetup.Validate("Manufacturing Location", CommonLocation.MainLocation());
 
-        ContosoWarehouse.InsertLocation(SubcontractingLocation(), SubcontractingLocationNameLbl, '', false);
+        ContosoWarehouse.InsertLocation(SubcontractingLocation(), BulkAssemblyLocationNameLbl, '', false);
+        ContosoWarehouse.InsertLocation(LocalSubcontractingLocation(), LocalAssemblyLocationNameLbl, '', false);
+
+        CreateSubcontractingInventoryPostingSetup();
 
         if ManufacturingDemoDataSetup."Subcontracting Location" = '' then
             ManufacturingDemoDataSetup.Validate("Subcontracting Location", SubcontractingLocation());
@@ -32,11 +35,32 @@ codeunit 4764 "Create Mfg Location"
         ManufacturingDemoDataSetup.Modify();
     end;
 
+    local procedure CreateSubcontractingInventoryPostingSetup()
     var
-        SubcontractingLocationNameLbl: Label 'Subcontracting', MaxLength = 100;
+        ContosoPostingSetup: Codeunit "Contoso Posting Setup";
+        CommonGLAccount: Codeunit "Create Common GL Account";
+        MfgGLAccount: Codeunit "Create Mfg GL Account";
+        CommonPostingGroup: Codeunit "Create Common Posting Group";
+        MfgPostingGroup: Codeunit "Create Mfg Posting Group";
+    begin
+        ContosoPostingSetup.InsertInventoryPostingSetup(SubcontractingLocation(), MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
+        ContosoPostingSetup.InsertInventoryPostingSetup(SubcontractingLocation(), CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
+
+        ContosoPostingSetup.InsertInventoryPostingSetup(LocalSubcontractingLocation(), MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
+        ContosoPostingSetup.InsertInventoryPostingSetup(LocalSubcontractingLocation(), CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
+    end;
+
+    var
+        BulkAssemblyLocationNameLbl: Label 'Bulk Assembly', MaxLength = 100;
+        LocalAssemblyLocationNameLbl: Label 'Local Assembly', MaxLength = 100;
 
     procedure SubcontractingLocation(): Code[10]
     begin
-        exit('82000');
+        exit('S82000');
+    end;
+
+    procedure LocalSubcontractingLocation(): Code[10]
+    begin
+        exit('S83000');
     end;
 }

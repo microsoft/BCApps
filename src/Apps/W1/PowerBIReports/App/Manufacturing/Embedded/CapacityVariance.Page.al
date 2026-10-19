@@ -11,8 +11,8 @@ page 37047 "Capacity Variance"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Capacity Variance';
-    AboutTitle = 'About Capacity Variance';
+    Caption = 'Capacity Variance (Power BI)';
+    AboutTitle = 'About Capacity Variance (Power BI)';
     AboutText = 'View your capacity cost variance % viewed over a timeline you can define to see trends. Analyze by each production order and filter by Work Centre to see the detail behind the overall percentages.';
 
     layout

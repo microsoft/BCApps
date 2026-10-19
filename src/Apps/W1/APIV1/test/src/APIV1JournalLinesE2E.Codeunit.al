@@ -1,6 +1,8 @@
 codeunit 139745 "APIV1 - Journal Lines E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -14,6 +16,7 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         if IsInitialized then
             exit;
         IsInitialized := true;

@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Item;
 
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000750 "Mfg. Item Card" extends "Item Card"
 {
@@ -53,13 +54,6 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
                 {
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
-                }
-                field("Overhead Rate"; Rec."Overhead Rate")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Enabled = IsInventoriable;
-                    Importance = Additional;
-                    ToolTip = 'Specifies the item''s indirect cost as an absolute amount.';
                 }
                 field("Scrap %"; Rec."Scrap %")
                 {
@@ -150,9 +144,9 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
             action("Mfg. Export Item Data")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Export Item Data';
+                Caption = 'Export item data';
                 Image = ExportFile;
-                ToolTip = 'Use this function to export manufacturing item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
+                ToolTip = 'Use this function to export item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
 
                 trigger OnAction()
                 var
@@ -160,6 +154,23 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
                 begin
                     Item.SetRange("No.", Rec."No.");
                     Xmlport.Run(XmlPort::"Mfg. Export Item Data", false, false, Item);
+                end;
+            }
+        }
+        addafter("&Create Stockkeeping Unit")
+        {
+            action("Mfg. RunProdDefinition")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Production Definition';
+                Image = ProductionSetup;
+                ToolTip = 'Define or review the bill of materials and routing for this item using the Production Definition Wizard.';
+
+                trigger OnAction()
+                var
+                    ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                begin
+                    ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
                 end;
             }
         }

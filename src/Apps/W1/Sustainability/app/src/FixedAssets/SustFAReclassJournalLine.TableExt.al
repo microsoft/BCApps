@@ -35,6 +35,22 @@ tableextension 6265 "Sust. FA Reclass. Journal Line" extends "FA Reclass. Journa
                     ValidateEmissionPrerequisite(Rec, Rec.FieldNo("New Sust. Account No."));
             end;
         }
+        field(6212; "Reclassify CO2e %"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Reclassify CO2e %';
+            ToolTip = 'Specifies the percentage of the fixed asset''s Acquisition Total CO2e to reclassify to the new fixed asset. It defaults to the acquisition cost reclassification percentage and can be changed to split emissions independently.';
+            DecimalPlaces = 0 : 8;
+            MaxValue = 100;
+            MinValue = 0;
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if Rec."Reclassify CO2e %" <> 0 then
+                    ValidateEmissionPrerequisite(Rec, Rec.FieldNo("Reclassify CO2e %"));
+            end;
+        }
     }
 
     local procedure ValidateEmissionPrerequisite(FAReclassJournalLine: Record "FA Reclass. Journal Line"; CurrentFieldNo: Integer)
@@ -51,6 +67,11 @@ tableextension 6265 "Sust. FA Reclass. Journal Line" extends "FA Reclass. Journa
                     FAReclassJournalLine.TestField("New FA No.");
 
                     CheckSustainabilityAccount(FAReclassJournalLine."New Sust. Account No.");
+                end;
+            FAReclassJournalLine.FieldNo("Reclassify CO2e %"):
+                begin
+                    FAReclassJournalLine.TestField("Sust. Account No.");
+                    FAReclassJournalLine.TestField("New Sust. Account No.");
                 end;
         end;
     end;

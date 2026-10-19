@@ -7,8 +7,8 @@ page 6299 "CO2e Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'CO2e Analysis';
-    AboutTitle = 'About CO2e Analysis';
+    Caption = 'CO2e Analysis (Power BI)';
+    AboutTitle = 'About CO2e Analysis (Power BI)';
     AboutText = 'The CO2e Analysis report provides detailed insight into you CO2e Emissions and how you are purchasing Carbon Credit.';
 
     layout
@@ -48,13 +48,7 @@ page 6299 "CO2e Analysis Power BI"
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sustainability Report ID"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }
 

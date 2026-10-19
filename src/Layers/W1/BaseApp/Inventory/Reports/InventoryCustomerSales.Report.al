@@ -13,6 +13,7 @@ report 713 "Inventory - Customer Sales"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Customer Sales';
+    ToolTip = 'View, print, or save a list of customers that have purchased selected items within a selected period, for example, to analyze customers'' purchasing patterns. The report specifies quantity, amount, discount, profit percentage, and profit.';
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 
@@ -21,14 +22,6 @@ report 713 "Inventory - Customer Sales"
         dataitem(ReportHeader; "Integer")
         {
             DataItemTableView = sorting(Number) where(Number = const(0));
-#if not CLEAN27
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
 #if not CLEAN28
             column(PeriodText; PeriodText)
             {
@@ -310,18 +303,6 @@ report 713 "Inventory - Customer Sales"
             Type = Word;
             Summary = 'Built in layout for the Inventory Customer Sales Word report.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Inventory Customer Sales RDLC (Obsolete)';
-            Type = RDLC;
-            LayoutFile = '.\Inventory\Reports\InventoryCustomerSales.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Built in layout for the Inventory Customer Sales RDLC (Obsolete) report.';
-        }
-#endif
     }
 
     labels
@@ -346,18 +327,6 @@ report 713 "Inventory - Customer Sales"
         RunOnLbl = 'Run on';
         ReportNameLbl = 'Report name';
         DocumentationLbl = 'Documentation';
-#if not CLEAN27
-        ReportTitle = 'Inventory - Customer Sales';
-        Page = 'Page';
-        CustomerNo = 'Customer No.';
-        Name = 'Name';
-        InvoicedQty = 'Invoiced Quantity';
-        Amount = 'Amount';
-        DiscountAmt = 'Discount Amount';
-        Profit = 'Profit';
-        ProfitPct = 'Profit %';
-        Total = 'Total';
-#endif
     }
 
     trigger OnPreReport()

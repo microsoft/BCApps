@@ -23,19 +23,19 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         PutAwayEntireItemTrackingErr: Label 'Creating an Internal Put-away the entire item tracking for inspection %1 was requested, however the item associated with this inspection does not require item tracking.', Comment = '%1=the inspection';
         DocumentTypeLbl: Label 'Internal Put-Away';
 
-    ///<summary>
+    /// <summary>
     /// Create a warehouse internal put-away(s) from the supplied inspection.
     /// It's possible that multiple put-away's could be created if the item tracking is in multiple bins, but the typical scenario would be
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using item tracking warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The inspection to create the internal put-away from</param>
-    /// <param name="OptionalSpecificQuantity">Optional quantity. Leave blank to use the entire item tracking or the quantity from the inspection.</param>
-    /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
-    /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
-    /// <param name="ReleaseImmediately">if true it will release the document, if false it will keep it open.</param>
-    /// <param name="QltyQuantityBehavior">The quantity behavior</param>
-    /// <returns>Confirming internal putaway lines created.</returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to put away.</param>
+    /// <param name="OptionalSpecificQuantity">The specific base quantity to put away when required by the quantity behavior.</param>
+    /// <param name="OptionalSourceLocationFilter">An optional source location filter.</param>
+    /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
+    /// <param name="ReleaseImmediately">Release the created internal put-away documents when true.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to determine the put-away quantity.</param>
+    /// <returns>True if at least one internal put-away line was created; otherwise, false.</returns>
     internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -50,6 +50,12 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         exit(PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
     end;
 
+    /// <summary>
+    /// Creates internal put-away documents and optionally releases them.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to put away.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source filters, quantity, and release behavior.</param>
+    /// <returns>True if at least one internal put-away line was created; otherwise, false.</returns>
     procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -110,6 +116,12 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
             QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
+    /// <summary>
+    /// Creates an internal put-away header for a source location and bin.
+    /// </summary>
+    /// <param name="WhseInternalPutAwayHeader">The created internal put-away header.</param>
+    /// <param name="FromLocationCode">The source location code.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
     local procedure CreateInternalPutawayHeader(var WhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header"; FromLocationCode: Code[10]; FromBinCode: Code[20])
     begin
         Clear(WhseInternalPutAwayHeader);
@@ -119,6 +131,12 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         WhseInternalPutAwayHeader.Insert(true);
     end;
 
+    /// <summary>
+    /// Creates an internal put-away line and assigns inspection item tracking.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="InWhseInternalPutAwayHeader">The internal put-away header receiving the line.</param>
+    /// <param name="Quantity">The quantity to put away.</param>
     local procedure CreateInternalPutawayLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; var InWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header"; Quantity: Decimal)
     var
         WhseInternalPutAwayLine: Record "Whse. Internal Put-away Line";
@@ -154,16 +172,16 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
     /// <summary>
     /// Gets the created warehouse internal putaways that were created as buffer tables.
     /// </summary>
-    /// <param name="TempCreatedBufferWhseInternalPutAwayHeader2"></param>
+    /// <param name="TempCreatedBufferWhseInternalPutAwayHeader2">The temporary record populated with created internal put-away headers.</param>
     internal procedure GetCreatedWarehouseInternalPutAwayHeaderBuffer(var TempCreatedBufferWhseInternalPutAwayHeader2: Record "Whse. Internal Put-away Header" temporary)
     begin
         TempCreatedBufferWhseInternalPutAwayHeader2.Copy(TempCreatedBufferWhseInternalPutAwayHeader, true);
     end;
 
     /// <summary>
-    /// Set to true to suppress that a notification should be made.
+    /// Sets whether document creation notifications are suppressed.
     /// </summary>
-    /// <param name="SuppressNotification"></param>
+    /// <param name="SuppressNotification">Suppress document creation notifications when true.</param>
     internal procedure SetSuppressNotifications(SuppressNotification: Boolean)
     begin
         ShouldSuppressNotification := SuppressNotification;

@@ -7,8 +7,8 @@ page 8098 "Churn Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Churn Analysis';
-    AboutTitle = 'About Churn Analysis';
+    Caption = 'Churn Analysis (Power BI)';
+    AboutTitle = 'About Churn Analysis (Power BI)';
     AboutText = 'The Churn Analysis report breaks down churn by various dimensions such as contract term, contract type or product.';
 
     layout

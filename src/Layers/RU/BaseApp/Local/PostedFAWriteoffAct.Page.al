@@ -158,6 +158,7 @@ page 12472 "Posted FA Writeoff Act"
                     trigger OnAction()
                     begin
                         // CurrPage.WriteoffLines.PAGE.ShowDimensions();
+                        exit;
                     end;
                 }
                 action(Comments)
@@ -169,6 +170,7 @@ page 12472 "Posted FA Writeoff Act"
                     trigger OnAction()
                     begin
                         // CurrPage.WriteoffLines.PAGE.ShowComments;
+                        exit;
                     end;
                 }
             }

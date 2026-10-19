@@ -25,6 +25,102 @@ codeunit 132970 "SharePoint Client Test"
         IsInitialized: Boolean;
 
     [Test]
+    procedure TestDownloadFileContentByServerRelativePathEscapesHashAndPercent()
+    var
+        FileInStream: InStream;
+        ServerRelativePath: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based downloads preserve legal # and % filename characters.
+        Initialize();
+        ServerRelativePath := '/sites/Test/Shared Documents/Invoice #50%.pdf';
+
+        IsSuccess := SharePointClient.DownloadFileContentByServerRelativePath(ServerRelativePath, FileInStream);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based download should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/$value/'),
+            'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
+    procedure TestDeleteFileByServerRelativePathEscapesHashAndPercent()
+    var
+        ServerRelativePath: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based deletes preserve legal # and % filename characters.
+        Initialize();
+        ServerRelativePath := '/sites/Test/Shared Documents/Invoice #50%.pdf';
+
+        IsSuccess := SharePointClient.DeleteFileByServerRelativePath(ServerRelativePath);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based delete should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/'),
+            'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
+    procedure TestFolderExistsByDecodedPathReturnsFalse()
+    begin
+        Initialize();
+        SharePointTestLibrary.SetFolderExistsResponse(false);
+
+        Assert.IsFalse(
+            SharePointClient.FolderExistsByServerRelativePath('/sites/Test/Shared Documents/Missing #50%'),
+            'The folder existence parser should return false for a missing folder');
+        AssertRawRequestEscapesHashAndPercent();
+        SharePointTestLibrary.SetFolderExistsResponse(true);
+    end;
+
+    [Test]
+    procedure TestDecodedPathFileAndFolderOperationsEscapeHashAndPercent()
+    var
+        TempSharePointFile: Record "SharePoint File" temporary;
+        TempSharePointFolder: Record "SharePoint Folder" temporary;
+        FileInStream: InStream;
+        FolderPath: Text;
+    begin
+        // [SCENARIO] Decoded-path APIs encode legal # and % characters without changing URL-based APIs.
+        Initialize();
+        SharePointTestLibrary.SetFolderExistsResponse(true);
+        FolderPath := '/sites/Test/Shared Documents/Year #50%';
+        InitDummyFile(FileInStream);
+
+        Assert.IsTrue(
+            SharePointClient.AddFileToFolderByServerRelativePath(
+                FolderPath, 'Invoice #50%.pdf', FileInStream, TempSharePointFile, false),
+            'Decoded-path upload should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        TempSharePointFile.DeleteAll();
+        Assert.IsTrue(SharePointClient.GetFolderFilesByServerRelativePath(FolderPath, TempSharePointFile), 'Decoded-path file listing should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        Assert.IsTrue(SharePointClient.GetSubFoldersByServerRelativePath(FolderPath, TempSharePointFolder), 'Decoded-path folder listing should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        Assert.IsTrue(SharePointClient.FolderExistsByServerRelativePath(FolderPath), 'Decoded-path folder existence check should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        TempSharePointFolder.DeleteAll();
+        Assert.IsTrue(
+            SharePointClient.CreateFolderByServerRelativePath(FolderPath + '/New #50%', TempSharePointFolder),
+            'Decoded-path folder creation should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        Assert.IsTrue(SharePointClient.DeleteFolderByServerRelativePath(FolderPath), 'Decoded-path folder deletion should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+    end;
+
+    [Test]
     procedure TestGetLists()
     var
         TempSharePointList: Record "SharePoint List" temporary;
@@ -399,6 +495,45 @@ codeunit 132970 "SharePoint Client Test"
         Assert.IsTrue(TempSharePointFolder.OdataId.EndsWith('_api/Web/GetFolderByServerRelativePath(decodedurl=''' + ParentUrl + '/Lists/Test Documents/Attachments/TestSubfolder'')'), StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("OdataId")));
         Assert.AreEqual('SP.Folder', TempSharePointFolder.OdataType, StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("OdataType")));
         Assert.IsTrue(TempSharePointFolder."Server Relative Url".EndsWith('/Lists/Test Documents/Attachments/TestSubfolder'), StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("Server Relative Url")));
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
+    end;
+
+    [Test]
+    procedure TestCreateListRequestDigestUsesSiteScopedUrl()
+    var
+        TempSharePointList: Record "SharePoint List" temporary;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] CreateList requests the digest from the site-scoped URL, not the tenant root, so it works under Sites.Selected
+        Initialize();
+
+        // [WHEN] CreateList is called for a site-scoped account (BaseUrl contains a "/sites/<site>" segment)
+        IsSuccess := SharePointClient.CreateList('Test Sample List Title', 'Test Sample List Description', TempSharePointList);
+        Assert.AreEqual(true, IsSuccess, 'Successfull operation expected');
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
+    end;
+
+    [Test]
+    procedure TestCreateListItemRequestDigestUsesSiteScopedUrl()
+    var
+        TempSharePointListItem: Record "SharePoint List Item" temporary;
+        Guid: Guid;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] CreateListItem requests the digest from the site-scoped URL, not the tenant root, so it works under Sites.Selected
+        Initialize();
+        Evaluate(Guid, '{854D7F21-1C6A-43AB-A081-20404894B449}');
+
+        // [WHEN] CreateListItem is called for a site-scoped account (BaseUrl contains a "/sites/<site>" segment)
+        IsSuccess := SharePointClient.CreateListItem(Guid, 'SP.Data.My_x0020_Test_x0020_DocumentsListItem', 'Test List Item', TempSharePointListItem);
+        Assert.AreEqual(true, IsSuccess, 'Successfull operation expected');
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
     end;
 
     [Test]
@@ -520,6 +655,12 @@ codeunit 132970 "SharePoint Client Test"
         TempBlob.CreateOutStream(FileOutStream);
         FileOutStream.WriteText('Dummy test file content');
         TempBlob.CreateInStream(FileInStream);
+    end;
+
+    local procedure AssertRawRequestEscapesHashAndPercent()
+    begin
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
     end;
 }
 #pragma warning restore AA0217

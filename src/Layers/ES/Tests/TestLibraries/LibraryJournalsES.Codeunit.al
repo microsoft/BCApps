@@ -9,7 +9,9 @@ codeunit 143007 "Library - Journals ES"
     local procedure SetBillToPayToNo(var GenJournalLine: Record "Gen. Journal Line")
     var
         Customer: Record Customer;
+#pragma warning disable AA0087 // Accepted: this helper does not lower permissions. It only re-grants Customer edit rights, guarded by HasChangedPermissions(), so the ES-specific Bill-to/Pay-to No. validation can run inside the permission context the calling test already established.
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+#pragma warning restore AA0087
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin

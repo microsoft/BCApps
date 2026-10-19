@@ -199,7 +199,7 @@ codeunit 103 "Cust. Entry-Edit"
             then
                 Error(
                   NotIdenticalErr,
-                  CurrentSalesHeader.FieldName("Applies-to Doc. No."), CurrentSalesHeader.FieldName("Adjustment Applies-to"));
+                  CurrentSalesHeader.FieldCaption("Applies-to Doc. No."), CurrentSalesHeader.FieldCaption("Adjustment Applies-to"));
             CurrentSalesHeader."Applies-to Doc. Type" := CustLedgEntry."Document Type";
             CurrentSalesHeader."BAS Adjustment" := BASManagement.CheckBASPeriod(CurrentSalesHeader."Document Date", CustLedgEntry."Document Date");
 

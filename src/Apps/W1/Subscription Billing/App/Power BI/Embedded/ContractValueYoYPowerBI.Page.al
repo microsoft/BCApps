@@ -7,8 +7,8 @@ page 8100 "Contract Value YoY Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Total Contract Value YoY';
-    AboutTitle = 'About Total Contract Value YoY';
+    Caption = 'Total Contract Value YoY (Power BI)';
+    AboutTitle = 'About Total Contract Value YoY (Power BI)';
     AboutText = 'The Total Contract Value YoY report compares the Total Contract Value and Active Customers across a year-over-year period.';
 
     layout

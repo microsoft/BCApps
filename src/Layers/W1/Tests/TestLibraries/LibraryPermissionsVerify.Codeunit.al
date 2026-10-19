@@ -101,7 +101,9 @@ codeunit 132216 "Library - Permissions Verify"
         RecordRef: RecordRef;
     begin
         RecordRef.Open(TableNo);
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror RecordRef.FindFirst();
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedError(StrSubstNo(MissingPermissionErr, Format(RecordRef.Caption)))
     end;
 
@@ -116,10 +118,14 @@ codeunit 132216 "Library - Permissions Verify"
     begin
         RecordRef.Init();
 
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror RecordRef.Insert(true);
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.IsFalse(RecordRef.WritePermission, StrSubstNo(SupplementalPermissionErr, 'Insert', Format(RecordRef.Caption)));
 
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror RecordRef.Delete(true);
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.IsFalse(RecordRef.WritePermission, StrSubstNo(SupplementalPermissionErr, 'Delete', Format(RecordRef.Caption)));
     end;
 }

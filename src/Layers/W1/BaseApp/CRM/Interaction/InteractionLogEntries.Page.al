@@ -356,7 +356,6 @@ page 5076 "Interaction Log Entries"
                     Caption = 'Delete Canceled Entries';
                     Image = Delete;
                     RunObject = Report "Delete Interaction Log Entries";
-                    ToolTip = 'Find and delete canceled interaction log entries.';
                 }
             }
             action("Show Attachments")

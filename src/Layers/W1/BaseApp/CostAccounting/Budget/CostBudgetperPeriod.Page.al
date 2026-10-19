@@ -210,7 +210,6 @@ page 1117 "Cost Budget per Period"
                     Caption = 'Copy Cost Budget to Cost Budget';
                     Image = CopyCostBudget;
                     RunObject = Report "Copy Cost Budget";
-                    ToolTip = 'Copy cost budget amounts within a budget or from budget to budget. You can copy a budget several times and enter a factor to increase or reduce the budget amounts.';
                 }
                 action("Copy G/L Budget to Cost Budget")
                 {
@@ -218,7 +217,6 @@ page 1117 "Cost Budget per Period"
                     Caption = 'Copy G/L Budget to Cost Budget';
                     Image = CopyGLtoCostBudget;
                     RunObject = Report "Copy G/L Budget to Cost Acctg.";
-                    ToolTip = 'Copy general ledger budget figures to the cost accounting budget. You can also enter budgets for the cost centers and cost objects in the general ledger.';
                 }
                 action("Copy Cost Budget to G/L Budget")
                 {
@@ -226,7 +224,6 @@ page 1117 "Cost Budget per Period"
                     Caption = 'Copy Cost Budget to G/L Budget';
                     Image = CopyCosttoGLBudget;
                     RunObject = Report "Copy Cost Acctg. Budget to G/L";
-                    ToolTip = 'Copy selected cost budget entries into the general ledger. Multiplication factors and multiple copies with date offsets are also possible.';
                 }
                 action(ExportToExcel)
                 {

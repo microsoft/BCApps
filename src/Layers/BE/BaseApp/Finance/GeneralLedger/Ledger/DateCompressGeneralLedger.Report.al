@@ -28,6 +28,7 @@ report 98 "Date Compress General Ledger"
     Caption = 'Date Compress General Ledger';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "G/L Register" = rimd,
+                  TableData "G/L Transaction" = rimd,
                   TableData "Date Compr. Register" = rimd,
                   TableData "G/L Entry - VAT Entry Link" = rimd,
                   TableData "Dimension Set ID Filter Line" = rimd,

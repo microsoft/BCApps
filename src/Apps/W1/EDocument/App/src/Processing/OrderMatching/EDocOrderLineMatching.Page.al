@@ -160,9 +160,9 @@ page 6167 "E-Doc. Order Line Matching"
                 end;
             }
         }
+#if not CLEAN29
         area(Prompting)
         {
-#if not CLEAN29
             action(MatchCopilot)
             {
                 Caption = 'Match with Copilot';
@@ -173,9 +173,14 @@ page 6167 "E-Doc. Order Line Matching"
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
                 ObsoleteTag = '29.0';
+
+                trigger OnAction()
+                begin
+                    SetUserInteractions();
+                end;
             }
-#endif
         }
+#endif
         area(Navigation)
         {
             action(PurchaseOrder)

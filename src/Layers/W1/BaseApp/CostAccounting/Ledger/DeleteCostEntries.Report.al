@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 report 1130 "Delete Cost Entries"
 {
     Caption = 'Delete Cost Entries';
+    ToolTip = 'Delete posted cost entries and reverses allocations, for example to simulate allocations by using different allocation ratios, to reverse cost allocations to include late entries in a combined entry as part of the same posting process, or to cancel cost entries from the cost register.';
     Permissions = TableData "G/L Entry" = rm;
     ProcessingOnly = true;
 
@@ -31,8 +32,7 @@ report 1130 "Delete Cost Entries"
                 if Source = Source::Allocation then begin
                     CostEntry.SetCurrentKey("Allocated with Journal No.");
                     CostEntry.SetRange("Allocated with Journal No.", "No.");
-                    CostEntry.ModifyAll(Allocated, false);
-                    CostEntry.ModifyAll("Allocated with Journal No.", 0);
+                    CostEntry.ModifyAll(Allocated, false, "Allocated with Journal No.", 0);
                 end;
 
                 CostEntry.Reset();

@@ -11,8 +11,8 @@ page 37095 "PBI Machine Center Statistics"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Machine Center Statistics';
-    AboutTitle = 'About Machine Center Statistics';
+    Caption = 'Machine Center Statistics (Power BI)';
+    AboutTitle = 'About Machine Center Statistics (Power BI)';
     AboutText = 'View your machine center statistics and discover detailed metrics on total and effective capacity, expected and actual efficiency, scrap rates, and output.';
 
     layout

@@ -32,6 +32,9 @@ query 36995 Jobs
             column(billToCustomerNo; "Bill-to Customer No.")
             {
             }
+            column(sellToCustomerNo; "Sell-to Customer No.")
+            {
+            }
             column(creationDate; "Creation Date")
             {
             }

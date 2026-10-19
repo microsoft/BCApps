@@ -397,11 +397,17 @@ codeunit 4810 IntrastatReportManagement
             IntrastatReportSetup."Company VAT No. on File"));
     end;
 
-    procedure GetVATRegNo(CountryCode: Code[10]; VATRegNo: Text[20]; VATRegNoType: Enum "Intrastat Report VAT File Fmt"): Text[50]
+    procedure GetVATRegNo(CountryCode: Code[10]; VATRegNo: Text[20]; VATRegNoType: Enum "Intrastat Report VAT File Fmt") Result: Text[50]
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
         CountryRegion: Record "Country/Region";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeGetVATRegNo(CountryCode, VATRegNo, VATRegNoType, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         case VATRegNoType of
             IntrastatReportSetup."Company VAT No. on File"::"VAT Reg. No.":
                 exit(VATRegNo);
@@ -1165,6 +1171,11 @@ codeunit 4810 IntrastatReportManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetIntrastatBaseCountryCode(var ItemLedgerEntry: Record "Item Ledger Entry"; var IntrastatReportSetup: Record "Intrastat Report Setup"; var CountryCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetVATRegNo(CountryCode: Code[10]; VATRegNo: Text[20]; VATRegNoType: Enum "Intrastat Report VAT File Fmt"; var Result: Text[50]; var IsHandled: Boolean)
     begin
     end;
 

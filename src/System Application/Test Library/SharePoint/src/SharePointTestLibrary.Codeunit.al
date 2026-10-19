@@ -12,6 +12,12 @@ codeunit 132973 "SharePoint Test Library"
 {
     EventSubscriberInstance = Manual;
 
+    var
+        LastContextInfoRequestUri: Text;
+        LastRawRequestUri: Text;
+        LastRequestUri: Text;
+        ReturnFolderMissing: Boolean;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
     local procedure RunOnBeforeSendRequest(HttpRequestMessage: HttpRequestMessage; var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; var IsHandled: Boolean; Method: Text)
     var
@@ -20,6 +26,7 @@ codeunit 132973 "SharePoint Test Library"
         BaseUrl, ParentUrl : Text;
     begin
         Uri := HttpRequestMessage.GetRequestUri();
+        LastRawRequestUri := Uri;
         if Uri.IndexOf('/_api/Web') > 0 then
             BaseUrl := CopyStr(Uri, 1, Uri.IndexOf('/_api/Web'))
         else
@@ -31,9 +38,44 @@ codeunit 132973 "SharePoint Test Library"
         IsHandled := true;
 
         Uri := LocalUri.UnescapeDataString(Uri);
+        LastRequestUri := Uri;
 
         if Uri.EndsWith('/_api/contextinfo/') then begin
+            LastContextInfoRequestUri := Uri;
             GetContextDigestTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+            exit;
+        end;
+
+        if Uri.Contains('/_api/Web/GetFileByServerRelativePath(decodedurl=') then begin
+            GetFileByServerRelativePathTestResponse(SharePointOperationResponse);
+            exit;
+        end;
+
+        if Uri.Contains('/_api/Web/GetFolderByServerRelativePath(decodedurl=') then begin
+            if Uri.Contains('/Files/AddUsingPath(decodedurl=') and (Method = 'POST') then begin
+                AddFileToFolderTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
+            if Uri.EndsWith('/Files/') and (Method = 'GET') then begin
+                GetFolderFilesByServerRelativeUrlTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
+            if Uri.EndsWith('/Folders/') and (Method = 'GET') then begin
+                GetFolderBySeverRelativeUrlTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
+            if Uri.EndsWith('/Exists/') and (Method = 'GET') then begin
+                GetFolderExistsTestResponse(SharePointOperationResponse);
+                exit;
+            end;
+            if Method = 'DELETE' then begin
+                GetEmptySuccessTestResponse(SharePointOperationResponse);
+                exit;
+            end;
+        end;
+
+        if Uri.Contains('/_api/Web/Folders/AddUsingPath(decodedurl=') and (Method = 'POST') then begin
+            CreateFolderTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
             exit;
         end;
 
@@ -112,6 +154,54 @@ codeunit 132973 "SharePoint Test Library"
             end;
 
         Error('No matching test response for %1', Uri);
+    end;
+
+    /// <summary>
+    /// Returns the full request URI of the last "_api/contextinfo" request digest call that was intercepted by this test library.
+    /// </summary>
+    /// <returns>The full, unescaped request URI, or an empty string if no request digest call has been made yet.</returns>
+    procedure GetLastContextInfoRequestUri(): Text
+    begin
+        exit(LastContextInfoRequestUri);
+    end;
+
+    procedure GetLastRequestUri(): Text
+    begin
+        exit(LastRequestUri);
+    end;
+
+    procedure GetLastRawRequestUri(): Text
+    begin
+        exit(LastRawRequestUri);
+    end;
+
+    local procedure GetFileByServerRelativePathTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        SharePointOperationResponse.SetHttpResponse('Dummy file content', HttpHeaders, 200, true, 'OK');
+    end;
+
+    local procedure GetFolderExistsTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        if ReturnFolderMissing then
+            SharePointOperationResponse.SetHttpResponse('{"value":false}', HttpHeaders, 200, true, 'OK')
+        else
+            SharePointOperationResponse.SetHttpResponse('{"value":true}', HttpHeaders, 200, true, 'OK');
+    end;
+
+    procedure SetFolderExistsResponse(FolderExists: Boolean)
+    begin
+        ReturnFolderMissing := not FolderExists;
+    end;
+
+    local procedure GetEmptySuccessTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        SharePointOperationResponse.SetHttpResponse('', HttpHeaders, 200, true, 'OK');
     end;
 
     local procedure GetContextDigestTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; BaseUrl: Text; ParentUrl: Text)

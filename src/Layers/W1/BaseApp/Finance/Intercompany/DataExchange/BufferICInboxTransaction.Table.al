@@ -48,7 +48,9 @@ table 610 "Buffer IC Inbox Transaction"
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
 #endif

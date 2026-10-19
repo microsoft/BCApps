@@ -150,6 +150,7 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         RunObject = page "Detailed Cust. Ledger Entries";
                         Tooltip = 'Open a Power BI Report that provides granular detail about the entries posted to Customer Ledger and Detailed Customer Sub Ledger.';
                     }
+#if not CLEAN29
                     action("Inventory Valuation Report")
                     {
                         ApplicationArea = Basic, Suite;
@@ -157,6 +158,10 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Image = "PowerBI";
                         RunObject = page "Inventory Valuation Report";
                         Tooltip = 'Open a Power BI Report that offers a consolidated view of all inventory valuation report pages, conveniently embedded into a single page for easy access.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group.';
+                        ObsoleteTag = '29.0';
+                        Visible = false;
                     }
                     action("Inventory Valuation Overview")
                     {
@@ -165,6 +170,10 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Image = "PowerBI";
                         RunObject = page "Inventory Valuation Overview";
                         Tooltip = 'Open a Power BI Report that  displays the inventory ending balance against the ending balance posted to the general ledger. Inventory value by location is plotted on a bar chart which is supported by inventory metrics such as increase quantity and decrease quantity. ';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group.';
+                        ObsoleteTag = '29.0';
+                        Visible = false;
                     }
                     action("Inventory Valuation by Item")
                     {
@@ -173,6 +182,10 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Image = "PowerBI";
                         RunObject = page "Inventory Valuation by Item";
                         Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by item category. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group.';
+                        ObsoleteTag = '29.0';
+                        Visible = false;
                     }
                     action("Inventory Valuation by Location")
                     {
@@ -181,7 +194,12 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Image = "PowerBI";
                         RunObject = page "Inventory Valuation by Loc.";
                         Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by location. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group.';
+                        ObsoleteTag = '29.0';
+                        Visible = false;
                     }
+#endif
                     action("Late Payments (Receivables) (Power BI)")
                     {
                         ApplicationArea = Basic, Suite;
@@ -631,6 +649,44 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Image = "PowerBI";
                         RunObject = page "PowerBI ABC Analysis";
                         Tooltip = 'Open the Power BI Report that performs an ABC analysis of your sales data, categorizing customers based on their contribution to total sales.';
+                    }
+                }
+                group("Inventory Valuation Reports")
+                {
+                    Caption = 'Inventory Valuation';
+                    Image = PowerBI;
+                    ToolTip = 'Power BI reports for inventory valuation.';
+                    action("PBI Inventory Valuation Report")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Inventory Valuation Report';
+                        Image = "PowerBI";
+                        RunObject = page "Inventory Valuation Report";
+                        Tooltip = 'Open a Power BI Report that offers a consolidated view of all inventory valuation report pages, conveniently embedded into a single page for easy access.';
+                    }
+                    action("PBI Inventory Valuation Overview")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Inventory Valuation Overview';
+                        Image = "PowerBI";
+                        RunObject = page "Inventory Valuation Overview";
+                        Tooltip = 'Open a Power BI Report that  displays the inventory ending balance against the ending balance posted to the general ledger. Inventory value by location is plotted on a bar chart which is supported by inventory metrics such as increase quantity and decrease quantity. ';
+                    }
+                    action("PBI Inventory Valuation by Item")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Inventory Valuation by Item';
+                        Image = "PowerBI";
+                        RunObject = page "Inventory Valuation by Item";
+                        Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by item category. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                    }
+                    action("PBI Inventory Valuation by Loc.")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Inventory Valuation by Location';
+                        Image = "PowerBI";
+                        RunObject = page "Inventory Valuation by Loc.";
+                        Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by location. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
                     }
                 }
                 group("Manufacturing Reports")

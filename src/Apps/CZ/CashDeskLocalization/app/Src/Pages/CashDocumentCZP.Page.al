@@ -540,7 +540,7 @@ page 31160 "Cash Document CZP"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Release and Send';
                     Image = SendConfirmation;
-                    Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                    Enabled = Rec."Document Type" = Rec."Document Type"::Receipt;
                     Ellipsis = true;
                     ToolTip = 'Release and prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
 
@@ -631,7 +631,7 @@ page 31160 "Cash Document CZP"
                     Caption = 'Post and Send';
                     Ellipsis = true;
                     Image = PostSendTo;
-                    Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                    Enabled = Rec."Document Type" = Rec."Document Type"::Receipt;
                     ToolTip = 'Finalize and prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
 
                     trigger OnAction()

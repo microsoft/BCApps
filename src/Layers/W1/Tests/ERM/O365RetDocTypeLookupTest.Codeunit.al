@@ -106,9 +106,9 @@ codeunit 134655 "O365 Ret. Doc Type Lookup Test"
         SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.Type::Item));
 
         // [WHEN] Setting the subtype on the Sales Line to co
-        SalesReturnOrder.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatType(), 1, 2));
+        SalesReturnOrder.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -127,12 +127,12 @@ codeunit 134655 "O365 Ret. Doc Type Lookup Test"
         // [WHEN] Setting the subtype on the Sales Line to ' '
         SalesReturnOrder.SalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
 
         // [WHEN] Setting the subtype on the Sales Line to ''
         SalesReturnOrder.SalesLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesReturnOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -256,9 +256,9 @@ codeunit 134655 "O365 Ret. Doc Type Lookup Test"
         PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.Type::Item));
 
         // [WHEN] Setting the subtype on the Purchase Line to co
-        PurchaseReturnOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatType(), 1, 2));
+        PurchaseReturnOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -277,12 +277,12 @@ codeunit 134655 "O365 Ret. Doc Type Lookup Test"
         // [WHEN] Setting the subtype on the Purchase Line to ' '
         PurchaseReturnOrder.PurchLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
 
         // [WHEN] Setting the subtype on the Purchase Line to ''
         PurchaseReturnOrder.PurchLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseReturnOrder.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
     end;
 
     [Test]

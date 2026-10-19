@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001549 "Subc. Change Prod.Order Status"
+codeunit 20549 "Subc. Change Prod.Order Status"
 {
     Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
 #if not CLEAN29

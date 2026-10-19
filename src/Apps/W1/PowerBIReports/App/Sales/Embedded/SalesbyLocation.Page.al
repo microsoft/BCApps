@@ -11,8 +11,8 @@ page 37066 "Sales by Location"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales by Location';
-    AboutTitle = 'About Sales by Location';
+    Caption = 'Sales by Location (Power BI)';
+    AboutTitle = 'About Sales by Location (Power BI)';
     AboutText = 'The Sales by Location report breaks down sales performance by location, highlighting metrics such as Sales Amount, Sales Quantity, Gross Profit and Gross Profit Margin.';
 
     layout

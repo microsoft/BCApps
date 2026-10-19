@@ -31,7 +31,7 @@ table 3308 "PA Known Sender"
         {
             DataClassification = CustomerContent;
             Caption = 'Review policy';
-            ToolTip = 'Specifies how an incoming email from this sender is handled. ''Ask'' requests human review. ''Approve'' processes without review (effective when overall email review is ''Only if untrusted''). ''Reject'' ignores the email.';
+            ToolTip = 'Specifies how an incoming email from this sender is handled. ''Ask'' requests human review. ''Approve'' processes without review (effective when overall email review is ''Manage per sender''). ''Reject'' ignores the email.';
         }
     }
     keys
@@ -64,6 +64,8 @@ table 3308 "PA Known Sender"
         Setup: Record "Payables Agent Setup";
         SenderEmail: Text[250];
     begin
+        if EDocument."Outlook Mail Message Id" = '' then
+            exit;
         SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(SenderEmail));
         if SenderEmail = '' then
             exit;

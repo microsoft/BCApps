@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Utilities;
@@ -118,8 +119,11 @@ codeunit 6104 "Import E-Document Process"
     local procedure ReadIntoDraft(EDocument: Record "E-Document")
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FromBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
+        IResponseProvider: Interface IEDocResponseProvider;
+        MessageType: Enum "E-Document Message Type";
     begin
         if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
             FromBlob := EDocumentDataStorage.GetTempBlob();
@@ -131,17 +135,30 @@ codeunit 6104 "Import E-Document Process"
 
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
         EDocument.Modify();
+
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType <> "E-Document Message Type"::Unknown then
+            EDocMessageMgt.CreateResponseMessage(EDocument, MessageType, "E-Doc. Response Type"::Acknowledged);
     end;
 
     local procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters")
     var
         Vendor: Record Vendor;
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentService: Record "E-Document Service";
+        EDocExport: Codeunit "E-Doc. Export";
         IProcessStructuredData: Interface IProcessStructuredData;
         VendNo: Code[20];
+        ErrorText: Text;
     begin
         IProcessStructuredData := EDocument."Process Draft Impl.";
         EDocument."Document Type" := IProcessStructuredData.PrepareDraft(EDocument, EDocImportParameters);
+
+        EDocumentService := EDocument.GetEDocumentService();
+        if EDocument."Document Type" <> "E-Document Type"::None then
+            if not EDocExport.CheckDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type", ErrorText) then
+                Error(ErrorText);
 
         VendNo := IProcessStructuredData.GetVendor(EDocument, EDocImportParameters."Processing Customizations")."No.";
         if VendNo = '' then begin
@@ -172,6 +189,9 @@ codeunit 6104 "Import E-Document Process"
     var
         IEDocumentFinishDraft: Interface IEDocumentFinishDraft;
     begin
+        if EDocument."Document Type" = "E-Document Type"::None then
+            exit;
+
         IEDocumentFinishDraft := EDocument."Document Type";
 
         // Clean up / reset E-Document fields

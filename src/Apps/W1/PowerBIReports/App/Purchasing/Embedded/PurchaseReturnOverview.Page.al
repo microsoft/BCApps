@@ -11,8 +11,8 @@ page 37116 "Purchase Return Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchase Return Overview';
-    AboutTitle = 'About Purchase Return Overview';
+    Caption = 'Purchase Return Overview (Power BI)';
+    AboutTitle = 'About Purchase Return Overview (Power BI)';
     AboutText = 'The Purchase Return Overview report tracks purchase returns, showing trends by vendor, reason, and item category. Key measures include return rate, purchase value, and outstanding returns.';
 
     layout

@@ -173,6 +173,9 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         InitLineNoIfNeeded();
     end;
 
+    /// <summary>
+    /// Assigns the next field mapping line number when the line number is zero.
+    /// </summary>
     procedure InitLineNoIfNeeded()
     var
         EnsureUniqueNoQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
@@ -186,6 +189,9 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         end;
     end;
 
+    /// <summary>
+    /// Looks up and validates a source field for the configured source table.
+    /// </summary>
     internal procedure HandleOnLookupFromField()
     var
         CurrentField: Integer;
@@ -195,6 +201,9 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
             Rec.Validate("From Field No.", CurrentField);
     end;
 
+    /// <summary>
+    /// Looks up a type-compatible target field or prompts the user to select a source field first.
+    /// </summary>
     internal procedure HandleOnLookupToField()
     var
         CurrentField: Record Field;
@@ -217,6 +226,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         end;
     end;
 
+    /// <summary>
+    /// Loads metadata for the configured source field.
+    /// </summary>
+    /// <param name="FromField">The field metadata record that receives the configured source field.</param>
+    /// <returns>True if both source identifiers are set and the field metadata exists.</returns>
     local procedure GetFromFieldRecord(var FromField: Record Field): Boolean;
     begin
         if (Rec."From Table No." = 0) or (Rec."From Field No." = 0) then

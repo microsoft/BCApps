@@ -36,6 +36,7 @@ permissionset 5679 "Jobs - View"
                   tabledata "G/L Entry - VAT Entry Link" = RI,
                   tabledata "G/L Entry" = Rim,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Rim,
                   tabledata "General Ledger Setup" = R,
                   tabledata "General Posting Setup" = R,
                   tabledata "Inventory Posting Group" = R,

@@ -152,10 +152,6 @@
 			"path": "../Tests/NewObjectTests-Internal"
 		},
 		{
-			"name": "Performance-Internal",
-			"path": "../Tests/Performance-Internal"
-		},
-		{
 			"name": "Permissions",
 			"path": "../Tests/Permissions"
 		},

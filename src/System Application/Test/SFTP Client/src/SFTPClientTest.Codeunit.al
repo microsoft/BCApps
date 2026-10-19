@@ -133,9 +133,10 @@ codeunit 139077 "SFTP Client Test"
         // [WHEN] Initialize is called
         Response := SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
-        // [THEN] Response should contain the actual generic exception message
+        // [THEN] Response should contain a generic message and must not leak the raw exception text
         Assert.IsTrue(Response.IsError(), 'Response should indicate an error');
-        Assert.AreEqual(GenericMessage, Response.GetError(), 'Incorrect error message');
+        Assert.AreEqual('An unexpected error occurred during the SFTP operation.', Response.GetError(), 'Incorrect error message');
+        Assert.AreNotEqual(GenericMessage, Response.GetError(), 'Raw exception message must not be leaked to the caller');
         Assert.AreEqual(Enum::"SFTP Exception Type"::"Generic Exception", Response.GetErrorType(), 'Incorrect error type');
     end;
 
@@ -309,6 +310,60 @@ codeunit 139077 "SFTP Client Test"
         Response := SFTPClientImpl.FileExists('/test/file.txt', IsFileExists);
         Assert.IsFalse(Response.IsError(), 'FileExists should not return an error after deletion');
         Assert.IsFalse(IsFileExists, 'File should no longer exist');
+    end;
+
+    [Test]
+    procedure TestUploadRejectsFileExceedingSizeLimit()
+    var
+        MockSFTPClient: Codeunit "Mock SFTP Client";
+        SFTPClientImpl: Codeunit "SFTP Client Implementation";
+        Response: Codeunit "SFTP Operation Response";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        // [GIVEN] A connected Mock SFTP client with a small file-size limit
+        MockSFTPClient.SetShouldFailConnect(false);
+        SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
+        SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
+        SFTPClientImpl.SetMaxFileSizeInBytes(10);
+
+        // [GIVEN] A source stream larger than the limit
+        TempBlob.CreateOutStream(OutStr);
+        OutStr.WriteText('This content is definitely longer than ten bytes.');
+        TempBlob.CreateInStream(InStr);
+
+        // [WHEN] PutFileStream is called
+        Response := SFTPClientImpl.PutFileStream('/test/big.txt', InStr);
+
+        // [THEN] The upload is rejected with a File Too Large error
+        Assert.IsTrue(Response.IsError(), 'Oversized upload should be rejected');
+        Assert.AreEqual(Enum::"SFTP Exception Type"::"File Too Large Exception", Response.GetErrorType(), 'Incorrect error type');
+    end;
+
+    [Test]
+    procedure TestDownloadRejectsFileExceedingSizeLimit()
+    var
+        MockSFTPClient: Codeunit "Mock SFTP Client";
+        SFTPClientImpl: Codeunit "SFTP Client Implementation";
+        Response: Codeunit "SFTP Operation Response";
+        InStr: InStream;
+    begin
+        // [GIVEN] A connected Mock SFTP client with a small limit and a file larger than it
+        MockSFTPClient.SetShouldFailConnect(false);
+        MockSFTPClient.AddFile('/test/big.txt', 'This content is definitely longer than ten bytes.');
+        SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
+        SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
+        SFTPClientImpl.SetMaxFileSizeInBytes(10);
+
+        // [WHEN] GetFileAsStream is called
+        Response := SFTPClientImpl.GetFileAsStream('/test/big.txt', InStr);
+
+        // [THEN] The download is rejected with a File Too Large error
+        Assert.IsTrue(Response.IsError(), 'Oversized download should be rejected');
+        Assert.AreEqual(Enum::"SFTP Exception Type"::"File Too Large Exception", Response.GetErrorType(), 'Incorrect error type');
     end;
 
     [Test]

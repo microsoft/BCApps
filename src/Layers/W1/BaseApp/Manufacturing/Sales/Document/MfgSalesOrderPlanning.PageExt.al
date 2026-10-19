@@ -5,6 +5,7 @@
 namespace Microsoft.Sales.Document;
 
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning"
 {
@@ -37,35 +38,44 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
     var
         NewStatus: Enum "Production Order Status";
         NewOrderType: Enum "Create Production Order Type";
-
-        Text001: Label 'There is nothing to plan.';
+        UseWizard: Boolean;
+        NothingToPlanMsg: Label 'There is nothing to plan.';
 
     procedure CreateProdOrder()
     var
+        TempSalesPlanningLine: Record "Sales Planning Line" temporary;
         CreateOrderFromSales: Page "Create Order From Sales";
         NewOrderTypeOption: Option;
         ShowCreateOrderForm: Boolean;
         IsHandled: Boolean;
     begin
+        UseWizard := false;
         ShowCreateOrderForm := true;
         IsHandled := false;
         NewOrderTypeOption := NewOrderType.AsInteger();
+        TempSalesPlanningLine.Copy(Rec, true);
+        CurrPage.SetSelectionFilter(TempSalesPlanningLine);
+        if not TempSalesPlanningLine.MarkedOnly then
+            TempSalesPlanningLine.Copy(Rec, true);
+
         OnBeforeCreateProdOrder(Rec, NewStatus, NewOrderTypeOption, ShowCreateOrderForm, IsHandled);
         NewOrderType := "Create Production Order Type".FromInteger(NewOrderTypeOption);
         if IsHandled then
             exit;
 
         if ShowCreateOrderForm then begin
+            CreateOrderFromSales.SetSingleLineSelected(TempSalesPlanningLine.Count() = 1);
             if CreateOrderFromSales.RunModal() <> ACTION::Yes then
                 exit;
 
             CreateOrderFromSales.GetParameters(NewStatus, NewOrderType);
+            UseWizard := CreateOrderFromSales.GetUseProductDefinitionWizard();
             OnCreateProdOrderOnAfterGetParameters(Rec, NewStatus, NewOrderType);
             Clear(CreateOrderFromSales);
         end;
 
-        if not CreateOrders() then
-            Message(Text001);
+        if not CreateOrders(TempSalesPlanningLine) then
+            Message(NothingToPlanMsg);
 
         Rec.SetRange("Planning Status");
 
@@ -76,7 +86,7 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         CurrPage.Update(false);
     end;
 
-    local procedure CreateOrders() OrdersCreated: Boolean
+    local procedure CreateOrders(var TempSalesPlanningLine: Record "Sales Planning Line" temporary) OrdersCreated: Boolean
     var
         xSalesPlanLine: Record "Sales Planning Line";
         SalesLine: Record "Sales Line";
@@ -86,24 +96,24 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         IsHandled: Boolean;
         ProcessOrder: Boolean;
     begin
-        xSalesPlanLine := Rec;
+        xSalesPlanLine := TempSalesPlanningLine;
 
         OrdersCreated := false;
-        OnCreateOrdersOnBeforeFindSet(Rec, IsHandled, OrdersCreated);
+        OnCreateOrdersOnBeforeFindSet(TempSalesPlanningLine, IsHandled, OrdersCreated);
         if IsHandled then
             exit;
 
-        if not Rec.FindSet() then
+        if not TempSalesPlanningLine.FindSet() then
             exit;
 
         repeat
-            SalesLine.Get(SalesLine."Document Type"::Order, Rec."Sales Order No.", Rec."Sales Order Line No.");
+            SalesLine.Get(SalesLine."Document Type"::Order, TempSalesPlanningLine."Sales Order No.", TempSalesPlanningLine."Sales Order Line No.");
             SalesLine.TestField("Shipment Date");
             SalesLine.CalcFields("Reserved Qty. (Base)");
 
             IsHandled := false;
             ProcessOrder := true;
-            OnCreateOrdersOnBeforeCreateProdOrder(Rec, SalesLine, IsHandled, ProcessOrder, OrdersCreated, EndLoop);
+            OnCreateOrdersOnBeforeCreateProdOrder(TempSalesPlanningLine, SalesLine, IsHandled, ProcessOrder, OrdersCreated, EndLoop);
             if IsHandled then
                 exit;
 
@@ -111,28 +121,32 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
                 if SalesLine."Outstanding Qty. (Base)" > SalesLine."Reserved Qty. (Base)" then begin
                     DoCreateProdOrder := CreateProdOrderLines.CheckReplenishmentSystemProdOrderAndNotProductionBlocked(SalesLine."No.", SalesLine."Variant Code", SalesLine."Location Code");
 
-                    CreateOrder(DoCreateProdOrder, SalesLine, EndLoop, OrdersCreated);
+                    CreateOrder(TempSalesPlanningLine, DoCreateProdOrder, SalesLine, EndLoop, OrdersCreated);
                 end;
-        until (Rec.Next() = 0) or EndLoop;
+        until (TempSalesPlanningLine.Next() = 0) or EndLoop;
 
-        Rec := xSalesPlanLine;
+        TempSalesPlanningLine := xSalesPlanLine;
     end;
 
-    local procedure CreateOrder(DoCreateProdOrder: Boolean; var SalesLine: Record "Sales Line"; var EndLoop: Boolean; var OrdersCreated: Boolean)
+    local procedure CreateOrder(var TempSalesPlanningLine: Record "Sales Planning Line" temporary; DoCreateProdOrder: Boolean; var SalesLine: Record "Sales Line"; var EndLoop: Boolean; var OrdersCreated: Boolean)
     var
+        ProductionDefinitionManager: Codeunit "Production Definition Manager";
         CreateProdOrderFromSale: Codeunit "Create Prod. Order from Sale";
         HideValidationDialog: Boolean;
     begin
         HideValidationDialog := false;
-        OnBeforeCreateOrder(Rec, SalesLine, DoCreateProdOrder, HideValidationDialog);
+        OnBeforeCreateOrder(TempSalesPlanningLine, SalesLine, DoCreateProdOrder, HideValidationDialog);
 
-        if DoCreateProdOrder then begin
-            OrdersCreated := true;
-            CreateProdOrderFromSale.SetHideValidationDialog(HideValidationDialog);
-            CreateProdOrderFromSale.CreateProductionOrder(SalesLine, NewStatus, NewOrderType);
-            if NewOrderType = NewOrderType::ProjectOrder then
-                EndLoop := true;
-        end;
+        if DoCreateProdOrder then
+            if not UseWizard then begin
+                OrdersCreated := true;
+                CreateProdOrderFromSale.SetHideValidationDialog(HideValidationDialog);
+                CreateProdOrderFromSale.CreateProductionOrder(SalesLine, NewStatus, NewOrderType);
+                if NewOrderType = NewOrderType::ProjectOrder then
+                    EndLoop := true;
+            end else
+                if ProductionDefinitionManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, NewStatus) then
+                    OrdersCreated := true;
     end;
 
     [IntegrationEvent(false, false)]

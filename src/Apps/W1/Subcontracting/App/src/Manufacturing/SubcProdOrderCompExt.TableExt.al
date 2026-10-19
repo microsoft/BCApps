@@ -12,12 +12,12 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Structure;
 
-tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Component"
+tableextension 20502 "Subc. Prod Order Comp Ext." extends "Prod. Order Component"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001522; "Component Supply Method"; Enum "Component Supply Method")
+        field(20522; "Component Supply Method"; Enum "Component Supply Method")
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
@@ -46,13 +46,13 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
                 SubcontractingManagement.UpdateComponentSupplyMethodForProdOrderComponent(Rec);
             end;
         }
-        field(99001523; "Subc. Original Location Code"; Code[10])
+        field(20523; "Subc. Original Location Code"; Code[10])
         {
             Caption = 'Original Location Code';
             DataClassification = CustomerContent;
             TableRelation = Location;
         }
-        field(99001524; "Subc. Qty. transf. to Subcontr"; Decimal)
+        field(20524; "Subc. Qty. transf. to Subcontr"; Decimal)
         {
             AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Entry Type" = const(Transfer),
@@ -69,7 +69,7 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             FieldClass = FlowField;
             ToolTip = 'Specifies the item amount transferred to the subcontractor.';
         }
-        field(99001525; "Subc. Qty. in Transit (Base)"; Decimal)
+        field(20525; "Subc. Qty. in Transit (Base)"; Decimal)
         {
             AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Qty. in Transit (Base)" where("Subc. Prod. Order No." = field("Prod. Order No."),
@@ -84,7 +84,7 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             FieldClass = FlowField;
             ToolTip = 'Specifies the items that are in transit.';
         }
-        field(99001526; "Subc. Qty.on TransOrder (Base)"; Decimal)
+        field(20526; "Subc. Qty.on TransOrder (Base)"; Decimal)
         {
             AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Outstanding Qty. (Base)" where("Subc. Prod. Order No." = field("Prod. Order No."),
@@ -99,20 +99,20 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             FieldClass = FlowField;
             ToolTip = 'Specifies the item amount that is on the transfer order.';
         }
-        field(99001527; "Subc. Purchase Order Filter"; Code[20])
+        field(20527; "Subc. Purchase Order Filter"; Code[20])
         {
             Caption = 'Subc. Purchase Order Filter';
             FieldClass = FlowFilter;
             TableRelation = "Purchase Header"."No." where("Document Type" = const(Order),
                                                            "Subc. Order" = const(true));
         }
-        field(99001528; "Subc. Orig. Bin Code"; Code[20])
+        field(20528; "Subc. Orig. Bin Code"; Code[20])
         {
             Caption = 'Original Bin Code';
             DataClassification = CustomerContent;
             TableRelation = Bin;
         }
-        field(99001530; "RetQtyInTransit (Base)"; Decimal)
+        field(20530; "RetQtyInTransit (Base)"; Decimal)
         {
             AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Qty. in Transit (Base)" where("Subc. Prod. Order No." = field("Prod. Order No."),
@@ -126,7 +126,7 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001531; "RetQtyOnTransOrder (Base)"; Decimal)
+        field(20531; "RetQtyOnTransOrder (Base)"; Decimal)
         {
             AutoFormatType = 0;
             CalcFormula = sum("Transfer Line"."Outstanding Qty. (Base)" where("Subc. Prod. Order No." = field("Prod. Order No."),

@@ -12,6 +12,7 @@ report 310 "Vendor - Labels"
 {
     ApplicationArea = Suite;
     Caption = 'Vendor - Labels';
+    ToolTip = 'View mailing labels with the vendors'' names and addresses.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

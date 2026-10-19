@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001501 "Transfer Source Type"
+enum 20501 "Transfer Source Type"
 {
     Extensible = true;
     value(0; Empty)

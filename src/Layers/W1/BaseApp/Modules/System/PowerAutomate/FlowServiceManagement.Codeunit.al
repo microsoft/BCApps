@@ -3,7 +3,7 @@ namespace System.Automation;
 using System;
 using System.Azure.Identity;
 using System.Environment;
-using System.Integration;
+using System.Utilities;
 
 codeunit 6400 "Flow Service Management"
 {
@@ -31,9 +31,18 @@ codeunit 6400 "Flow Service Management"
         NullGuidReceivedMsg: Label 'Encountered an null GUID value as Power Automate Environment ID.', Locked = true;
         EmptyAccessTokenTelemetryMsg: Label 'Encountered an empty access token for Power Automate services.', Locked = true;
         EmptyPowerPlatformTenantTelemetryMsg: Label 'Encountered an empty Power Platform Tenant URL for Power Automate services.', Locked = true;
+        LinkedEnvironmentLookupFailedMsg: Label 'Failed to retrieve the linked Power Platform environment ID. Scenario: %1. Error code: %2.', Locked = true, Comment = '%1: Power Platform scenario, %2: Error code';
+        EmptyEnvironmentResponseTelemetryMsg: Label 'Received an empty response when retrieving the list of Power Automate environments.', Locked = true;
+        PowerPlatformTenantLookupFailedMsg: Label 'Failed to determine the Power Platform tenant URL for Power Automate services.', Locked = true;
         PowerAutomateURLTelemetryMsg: Label 'Power Automate Environment URL: %1', Locked = true, Comment = '%1: URL used to access Power Automate environments';
         PowerAutomatePickerTelemetryCategoryLbl: Label 'AL Power Automate Environment Picker', Locked = true;
         MicrosoftPowerAutomatePrivacyIdTxt: Label 'Power Automate', Locked = true;
+        PowerPlatformTenantNotConfiguredErr: Label 'Power Automate cannot connect because this Business Central environment is not linked to a Power Platform tenant. Contact your system administrator to configure the Power Platform environment link.';
+        BearerTokenTxt: Label 'Bearer %1', Locked = true;
+        InvalidUriErr: Label 'The URI is not valid.';
+        SchemeNotAllowedErr: Label 'Only the http and https schemes are allowed.';
+        InvalidEncodingErr: Label 'The text encoding is not specified or is not valid.';
+        RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
 
 
     procedure GetFlowUrl(): Text
@@ -121,10 +130,10 @@ codeunit 6400 "Flow Service Management"
     [Scope('OnPrem')]
     procedure GetEnvironments(var TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary)
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
         ResponseText: Text;
         Handled: Boolean;
         AccessToken: SecretText;
+        FlowEnvironmentsUrl: Text;
     begin
         Handled := false;
         OnBeforeSendGetEnvironmentRequest(ResponseText, Handled);
@@ -135,12 +144,102 @@ codeunit 6400 "Flow Service Management"
                 Session.LogMessage('0000MJX', EmptyAccessTokenTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
 
             // Gets a list of Flow user environments from the Flow API.
-            if not WebRequestHelper.GetResponseTextUsingCharset('GET', GetFlowEnvironmentsApi(), AccessToken, ResponseText)
-            then
+            if not TryGetFlowEnvironmentsApi(FlowEnvironmentsUrl) then begin
+                // The tenant URL could not be resolved because of an unexpected failure, which is not the same as
+                // the tenant genuinely not being linked to Power Platform. Do not show the misleading setup message.
+                Session.LogMessage('0000Q7D', PowerPlatformTenantLookupFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
+                ClearLastError();
+                Error(GenericErr);
+            end;
+
+            if FlowEnvironmentsUrl = '' then
+                Error(PowerPlatformTenantNotConfiguredErr);
+
+            if not TryGetResponseText('GET', FlowEnvironmentsUrl, AccessToken, ResponseText) then
                 Error(GenericErr);
         end;
 
-        ParseResponseTextForEnvironments(ResponseText, TempFlowUserEnvironmentBuffer);
+        if ResponseText <> '' then
+            ParseResponseTextForEnvironments(ResponseText, TempFlowUserEnvironmentBuffer)
+        else
+            Session.LogMessage('0000Q7C', EmptyEnvironmentResponseTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryGetResponseText(Method: Text; Url: Text; AccessToken: SecretText; var ResponseText: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Uri: Codeunit Uri;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        RequestHeaders: HttpHeaders;
+        ResponseInStream: InStream;
+        TempBlobInStream: InStream;
+        TempBlobOutStream: OutStream;
+        EncodingToUse: TextEncoding;
+        ResponseTextBuilder: TextBuilder;
+        TextChunk: Text;
+    begin
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUriErr);
+        Uri.Init(Url);
+        if not Uri.IsHttpUrl() then
+            Error(SchemeNotAllowedErr);
+
+        HttpRequestMessage.Method(Method);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        RequestHeaders.Add('Authorization', SecretStrSubstNo(BearerTokenTxt, AccessToken));
+
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+            Error(GetLastErrorText());
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            Error(RemoteServerErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
+
+        HttpResponseMessage.Content().ReadAs(ResponseInStream);
+        TempBlob.CreateOutStream(TempBlobOutStream);
+        CopyStream(TempBlobOutStream, ResponseInStream);
+
+        if TryGetTextEncodingFromResponse(HttpResponseMessage, EncodingToUse) then
+            TempBlob.CreateInStream(TempBlobInStream, EncodingToUse)
+        else
+            TempBlob.CreateInStream(TempBlobInStream);
+
+        while not TempBlobInStream.EOS() do begin
+            TempBlobInStream.ReadText(TextChunk);
+            ResponseTextBuilder.Append(TextChunk);
+        end;
+        ResponseText := ResponseTextBuilder.ToText();
+    end;
+
+    [TryFunction]
+    local procedure TryGetTextEncodingFromResponse(HttpResponseMessage: HttpResponseMessage; var EncodingToUse: TextEncoding)
+    var
+        ContentHeaders: HttpHeaders;
+        ContentTypeValues: List of [Text];
+        ContentTypeParts: List of [Text];
+        ContentTypePart: Text;
+        Charset: Text;
+    begin
+        HttpResponseMessage.Content().GetHeaders(ContentHeaders);
+        if not ContentHeaders.GetValues('Content-Type', ContentTypeValues) then
+            Error(InvalidEncodingErr);
+        if ContentTypeValues.Count() = 0 then
+            Error(InvalidEncodingErr);
+
+        ContentTypeParts := LowerCase(ContentTypeValues.Get(1)).Split(';');
+        foreach ContentTypePart in ContentTypeParts do begin
+            ContentTypePart := ContentTypePart.Trim();
+            if ContentTypePart.StartsWith('charset=') then
+                Charset := DelChr(CopyStr(ContentTypePart, StrLen('charset=') + 1), '=', ' "''');
+        end;
+
+        if Charset <> 'utf-8' then
+            Error(InvalidEncodingErr);
+
+        EncodingToUse := TextEncoding::UTF8;
     end;
 
     procedure ParseResponseTextForEnvironments(ResponseText: Text; var TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary)
@@ -261,25 +360,44 @@ codeunit 6400 "Flow Service Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetPowerPlatformEnvironmentId', '', true, true)]
     local procedure GetEnvironmentId(Scenario: Text; var EnvironmentId: Text)
     var
+        LastErrorCode: Text;
+    begin
+        EnvironmentId := '';
+        if TryGetEnvironmentId(EnvironmentId) then
+            exit;
+
+        LastErrorCode := GetLastErrorCode();
+        EnvironmentId := '';
+        Session.LogMessage('0000Q7B', StrSubstNo(LinkedEnvironmentLookupFailedMsg, Scenario, LastErrorCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
+        ClearLastError();
+    end;
+
+    [TryFunction]
+    local procedure TryGetEnvironmentId(var EnvironmentId: Text)
+    var
         EnvironmentInformation: Codeunit "Environment Information";
         GUIDValue: Guid;
         LinkedEnvironmentId: Text;
         EmptyGuidText: Text;
+        Handled: Boolean;
     begin
         EmptyGuidText := '00000000-0000-0000-0000-000000000000';
-        EnvironmentId := '';
         if HasUserSelectedFlowEnvironment() then
             // if a user has a specific environment configured, use it
             EnvironmentId := GetFlowEnvironmentID()
         else begin
             // if not, use the linked environment if exists
-            LinkedEnvironmentId := EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId();
-            if (LinkedEnvironmentId <> '') and (Evaluate(GUIDValue, LinkedEnvironmentId)) then begin
-                EnvironmentId := LinkedEnvironmentId;
+            Handled := false;
+            OnBeforeGetLinkedPowerPlatformEnvironmentId(LinkedEnvironmentId, Handled);
+            if not Handled then
+                LinkedEnvironmentId := EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId();
 
-                if (LinkedEnvironmentId = EmptyGuidText) then
+            if (LinkedEnvironmentId <> '') and (Evaluate(GUIDValue, LinkedEnvironmentId)) then begin
+                if (LinkedEnvironmentId = EmptyGuidText) then begin
                     Session.LogMessage('0000NBM', NullGuidReceivedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
-                ;
+                    exit;
+                end;
+                EnvironmentId := LinkedEnvironmentId;
             end;
         end;
     end;
@@ -309,6 +427,11 @@ codeunit 6400 "Flow Service Management"
 
     [InternalEvent(false)]
     internal procedure OnBeforeSendGetEnvironmentRequest(var ResponseText: Text; var Handled: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false, true)]
+    internal procedure OnBeforeGetLinkedPowerPlatformEnvironmentId(var LinkedEnvironmentId: Text; var Handled: Boolean)
     begin
     end;
 

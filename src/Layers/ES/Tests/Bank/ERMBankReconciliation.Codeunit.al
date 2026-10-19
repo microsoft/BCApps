@@ -4691,6 +4691,143 @@ codeunit 134141 "ERM Bank Reconciliation"
         // [THEN] "Account No." in Gen. Journal Line is not blank in GeneralJournalPageHandler.
     end;
 
+    [Test]
+    [HandlerFunctions('PostAndReconcilePageHandler,PostAndReconcilePageStatementDateHandler')]
+    procedure PaymentReconciliationRoundsLCYBankFeeOnPosting()
+    var
+        GLAccount: Record "G/L Account";
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        StatementAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 643235] Payment reconciliation rounds an LCY bank fee according to G/L amount rounding precision
+        Initialize();
+
+        // [GIVEN] LCY amount rounding precision is 1
+        LibraryERM.SetAmountRoundingPrecision(1);
+
+        // [GIVEN] Payment reconciliation line "PRL" applied to G/L account "G" has bank fee amount -182.40
+        LibraryERM.CreateGLAccount(GLAccount);
+        StatementAmount := -182.40;
+        CreateBankReconciliationWithGLAccountAndAmount(
+            BankAccReconciliation, BankAccReconciliationLine, GLAccount."No.", StatementAmount);
+        UpdateBankAccRecStmEndingBalance(
+            BankAccReconciliation,
+            BankAccReconciliation."Balance Last Statement" + BankAccReconciliationLine."Statement Amount");
+
+        // [WHEN] Post payment reconciliation "PR"
+        LibraryERM.PostBankAccReconciliation(BankAccReconciliation);
+
+        // [THEN] G/L entry for "G" has rounded amount 182
+        VerifyGLEntryAmount(BankAccReconciliation."Statement No.", GLAccount."No.", -Round(StatementAmount, 1));
+    end;
+
+    [Test]
+    [HandlerFunctions('PostAndReconcilePageHandler,PostAndReconcilePageStatementDateHandler')]
+    procedure PaymentReconciliationUsesFCYAmountRoundingPrecisionOnPosting()
+    var
+        Currency: Record Currency;
+        GLAccount: Record "G/L Account";
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        CurrencyCode: Code[10];
+        StatementAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 643235] Payment reconciliation rounds FCY amounts with currency precision instead of LCY precision
+        Initialize();
+
+        // [GIVEN] LCY amount rounding precision is 1 and currency "C" amount rounding precision is 0.01
+        LibraryERM.SetAmountRoundingPrecision(1);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        Currency.Get(CurrencyCode);
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Modify(true);
+
+        // [GIVEN] Payment reconciliation line "PRL" for bank account in "C" has bank fee amount -182.405
+        LibraryERM.CreateGLAccount(GLAccount);
+        StatementAmount := -182.405;
+        CreateBankReconciliationWithGLAccountForBankAccountAndAmount(
+            BankAccReconciliation, BankAccReconciliationLine, CreateBankAccountWithCurrencyCode(CurrencyCode),
+            GLAccount."No.", StatementAmount);
+        UpdateBankAccRecStmEndingBalance(
+            BankAccReconciliation,
+            BankAccReconciliation."Balance Last Statement" + BankAccReconciliationLine."Statement Amount");
+
+        // [WHEN] Post payment reconciliation "PR"
+        LibraryERM.PostBankAccReconciliation(BankAccReconciliation);
+
+        // [THEN] G/L entry for "G" has source currency amount 182.41
+        VerifyGLEntrySourceCurrencyAmount(
+            BankAccReconciliation."Statement No.", GLAccount."No.", CurrencyCode,
+            Round(-StatementAmount, Currency."Amount Rounding Precision"));
+    end;
+
+    [Test]
+    [HandlerFunctions('PostAndReconcilePageHandler,PostAndReconcilePageStatementDateHandler')]
+    procedure PaymentReconciliationKeepsRoundedLCYBankFeeOnPosting()
+    var
+        GLAccount: Record "G/L Account";
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        StatementAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 643235] Payment reconciliation leaves an already rounded LCY bank fee unchanged
+        Initialize();
+
+        // [GIVEN] LCY amount rounding precision is 1
+        LibraryERM.SetAmountRoundingPrecision(1);
+
+        // [GIVEN] Payment reconciliation line "PRL" applied to G/L account "G" has bank fee amount -182
+        LibraryERM.CreateGLAccount(GLAccount);
+        StatementAmount := -182;
+        CreateBankReconciliationWithGLAccountAndAmount(
+            BankAccReconciliation, BankAccReconciliationLine, GLAccount."No.", StatementAmount);
+        UpdateBankAccRecStmEndingBalance(
+            BankAccReconciliation,
+            BankAccReconciliation."Balance Last Statement" + BankAccReconciliationLine."Statement Amount");
+
+        // [WHEN] Post payment reconciliation "PR"
+        LibraryERM.PostBankAccReconciliation(BankAccReconciliation);
+
+        // [THEN] G/L entry for "G" has unchanged amount 182
+        VerifyGLEntryAmount(BankAccReconciliation."Statement No.", GLAccount."No.", -StatementAmount);
+    end;
+
+    [Test]
+    [HandlerFunctions('PostAndReconcilePageHandler,PostAndReconcilePageStatementDateHandler')]
+    procedure PaymentReconciliationRoundsLCYBankFeeAtMidpointOnPosting()
+    var
+        GLAccount: Record "G/L Account";
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        StatementAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 643235] Payment reconciliation uses standard rounding for an LCY bank fee at the midpoint
+        Initialize();
+
+        // [GIVEN] LCY amount rounding precision is 1
+        LibraryERM.SetAmountRoundingPrecision(1);
+
+        // [GIVEN] Payment reconciliation line "PRL" applied to G/L account "G" has bank fee amount -182.50
+        LibraryERM.CreateGLAccount(GLAccount);
+        StatementAmount := -182.50;
+        CreateBankReconciliationWithGLAccountAndAmount(
+            BankAccReconciliation, BankAccReconciliationLine, GLAccount."No.", StatementAmount);
+        UpdateBankAccRecStmEndingBalance(
+            BankAccReconciliation,
+            BankAccReconciliation."Balance Last Statement" + BankAccReconciliationLine."Statement Amount");
+
+        // [WHEN] Post payment reconciliation "PR"
+        LibraryERM.PostBankAccReconciliation(BankAccReconciliation);
+
+        // [THEN] G/L entry for "G" has amount 183
+        VerifyGLEntryAmount(BankAccReconciliation."Statement No.", GLAccount."No.", -Round(StatementAmount, 1));
+    end;
+
     local procedure Initialize()
     var
         BankPmtApplSettings: Record "Bank Pmt. Appl. Settings";
@@ -5117,12 +5254,24 @@ codeunit 134141 "ERM Bank Reconciliation"
 
     local procedure CreateBankReconciliationWithGLAccount(var BankAccReconciliation: Record "Bank Acc. Reconciliation"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; GLAccNo: Code[20])
     begin
+        CreateBankReconciliationWithGLAccountAndAmount(
+            BankAccReconciliation, BankAccReconciliationLine, GLAccNo, LibraryRandom.RandDec(100, 2));
+    end;
+
+    local procedure CreateBankReconciliationWithGLAccountAndAmount(var BankAccReconciliation: Record "Bank Acc. Reconciliation"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; GLAccNo: Code[20]; StatementAmount: Decimal)
+    begin
+        CreateBankReconciliationWithGLAccountForBankAccountAndAmount(
+            BankAccReconciliation, BankAccReconciliationLine, CreateBankAccount(), GLAccNo, StatementAmount);
+    end;
+
+    local procedure CreateBankReconciliationWithGLAccountForBankAccountAndAmount(var BankAccReconciliation: Record "Bank Acc. Reconciliation"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; BankAccountNo: Code[20]; GLAccNo: Code[20]; StatementAmount: Decimal)
+    begin
         LibraryERM.CreateBankAccReconciliation(
-          BankAccReconciliation, CreateBankAccount(), BankAccReconciliation."Statement Type"::"Payment Application");
+          BankAccReconciliation, BankAccountNo, BankAccReconciliation."Statement Type"::"Payment Application");
         LibraryERM.CreateBankAccReconciliationLn(BankAccReconciliationLine, BankAccReconciliation);
         BankAccReconciliationLine.Validate("Account Type", BankAccReconciliationLine."Account Type"::"G/L Account");
         BankAccReconciliationLine.Validate("Account No.", GLAccNo);
-        BankAccReconciliationLine.Validate("Statement Amount", LibraryRandom.RandDec(100, 2));
+        BankAccReconciliationLine.Validate("Statement Amount", StatementAmount);
         BankAccReconciliationLine.Validate("Transaction Date", WorkDate());
         BankAccReconciliationLine.Validate(Description, GLAccNo);
         BankAccReconciliationLine.Modify(true);
@@ -5735,7 +5884,19 @@ codeunit 134141 "ERM Bank Reconciliation"
         GLEntry.SetRange("Document No.", DocNo);
         GLEntry.SetRange("G/L Account No.", AccNo);
         GLEntry.FindFirst();
-        GLEntry.TestField(Amount, ExpectedAmount);
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, 'G/L entry amount must match the rounded payment reconciliation amount.');
+    end;
+
+    local procedure VerifyGLEntrySourceCurrencyAmount(DocNo: Code[20]; AccNo: Code[20]; ExpectedCurrencyCode: Code[10]; ExpectedAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Payment);
+        GLEntry.SetRange("Document No.", DocNo);
+        GLEntry.SetRange("G/L Account No.", AccNo);
+        GLEntry.FindFirst();
+        Assert.AreEqual(ExpectedCurrencyCode, GLEntry."Source Currency Code", 'G/L entry source currency code is incorrect.');
+        Assert.AreEqual(ExpectedAmount, GLEntry."Source Currency Amount", 'G/L entry source currency amount must use currency rounding precision.');
     end;
 
     local procedure VerifyGLEntryWithDescriptionExists(LastEntryNo: Integer; Description: Text[50])

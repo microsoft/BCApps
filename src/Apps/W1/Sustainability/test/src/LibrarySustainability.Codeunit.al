@@ -456,7 +456,9 @@ codeunit 148182 "Library - Sustainability"
         SustainabilityJnlTemplate: Record "Sustainability Jnl. Template";
         SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
         SustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
         SustainabilityValueEntry: Record "Sustainability Value Entry";
         SustainabilityAccount: Record "Sustainability Account";
         SustainabilityAccountCategory: Record "Sustain. Account Category";
@@ -480,7 +482,9 @@ codeunit 148182 "Library - Sustainability"
         SustainabilityJnlTemplate.DeleteAll();
         SustainabilityJnlBatch.DeleteAll();
         SustainabilityJnlLine.DeleteAll();
+        SustJnlLineGLEntry.DeleteAll();
         SustainabilityLedgerEntry.DeleteAll();
+        SustGLSustLedgerRel.DeleteAll();
         SustainabilityValueEntry.DeleteAll();
         SustainabilityAccount.DeleteAll();
         SustainabilityAccountCategory.DeleteAll();
@@ -500,13 +504,6 @@ codeunit 148182 "Library - Sustainability"
         SustainabilityExciseJnlLine.DeleteAll();
         SustExciseTransactionLog.DeleteAll();
         SustainabilityDisclaimer.DeleteAll();
-    end;
-
-    procedure CreateItemWithSpecificCarbonTrackingMethod(var Item: Record Item)
-    begin
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
-        Item.Modify();
     end;
 
     procedure UpdateCarbonTrackingMethod(var Item: Record Item; CarbonTrackingMethod: Enum "Sust. Carbon Tracking Method")

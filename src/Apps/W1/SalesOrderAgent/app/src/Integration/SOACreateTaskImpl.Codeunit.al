@@ -25,6 +25,29 @@ codeunit 4415 "SOA Create Task Impl"
         GlobalAgentUserSecurityID := NewAgentUserSecurityID;
     end;
 
+    internal procedure OpenCreateTaskPage(AgentUserSecurityID: Guid)
+    var
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        SenderEmail: Text[250];
+        MessageText: Text;
+    begin
+        if not OpenCreateTaskPageForData(AgentUserSecurityID, SenderEmail, MessageText, TempAgentTaskFile) then
+            exit;
+
+        SetAgentUserSecurityID(AgentUserSecurityID);
+        CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
+    end;
+
+    internal procedure OpenCreateTaskPageForData(AgentUserSecurityID: Guid; var SenderEmail: Text[250]; var MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary): Boolean
+    var
+        SOACreateTask: Page "SOA Create Task";
+    begin
+        SOACreateTask.SetAgentUserSecurityID(AgentUserSecurityID);
+        SOACreateTask.LookupMode(true);
+        SOACreateTask.RunModal();
+        exit(SOACreateTask.GetConfirmedTaskData(SenderEmail, MessageText, TempAgentTaskFile));
+    end;
+
     internal procedure GetCurrentUserSalespersonCode(): Code[20]
     var
         UserSetup: Record "User Setup";
@@ -70,26 +93,34 @@ codeunit 4415 "SOA Create Task Impl"
         Clear(CachedAvailBalance);
     end;
 
-    internal procedure CreateTask(SenderEmail: Text[250]; MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary)
-    var
-        SOASetup: Record "SOA Setup";
-        SOARetrieveEmails: Codeunit "SOA Retrieve Emails";
-        AgentTaskBuilder: Codeunit "Agent Task Builder";
-        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
-        AgentTaskTitle: Text[150];
+    internal procedure ValidateTaskData(SenderEmail: Text[250]; MessageText: Text)
     begin
         if SenderEmail = '' then
             Error(YouMustSetSenderEmailErr);
 
         if MessageText = '' then
             Error(YouMustSetMessageTextErr);
+    end;
+
+    internal procedure CreateTask(SenderEmail: Text[250]; MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary)
+    var
+        SOASetup: Record "SOA Setup";
+        SOARetrieveEmails: Codeunit "SOA Retrieve Emails";
+        SOATaskMessage: Codeunit "SOA Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        AgentTaskTitle: Text[150];
+    begin
+        ValidateTaskData(SenderEmail, MessageText);
 
         SOASetup.SetRange("User Security ID", GlobalAgentUserSecurityID);
         if not SOASetup.FindFirst() then
             Error(SOASetupNotFoundErr);
 
         AgentTaskTitle := SOARetrieveEmails.GetAgentTaskTitle(SenderEmail);
-        AgentTaskMessageBuilder.Initialize(SenderEmail, MessageText).SetIgnoreAttachment(not SOASetup."Analyze Attachments");
+        AgentTaskMessageBuilder.Initialize(SenderEmail, MessageText)
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, SenderEmail, true))
+            .SetIgnoreAttachment(not SOASetup."Analyze Attachments");
         AddAttachmentsToTaskMessage(AgentTaskMessageBuilder, TempAgentTaskFile);
         AgentTaskBuilder.Initialize(SOASetup."User Security ID", AgentTaskTitle).AddTaskMessage(AgentTaskMessageBuilder);
         AgentTaskBuilder.Create();
@@ -191,7 +222,7 @@ codeunit 4415 "SOA Create Task Impl"
     local procedure EnsureSampleSenderDefaults(SenderEmail: Text[250]; SenderName: Text[250])
     begin
         if SampleSenderEmail = '' then
-            SampleSenderEmail := SenderEmail;
+            SampleSenderEmail := LowerCase(SenderEmail);
         if SampleSenderName = '' then
             SampleSenderName := SenderName;
         if SampleSenderCompany = '' then
@@ -200,14 +231,14 @@ codeunit 4415 "SOA Create Task Impl"
 
     local procedure SyncSelectionWithSenderEmail(SenderEmail: Text[250])
     begin
-        if (SampleSenderEmail <> '') and (SampleSenderEmail <> SenderEmail) then
+        if (SampleSenderEmail <> '') and (SampleSenderEmail <> LowerCase(SenderEmail)) then
             ClearSelectedSender();
     end;
 
     local procedure SetSampleSenderFields(Name: Text; Email: Text; Company: Text; Address: Text; PostCode: Text; City: Text; Phone: Text; LanguageCode: Code[10])
     begin
         SampleSenderName := CopyStr(Name, 1, MaxStrLen(SampleSenderName));
-        SampleSenderEmail := CopyStr(Email, 1, MaxStrLen(SampleSenderEmail));
+        SampleSenderEmail := CopyStr(LowerCase(Email), 1, MaxStrLen(SampleSenderEmail));
         SampleSenderCompany := CopyStr(Company, 1, MaxStrLen(SampleSenderCompany));
         SampleSenderAddress := CopyStr(Address, 1, MaxStrLen(SampleSenderAddress));
         SampleSenderCity := CopyStr(DelChr(PostCode + ' ' + City, '<>', ' '), 1, MaxStrLen(SampleSenderCity));
@@ -244,25 +275,44 @@ codeunit 4415 "SOA Create Task Impl"
         ExpectedInventory: Decimal;
         DummyQtyAvailable: Decimal;
         AvailableInventory: Decimal;
+        CacheKey: Text;
+        VariantFilter: Text;
     begin
         if SourceItem.Type <> SourceItem.Type::Inventory then
             exit(0);
 
-        if CachedAvailBalance.Get(SourceItem."No.", ProjAvailableBalance) then
+        VariantFilter := SourceItem.GetFilter("Variant Filter");
+        CacheKey := GetAvailabilityCacheKey(SourceItem."No.", VariantFilter, LocationCode);
+        if CachedAvailBalance.Get(CacheKey, ProjAvailableBalance) then
             exit(ProjAvailableBalance);
 
         Item.Copy(SourceItem);
         Item.SetRange("Date Filter", 0D, CalcDate('<CW+1W>', WorkDate()));
         Item.SetFilter("Location Filter", LocationCode);
         Item.SetRange("Drop Shipment Filter", false);
-        Item.SetRange("Variant Filter", '');
+        if VariantFilter = '' then
+            Item.SetRange("Variant Filter", '')
+        else
+            Item.SetFilter("Variant Filter", VariantFilter);
 
         ItemAvailFormsMgt.CalcAvailQuantities(Item, true,
             GrossRequirement, PlannedOrderRcpt, ScheduledRcpt,
             PlannedOrderReleases, ProjAvailableBalance, ExpectedInventory,
             DummyQtyAvailable, AvailableInventory);
-        CachedAvailBalance.Set(SourceItem."No.", ProjAvailableBalance);
+        CachedAvailBalance.Set(CacheKey, ProjAvailableBalance);
         exit(ProjAvailableBalance);
+    end;
+
+    local procedure GetAvailabilityCacheKey(ItemNo: Code[20]; VariantFilter: Text; LocationCode: Code[10]): Text
+    var
+        CacheKeyJson: JsonObject;
+        CacheKey: Text;
+    begin
+        CacheKeyJson.Add('itemNo', ItemNo);
+        CacheKeyJson.Add('variantFilter', VariantFilter);
+        CacheKeyJson.Add('locationCode', LocationCode);
+        CacheKeyJson.WriteTo(CacheKey);
+        exit(CacheKey);
     end;
 
     local procedure QuantityFromAvailableBalance(AvailableQty: Decimal): Integer
@@ -412,7 +462,7 @@ codeunit 4415 "SOA Create Task Impl"
 
     var
         GlobalAgentUserSecurityID: Guid;
-        CachedAvailBalance: Dictionary of [Code[20], Decimal];
+        CachedAvailBalance: Dictionary of [Text, Decimal];
         SelectedLocationCode: Code[10];
         SelectedLanguageCode: Code[10];
         SelectedContactNo: Code[20];

@@ -506,7 +506,9 @@ table 28090 "Post Dated Check Line"
                 Rec.ShowDimensions();
             end;
         }
+#pragma warning disable AS0099 // Accepted: Renumbering this existing published ID would be a breaking change.
         field(1500000; "Template Name"; Code[20])
+#pragma warning restore AS0099
         {
             Caption = 'Template Name';
         }

@@ -22,6 +22,7 @@ using System.Utilities;
 codeunit 139879 "E2E PowerBI Project Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     Access = Internal;
 
@@ -84,6 +85,7 @@ codeunit 139879 "E2E PowerBI Project Test"
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(Job."No.") + ''')]'), 'Job not found.');
         Assert.AreEqual(Job.Description, JsonMgt.GetValue('description'), 'Description did not match.');
         Assert.AreEqual(Job."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to customer no. did not match.');
+        Assert.AreEqual(Job."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to customer no. did not match.');
         Assert.AreEqual(Format(Job."Creation Date", 0, 9), JsonMgt.GetValue('creationDate'), 'Creation date did not match.');
         Assert.AreEqual(Format(Job."Starting Date", 0, 9), JsonMgt.GetValue('startingDate'), 'Starting date did not match.');
         Assert.AreEqual(Format(Job."Ending Date", 0, 9), JsonMgt.GetValue('endingDate'), 'Ending date did not match.');

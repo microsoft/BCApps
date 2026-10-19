@@ -7,8 +7,8 @@ page 6319 "Water and Waste Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Water and Waste Analysis';
-    AboutTitle = 'About Water and Waste Analysis';
+    Caption = 'Water and Waste Analysis (Power BI)';
+    AboutTitle = 'About Water and Waste Analysis (Power BI)';
     AboutText = 'The Water and Waste Analysis allows you to effectively monitor your water and waste usage by different metrics such as Water Type, Intensity Type, and Responsibility Center.';
 
     layout
@@ -48,13 +48,7 @@ page 6319 "Water and Waste Power BI"
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sustainability Report ID"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }
 

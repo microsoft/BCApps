@@ -609,7 +609,8 @@ table 5740 "Transfer Header"
 
                 Modify(true);
 
-                VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
+                if "Direct Transfer" then
+                    VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
                 UpdateTransLines(Rec, FieldNo("Direct Transfer"));
             end;
         }
@@ -1664,6 +1665,8 @@ table 5740 "Transfer Header"
     var
         DummyTrackingSpecification: Record "Tracking Specification";
     begin
+        OnBeforeTestTransferLine(TransferLine, Ship);
+
         if Ship then
             DummyTrackingSpecification.CheckItemTrackingQuantity(Database::"Transfer Line", 0, "No.", TransferLine."Line No.",
                 TransferLine."Qty. to Ship (Base)", TransferLine."Qty. to Ship (Base)", true, false)
@@ -2051,6 +2054,11 @@ table 5740 "Transfer Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestTransferLine(TransferLine: Record "Transfer Line"; Ship: Boolean)
     begin
     end;
 }

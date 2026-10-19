@@ -353,9 +353,7 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Exchange Contact" = IMD,
 #endif
                   tabledata "Exchange Object" = IMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = IMD,
-#endif
                   tabledata "Experience Tier Buffer" = IMD,
                   tabledata "Experience Tier Setup" = IMD,
                   tabledata "Extended Text Header" = IMD,
@@ -604,6 +602,9 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Ship-to Address" = im,
                   tabledata "Shipment Method Translation" = IMD,
                   tabledata "Sorting Table" = IMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request" = Rimd,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = Rimd,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = Rimd,
                   tabledata "Standard Address" = imd,
                   tabledata "Standard General Journal" = IMD,
                   tabledata "Standard General Journal Line" = imd,

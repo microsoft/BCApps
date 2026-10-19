@@ -11,8 +11,8 @@ page 37044 "Expected Capacity Need"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Expected Capacity Need';
-    AboutTitle = 'About Expected Capacity Need';
+    Caption = 'Expected Capacity Need (Power BI)';
+    AboutTitle = 'About Expected Capacity Need (Power BI)';
     AboutText = 'View the total hours scheduled to be performed for each Work Centre Group and/or Work Centre broken down by production order status and production order to analyze your requirement on factory resources.';
 
     layout

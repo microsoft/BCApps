@@ -22,14 +22,21 @@ codeunit 4777 "Create Mfg Vendor"
     begin
         ContosoCoffeeDemoDataSetup.Get();
 
-        ContosoCustomerVendor.InsertVendor(SubcontractorVendor(), SubcontractorLbl, ContosoCoffeeDemoDataSetup."Country/Region Code", '', '', '', CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), '', '', false);
+        ContosoCustomerVendor.InsertVendor(SubcontractorVendor(), BulkAssemblyLbl, ContosoCoffeeDemoDataSetup."Country/Region Code", '', '', '', CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), '', '', false);
+        ContosoCustomerVendor.InsertVendor(LocalSubcontractorVendor(), LocalAssemblyLbl, ContosoCoffeeDemoDataSetup."Country/Region Code", '', '', '', CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), '', '', false);
     end;
 
     var
-        SubcontractorLbl: Label 'Subcontractor', MaxLength = 30;
+        BulkAssemblyLbl: Label 'Bulk Assembly', MaxLength = 30;
+        LocalAssemblyLbl: Label 'Local Assembly', MaxLength = 30;
 
     procedure SubcontractorVendor(): Code[20]
     begin
         exit('82000');
+    end;
+
+    procedure LocalSubcontractorVendor(): Code[20]
+    begin
+        exit('83000');
     end;
 }

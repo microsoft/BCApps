@@ -50,6 +50,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// Common usage: Called when setting up inspection generation rules to ensure scheduled execution infrastructure exists.
     /// </summary>
     /// <param name="ScheduleGroup">The schedule group code to check and potentially create a job queue entry for</param>
+    /// <returns>True if a matching job queue entry already exists or is created; otherwise false.</returns>
     internal procedure PromptCreateJobQueueEntryIfMissing(ScheduleGroup: Code[20]) JobQueueEntryCreated: Boolean
     begin
         if IsJobQueueCreated(ScheduleGroup) then

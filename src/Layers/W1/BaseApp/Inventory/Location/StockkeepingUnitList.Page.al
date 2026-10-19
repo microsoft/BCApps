@@ -417,7 +417,6 @@ page 5701 "Stockkeeping Unit List"
                 Caption = 'Inventory Availability';
                 Image = "Report";
                 RunObject = Report "Inventory Availability";
-                ToolTip = 'View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.';
             }
 #if not CLEAN28
             action("Inventory - Availability Plan")
@@ -445,7 +444,6 @@ page 5701 "Stockkeeping Unit List"
                 Caption = 'Item/Vendor Catalog';
                 Image = "Report";
                 RunObject = Report "Item/Vendor Catalog";
-                ToolTip = 'View a list of the vendors for the selected items. For each combination of item and vendor, it shows direct unit cost, lead time calculation and the vendor''s item number.';
             }
         }
         area(processing)

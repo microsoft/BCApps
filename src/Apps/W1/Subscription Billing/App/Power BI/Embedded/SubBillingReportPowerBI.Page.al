@@ -7,8 +7,8 @@ page 8109 "Sub. Billing Report Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Subscription Billing Report';
-    AboutTitle = 'About Subscription Billing Report';
+    Caption = 'Subscription Billing Report (Power BI)';
+    AboutTitle = 'About Subscription Billing Report (Power BI)';
     AboutText = 'The Subscription Billing Report offers a consolidated view of all subscription report pages, conveniently embedded into a single page for easy access.';
 
     layout

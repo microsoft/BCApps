@@ -1,0 +1,46 @@
+{
+  "@odata.count": 1,
+  "value": [
+    {
+      "id": "test-message-id-003",
+      "conversationId": "test-conversation-id-003",
+      "subject": "Test Bounce With Item Attachment",
+      "receivedDateTime": "2026-04-21T10:00:00Z",
+      "sentDateTime": "2026-04-21T09:55:00Z",
+      "sender": {
+        "emailAddress": {
+          "name": "Mail Delivery System",
+          "address": "postmaster@test.com"
+        }
+      },
+      "body": {
+        "contentType": "HTML",
+        "content": "<p>Delivery has failed</p>"
+      },
+      "hasAttachments": true,
+      "isRead": false,
+      "isDraft": false,
+      "attachments": [
+        {
+          "@odata.type": "#microsoft.graph.itemAttachment",
+          "name": "Undeliverable: Test",
+          "contentType": "message/rfc822",
+          "isInline": false
+        },
+        {
+          "@odata.type": "#microsoft.graph.referenceAttachment",
+          "name": "SharedDocument.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "isInline": false
+        },
+        {
+          "@odata.type": "#microsoft.graph.fileAttachment",
+          "name": "report.txt",
+          "contentType": "text/plain",
+          "isInline": false,
+          "contentBytes": "UmVndWxhckNvbnRlbnQ="
+        }
+      ]
+    }
+  ]
+}

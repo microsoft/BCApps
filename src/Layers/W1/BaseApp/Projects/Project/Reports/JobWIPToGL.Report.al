@@ -14,6 +14,7 @@ report 1010 "Job WIP To G/L"
     AdditionalSearchTerms = 'work in process to general ledger,work in progress to general ledger, Job WIP To G/L';
     ApplicationArea = Jobs;
     Caption = 'Project WIP To G/L';
+    ToolTip = 'View the value of work in process on the projects that you select compared to the amount that has been posted in the general ledger.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

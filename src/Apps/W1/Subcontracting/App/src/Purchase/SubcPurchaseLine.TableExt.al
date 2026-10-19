@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
 
-tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
+tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
 {
     fields
     {
@@ -45,14 +45,14 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
                 SetSubcontractingLineType();
             end;
         }
-        field(99001543; "Subc. Prod. Order No."; Code[20])
+        field(20543; "Subc. Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No. (Sub)';
             DataClassification = CustomerContent;
             Editable = false;
             TableRelation = "Production Order"."No." where(Status = const(Released));
         }
-        field(99001544; "Subc. Prod. Order Line No."; Integer)
+        field(20544; "Subc. Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No. (Sub)';
             DataClassification = CustomerContent;
@@ -60,20 +60,20 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             TableRelation = "Prod. Order Line"."Line No." where(Status = const(Released),
                                                                  "Prod. Order No." = field("Subc. Prod. Order No."));
         }
-        field(99001545; "Subc. Routing No."; Code[20])
+        field(20545; "Subc. Routing No."; Code[20])
         {
             Caption = 'Routing No. (Sub)';
             DataClassification = CustomerContent;
             Editable = false;
             TableRelation = "Routing Header";
         }
-        field(99001546; "Subc. Rtng Reference No."; Integer)
+        field(20546; "Subc. Rtng Reference No."; Integer)
         {
             Caption = 'Routing Reference No. (Sub)';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001547; "Subc. Operation No."; Code[10])
+        field(20547; "Subc. Operation No."; Code[10])
         {
             Caption = 'Operation No. (Sub)';
             DataClassification = CustomerContent;
@@ -83,20 +83,20 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
                                                                               "Routing No." = field("Subc. Routing No."),
                                                                               "Routing Reference No." = field("Subc. Rtng Reference No."));
         }
-        field(99001548; "Subc. Work Center No."; Code[20])
+        field(20548; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Work Center No. (Sub)';
             DataClassification = CustomerContent;
             Editable = false;
             TableRelation = "Work Center";
         }
-        field(99001549; "Subc. Purchase Line Type"; Enum "Subc. Purchase Line Type")
+        field(20549; "Subc. Purchase Line Type"; Enum "Subc. Purchase Line Type")
         {
             Caption = 'Subcontracting Line Type';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001550; "Subc.Whse.Outstanding Quantity"; Decimal)
+        field(20550; "Subc.Whse.Outstanding Quantity"; Decimal)
         {
             AccessByPermission = TableData Location = R;
             AutoFormatType = 0;
@@ -104,7 +104,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             CalcFormula = sum("Warehouse Receipt Line"."Qty. Outstanding" where("Source Type" = const(39),
 #pragma warning disable AL0603
                                                                                         "Source Subtype" = field("Document Type"),
-#pragma warning restore
+#pragma warning restore AL0603
                                                                                         "Source No." = field("Document No."),
                                                                                         "Source Line No." = field("Line No.")));
             Caption = 'Whse. Outstanding Quantity';
@@ -112,7 +112,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;

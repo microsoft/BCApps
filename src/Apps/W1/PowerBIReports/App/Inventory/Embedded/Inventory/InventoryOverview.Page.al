@@ -11,8 +11,8 @@ page 37022 "Inventory Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Overview';
-    AboutTitle = 'About Inventory Overview';
+    Caption = 'Inventory Overview (Power BI)';
+    AboutTitle = 'About Inventory Overview (Power BI)';
     AboutText = 'The Inventory Overview report offers a dashboard view of inventory, featuring key elements such as inventory by location, a comparison of inventory balance versus projected available balance, and key metrics like scheduled receipt quantities and gross requirements.';
 
     layout

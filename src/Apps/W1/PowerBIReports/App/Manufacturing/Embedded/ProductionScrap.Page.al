@@ -11,8 +11,8 @@ page 37055 "Production Scrap"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Production Scrap';
-    AboutTitle = 'About Production Scrap';
+    Caption = 'Production Scrap (Power BI)';
+    AboutTitle = 'About Production Scrap (Power BI)';
     AboutText = 'View your scrap quantities over a timeline you can define to see trends. Analyze further by Scrap Code, Location, Item Categories and by filtering for specific items.';
 
     layout
