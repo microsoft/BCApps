@@ -553,6 +553,8 @@ codeunit 18080 "GST Purchase Subscribers"
     end;
 
     local procedure SetQtyToInvoiceToRecvdQty(var PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
 
     begin
 
@@ -562,9 +564,34 @@ codeunit 18080 "GST Purchase Subscribers"
         if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
             exit(false);
 
+        if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+            exit(false);
+
+        if not (PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]) then
+            exit(false);
+
         PurchaseLine."Qty. to Invoice" := PurchaseLine."Qty. Rcd. Not Invoiced";
         PurchaseLine."Qty. to Invoice (Base)" := PurchaseLine."Qty. Rcd. Not Invoiced (Base)";
         exit(true);
+
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineBeforePost, '', false, false)]
+    local procedure IncludeQtyToReceiveOnReceiveAndInvoice(CommitIsSupressed: Boolean; RoundingLineInserted: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean)
+    begin
+        if not (PurchaseHeader.Receive and PurchaseHeader.Invoice) then
+            exit;
+
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit;
+
+        if PurchaseLine."Qty. to Receive" = 0 then
+            exit;
+
+        if PurchaseLine."Qty. to Invoice" <> PurchaseLine."Qty. Rcd. Not Invoiced" then
+            exit;
+
+        PurchaseLine.InitQtyToInvoice();
 
     end;
 
