@@ -181,18 +181,24 @@ jobs:
           sha: ${{ github.event.pull_request.head.sha }}
 
   StatusCheck:
-    needs: [ Initialization, Build ]
+    needs: [ PregateCheck, Initialization, Build1, Build, CodeAnalysisUpload, CustomJob-VerifyAppChanges ]
     if: (!cancelled())
     runs-on: [ windows-latest ]
     name: Pull Request Status Check
     steps:
       - name: Pull Request Status Check
         id: PullRequestStatusCheck
-        uses: microsoft/AL-Go/Actions/PullRequestStatusCheck@20620d1a3676cecfa2d0bbba3ced4a89f0e08217
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          shell: powershell
+          needsContext: ${{ toJson(needs) }}
+        run: |
+          $needs = ConvertFrom-Json -InputObject $env:needsContext
+          $failedJobs = @($needs.PSObject.Properties |
+            Where-Object { $_.Value.result -eq 'failure' } |
+            ForEach-Object { $_.Name })
+          if ($failedJobs.Count -gt 0) {
+            throw "PR Build failed. Failing jobs: $($failedJobs -join ', ')"
+          }
+          Write-Host "PR Build succeeded"
 
       - name: Finalize the workflow
         id: PostProcess
