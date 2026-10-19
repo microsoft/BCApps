@@ -86,8 +86,8 @@ table 31129 "EET Entry Status Log CZL"
 
     var
         NoMessageErr: Label '%1 has not been saved for this status change.', Comment = '%1 = field caption (Request Message or Response Message)';
-        RequestFileNameTxt: Label 'EET_Request_%1_%2.xml', Locked = true;
-        ResponseFileNameTxt: Label 'EET_Response_%1_%2.xml', Locked = true;
+        RequestFileNameTxt: Label 'EET_Request_%1_%2.xml', Comment = '%1 = EET Entry No., %2 = EET Entry Status Log Entry No.', Locked = true;
+        ResponseFileNameTxt: Label 'EET_Response_%1_%2.xml', Comment = '%1 = EET Entry No., %2 = EET Entry Status Log Entry No.', Locked = true;
 
     procedure GetLastEntryNo(): Integer;
     var

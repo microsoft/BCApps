@@ -280,14 +280,14 @@ table 31128 "EET Entry CZL"
         key(Key2; "Business Premises Code", "Cash Register Code")
         {
         }
-        key(Key3; "Status")
+        key(Key3; "Status", "Created At")
         {
             SumIndexFields = "Total Sales Amount";
         }
         key(Key4; "Document No.")
         {
         }
-        key(Key5; "Canceled By Entry No.")
+        key(Key5; "Canceled By Entry No.", "Created At")
         {
             SumIndexFields = "Total Sales Amount";
         }

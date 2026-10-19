@@ -6,7 +6,7 @@ namespace Microsoft.Finance.CashDesk;
 
 enum 11737 "Cash Document Amount Type CZP"
 {
-    Extensible = true;
+    Extensible = false;
 
     value(0; " ")
     {

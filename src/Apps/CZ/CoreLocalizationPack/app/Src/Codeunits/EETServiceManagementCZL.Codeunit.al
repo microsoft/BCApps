@@ -27,7 +27,10 @@ codeunit 31116 "EET Service Management CZL"
         EETNamespaceTxt: Label 'http://fs.gov.cz/eet/schema/v4', Locked = true;
         SoapActionTxt: Label 'http://fs.gov.cz/eet/OdeslaniTrzby', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
-        ExpectedCertOrganizationTxt: Label 'O=Generální finanční ředitelství', Locked = true;
+        ExpectedCertOrganizationTxt: Label 'Generální finanční ředitelství', Locked = true;
+        OrganizationAttributeTypeTxt: Label 'O', Locked = true;
+        OrganizationOidTxt: Label '2.5.4.10', Locked = true;
+        OrganizationOidPrefixedTxt: Label 'OID.2.5.4.10', Locked = true;
         SecurityUtilityNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', Locked = true;
         SecurityExtensionNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', Locked = true;
         SecurityEncodingTypeBase64BinaryTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary', Locked = true;
@@ -310,8 +313,10 @@ codeunit 31116 "EET Service Management CZL"
             exit;
         if not XMLDOMManagement.FindNodeWithNamespace(
              ResponseContentXmlDocument.AsXmlNode(), ConfirmationPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, AcknowledgementXmlNode)
-        then
+        then begin
             LogMessage(TempErrorMessage."Message Type"::Error, '', XMLFormatErr);
+            exit;
+        end;
 
         POKControlCode := XMLDOMManagement.GetAttributeValue(AcknowledgementXmlNode, 'pok');
     end;
@@ -414,11 +419,114 @@ codeunit 31116 "EET Service Management CZL"
         X509Certificate2: Codeunit X509Certificate2;
         EmptyPassword: SecretText;
         CertificateSubject: Text;
+        SubjectAttributes: Dictionary of [Text, List of [Text]];
         UnexpectedOrganizationErr: Label 'The response from the EET service was signed by an unexpected organization. The subject of the signing certificate is %1.', Comment = '%1 = subject of the signing certificate';
     begin
         X509Certificate2.GetCertificateSubject(CertBase64Value, EmptyPassword, CertificateSubject);
-        if StrPos(CertificateSubject, ExpectedCertOrganizationTxt) = 0 then
+        ParseDistinguishedName(CertificateSubject, SubjectAttributes);
+        if not HasSingleAttributeValue(SubjectAttributes, OrganizationAttributeTypeTxt, ExpectedCertOrganizationTxt) then
             LogMessage(TempErrorMessage."Message Type"::Error, '', StrSubstNo(UnexpectedOrganizationErr, CertificateSubject));
+    end;
+
+    local procedure HasSingleAttributeValue(Attributes: Dictionary of [Text, List of [Text]]; AttributeType: Text; ExpectedValue: Text): Boolean
+    var
+        Values: List of [Text];
+    begin
+        if not Attributes.ContainsKey(AttributeType) then
+            exit(false);
+
+        Values := Attributes.Get(AttributeType);
+        exit((Values.Count() = 1) and (Values.Get(1) = ExpectedValue));
+    end;
+
+    local procedure ParseDistinguishedName(DistinguishedName: Text; var Attributes: Dictionary of [Text, List of [Text]])
+    var
+        Values: List of [Text];
+        Attribute: Text;
+        AttributeType: Text;
+        EqualSignPosition: Integer;
+    begin
+        Clear(Attributes);
+        foreach Attribute in SplitDistinguishedName(DistinguishedName) do begin
+            EqualSignPosition := StrPos(Attribute, '=');
+            if EqualSignPosition > 1 then begin
+                AttributeType := NormalizeAttributeType(CopyStr(Attribute, 1, EqualSignPosition - 1));
+                Clear(Values);
+                if Attributes.ContainsKey(AttributeType) then
+                    Values := Attributes.Get(AttributeType);
+                Values.Add(UnescapeAttributeValue(CopyStr(Attribute, EqualSignPosition + 1)));
+                Attributes.Set(AttributeType, Values);
+            end;
+        end;
+    end;
+
+    local procedure SplitDistinguishedName(DistinguishedName: Text) Attributes: List of [Text]
+    var
+        Position: Integer;
+        Character: Text[1];
+        Attribute: Text;
+        Escaped: Boolean;
+        Quoted: Boolean;
+    begin
+        // The attributes are separated by a comma, plus or semicolon that is neither quoted nor escaped.
+        for Position := 1 to StrLen(DistinguishedName) do begin
+            Character := CopyStr(DistinguishedName, Position, 1);
+            if Escaped then begin
+                Attribute += '\' + Character;
+                Escaped := false;
+            end else
+                case Character of
+                    '\':
+                        Escaped := true;
+                    '"':
+                        begin
+                            Quoted := not Quoted;
+                            Attribute += Character;
+                        end;
+                    ',', '+', ';':
+                        if Quoted then
+                            Attribute += Character
+                        else begin
+                            Attributes.Add(Attribute);
+                            Attribute := '';
+                        end;
+                    else
+                        Attribute += Character;
+                end;
+        end;
+        Attributes.Add(Attribute);
+    end;
+
+    local procedure NormalizeAttributeType(AttributeType: Text): Text
+    begin
+        AttributeType := UpperCase(DelChr(AttributeType, '<>', ' '));
+        if AttributeType in [OrganizationOidPrefixedTxt, OrganizationOidTxt] then
+            exit(OrganizationAttributeTypeTxt);
+        exit(AttributeType);
+    end;
+
+    local procedure UnescapeAttributeValue(Value: Text) Result: Text
+    var
+        Position: Integer;
+        Character: Text[1];
+        Escaped: Boolean;
+    begin
+        Value := DelChr(Value, '<>', ' ');
+        for Position := 1 to StrLen(Value) do begin
+            Character := CopyStr(Value, Position, 1);
+            if Escaped then begin
+                Result += Character;
+                Escaped := false;
+            end else
+                case Character of
+                    '\':
+                        Escaped := true;
+                    '"':
+                        ;
+                    else
+                        Result += Character;
+                end;
+        end;
     end;
 
     local procedure GetResponseCertificateAsBase64(ResponseXmlDocument: XmlDocument): Text
