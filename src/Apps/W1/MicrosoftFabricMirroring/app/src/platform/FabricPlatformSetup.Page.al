@@ -434,7 +434,7 @@ page 48511 "Fabric Platform Setup"
             {
                 Caption = 'Fabric';
 
-                actionref(AdminConsent_Promoted; AdminConsent) { }
+                //actionref(AdminConsent_Promoted; AdminConsent) { }
                 actionref(EnableExport_Promoted; EnableExport) { }
                 actionref(AddToWorkspace_Promoted; AddToWorkspace) { }
                 actionref(DisableExport_Promoted; DisableExport) { }
