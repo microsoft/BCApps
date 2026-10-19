@@ -13,6 +13,7 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     }
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot "AlToolCoverageAdapter.psm1" -Resolve)
 
 <#
 .SYNOPSIS
@@ -139,6 +140,34 @@ function Get-RequiredDisabledWorkItems {
     }
 
     return @($workItems)
+}
+
+function Get-BcAppsAlToolCoverageCodeunits {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters,
+        [Parameter(Mandatory=$true)]
+        [string]$TestType,
+        [Parameter(Mandatory=$true)]
+        [string[]]$AppNamesToTest,
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$AppIdByName
+    )
+
+    $codeunitsByApp = @{}
+    foreach ($appName in $AppNamesToTest) {
+        $appId = $AppIdByName[$appName]
+        if (-not $appId) {
+            continue
+        }
+        $discoveryParameters = Get-ParametersForCommand -Parameters $Parameters -CommandName "Get-TestsFromBcContainer"
+        $discoveryParameters["extensionId"] = $appId
+        $discoveryParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $appName)
+        $discoveryParameters["testType"] = $TestType
+        $discoveryParameters["ignoreGroups"] = $true
+        $codeunitsByApp[$appName] = @(Get-TestsFromBcContainer @discoveryParameters)
+    }
+    return $codeunitsByApp
 }
 
 <#
@@ -697,6 +726,22 @@ function Start-TestAppDispatch {
     $appParams['appName'] = $AppName
     $appParams['extensionId'] = $AppId
     $appParams.Remove('ReRun') | Out-Null
+    if ($appParams.ContainsKey("_bcAppsAlToolCoverageContext")) {
+        $additionalDisabledTests = if ($appParams.ContainsKey("_bcAppsAlToolCoverageNormalDisabledByApp") -and
+            $appParams["_bcAppsAlToolCoverageNormalDisabledByApp"].ContainsKey($AppName)) {
+            @($appParams["_bcAppsAlToolCoverageNormalDisabledByApp"][$AppName])
+        }
+        else {
+            @()
+        }
+        $trackCoverage = $appParams.ContainsKey("_bcAppsAlToolCoverageTrackedNormalApps") -and
+            $AppName -in @($appParams["_bcAppsAlToolCoverageTrackedNormalApps"])
+        Set-BcAppsAlToolCoverageAttempt -Parameters $appParams -State $State `
+            -AppId $AppId -AppName $AppName -LogicalShard "normal" `
+            -AdditionalDisabledTests $additionalDisabledTests -TrackCoverage:$trackCoverage
+        $appParams.Remove("_bcAppsAlToolCoverageNormalDisabledByApp") | Out-Null
+        $appParams.Remove("_bcAppsAlToolCoverageTrackedNormalApps") | Out-Null
+    }
 
     $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType `
         -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass -fileSuffix $FileSuffix
@@ -728,6 +773,14 @@ function Start-RequiredDisabledDispatch {
     $codeunitParameters.Remove("ReRun") | Out-Null
     if ($Verb -eq "Re-dispatching") {
         $codeunitParameters["ReRun"] = $true
+    }
+    if ($codeunitParameters.ContainsKey("_bcAppsAlToolCoverageContext")) {
+        Set-BcAppsAlToolCoverageAttempt -Parameters $codeunitParameters -State $State `
+            -AppId "$($WorkItem.AppId)" -AppName "$($WorkItem.AppName)" `
+            -LogicalShard "$($WorkItem.CoverageLogicalShard)" `
+            -AdditionalDisabledTests @($WorkItem.CoverageDisabledTests)
+        $codeunitParameters.Remove("_bcAppsAlToolCoverageNormalDisabledByApp") | Out-Null
+        $codeunitParameters.Remove("_bcAppsAlToolCoverageTrackedNormalApps") | Out-Null
     }
 
     $appendKeys = @{
@@ -783,6 +836,7 @@ function Invoke-RequiredDisabledTestExecution {
         transient = @()
         retried = @{}
         retryTenant = @{}
+        coverageAttempts = @{}
     }
     $pending = @($WorkItems)
 
@@ -1339,6 +1393,11 @@ function Invoke-ParallelTestExecution {
         Where-Object { $_.IsInstalled } |
         ForEach-Object { $appIdByName[$_.Name] = $_.AppId }
 
+    $coverageContext = New-BcAppsAlToolCoverageContext -Parameters $parameters -TestType $testType
+    if (-not $coverageContext.Enabled -and $testType -in @("IntegrationTest", "Uncategorized")) {
+        Write-Host "::warning::BCApps AlTool coverage adapter is unavailable. $($coverageContext.Reason) Existing BcContainerHelper execution and the action-owned unsupported coverage status will be preserved."
+    }
+
     $cleanTenantInfo = @(
         $tenantInfo |
             Where-Object { $_.Id -ne $parameters.tenant }
@@ -1347,6 +1406,7 @@ function Invoke-ParallelTestExecution {
     $cleanCodeunitExecution = (Get-ALGoSetting -Key 'enableCleanTestCodeunitExecution') -eq $true
     $cleanTenantAppNames = @()
     $requiredDisabledWorkItems = @()
+    $coverageCodeunitsByApp = @{}
     if ($cleanCodeunitExecution) {
         $cleanTenantAppNames = $appNamesToTest
     }
@@ -1373,6 +1433,11 @@ function Invoke-ParallelTestExecution {
                 Get-RequiredDisabledWorkItems -Parameters $discoveryParameters -TestType $testType `
                     -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
             )
+            if ($coverageContext.Enabled -and $requiredDisabledWorkItems.Count -gt 0) {
+                $coverageCodeunitsByApp = Get-BcAppsAlToolCoverageCodeunits `
+                    -Parameters $discoveryParameters -TestType $testType `
+                    -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+            }
         }
         finally {
             Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $discoveryTenant.Id `
@@ -1383,8 +1448,53 @@ function Invoke-ParallelTestExecution {
             Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
                 -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
         )
+        if ($coverageContext.Enabled -and $requiredDisabledWorkItems.Count -gt 0) {
+            $coverageCodeunitsByApp = Get-BcAppsAlToolCoverageCodeunits `
+                -Parameters $parameters -TestType $testType `
+                -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+        }
+    }
+
+    $coverageNormalDisabledByApp = @{}
+    $coverageTrackedNormalApps = @()
+    if ($coverageContext.Enabled) {
+        try {
+            if ($requiredDisabledWorkItems.Count -gt 0) {
+                $coveragePlan = New-BcAppsAlToolShardPlan -CodeunitsByApp $coverageCodeunitsByApp `
+                    -RequiredDisabledWorkItems $requiredDisabledWorkItems
+                $coverageNormalDisabledByApp = $coveragePlan.NormalDisabledByApp
+                $requiredDisabledWorkItems = @($coveragePlan.CleanWorkItems)
+                foreach ($appName in $appNamesToTest) {
+                    if ([int]$coveragePlan.NormalTestCountByApp[$appName] -gt 0) {
+                        $coverageTrackedNormalApps += $appName
+                    }
+                }
+            }
+            else {
+                $coverageTrackedNormalApps = @($appNamesToTest)
+            }
+
+            foreach ($appName in $coverageTrackedNormalApps) {
+                Register-BcAppsAlToolCoverageShard -Context $coverageContext `
+                    -AppId "$($appIdByName[$appName])" -AppName $appName -LogicalShard "normal"
+            }
+            foreach ($workItem in $requiredDisabledWorkItems) {
+                Register-BcAppsAlToolCoverageShard -Context $coverageContext `
+                    -AppId "$($workItem.AppId)" -AppName "$($workItem.AppName)" `
+                    -LogicalShard "$($workItem.CoverageLogicalShard)"
+            }
+            $parameters["_bcAppsAlToolCoverageContext"] = $coverageContext
+            $parameters["_bcAppsAlToolCoverageNormalDisabledByApp"] = $coverageNormalDisabledByApp
+            $parameters["_bcAppsAlToolCoverageTrackedNormalApps"] = @($coverageTrackedNormalApps)
+        }
+        catch {
+            Disable-BcAppsAlToolCoverageContext -Context $coverageContext `
+                -Reason "Coverage shard selection could not be prepared. $($_.Exception.Message)"
+            Write-Host "::warning::BCApps AlTool coverage adapter setup failed. $($coverageContext.Reason) Existing BcContainerHelper execution and the action-owned unsupported coverage status will be preserved."
+        }
     }
     $templateDatabaseName = ""
+    $coverageFinalized = $false
     try {
         if ($requiredDisabledWorkItems.Count -gt 0) {
             if ($cleanTenantInfo.Count -eq 0) {
@@ -1404,6 +1514,7 @@ function Invoke-ParallelTestExecution {
         jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false
         transient = @(); retried = @{}; retryTenant = @{}
         rerun = @(); rerunDone = @{}; rerunBudget = (Get-AppRerunBudget); tenantCount = $tenants.Count
+        coverageAttempts = @{}
     }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
@@ -1512,6 +1623,11 @@ function Invoke-ParallelTestExecution {
         Merge-TenantTestResults -parameters $parameters -tenants $tenants `
             -workItems $requiredDisabledWorkItems -rerunSuffixes $rerunSuffixes
 
+        if ($coverageContext.Enabled) {
+            $coverageFinalized = $true
+            Complete-BcAppsAlToolCoverage -Context $coverageContext
+        }
+
         # Persist final result and mark complete so subsequent override invocations short-circuit
         # to this value (and not the placeholder we wrote before dispatch).
         $state.finalResult = $allPassed
@@ -1521,6 +1637,9 @@ function Invoke-ParallelTestExecution {
         return $allPassed
     }
     finally {
+        if ($coverageContext.Enabled -and -not $coverageFinalized) {
+            Complete-BcAppsAlToolCoverage -Context $coverageContext
+        }
         if ($templateDatabaseName) {
             Remove-BcTestTenantTemplate -ContainerName $parameters.containerName `
                 -TemplateDatabaseName $templateDatabaseName

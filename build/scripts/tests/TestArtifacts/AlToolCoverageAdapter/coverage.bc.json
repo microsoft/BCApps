@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "coverageMode": "line",
+  "complete": true,
+  "diagnostics": [],
+  "sources": [
+    "Line.Codeunit.al"
+  ],
+  "tests": [
+    {
+      "testId": 1,
+      "codeunitId": 80100,
+      "methodId": 1,
+      "methodName": "Line test",
+      "owningAppId": "test-app"
+    }
+  ],
+  "procedureEdges": [],
+  "methods": [
+    {
+      "objectType": 5,
+      "objectId": 50100,
+      "methodId": 10,
+      "name": "Run",
+      "startLine": 10,
+      "endLine": 12,
+      "sourcePath": "Line.Codeunit.al"
+    }
+  ],
+  "lines": [
+    {
+      "objectType": 5,
+      "objectId": 50100,
+      "lineNumber": 11,
+      "lineType": 3,
+      "methodId": 10,
+      "hitCount": 1,
+      "status": 1,
+      "sourcePath": "Line.Codeunit.al"
+    },
+    {
+      "objectType": 5,
+      "objectId": 50100,
+      "lineNumber": 12,
+      "lineType": 3,
+      "methodId": 10,
+      "hitCount": 0,
+      "status": 0,
+      "sourcePath": "Line.Codeunit.al"
+    }
+  ]
+}

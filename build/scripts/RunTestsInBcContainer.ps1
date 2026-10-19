@@ -11,6 +11,7 @@ Param(
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\ParallelTestExecution.psm1
+Import-Module $PSScriptRoot\AlToolCoverageAdapter.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
 
 <#
@@ -122,16 +123,25 @@ $isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $
 # A failing app is retried once by the parallel dispatcher, on a different tenant (see
 # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
 # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
-$result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
+$alToolResult = Invoke-BcAppsAlToolCoverageLeaf -Parameters $parameters -TestType $TestType
+if ($alToolResult.Handled) {
+    $result = [bool]$alToolResult.Passed
+}
+else {
+    $containerParameters = $parameters.Clone()
+    Remove-BcAppsAlToolCoverageParameters -Parameters $containerParameters
+    $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
+}
 
 # Preserve the old sequential fallback. Parallel project execution defers this pass to the
 # clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
-if ($TestType -eq "UnitTest" -and -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
+if (-not $alToolResult.Handled -and $TestType -eq "UnitTest" -and
+    -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
     Write-Host "Running DisableTestIsolation pass for UnitTest"
-    $parameters["requiredTestIsolation"] = "Disabled"
-    $parameters["testRunnerCodeunitId"] = "130451"
-    $parameters.Remove("ReRun") # Clear rerun state from the first pass
-    $isolationResult = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
+    $containerParameters["requiredTestIsolation"] = "Disabled"
+    $containerParameters["testRunnerCodeunitId"] = "130451"
+    $containerParameters.Remove("ReRun") # Clear rerun state from the first pass
+    $isolationResult = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
     $result = $result -and $isolationResult
 }
 

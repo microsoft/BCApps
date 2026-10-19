@@ -285,6 +285,7 @@ Describe "Separate RunTests action bucket configuration" {
 
             foreach ($buildMode in @($projectSettings.buildModes)) {
                 $rules = @($script:repoSettings.conditionalSettings | Where-Object {
+                    $_.PSObject.Properties.Name -contains 'projects' -and
                     @($_.projects | Where-Object { $projectPath -like $_ }).Count -gt 0 -and
                     @($_.buildModes) -contains $buildMode -and
                     $_.settings.PSObject.Properties.Name -contains 'useSeparateTestAction'
