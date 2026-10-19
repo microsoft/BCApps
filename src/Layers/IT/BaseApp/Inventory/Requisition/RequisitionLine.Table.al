@@ -304,7 +304,7 @@ table 246 "Requisition Line"
                     then
                         Validate(
                           "Ending Date",
-                          LeadTimeMgt.GetPlannedEndingDate("No.", "Location Code", "Variant Code", "Due Date", '', "Ref. Order Type"))
+                          LeadTimeMgt.GetPlannedEndingDate("No.", "Location Code", "Variant Code", "Due Date", '', GetPlanningReferenceType()))
                     else
                         Validate("Ending Date", "Due Date");
 
@@ -1533,9 +1533,126 @@ table 246 "Requisition Line"
         ReqLineReserve.VerifyChange(Rec, xRec);
     end;
 
+    local procedure GetPlanningReferenceType(): Enum "Requisition Ref. Order Type"
+    begin
+        if ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
+           ("Action Message" = "Action Message"::New) and IsProdOrder()
+        then
+            exit("Ref. Order Type"::"Prod. Order");
+
+        exit("Ref. Order Type");
+    end;
+
+    procedure HasPurchaseOrderTarget(): Boolean
+    begin
+        exit(("Action Message" = "Action Message"::New) and
+             ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
+             ("Ref. Order No." <> '') and
+             ("Ref. Order Status" = "Ref. Order Status"::Simulated) and
+             ("Ref. Line No." = 0));
+    end;
+
+    procedure ClearPurchaseOrderTarget()
+    begin
+        if ("Ref. Order Type" <> "Ref. Order Type"::Purchase) or
+           ("Ref. Order No." = '') or
+           ("Ref. Order Status" <> "Ref. Order Status"::Simulated) or
+           ("Ref. Line No." <> 0)
+        then
+            exit;
+
+        "Ref. Order Type" := "Ref. Order Type"::Purchase;
+        "Ref. Order No." := '';
+        "Ref. Order Status" := "Ref. Order Status"::Simulated;
+        "Ref. Line No." := 0;
+    end;
+
     trigger OnRename()
     begin
         Error(Text004, TableCaption);
+    end;
+
+    procedure SetCompatiblePurchaseOrderFilters(var PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange(Status, PurchaseHeader.Status::Open);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", "Vendor No.");
+        PurchaseHeader.SetRange("Sell-to Customer No.", "Sell-to Customer No.");
+        PurchaseHeader.SetRange("Ship-to Code", "Ship-to Code");
+        PurchaseHeader.SetRange("Order Address Code", "Order Address Code");
+        PurchaseHeader.SetRange("Currency Code", "Currency Code");
+    end;
+
+    procedure CheckPurchaseOrderTarget()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Purchasing: Record Purchasing;
+        SalesHeader: Record "Sales Header";
+        Failure: Text;
+        TargetErr: Label 'Worksheet line %1 in %2/%3 cannot use purchase order %4: %5.', Comment = '%1 = line number, %2 = template, %3 = batch, %4 = order number, %5 = failed condition';
+        MissingErr: Label 'the order no longer exists';
+        StatusErr: Label 'the order is not Open';
+        VendorErr: Label 'the buy-from vendor does not match';
+        CustomerErr: Label 'the sell-to customer does not match';
+        ShipToErr: Label 'the ship-to code does not match';
+        AddressErr: Label 'the order address does not match';
+        CurrencyErr: Label 'the currency does not match';
+        PurchasingErr: Label 'the purchasing code does not match the existing lines';
+        SpecialOrderErr: Label 'the special-order location does not match';
+        DropShipmentErr: Label 'the drop-shipment address does not match the sales order';
+    begin
+        if not HasPurchaseOrderTarget() then
+            exit;
+
+        case true of
+            not PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, "Ref. Order No."):
+                Failure := MissingErr;
+            PurchaseHeader.Status <> PurchaseHeader.Status::Open:
+                Failure := StatusErr;
+            PurchaseHeader."Buy-from Vendor No." <> "Vendor No.":
+                Failure := VendorErr;
+            PurchaseHeader."Sell-to Customer No." <> "Sell-to Customer No.":
+                Failure := CustomerErr;
+            PurchaseHeader."Ship-to Code" <> "Ship-to Code":
+                Failure := ShipToErr;
+            PurchaseHeader."Order Address Code" <> "Order Address Code":
+                Failure := AddressErr;
+            PurchaseHeader."Currency Code" <> "Currency Code":
+                Failure := CurrencyErr;
+        end;
+
+        if Failure = '' then begin
+            if Purchasing.Get("Purchasing Code") then
+                if Purchasing."Special Order" and (PurchaseHeader."Location Code" <> "Location Code") then
+                    Failure := SpecialOrderErr
+                else
+                    if Purchasing."Drop Shipment" then
+                        if not SalesHeader.Get(SalesHeader."Document Type"::Order, "Sales Order No.") then
+                            Failure := DropShipmentErr
+                        else
+                            if (PurchaseHeader."Ship-to Name" <> SalesHeader."Ship-to Name") or
+                               (PurchaseHeader."Ship-to Name 2" <> SalesHeader."Ship-to Name 2") or
+                               (PurchaseHeader."Ship-to Address" <> SalesHeader."Ship-to Address") or
+                               (PurchaseHeader."Ship-to Address 2" <> SalesHeader."Ship-to Address 2") or
+                               (PurchaseHeader."Ship-to Post Code" <> SalesHeader."Ship-to Post Code") or
+                               (PurchaseHeader."Ship-to City" <> SalesHeader."Ship-to City") or
+                               (PurchaseHeader."Ship-to Contact" <> SalesHeader."Ship-to Contact")
+                            then
+                                Failure := DropShipmentErr;
+        end;
+
+        if Failure = '' then begin
+            PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+            PurchaseLine.SetRange("Document No.", "Ref. Order No.");
+            PurchaseLine.SetFilter("Purchasing Code", '<>%1', "Purchasing Code");
+            PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+            if not PurchaseLine.IsEmpty() then
+                Failure := PurchasingErr;
+        end;
+
+        if Failure <> '' then
+            Error(TargetErr, "Line No.", "Worksheet Template Name", "Journal Batch Name", "Ref. Order No.", Failure);
     end;
 
     var
@@ -2719,7 +2836,7 @@ table 246 "Requisition Line"
     begin
         OnBeforeCalcEndingDate(Rec, LeadTime);
 
-        case "Ref. Order Type" of
+        case GetPlanningReferenceType() of
             "Ref. Order Type"::Purchase:
                 if LeadTime = '' then
                     LeadTime := LeadTimeMgt.PurchaseLeadTime("No.", "Location Code", "Variant Code", "Vendor No.");
@@ -2749,7 +2866,7 @@ table 246 "Requisition Line"
 
         "Ending Date" :=
           LeadTimeMgt.GetPlannedEndingDate(
-            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, "Ref. Order Type", "Starting Date");
+            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, GetPlanningReferenceType(), "Starting Date");
 
         OnAfterCalcEndingDate(Rec, LeadTime);
     end;
@@ -2767,7 +2884,7 @@ table 246 "Requisition Line"
     begin
         OnBeforeCalcStartingDate(Rec, LeadTime);
 
-        case "Ref. Order Type" of
+        case GetPlanningReferenceType() of
             "Ref. Order Type"::Purchase:
                 if LeadTime = '' then
                     LeadTime :=
@@ -2797,7 +2914,7 @@ table 246 "Requisition Line"
 
         "Starting Date" :=
           LeadTimeMgt.GetPlannedStartingDate(
-            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, "Ref. Order Type", "Ending Date");
+            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, GetPlanningReferenceType(), "Ending Date");
 
         IsHandled := false;
         OnCalcStartingDateOnBeforeValidateOrderDate(Rec, LeadTime, IsHandled);
