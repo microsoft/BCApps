@@ -2309,8 +2309,7 @@ codeunit 137077 "SCM Supply Planning -IV"
 
         // [GIVEN] Create purchasing code "P" and set it in all planning worksheet lines generated for the item "I"
         LibraryPurchase.CreatePurchasingCode(Purchasing);
-        RequisitionLine.ModifyAll("Purchasing Code", Purchasing.Code);
-        RequisitionLine.ModifyAll("Accept Action Message", true);
+        RequisitionLine.ModifyAll("Purchasing Code", Purchasing.Code, "Accept Action Message", true);
 
         // [WHEN] Carry out action message from the planning worksheet
         LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);

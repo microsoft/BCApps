@@ -836,10 +836,8 @@ codeunit 5632 "FA Jnl.-Post Line"
         FALedgEntry2.SetRange(
           "Document Type", FALedgEntry2."Document Type"::Invoice, FALedgEntry2."Document Type"::"Credit Memo");
         FALedgEntry2.SetFilter("Disposal Entry No.", '>%1', MaxDisposalNo);
-        if FALedgEntry2.FindSet() then begin
-            FALedgEntry2.ModifyAll("Canceled from FA No.", FANo2);
-            FALedgEntry2.ModifyAll("FA No.", '');
-        end;
+        if FALedgEntry2.FindSet() then
+            FALedgEntry2.ModifyAll("Canceled from FA No.", FANo2, "FA No.", '');
     end;
 
     local procedure ResultOnDisposalExist(FALedgEntry: Record "FA Ledger Entry"): Boolean

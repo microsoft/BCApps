@@ -50,8 +50,9 @@ codeunit 132536 "Assert Test"
     begin
         Assert.AreEqual(true, true, 'Comparing booleans');
         Assert.AreEqual(2, 2, 'Comparing integers');
-        Assert.AreEqual(2, 2L, 'Comparing integer to BigInteger');
-        Assert.AreEqual(2, '2', 'Comparing integer to integer text');
+        Assert.AreEqual(2L, 2L, 'Comparing BigIntegers');
+        Assert.AreEqual(2, 2L, 'Comparing integer with biginteger');
+        Assert.AreEqual(2, '2', 'Comparing integer with integer text');
         Assert.AreEqual(2.0, 2.0, 'Comparing decimals');
         Assert.AreEqual('A', 'A', 'Comparing chars');
         Assert.AreEqual('ABC', 'ABC', 'Comparing texts');
