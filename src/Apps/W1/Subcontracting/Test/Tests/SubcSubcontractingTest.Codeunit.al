@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -3441,7 +3440,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('TransferShipmentRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportShowsPostedSubcontractingReferences()
     var
@@ -3455,7 +3453,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 649580] The standard transfer shipment report shows references stored on a posted subcontracting shipment.
         Initialize();
-        SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted transfer shipment retaining subcontracting references
         SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
@@ -3482,8 +3479,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [WHEN] The standard transfer shipment report is run after the vendor name changes
         TransferShipmentHeader.SetRecFilter();
-        Report.Run(Report::"Transfer Shipment", true, false, TransferShipmentHeader);
-        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.RunReportAndLoad(Report::"Transfer Shipment", TransferShipmentHeader, '');
 
         // [THEN] The report shows the posted subcontractor and order references
         VerifySubcontractingTransferShipmentReport(
@@ -3493,7 +3489,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('TransferShipmentRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportLeavesSubcontractingReferencesBlankForOrdinaryTransfer()
     var
@@ -3503,7 +3498,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 649580] The standard transfer shipment report leaves subcontracting references blank for an ordinary transfer.
         Initialize();
-        SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted ordinary transfer shipment
         SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
@@ -3511,11 +3505,10 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [WHEN] The standard transfer shipment report is run
         TransferShipmentHeader.SetRecFilter();
-        Report.Run(Report::"Transfer Shipment", true, false, TransferShipmentHeader);
-        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.RunReportAndLoad(Report::"Transfer Shipment", TransferShipmentHeader, '');
 
         // [THEN] The report runs and the ordinary shipment leaves subcontracting references blank
-        VerifyOrdinaryTransferShipmentReport();
+        VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader);
         SubcontractingMgmtLibrary.DeletePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         Commit();
     end;
@@ -4306,13 +4299,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     procedure SubcontrDispatchingListDefaultRequestPageHandler(var PurchaseOrderRequestPage: TestRequestPage "Subc. Dispatching List")
     begin
         // Empty handler used to close the request page. We use default settings.
-    end;
-
-    [RequestPageHandler]
-    procedure TransferShipmentRequestPageHandler(var TransferShipment: TestRequestPage "Transfer Shipment")
-    begin
-        TransferShipment.SaveAsXml(
-            LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [ConfirmHandler]
@@ -5782,8 +5768,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
-    local procedure VerifyOrdinaryTransferShipmentReport()
+    local procedure VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header")
     begin
+        LibraryReportDataset.AssertElementWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', '');
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', '');
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorAddress', '');
@@ -5808,20 +5795,12 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     local procedure VerifySubcontractingTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header"; TransferShipmentLine: Record "Transfer Shipment Line"; PurchaseOrderNo: Code[20]; PostedVendorName: Text[100])
     begin
+        LibraryReportDataset.AssertElementWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', TransferShipmentHeader."Source ID");
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', PostedVendorName);
         LibraryReportDataset.AssertElementWithValueExists('SubcVendorAddress', TransferShipmentHeader."Transfer-to Address");
         LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', PurchaseOrderNo);
         LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', TransferShipmentLine."Subc. Prod. Order No.");
-    end;
-
-    local procedure SelectSubcontractingTransferShipmentLayout()
-    var
-        DesignTimeReportSelection: Codeunit "Design-time Report Selection";
-        SubcontractingAppId: Guid;
-    begin
-        Evaluate(SubcontractingAppId, '1f32a50d-0057-4b95-b5df-cc04d7e89470');
-        DesignTimeReportSelection.SetSelectedLayout('SubcontractingTransferShipment', SubcontractingAppId);
     end;
 
     procedure SelectRequisitionTemplateName(): Code[10]
