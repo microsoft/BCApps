@@ -6,7 +6,6 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using System.AI;
-using System.TestLibraries.Utilities;
 
 codeunit 148298 "Expense Quota Test"
 {
@@ -16,7 +15,7 @@ codeunit 148298 "Expense Quota Test"
     Permissions = tabledata "Expense Agent Env. Consumption" = rimd;
 
     var
-        Assert: Codeunit "Library Assert";
+        Assert: Codeunit Assert;
 
     [Test]
     procedure RetryingTrialConsumptionAfterExhaustionDoesNotChargePaidQuota()
