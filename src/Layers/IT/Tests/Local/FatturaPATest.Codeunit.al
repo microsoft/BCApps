@@ -3445,6 +3445,7 @@ codeunit 144200 "FatturaPA Test"
         InternalCodeEntryNo: Integer;
         AdditionalDataEntryNo: Integer;
         GTINCount: Integer;
+        GTINEntryNo: Integer;
         InternalCount: Integer;
         AdditionalDataCount: Integer;
     begin
@@ -3464,6 +3465,7 @@ codeunit 144200 "FatturaPA Test"
                                 'GTIN':
                                     begin
                                         GTINCount += 1;
+                                        GTINEntryNo := TempChildren."Entry No.";
                                         Assert.AreEqual(ExpectedGTIN, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceValore'), 'Incorrect standard GTIN.');
                                     end;
                                 'INTERNO':
@@ -3495,6 +3497,8 @@ codeunit 144200 "FatturaPA Test"
         else
             Assert.AreEqual(1, GTINCount, 'Expected standard GTIN was not emitted.');
         Assert.AreEqual(1, AdditionalDataCount, 'Trailing event must emit once for the current line.');
+        if ExpectedGTIN <> '' then
+            Assert.IsTrue(GTINEntryNo < InternalCodeEntryNo, 'Standard GTIN must precede the extension article code.');
         Assert.IsTrue((InternalCodeEntryNo > 0) and (InternalCodeEntryNo < DescriptionEntryNo), 'CodiceArticolo must precede Descrizione.');
         Assert.IsTrue((DescriptionEntryNo > 0) and (DescriptionEntryNo < AdditionalDataEntryNo), 'AltriDatiGestionali must follow Descrizione.');
     end;
