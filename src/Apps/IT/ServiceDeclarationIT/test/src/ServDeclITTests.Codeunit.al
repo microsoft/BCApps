@@ -549,6 +549,38 @@ codeunit 144112 "Serv. Decl. IT Tests"
         LibraryServDecl.DeleteServDecl(ServDeclNo);
     end;
 
+    [Test]
+    procedure ExportLineReadsPreservePositionAndEncoding()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Content: TextBuilder;
+        OutStrm: OutStream;
+        DetailLine: Text;
+        SpecialChar: Char;
+    begin
+        SpecialChar := 233;
+        DetailLine := 'DETAIL' + Format(SpecialChar);
+        Content.AppendLine('HEADER');
+        Content.AppendLine('');
+        Content.Append(DetailLine);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::MSDos);
+        OutStrm.WriteText(Content.ToText());
+
+        Assert.AreEqual(DetailLine, ReadExportLine(TempBlob, 3), 'The last line must retain MS-DOS characters without a final newline.');
+        Assert.AreEqual('HEADER', ReadExportLine(TempBlob, 1), 'Reading an earlier line must restart from the beginning.');
+        Assert.AreEqual('', ReadExportLine(TempBlob, 2), 'An empty line must not be skipped.');
+        Assert.AreEqual(DetailLine, ReadExportLine(TempBlob, 3), 'Repeated reads must return the same line.');
+    end;
+
+    local procedure ReadExportLine(TempBlob: Codeunit "Temp Blob"; LineNumber: Integer): Text
+    var
+        LibraryTextFileValidation: Codeunit "Library - Text File Validation";
+        InStrm: InStream;
+    begin
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
+        exit(LibraryTextFileValidation.ReadLineFromStream(InStrm, LineNumber));
+    end;
+
     local procedure Initialize()
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -926,10 +958,8 @@ codeunit 144112 "Serv. Decl. IT Tests"
         DataExch: Record "Data Exch.";
         CompanyInfo: Record "Company Information";
         PaymentMethod: Record "Payment Method";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Header, Line1 : Text;
         DecVar: Decimal;
         ReadFromPosition: Integer;
@@ -941,10 +971,7 @@ codeunit 144112 "Serv. Decl. IT Tests"
         DataExch.CalcFields("File Content");
         TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-        FileName := FileMgt.ServerTempFileName('txt');
-        FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
-        Header := LibraryTextFileValidation.ReadLine(FileName, 1);
+        Header := ReadExportLine(TempBlob, 1);
         CompanyInfo.Get();
 
         // Verify header line
@@ -984,7 +1011,7 @@ codeunit 144112 "Serv. Decl. IT Tests"
             Assert.AreEqual(Format('').PadLeft(22, '0'), LibraryTextFileValidation.ReadValue(Header, ReadFromPosition, 22), ServDeclFileOutputErr);
 
         // Verify Line
-        Line1 := LibraryTextFileValidation.ReadLine(FileName, 2);
+        Line1 := ReadExportLine(TempBlob, 2);
         ReadFromPosition := 1;
         Assert.AreEqual(EUROXLbl, LibraryTextFileValidation.ReadValue(Line1, ReadFromPosition, 5), ServDeclFileOutputErr);
         ReadFromPosition += 5;
@@ -1031,10 +1058,8 @@ codeunit 144112 "Serv. Decl. IT Tests"
         DataExch: Record "Data Exch.";
         CompanyInfo: Record "Company Information";
         PaymentMethod: Record "Payment Method";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Header, Line1 : Text;
         DecVar: Decimal;
         ReadFromPosition: Integer;
@@ -1045,10 +1070,7 @@ codeunit 144112 "Serv. Decl. IT Tests"
         DataExch.CalcFields("File Content");
         TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-        FileName := FileMgt.ServerTempFileName('txt');
-        FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
-        Header := LibraryTextFileValidation.ReadLine(FileName, 1);
+        Header := ReadExportLine(TempBlob, 1);
         CompanyInfo.Get();
 
         // Verify header line
@@ -1096,7 +1118,7 @@ codeunit 144112 "Serv. Decl. IT Tests"
                 Assert.AreEqual(Format('').PadLeft(22, '0'), LibraryTextFileValidation.ReadValue(Header, ReadFromPosition, 22), ServDeclFileOutputErr);
 
         // Verify Line
-        Line1 := LibraryTextFileValidation.ReadLine(FileName, 2);
+        Line1 := ReadExportLine(TempBlob, 2);
         ReadFromPosition := 1;
         Assert.AreEqual(EUROXLbl, LibraryTextFileValidation.ReadValue(Line1, ReadFromPosition, 5), ServDeclFileOutputErr);
         ReadFromPosition += 5;
@@ -1157,10 +1179,8 @@ codeunit 144112 "Serv. Decl. IT Tests"
     var
         DataExch: Record "Data Exch.";
         CompanyInfo: Record "Company Information";
-        FileMgt: Codeunit "File Management";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
         TempBlob: Codeunit "Temp Blob";
-        FileName: Text;
         Header: Text;
         ReadFromPosition: Integer;
     begin
@@ -1170,10 +1190,7 @@ codeunit 144112 "Serv. Decl. IT Tests"
         DataExch.CalcFields("File Content");
         TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
 
-        FileName := FileMgt.ServerTempFileName('txt');
-        FileMgt.BLOBExportToServerFile(TempBlob, FileName);
-
-        Header := LibraryTextFileValidation.ReadLine(FileName, 1);
+        Header := ReadExportLine(TempBlob, 1);
         CompanyInfo.Get();
 
         // Verify header line
