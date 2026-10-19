@@ -74,6 +74,12 @@ table 4580 "Ext. SharePoint Account"
             Access = Internal;
             DataClassification = SystemMetadata;
         }
+        field(14; "REST Base Folder Path Format"; Enum "Ext. SharePoint Path Format")
+        {
+            Caption = 'REST Base Folder Path Format';
+            ToolTip = 'Specifies whether the base folder is copied from a URL or is already a decoded path. Use Decoded Path when a folder name contains a literal percent sequence such as %20.';
+            InitValue = URL;
+        }
     }
 
     keys

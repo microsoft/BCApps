@@ -37,7 +37,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, SharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativePath(Path, SharePointFile) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
@@ -69,7 +69,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
 
-        if not SharePointClient.DownloadFileContentByServerRelativeUrl(Path, TempBlobStream) then
+        if not SharePointClient.DownloadFileContentByServerRelativePath(Path, TempBlobStream) then
             ShowError(SharePointClient);
 
         // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
@@ -92,7 +92,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
         SplitPath(Path, ParentPath, FileName);
-        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, SharePointFile, false) then
+        if SharePointClient.AddFileToFolderByServerRelativePath(ParentPath, FileName, Stream, SharePointFile, false) then
             exit;
 
         ShowError(SharePointClient);
@@ -143,7 +143,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), SharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativePath(GetParentPath(Path), SharePointFile) then
             ShowError(SharePointClient);
 
         SharePointFile.SetRange(Name, GetFileName(Path));
@@ -161,7 +161,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.DeleteFileByServerRelativeUrl(Path) then
+        if SharePointClient.DeleteFileByServerRelativePath(Path) then
             exit;
 
         ShowError(SharePointClient);
@@ -183,7 +183,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, SharePointFolder) then
+        if not SharePointClient.GetSubFoldersByServerRelativePath(Path, SharePointFolder) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
@@ -212,7 +212,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.CreateFolder(Path, SharePointFolder) then
+        if SharePointClient.CreateFolderByServerRelativePath(Path, SharePointFolder) then
             exit;
 
         ShowError(SharePointClient);
@@ -231,7 +231,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
 
-        Result := SharePointClient.FolderExistsByServerRelativeUrl(Path);
+        Result := SharePointClient.FolderExistsByServerRelativePath(Path);
 
         if not SharePointClient.GetDiagnostics().IsSuccessStatusCode() then
             ShowError(SharePointClient);
@@ -248,7 +248,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.DeleteFolderByServerRelativeUrl(Path) then
+        if SharePointClient.DeleteFolderByServerRelativePath(Path) then
             exit;
 
         ShowError(SharePointClient);
@@ -443,6 +443,8 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     local procedure InitPath(AccountId: Guid; var Path: Text)
     var
         SharePointAccount: Record "Ext. SharePoint Account";
+        Uri: Codeunit Uri;
+        BaseFolderPath: Text;
         SitePath: Text;
     begin
         SharePointAccount.Get(AccountId);
@@ -450,15 +452,19 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         // Extract site path from SharePoint URL
         SitePath := GetSitePathFromUrl(SharePointAccount."SharePoint Url");
 
-        // Combine base folder path with the file path
-        Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
+        BaseFolderPath := SharePointAccount."Base Relative Folder Path";
+        if SharePointAccount."REST Base Folder Path Format" = Enum::"Ext. SharePoint Path Format"::URL then
+            BaseFolderPath := Uri.UnescapeDataString(BaseFolderPath);
+
+        // Decode URL-derived configuration only; attachment paths may contain literal percent sequences.
+        Path := CombinePath(BaseFolderPath, Path);
 
         // Ensure path starts with forward slash
         if not Path.StartsWith('/') then
             Path := '/' + Path;
 
         // Prepend site path if it exists and path doesn't already include it
-        if (SitePath <> '') and (not Path.StartsWith(SitePath)) then
+        if (SitePath <> '') and (Path <> SitePath) and (not Path.StartsWith(SitePath + '/')) then
             Path := SitePath + Path;
     end;
 
@@ -468,7 +474,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         PathSegment: Text;
     begin
         Uri.Init(SharePointUrl);
-        PathSegment := Uri.GetAbsolutePath();
+        PathSegment := Uri.UnescapeDataString(Uri.GetAbsolutePath());
 
         // Remove trailing slash if present
         if PathSegment.EndsWith('/') then
