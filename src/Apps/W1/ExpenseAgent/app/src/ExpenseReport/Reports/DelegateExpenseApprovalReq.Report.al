@@ -20,10 +20,8 @@ report 6900 "Delegate Expense Approval Req"
 
             trigger OnAfterGetRecord()
             begin
-                // Commit so a failing report rolls back alone and the remaining reports still run.
                 Commit();
-                if not Codeunit.Run(Codeunit::"Delegate Expense Approval Run", ExpenseReportHeader) then
-                    ClearLastError();
+                Codeunit.Run(Codeunit::"Assign Alternate Approver", ExpenseReportHeader);
             end;
         }
     }

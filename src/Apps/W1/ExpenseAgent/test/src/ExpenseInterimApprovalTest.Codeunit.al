@@ -1819,7 +1819,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure ProcessingReportSkipsFailingReportAndProcessesOthers()
+    procedure ProcessingReportStopsOnFailingReport()
     var
         SubmitterFailing: Record "Expense User";
         InterimApproverFailing: Record "Expense User";
@@ -1836,7 +1836,7 @@ codeunit 148346 "Expense Interim Approval Test"
         OriginalWorkDate: Date;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 626975] A report that fails alternate assignment is skipped and the remaining reports are still processed.
+        // [SCENARIO 626975] An alternate assignment error is shown and stops processing the remaining reports.
         Initialize();
         OriginalWorkDate := WorkDate();
         WorkDate(Today());
@@ -1862,16 +1862,67 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [WHEN] The processing report runs without a filter.
         AssignExpenseReportAlternates.UseRequestPage(false);
-        AssignExpenseReportAlternates.RunModal();
+        asserterror AssignExpenseReportAlternates.RunModal();
+
+        // [THEN] The approval permission error is shown.
+        Assert.ExpectedError(StrSubstNo(ApproverMustBeEnabledInExpenseUserErr, InterimApproverFailing.FieldCaption("Can Approve"), InterimApproverFailing.TableCaption()));
+        Assert.ExpectedErrorCode('Dialog');
 
         // [THEN] The failing report is left unchanged.
         VerifyInterimApprover(ExpenseReportFailing, InterimApproverFailing."No.");
         VerifyApprovalRouting(ExpenseReportFailing, InterimApproverFailing, FinalApproverFailing);
 
-        // [THEN] The other report is still routed through both alternates.
-        VerifyInterimApprover(ExpenseReportValid, InterimAlternateValid."No.");
-        VerifyApprovalRouting(ExpenseReportValid, InterimAlternateValid, FinalAlternateValid);
-        ExpenseReportValid.TestField("Alternate Approver No.", FinalAlternateValid."No.");
+        // [THEN] The other report is not processed.
+        VerifyInterimApprover(ExpenseReportValid, InterimApproverValid."No.");
+        VerifyApprovalRouting(ExpenseReportValid, InterimApproverValid, FinalApproverValid);
+        ExpenseReportValid.TestField("Alternate Approver No.", '');
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportSwitchesFinalAlternateWhenCoverageChanges()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        FirstAlternate: Record "Expense User";
+        SecondAlternate: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+        SecondCoverageStartDate: Date;
+    begin
+        // [SCENARIO 626975] A pending report switches to the alternate whose coverage is active on the processing date.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+        SecondCoverageStartDate := WorkDate() + 1;
+
+        // [GIVEN] Two consecutive, non-overlapping coverage windows for the final approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        CreateApproverExpenseUser(FirstAlternate);
+        CreateApproverExpenseUser(SecondAlternate);
+        CreateAlternateApproverCoverage(FinalApprover."No.", FirstAlternate."No.", WorkDate(), WorkDate());
+        CreateAlternateApproverCoverage(FinalApprover."No.", SecondAlternate."No.", SecondCoverageStartDate, 0D);
+
+        // [WHEN] The delegation report runs within the first coverage window.
+        RunDelegationReport(ExpenseReportHeader."No.");
+
+        // [THEN] The first alternate is assigned.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField("Alternate Approver No.", FirstAlternate."No.");
+        VerifyApprovalRouting(ExpenseReportHeader, FirstAlternate, FirstAlternate);
+
+        // [WHEN] The work date advances into the second coverage window and the report runs again.
+        WorkDate(SecondCoverageStartDate);
+        RunDelegationReport(ExpenseReportHeader."No.");
+
+        // [THEN] The report is reassigned to the second alternate.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField("Alternate Approver No.", SecondAlternate."No.");
+        VerifyApprovalRouting(ExpenseReportHeader, SecondAlternate, SecondAlternate);
         WorkDate(OriginalWorkDate);
     end;
 

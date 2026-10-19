@@ -217,7 +217,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense Per Diem Calculation" = X,
         codeunit "Expense Preview Post Mgt." = X,
         codeunit "Expense Report Approval Mgmt" = X,
-        codeunit "Delegate Expense Approval Run" = X,
+        codeunit "Assign Alternate Approver" = X,
         codeunit "Expense Vendor Matching" = X,
         codeunit "Expense OAuth Client" = X,
         codeunit "Expense API Currency Helper" = X,

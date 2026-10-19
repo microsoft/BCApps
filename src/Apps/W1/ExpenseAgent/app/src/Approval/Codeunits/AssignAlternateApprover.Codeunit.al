@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 6913 "Delegate Expense Approval Run"
+codeunit 6913 "Assign Alternate Approver"
 {
     Access = Internal;
     TableNo = "Expense Report Header";
