@@ -824,7 +824,7 @@ codeunit 10 "Type Helper"
         DateTime: DotNet DateTime;
         TimezoneOffset: Duration;
     begin
-        if not TypeHelper.GetUserTimezoneOffset(TimezoneOffset) then
+        if not TypeHelper.GetUserTimezoneOffset(TimezoneOffset, InputDateTime) then
             TimezoneOffset := 0;
         DateTime := InputDateTime;
         DateTime := DateTime.ToUniversalTime() + TimezoneOffset;
@@ -862,6 +862,8 @@ codeunit 10 "Type Helper"
     procedure ConvertDateTimeFromInputTimeZoneToClientTimezone(InputDateTime: DateTime; TimeZoneTxt: Text): DateTime
     var
         TimeZoneInfo: DotNet TimeZoneInfo;
+        DotNetDateTime: DotNet DateTime;
+        DotNetDateTimeKind: DotNet DateTimeKind;
         Offset: Duration;
     begin
         if TimeZoneTxt = '' then
@@ -870,7 +872,10 @@ codeunit 10 "Type Helper"
         TimeZoneInfo := TimeZoneInfo.FindSystemTimeZoneById(TimeZoneTxt);
         InputDateTime := InputDateTime - TimeZoneInfo.GetUtcOffset(InputDateTime);
 
-        GetUserClientTypeOffset(Offset, InputDateTime);
+        DotNetDateTime := InputDateTime;
+        DotNetDateTime := DotNetDateTime.DateTime(DotNetDateTime.Ticks, DotNetDateTimeKind.Utc);
+        GetUserClientTypeOffset(Offset, DotNetDateTime);
+
         exit(InputDateTime + Offset);
     end;
 

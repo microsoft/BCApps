@@ -819,7 +819,7 @@ codeunit 132590 "Type Helper Unit Tests"
         TimeZone.SetFilter("Display Name", '*:00*');
         TimeZone.FindSet();
         TimeZone.Next(LibraryRandom.RandInt(TimeZone.Count));
-        TimeZoneOffset := TimeZoneCU.GetTimezoneOffset(InputDateTime, TimeZone.ID);
+        TimeZoneOffset := TimeZoneCU.GetTimezoneOffset(InputDateTime - UserOffset, TimeZone.ID);
 
         Assert.AreEqual(
           InputDateTime + TimeZoneOffset - UserOffset,
@@ -866,6 +866,31 @@ codeunit 132590 "Type Helper Unit Tests"
 
         // [GIVEN] A DateTime in W. Europe Standard Time during daylight-saving time
         InputDateTime := CreateDateTime(DMY2Date(24, 9, 2026), 070000T);
+
+        // [WHEN] The DateTime is converted from the input time zone to the same client time zone
+        // [THEN] The DateTime remains unchanged
+        Assert.AreEqual(
+            InputDateTime,
+            TypeHelper.ConvertDateTimeFromInputTimeZoneToClientTimezone(InputDateTime, 'W. Europe Standard Time'),
+            'The DateTime changed although the input and client time zones are the same.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DateTimeFromInputTimeZoneWithSameClientAndInputTimeZoneAfterDaylightSavingTransition()
+    var
+        TypeHelper: Codeunit "Type Helper";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        InputDateTime: DateTime;
+    begin
+        // [SCENARIO] Convert a DateTime after the daylight-saving transition when the input and client time zones are the same
+
+        TestClientTypeSubscriber.SetClientType(ClientType::Web);
+        BindSubscription(TestClientTypeSubscriber);
+        SetUserTimeZone('W. Europe Standard Time');
+
+        // [GIVEN] A valid DateTime after the daylight-saving transition in W. Europe Standard Time
+        InputDateTime := CreateDateTime(DMY2Date(29, 3, 2026), 033000T);
 
         // [WHEN] The DateTime is converted from the input time zone to the same client time zone
         // [THEN] The DateTime remains unchanged
