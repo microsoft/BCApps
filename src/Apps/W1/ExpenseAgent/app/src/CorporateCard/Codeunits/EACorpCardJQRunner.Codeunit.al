@@ -33,7 +33,7 @@ codeunit 7433 "EA Corp Card JQ Runner"
             exit;
 
         ProviderRecordRef.SetTable(CorpCardProvider);
-        if CorpCardProvider.Enabled then
+        if CorpCardProvider.Enabled and not CorpCardProvider.IsFileBasedImport() then
             CorpCardFeedMgt.RunImport(CorpCardProvider.Code);
     end;
 

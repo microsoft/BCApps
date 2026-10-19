@@ -86,27 +86,6 @@ table 7426 "EA Corp Card Provider"
             Editable = false;
             ToolTip = 'Specifies the last imported statement entry for the corporate card provider.';
         }
-        field(13; "Source File Name"; Text[250])
-        {
-            Caption = 'Source File Name';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the source file name for the corporate card provider.';
-        }
-        field(14; "Source Payload"; Blob)
-        {
-            Caption = 'Source Payload';
-            DataClassification = CustomerContent;
-            Subtype = Memo;
-            ToolTip = 'Specifies the source payload for the corporate card provider.';
-        }
-        field(15; "Source Payload Record Count"; Integer)
-        {
-            Caption = 'Source Payload Records';
-            DataClassification = SystemMetadata;
-            Editable = false;
-            MinValue = 0;
-            ToolTip = 'Specifies the number of transaction records detected in the uploaded source payload.';
-        }
         field(16; "Corp Card Bank Account No."; Code[20])
         {
             Caption = 'Corporate Card Bank Account No.';
@@ -150,38 +129,9 @@ table 7426 "EA Corp Card Provider"
         DeleteRelatedData();
     end;
 
-    internal procedure UpdateSourcePayloadRecordCount()
-    var
-        PayloadInStr: InStream;
-        PayloadTxt: Text;
-        SourceFileNameLower: Text;
-        DataExchDefCodeUpper: Text;
+    internal procedure IsFileBasedImport(): Boolean
     begin
-        if not "Source Payload".HasValue() then begin
-            "Source Payload Record Count" := 0;
-            exit;
-        end;
-
-        "Source Payload".CreateInStream(PayloadInStr, TextEncoding::UTF8);
-        PayloadTxt := ReadStreamAsText(PayloadInStr);
-        if PayloadTxt = '' then begin
-            "Source Payload Record Count" := 0;
-            exit;
-        end;
-
-        SourceFileNameLower := LowerCase("Source File Name");
-        DataExchDefCodeUpper := UpperCase("Data Exch Def Code");
-
-        if (StrPos(SourceFileNameLower, '.csv') > 0) or (StrPos(DataExchDefCodeUpper, 'CSV') > 0) then
-            "Source Payload Record Count" := GetCsvRecordCount(PayloadTxt)
-        else
-            if (StrPos(SourceFileNameLower, 'camt054') > 0) or (StrPos(SourceFileNameLower, 'camt.054') > 0) or (StrPos(DataExchDefCodeUpper, 'CAMT054') > 0) then
-                "Source Payload Record Count" := CountOccurrences(PayloadTxt, '<TxDtls>')
-            else
-                if (StrPos(SourceFileNameLower, 'camt') > 0) or (StrPos(DataExchDefCodeUpper, 'CAMT') > 0) then
-                    "Source Payload Record Count" := CountOccurrences(PayloadTxt, '<Ntry>')
-                else
-                    "Source Payload Record Count" := CountOccurrences(PayloadTxt, '<Transaction>');
+        exit("Feed Type" in ["Feed Type"::DataExch, "Feed Type"::CSV, "Feed Type"::XML]);
     end;
 
     local procedure CheckSettlementAccountsDiffer()
@@ -190,88 +140,6 @@ table 7426 "EA Corp Card Provider"
            ("Corp Card Bank Account No." = "Payment Bank Account No.")
         then
             Error(SettlementAccountsMustDifferErr);
-    end;
-
-    local procedure ReadStreamAsText(var PayloadInStr: InStream): Text
-    var
-        PayloadTextBuilder: TextBuilder;
-        LineTxt: Text;
-    begin
-        while not PayloadInStr.EOS do begin
-            PayloadInStr.ReadText(LineTxt);
-            PayloadTextBuilder.AppendLine(LineTxt);
-        end;
-
-        exit(PayloadTextBuilder.ToText());
-    end;
-
-    local procedure GetCsvRecordCount(PayloadTxt: Text): Integer
-    var
-        Count: Integer;
-        Remaining: Text;
-        LineTxt: Text;
-        NewLinePos: Integer;
-        HeaderHandled: Boolean;
-        CRChar: Char;
-        LFChar: Char;
-    begin
-        Remaining := PayloadTxt;
-        CRChar := 13;
-        LFChar := 10;
-        while Remaining <> '' do begin
-            NewLinePos := StrPos(Remaining, Format(LFChar));
-            if NewLinePos = 0 then begin
-                LineTxt := Remaining;
-                Remaining := '';
-            end else begin
-                LineTxt := CopyStr(Remaining, 1, NewLinePos - 1);
-                Remaining := CopyStr(Remaining, NewLinePos + 1);
-            end;
-
-            LineTxt := LineTxt.Replace(Format(CRChar), '').Trim();
-            if LineTxt = '' then
-                continue;
-
-            if not HeaderHandled then begin
-                HeaderHandled := true;
-                if IsCsvHeaderLine(LineTxt) then
-                    continue;
-            end;
-
-            Count += 1;
-        end;
-
-        exit(Count);
-    end;
-
-    local procedure IsCsvHeaderLine(LineTxt: Text): Boolean
-    var
-        LowerLineTxt: Text;
-    begin
-        LowerLineTxt := LowerCase(LineTxt);
-        exit((StrPos(LowerLineTxt, 'providertransid') > 0) and (StrPos(LowerLineTxt, 'cardid') > 0));
-    end;
-
-    local procedure CountOccurrences(SourceTxt: Text; Token: Text): Integer
-    var
-        Count: Integer;
-        Position: Integer;
-        SearchFrom: Integer;
-    begin
-        if (SourceTxt = '') or (Token = '') then
-            exit(0);
-
-        SearchFrom := 1;
-        repeat
-            Position := StrPos(CopyStr(SourceTxt, SearchFrom), Token);
-            if Position = 0 then
-                break;
-
-            Count += 1;
-            SearchFrom := SearchFrom + Position + StrLen(Token) - 1;
-        until SearchFrom > StrLen(SourceTxt);
-
-        exit(Count);
     end;
 
     local procedure HasRelatedData(): Boolean

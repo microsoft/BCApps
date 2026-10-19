@@ -103,8 +103,11 @@ codeunit 7435 "EA Corp Card Validate Mgt"
 
     internal procedure ResolveCardFromExpense(CorpCardTrans: Record "EA Corp Card Trans"; var CorpCard: Record "EA Corp Card"; var ExpenseNo: Code[20]; var ValidationReason: Text[250]): Boolean
     var
+        ProviderCorpCard: Record "EA Corp Card";
+        TempCorpCard: Record "EA Corp Card" temporary;
         Expense: Record Expense;
         ExpensePaymentMethod: Record "Expense Payment Method";
+        TempExpensePaymentMethod: Record "Expense Payment Method" temporary;
         MatchedCardId: Code[50];
     begin
         ExpenseNo := '';
@@ -114,30 +117,48 @@ codeunit 7435 "EA Corp Card Validate Mgt"
         Expense.SetRange(Amount, CorpCardTrans.Amount);
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
         Expense.SetLoadFields("Expense User No.", "Payment Method Code");
-        if Expense.FindSet() then
+        if Expense.FindSet() then begin
+            ProviderCorpCard.SetRange("Provider Code", CorpCardTrans."Provider Code");
+            ProviderCorpCard.SetLoadFields("Expense User No.");
+            if ProviderCorpCard.FindSet() then
+                repeat
+                    TempCorpCard.Init();
+                    TempCorpCard."Card Id" := ProviderCorpCard."Card Id";
+                    TempCorpCard."Expense User No." := ProviderCorpCard."Expense User No.";
+                    TempCorpCard.Insert();
+                until ProviderCorpCard.Next() = 0;
+            TempCorpCard.SetCurrentKey("Expense User No.");
+
+            ExpensePaymentMethod.SetRange("Reimbursement Type", ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+            ExpensePaymentMethod.SetLoadFields(Code);
+            if ExpensePaymentMethod.FindSet() then
+                repeat
+                    TempExpensePaymentMethod.Init();
+                    TempExpensePaymentMethod.Code := ExpensePaymentMethod.Code;
+                    TempExpensePaymentMethod.Insert();
+                until ExpensePaymentMethod.Next() = 0;
+
             repeat
                 if Expense."Expense User No." = '' then
                     continue;
-                if not ExpensePaymentMethod.Get(Expense."Payment Method Code") then
+                if not TempExpensePaymentMethod.Get(Expense."Payment Method Code") then
                     continue;
-                if ExpensePaymentMethod."Reimbursement Type" <> ExpensePaymentMethod."Reimbursement Type"::"Credit Card" then
+                TempCorpCard.SetRange("Expense User No.", Expense."Expense User No.");
+                if not TempCorpCard.FindSet() then
                     continue;
-                CorpCard.Reset();
-                CorpCard.SetRange("Provider Code", CorpCardTrans."Provider Code");
-                CorpCard.SetRange("Expense User No.", Expense."Expense User No.");
-                if not CorpCard.FindFirst() then
-                    continue;
-                if (ExpenseNo <> '') or (CorpCard.Next() <> 0) then begin
+                if (ExpenseNo <> '') or (TempCorpCard.Next() <> 0) then begin
                     ValidationReason := AmbiguousExpenseErr;
                     exit(false);
                 end;
                 ExpenseNo := Expense."No.";
-                MatchedCardId := CorpCard."Card Id";
+                MatchedCardId := TempCorpCard."Card Id";
             until Expense.Next() = 0;
+        end;
         if ExpenseNo = '' then begin
             ValidationReason := NoCardMatchErr;
             exit(false);
         end;
+        CorpCard.Reset();
         CorpCard.Get(MatchedCardId);
         if CorpCard.Blocked then begin
             ValidationReason := BlockedCardErr;

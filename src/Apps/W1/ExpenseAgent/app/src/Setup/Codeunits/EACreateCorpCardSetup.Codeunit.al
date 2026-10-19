@@ -7,6 +7,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.NoSeries;
 using System.IO;
+using System.Utilities;
 
 codeunit 7442 "EA Create Corp Card Setup"
 {
@@ -90,8 +91,13 @@ codeunit 7442 "EA Create Corp Card Setup"
         FirstCorpCardStatement: Record "EA Corp Card Statement";
         SecondCorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        TempBlob: Codeunit "Temp Blob";
+        SourceInStream: InStream;
+        SourceOutStream: OutStream;
+        PeriodEndDate: Date;
+        PeriodStartDate: Date;
     begin
         CreateDefaults();
 
@@ -101,8 +107,12 @@ codeunit 7442 "EA Create Corp Card Setup"
             Error(CsvSampleScenarioAlreadyExistsErr);
 
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
-        RefreshCsvSamplePayloadForExchangeRatePeriod(CorpCardProvider);
-        CorpCardFeedMgt.RunImport(CorpCardProvider.Code);
+        GetCsvSampleExchangeRatePeriod(PeriodStartDate, PeriodEndDate);
+        TempBlob.CreateOutStream(SourceOutStream, TextEncoding::UTF8);
+        SourceOutStream.WriteText(BuildCsvSamplePayload(PeriodStartDate, PeriodEndDate));
+        Clear(SourceOutStream);
+        TempBlob.CreateInStream(SourceInStream);
+        CorpCardImportOrch.RunFileImport(CorpCardProvider, SourceInStream, CorpCardCsvSampleFileNameTok);
 
         CorpCardProvider.Get(CorpCardProvider.Code);
         FirstCorpCardStatement.Get(CorpCardProvider."Last Statement Entry No.");
@@ -273,8 +283,6 @@ codeunit 7442 "EA Create Corp Card Setup"
             EnsureDataExchLineAndColumns(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok, true);
             EnsureDataExchMapping(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
             EnsureFieldMappings(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
-
-            EnsureSamplePayloadForProvider(CorpCardProvider);
         end;
     end;
 
@@ -386,7 +394,6 @@ codeunit 7442 "EA Create Corp Card Setup"
             CorpCardProvider."Data Exch Map Code" := DataExchLineCode;
             CorpCardProvider."Import Frequency (Min)" := 1440;
             CorpCardProvider.Insert(true);
-            EnsureSamplePayloadForProvider(CorpCardProvider);
             exit;
         end;
 
@@ -401,73 +408,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         if CorpCardProvider."Import Frequency (Min)" = 0 then
             CorpCardProvider."Import Frequency (Min)" := 1440;
         CorpCardProvider.Modify(true);
-        EnsureSamplePayloadForProvider(CorpCardProvider);
-    end;
-
-    local procedure EnsureSamplePayloadForProvider(var CorpCardProvider: Record "EA Corp Card Provider")
-    var
-        SamplePayload: Text;
-        SampleFileName: Text[250];
-    begin
-        CorpCardProvider.CalcFields("Source Payload");
-        if CorpCardProvider."Source Payload".HasValue then
-            if (CorpCardProvider.Code <> CorpCardCsvProviderCodeTok) or
-               (CorpCardProvider."Source File Name" <> CorpCardCsvSampleFileNameTok) or
-               (CorpCardProvider."Source Payload Record Count" = GetCorpCardSampleTransactionCount())
-            then
-                exit;
-
-        if not GetProviderSamplePayload(CorpCardProvider.Code, SamplePayload, SampleFileName) then
-            exit;
-
-        SetProviderSamplePayload(CorpCardProvider, SamplePayload, SampleFileName);
-    end;
-
-    local procedure RefreshCsvSamplePayloadForExchangeRatePeriod(var CorpCardProvider: Record "EA Corp Card Provider")
-    var
-        PeriodEndDate: Date;
-        PeriodStartDate: Date;
-    begin
-        GetCsvSampleExchangeRatePeriod(PeriodStartDate, PeriodEndDate);
-        SetProviderSamplePayload(
-            CorpCardProvider, BuildCsvSamplePayload(PeriodStartDate, PeriodEndDate), CorpCardCsvSampleFileNameTok);
-    end;
-
-    local procedure SetProviderSamplePayload(var CorpCardProvider: Record "EA Corp Card Provider"; SamplePayload: Text; SampleFileName: Text[250])
-    var
-        PayloadOutStr: OutStream;
-    begin
-        Clear(CorpCardProvider."Source Payload");
-        CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStr, TextEncoding::UTF8);
-        PayloadOutStr.WriteText(SamplePayload);
-        Clear(PayloadOutStr);
-        CorpCardProvider."Source File Name" := CopyStr(SampleFileName, 1, MaxStrLen(CorpCardProvider."Source File Name"));
-        CorpCardProvider.UpdateSourcePayloadRecordCount();
-        CorpCardProvider.Modify(true);
-    end;
-
-    local procedure GetProviderSamplePayload(ProviderCode: Code[20]; var SamplePayload: Text; var SampleFileName: Text[250]): Boolean
-    var
-        PrimaryCardLast4: Code[4];
-    begin
-        PrimaryCardLast4 := '0001';
-
-        case ProviderCode of
-            CorpCardCsvProviderCodeTok:
-                begin
-                    SamplePayload := BuildCsvSamplePayload(DMY2Date(1, 6, 2026), DMY2Date(28, 6, 2026));
-                    SampleFileName := CorpCardCsvSampleFileNameTok;
-                    exit(true);
-                end;
-            CorpCardXmlProviderCodeTok:
-                begin
-                    SamplePayload := BuildXmlSamplePayload(PrimaryCardLast4);
-                    SampleFileName := CorpCardXmlSampleFileNameTok;
-                    exit(true);
-                end;
-        end;
-
-        exit(false);
     end;
 
     local procedure BuildProviderSampleCardId(SequenceNo: Integer): Code[50]
@@ -594,26 +534,6 @@ codeunit 7442 "EA Create Corp Card Setup"
     local procedure GetCorpCardSampleTransactionCount(): Integer
     begin
         exit(60);
-    end;
-
-    local procedure BuildXmlSamplePayload(CardLast4: Code[4]): Text
-    begin
-        exit(
-            '<?xml version="1.0" encoding="utf-8"?>' +
-            '<CorporateCardTransactions>' +
-                '<Transaction>' +
-                    '<ProviderTransId>XMLTXN0001</ProviderTransId>' +
-                    '<CardLast4>' + CardLast4 + '</CardLast4>' +
-                    '<TransDate>2026-06-02</TransDate>' +
-                    '<PostingDate>2026-06-03</PostingDate>' +
-                    '<Amount>19.63</Amount>' +
-                    '<CurrencyCode>USD</CurrencyCode>' +
-                    '<MerchantRaw>Contoso Air</MerchantRaw>' +
-                    '<MCC>4511</MCC>' +
-                    '<Country>US</Country>' +
-                    '<Notes>Seeded XML sample</Notes>' +
-                '</Transaction>' +
-            '</CorporateCardTransactions>');
     end;
 
     local procedure CompleteCsvSampleStatement(var CorpCardStatement: Record "EA Corp Card Statement"; StatementSequenceNo: Integer)
@@ -900,7 +820,7 @@ codeunit 7442 "EA Create Corp Card Setup"
                     DesiredLineCode := CorpCardCsvDataExchLineCodeTok;
                 end;
             else
-                if IsXmlFileName(CorpCardProvider."Source File Name") then begin
+                if IsXmlDefinitionCode(CorpCardProvider."Data Exch Def Code") then begin
                     DesiredDefCode := CorpCardXmlDataExchDefCodeTok;
                     DesiredLineCode := CorpCardXmlDataExchLineCodeTok;
                 end else begin
@@ -928,20 +848,6 @@ codeunit 7442 "EA Create Corp Card Setup"
     local procedure IsXmlFeedType(FeedType: Enum "EA Corp Card Feed Type"): Boolean
     begin
         exit(FeedType = FeedType::XML);
-    end;
-
-    local procedure IsXmlFileName(SourceFileName: Text): Boolean
-    var
-        StartPos: Integer;
-    begin
-        if SourceFileName = '' then
-            exit(false);
-
-        StartPos := StrLen(SourceFileName) - 3;
-        if StartPos < 1 then
-            StartPos := 1;
-
-        exit(LowerCase(CopyStr(SourceFileName, StartPos, 4)) = '.xml');
     end;
 
     local procedure EnsureDataExchDefinition(DataExchDefCode: Code[20]; IsXml: Boolean)
@@ -1184,7 +1090,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         if not IsXml then
             exit('');
 
-        exit(NodeName);
+        exit(CopyStr(CorpCardXmlDataLineTagLbl + '/' + NodeName, 1, MaxStrLen(NodeName)));
     end;
 
     local procedure EnsureColumnDef(DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnNo: Integer; ColumnName: Text[250]; PathTxt: Text[250])
@@ -1331,7 +1237,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardCsvProviderDescriptionLbl: Label 'Corporate Card CSV Provider';
         CorpCardXmlProviderDescriptionLbl: Label 'Corporate Card XML Provider';
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
-        CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
         CorpCardSampleFirstTransIdTok: Label 'TXN00001', MaxLength = 50, Locked = true;
         CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT-%1', Comment = '%1 = settlement sequence number', MaxLength = 50, Locked = true;
         CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-STATEMENT-%1', Comment = '%1 = statement sequence number', MaxLength = 50, Locked = true;

@@ -31,11 +31,42 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         StrictLineValidationErr: Label 'Line %1 (provider %2): missing mapped field(s): %3. Verify Data Exchange definition %4 and mapping line %5.', Comment = '%1 = line no, %2 = provider code, %3 = field list, %4 = Data Exch Def Code, %5 = Data Exch Map Code';
         ProviderTransIdXmlTok: Label '<ProviderTransId>%1</ProviderTransId>', Locked = true, Comment = '%1 = Provider Trans Id';
         ShowItLbl: Label 'Show it';
+        SourceFileRequiredErr: Label 'Select a statement file using Import statement for provider %1.', Comment = '%1 = provider code';
+        EmptySourceFileErr: Label 'The selected statement file is empty. Select a file that contains transactions.';
         ColumnNoByName: Dictionary of [Text, Integer];
 
     procedure Download(var CorpCardStatement: Record "EA Corp Card Statement")
     var
         DataExch: Record "Data Exch.";
+        CorpCardProvider: Record "EA Corp Card Provider";
+    begin
+        if CorpCardStatement."Data Exch Entry No." = 0 then
+            CreateDataExchange(CorpCardStatement, DataExch);
+        CorpCardProvider.Get(CorpCardStatement."Provider Code");
+        DataExch.Get(CorpCardStatement."Data Exch Entry No.");
+        DataExch.CalcFields("File Content");
+        if not DataExch."File Content".HasValue() then
+            InjectSourceContent(CorpCardProvider, CorpCardStatement, DataExch);
+
+        CorpCardStatement."Source Ref" := CopyStr(
+            DataExch."File Name",
+            1,
+            MaxStrLen(CorpCardStatement."Source Ref"));
+        CorpCardStatement.Modify();
+
+        OnAfterDownload(CorpCardProvider, CorpCardStatement, DataExch);
+    end;
+
+    internal procedure SetSourceFile(var CorpCardStatement: Record "EA Corp Card Statement"; SourceInStream: InStream; SourceFileName: Text)
+    var
+        DataExch: Record "Data Exch.";
+    begin
+        CreateDataExchange(CorpCardStatement, DataExch);
+        SetFileContent(CorpCardStatement, DataExch, SourceInStream, SourceFileName);
+    end;
+
+    local procedure CreateDataExchange(var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch.")
+    var
         CorpCardProvider: Record "EA Corp Card Provider";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
@@ -52,16 +83,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
         CorpCardStatement."Data Exch Entry No." := DataExch."Entry No.";
         CorpCardStatement.Modify();
-
-        InjectSourceContent(CorpCardProvider, CorpCardStatement, DataExch);
-
-        CorpCardStatement."Source Ref" := CopyStr(
-            DataExch."File Name",
-            1,
-            MaxStrLen(CorpCardStatement."Source Ref"));
-        CorpCardStatement.Modify();
-
-        OnAfterDownload(CorpCardProvider, CorpCardStatement, DataExch);
     end;
 
     procedure ParseToStaging(StatementEntryNo: Integer)
@@ -80,7 +101,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardProvider.Get(CorpCardStatement."Provider Code");
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
         DataExch.Get(CorpCardStatement."Data Exch Entry No.");
-        EnsureDataExchFileContentFromProviderPayload(DataExch, CorpCardProvider);
+        DataExch.CalcFields("File Content");
         if DataExch."Data Exch. Line Def Code" = '' then begin
             DataExch."Data Exch. Line Def Code" := CorpCardProvider."Data Exch Map Code";
             DataExch.Modify(true);
@@ -118,57 +139,45 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     local procedure InjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch.")
     var
         TempBlob: Codeunit "Temp Blob";
-        CryptographyManagement: Codeunit "Cryptography Management";
-        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
-        HashInStr: InStream;
         InStr: InStream;
-        OutStr: OutStream;
         SourceFileName: Text[250];
         Handled: Boolean;
     begin
         Handled := false;
         OnBeforeInjectSourceContent(CorpCardProvider, CorpCardStatement, TempBlob, SourceFileName, Handled);
         if not Handled then
-            exit;
+            RaiseProviderSetupError(StrSubstNo(SourceFileRequiredErr, CorpCardProvider.Code), CorpCardProvider);
 
         TempBlob.CreateInStream(InStr);
+        SetFileContent(CorpCardStatement, DataExch, InStr, SourceFileName);
+    end;
+
+    local procedure SetFileContent(var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch."; InStr: InStream; SourceFileName: Text)
+    var
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+        HashInStr: InStream;
+        OutStr: OutStream;
+    begin
         DataExch."File Content".CreateOutStream(OutStr);
         CopyStream(OutStr, InStr);
+        Clear(OutStr);
+        if not DataExch."File Content".HasValue() then
+            Error(EmptySourceFileErr);
         if SourceFileName <> '' then begin
             DataExch."File Name" := CopyStr(SourceFileName, 1, MaxStrLen(DataExch."File Name"));
-            CorpCardStatement."Source File Name" := SourceFileName;
+            CorpCardStatement."Source File Name" := CopyStr(SourceFileName, 1, MaxStrLen(CorpCardStatement."Source File Name"));
+            CorpCardStatement."Source Ref" := CopyStr(SourceFileName, 1, MaxStrLen(CorpCardStatement."Source Ref"));
         end;
 
         DataExch.Modify();
 
-        TempBlob.CreateInStream(HashInStr);
+        DataExch."File Content".CreateInStream(HashInStr);
         CorpCardStatement."Source Payload Hash" := CopyStr(
             LowerCase(CryptographyManagement.GenerateHash(HashInStr, HashAlgorithmType::SHA256)),
             1,
             MaxStrLen(CorpCardStatement."Source Payload Hash"));
         CorpCardStatement.Modify();
-    end;
-
-    local procedure EnsureDataExchFileContentFromProviderPayload(var DataExch: Record "Data Exch."; CorpCardProvider: Record "EA Corp Card Provider")
-    var
-        ProviderRefreshed: Record "EA Corp Card Provider";
-        SourceInStr: InStream;
-        TargetOutStr: OutStream;
-    begin
-        if not ProviderRefreshed.Get(CorpCardProvider.Code) then
-            exit;
-
-        ProviderRefreshed.CalcFields("Source Payload");
-        if not ProviderRefreshed."Source Payload".HasValue() then
-            exit;
-
-        ProviderRefreshed."Source Payload".CreateInStream(SourceInStr);
-        DataExch."File Content".CreateOutStream(TargetOutStr);
-        CopyStream(TargetOutStr, SourceInStr);
-        if ProviderRefreshed."Source File Name" <> '' then
-            DataExch."File Name" := CopyStr(ProviderRefreshed."Source File Name", 1, MaxStrLen(DataExch."File Name"));
-
-        DataExch.Modify();
     end;
 
     local procedure HasParsedFields(DataExch: Record "Data Exch."): Boolean
@@ -419,8 +428,10 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardDedupMgt: Codeunit "EA Corp Card Dedup Mgt";
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
         CorpCardRecRef: RecordRef;
+        FieldValueByColumnNo: Dictionary of [Integer, Text];
         CurrentLineNo: Integer;
         HasNextField: Boolean;
+        StrictMappingProvider: Boolean;
         SourcePayloadTxt: Text;
         ValidationReason: Text[250];
         CardLast4: Text;
@@ -428,16 +439,18 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     begin
         Clear(ColumnNoByName);
         LoadFieldMappings(CorpCardProvider, TempDataExchFieldMapping);
+        StrictMappingProvider := IsStrictMappingProvider(CorpCardProvider);
 
         DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
         DataExchField.SetRange("Data Exch. Line Def Code", CorpCardProvider."Data Exch Map Code");
         if not DataExchField.FindSet() then
             exit;
-        if not IsStrictMappingProvider(CorpCardProvider) then
+        if not StrictMappingProvider then
             SourcePayloadTxt := ReadSourcePayload(DataExch);
 
         repeat
             CurrentLineNo := DataExchField."Line No.";
+            Clear(FieldValueByColumnNo);
             CardLast4 := '';
             TempFieldIdsToNegate.DeleteAll();
 
@@ -450,6 +463,9 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             CorpCardRecRef.GetTable(CorpCardTrans);
 
             repeat
+                if not StrictMappingProvider then
+                    if not FieldValueByColumnNo.ContainsKey(DataExchField."Column No.") then
+                        FieldValueByColumnNo.Add(DataExchField."Column No.", DataExchField.GetValue());
                 if FindFieldMapping(DataExchField."Column No.", TempDataExchFieldMapping) then
                     if TempDataExchFieldMapping."Field ID" = CorpCardTrans.FieldNo("Card Last 4") then
                         CardLast4 := DataExchField.GetValue()
@@ -463,7 +479,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             ProcessDataExch.NegateAmounts(CorpCardRecRef, TempFieldIdsToNegate);
             CorpCardRecRef.SetTable(CorpCardTrans);
             NormalizeMappedTransFields(CorpCardTrans);
-            if IsStrictMappingProvider(CorpCardProvider) then begin
+            if StrictMappingProvider then begin
                 ValidationReason := '';
                 if not ValidateStrictMappedFields(CorpCardProvider, CurrentLineNo, CorpCardTrans, ValidationReason) then begin
                     CorpCardTrans.Status := CorpCardTrans.Status::Exception;
@@ -473,7 +489,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                     continue;
                 end;
             end else
-                BackfillMandatoryMappedFields(CorpCardProvider, DataExch, SourcePayloadTxt, CurrentLineNo, CorpCardTrans, CardLast4);
+                BackfillMandatoryMappedFields(CorpCardProvider, FieldValueByColumnNo, SourcePayloadTxt, CurrentLineNo, CorpCardTrans, CardLast4);
 
             ValidationReason := '';
             if StrPos(UpperCase(CardLast4), 'CARDLAST4=') > 0 then
@@ -514,18 +530,14 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         DataExchField.SetValueWithoutModifying(CurrencyCode);
     end;
 
-    local procedure GetDataExchFieldValue(DataExchNo: Integer; LineDefCode: Code[20]; LineNo: Integer; ColumnNo: Integer): Text
+    local procedure GetDataExchFieldValue(FieldValueByColumnNo: Dictionary of [Integer, Text]; ColumnNo: Integer): Text
     var
-        DataExchField: Record "Data Exch. Field";
+        FieldValue: Text;
     begin
-        DataExchField.SetRange("Data Exch. No.", DataExchNo);
-        DataExchField.SetRange("Data Exch. Line Def Code", LineDefCode);
-        DataExchField.SetRange("Line No.", LineNo);
-        DataExchField.SetRange("Column No.", ColumnNo);
-        if not DataExchField.FindFirst() then
+        if not FieldValueByColumnNo.Get(ColumnNo, FieldValue) then
             exit('');
 
-        exit(DataExchField.GetValue());
+        exit(FieldValue);
     end;
 
     local procedure IsStrictMappingProvider(CorpCardProvider: Record "EA Corp Card Provider"): Boolean
@@ -613,33 +625,33 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             CorpCardTrans.Country := CopyStr(ExtractTaggedValue(CorpCardTrans."Merchant Raw", 'Country='), 1, MaxStrLen(CorpCardTrans.Country));
     end;
 
-    local procedure BackfillMandatoryMappedFields(CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch."; SourcePayloadTxt: Text; CurrentLineNo: Integer; var CorpCardTrans: Record "EA Corp Card Trans"; var CardLast4: Text)
+    local procedure BackfillMandatoryMappedFields(CorpCardProvider: Record "EA Corp Card Provider"; FieldValueByColumnNo: Dictionary of [Integer, Text]; SourcePayloadTxt: Text; CurrentLineNo: Integer; var CorpCardTrans: Record "EA Corp Card Trans"; var CardLast4: Text)
     var
         DateTxt: Text;
     begin
         if CorpCardTrans."Provider Trans Id" = '' then
-            CorpCardTrans."Provider Trans Id" := CopyStr(GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 1), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
+            CorpCardTrans."Provider Trans Id" := CopyStr(GetDataExchFieldValue(FieldValueByColumnNo, 1), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
         if CorpCardTrans."Provider Trans Id" = '' then
-            CorpCardTrans."Provider Trans Id" := CopyStr(GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'ProviderTransId'), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
+            CorpCardTrans."Provider Trans Id" := CopyStr(GetDataExchFieldValueByColumnName(FieldValueByColumnNo, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", 'ProviderTransId'), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
         if CorpCardTrans."Provider Trans Id" = '' then
             CorpCardTrans."Provider Trans Id" := CopyStr(ReadProviderTransIdFromSourcePayload(SourcePayloadTxt, CurrentLineNo), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
         if CardLast4 = '' then
-            CardLast4 := GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'CardLast4');
+            CardLast4 := GetDataExchFieldValueByColumnName(FieldValueByColumnNo, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", 'CardLast4');
         if (CardLast4 = '') and (CorpCardTrans."Provider Trans Id" <> '') then
             CardLast4 := ReadCardLast4FromSourcePayload(SourcePayloadTxt, CorpCardTrans."Provider Trans Id");
         if CorpCardTrans.MCC = '' then
-            CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 8)), 1, MaxStrLen(CorpCardTrans.MCC));
+            CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(GetDataExchFieldValue(FieldValueByColumnNo, 8)), 1, MaxStrLen(CorpCardTrans.MCC));
         if CorpCardTrans.MCC = '' then
-            CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'MCC')), 1, MaxStrLen(CorpCardTrans.MCC));
+            CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(GetDataExchFieldValueByColumnName(FieldValueByColumnNo, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", 'MCC')), 1, MaxStrLen(CorpCardTrans.MCC));
         if CorpCardTrans.MCC = '' then
             CorpCardTrans.MCC := CopyStr(GetNormalizedMccValue(CorpCardTrans."Merchant Raw"), 1, MaxStrLen(CorpCardTrans.MCC));
         if CorpCardTrans."Trans Date" = 0D then begin
-            DateTxt := GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 3);
+            DateTxt := GetDataExchFieldValue(FieldValueByColumnNo, 3);
             if not ParseIsoDate(DateTxt, CorpCardTrans."Trans Date") then
                 Evaluate(CorpCardTrans."Trans Date", DateTxt);
         end;
         if CorpCardTrans."Trans Date" = 0D then begin
-            DateTxt := GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'TransDate');
+            DateTxt := GetDataExchFieldValueByColumnName(FieldValueByColumnNo, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", 'TransDate');
             if not ParseIsoDate(DateTxt, CorpCardTrans."Trans Date") then
                 Evaluate(CorpCardTrans."Trans Date", DateTxt);
         end;
@@ -649,12 +661,12 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 Evaluate(CorpCardTrans."Trans Date", DateTxt);
         end;
         if CorpCardTrans."Posting Date" = 0D then begin
-            DateTxt := GetDataExchFieldValue(DataExch."Entry No.", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 4);
+            DateTxt := GetDataExchFieldValue(FieldValueByColumnNo, 4);
             if not ParseIsoDate(DateTxt, CorpCardTrans."Posting Date") then
                 Evaluate(CorpCardTrans."Posting Date", DateTxt);
         end;
         if CorpCardTrans."Posting Date" = 0D then begin
-            DateTxt := GetDataExchFieldValueByColumnName(DataExch."Entry No.", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", CurrentLineNo, 'PostingDate');
+            DateTxt := GetDataExchFieldValueByColumnName(FieldValueByColumnNo, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", 'PostingDate');
             if not ParseIsoDate(DateTxt, CorpCardTrans."Posting Date") then
                 Evaluate(CorpCardTrans."Posting Date", DateTxt);
         end;
@@ -665,7 +677,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         end;
     end;
 
-    local procedure GetDataExchFieldValueByColumnName(DataExchNo: Integer; DataExchDefCode: Code[20]; LineDefCode: Code[20]; LineNo: Integer; ColumnName: Text): Text
+    local procedure GetDataExchFieldValueByColumnName(FieldValueByColumnNo: Dictionary of [Integer, Text]; DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnName: Text): Text
     var
         ColumnNo: Integer;
     begin
@@ -673,7 +685,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         if ColumnNo = 0 then
             exit('');
 
-        exit(GetDataExchFieldValue(DataExchNo, LineDefCode, LineNo, ColumnNo));
+        exit(GetDataExchFieldValue(FieldValueByColumnNo, ColumnNo));
     end;
 
     local procedure GetColumnNoByName(DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnName: Text): Integer

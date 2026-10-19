@@ -8,6 +8,24 @@ codeunit 7430 "EA Corp Card Feed Mgt"
 {
     Access = Internal;
 
+    internal procedure ImportStatement(ProviderCode: Code[20]): Boolean
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+        SourceInStream: InStream;
+        SourceFileName: Text;
+    begin
+        CorpCardProvider.Get(ProviderCode);
+        CorpCardProvider.TestField(Enabled, true);
+        if CorpCardProvider.IsFileBasedImport() then begin
+            if not UploadIntoStream('', '', '', SourceFileName, SourceInStream) then
+                exit(false);
+            CorpCardImportOrch.RunFileImport(CorpCardProvider, SourceInStream, SourceFileName);
+        end else
+            CorpCardImportOrch.RunProvider(CorpCardProvider);
+        exit(true);
+    end;
+
     internal procedure RunImport(ProviderCode: Code[20])
     var
         CorpCardProvider: Record "EA Corp Card Provider";
@@ -32,13 +50,12 @@ codeunit 7430 "EA Corp Card Feed Mgt"
         HasFailedImport: Boolean;
     begin
         CorpCardProvider.SetRange(Enabled, true);
-        if not CorpCardProvider.FindSet() then
+        CorpCardProvider.SetFilter("Feed Type", '<>%1&<>%2&<>%3', CorpCardProvider."Feed Type"::DataExch, CorpCardProvider."Feed Type"::CSV, CorpCardProvider."Feed Type"::XML);
+        if not CorpCardProvider.FindFirst() then
             exit;
 
         repeat
-            if CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo) then
-                Commit()
-            else begin
+            if not CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo) then begin
                 if not HasFailedImport then
                     FirstImportErrorText := ImportErrorText;
                 HasFailedImport := true;
@@ -47,7 +64,8 @@ codeunit 7430 "EA Corp Card Feed Mgt"
                     HasActionableErrorInfo := true;
                 end;
             end;
-        until CorpCardProvider.Next() = 0;
+            CorpCardProvider.SetFilter(Code, '>%1', CorpCardProvider.Code);
+        until not CorpCardProvider.FindFirst();
 
         if HasActionableErrorInfo then
             Error(FirstActionableErrorInfo);

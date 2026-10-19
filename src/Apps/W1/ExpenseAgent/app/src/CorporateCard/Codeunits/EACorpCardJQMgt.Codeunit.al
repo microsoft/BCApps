@@ -22,6 +22,7 @@ codeunit 7425 "EA Corp Card JQ Mgt"
         CorpCardImportJobQueueCategoryTok: Label 'CORPCARD', Locked = true;
         JobQueueAlreadyExistsErr: Label 'Job Queue entry for provider %1 already exists.', Comment = '%1 = Provider code';
         NoProviderErr: Label 'Provider %1 not found.', Comment = '%1 = Provider code';
+        FileBasedProviderCannotBeScheduledErr: Label 'Provider %1 uses a file-based feed. Use Import statement to select a source file. Only automated feeds can be scheduled.', Comment = '%1 = Provider code';
 
     internal procedure ScheduleProviderImport(ProviderCode: Code[20]; MinutesBetweenRuns: Integer; StartTime: Time; StartDate: Date): Guid
     var
@@ -31,6 +32,8 @@ codeunit 7425 "EA Corp Card JQ Mgt"
     begin
         if not CorpCardProvider.Get(ProviderCode) then
             Error(NoProviderErr, ProviderCode);
+        if CorpCardProvider.IsFileBasedImport() then
+            Error(FileBasedProviderCannotBeScheduledErr, ProviderCode);
 
         if JobQueueEntryExists(CorpCardProvider.RecordId) then
             Error(JobQueueAlreadyExistsErr, ProviderCode);

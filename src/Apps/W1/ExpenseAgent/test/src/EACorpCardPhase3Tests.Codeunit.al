@@ -8,6 +8,7 @@ using Microsoft.Bank.Ledger;
 using Microsoft.ExpenseAgent;
 using System.IO;
 using System.Threading;
+using System.Utilities;
 
 codeunit 148353 EACorpCardPhase3Tests
 {
@@ -30,23 +31,23 @@ codeunit 148353 EACorpCardPhase3Tests
     var
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardProvider: Record "EA Corp Card Provider";
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         Initialize();
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, GetMalformedXmlPayload(), MalformedXmlFileNameTok);
 
-        asserterror CorpCardFeedMgt.RunImport(CorpCardXmlProviderCodeTok);
+        asserterror EACorpCardTestLib.RunFileImport(CorpCardXmlProviderCodeTok);
         Assert.ExpectedError(MalformedXmlRootElementTok);
 
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
-        CorpCardProvider.CalcFields("Source Payload");
-        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Failed imports must clear the source payload.');
-        Assert.AreEqual(0, CorpCardProvider."Source Payload Record Count", 'Failed imports must clear the source payload record count.');
 
         CorpCardStatement.SetRange("Provider Code", CorpCardXmlProviderCodeTok);
         Assert.IsTrue(CorpCardStatement.FindLast(), 'Failed import must create a statement.');
+        EACorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
         Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'Failed imports must finalize the statement as failed.');
         Assert.IsTrue(CorpCardStatement."Ended DT" <> 0DT, 'Failed imports must record the statement end date and time.');
+        Assert.AreEqual(MalformedXmlFileNameTok, CorpCardStatement."Source File Name", 'A rolled-back parse must retain the selected file name.');
+        Assert.IsTrue(CorpCardStatement."Source Payload Hash" <> '', 'A rolled-back parse must retain the source hash.');
+        Assert.AreEqual(0, CorpCardStatement."Data Exch Entry No.", 'A rolled-back parse must not retain the source data exchange.');
         Assert.AreEqual(CorpCardStatement."Statement Entry No.", CorpCardProvider."Last Statement Entry No.", 'Failed imports must update the provider with the failed statement entry number.');
     end;
 
@@ -55,12 +56,11 @@ codeunit 148353 EACorpCardPhase3Tests
     procedure AllRejectedCsvImportRetainsRowDiagnostics()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         Initialize();
         SetAllRejectedCsvPayload();
 
-        asserterror CorpCardFeedMgt.RunImport(CorpCardCsvProviderCodeTok);
+        asserterror EACorpCardTestLib.RunFileImport(CorpCardCsvProviderCodeTok);
 
         Assert.ExpectedError('All 2 transaction lines');
         AssertRejectedCsvStatement(CorpCardStatement);
@@ -185,7 +185,7 @@ codeunit 148353 EACorpCardPhase3Tests
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure BatchImportPreservesActionableProviderError()
+    procedure ProviderImportPreservesActionableProviderError()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
@@ -206,50 +206,140 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.AreEqual(CorpCardProvider.RecordId, ImportErrorInfo.RecordId, 'The recovery action must target the failing provider.');
 
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, EmptyXmlPayloadTok, EmptyXmlFileNameTok);
-        asserterror CorpCardFeedMgt.RunAllEnabledProviders();
-        Assert.AreEqual(ImportErrorInfo.Message, GetLastErrorText(), 'Batch import must surface the actionable provider error without a plain-text wrapper.');
+        asserterror CorpCardFeedMgt.RunImport(CorpCardXmlProviderCodeTok);
+        Assert.AreEqual(ImportErrorInfo.Message, GetLastErrorText(), 'Provider import must surface the actionable provider error without a plain-text wrapper.');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure BatchImportPreservesLastSuccessfulProvider()
+    procedure FailedFileImportPreservesLastSuccessfulProvider()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardStatement: Record "EA Corp Card Statement";
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         Initialize();
+        EACorpCardTestLib.RunFileImport(CorpCardXmlProviderCodeTok);
         SetProviderSourcePayload(CorpCardCsvProviderCodeTok, 'invalid', InvalidCsvFileNameTok);
 
-        asserterror CorpCardFeedMgt.RunAllEnabledProviders();
+        asserterror EACorpCardTestLib.RunFileImport(CorpCardCsvProviderCodeTok);
 
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
         Assert.AreNotEqual(0DT, CorpCardProvider."Last Import DT", 'The successful provider import must retain its completion time.');
-        Assert.IsTrue(CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No."), 'The successful provider statement must survive the batch error.');
+        Assert.IsTrue(CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No."), 'The successful provider statement must survive the later import error.');
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'The successful provider statement must remain imported.');
-        CorpCardProvider.CalcFields("Source Payload");
-        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'The successful provider source payload must remain cleared.');
+        EACorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure ImportClearsSourcePayloadAndRetainsMetadata()
+    procedure BatchAndScheduledImportsSkipFileBasedFeeds()
     var
-        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        JobQueueEntry: Record "Job Queue Entry";
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+        CorpCardJQRunner: Codeunit "EA Corp Card JQ Runner";
+        StatementCount: Integer;
     begin
         Initialize();
+        StatementCount := CorpCardStatement.Count();
+
+        CorpCardFeedMgt.RunAllEnabledProviders();
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-FILE-CSV', CorpCardProvider.RecordId);
+        CorpCardJQRunner.Run(JobQueueEntry);
+        CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-FILE-XML', CorpCardProvider.RecordId);
+        CorpCardJQRunner.Run(JobQueueEntry);
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        CorpCardProvider."Feed Type" := CorpCardProvider."Feed Type"::DataExch;
+        CorpCardProvider.Modify(true);
+        CorpCardFeedMgt.RunAllEnabledProviders();
+        CreateScheduleTestEntry(JobQueueEntry, 'CORP-FILE-DATAEXCH', CorpCardProvider.RecordId);
+        CorpCardJQRunner.Run(JobQueueEntry);
+
+        Assert.AreEqual(StatementCount, CorpCardStatement.Count(), 'Batch and existing scheduled jobs must skip all built-in file feeds without creating statements.');
+        Assert.IsTrue(EACorpCardTestLib.HasSourcePayload(CorpCardCsvProviderCodeTok), 'Scheduled jobs must not request or consume a CSV source file.');
+        Assert.IsTrue(EACorpCardTestLib.HasSourcePayload(CorpCardXmlProviderCodeTok), 'Scheduled jobs must not request or consume an XML source file.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure FileBasedProviderCannotBeScheduled()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        JobQueueEntry: Record "Job Queue Entry";
+        CorpCardJQMgt: Codeunit "EA Corp Card JQ Mgt";
+        ProvidersPage: TestPage "EA Corp Card Providers";
+        JobCount: Integer;
+    begin
+        Initialize();
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        JobCount := JobQueueEntry.Count();
+
+        asserterror CorpCardJQMgt.ScheduleProviderImport(CorpCardProvider.Code, 1440, 080000T, Today());
+
+        Assert.ExpectedError('Only automated feeds can be scheduled.');
+        Assert.AreEqual(JobCount, JobQueueEntry.Count(), 'Rejecting a file-based schedule must not create a job.');
+        ProvidersPage.OpenView();
+        ProvidersPage.GoToRecord(CorpCardProvider);
+        Assert.IsFalse(ProvidersPage.ScheduleImport.Enabled(), 'The schedule action must be disabled for file-based feeds.');
+        ProvidersPage.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure FileImportDeletesSourceAndRetainsMetadata()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        UnrelatedDataExch: Record "Data Exch.";
+    begin
+        Initialize();
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        UnrelatedDataExch."Related Record" := CorpCardProvider.RecordId;
+        UnrelatedDataExch."File Name" := 'Unrelated.csv';
+        UnrelatedDataExch.Insert(true);
 
         RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
 
-        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
-        CorpCardProvider.CalcFields("Source Payload");
-        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Successful imports must clear the source payload.');
-        Assert.AreEqual(0, CorpCardProvider."Source Payload Record Count", 'Successful imports must clear the source payload record count.');
-        Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardProvider."Source File Name", 'Successful imports must retain the source file name.');
+        EACorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
         Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardStatement."Source File Name", 'The statement must retain the source file name.');
         Assert.IsTrue(CorpCardStatement."Source Payload Hash" <> '', 'The statement must retain the source payload hash.');
         Assert.AreEqual(0, CorpCardStatement."Data Exch Entry No.", 'Successful imports must remove the temporary data exchange record.');
+        Assert.IsTrue(UnrelatedDataExch.Get(UnrelatedDataExch."Entry No."), 'Import finalization must preserve unrelated data exchange records for the same provider.');
+        UnrelatedDataExch.Delete(true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure EmptyStatementFileIsRejectedWithoutAnotherFileSelection()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        DataExch: Record "Data Exch.";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+        TempBlob: Codeunit "Temp Blob";
+        SourceInStream: InStream;
+        SourceOutStream: OutStream;
+        StatementCount: Integer;
+        DataExchCount: Integer;
+    begin
+        Initialize();
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        StatementCount := CorpCardStatement.Count();
+        DataExch.SetRange("Related Record", CorpCardProvider.RecordId);
+        DataExchCount := DataExch.Count();
+        TempBlob.CreateOutStream(SourceOutStream);
+        Clear(SourceOutStream);
+        TempBlob.CreateInStream(SourceInStream);
+        Commit();
+
+        asserterror CorpCardImportOrch.RunFileImport(CorpCardProvider, SourceInStream, 'Empty.csv');
+
+        Assert.ExpectedError('The selected statement file is empty.');
+        Assert.AreEqual(StatementCount, CorpCardStatement.Count(), 'An empty file must not leave a statement or reach the import worker.');
+        Assert.AreEqual(DataExchCount, DataExch.Count(), 'An empty file must not leave a source data exchange record.');
     end;
 
     [Test]
@@ -788,9 +878,7 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.AreEqual('All-rejected.csv', CorpCardStatement."Source File Name", 'The failed statement must retain the source file name.');
         Assert.IsTrue(CorpCardStatement."Source Payload Hash" <> '', 'The failed statement must retain its source hash.');
         Assert.AreEqual(0, CorpCardStatement."Data Exch Entry No.", 'Failure finalization must remove the temporary data exchange record.');
-        CorpCardProvider.CalcFields("Source Payload");
-        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Failure finalization must clear the source payload without losing diagnostics.');
-        Assert.AreEqual(0, CorpCardProvider."Source Payload Record Count", 'Failure finalization must clear the source payload record count.');
+        EACorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
         CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         Assert.IsTrue(CorpCardTrans.IsEmpty(), 'Rejected rows must not create staged transactions.');
         Assert.IsTrue(Expense.IsEmpty(), 'Failed validation must not run post-import draft creation.');
@@ -874,28 +962,13 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     local procedure RunImportAndGetLastStatement(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
-    var
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
-        CorpCardFeedMgt.RunImport(ProviderCode);
-
-        CorpCardStatement.Reset();
-        CorpCardStatement.SetRange("Provider Code", ProviderCode);
-        Assert.IsTrue(CorpCardStatement.FindLast(), 'No statement was created for provider ' + ProviderCode + '.');
+        EACorpCardTestLib.RunImportAndGetLastStatement(ProviderCode, CorpCardStatement);
     end;
 
     local procedure SetProviderSourcePayload(ProviderCode: Code[20]; SourcePayload: Text; SourceFileName: Text[250])
-    var
-        CorpCardProvider: Record "EA Corp Card Provider";
-        PayloadOutStream: OutStream;
     begin
-        Assert.IsTrue(CorpCardProvider.Get(ProviderCode), 'Provider ' + ProviderCode + ' was not found.');
-
-        Clear(CorpCardProvider."Source Payload");
-        CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStream, TextEncoding::UTF8);
-        PayloadOutStream.WriteText(SourcePayload);
-        CorpCardProvider."Source File Name" := SourceFileName;
-        CorpCardProvider.Modify(true);
+        EACorpCardTestLib.SetProviderSourcePayload(ProviderCode, SourcePayload, SourceFileName);
     end;
 
     var

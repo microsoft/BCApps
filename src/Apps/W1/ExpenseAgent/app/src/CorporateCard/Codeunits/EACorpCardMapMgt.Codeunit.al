@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using System.IO;
-using System.Utilities;
 
 codeunit 7437 "EA Corp Card Map Mgt"
 {
@@ -59,33 +58,6 @@ codeunit 7437 "EA Corp Card Map Mgt"
 
         if DataExchFieldMapping.IsEmpty() then
             Error(MandatoryFieldMapMissingErr, FieldCaption, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code");
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnBeforeInjectSourceContent', '', false, false)]
-    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardStatement: Record "EA Corp Card Statement"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
-    var
-        ProviderRefreshed: Record "EA Corp Card Provider";
-        SourceInStr: InStream;
-        TempOutStr: OutStream;
-    begin
-        if Handled then
-            exit;
-
-        if not ProviderRefreshed.Get(CorpCardProvider.Code) then
-            exit;
-
-        ProviderRefreshed.CalcFields("Source Payload");
-        if not ProviderRefreshed."Source Payload".HasValue() then
-            exit;
-
-        ProviderRefreshed."Source Payload".CreateInStream(SourceInStr);
-        TempBlob.CreateOutStream(TempOutStr);
-        CopyStream(TempOutStr, SourceInStr);
-
-        if ProviderRefreshed."Source File Name" <> '' then
-            SourceFileName := ProviderRefreshed."Source File Name";
-
-        Handled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", 'OnSetFieldOnBeforeFieldRefValidate', '', false, false)]

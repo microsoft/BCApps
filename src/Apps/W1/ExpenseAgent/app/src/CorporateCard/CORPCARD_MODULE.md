@@ -196,9 +196,13 @@ The module retains its existing Expense Agent records and models provider statem
 ### Import Flow
 
 ```
+Import statement (file-based feeds)
+    → Selects a file and writes directly to Data Exch. File Content
+    → Does not create a statement if file selection is canceled
+            ↓
 Provider.Download()
-    → Creates Data Exchange record
-    → Injects source file content (CSV/flat XML)
+    → Reuses the selected file's Data Exchange record
+    → Automated feed implementations download their own input
             ↓
 Provider.ParseToStaging()
     → Validates field mappings (EACorpCardMapMgt)
@@ -218,8 +222,11 @@ Provider.Ack()
     → Raises OnAfterAck (does not change statement status)
 Import orchestrator
     → Marks successful statement as Imported; failed statement as Failed
-    → Clears uploaded source payload after the attempt
+    → Deletes the source Data Exchange record and parsed fields on success or failure
+    → Retains statement file name, SHA256 hash, and import diagnostics
 ```
+
+File content is never stored on the provider master record. A failed file import requires selecting the file again; there is no retained input for an unattended retry. Cleanup occurs when the orchestrator finalizes the attempt, not as crash recovery after a terminated session.
 
 ### Matching Algorithm
 
@@ -304,7 +311,8 @@ Canceling a posted expense report follows the same correction boundary: the rela
    - Navigate: Corp Card Providers
    - For each provider: Set Code, Name, Enable flag
     - Select the feed type and configure its Data Exchange definition and mapping
-    - Upload a source payload
+    - XML column paths must include the full line path, for example `/CorporateCardTransactions/Transaction/MCC`; the standard importer derives each column's relative path from the line's Data Line Tag
+    - Use **Import statement** to select and immediately import a CSV or flat XML file
 
 3. **Configure Import Parameters**
     - Navigate: Expense Agent Setup → Corporate Card
@@ -332,8 +340,8 @@ Canceling a posted expense report follows the same correction boundary: the rela
     - 4112 (Rail Passenger Transport) → GROUNDTRAN
     - 4121 (Taxicabs and Limousines) → GROUNDTRAN
     - 4511 (Airlines) → AIRLINE
-    - 4722 (Travel Agencies) → TRAVELAGENCY
-    - 5111 (Office Supplies) → OFFICESUPPLIES
+    - 4722 (Travel Agencies) → AIRLINE
+    - 5111 (Office Supplies) → MISC
     - 5541 (Service Stations) → CAR
     - 5812 (Restaurants) → MEALS
     - 5943 (Stationery and Office Stores) → MISC
@@ -370,12 +378,13 @@ CSV/XML import does not insert `EA Corp Card Trans Detail` rows, so Level 3 VAT 
 
 5. **Schedule Provider Imports**
    - From Role Center: Corp Card → Corp Card Providers
-   - For each enabled provider:
+   - For each enabled automated-feed provider:
      - Action: Schedule Import
      - Creates a recurring Job Queue entry for 08:00 daily (1440 minutes), regardless of the provider's Import Frequency setting
      - Entry starts **On Hold**; set it to Ready in Job Queue Entries to run it
-     - Upload a new source payload before each import; an import attempt clears the stored payload
+     - The feed implementation downloads its own input and manages acknowledgment and retry progress
      - Maximum number of job-queue attempts is 3; the module does not implement a separate retry loop
+   - Built-in Data Exchange, CSV, and XML feeds are interactive only. Their Schedule Import action is disabled; existing jobs targeting them are skipped.
 
 ### Statement Card Identification
 
@@ -444,7 +453,7 @@ Corporate-card events use `Feature Telemetry` under the existing Expense Agent f
 | **EA Corp Card Statement/Transaction** | Provider statement reconciliation | Verifies imported statement transactions against expenses |
 | **Bank Acc. Reconciliation/Line** | Not used by provider statement validation | Matches the posted settlement withdrawal on the Payment Bank Account to the real bank statement |
 | **Bank Account Ledger Entry** | Corporate-card liability and settlement accounting | Expense posting creates the card-account liability; settlement posting and reversal create the bank-to-bank transfer entries |
-| **Job Queue Entry** | Stores recurring import schedule | Created On Hold at 1440-minute intervals, maximum 3 attempts; administrator must enable it |
+| **Job Queue Entry** | Stores recurring automated-feed import schedule | Created On Hold at 1440-minute intervals, maximum 3 attempts; administrator must enable it |
 | **Expense Status Enum** | Defines workflow states | Open → Released → Pending Approval → (Posted via Report) |
 | **MCC Merchant Category Codes** | Category mapping | 4-digit codes map to Expense Category for G/L account determination |
 | **Expense Management Role Center** | Navigation hub | "Corporate Card" group with 6 actions for dashboard/cards/setup/config |
@@ -544,8 +553,9 @@ Pages are interlinked with drill-down actions:
 ### Job Queue Scheduling
 
 - **Daily Job Setup:** Creates a 1440-minute recurring entry at 08:00, initially On Hold
+- **Automated Feeds Only:** Built-in Data Exchange, CSV, and XML feeds require interactive file selection and cannot be scheduled
 - **Job Queue Attempts:** Configured maximum of 3; no custom retry loop
-- **Manual Enablement:** Administrator must set the entry to Ready and provide a new payload after each run
+- **Manual Enablement:** Administrator must set the entry to Ready; the automated feed supplies its own input
 - **Manageable:** UI for schedule creation and removal
 
 ### Comprehensive Logging
@@ -608,8 +618,11 @@ The current import does not populate detail rows, so the VAT specification and t
 |----------|--------|--------|
 | Entry remains On Hold | Job Queue does not run it | Administrator must set it to Ready |
 | Provider import failure | Import orchestrator marks the statement Failed and reports the error | Job Queue's configured maximum is 3 attempts; JQRunner has no custom retry loop |
-| Payload consumed by an import attempt | Source payload is cleared, even on failure | Upload a new payload before retrying |
+| File import fails | Source Data Exchange record and parsed fields are deleted; metadata and diagnostics remain | Use Import statement and select the file again |
+| Scheduled job targets a file-based feed | Built-in Data Exchange, CSV, and XML feeds are skipped, including in all-provider batches | Use the interactive Import statement action instead |
 | Provider marked disabled | JQRunner skips it | Re-enable the provider before scheduling another import |
+
+All-provider batches fetch one enabled automated-feed provider at a time, without holding a provider result set across commits. Each provider import owns its transaction boundaries. Custom automated-feed implementations must manage their own acknowledgment and retry progress; file-based feeds are never included in a batch.
 
 ---
 
@@ -617,8 +630,10 @@ The current import does not populate detail rows, so the VAT specification and t
 
 ### Statement Processing
 
+- Non-strict Data Exchange fallback reuses raw values cached by column during the existing field scan. The cache is reset for each line, avoiding repeated field queries without retaining the whole statement.
+- Expense-based card resolution loads the provider's card assignments and credit-card payment methods once per call. Candidate expenses use temporary-record lookups rather than per-expense database queries; the selected card is reread before checking whether it is blocked.
 - Processing visits each imported transaction to normalize the merchant and either create a draft (AutoDraft) or attempt matching (ManualLink).
-- The Job Queue entry is created On Hold; enable it and provide a source payload before relying on background import. No statement-size or throughput benchmark is guaranteed.
+- Automated-feed Job Queue entries are created On Hold; enable the entry and configure the feed before relying on background import. File-based feeds use interactive Import statement instead. No statement-size or throughput benchmark is guaranteed.
 
 ### Memory
 
@@ -703,9 +718,9 @@ The current import does not populate detail rows, so the VAT specification and t
 **Symptom:** No new transactions in staging  
 **Check:**
 1. Provider enabled? → EACorpCardProvider.Enabled = true
-2. Job Queue entry created? → EACorpCardProviders page, Schedule Import action
-3. Job Queue entry set to Ready? → New entries start On Hold
-4. Source payload uploaded for this attempt? → Each import clears the provider's payload and record count
+2. File-based feed? → Use Import statement and select a file for every attempt, including retries
+3. Automated feed Job Queue entry created? → EACorpCardProviders page, Schedule Import action
+4. Automated feed Job Queue entry set to Ready? → New entries start On Hold
 
 ### Matching Accuracy Low
 
@@ -728,7 +743,7 @@ The current import does not populate detail rows, so the VAT specification and t
 ### File Format Visibility
 
 **Symptom:** Unsure which profile will be used for import  
-**Check:** Corp Card Providers page → `Detected Source Format` column. CSV and flat XML are supported; a CAMT-looking name may be displayed as CAMT by the detector, but CAMT import is not implemented.
+**Check:** Corp Card Providers page → Feed Type, Data Exch Def Code, and Data Exch Map Code. CSV and flat XML are supported. Choose the matching feed type and mapping before selecting the file; a CAMT-looking file name does not enable CAMT import.
 
 ### Level 3 Detail Visibility
 

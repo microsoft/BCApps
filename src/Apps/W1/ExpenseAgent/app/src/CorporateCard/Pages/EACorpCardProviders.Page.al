@@ -37,27 +37,16 @@ page 7434 "EA Corp Card Providers"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the feed type used to import transactions.';
+
+                    trigger OnValidate()
+                    begin
+                        CanScheduleImport := not Rec.IsFileBasedImport();
+                    end;
                 }
                 field("Data Exch Def Code"; Rec."Data Exch Def Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the data exchange definition code used for file-based imports.';
-                }
-                field("Source File Name"; Rec."Source File Name")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the source file name associated with the payload content.';
-                }
-                field("Source Payload Records"; Rec."Source Payload Record Count")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                field("Detected Source Format"; GetDetectedSourceFormat())
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Detected Source Format';
-                    ToolTip = 'Specifies the detected import file format for the provider, based on source file name and data exchange definition.';
-                    Editable = false;
                 }
                 field("Last Import DT"; Rec."Last Import DT")
                 {
@@ -91,36 +80,12 @@ page 7434 "EA Corp Card Providers"
             {
                 Caption = 'Import';
 
-                action(UploadSourcePayload)
-                {
-                    Caption = 'Upload source file';
-                    ApplicationArea = Basic, Suite;
-                    Image = Import;
-                    ToolTip = 'Upload a source file to the selected provider for statement imports.';
-
-                    trigger OnAction()
-                    begin
-                        UploadSourcePayloadForProvider();
-                    end;
-                }
-                action(ClearSourcePayload)
-                {
-                    Caption = 'Clear source file';
-                    ApplicationArea = Basic, Suite;
-                    Image = Delete;
-                    ToolTip = 'Clear the stored source file and file name for the selected provider.';
-
-                    trigger OnAction()
-                    begin
-                        ClearSourcePayloadForProvider();
-                    end;
-                }
                 action(ImportStatement)
                 {
                     Caption = 'Import statement';
                     ApplicationArea = Basic, Suite;
                     Image = Import;
-                    ToolTip = 'Import a statement immediately for the selected provider.';
+                    ToolTip = 'Select and import a statement file for the selected provider. The file is deleted after the attempt, including on failure. Automated feeds download their statement without a file selection.';
 
                     trigger OnAction()
                     begin
@@ -137,7 +102,8 @@ page 7434 "EA Corp Card Providers"
                     Caption = 'Schedule import';
                     ApplicationArea = Basic, Suite;
                     Image = Calendar;
-                    ToolTip = 'Schedule recurring imports for the selected provider.';
+                    ToolTip = 'Schedule recurring imports for an automated feed. File-based feeds must be imported interactively.';
+                    Enabled = CanScheduleImport;
 
                     trigger OnAction()
                     begin
@@ -234,9 +200,6 @@ page 7434 "EA Corp Card Providers"
                 actionref(ImportStatement_Promoted; ImportStatement)
                 {
                 }
-                actionref(UploadSourcePayload_Promoted; UploadSourcePayload)
-                {
-                }
                 actionref(ViewSchedule_Promoted; ViewSchedule)
                 {
                 }
@@ -255,68 +218,28 @@ page 7434 "EA Corp Card Providers"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        CanScheduleImport := not Rec.IsFileBasedImport();
+    end;
+
     var
-        UploadCanceledMsg: Label 'Upload was canceled.';
-        SourcePayloadClearedMsg: Label 'Source payload was cleared for provider %1.', Comment = '%1 = Provider code';
-        SourcePayloadSavedMsg: Label 'Source payload was uploaded for provider %1.', Comment = '%1 = Provider code';
+        CanScheduleImport: Boolean;
         ImportTriggeredMsg: Label 'Import was triggered for provider %1.', Comment = '%1 = Provider code';
         ProviderScheduledMsg: Label 'Provider %1 scheduled for daily import.', Comment = '%1 = Provider code';
         UnscheduleProviderQst: Label 'Are you sure you want to unschedule imports for provider %1?', Comment = '%1 = Provider code';
         ScheduleManagementMsg: Label 'Import scheduling is managed via the Schedule Import and Unschedule Import actions.';
         DataExchangeInitializedMsg: Label 'Data Exchange setup is ready for provider %1 (Definition: %2, Mapping: %3).', Comment = '%1 = Provider code, %2 = Data Exch Def Code, %3 = Data Exch Map Code';
-        ReplacePayloadQst: Label 'Provider %1 already has source payload. Do you want to replace it?', Comment = '%1 = Provider code';
         NoStatementFoundErr: Label 'No imported statement exists yet for provider %1.', Comment = '%1 = Provider code';
-        CsvLbl: Label 'CSV', Locked = true;
-        XmlLbl: Label 'XML', Locked = true;
-        CamtLbl: Label 'CAMT', Locked = true;
-        NotSetLbl: Label 'Not set';
-        UnknownLbl: Label 'Unknown';
-
-    local procedure UploadSourcePayloadForProvider()
-    var
-        InStr: InStream;
-        OutStr: OutStream;
-        FileName: Text;
-    begin
-        Rec.CalcFields("Source Payload");
-        if Rec."Source Payload".HasValue then
-            if not Confirm(ReplacePayloadQst, false, Rec.Code) then
-                exit;
-
-        if not UploadIntoStream('', '', '', FileName, InStr) then begin
-            Message(UploadCanceledMsg);
-            exit;
-        end;
-
-        Clear(Rec."Source Payload");
-        Rec."Source Payload".CreateOutStream(OutStr);
-        CopyStream(OutStr, InStr);
-        Clear(OutStr);
-        Rec."Source File Name" := CopyStr(FileName, 1, MaxStrLen(Rec."Source File Name"));
-        Rec.UpdateSourcePayloadRecordCount();
-        Rec.Modify(true);
-
-        CurrPage.Update(false);
-        Message(SourcePayloadSavedMsg, Rec.Code);
-    end;
-
-    local procedure ClearSourcePayloadForProvider()
-    begin
-        Clear(Rec."Source Payload");
-        Rec."Source File Name" := '';
-        Rec."Source Payload Record Count" := 0;
-        Rec.Modify(true);
-
-        CurrPage.Update(false);
-        Message(SourcePayloadClearedMsg, Rec.Code);
-    end;
 
     local procedure ImportStatementForProvider()
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
-        CorpCardFeedMgt.RunImport(Rec.Code);
-        Message(ImportTriggeredMsg, Rec.Code);
+        if CorpCardFeedMgt.ImportStatement(Rec.Code) then begin
+            CurrPage.Update(false);
+            Message(ImportTriggeredMsg, Rec.Code);
+        end;
     end;
 
     local procedure OpenLatestStatementForProvider()
@@ -359,27 +282,6 @@ page 7434 "EA Corp Card Providers"
         CreateCorpCardSetup.EnsureDataExchangeForProvider(Rec);
         CurrPage.Update(false);
         Message(DataExchangeInitializedMsg, Rec.Code, Rec."Data Exch Def Code", Rec."Data Exch Map Code");
-    end;
-
-    local procedure GetDetectedSourceFormat(): Text[30]
-    var
-        FileNameLower: Text;
-    begin
-        FileNameLower := LowerCase(Rec."Source File Name");
-
-        if (StrPos(FileNameLower, 'camt') > 0) or (StrPos(UpperCase(Rec."Data Exch Def Code"), 'CAMT') > 0) then
-            exit(CamtLbl);
-
-        if (StrPos(FileNameLower, '.xml') > 0) or (StrPos(UpperCase(Rec."Data Exch Def Code"), 'XML') > 0) then
-            exit(XmlLbl);
-
-        if (StrPos(FileNameLower, '.csv') > 0) or (StrPos(UpperCase(Rec."Data Exch Def Code"), 'CSV') > 0) then
-            exit(CsvLbl);
-
-        if Rec."Source File Name" = '' then
-            exit(NotSetLbl);
-
-        exit(UnknownLbl);
     end;
 
 }

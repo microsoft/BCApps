@@ -8,13 +8,20 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
+using System.IO;
+using System.Utilities;
 
 codeunit 148357 EACorpCardTestLib
 {
+    SingleInstance = true;
+
     var
         Assert: Codeunit "Assert";
         LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
+        SourcePayloads: Dictionary of [Code[20], Text];
+        SourceFileNames: Dictionary of [Code[20], Text[250]];
+        SourceDataExchEntryNos: Dictionary of [Integer, Integer];
         NoStatementCreatedForProviderTxt: Label 'No statement was created for provider %1.', Comment = '%1 = provider code', Locked = true;
         ProviderTransactionNotImportedTxt: Label 'Provider transaction %1 was not imported for provider %2.', Comment = '%1 = provider transaction ID, %2 = provider code', Locked = true;
         ProviderNotFoundTxt: Label 'Provider %1 was not found.', Comment = '%1 = provider code', Locked = true;
@@ -30,6 +37,9 @@ codeunit 148357 EACorpCardTestLib
         ExpenseUser: Record "Expense User";
         ExpenseUserNo: Integer;
     begin
+        Clear(SourcePayloads);
+        Clear(SourceFileNames);
+        Clear(SourceDataExchEntryNos);
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         LibraryExpense.InitializeExpenseSourceCode();
@@ -222,10 +232,8 @@ codeunit 148357 EACorpCardTestLib
     end;
 
     internal procedure RunImportAndGetLastStatement(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
-    var
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
-        CorpCardFeedMgt.RunImport(ProviderCode);
+        RunFileImport(ProviderCode);
 
         CorpCardStatement.Reset();
         CorpCardStatement.SetRange("Provider Code", ProviderCode);
@@ -309,17 +317,70 @@ codeunit 148357 EACorpCardTestLib
     internal procedure SetProviderSourcePayload(ProviderCode: Code[20]; SourcePayload: Text; SourceFileName: Text[250])
     var
         CorpCardProvider: Record "EA Corp Card Provider";
-        PayloadOutStream: OutStream;
     begin
         Assert.IsTrue(CorpCardProvider.Get(ProviderCode), StrSubstNo(ProviderNotFoundTxt, ProviderCode));
+        SourcePayloads.Set(ProviderCode, SourcePayload);
+        SourceFileNames.Set(ProviderCode, SourceFileName);
+    end;
 
-        Clear(CorpCardProvider."Source Payload");
-        CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStream, TextEncoding::UTF8);
-        PayloadOutStream.WriteText(SourcePayload);
+    internal procedure RunFileImport(ProviderCode: Code[20])
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+        TempBlob: Codeunit "Temp Blob";
+        SourceInStream: InStream;
+        SourceFileName: Text[250];
+    begin
+        CorpCardProvider.Get(ProviderCode);
+        WriteSourceFile(ProviderCode, TempBlob, SourceFileName);
+        TempBlob.CreateInStream(SourceInStream);
+        CorpCardImportOrch.RunFileImport(CorpCardProvider, SourceInStream, SourceFileName);
+    end;
+
+    internal procedure HasSourcePayload(ProviderCode: Code[20]): Boolean
+    begin
+        exit(SourcePayloads.ContainsKey(ProviderCode));
+    end;
+
+    internal procedure AssertNoSourceFile(CorpCardStatement: Record "EA Corp Card Statement")
+    var
+        DataExch: Record "Data Exch.";
+        DataExchField: Record "Data Exch. Field";
+        SourceDataExchEntryNo: Integer;
+    begin
+        Assert.IsTrue(
+            SourceDataExchEntryNos.Get(CorpCardStatement."Statement Entry No.", SourceDataExchEntryNo),
+            'The import must identify its source data exchange record before parsing.');
+        Assert.IsFalse(DataExch.Get(SourceDataExchEntryNo), 'Import finalization must delete the source data exchange record.');
+        DataExchField.SetRange("Data Exch. No.", SourceDataExchEntryNo);
+        Assert.IsTrue(DataExchField.IsEmpty(), 'Import finalization must delete the parsed source fields.');
+    end;
+
+    local procedure WriteSourceFile(ProviderCode: Code[20]; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250])
+    var
+        PayloadOutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(PayloadOutStream, TextEncoding::UTF8);
+        PayloadOutStream.WriteText(SourcePayloads.Get(ProviderCode));
         Clear(PayloadOutStream);
-        CorpCardProvider."Source File Name" := SourceFileName;
-        CorpCardProvider.UpdateSourcePayloadRecordCount();
-        CorpCardProvider.Modify(true);
+        SourceFileName := SourceFileNames.Get(ProviderCode);
+        SourcePayloads.Remove(ProviderCode);
+        SourceFileNames.Remove(ProviderCode);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnBeforeInjectSourceContent', '', false, false)]
+    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardStatement: Record "EA Corp Card Statement"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
+    begin
+        if Handled or not HasSourcePayload(CorpCardProvider.Code) then
+            exit;
+        WriteSourceFile(CorpCardProvider.Code, TempBlob, SourceFileName);
+        Handled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnAfterDownload', '', false, false)]
+    local procedure OnAfterDownload(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch.")
+    begin
+        SourceDataExchEntryNos.Set(CorpCardStatement."Statement Entry No.", DataExch."Entry No.");
     end;
 
     internal procedure CreateSettlement(var CorpCardSettlement: Record "EA Corp Card Settlement"; ProviderCode: Code[20]; SettlementNo: Code[50]; CurrencyCode: Code[10]; SettlementAmount: Decimal)

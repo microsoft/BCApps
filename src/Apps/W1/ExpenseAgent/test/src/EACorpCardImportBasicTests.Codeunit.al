@@ -271,7 +271,8 @@ codeunit 148356 EACorpCardImportBasicTests
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
-        Expense: Record Expense;
+        FirstExpense: Record Expense;
+        SecondExpense: Record Expense;
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
         MatchedExpenseNo: Code[20];
     begin
@@ -282,26 +283,24 @@ codeunit 148356 EACorpCardImportBasicTests
         CorpCardTrans.Amount := 1234;
         CorpCardTrans."Currency Code" := UsdCurrencyCodeTok;
 
-        Expense.Init();
-        Expense."No." := 'FUZZY-001';
-        Expense."Expense User No." := CorpCard."Expense User No.";
-        Expense.Status := Expense.Status::Open;
-        Expense."Merchant Name" := CorpCardTrans."Merchant Norm";
-        Expense.Insert(false);
-        Expense."No." := 'FUZZY-002';
-        Expense.Insert(false);
+        LibraryExpense.CreateExpense(FirstExpense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        FirstExpense.Validate("Merchant Name", CorpCardTrans."Merchant Norm");
+        FirstExpense.Modify(true);
+        LibraryExpense.CreateExpense(SecondExpense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        SecondExpense.Validate("Merchant Name", CorpCardTrans."Merchant Norm");
+        SecondExpense.Modify(true);
 
         EnhancedMatchMgt.InitializeCardCache();
         Assert.IsTrue(EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo), 'A matching open expense must be found.');
-        Assert.AreEqual('FUZZY-001', MatchedExpenseNo, 'The first matching expense must be selected.');
+        Assert.AreEqual(FirstExpense."No.", MatchedExpenseNo, 'The first matching expense must be selected.');
+        Assert.AreEqual(CorpCardTrans."Match Type"::Expense, CorpCardTrans."Match Type", 'The candidate must be selected by fuzzy merchant matching, not exact amount matching.');
 
-        Expense.Get(MatchedExpenseNo);
-        Expense."Credit Card Feed No." := 1;
-        Expense.Modify(false);
+        FirstExpense."Credit Card Feed No." := 1;
+        FirstExpense.Modify(true);
         EnhancedMatchMgt.RemoveCandidate(MatchedExpenseNo);
 
         Assert.IsTrue(EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo), 'The next available expense must still match.');
-        Assert.AreEqual('FUZZY-002', MatchedExpenseNo, 'An expense linked to a previous transaction must not match again.');
+        Assert.AreEqual(SecondExpense."No.", MatchedExpenseNo, 'An expense linked to a previous transaction must not match again.');
     end;
 
     [Test]

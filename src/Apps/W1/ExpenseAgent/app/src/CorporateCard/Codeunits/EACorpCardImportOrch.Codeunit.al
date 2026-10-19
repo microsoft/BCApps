@@ -34,6 +34,36 @@ codeunit 7432 "EA Corp Card Import Orch"
     internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean; var ImportErrorText: Text; var ImportErrorInfo: ErrorInfo; var HasStructuredErrorInfo: Boolean): Boolean
     var
         CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        InitializeStatement(CorpCardProvider, CorpCardStatement);
+        exit(RunStatementImport(CorpCardProvider, CorpCardStatement, RaiseImportError, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo));
+    end;
+
+    internal procedure RunFileImport(CorpCardProvider: Record "EA Corp Card Provider"; SourceInStream: InStream; SourceFileName: Text)
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardDataExchProv: Codeunit "EA Corp Card Data Exch Prov";
+        ImportErrorText: Text;
+        ImportErrorInfo: ErrorInfo;
+        HasStructuredErrorInfo: Boolean;
+    begin
+        CorpCardProvider.TestField(Enabled, true);
+        InitializeStatement(CorpCardProvider, CorpCardStatement);
+        CorpCardDataExchProv.SetSourceFile(CorpCardStatement, SourceInStream, SourceFileName);
+        RunStatementImport(CorpCardProvider, CorpCardStatement, true, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo);
+    end;
+
+    local procedure InitializeStatement(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement")
+    begin
+        CorpCardStatement.Init();
+        CorpCardStatement."Provider Code" := CorpCardProvider.Code;
+        CorpCardStatement."Started DT" := CurrentDateTime();
+        CorpCardStatement.Status := CorpCardStatement.Status::Importing;
+        CorpCardStatement.Insert(true);
+    end;
+
+    local procedure RunStatementImport(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement"; RaiseImportError: Boolean; var ImportErrorText: Text; var ImportErrorInfo: ErrorInfo; var HasStructuredErrorInfo: Boolean): Boolean
+    var
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
@@ -45,12 +75,6 @@ codeunit 7432 "EA Corp Card Import Orch"
         ImportErrorText := '';
         ImportErrorInfo := ErrorInfo.Create();
         HasStructuredErrorInfo := false;
-        CorpCardStatement.Init();
-        CorpCardStatement."Provider Code" := CorpCardProvider.Code;
-        CorpCardStatement."Started DT" := CurrentDateTime();
-        CorpCardStatement.Status := CorpCardStatement.Status::Importing;
-        CorpCardStatement.Insert(true);
-
         AuditSubscribers.LogImportStarted(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
 
         Commit();
@@ -71,7 +95,7 @@ codeunit 7432 "EA Corp Card Import Orch"
             CorpCardErrorContext.ClearErrorInfo();
             MarkImportFailed(CorpCardStatement);
             AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", ImportStage);
-            ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
+            DeleteSourceFile(CorpCardStatement);
             UpdateProviderLastStatementEntryNo(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
             Commit();
             if RaiseImportError then begin
@@ -86,7 +110,7 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardStatement."Ended DT" := CurrentDateTime();
         CorpCardStatement.Modify();
 
-        ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
+        DeleteSourceFile(CorpCardStatement);
 
         CorpCardProvider.Get(CorpCardProvider.Code);
         CorpCardProvider."Last Import DT" := CurrentDateTime();
@@ -128,17 +152,10 @@ codeunit 7432 "EA Corp Card Import Orch"
         CorpCardStatement.Modify();
     end;
 
-    local procedure ClearSourcePayload(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
+    local procedure DeleteSourceFile(var CorpCardStatement: Record "EA Corp Card Statement")
     var
-        CorpCardProvider: Record "EA Corp Card Provider";
         DataExch: Record "Data Exch.";
     begin
-        if CorpCardProvider.Get(ProviderCode) then begin
-            Clear(CorpCardProvider."Source Payload");
-            CorpCardProvider."Source Payload Record Count" := 0;
-            CorpCardProvider.Modify();
-        end;
-
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
         if DataExch.Get(CorpCardStatement."Data Exch Entry No.") then
             DataExch.Delete(true);

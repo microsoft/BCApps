@@ -78,6 +78,62 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardTestLib.FindTransInStatementByProviderTransId(CorpCardStatement."Statement Entry No.", XmlProviderCodeTok, 'RESOLVE-1', CorpCardTrans);
         Assert.AreEqual('XML-CARD-SAMPLE', CorpCardTrans."Card Id", 'Mapped XML must resolve the internal identifier from the suffix.');
         Assert.AreEqual('9001', CorpCardTrans."Card Last 4", 'Mapped XML must retain only the last four digits.');
+        Assert.AreEqual(19.63, CorpCardTrans.Amount, 'Mapped XML must import the transaction amount from the parsed fields.');
+        Assert.AreEqual('USD', CorpCardTrans."Currency Code", 'Mapped XML must import the transaction currency from the parsed fields.');
+        Assert.AreEqual('Contoso Air', CorpCardTrans."Merchant Raw", 'Mapped XML must import the merchant from the parsed fields.');
+        Assert.AreEqual('4511', CorpCardTrans.MCC, 'Mapped XML must import the MCC from the parsed fields.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure XmlFallbackKeepsFieldValuesScopedToEachLine()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        DataExchFieldMapping: Record "Data Exch. Field Mapping";
+        Payload: Text;
+        TransactionXml: Text;
+    begin
+        Initialize();
+        CorpCardProvider.Get(XmlProviderCodeTok);
+        DataExchFieldMapping.SetRange("Data Exch. Def Code", CorpCardProvider."Data Exch Def Code");
+        DataExchFieldMapping.SetRange("Data Exch. Line Def Code", CorpCardProvider."Data Exch Map Code");
+        DataExchFieldMapping.SetRange("Table ID", Database::"EA Corp Card Trans");
+        DataExchFieldMapping.SetFilter("Column No.", '%1|%2|%3', 2, 4, 8);
+        DataExchFieldMapping.FindSet();
+        repeat
+            DataExchFieldMapping.Rename(
+                DataExchFieldMapping."Data Exch. Def Code",
+                DataExchFieldMapping."Data Exch. Line Def Code",
+                DataExchFieldMapping."Table ID",
+                DataExchFieldMapping."Column No.",
+                CorpCardTrans.FieldNo("Merchant Norm"));
+        until DataExchFieldMapping.Next() = 0;
+
+        Payload := '<?xml version="1.0" encoding="utf-8"?><CorporateCardTransactions>' + BuildXmlRow('CACHE-1', '9001');
+        TransactionXml := BuildXmlRow('CACHE-2', '9001');
+        TransactionXml := TransactionXml.Replace('<MCC>4511</MCC>', '<MCC>7011</MCC>');
+        TransactionXml := TransactionXml.Replace(
+            '<PostingDate>' + Format(WorkDate(), 0, 9) + '</PostingDate>',
+            '<PostingDate>' + Format(WorkDate() + 1, 0, 9) + '</PostingDate>');
+        Payload += TransactionXml;
+        TransactionXml := BuildXmlRow('CACHE-3', '9001');
+        Payload += TransactionXml.Replace('<MCC>4511</MCC>', '') + '</CorporateCardTransactions>';
+        CorpCardTestLib.SetProviderSourcePayload(XmlProviderCodeTok, Payload, 'Fallback-cache.xml');
+
+        RunImport(XmlProviderCodeTok, CorpCardStatement);
+
+        Assert.AreEqual(3, CorpCardStatement.Imported, 'Every row must import using fallback values from its own data exchange line.');
+        CorpCardTestLib.FindTransInStatementByProviderTransId(CorpCardStatement."Statement Entry No.", XmlProviderCodeTok, 'CACHE-1', CorpCardTrans);
+        Assert.AreEqual('9001', CorpCardTrans."Card Last 4", 'Named-column fallback must resolve the card suffix.');
+        Assert.AreEqual('4511', CorpCardTrans.MCC, 'The first line must retain its MCC.');
+        Assert.AreEqual(WorkDate(), CorpCardTrans."Posting Date", 'The first line must retain its posting date.');
+        CorpCardTestLib.FindTransInStatementByProviderTransId(CorpCardStatement."Statement Entry No.", XmlProviderCodeTok, 'CACHE-2', CorpCardTrans);
+        Assert.AreEqual('7011', CorpCardTrans.MCC, 'A later line must not reuse the first line''s MCC.');
+        Assert.AreEqual(WorkDate() + 1, CorpCardTrans."Posting Date", 'A later line must not reuse the first line''s posting date.');
+        CorpCardTestLib.FindTransInStatementByProviderTransId(CorpCardStatement."Statement Entry No.", XmlProviderCodeTok, 'CACHE-3', CorpCardTrans);
+        Assert.AreEqual('', CorpCardTrans.MCC, 'A missing column must not retain a cached value from an earlier line.');
     end;
 
     [Test]
@@ -493,7 +549,6 @@ codeunit 148362 EACorpCardResolutionTests
     local procedure AssertNoFullNumberRetained(CorpCardStatement: Record "EA Corp Card Statement")
     var
         CorpCardException: Record "EA Corp Card Exception";
-        CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardTrans: Record "EA Corp Card Trans";
     begin
         CorpCardException.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
@@ -507,8 +562,6 @@ codeunit 148362 EACorpCardResolutionTests
             Assert.AreEqual(0, StrPos(CorpCardTrans."Card Id", '4111111111111111'), 'Imported internal card identifiers must not contain the supplied full number.');
             Assert.AreEqual(4, StrLen(CorpCardTrans."Card Last 4"), 'Only the accepted four-digit suffix may be staged.');
         until CorpCardTrans.Next() = 0;
-        CorpCardProvider.Get(CorpCardStatement."Provider Code");
-        CorpCardProvider.CalcFields("Source Payload");
-        Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Import finalization must clear the original payload.');
+        CorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
     end;
 }
