@@ -220,6 +220,8 @@ codeunit 148006 "UT REP Export G/L FR"
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";
         ExpandedPermission: Record "Expanded Permission";
+        StandardRoleXMLExportAccessErr: Label 'The standard role %1 must not grant XML export access.', Comment = '%1 - Permission set role ID';
+        StandardRoleXMLGenerationAccessErr: Label 'The standard role %1 must not grant XML generation access.', Comment = '%1 - Permission set role ID';
     begin
         AggregatePermissionSet.SetRange("Role ID", 'XML Audit - Export');
         AggregatePermissionSet.FindFirst();
@@ -236,10 +238,10 @@ codeunit 148006 "UT REP Export G/L FR"
         repeat
             Assert.IsFalse(
                 ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::XMLport, XmlPort::"Export G/L Entries FR"),
-                StrSubstNo('The standard role %1 must not grant XML export access.', AggregatePermissionSet."Role ID"));
+                StrSubstNo(StandardRoleXMLExportAccessErr, AggregatePermissionSet."Role ID"));
             Assert.IsFalse(
                 ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ExpandedPermission."Object Type"::Codeunit, Codeunit::"Generate File XML"),
-                StrSubstNo('The standard role %1 must not grant XML generation access.', AggregatePermissionSet."Role ID"));
+                StrSubstNo(StandardRoleXMLGenerationAccessErr, AggregatePermissionSet."Role ID"));
         until AggregatePermissionSet.Next() = 0;
     end;
 
