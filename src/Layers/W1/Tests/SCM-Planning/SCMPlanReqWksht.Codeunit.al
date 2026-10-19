@@ -19,6 +19,7 @@
         LocationInTransit: Record Location;
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibrarySales: Codeunit "Library - Sales";
