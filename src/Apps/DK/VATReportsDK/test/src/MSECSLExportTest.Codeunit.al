@@ -165,7 +165,7 @@ codeunit 148040 "MS - ECSL Export Test"
         LibraryFileMgtHandler.GetTempBlob(TempBlob);
         ReportTxt := MSECSLReportExportFile.GetOutputContent();
         Assert.AreEqual(VATReportHeader."No." + '.txt', LibraryFileMgtHandler.GetDownloadFromSreamToFileName(), 'The download filename must be preserved.');
-        Assert.AreEqual(StrLen(ReportTxt) + 1, TempBlob.Length(), 'The download must use one-byte characters and a trailing null byte.');
+        Assert.AreEqual(StrLen(ReportTxt), TempBlob.Length(), 'The download must use one-byte characters without a null terminator.');
         TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
         InStrm.Read(DownloadedText);
         Assert.AreEqual(ReportTxt, DownloadedText, 'The complete report, including line breaks, must be downloaded.');
@@ -177,7 +177,7 @@ codeunit 148040 "MS - ECSL Export Test"
         Assert.AreEqual(ExpectedLastVATByte, DownloadedByte, 'The last VAT registration character must retain its MS-DOS byte encoding.');
         while not InStrm.EOS() do
             InStrm.Read(DownloadedByte);
-        Assert.AreEqual(0, DownloadedByte, 'The download must retain the terminating null byte.');
+        Assert.AreEqual(10, DownloadedByte, 'The download must end with the final report line feed, not a null terminator.');
         UnbindSubscription(LibraryFileMgtHandler);
     end;
 
