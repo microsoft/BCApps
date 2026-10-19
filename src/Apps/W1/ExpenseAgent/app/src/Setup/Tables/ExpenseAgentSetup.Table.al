@@ -1175,14 +1175,19 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateCountryVATRatesDefaults()
     var
         CreateExpenseCountryVATRates: Codeunit "Create Expense VAT Rates";
+        DefaultVATBusinessPostingGroup: Code[20];
     begin
         Rec.GetRecordOnce();
         if Rec."Default VAT Bus. Posting Group" = '' then begin
-            Rec.Validate("Default VAT Bus. Posting Group", GetDefaultVATBusinessPostingGroup());
-            Rec.Modify();
+            DefaultVATBusinessPostingGroup := GetDefaultVATBusinessPostingGroup();
+            if DefaultVATBusinessPostingGroup <> '' then begin
+                Rec.Validate("Default VAT Bus. Posting Group", DefaultVATBusinessPostingGroup);
+                Rec.Modify();
+            end;
         end;
 
-        CreateExpenseCountryVATRates.InsertDefaultRates();
+        if not CreateExpenseCountryVATRates.InsertDefaultRates() then
+            exit;
 
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;
@@ -1204,9 +1209,6 @@ table 6930 "Expense Agent Setup"
 
         if VATBusinessPostingGroup.FindFirst() then
             exit(VATBusinessPostingGroup.Code);
-
-        Rec.TestField("Default VAT Bus. Posting Group");
-        exit(Rec."Default VAT Bus. Posting Group");
     end;
 
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]
