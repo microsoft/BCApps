@@ -1365,6 +1365,24 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
+    procedure HasContentUsesInternalStorageWithoutExternalCall()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Internally stored attachments continue to use the document reference
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+
+        // [GIVEN] An internally stored attachment
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The internal content is available without calling external storage
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Internally stored attachment should report content from its document reference');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Internal content checks should not call the external file connector');
+    end;
+
+    [Test]
     procedure IsFileUploadedExternallyReturnsFalseWhenStoredInternally()
     var
         DocumentAttachment: Record "Document Attachment";
