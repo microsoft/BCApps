@@ -10,7 +10,7 @@ pageextension 10059 "IRS 1099 Purch. Cr. Memo" extends "Purchase Credit Memo"
 {
     layout
     {
-        addafter("Invoice Details")
+        addlast("Invoice Details")
         {
             field("IRS 1099 Reporting Period"; Rec."IRS 1099 Reporting Period")
             {
