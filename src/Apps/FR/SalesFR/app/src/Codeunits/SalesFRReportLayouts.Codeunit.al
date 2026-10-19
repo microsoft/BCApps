@@ -22,11 +22,12 @@ codeunit 10816 "Sales FR Report Layouts"
                   tabledata "Tenant Report Layout Selection" = ri;
 
     var
-        MissingLayoutErr: Label 'The Sales FR layout "%1" is not available for report %2.', Comment = '%1 = layout name, %2 = report ID';
+        MissingLayoutMsg: Label 'The Sales FR layout "%1" is not available for report %2.', Comment = '%1 = layout name, %2 = report ID';
 
     /// <summary>
     /// Initializes French Word defaults once for reports without existing selections.
     /// Preserves current-company legacy choices and tenant selections for this company or all companies, for any user.
+    /// Logs missing packaged layouts and leaves initialization pending for retry.
     /// </summary>
     internal procedure SetDefaultReportLayouts()
     var
@@ -38,14 +39,17 @@ codeunit 10816 "Sales FR Report Layouts"
             exit;
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        SetDefaultReportLayout(Report::"Standard Sales - Invoice", 'StandardSalesInvoiceFR.docx', CurrentModuleInfo.Id);
-        SetDefaultReportLayout(Report::"Standard Sales - Credit Memo", 'StandardSalesCreditMemoFR.docx', CurrentModuleInfo.Id);
-        SetDefaultReportLayout(Report::"Standard Sales - Draft Invoice", 'StandardSalesDraftInvoiceFR.docx', CurrentModuleInfo.Id);
+        if not SetDefaultReportLayout(Report::"Standard Sales - Invoice", 'StandardSalesInvoiceFR.docx', CurrentModuleInfo.Id) then
+            exit;
+        if not SetDefaultReportLayout(Report::"Standard Sales - Credit Memo", 'StandardSalesCreditMemoFR.docx', CurrentModuleInfo.Id) then
+            exit;
+        if not SetDefaultReportLayout(Report::"Standard Sales - Draft Invoice", 'StandardSalesDraftInvoiceFR.docx', CurrentModuleInfo.Id) then
+            exit;
 
         UpgradeTag.SetUpgradeTag(UpgTagSalesFR.GetSalesFRReportLayoutsUpgradeTag());
     end;
 
-    local procedure SetDefaultReportLayout(ReportID: Integer; LayoutName: Text[250]; SalesFRAppId: Guid)
+    local procedure SetDefaultReportLayout(ReportID: Integer; LayoutName: Text[250]; SalesFRAppId: Guid): Boolean
     var
         ReportLayoutSelection: Record "Report Layout Selection";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
@@ -55,22 +59,24 @@ codeunit 10816 "Sales FR Report Layouts"
     begin
         SelectedCompany := CopyStr(CompanyName(), 1, MaxStrLen(SelectedCompany));
         if ReportLayoutSelection.Get(ReportID, SelectedCompany) then
-            exit;
+            exit(true);
 
         // A new company default must not compete with existing selections at either scope, for any user.
         TenantReportLayoutSelection.SetRange("Report ID", ReportID);
         TenantReportLayoutSelection.SetRange("Company Name", SelectedCompany);
         if not TenantReportLayoutSelection.IsEmpty() then
-            exit;
+            exit(true);
         TenantReportLayoutSelection.SetRange("Company Name", '');
         if not TenantReportLayoutSelection.IsEmpty() then
-            exit;
+            exit(true);
 
         ReportLayoutList.SetRange("Report ID", ReportID);
         ReportLayoutList.SetRange("Application ID", SalesFRAppId);
         ReportLayoutList.SetRange(Name, LayoutName);
-        if not ReportLayoutList.FindFirst() then
-            Error(MissingLayoutErr, LayoutName, ReportID);
+        if not ReportLayoutList.FindFirst() then begin
+            LogMissingLayout(LayoutName, ReportID);
+            exit(false);
+        end;
         ReportLayoutList.TestField("Layout Format", ReportLayoutList."Layout Format"::Word);
 
         ReportLayoutSelection.Init();
@@ -87,6 +93,13 @@ codeunit 10816 "Sales FR Report Layouts"
         TenantReportLayoutSelection."Layout Name" := LayoutName;
         TenantReportLayoutSelection.Insert(true);
         ReportLayoutSelection.Insert(true);
+        exit(true);
+    end;
+
+    local procedure LogMissingLayout(LayoutName: Text[250]; ReportID: Integer)
+    begin
+        Session.LogMessage('0000W52', StrSubstNo(MissingLayoutMsg, LayoutName, ReportID),
+            Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Sales FR');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnCompanyInitialize', '', false, false)]
