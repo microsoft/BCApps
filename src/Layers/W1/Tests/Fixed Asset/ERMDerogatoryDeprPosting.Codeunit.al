@@ -2815,6 +2815,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CalculateDepreciation: Report "Calculate Depreciation";
     begin
         Clear(CalculateDepreciation);
+        FixedAsset.Get(FixedAssetNo);
         FixedAsset.SetRange("No.", FixedAssetNo);
 
         CalculateDepreciation.SetTableView(FixedAsset);
