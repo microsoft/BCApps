@@ -1086,6 +1086,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
             not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"])
         then
             exit;
+
         if VATPostingSetup.Get(GenJnlLine."VAT Bus. Posting Group", GenJnlLine."VAT Prod. Posting Group") and
            VATPostingSetup."Adjust for Payment Discount"
         then begin
@@ -1111,6 +1112,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
             not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"])
         then
             exit;
+
         if VATPostingSetup.Get(GenJnlLine."Bal. VAT Bus. Posting Group", GenJnlLine."Bal. VAT Prod. Posting Group") and
            VATPostingSetup."Adjust for Payment Discount"
         then begin

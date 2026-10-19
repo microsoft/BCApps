@@ -1657,6 +1657,7 @@ codeunit 134097 "ERM Check Posting Groups"
     begin
         // Lazy Setup.
         LibrarySetupStorage.Restore();
+
         if IsInitialized then
             exit;
 
