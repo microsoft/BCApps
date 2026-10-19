@@ -3721,13 +3721,14 @@ codeunit 148190 "Sust. Value Entry Test"
     end;
 
     [Test]
-    procedure TestSystemMustThrowAnErrorIfTotalCO2eIsZeroWhenItemReclassJournalIsPosted()
+    procedure TestAverageItemReclassJournalCanBePostedWithZeroTotalCO2e()
     var
         Item: Record Item;
         Location: Record Location;
         SustainabilityAccount: Record "Sustainability Account";
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
         ItemReclassJournal: TestPage "Item Reclass. Journal";
         CategoryCode: Code[20];
         SubcategoryCode: Code[20];
@@ -3735,8 +3736,7 @@ codeunit 148190 "Sust. Value Entry Test"
         ExpectedTotalCO2e: Decimal;
         Quantity: Decimal;
     begin
-        // [SCENARIO 580139] Verify System must throw an error If "Total CO2e" is zero in Item Journal Line.
-        // When Item Reclass Journal is posted.
+        // [SCENARIO 651041] An Average carbon tracking item can be reclassified with zero Total CO2e, creating a zero-amount Sustainability Value Entry without changing its CO2e per Unit.
         LibrarySustainability.CleanUpBeforeTesting();
 
         // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
@@ -3753,7 +3753,7 @@ codeunit 148190 "Sust. Value Entry Test"
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
         SustainabilityAccount.Get(AccountCode);
 
-        // [GIVEN] Create Item with Sustainability Account.
+        // [GIVEN] Create an Average carbon tracking item with a Sustainability Account.
         LibraryInventory.CreateItem(Item);
         Item.Validate("Default Sust. Account", AccountCode);
         Item.Validate("CO2e per Unit", ExpectedTotalCO2e);
@@ -3779,13 +3779,27 @@ codeunit 148190 "Sust. Value Entry Test"
         ItemReclassJournal."Item No.".SetValue(Item."No.");
         ItemReclassJournal."New Location Code".SetValue(Location.Code);
         ItemReclassJournal.Quantity.SetValue(Quantity);
+        ItemReclassJournal."Total CO2e".AssertEquals(0);
         ItemReclassJournal.Close();
 
-        // [WHEN] Post Item Journal Batch.
-        asserterror LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+        // [WHEN] Post Item Journal Batch with zero Total CO2e.
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
-        // [THEN] Verify system must throw an error If "Total CO2e" is zero in Item Journal Line.
-        Assert.ExpectedError(CO2eMustNotBeZeroErr);
+        // [THEN] A Sustainability Value Entry is created with zero actual and expected CO2e amounts.
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+#pragma warning disable AA0210
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::Transfer);
+#pragma warning restore AA0210
+        Assert.RecordCount(SustainabilityValueEntry, 1);
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(
+            0,
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), 0, SustainabilityValueEntry.TableCaption()));
+        Assert.AreEqual(
+            0,
+            SustainabilityValueEntry."CO2e Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Expected)"), 0, SustainabilityValueEntry.TableCaption()));
     end;
 
     [Test]
