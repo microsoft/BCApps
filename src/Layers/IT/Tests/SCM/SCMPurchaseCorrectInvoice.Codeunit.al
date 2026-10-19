@@ -1243,6 +1243,17 @@ codeunit 137025 "SCM Purchase Correct Invoice"
 
     [Test]
     procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(false);
+    end;
+
+    [Test]
+    procedure CancelPartialInvoiceRecalculatesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(true);
+    end;
+
+    local procedure CancelInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean)
     var
         GeneralPostingSetup: Record "General Posting Setup";
         Item: Record Item;
@@ -1252,16 +1263,31 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchaseHeaderCrMemo: Record "Purchase Header";
         PurchaseInvoiceHeader: Record "Purch. Inv. Header";
         PurchasePrepaymentInvoiceHeader: Record "Purch. Inv. Header";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         RemainingPurchaseLine: Record "Purchase Line";
         VATPostingSetup: Record "VAT Posting Setup";
         Vendor: Record Vendor;
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        ExpectedPrepmtToDeduct: Decimal;
+        InvoicedQuantity: Decimal;
         NetCheckTotal: Decimal;
+        OrderQuantity: Decimal;
         PrepaymentCreditMemoNo: Code[20];
         PrepaymentInvoiceNo: Code[20];
     begin
         // [SCENARIO 649626] Cancelling an invoice reconciles its prepayment when order quantity restoration is disabled.
         Initialize();
+        InvoicedQuantity := 1;
+        OrderQuantity := 1;
+        if PartiallyInvoice then begin
+            InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
+            // Keep the remaining line amount above the full 50% prepayment.
+            OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            ExpectedPrepmtToDeduct := OrderQuantity * 50;
+            PurchasesPayablesSetup.Get();
+            PurchasesPayablesSetup.Validate("Default Qty. to Receive", PurchasesPayablesSetup."Default Qty. to Receive"::Remainder);
+            PurchasesPayablesSetup.Modify(true);
+        end;
 
         // [GIVEN] A Purchase Order with a paid 50% prepayment on the line that will be posted.
         LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
@@ -1289,10 +1315,11 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchaseHeader.Validate("Prepayment %", 50);
         PurchaseHeader.Validate("Prepayment Due Date", WorkDate());
         PurchaseHeader.Modify(true);
-        LibraryPurchase.CreatePurchaseLine(PrepaidPurchaseLine, PurchaseHeader, PrepaidPurchaseLine.Type::Item, Item."No.", 1);
+        LibraryPurchase.CreatePurchaseLine(PrepaidPurchaseLine, PurchaseHeader, PrepaidPurchaseLine.Type::Item, Item."No.", OrderQuantity);
         PrepaidPurchaseLine.Validate("Direct Unit Cost", 100);
+        PrepaidPurchaseLine.Validate("Qty. to Receive", InvoicedQuantity);
         PrepaidPurchaseLine.Modify(true);
-        LibraryPurchase.CreatePurchaseLine(RemainingPurchaseLine, PurchaseHeader, RemainingPurchaseLine.Type::Item, Item."No.", 1);
+        LibraryPurchase.CreatePurchaseLine(RemainingPurchaseLine, PurchaseHeader, RemainingPurchaseLine.Type::Item, Item."No.", OrderQuantity);
         RemainingPurchaseLine.Validate("Direct Unit Cost", 100);
         RemainingPurchaseLine.Validate("Prepayment %", 0);
         RemainingPurchaseLine.Validate("Qty. to Receive", 0);
@@ -1315,6 +1342,11 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, false, true, true);
         NetCheckTotal := PurchaseHeader."Check Total";
         PurchaseInvoiceHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeader, NetCheckTotal));
+        if PartiallyInvoice then begin
+            PrepaidPurchaseLine.Find();
+            PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct * InvoicedQuantity / OrderQuantity);
+            PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct * (OrderQuantity - InvoicedQuantity) / OrderQuantity);
+        end;
         SetRestoreOrderQtyOnReturn(false);
         Commit();
 
@@ -1325,12 +1357,35 @@ codeunit 137025 "SCM Purchase Correct Invoice"
 
         // [THEN] The order quantities remain posted, but its deducted prepayment is released.
         PrepaidPurchaseLine.Find();
-        PrepaidPurchaseLine.TestField("Quantity Received", 1);
-        PrepaidPurchaseLine.TestField("Quantity Invoiced", 1);
-        PrepaidPurchaseLine.TestField("Qty. to Receive", 0);
-        PrepaidPurchaseLine.TestField("Qty. to Invoice", 0);
+        PrepaidPurchaseLine.TestField("Quantity Received", InvoicedQuantity);
+        PrepaidPurchaseLine.TestField("Quantity Invoiced", InvoicedQuantity);
+        PrepaidPurchaseLine.TestField(Quantity, OrderQuantity);
+        PrepaidPurchaseLine.TestField("Qty. to Receive", OrderQuantity - InvoicedQuantity);
+        PrepaidPurchaseLine.TestField("Qty. to Invoice", OrderQuantity - InvoicedQuantity);
         PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", 0);
-        PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 0);
+        PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct);
+
+        if PartiallyInvoice then begin
+            // [THEN] The remaining quantity consumes the full released prepayment.
+            PurchaseHeader.Find();
+            PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+            PurchaseHeader.Validate(Receive, true);
+            PurchaseHeader.Validate(Invoice, true);
+            PurchaseHeader.Modify(true);
+            LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, false, true, true);
+            PurchaseInvoiceHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeader, PurchaseHeader."Check Total"));
+            PurchaseInvoiceHeader.CalcFields(Amount);
+            PurchaseInvoiceHeader.TestField(Amount, (OrderQuantity - InvoicedQuantity) * PrepaidPurchaseLine."Direct Unit Cost" - ExpectedPrepmtToDeduct);
+            PrepaidPurchaseLine.Find();
+            PrepaidPurchaseLine.TestField(Quantity, OrderQuantity);
+            PrepaidPurchaseLine.TestField("Quantity Received", OrderQuantity);
+            PrepaidPurchaseLine.TestField("Quantity Invoiced", OrderQuantity);
+            PrepaidPurchaseLine.TestField("Qty. to Receive", 0);
+            PrepaidPurchaseLine.TestField("Qty. to Invoice", 0);
+            PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct);
+            PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 0);
+            exit;
+        end;
 
         // [THEN] The released prepayment can be credited from the original order.
         PurchaseHeader.Find();

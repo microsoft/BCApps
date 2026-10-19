@@ -1444,6 +1444,17 @@ codeunit 137019 "SCM Correct Invoice"
 
     [Test]
     procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(false);
+    end;
+
+    [Test]
+    procedure CancelPartialInvoiceRecalculatesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(true);
+    end;
+
+    local procedure CancelInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean)
     var
         Customer: Record Customer;
         GenJournalLine: Record "Gen. Journal Line";
@@ -1456,13 +1467,28 @@ codeunit 137019 "SCM Correct Invoice"
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesPrepaymentInvoiceHeader: Record "Sales Invoice Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        ExpectedPrepmtToDeduct: Decimal;
+        InvoicedQuantity: Decimal;
+        OrderQuantity: Decimal;
         PrepaymentCreditMemoNo: Code[20];
         PrepaymentInvoiceNo: Code[20];
     begin
         // [SCENARIO 649626] Cancelling an invoice reconciles its prepayment when order quantity restoration is disabled.
         Initialize();
+        InvoicedQuantity := 1;
+        OrderQuantity := 1;
+        if PartiallyInvoice then begin
+            InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
+            // Keep the remaining line amount above the full 50% prepayment.
+            OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            ExpectedPrepmtToDeduct := OrderQuantity * 50;
+            SalesReceivablesSetup.Get();
+            SalesReceivablesSetup.Validate("Default Quantity to Ship", SalesReceivablesSetup."Default Quantity to Ship"::Remainder);
+            SalesReceivablesSetup.Modify(true);
+        end;
 
         // [GIVEN] A Sales Order with a paid 50% prepayment on the line that will be posted.
         LibrarySales.CreatePrepaymentVATSetup(GLAccount, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
@@ -1488,10 +1514,11 @@ codeunit 137019 "SCM Correct Invoice"
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         SalesHeader.Validate("Prepayment %", 50);
         SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(PrepaidSalesLine, SalesHeader, PrepaidSalesLine.Type::Item, Item."No.", 1);
+        LibrarySales.CreateSalesLine(PrepaidSalesLine, SalesHeader, PrepaidSalesLine.Type::Item, Item."No.", OrderQuantity);
         PrepaidSalesLine.Validate("Unit Price", 100);
+        PrepaidSalesLine.Validate("Qty. to Ship", InvoicedQuantity);
         PrepaidSalesLine.Modify(true);
-        LibrarySales.CreateSalesLine(RemainingSalesLine, SalesHeader, RemainingSalesLine.Type::Item, Item."No.", 1);
+        LibrarySales.CreateSalesLine(RemainingSalesLine, SalesHeader, RemainingSalesLine.Type::Item, Item."No.", OrderQuantity);
         RemainingSalesLine.Validate("Unit Price", 100);
         RemainingSalesLine.Validate("Prepayment %", 0);
         RemainingSalesLine.Validate("Qty. to Ship", 0);
@@ -1506,6 +1533,11 @@ codeunit 137019 "SCM Correct Invoice"
 
         // [GIVEN] The prepaid line is shipped and invoiced, and quantity restoration is disabled.
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        if PartiallyInvoice then begin
+            PrepaidSalesLine.Find();
+            PrepaidSalesLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct * InvoicedQuantity / OrderQuantity);
+            PrepaidSalesLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct * (OrderQuantity - InvoicedQuantity) / OrderQuantity);
+        end;
         SetRestoreOrderQtyOnReturn(false);
         Commit();
 
@@ -1514,12 +1546,30 @@ codeunit 137019 "SCM Correct Invoice"
 
         // [THEN] The order quantities remain posted, but its deducted prepayment is released.
         PrepaidSalesLine.Find();
-        PrepaidSalesLine.TestField("Quantity Shipped", 1);
-        PrepaidSalesLine.TestField("Quantity Invoiced", 1);
-        PrepaidSalesLine.TestField("Qty. to Ship", 0);
-        PrepaidSalesLine.TestField("Qty. to Invoice", 0);
+        PrepaidSalesLine.TestField("Quantity Shipped", InvoicedQuantity);
+        PrepaidSalesLine.TestField("Quantity Invoiced", InvoicedQuantity);
+        PrepaidSalesLine.TestField(Quantity, OrderQuantity);
+        PrepaidSalesLine.TestField("Qty. to Ship", OrderQuantity - InvoicedQuantity);
+        PrepaidSalesLine.TestField("Qty. to Invoice", OrderQuantity - InvoicedQuantity);
         PrepaidSalesLine.TestField("Prepmt Amt Deducted", 0);
-        PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 0);
+        PrepaidSalesLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct);
+
+        if PartiallyInvoice then begin
+            // [THEN] The remaining quantity consumes the full released prepayment.
+            SalesHeader.Find();
+            SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+            SalesInvoiceHeader.CalcFields(Amount);
+            SalesInvoiceHeader.TestField(Amount, (OrderQuantity - InvoicedQuantity) * PrepaidSalesLine."Unit Price" - ExpectedPrepmtToDeduct);
+            PrepaidSalesLine.Find();
+            PrepaidSalesLine.TestField(Quantity, OrderQuantity);
+            PrepaidSalesLine.TestField("Quantity Shipped", OrderQuantity);
+            PrepaidSalesLine.TestField("Quantity Invoiced", OrderQuantity);
+            PrepaidSalesLine.TestField("Qty. to Ship", 0);
+            PrepaidSalesLine.TestField("Qty. to Invoice", 0);
+            PrepaidSalesLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct);
+            PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 0);
+            exit;
+        end;
 
         // [THEN] The released prepayment can be credited from the original order.
         SalesHeader.Find();
