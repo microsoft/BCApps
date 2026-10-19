@@ -25,7 +25,7 @@ codeunit 3311 "PA Billing"
     local procedure LogPurchaseDocumentDraftLinesProcessed(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         AgentSession: Codeunit "Agent Session";
-        PayablesAgent: Codeunit "Payables Agent";
+        PayablesAgent: Codeunit "Payables Agent Metadata";
         TelemetryDictionary: Dictionary of [Text, Text];
         AgentTaskID: BigInteger;
         SessionEDocumentEntryNo: Integer;
@@ -35,12 +35,10 @@ codeunit 3311 "PA Billing"
         SessionEDocumentEntryNo := GetCurrentSessionEDocumentEntryNo();
         TelemetryDictionary := PayablesAgent.GetCustomDimensions();
         TelemetryDictionary.Add('EDocumentEntryNo', Format(SessionEDocumentEntryNo));
-
         if EDocumentPurchaseHeader.IsTemporary() then begin
             Session.LogMessage('0000R32', 'Skipping billing log for temporary E-Document Purchase Header.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
             exit;
         end;
-
         if (SessionEDocumentEntryNo <> EDocument."Entry No") then begin
             Session.LogMessage('0000R33', 'The E-Document does not match the current session E-Document. Skipping billing log.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
             exit;
@@ -104,7 +102,7 @@ codeunit 3311 "PA Billing"
 
     local procedure LogPurchaseDocumentDraftCreated(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header"; AgentTaskID: BigInteger)
     var
-        PayablesAgent: Codeunit "Payables Agent";
+        PayablesAgent: Codeunit "Payables Agent Metadata";
         CreateHeaderPrice: Integer;
         DescriptionText: Text;
         ProcessedHeaderForEDocumentLbl: Label 'E-Document: %1', Comment = '%1 - Number of E-Document for example 231', Locked = true;
@@ -119,7 +117,6 @@ codeunit 3311 "PA Billing"
             DescriptionText += SeparatorTok + StrSubstNo(InvoiceLbl, EDocumentPurchaseHeader."Sales Invoice No.")
         else
             Session.LogMessage('0000QFC', 'The invoice number is empty.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
-
         if EDocumentPurchaseHeader."Vendor Company Name" <> '' then
             DescriptionText += CommaTok + StrSubstNo(VendorLbl, EDocumentPurchaseHeader."Vendor Company Name")
         else
@@ -140,7 +137,7 @@ codeunit 3311 "PA Billing"
     local procedure VerifyNumberOfLinesExtracted(var EDocument: Record "E-Document"; var NumberOfLinesExtracted: Integer): Boolean
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PayablesAgent: Codeunit "Payables Agent";
+        PayablesAgent: Codeunit "Payables Agent Metadata";
     begin
         EDocumentPurchaseLine.ReadIsolation := IsolationLevel::ReadUncommitted;
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -156,7 +153,7 @@ codeunit 3311 "PA Billing"
     local procedure LogPATrackingRecord(AgentTaskID: BigInteger; Operation: Enum "PA Billing Operation"; Description: Text; RecordSystemID: Guid; RecordTable: Integer; Usage: Integer)
     var
         AgentTask: Record "Agent Task";
-        PayablesAgent: Codeunit "Payables Agent";
+        PayablesAgent: Codeunit "Payables Agent Metadata";
         CopilotQuota: Codeunit "Copilot Quota";
         UniqueID: Text[1024];
         TelemetryDimensions: Dictionary of [Text, Text];

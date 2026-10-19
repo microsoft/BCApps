@@ -39,7 +39,7 @@ page 3311 "PA MLLM Setup"
 
     trigger OnOpenPage()
     begin
-        Rec.GetSetup();
+        Rec.GetOrCreateSetup();
     end;
 }
 #endif

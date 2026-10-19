@@ -112,7 +112,7 @@ codeunit 3344 "PA Setup Update"
     local procedure ProcessTrialUploadIfPending(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     var
         TempBlob: Codeunit "Temp Blob";
-        PayablesAgent: Codeunit "Payables Agent";
+        PayablesAgent: Codeunit "Payables Agent Metadata";
         PATask: Codeunit "PA Task";
         InStream: InStream;
     begin
@@ -121,7 +121,7 @@ codeunit 3344 "PA Setup Update"
 
         PASetupUpdateParameters.GetTrialUploadBlob(TempBlob);
         TempBlob.CreateInStream(InStream);
-        PATask.CreateTaskFromPdf(PASetupUpdateParameters.GetTrialUploadFileName(), InStream);
+        PATask.CreateFromUpload(PASetupUpdateParameters.GetTrialUploadFileName(), InStream);
         Session.LogMessage('0000SEG', TryWithUploadManuallyTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
 
         PASetupUpdateParameters.ClearTrialUpload();
