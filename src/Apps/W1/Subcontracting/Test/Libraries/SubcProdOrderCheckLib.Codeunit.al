@@ -95,7 +95,6 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         TempProdOrderRoutingLine.Type := TempProdOrderRoutingLine.Type::"Work Center";
         TempProdOrderRoutingLine."No." := ManufacturingSetup."Def. Wiz. Work Center No.";
         TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
-
         if ManufacturingSetup."Def. Wiz. Work Center No." <> '' then
             if WorkCenter.Get(ManufacturingSetup."Def. Wiz. Work Center No.") then begin
                 TempProdOrderRoutingLine."Work Center No." := WorkCenter."No.";
@@ -179,7 +178,6 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempComponent."Quantity per", ActualComponent."Quantity per",
                 StrSubstNo(QuantityPerMismatchOnLineLbl,
                     TempComponent."Line No.", TempComponent."Quantity per", ActualComponent."Quantity per"));
-
         if TempComponent.Quantity <> 0 then
             Assert.AreEqual(TempComponent.Quantity, ActualComponent.Quantity,
                 StrSubstNo(QuantityMismatchOnLineLbl,
@@ -269,12 +267,10 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempRoutingLine."Direct Unit Cost", ActualRoutingLine."Direct Unit Cost",
                 StrSubstNo(DirectUnitCostMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Direct Unit Cost", ActualRoutingLine."Direct Unit Cost"));
-
         if TempRoutingLine."Indirect Cost %" <> 0 then
             Assert.AreEqual(TempRoutingLine."Indirect Cost %", ActualRoutingLine."Indirect Cost %",
                 StrSubstNo(IndirectCostPercentMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Indirect Cost %", ActualRoutingLine."Indirect Cost %"));
-
         if TempRoutingLine."Overhead Rate" <> 0 then
             Assert.AreEqual(TempRoutingLine."Overhead Rate", ActualRoutingLine."Overhead Rate",
                 StrSubstNo(OverheadRateMismatchOnOperationLbl,
@@ -285,7 +281,6 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempRoutingLine."Setup Time", ActualRoutingLine."Setup Time",
                 StrSubstNo(SetupTimeMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Setup Time", ActualRoutingLine."Setup Time"));
-
         if TempRoutingLine."Run Time" <> 0 then
             Assert.AreEqual(TempRoutingLine."Run Time", ActualRoutingLine."Run Time",
                 StrSubstNo(RunTimeMismatchOnOperationLbl,
@@ -304,6 +299,12 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
                     TempRoutingLine."Operation No.", TempRoutingLine."Description 2", ActualRoutingLine."Description 2"));
     end;
 
+    /// <summary>
+    /// Replaces the temporary production order components with expected components built from the item lines of a production BOM.
+    /// </summary>
+    /// <param name="TempProdOrderComponent">The temporary production order component record to populate.</param>
+    /// <param name="BOMNo">The production BOM whose item lines are the component source.</param>
+    /// <param name="PurchLine">The purchase line used to determine the component and subcontracting vendor locations.</param>
     procedure CreateTempProdOrderComponentFromBOM(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; PurchLine: Record "Purchase Line")
     var
         Item: Record Item;
@@ -343,6 +344,13 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             until ProductionBOMLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Appends expected temporary production order components built from the lines of a production BOM version.
+    /// </summary>
+    /// <param name="TempProdOrderComponent">The temporary production order component record to append to.</param>
+    /// <param name="BOMNo">The production BOM that owns the version.</param>
+    /// <param name="BOMVersionNo">The production BOM version whose lines are the component source.</param>
+    /// <param name="PurchLine">The purchase line whose location code is assigned to the components.</param>
     procedure CreateTempProdOrderComponentFromBOMVersion(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; BOMVersionNo: Code[20]; PurchLine: Record "Purchase Line")
     var
         Item: Record Item;
@@ -375,6 +383,11 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             until ProductionBOMLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Replaces the temporary production order routing lines with expected lines built from a routing.
+    /// </summary>
+    /// <param name="TempProdOrderRoutingLine">The temporary production order routing line record to populate.</param>
+    /// <param name="RoutingNo">The routing whose lines are the operation source.</param>
     procedure CreateTempProdOrderRoutingFromRouting(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; RoutingNo: Code[20])
     var
         MachineCenter: Record "Machine Center";
@@ -428,6 +441,12 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             until RoutingLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Replaces the temporary production order routing lines with expected lines built from a routing version.
+    /// </summary>
+    /// <param name="TempProdOrderRoutingLine">The temporary production order routing line record to populate.</param>
+    /// <param name="RoutingNo">The routing that owns the version.</param>
+    /// <param name="VersionCode">The routing version whose lines are the operation source.</param>
     procedure CreateTempProdOrderRoutingFromRoutingVersion(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; RoutingNo: Code[20]; VersionCode: Code[20])
     var
         MachineCenter: Record "Machine Center";

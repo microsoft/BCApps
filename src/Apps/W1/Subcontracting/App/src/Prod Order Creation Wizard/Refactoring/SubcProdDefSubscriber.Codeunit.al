@@ -60,7 +60,6 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     begin
         if TempData.GetGlobalSourceType() <> "Prod. Definition Source"::PurchaseLine then
             exit;
-
         if not DataTypeManagement.GetRecordRef(Source, SourceRecRef) then
             exit;
         if SourceRecRef.Number <> Database::"Purchase Line" then
@@ -315,7 +314,6 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     begin
         if not FindRoutingLinesForProdOrderLine(ProdOrderRtngLine, ProdOrderLine) then
             exit;
-
         if FindMatchingWorkCenterForVendor(ProdOrderRtngLine, PurchLine."Buy-from Vendor No.") or
            FindAnySubcontractorWorkCenter(ProdOrderRtngLine)
         then begin
@@ -344,10 +342,9 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     begin
         if ProdOrderRtngLine.FindSet() then
             repeat
-                WorkCenter.SetLoadFields("Gen. Prod. Posting Group");
                 WorkCenter.SetRange("No.", ProdOrderRtngLine."Work Center No.");
                 WorkCenter.SetRange("Subcontractor No.", VendorNo);
-                if WorkCenter.FindFirst() then
+                if not WorkCenter.IsEmpty() then
                     exit(true);
             until ProdOrderRtngLine.Next() = 0;
         exit(false);
@@ -360,10 +357,9 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
         if not ProdOrderRtngLine.FindSet() then
             exit(false);
         repeat
-            WorkCenter.SetLoadFields("Gen. Prod. Posting Group");
             WorkCenter.SetRange("No.", ProdOrderRtngLine."Work Center No.");
             WorkCenter.SetFilter("Subcontractor No.", '<>%1', '');
-            if WorkCenter.FindFirst() then
+            if not WorkCenter.IsEmpty() then
                 exit(true);
         until ProdOrderRtngLine.Next() = 0;
         exit(false);
