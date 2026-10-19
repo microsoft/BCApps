@@ -573,7 +573,6 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
     procedure ThirdIncomeStatementCloseTransfersOnlyAuditAdjustment()
     var
@@ -664,7 +663,6 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
     procedure CloseMixedCurrenciesWithBalanceWithoutDimensions()
     var
@@ -706,7 +704,6 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler,BothGlobalDimensionsModalPageHandler')]
     procedure CloseMixedCurrenciesWithBalanceGlobalDimensions()
     var
@@ -749,7 +746,6 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
     procedure CloseIncomeStatementSumsLCYSourceCurrencyAmount()
     var
@@ -782,7 +778,6 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
     procedure CloseIncomeStatementSumsLCYSourceCurrencyAmountWithoutGrouping()
     var

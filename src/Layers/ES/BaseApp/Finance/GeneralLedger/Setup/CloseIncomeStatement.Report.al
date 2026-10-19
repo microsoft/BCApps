@@ -174,10 +174,6 @@ report 94 "Close Income Statement"
 
                 trigger OnPreDataItem()
                 begin
-                    AddLoadFields(
-                        Amount, "Additional-Currency Amount", "Dimension Set ID", "Business Unit Code",
-                        "Global Dimension 1 Code", "Global Dimension 2 Code", "Source Currency Code",
-                        "Source Currency Amount", "Source Currency VAT Amount");
                     Window.Update(2, Text013);
                     Window.Update(3, 0);
 
