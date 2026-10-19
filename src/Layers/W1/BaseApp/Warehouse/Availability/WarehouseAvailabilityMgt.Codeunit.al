@@ -41,6 +41,7 @@ codeunit 7314 "Warehouse Availability Mgt."
     var
         ReservEntry: Record "Reservation Entry";
         ReservEntry2: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
         ReservQtyonInvt: Decimal;
         PickQty: Decimal;
         IsHandled: Boolean;
@@ -74,7 +75,13 @@ codeunit 7314 "Warehouse Availability Mgt."
             until ReservEntry.Next() = 0;
 
         if HandleResPickAndShipQty then begin
-            PickQty := CalcRegisteredAndOutstandingPickQty(ReservEntry, WarehouseActivityLine);
+            PickQty := CalcQtyRegisteredPick(ReservEntry);
+            // Keep the shipment check item-wide, as lot validation also adds item-wide reserved pick/shipment quantities.
+            ValidateQtyPickedInShipmentBin(
+                PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification, ReservEntry."Source Type");
+            PickQty +=
+                CalcQtyOutstandingPick(
+                    ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", ReservEntry."Source Prod. Order Line", WarehouseActivityLine);
             if ReservQtyonInvt > PickQty then
                 ReservQtyonInvt -= PickQty
             else
