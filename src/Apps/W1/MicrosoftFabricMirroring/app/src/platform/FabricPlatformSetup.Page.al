@@ -247,21 +247,21 @@ page 48511 "Fabric Platform Setup"
             {
                 Caption = 'Fabric';
 
-                action(AdminConsent)
-                {
-                    Caption = 'Grant admin consent';
-                    ApplicationArea = All;
-                    Visible = not UseCustomAppValue;
-                    Image = Approve;
-                    ToolTip = 'Registers the Microsoft Business Central Fabric Export application in your Microsoft Entra tenant. This is a one-time step that requires a Microsoft Entra administrator.';
+                // action(AdminConsent)
+                // {
+                //     Caption = 'Grant admin consent';
+                //     ApplicationArea = All;
+                //     Visible = not UseCustomAppValue;
+                //     Image = Approve;
+                //     ToolTip = 'Registers the Microsoft Business Central Fabric Export application in your Microsoft Entra tenant. This is a one-time step that requires a Microsoft Entra administrator.';
 
-                    trigger OnAction()
-                    var
-                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-                    begin
-                        FabricPlatformMgt.RequestAdminConsent();
-                    end;
-                }
+                //     trigger OnAction()
+                //     var
+                //         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                //     begin
+                //         FabricPlatformMgt.RequestAdminConsent();
+                //     end;
+                // }
                 action(EnableExport)
                 {
                     Caption = 'Connect to Fabric';
