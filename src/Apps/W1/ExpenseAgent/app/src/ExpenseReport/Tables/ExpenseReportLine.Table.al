@@ -1232,7 +1232,7 @@ table 6907 "Expense Report Line"
             ExpenseReportLineParticip.DeleteAll();
 
         if KeepItemization then
-            BlankItemizationSubcategory()
+            ClearItemizationSubcategory()
         else begin
             ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
             ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
@@ -1246,7 +1246,7 @@ table 6907 "Expense Report Line"
             ExpenseReportLinePerDiem.DeleteAll();
     end;
 
-    local procedure BlankItemizationSubcategory()
+    local procedure ClearItemizationSubcategory()
     var
         ExpenseReportLineItemization: Record "Expense Report Line Item";
     begin
