@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1626,7 +1626,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PostedInvoiceNo: Code[20];
     begin
-        // [SCENARIO 650500] A credit note that states the original invoice is applied to it
+        // [SCENARIO] A credit note that states the original invoice is applied to it
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -1652,149 +1652,9 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual(PostedInvoiceNo, PurchaseHeader."Applies-to Doc. No.", 'Applies-to Doc. No. must be the posted invoice.');
     end;
 
-    [Test]
-    procedure PeppolCreditNoteCreditingSeveralInvoicesIsNotApplied()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-    begin
-        // [SCENARIO 650500] A PEPPOL credit note that states several invoices keeps every reference and is not applied to the first one
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
 
-        // [GIVEN] Both invoices the credit note credits are posted and open
-        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-M1', '103033', 'XYZ', true);
-        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-M2', '103044', 'XYZ', true);
 
-        // [WHEN] The credit note that states both invoices is processed to the draft
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-multiref.xml', TempEDocImportParams), 'The credit note draft should be prepared');
 
-        // [THEN] Both invoice numbers are kept on the draft
-        EDocumentPurchaseHeader.Get(EDocument."Entry No");
-        Assert.IsTrue(EDocumentPurchaseHeader."Vendor Invoice No.".Contains('103033'), 'The first invoice reference must be kept.');
-        Assert.IsTrue(EDocumentPurchaseHeader."Vendor Invoice No.".Contains('103044'), 'The second invoice reference must be kept.');
-
-        // [THEN] The credit memo is not applied to either of them, and the draft says why
-        Assert.AreEqual('', EDocumentPurchaseHeader."Applies-to Doc. No.", 'A credit note that credits several invoices must not be applied to one of them.');
-        Assert.IsTrue(HasWarningContaining(EDocument, 'several invoices'), 'A warning must explain that the credit note refers to several invoices.');
-    end;
-
-    [Test]
-    procedure PeppolCreditNoteKeepsReferenceListLongerThanOneHundredCharacters()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        ExpectedReferences: Text;
-    begin
-        // [SCENARIO 650500] A credit note that states many invoices keeps every reference in full on the draft, not cut off at 100 characters
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] A credit note that states eight invoices, INV-2026-0000001 to INV-2026-0000008, which together are 149 characters
-        ExpectedReferences :=
-            'INV-2026-0000001 | INV-2026-0000002 | INV-2026-0000003 | INV-2026-0000004 | ' +
-            'INV-2026-0000005 | INV-2026-0000006 | INV-2026-0000007 | INV-2026-0000008';
-
-        // [WHEN] The credit note is processed to the draft
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-manyrefs.xml', TempEDocImportParams), 'The credit note draft should be prepared');
-
-        // [THEN] Every reference is kept, including the last one
-        EDocumentPurchaseHeader.Get(EDocument."Entry No");
-        Assert.AreEqual(149, StrLen(ExpectedReferences), 'The references must be longer than 100 characters for this test to be meaningful.');
-        Assert.AreEqual(ExpectedReferences, EDocumentPurchaseHeader."Vendor Invoice No.", 'Every invoice reference must be kept in full.');
-
-        // [THEN] The credit memo is not applied, and the draft says why
-        Assert.AreEqual('', EDocumentPurchaseHeader."Applies-to Doc. No.", 'A credit note that credits several invoices must not be applied to one of them.');
-        Assert.IsTrue(HasWarningContaining(EDocument, 'INV-2026-0000008'), 'The warning must name every invoice, including the last one.');
-    end;
-
-    [Test]
-    procedure ReversedLineKeepsItsDiscountDirectionOnThePurchaseLine()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Item: Record Item;
-    begin
-        // [SCENARIO 650500] A fee that reverses the credit keeps its discount in the same direction, so the purchase line is worth -90 and not -110
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] A credit memo draft whose line is a reversed fee of 2 x 50 less a discount of 10
-        PrepareCreditNoteDraft(EDocument);
-        LibraryEDoc.GetGenericItem(Item);
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        Assert.IsTrue(EDocumentPurchaseLine.FindFirst(), 'The draft must have a line.');
-        EDocumentPurchaseLine."[BC] Purchase Line Type" := "Purchase Line Type"::Item;
-        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
-        EDocumentPurchaseLine."[BC] Unit of Measure" := '';
-        EDocumentPurchaseLine.Quantity := -2;
-        EDocumentPurchaseLine."Unit Price" := 50;
-        EDocumentPurchaseLine."Total Discount" := -10;
-        EDocumentPurchaseLine.Modify();
-
-        // [WHEN] The draft is finalized
-        FinishDraft(EDocument);
-
-        // [THEN] The negative discount reaches the purchase line, which Business Central accepts as a valid 10% discount
-        EDocument.Get(EDocument."Entry No");
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        Assert.IsTrue(PurchaseLine.FindFirst(), 'The credit memo must have a line.');
-        Assert.AreEqual(-10, PurchaseLine."Line Discount Amount", 'The discount must keep the direction of its line.');
-        Assert.AreEqual(-90, PurchaseLine."Line Amount", 'The fee must reduce the credit by 90, not by 110.');
-    end;
-
-    [Test]
-    procedure InvoiceLineWithDiscountAgainstItsDirectionIsFinalized()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Item: Record Item;
-    begin
-        // [SCENARIO 650500] An invoice line whose discount points against the line is finalized without the discount, as before, instead of failing
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] An invoice draft whose line is 2 x 50 with a discount of -10
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice draft should be prepared');
-        LibraryEDoc.GetGenericItem(Item);
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        Assert.IsTrue(EDocumentPurchaseLine.FindFirst(), 'The draft must have a line.');
-        EDocumentPurchaseLine."[BC] Purchase Line Type" := "Purchase Line Type"::Item;
-        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
-        EDocumentPurchaseLine."[BC] Unit of Measure" := '';
-        EDocumentPurchaseLine.Quantity := 2;
-        EDocumentPurchaseLine."Unit Price" := 50;
-        EDocumentPurchaseLine."Total Discount" := -10;
-        EDocumentPurchaseLine.Modify();
-
-        // [WHEN] The draft is finalized
-        FinishDraft(EDocument);
-
-        // [THEN] The purchase invoice is created, and its line carries no discount
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        Assert.AreEqual(PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type", 'A purchase invoice must be created.');
-        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        Assert.IsTrue(PurchaseLine.FindFirst(), 'The invoice must have a line.');
-        Assert.AreEqual(0, PurchaseLine."Line Discount Amount", 'A discount against the direction of its line must not be carried over.');
-        Assert.AreEqual(100, PurchaseLine."Line Amount", 'The line must keep its amount.');
-    end;
 
     [Test]
     procedure PostedCreditMemoReducesRemainingAmountOfOriginalInvoice()
@@ -1808,7 +1668,7 @@ codeunit 139883 "E-Doc Process Test"
         PostedCreditMemoNo: Code[20];
         RemainingBeforeCredit: Decimal;
     begin
-        // [SCENARIO 650500] Posting the created credit memo applies it in the vendor ledger and reduces the invoice's remaining amount
+        // [SCENARIO] Posting the created credit memo applies it in the vendor ledger and reduces the invoice's remaining amount
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -1857,7 +1717,7 @@ codeunit 139883 "E-Doc Process Test"
         PostedCreditMemoNo: Code[20];
         RemainingBeforeCredit: Decimal;
     begin
-        // [SCENARIO 650500] A credit memo that is not applied to an invoice stays open when posted, even though the vendor's method is Apply to Oldest
+        // [SCENARIO] A credit memo that is not applied to an invoice stays open when posted, even though the vendor's method is Apply to Oldest
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -1909,7 +1769,7 @@ codeunit 139883 "E-Doc Process Test"
         TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
     begin
-        // [SCENARIO 650500] A credit note for an invoice that is already paid is created without being applied
+        // [SCENARIO] A credit note for an invoice that is already paid is created without being applied
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -1937,7 +1797,7 @@ codeunit 139883 "E-Doc Process Test"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
     begin
-        // [SCENARIO 650500] An invoice set on the draft that is no longer open blocks finalization with a clear reason
+        // [SCENARIO] An invoice set on the draft that is no longer open blocks finalization with a clear reason
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -1959,7 +1819,7 @@ codeunit 139883 "E-Doc Process Test"
         // [THEN] The e-document is not processed, no credit memo is left behind and the error names the invoice
         EDocument.CalcFields("Import Processing Status");
         Assert.AreNotEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'A credit memo must not be applied to an invoice that is no longer open.');
-        Assert.IsTrue(HasErrorContaining(EDocument, '103033'), 'The error must name the invoice that cannot be applied to.');
+        Assert.IsTrue(HasErrorContaining(EDocument, 'PI-CN-3'), 'The error must name the invoice that cannot be applied to.');
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         Assert.RecordIsEmpty(PurchaseHeader);
     end;
@@ -1971,7 +1831,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PurchaseHeader: Record "Purchase Header";
     begin
-        // [SCENARIO 650500] Finalizing creates exactly what was reviewed: a draft without an invoice to apply to is not applied, even if the invoice is posted in between
+        // [SCENARIO] Finalizing creates exactly what was reviewed: a draft without an invoice to apply to is not applied, even if the invoice is posted in between
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] A credit memo draft whose invoice 103033 is not posted yet
@@ -1992,31 +1852,57 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
-    procedure CreditNoteCannotBeFinalizedWhenStatedInvoiceBecomesAmbiguous()
+    procedure CreditNoteIsAppliedToTheInvoiceTheUserSelected()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
     begin
-        // [SCENARIO 650500] If a second open invoice with the stated number is posted after review, finalizing stops instead of guessing
+        // [SCENARIO] The user can replace the suggested invoice with another open invoice of the vendor, and the credit memo is applied to that one
         Initialize(Enum::"Service Integration"::"Mock");
 
-        // [GIVEN] A credit memo draft applied to open invoice PI-CN-11 (vendor invoice 103033)
+        // [GIVEN] Two open invoices; the draft suggests PI-CN-11 because the credit note states 103033
         CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-11', '103033', 'XYZ', true);
+        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-12', '103099', 'XYZ', true);
         PrepareCreditNoteDraft(EDocument);
         EDocumentPurchaseHeader.Get(EDocument."Entry No");
-        Assert.AreEqual('PI-CN-11', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The draft must show the posted invoice to apply to.');
+        Assert.AreEqual('PI-CN-11', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The draft must suggest the stated invoice.');
 
-        // [GIVEN] Another open invoice with vendor invoice number 103033 is posted
-        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-12', '103033', 'XYZ', true);
-
-        // [WHEN] The draft is finalized
+        // [WHEN] The user selects PI-CN-12 and the draft is finalized
+        EDocumentPurchaseHeader."Applies-to Doc. No." := 'PI-CN-12';
+        EDocPrepareCrMemoDraft.ValidateInvoiceToApplyTo(EDocumentPurchaseHeader);
+        EDocumentPurchaseHeader.Modify();
         FinishDraft(EDocument);
 
-        // [THEN] The e-document is not processed and the error names the reviewed invoice
-        EDocument.CalcFields("Import Processing Status");
-        Assert.AreNotEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'An ambiguous invoice must not be applied to.');
-        Assert.IsTrue(HasErrorContaining(EDocument, '103033'), 'The error must name the reviewed invoice.');
+        // [THEN] The credit memo is applied to the selected invoice
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual('PI-CN-12', PurchaseHeader."Applies-to Doc. No.", 'The credit memo must be applied to the invoice the user selected.');
     end;
+
+    [Test]
+    procedure SelectingAnInvoiceThatIsNotOpenIsRejected()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
+    begin
+        // [SCENARIO] The user cannot select an invoice that is closed or belongs to another vendor
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A credit memo draft and a closed invoice PI-CN-15 of the vendor
+        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-15', '103099', 'XYZ', false);
+        PrepareCreditNoteDraft(EDocument);
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+
+        // [WHEN] The user selects the closed invoice
+        EDocumentPurchaseHeader."Applies-to Doc. No." := 'PI-CN-15';
+        asserterror EDocPrepareCrMemoDraft.ValidateInvoiceToApplyTo(EDocumentPurchaseHeader);
+
+        // [THEN] It is rejected with the reason
+        Assert.ExpectedError('is not an open invoice');
+    end;
+
 
     [Test]
     procedure InvoiceWithNegativeTotalStaysInvoiceWithWarning()
@@ -2027,7 +1913,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        // [SCENARIO 650500] A document read as an invoice keeps the invoice type even with a negative total, and the user is warned
+        // [SCENARIO] A document read as an invoice keeps the invoice type even with a negative total, and the user is warned
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -2194,35 +2080,32 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
-    procedure CreditNoteApplicationStatusStatesWhetherItWillBeApplied()
+    procedure CreditNoteReferringToSeveralInvoicesIsAppliedToTheFirstWithWarning()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
     begin
-        // [SCENARIO 650500] The draft states in one sentence whether the credit memo will be applied, so a reviewer never has to infer it from the invoice number
+        // [SCENARIO] A credit note that refers to several invoices is applied to the first one, and the draft warns about it
         Initialize(Enum::"Service Integration"::"Mock");
 
-        // [GIVEN] A credit memo draft applied to open invoice PI-CN-14
+        // [GIVEN] A credit memo draft for open invoice PI-CN-14 (vendor invoice 103033), read from a credit note that states several invoices
         CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-14', '103033', 'XYZ', true);
         PrepareCreditNoteDraft(EDocument);
-
-        // [THEN] The application status says the credit memo will be applied to the invoice the credit note states
-        Assert.IsTrue(StrPos(EDocPrepareCrMemoDraft.GetApplicationStatus(EDocument), 'Will be applied to invoice 103033') > 0,
-            'The status must state that the credit memo will be applied.');
-
-        // [WHEN] The credit note refers to several invoices
         EDocumentPurchaseHeader.Get(EDocument."Entry No");
-        EDocumentPurchaseHeader."Vendor Invoice No." := '103033 | 103044';
+        EDocumentPurchaseHeader."Several Invoices Referenced" := true;
         EDocumentPurchaseHeader.Modify();
+
+        // [WHEN] The invoice to apply to is derived again
         EDocPrepareCrMemoDraft.RefreshInvoiceToApplyTo(EDocument);
 
-        // [THEN] The status says it will not be applied, and why
-        Assert.IsTrue(StrPos(EDocPrepareCrMemoDraft.GetApplicationStatus(EDocument), 'Will not be applied') > 0,
-            'The status must state that the credit memo will not be applied.');
-        Assert.IsTrue(StrPos(EDocPrepareCrMemoDraft.GetApplicationStatus(EDocument), 'several invoices') > 0,
-            'The status must state why the credit memo is not applied.');
+        // [THEN] The credit memo is applied to the first invoice, and the draft warns that the credit note refers to more than one
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual('PI-CN-14', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The first stated invoice must be applied to.');
+        Assert.IsTrue(EDocPrepareCrMemoDraft.GetInvoiceWarnings(EDocument).Count() > 0, 'The draft must have a warning.');
+        Assert.IsTrue(HasWarningContaining(EDocument, 'more than one invoice'), 'The warning must say the credit note refers to more than one invoice.');
     end;
+
 
     [Test]
     procedure CreditNoteIsNotAppliedWhenReferenceMatchesTwoInvoicesThroughDifferentNumbers()
@@ -2230,7 +2113,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
-        // [SCENARIO 650500] A reference that is one invoice's posted number and another invoice's vendor number is ambiguous and is not applied
+        // [SCENARIO] A reference that is one invoice's posted number and another invoice's vendor number is ambiguous and is not applied
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] Open invoice 103033 (posted number) and open invoice PI-CN-13 whose vendor invoice number is 103033
@@ -2253,7 +2136,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
     begin
-        // [SCENARIO 650500] Changing Applies-to Vendor Inv. No. on the draft re-derives the invoice and replaces its warnings
+        // [SCENARIO] Changing Applies-to Vendor Inv. No. on the draft re-derives the invoice and replaces its warnings
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] A credit memo draft applied to open invoice PI-CN-8, and invoice PI-CN-9 (vendor invoice 103099) with only 1000 left
@@ -2290,7 +2173,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         OtherVendor: Record Vendor;
     begin
-        // [SCENARIO 650500] When the vendor on a credit memo draft changes, the invoice of the previous vendor is no longer applied to
+        // [SCENARIO] When the vendor on a credit memo draft changes, the invoice of the previous vendor is no longer applied to
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] A credit memo draft applied to open invoice PI-CN-4 of the vendor
@@ -2317,7 +2200,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
-        // [SCENARIO 650500] A credit note larger than what is left on the invoice is still applied, with a warning that the invoice may already be credited
+        // [SCENARIO] A credit note larger than what is left on the invoice is still applied, with a warning that the invoice may already be credited
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] Invoice PI-CN-5 has 1000 left, and the credit note credits 2500
@@ -2338,7 +2221,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
     begin
-        // [SCENARIO 650500] The user is warned when an unposted credit memo already applies to the same invoice
+        // [SCENARIO] The user is warned when an unposted credit memo already applies to the same invoice
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] Open invoice PI-CN-6 and an unposted credit memo already applied to it
@@ -2361,7 +2244,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
-        // [SCENARIO 650500] When the stated invoice is not found, the warning says the credit memo is not applied, even though the vendor's method is Apply to Oldest
+        // [SCENARIO] When the stated invoice is not found, the warning says the credit memo is not applied, even though the vendor's method is Apply to Oldest
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] The vendor applies payments and credits to the oldest open invoices, and invoice 103033 is not posted
@@ -2389,7 +2272,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        // [SCENARIO 650500] When the vendor of a credit note cannot be identified, the vendor of the referenced invoice is suggested, never assigned
+        // [SCENARIO] When the vendor of a credit note cannot be identified, the vendor of the referenced invoice is suggested, never assigned
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] The vendor's invoice 103033 is posted

@@ -15,7 +15,8 @@ DOCUMENT TYPE:
 - Never decide from negative amounts, discounts, deductions or the word "credit" alone.
 - Use "380" for a document that asks the buyer to pay, including self-billing invoices, and whenever you are unsure.
 - "billing_reference": for a credit note, list the invoice numbers it states it credits; leave it empty when none is stated, and never put the document's own number here.
-- Extract amounts and quantities exactly as printed, including minus signs.
+- The sign of amounts never decides the type: a credit note printed with positive amounts is still "381", and an invoice with negative lines is still "380".
+- For a credit note ("381"), give all amounts and quantities as positive numbers, even when they are printed with a minus sign. For an invoice, extract them exactly as printed.
 
 CUSTOMER vs VENDOR IDENTIFICATION:
 The JSON structure includes pre-filled accounting_customer_party data. This is OUR company — the buyer receiving the invoice. Use this to distinguish between customer and vendor on the document:

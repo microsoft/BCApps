@@ -63,7 +63,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
 
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo(Quantity), EDocumentPurchaseLine.Quantity);
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Direct Unit Cost"), EDocumentPurchaseLine."Unit Price");
-        if DiscountFollowsLineDirection(PurchaseLine, EDocumentPurchaseLine."Total Discount") then
+        if EDocumentPurchaseLine."Total Discount" > 0 then
             ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Line Discount Amount"), EDocumentPurchaseLine."Total Discount");
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Deferral Code"), EDocumentPurchaseLine."[BC] Deferral Code");
 
@@ -75,14 +75,6 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
         PurchaseLine.Insert();
         EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
-    end;
-
-    /// <summary>
-    /// A line discount is carried over only when it reduces the line in the line's own direction, which is the only discount Business Central accepts as a percentage between 0 and 100.
-    /// </summary>
-    local procedure DiscountFollowsLineDirection(PurchaseLine: Record "Purchase Line"; LineDiscountAmount: Decimal): Boolean
-    begin
-        exit(LineDiscountAmount * PurchaseLine.Quantity * PurchaseLine."Direct Unit Cost" > 0);
     end;
 
     procedure ValidateFieldWithContext(var Rec: Record "Purchase Header"; FieldNo: Integer; Value: Variant)
@@ -363,10 +355,8 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
     /// <returns>True when the invoice was found; otherwise false, with the reason in FailureReason (empty when the draft states no invoice).</returns>
     internal procedure ResolveInvoiceToApplyTo(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var FailureReason: Text): Boolean
     var
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         PostedInvoiceNo: Code[20];
-        SeveralInvoicesReferencedErr: Label 'The credit note refers to several invoices (%1).', Comment = '%1 = list of invoice numbers';
     begin
         Clear(FailureReason);
         EDocumentPurchaseHeader."Applies-to Doc. No." := '';
@@ -375,25 +365,45 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
             exit(false);
         end;
 
-        // The ledger decides, not the punctuation: a number that identifies one open invoice is applied
-        // to even when it contains characters that also separate several references.
-        if TryResolveOpenInvoice(
+        if not TryResolveOpenInvoice(
             GetPayToVendorNo(EDocumentPurchaseHeader."[BC] Vendor No."), EDocumentPurchaseHeader."Currency Code",
             EDocumentPurchaseHeader."Vendor Invoice No.", PostedInvoiceNo, FailureReason)
-        then begin
-            EDocumentPurchaseHeader."Applies-to Doc. No." := PostedInvoiceNo;
-            exit(true);
-        end;
+        then
+            exit(false);
+        EDocumentPurchaseHeader."Applies-to Doc. No." := PostedInvoiceNo;
+        exit(true);
+    end;
 
-        // It did not identify one invoice. A draft that lists several explains that better than "not found",
-        // but only once a vendor is known - otherwise the vendor message is the one the user needs.
-        if (EDocumentPurchaseHeader."[BC] Vendor No." <> '') and
-           EDocPurchaseDraftUtility.ReferencesSeveralInvoices(EDocumentPurchaseHeader."Vendor Invoice No.")
-        then begin
-            FailureReason := StrSubstNo(SeveralInvoicesReferencedErr, EDocumentPurchaseHeader."Vendor Invoice No.");
-            EDocImpSessionTelemetry.SetText(GetAppliesToResolutionTok(), 'SeveralReferenced');
+    /// <summary>
+    /// Checks that PostedInvoiceNo is an open posted invoice of the pay-to vendor, in a currency the credit memo can be applied to.
+    /// </summary>
+    internal procedure IsOpenInvoiceToApplyTo(VendorNo: Code[20]; CurrencyCode: Code[10]; PostedInvoiceNo: Code[20]; var FailureReason: Text): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+        PayToVendorNo: Code[20];
+        NotOpenInvoiceErr: Label 'Purchase invoice %1 is not an open invoice of vendor %2.', Comment = '%1 = posted invoice number, %2 = vendor number';
+        CurrencyNotApplicableErr: Label 'Purchase invoice %1 is in a currency that this credit memo cannot be applied to.', Comment = '%1 = posted invoice number';
+    begin
+        Clear(FailureReason);
+        PayToVendorNo := GetPayToVendorNo(VendorNo);
+        if GeneralLedgerSetup.Get() and (CurrencyCode = GeneralLedgerSetup."LCY Code") then
+            CurrencyCode := '';
+        VendorLedgerEntry.SetLoadFields("Currency Code");
+        VendorLedgerEntry.SetRange("Vendor No.", PayToVendorNo);
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.SetRange("Document No.", PostedInvoiceNo);
+        VendorLedgerEntry.SetRange(Open, true);
+        if not VendorLedgerEntry.FindFirst() then begin
+            FailureReason := StrSubstNo(NotOpenInvoiceErr, PostedInvoiceNo, PayToVendorNo);
+            exit(false);
         end;
-        exit(false);
+        if not GenJnlApply.CheckAgainstApplnCurrency(CurrencyCode, VendorLedgerEntry."Currency Code", Enum::"Gen. Journal Account Type"::Vendor, false) then begin
+            FailureReason := StrSubstNo(CurrencyNotApplicableErr, PostedInvoiceNo);
+            exit(false);
+        end;
+        exit(true);
     end;
 
     /// <summary>

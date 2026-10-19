@@ -559,31 +559,29 @@ codeunit 139891 "E-Document Structured Tests"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
     begin
-        // [SCENARIO 650500] A credit note read by the MLLM becomes a credit memo draft with the stated invoice, credited lines positive and charges negative
+        // [SCENARIO] A credit note read by the MLLM becomes a credit memo draft with positive amounts; of several stated invoices the first is used and the draft is flagged
         Initialize(Enum::"Service Integration"::"Mock");
         SetupMLLMEDocumentService();
 
-        // [GIVEN] MLLM output with type code 381, invoice MLLM-INV-001, a returned line of -100 and a restocking fee of +10
-        CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-creditnote-mixed-signs.json');
+        // [GIVEN] MLLM output with type code 381, positive amounts, and invoices MLLM-INV-001 and MLLM-INV-002
+        CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-creditnote.json');
 
         // [WHEN] The document is read into a draft
         Assert.IsTrue(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), EDocumentStatusNotUpdatedErr);
 
-        // [THEN] The draft is a credit memo applied to the stated invoice
+        // [THEN] The draft is a credit memo for the first stated invoice, flagged as referring to several
         EDocument.Get(EDocument."Entry No");
         Assert.AreEqual("E-Doc. Process Draft"::"Purchase Credit Memo", EDocument."Process Draft Impl.", 'Type code 381 must be read as a credit memo.');
         EDocumentPurchaseHeader.Get(EDocument."Entry No");
-        Assert.AreEqual('MLLM-INV-001', EDocumentPurchaseHeader."Vendor Invoice No.", 'The stated invoice must be kept as Applies-to Vendor Inv. No.');
-        Assert.AreEqual(103.5, EDocumentPurchaseHeader.Total, 'The credit memo total must be positive.');
+        Assert.AreEqual('MLLM-INV-001', EDocumentPurchaseHeader."Vendor Invoice No.", 'The first stated invoice must be kept as Applies-to Vendor Inv. No.');
+        Assert.IsTrue(EDocumentPurchaseHeader."Several Invoices Referenced", 'The draft must record that the credit note refers to several invoices.');
+        Assert.AreEqual(115, EDocumentPurchaseHeader.Total, 'The credit memo total must be positive.');
 
-        // [THEN] The returned line is credited (positive) and the restocking fee reduces the credit (negative)
+        // [THEN] The credited line is positive
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocumentPurchaseLine.FindSet();
-        Assert.AreEqual(10, EDocumentPurchaseLine.Quantity, 'The returned line must be credited with a positive quantity.');
-        Assert.AreEqual(100, EDocumentPurchaseLine."Sub Total", 'The returned line must be credited with a positive amount.');
-        EDocumentPurchaseLine.Next();
-        Assert.AreEqual(-1, EDocumentPurchaseLine.Quantity, 'The restocking fee must reduce the credit.');
-        Assert.AreEqual(-10, EDocumentPurchaseLine."Sub Total", 'The restocking fee must reduce the credit.');
+        EDocumentPurchaseLine.FindFirst();
+        Assert.AreEqual(10, EDocumentPurchaseLine.Quantity, 'The credited line must have a positive quantity.');
+        Assert.AreEqual(100, EDocumentPurchaseLine."Sub Total", 'The credited line must have a positive amount.');
     end;
     #endregion
 

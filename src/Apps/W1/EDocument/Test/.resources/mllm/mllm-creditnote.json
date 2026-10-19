@@ -8,6 +8,11 @@
             "invoice_document_reference": {
                 "id": "MLLM-INV-001"
             }
+        },
+        {
+            "invoice_document_reference": {
+                "id": "MLLM-INV-002"
+            }
         }
     ],
     "accounting_supplier_party": {
@@ -21,11 +26,11 @@
         }
     },
     "tax_total": {
-        "tax_amount": 13.50
+        "tax_amount": 15.00
     },
     "legal_monetary_total": {
-        "tax_exclusive_amount": 90.00,
-        "payable_amount": 103.50
+        "tax_exclusive_amount": 100.00,
+        "payable_amount": 115.00
     },
     "invoice_line": [
         {
@@ -33,26 +38,13 @@
                 "name": "Office Supplies returned"
             },
             "invoiced_quantity": {
-                "value": -10,
+                "value": 10,
                 "unit_code": "PCS"
             },
             "price": {
                 "price_amount": 10.00
             },
-            "line_extension_amount": -100.00
-        },
-        {
-            "item": {
-                "name": "Restocking fee"
-            },
-            "invoiced_quantity": {
-                "value": 1,
-                "unit_code": "EA"
-            },
-            "price": {
-                "price_amount": 10.00
-            },
-            "line_extension_amount": 10.00
+            "line_extension_amount": 100.00
         }
     ]
 }
