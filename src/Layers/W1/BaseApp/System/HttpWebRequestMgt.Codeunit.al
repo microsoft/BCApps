@@ -1,3 +1,4 @@
+#pragma warning disable AA0217 // Legacy codeunit restored for the OCR fallback.
 namespace System.Integration;
 
 using System;

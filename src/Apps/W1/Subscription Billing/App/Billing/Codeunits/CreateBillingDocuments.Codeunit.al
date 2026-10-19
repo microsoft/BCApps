@@ -721,7 +721,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
         CustomerContract.SetLoadFields("External Document No.");
         if CustomerContract.Get(TempBillingLine."Subscription Contract No.") then
             if CustomerContract."External Document No." <> '' then
@@ -1354,7 +1354,7 @@ codeunit 8060 "Create Billing Documents"
         // (incl. automated/background billing) without committing inside the per-line loop.
         // When posting follows, creation and posting are kept atomic and PostCreatedDocuments
         // manages its own commit/rollback.
-        if not PostDocuments then
+        if (not PostDocuments) and (DocumentsCreatedCount > 0) then
             Commit();
     end;
 
