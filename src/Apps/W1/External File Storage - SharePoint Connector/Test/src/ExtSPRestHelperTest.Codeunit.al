@@ -130,7 +130,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         TempBlob.CreateInStream(InStream);
 
         ConnectorImpl.CreateFile(Account.Id, ResourcePathFileName, InStream);
-        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder');
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder/');
         Assert.IsTrue(FileAddPath.Contains('Invoice%20%2350%2523.pdf'), 'Upload must encode the filename without decoding literal %23');
 
         ConnectorImpl.GetFile(Account.Id, ResourcePathFileName, InStream);
@@ -139,7 +139,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         AssertDecodedRequestPath(DownloadPath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
 
         Assert.IsTrue(ConnectorImpl.FileExists(Account.Id, ResourcePathFileName), 'FileExists must use the decoded parent folder');
-        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder');
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder/');
 
         ConnectorImpl.ListFiles(Account.Id, '', Pagination, TempContent);
         Assert.RecordCount(TempContent, 1);
