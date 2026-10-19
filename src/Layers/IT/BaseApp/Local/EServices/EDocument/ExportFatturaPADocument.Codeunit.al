@@ -83,7 +83,6 @@ codeunit 12179 "Export FatturaPA Document"
         HeaderErrMsg: Label 'Cannot create XML header: %1', Locked = true;
         BodyErrMsg: Label 'Cannot create XML body: %1', Locked = true;
 
-    [Scope('OnPrem')]
     procedure GenerateXMLFile(var TempBlob: Codeunit "Temp Blob"; var TempFatturaLine: Record "Fattura Line" temporary; TempFatturaHeader: Record "Fattura Header" temporary; ClientFileName: Text[250])
     var
         ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
