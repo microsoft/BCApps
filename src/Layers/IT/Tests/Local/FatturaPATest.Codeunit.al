@@ -3452,10 +3452,14 @@ codeunit 144200 "FatturaPA Test"
     local procedure AddAdditionalArticleCodeToFatturaPALine(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
         Item: Record Item;
+        SalesLine: Record "Sales Line";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
     begin
         if not EmitAdditionalArticleCodes then
             exit;
-        if not TempFatturaLine.GetItem(Item) then
+        if TempFatturaLine.Type <> FatturaDocHelper.GetOptionCaptionValue(SalesLine.Type::Item.AsInteger()) then
+            exit;
+        if not Item.Get(TempFatturaLine."No.") then
             exit;
         TempXMLBuffer.AddGroupElement('CodiceArticolo');
         TempXMLBuffer.AddNonEmptyElement('CodiceTipo', 'INTERNO');
