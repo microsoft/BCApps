@@ -206,15 +206,36 @@ table 7230 "Master Data Management Setup"
         Clear("Source Client Secret Key");
     end;
 
+    // Write-only by design: the secret is read back only by a local procedure of "MDM Http Source Transport", so no
+    // internal or public member hands the secret out.
     [NonDebuggable]
     internal procedure SetSourceClientSecret(ClientSecret: SecretText)
     begin
         "Source Client Secret Key" := SetSecret("Source Client Secret Key", ClientSecret);
     end;
 
-    internal procedure GetSourceClientSecret(): SecretText
+    // An environment copy (e.g. production to sandbox) must not carry the source credential along: in a sandbox a DEV
+    // extension can be published under this app's id and read its Isolated Storage. The rest of the connection is
+    // kept, so an admin only re-enters the secret to resume synchronization in the copy.
+    internal procedure ClearSourceClientSecretOnEnvironmentCopy()
+    var
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+        DisableSynchronization: Boolean;
     begin
-        exit(GetSecret("Source Client Secret Key"));
+        DisableSynchronization := "Is Enabled" and IsCrossEnvironment();
+        if IsNullGuid("Source Client Secret Key") and not DisableSynchronization then
+            exit;
+
+        if not IsNullGuid("Source Client Secret Key") then
+            if not IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company) then;
+        Clear("Source Client Secret Key");
+
+        if DisableSynchronization then begin
+            "Is Enabled" := false;
+            UpdateDataSynchJobQueueEntriesStatus();
+            MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
+        end;
+        Modify(false);
     end;
 
     // Mirrors the Intercompany connection pattern: secrets live in module-scoped Isolated Storage, keyed by a Guid.
@@ -239,13 +260,6 @@ table 7230 "Master Data Management Setup"
         end;
 
         exit(NewSecretKey);
-    end;
-
-    local procedure GetSecret(SecretKey: Guid) SecretValue: SecretText
-    begin
-        if IsNullGuid(SecretKey) then
-            exit;
-        if not IsolatedStorage.Get(SecretKey, DataScope::Company, SecretValue) then;
     end;
 
     local procedure EnableConnection()

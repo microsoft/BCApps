@@ -505,6 +505,80 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure EnvironmentCopyClearsSourceSecretAndDisablesCrossEnvSync()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] Copying an environment (e.g. production to sandbox) removes the stored source client secret and
+        //            disables cross-environment synchronization, keeping the rest of the connection for re-entry.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] a cross-environment connection saved through the wizard, so the secret is really in Isolated Storage
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [GIVEN] synchronization is enabled
+        MasterDataManagementSetup.Get();
+        Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Precondition: client secret should be stored');
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects; the cleanup is what we assert
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] the secret key is cleared and synchronization is disabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be removed on environment copy');
+        Assert.IsFalse(MasterDataManagementSetup."Is Enabled", 'Cross-environment synchronization should be disabled on environment copy');
+        // [THEN] the rest of the connection is kept, so an admin only re-enters the secret
+        Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment should be kept');
+        Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company should be kept');
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be kept');
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure EnvironmentCopyKeepsSameEnvironmentSyncEnabled()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [FEATURE] [Master Data Management] [Security]
+        // [SCENARIO] Copying an environment leaves a same-environment setup (no stored credential) untouched.
+        Initialize();
+        // [GIVEN] an enabled same-environment setup
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] synchronization stays enabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(MasterDataManagementSetup."Is Enabled", 'Same-environment synchronization should not be disabled on environment copy');
+
+        MasterDataManagementSetup."Is Enabled" := false;
+        MasterDataManagementSetup.Modify(false);
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvGetByFilterReturnsRecordsPastTheWatermark()
     var
         Customer: Record Customer;
