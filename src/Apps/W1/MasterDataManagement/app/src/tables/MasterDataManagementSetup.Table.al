@@ -202,7 +202,8 @@ table 7230 "Master Data Management Setup"
         "Source Company Name" := '';
         "Source OAuth Client Id" := '';
         if not IsNullGuid("Source Client Secret Key") then
-            if not IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company) then;
+            if IsolatedStorage.Contains("Source Client Secret Key", DataScope::Company) then
+                IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company);
         Clear("Source Client Secret Key");
     end;
 
@@ -227,7 +228,8 @@ table 7230 "Master Data Management Setup"
             exit;
 
         if not IsNullGuid("Source Client Secret Key") then
-            if not IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company) then;
+            if IsolatedStorage.Contains("Source Client Secret Key", DataScope::Company) then
+                IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company);
         Clear("Source Client Secret Key");
 
         if DisableSynchronization then begin
@@ -246,7 +248,8 @@ table 7230 "Master Data Management Setup"
         NewSecretKey: Guid;
     begin
         if not IsNullGuid(SecretKey) then
-            if not IsolatedStorage.Delete(SecretKey, DataScope::Company) then;
+            if IsolatedStorage.Contains(SecretKey, DataScope::Company) then
+                IsolatedStorage.Delete(SecretKey, DataScope::Company);
 
         NewSecretKey := CreateGuid();
         if EncryptionEnabled() then
