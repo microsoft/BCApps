@@ -108,7 +108,8 @@ codeunit 144586 "Ext. SP ResourcePath Test"
         Initialize(Account);
         Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::"Decoded Path";
         BaseFolder := '/sites/test/Reports #50%/Literal%20Folder';
-        Account."Base Relative Folder Path" := BaseFolder;
+        Assert.IsTrue(StrLen(BaseFolder) <= MaxStrLen(Account."Base Relative Folder Path"), 'The complete special-character fixture must fit the account base folder without truncation');
+        Account."Base Relative Folder Path" := CopyStr(BaseFolder, 1, MaxStrLen(Account."Base Relative Folder Path"));
         Account.Modify();
         FileName := 'Invoice #50%23.pdf';
         SharePointTestLibrary.SetResourcePathFileName(FileName);
