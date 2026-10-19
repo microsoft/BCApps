@@ -6,7 +6,8 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000140 "SII Finance Manager RC" extends "Finance Manager Role Center"
+#pragma warning disable AS0088
+pageextension 7000040 "SII Finance Manager RC" extends "Finance Manager Role Center"
 {
     actions
     {
