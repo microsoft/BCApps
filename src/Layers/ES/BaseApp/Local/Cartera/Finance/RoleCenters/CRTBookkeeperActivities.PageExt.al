@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-pageextension 7000009 "CRT Bookkeeper Activities" extends "Bookkeeper Activities"
+pageextension 10709 "CRT Bookkeeper Activities" extends "Bookkeeper Activities"
 {
     layout
     {

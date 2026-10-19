@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
-pageextension 7000011 "CRT Customer Ledger Entries" extends "Customer Ledger Entries"
+pageextension 10701 "CRT Customer Ledger Entries" extends "Customer Ledger Entries"
 {
     layout
     {
