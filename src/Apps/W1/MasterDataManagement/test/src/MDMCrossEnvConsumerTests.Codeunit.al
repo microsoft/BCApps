@@ -505,6 +505,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
     procedure EnvironmentCopyClearsSourceSecretAndDisablesCrossEnvSync()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -528,7 +529,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
         ConnectionDetails.ActionNext.Invoke();
         ConnectionDetails.ActionNext.Invoke();
-        ConnectionDetails.ActionFinish.Invoke();
+        ConnectionDetails.ActionFinish.Invoke(); // declines "enable now" (ConfirmHandlerNo); enabled directly below
 
         // [GIVEN] synchronization is enabled
         MasterDataManagementSetup.Get();
