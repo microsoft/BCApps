@@ -7152,6 +7152,194 @@ codeunit 148302 "Expense Report Posting Test"
         Assert.RecordCount(PostedExpenseReportHeader, 1);
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure ExpenseReportIsPostedWhenRefundableIsFalseAndTypeIsEmployeePaidWithoutLedgerEntries()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Verify that a non-refundable Employee Paid expense is posted without G/L and Expense Ledger Entries.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Generate Random Amount.
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create and Release Expense with Payment Method.
+        CreateAndReleaseExpenseWithPaymentMethod(
+            Expense, ExpenseUser, ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid", false, '', 0, Amount);
+
+        // [GIVEN] Create Expense Report and Attach Expense.
+        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+
+        // [WHEN] Release and Post Expense Report.
+        ReleaseAndPostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Verify that the Posted Expense Report Line retains the non-refundable amount without reimbursement.
+        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
+        FindPostedExpenseReportLine(PostedExpenseReportLine, Expense);
+        Assert.AreEqual(
+            Amount, PostedExpenseReportLine.Amount,
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption(Amount), Amount, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            false, PostedExpenseReportLine.Refundable,
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption(Refundable), false, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0, PostedExpenseReportLine."Reimbursable Amount",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Reimbursable Amount"), 0, PostedExpenseReportLine.TableCaption()));
+
+        // [THEN] Verify that the Expense is linked to the Posted Expense Report.
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(
+            PostedExpenseReportHeader."No.", Expense."Posted Expense Report No.",
+            StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Posted Expense Report No."), PostedExpenseReportHeader."No.", Expense.TableCaption()));
+
+        // [THEN] Verify that no G/L, Employee, Expense or Job Ledger Entries are created.
+        VerifyRecordCountOfGLEntry(PostedExpenseReportHeader, 0);
+        VerifyRecordCountOfEmployeeLedgerEntry(PostedExpenseReportHeader."No.", 0);
+        VerifyRecordCountOfExpenseAndJobLedgerEntry(PostedExpenseReportHeader, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure ExpenseReportIsPostedWithLedgerEntriesOnlyForRefundableEmployeePaidLine()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        ExpenseLedgerEntry: Record "Expense Ledger Entry";
+        RefundableLineNo: Integer;
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Verify that a mixed Employee Paid report creates ledger entries only for its refundable line.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Generate Random Amount.
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create and Release Expense with Payment Method.
+        CreateAndReleaseExpenseWithPaymentMethod(
+            Expense, ExpenseUser, ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid", false, '', 0, Amount);
+
+        // [GIVEN] Create Expense Report and Attach Expense.
+        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+
+        // [GIVEN] Create a refundable Employee Paid Expense Report Line.
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", Expense."Expense Category", ExpensePaymentMethod.Code, true, '', Amount);
+        ExpenseReportLine.Validate("VAT Bus. Posting Group", Expense."VAT Bus. Posting Group");
+        ExpenseReportLine.Validate("VAT Prod. Posting Group", Expense."VAT Prod. Posting Group");
+        ExpenseReportLine.Modify();
+        RefundableLineNo := ExpenseReportLine."Line No.";
+
+        // [GIVEN] Create a non-refundable Employee Paid line after the refundable line.
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", Expense."Expense Category", ExpensePaymentMethod.Code, false, '', Amount);
+
+        // [WHEN] Release and Post Expense Report.
+        ReleaseAndPostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Verify that all Posted Expense Report Lines are created.
+        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        Assert.RecordCount(PostedExpenseReportLine, 3);
+        PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", RefundableLineNo);
+        Assert.AreEqual(
+            Amount, PostedExpenseReportLine."Reimbursable Amount",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Reimbursable Amount"), Amount, PostedExpenseReportLine.TableCaption()));
+
+        // [THEN] Verify that ledger entries are created only for the refundable line.
+        VerifyRecordCountOfGLEntry(PostedExpenseReportHeader, 2);
+        VerifyRecordCountOfEmployeeLedgerEntry(PostedExpenseReportHeader."No.", 1);
+        VerifyRecordCountOfExpenseAndJobLedgerEntry(PostedExpenseReportHeader, 0, 1);
+        ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        ExpenseLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            RefundableLineNo, ExpenseLedgerEntry."Document Line No.",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseLedgerEntry.FieldCaption("Document Line No."), RefundableLineNo, ExpenseLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ExpenseReportIsPostedWithDirectNonRefundableEmployeePaidLineInFCYWithoutLedgerEntries()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        CurrencyCode: Code[10];
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Verify that a directly entered non-refundable Employee Paid line in FCY posts without ledger entries.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Create Currency with Exchange Rate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Create Expense User.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+
+        // [GIVEN] Create Expense Category.
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, "Expense Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+
+        // [GIVEN] Update Expense Account in Employee Posting Group.
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+
+        // [GIVEN] Find Expense Payment Method and generate Random Amount.
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid");
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create Expense Report with a directly entered non-refundable Employee Paid line.
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", CurrencyCode, '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, false, CurrencyCode, Amount);
+
+        // [WHEN] Release and Post Expense Report.
+        ReleaseAndPostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Verify that the Posted Expense Report Line is created without an attached Expense or reimbursement.
+        FindPostedExpenseReport(PostedExpenseReportHeader, ExpenseUser);
+        PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(
+            '', PostedExpenseReportLine."Expense No.",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Expense No."), '', PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            Amount, PostedExpenseReportLine.Amount,
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption(Amount), Amount, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0, PostedExpenseReportLine."Reimbursable Amount (LCY)",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Reimbursable Amount (LCY)"), 0, PostedExpenseReportLine.TableCaption()));
+
+        // [THEN] Verify that no G/L, Employee, Expense or Job Ledger Entries are created.
+        VerifyRecordCountOfGLEntry(PostedExpenseReportHeader, 0);
+        VerifyRecordCountOfEmployeeLedgerEntry(PostedExpenseReportHeader."No.", 0);
+        VerifyRecordCountOfExpenseAndJobLedgerEntry(PostedExpenseReportHeader, 0, 0);
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
