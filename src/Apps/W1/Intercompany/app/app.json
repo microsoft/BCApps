@@ -9,6 +9,7 @@
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/en-us/dynamics365/business-central/intercompany-manage",
   "dependencies": [
     {
       "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
@@ -18,6 +19,7 @@
     }
   ],
   "screenshots": [],
+  "logo": "ExtensionLogo.png",
   "platform": "30.0.0.0",
   "idRanges": [
     {
