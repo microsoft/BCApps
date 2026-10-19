@@ -76,7 +76,10 @@ page 7076 "Expense Agent Status"
                 var
                     ExpenseAgentSetup: Record "Expense Agent Setup";
                     EAAgentScheduler: Codeunit "EA Agent Scheduler";
+                    EAHttpClient: Codeunit "EA Http Client";
                 begin
+                    if EAHttpClient.IsCurrentUserGuestUser() then
+                        Error(GuestUserErr);
                     ExpenseAgentSetup.Get();
                     if not ExpenseAgentSetup."Enable Agent" then
                         Error(AgentNotEnabledErr);
@@ -93,7 +96,10 @@ page 7076 "Expense Agent Status"
                 trigger OnAction()
                 var
                     EAAgentScheduler: Codeunit "EA Agent Scheduler";
+                    EAHttpClient: Codeunit "EA Http Client";
                 begin
+                    if EAHttpClient.IsCurrentUserGuestUser() then
+                        Error(GuestUserErr);
                     EAAgentScheduler.RemoveAgentTasks();
                     RefreshTempTable();
                 end;
@@ -119,6 +125,7 @@ page 7076 "Expense Agent Status"
         TaskIsPausedTxt: Label 'Task is paused';
         TaskScheduledToRunAtTxt: Label 'Task will run after %1', Comment = '%1 is a time';
         AgentNotEnabledErr: Label 'The Expense Agent is not enabled.';
+        GuestUserErr: Label 'You cannot stop or schedule Expense Agent tasks. Guest users and external administrators have currently limited access to the Expense Agent.';
 
     local procedure RefreshTempTable()
     var

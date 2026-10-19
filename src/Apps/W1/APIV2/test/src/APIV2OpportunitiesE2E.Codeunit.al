@@ -4,6 +4,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -32,6 +33,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         ResponseText: Text;
         OpportunityId: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an opportunity and use a GET method to retrieve them
         // [GIVEN] An opportunity
         ContactNo := LibraryMarketing.CreateCompanyContactNo();
@@ -61,6 +64,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an opportunity through a POST method and check if it was created
         // [GIVEN] a JSON text with an Opportunity only with a Description property
         OpportunityJSON := CreateMinimalOpportunityJSON(OpportunityDescription);
@@ -86,6 +91,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an opportunity through a POST method and check if it was created
         // [GIVEN] a JSON text with an Opportunity only with a contact no
         ContactNo := LibraryMarketing.CreateCompanyContactNo();
@@ -126,6 +133,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an opportunity through a POST method
         // [GIVEN] a JSON text with an Opportunity only with a contact number that does not exist
         ContactNo := 'wrongContNo';
@@ -147,6 +156,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an opportunity through a POST method
         // [GIVEN] a JSON text with an Opportunity only with a salesperson number that does not exist
         SalespersonNo := 'wrongSPNo';
@@ -170,6 +181,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         ResponseText: Text;
         OpportunityId: Guid;
     begin
+        Initialize();
+
         // [SCENARIO] Use a PATCH method to change the description of an opportunity
         // [GIVEN] An opportunity
         ContactNo := LibraryMarketing.CreateCompanyContactNo();
@@ -200,6 +213,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         ResponseText: Text;
         OpportunityId: Guid;
     begin
+        Initialize();
+
         // [SCENARIO] Use a PATCH method to change the contact no of a Won opportunity
         // [GIVEN] An won opportunity
         CompanyContactNo := LibraryMarketing.CreateCompanyContactNo();
@@ -229,6 +244,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         ResponseText: Text;
         OpportunityId: Guid;
     begin
+        Initialize();
+
         // [SCENARIO] Use a PATCH method to change the salesperson code of a Won opportunity
         // [GIVEN] An won opportunity
         SalesPersonCode := CreateSalesperson(SalespersonPurchaser);
@@ -257,6 +274,8 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         ResponseText: Text;
         OpportunityId: Guid;
     begin
+        Initialize();
+
         // [SCENARIO] Use a PATCH method to change the contact no of an opportunity in progress to a contact of a different company
         // [GIVEN] An won opportunity
         CompanyContactNo1 := LibraryMarketing.CreateCompanyContactNo();
@@ -408,5 +427,10 @@ codeunit 139855 "APIV2 - Opportunities E2E"
         Assert.AreEqual(ExpectedDesc, DescriptionValue, 'Description does not match');
         Opportunity.SetRange(Description, DescriptionValue);
         Assert.IsFalse(Opportunity.IsEmpty(), 'Opportunity does not exist');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }
