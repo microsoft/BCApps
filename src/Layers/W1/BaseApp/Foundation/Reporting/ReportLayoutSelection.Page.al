@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
+using Microsoft.Shared.Report;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
@@ -557,6 +558,9 @@ page 9652 "Report Layout Selection"
 
     local procedure ShowResolvedLayoutParts()
     var
+        DefaultReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        LayoutKey: Text;
         HeaderDisplay: Text;
         HeaderSource: Text;
         ThemeDisplay: Text;
@@ -565,9 +569,15 @@ page 9652 "Report Layout Selection"
         if Rec."Report ID" = 0 then
             Error(SelectReportFirstErr);
 
-        // Walk the same Tenant Report Layout Cfg precedence the platform uses at render time, so the message reflects
-        // the parts that will actually apply — including report, company and global defaults — not only a layout-level row.
-        LookupHelper.GetResolvedPartDisplays(Rec."Report ID", '', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        ReportLayoutsImpl.SetSelectedCompany(SelectedCompany);
+        if ReportLayoutsImpl.GetDefaultReportLayoutSelection(Rec."Report ID", DefaultReportLayoutList) then
+            LayoutKey := LookupHelper.CompositeLayoutKey(DefaultReportLayoutList);
+
+        if LayoutKey <> '' then
+            LookupHelper.GetResolvedPartDisplays(Rec."Report ID", LayoutKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource)
+        else
+            LookupHelper.GetReportLevelPartDisplays(Rec."Report ID", HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+
         Message(ShowLayoutPartsMsg, FormatPartDisplay(HeaderDisplay, HeaderSource), FormatPartDisplay(ThemeDisplay, ThemeSource));
     end;
 

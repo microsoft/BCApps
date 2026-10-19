@@ -38,7 +38,7 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 11551,
@@ -51,7 +51,7 @@
     "includeSourceInSymbolFile": true
   },
   "application": "30.0.0.0",
-  "target": "OnPrem",
+  "target": "Cloud",
   "features": [
     "TranslationFile"
   ]

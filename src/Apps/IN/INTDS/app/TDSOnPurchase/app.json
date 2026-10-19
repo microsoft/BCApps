@@ -15,7 +15,7 @@
     "GenerateCaptions"
   ],
   "application": "30.0.0.0",
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "dependencies": [
     {
       "id": "c1eafb3f-e397-468e-bdb4-ecc5c317ca00",

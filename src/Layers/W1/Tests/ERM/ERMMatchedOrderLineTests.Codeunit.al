@@ -13,6 +13,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryDimension: Codeunit "Library - Dimension";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -4680,6 +4681,162 @@ codeunit 134468 "ERM Matched Order Line Tests"
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
         MatchedOrderLine.FindFirst();
         Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'Match should use the order line receipt-on-invoice setting');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('PurchaseOrderLinesLookupHandler')]
+    procedure GetOrderLinesCopiesDimensionsToInvoiceLine()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        DimensionValue: Record "Dimension Value";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        Quantity: Decimal;
+        DimSetID: Integer;
+    begin
+        // [FEATURE] [Dimension]
+        // [SCENARIO 643374] "Get Order Lines" on a purchase invoice copies the order line dimensions to the created invoice line.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] A received purchase order whose line has a specific dimension set
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        DimSetID := LibraryDimension.CreateDimSet(PurchaseLineOrder."Dimension Set ID", DimensionValue."Dimension Code", DimensionValue.Code);
+        PurchaseLineOrder.Validate("Dimension Set ID", DimSetID);
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [GIVEN] A purchase invoice for the same vendor with no lines
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+
+        // [WHEN] Running "Get Order Lines" and selecting the order line
+        LibraryVariableStorage.Enqueue(PurchaseHeaderOrder."No.");
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoicePage.PurchLines.GetOrderLines.Invoke();
+        PurchaseInvoicePage.Close();
+
+        // [THEN] The created invoice line inherits the order line dimension set
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetRange(Type, PurchaseLineInvoice.Type::Item);
+        PurchaseLineInvoice.FindFirst();
+        Assert.AreNotEqual(0, DimSetID, 'Order line should have a non-default dimension set');
+        Assert.AreEqual(DimSetID, PurchaseLineInvoice."Dimension Set ID", 'Invoice line should inherit the order line dimension set');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MatchingRejectedForInvoiceLineCreatedByGetReceiptLines()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] An invoice line created by Get Receipt Lines cannot be opened for order matching.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] A received purchase order
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
+        PurchRcptLine.FindFirst();
+
+        // [GIVEN] A purchase invoice line created via Get Receipt Lines (has a Receipt No.)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        PurchGetReceipt.SetPurchHeader(PurchaseHeaderInvoice);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetFilter("Receipt No.", '<>%1', '');
+        PurchaseLineInvoice.FindFirst();
+
+        // [WHEN] Opening order matching for that invoice line
+        asserterror MatchedOrderLineMgmt.CheckLineCanBeMatched(PurchaseLineInvoice);
+
+        // [THEN] It is rejected because the combination is not supported
+        Assert.ExpectedError('created with the Get Receipt Lines function');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetOrderLinesRejectedForInvoiceLineCreatedByGetReceiptLines()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        TempDetailedMatchedOrderLine: Record "Detailed Matched Order Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] Get Order Lines cannot match order lines to an invoice line created by Get Receipt Lines, even when opened from the header.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] A received purchase order
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
+        PurchRcptLine.FindFirst();
+
+        // [GIVEN] A purchase invoice line created via Get Receipt Lines (has a Receipt No.)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        PurchGetReceipt.SetPurchHeader(PurchaseHeaderInvoice);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetFilter("Receipt No.", '<>%1', '');
+        PurchaseLineInvoice.FindFirst();
+
+        TempDetailedMatchedOrderLine.Init();
+        TempDetailedMatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+
+        // [WHEN] Getting order lines for that invoice line
+        asserterror MatchedOrderLineMgmt.GetOrderLines("Matched Order Line Source"::"Purchase Invoice", TempDetailedMatchedOrderLine);
+
+        // [THEN] It is rejected because the combination is not supported
+        Assert.ExpectedError('created with the Get Receipt Lines function');
     end;
 
     // ============================================================================

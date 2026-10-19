@@ -144,7 +144,7 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         Assert.AreEqual(Format("E-Doc. Process Draft"::"Purchase Credit Memo"), Format(EDocument."Process Draft Impl."), 'The draft should be processed as a purchase credit memo.');
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         Assert.AreEqual('ZF-CRM-2001', EDocumentPurchaseHeader."Sales Invoice No.", 'Wrong document number.');
-        Assert.AreEqual('ZF-INV-1001', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'Wrong applies-to external invoice number.');
+        Assert.AreEqual('ZF-INV-1001', EDocumentPurchaseHeader."Vendor Invoice No.", 'Wrong vendor invoice number.');
     end;
 
     [Test]
@@ -249,7 +249,11 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         DocumentAttachment: Record "Document Attachment";
         Currency: Record Currency;
+#if not CLEAN28
+#pragma warning disable AL0432
         EDocumentsSetup: Record "E-Documents Setup";
+#pragma warning restore AL0432
+#endif
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
 
@@ -269,7 +273,9 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"No Integration");
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService.Modify();
+#if not CLEAN28
         EDocumentsSetup.InsertNewExperienceSetup();
+#endif
 
         // Set a currency that can be used across all localizations
         MockCurrencyCode := 'XYZ';

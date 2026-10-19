@@ -82,10 +82,16 @@
       "name": "Retention Policy",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
+    },
+    {
+      "id": "33003b8a-f6d8-4efe-af22-1a8cb8fbacbe",
+      "name": "Retencion Policy Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 134487,

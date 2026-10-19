@@ -44,7 +44,7 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "idRanges": [
     {
@@ -80,7 +80,7 @@
       "to": 148456
     }
   ],
-  "target": "OnPrem",
+  "target": "Cloud",
   "features": [
     "TranslationFile"
   ],

@@ -36,4 +36,16 @@ enum 7412 "Excise Entry Type"
     {
         Caption = 'Assembly Output';
     }
+    value(7; "Transfer Shipment")
+    {
+        Caption = 'Transfer Shipment';
+    }
+    value(8; "Transfer Receipt")
+    {
+        Caption = 'Transfer Receipt';
+    }
+    value(9; Consumption)
+    {
+        Caption = 'Consumption';
+    }
 }

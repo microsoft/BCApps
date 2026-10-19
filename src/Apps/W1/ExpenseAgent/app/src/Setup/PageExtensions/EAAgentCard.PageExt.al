@@ -41,6 +41,6 @@ pageextension 6995 "EA Agent Card" extends "Agent Card"
 
     var
         ExpenseAgentNotificationId: Guid;
-        ExpenseAgentInfoMsg: Label 'Additional options are available in the Setup page.';
-        OpenSetupLbl: Label 'Open Expense Agent Setup';
+        ExpenseAgentInfoMsg: Label 'Use Expense Management Setup to configure general expense and accounting settings. Use Configure to set up the agent.';
+        OpenSetupLbl: Label 'Open Expense Management Setup';
 }

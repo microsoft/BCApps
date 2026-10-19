@@ -128,6 +128,12 @@ table 84 "Acc. Schedule Name"
             FieldClass = FlowField;
             ToolTip = 'Specifies the status code is a blocked status.';
         }
+        field(8; "Preview Column Def."; Code[10])
+        {
+            Caption = 'Column Definition (for Preview)';
+            TableRelation = "Column Layout Name";
+            ToolTip = 'Specifies the column layout used when previewing this row definition.';
+        }
     }
 
     keys
@@ -176,10 +182,14 @@ table 84 "Acc. Schedule Name"
     begin
         AccSchedLine.SetRange("Schedule Name", Name);
         AccSchedLine.DeleteAll();
+
+        ColumnLayoutName.SetRange("Preview Row Def.", Name);
+        ColumnLayoutName.ModifyAll("Preview Row Def.", '');
     end;
 
     var
         AccSchedLine: Record "Acc. Schedule Line";
+        ColumnLayoutName: Record "Column Layout Name";
         AccSchedPrefixTxt: Label 'ROW.DEF.', MaxLength = 10, Comment = 'Part of the name for the confguration package, stands for Row Definition';
         TwoPosTxt: Label '%1%2', Locked = true;
         PackageNameTxt: Label 'Row Definition - %1', MaxLength = 40, Comment = '%1 - Rows definition name';

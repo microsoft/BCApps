@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
+using System.Automation;
 using System.Utilities;
 
 codeunit 31269 "Compensation - Post CZC"
@@ -26,7 +27,6 @@ codeunit 31269 "Compensation - Post CZC"
     begin
         OnBeforePostCompensationCZC(Rec);
         Rec.CheckCompensationPostRestrictions();
-
         if Rec.Status <> Rec.Status::Released then
             Codeunit.Run(Codeunit::"Release Compens. Document CZC", Rec);
 
@@ -86,7 +86,6 @@ codeunit 31269 "Compensation - Post CZC"
                 CompensationManagementCZC.SetAppliesToID(CompensationLineCZC, '');
                 i += 1;
             until CompensationLineCZC.Next() = 0;
-
             if Balance <> 0 then begin
                 Clear(GenJournalLine);
                 GenJournalLine.Validate("Posting Date", Rec."Posting Date");
@@ -111,7 +110,6 @@ codeunit 31269 "Compensation - Post CZC"
                 OnRunOnBeforeRunBalanceGenJnlPostLine(GenJournalLine, CompensationLineCZC);
                 GenJnlPostLine.RunWithCheck(GenJournalLine);
             end;
-
             if PreviewMode then
                 GenJnlPostPreview.ThrowError();
 
@@ -119,6 +117,7 @@ codeunit 31269 "Compensation - Post CZC"
             PostedCompensationHeaderCZC.TransferFields(Rec);
             PostedCompensationHeaderCZC.Insert();
             OnAfterPostedCompensationHeaderInsertCZC(Rec, PostedCompensationHeaderCZC);
+            ApprovalsMgmt.PostApprovalEntries(Rec.RecordId, PostedCompensationHeaderCZC.RecordId, PostedCompensationHeaderCZC."No.");
             RecordLinkManagement.CopyLinks(Rec, PostedCompensationHeaderCZC);
 
             Clear(CompensationLineCZC);
@@ -138,6 +137,7 @@ codeunit 31269 "Compensation - Post CZC"
             CompensationLineCZC.DeleteAll();
             if Rec.HasLinks() then
                 Rec.DeleteLinks();
+            ApprovalsMgmt.DeleteApprovalEntries(Rec.RecordId);
             Rec.Delete();
             WindowDialog.Close();
         end else
@@ -155,6 +155,7 @@ codeunit 31269 "Compensation - Post CZC"
         SourceCodeSetup: Record "Source Code Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         CompensationManagementCZC: Codeunit "Compensation Management CZC";
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         RecordLinkManagement: Codeunit "Record Link Management";

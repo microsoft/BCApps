@@ -1,5 +1,7 @@
 #pragma warning disable AA0247
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 page 1830 "MS - QBO Data Migration"
+#pragma warning restore AS0011
 {
     Caption = 'QuickBooks Online Migration Setup';
     DeleteAllowed = false;

@@ -14,8 +14,10 @@ codeunit 134836 "Test Vendor Lookup"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
+        LibraryPurchase: Codeunit "Library - Purchase";
         isInitialized: Boolean;
         SelectVendErr: Label 'You must select an existing vendor.';
+        PurchaseOrderChangedErr: Label 'Changing the vendor on one purchase order must not change the next order in the filtered view.';
 
     local procedure Initialize()
     var
@@ -89,6 +91,40 @@ codeunit 134836 "Test Vendor Lookup"
 
         // Verify.
         VerifyPurchQuoteAgainstVend(PurchaseQuote, Vend1);
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorLookupPageHandler,ConfirmHandlerYes')]
+    [Scope('OnPrem')]
+    procedure ChangingVendorOnFilteredPurchaseOrderDoesNotChangeNextOrder()
+    var
+        OriginalVendor: Record Vendor;
+        ReplacementVendor: Record Vendor;
+        FirstPurchaseHeader: Record "Purchase Header";
+        NextPurchaseHeader: Record "Purchase Header";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        Initialize();
+        CreateVend(OriginalVendor);
+        CreateVend(ReplacementVendor);
+        LibraryPurchase.CreatePurchHeader(FirstPurchaseHeader, FirstPurchaseHeader."Document Type"::Order, OriginalVendor."No.");
+        LibraryPurchase.CreatePurchHeader(NextPurchaseHeader, NextPurchaseHeader."Document Type"::Order, OriginalVendor."No.");
+
+        // Exercise: Select a replacement vendor on the first order while the card is filtered to the original vendor.
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.FILTER.SetFilter("Buy-from Vendor No.", OriginalVendor."No.");
+        PurchaseOrder.GotoRecord(FirstPurchaseHeader);
+        LibraryVariableStorage.Enqueue(ReplacementVendor."No.");
+        PurchaseOrder."Buy-from Vendor Name".Lookup();
+        PurchaseOrder.Close();
+
+        // Verify: The selected order changes vendor, but the next order remains with its original vendor.
+        FirstPurchaseHeader.Get(FirstPurchaseHeader."Document Type"::Order, FirstPurchaseHeader."No.");
+        NextPurchaseHeader.Get(NextPurchaseHeader."Document Type"::Order, NextPurchaseHeader."No.");
+        Assert.AreEqual(ReplacementVendor."No.", FirstPurchaseHeader."Buy-from Vendor No.", PurchaseOrderChangedErr);
+        Assert.AreEqual(ReplacementVendor."No.", FirstPurchaseHeader."Pay-to Vendor No.", PurchaseOrderChangedErr);
+        Assert.AreEqual(OriginalVendor."No.", NextPurchaseHeader."Buy-from Vendor No.", PurchaseOrderChangedErr);
+        Assert.AreEqual(OriginalVendor."No.", NextPurchaseHeader."Pay-to Vendor No.", PurchaseOrderChangedErr);
     end;
 
     [Test]
@@ -193,6 +229,14 @@ codeunit 134836 "Test Vendor Lookup"
 
     [ModalPageHandler]
     [Scope('OnPrem')]
+    procedure VendorLookupPageHandler(var VendorLookup: TestPage "Vendor Lookup")
+    begin
+        VendorLookup.GotoKey(LibraryVariableStorage.DequeueText());
+        VendorLookup.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
     procedure VendListCancelPageHandler(var VendorList: TestPage "Vendor List")
     begin
         VendorList.Cancel().Invoke();
@@ -217,4 +261,3 @@ codeunit 134836 "Test Vendor Lookup"
         Reply := true;
     end;
 }
-

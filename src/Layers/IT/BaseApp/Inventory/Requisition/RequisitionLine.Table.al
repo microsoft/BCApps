@@ -128,6 +128,8 @@ table 246 "Requisition Line"
                     Type::Item:
                         CopyFromItem();
                 end;
+                if BlockedItemSkipped then
+                    exit;
 
                 OnValidateNoOnAfterAssignFieldsForNo(Rec, xRec);
 
@@ -163,36 +165,7 @@ table 246 "Requisition Line"
 
             trigger OnValidate()
             begin
-                Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
-
-                "Quantity (Base)" :=
-                    UOMMgt.CalcBaseQty(
-                        "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
-                        "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
-                        FieldCaption("Quantity (Base)"));
-
-                if Type = Type::Item then begin
-                    OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
-                    GetDirectCost(FieldNo(Quantity));
-                    SetRemaningQuantity();
-
-                    if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
-                        SetActionMessage();
-
-                    "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
-
-                    OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
-                    Validate("Unit Cost");
-                    if ValidateFields() then
-                        if "Ending Date" <> 0D then
-                            Validate("Ending Time")
-                        else begin
-                            if "Starting Date" = 0D then
-                                "Starting Date" := WorkDate();
-                            Validate("Starting Time");
-                        end;
-                    ReqLineReserve.VerifyQuantity(Rec, xRec);
-                end;
+                ValidateQuantity();
             end;
         }
         field(9; "Vendor No."; Code[20])
@@ -442,12 +415,10 @@ table 246 "Requisition Line"
 
             trigger OnValidate()
             begin
-                "Starting Date" := "Order Date";
-
                 GetDirectCost(FieldNo("Order Date"));
 
                 if CurrFieldNo = FieldNo("Order Date") then
-                    Validate("Starting Date");
+                    Validate("Starting Date", "Order Date");
             end;
         }
         field(22; "Vendor Item No."; Text[50])
@@ -654,13 +625,14 @@ table 246 "Requisition Line"
                     UpdateReplenishmentSystem();
                     if "Variant Code" <> xRec."Variant Code" then begin
                         "Bin Code" := '';
-                        if ("Location Code" <> '') and ("No." <> '') then begin
-                            GetLocation("Location Code");
-                            ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
-                            OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
-                            if ShouldGetDefaultBin then
-                                WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
-                        end;
+                        if ("Location Code" <> '') and ("No." <> '') then
+                            if not IsDropShipment() then begin
+                                GetLocation("Location Code");
+                                ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+                                OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
+                                if ShouldGetDefaultBin then
+                                    WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
+                            end;
                     end;
                     if ItemVend.Get("Vendor No.", "No.", "Variant Code") then
                         "Vendor Item No." := ItemVend."Vendor Item No.";
@@ -1582,6 +1554,8 @@ table 246 "Requisition Line"
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         BlockReservation: Boolean;
         DoNotUpdateOrderReceiptDate: Boolean;
+        SkipBlockedItem: Boolean;
+        BlockedItemSkipped: Boolean;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -1678,6 +1652,8 @@ table 246 "Requisition Line"
               StrSubstNo(Text031, Item.TableCaption(), Item."No."),
               Database::Item, CopyStr(Item.GetPosition(), 1, 250));
         CheckBlockedItem();
+        if BlockedItemSkipped then
+            exit;
         "Low-Level Code" := Item."Low-Level Code";
         "Item Category Code" := Item."Item Category Code";
         "Gen. Prod. Posting Group" := Item."Gen. Prod. Posting Group";
@@ -1706,6 +1682,11 @@ table 246 "Requisition Line"
         OnBeforeCheckBlockedItem(Rec, IsHandled);
         if IsHandled then
             exit;
+
+        if SkipBlockedItem and Item.Blocked then begin
+            BlockedItemSkipped := true;
+            exit;
+        end;
 
         Item.TestField(Blocked, false);
     end;
@@ -2247,6 +2228,48 @@ table 246 "Requisition Line"
         OnAfterValidateFields(Rec, CurrFieldNo, CurrentFieldNo, Result);
     end;
 
+    local procedure ValidateQuantity()
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo, IsHandled);
+        if not IsHandled then begin
+            Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
+
+            "Quantity (Base)" :=
+                UOMMgt.CalcBaseQty(
+                    "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
+                    "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
+                    FieldCaption("Quantity (Base)"));
+
+            if Type = Type::Item then begin
+                OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
+                GetDirectCost(FieldNo(Quantity));
+                SetRemaningQuantity();
+
+                if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
+                    SetActionMessage();
+
+                "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
+
+                OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
+                Validate("Unit Cost");
+                if ValidateFields() then
+                    if "Ending Date" <> 0D then
+                        Validate("Ending Time")
+                    else begin
+                        if "Starting Date" = 0D then
+                            "Starting Date" := WorkDate();
+                        Validate("Starting Time");
+                    end;
+                ReqLineReserve.VerifyQuantity(Rec, xRec);
+            end;
+        end;
+
+        OnAfterValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo);
+    end;
+
     /// <summary>
     /// Prepares and transfers relevant field values from provided purchase line to the current requisition line.
     /// </summary>
@@ -2736,7 +2759,7 @@ table 246 "Requisition Line"
     /// </summary>
     /// <param name="LeadTime">Provided lead time formula.</param>
     /// <remarks>In case 'LeadTime' is empty, lead time code will be defined according to the reference order type. 
-    /// 'Order Date' of the current requisition line will be set to newly calculated 'Starting Date'. </remarks>
+    /// 'Order Date' of the current requisition line will be updated. </remarks>
     procedure CalcStartingDate(LeadTime: Code[20])
     var
         IsHandled: Boolean;
@@ -2779,7 +2802,11 @@ table 246 "Requisition Line"
         IsHandled := false;
         OnCalcStartingDateOnBeforeValidateOrderDate(Rec, LeadTime, IsHandled);
         if not IsHandled then
-            Validate("Order Date", "Starting Date");
+            // Don't use order date in the past for price calculation
+            if "Starting Date" >= WorkDate() then
+                Validate("Order Date", "Starting Date")
+            else
+                Validate("Order Date", WorkDate());
 
         if "Ref. Order Type" = "Ref. Order Type"::Transfer then
             CalcTransferShipmentDate();
@@ -2848,7 +2875,10 @@ table 246 "Requisition Line"
         "No." := UnplannedDemand."Item No.";
         "Location Code" := UnplannedDemand."Location Code";
         "Bin Code" := UnplannedDemand."Bin Code";
+        "Drop Shipment" := UnplannedDemand."Drop Shipment";
         Validate("No.");
+        if BlockedItemSkipped then
+            exit;
         Validate("Variant Code", UnplannedDemand."Variant Code");
         UpdateDescription();
         "Unit Of Measure Code (Demand)" := UnplannedDemand."Unit of Measure Code";
@@ -2866,13 +2896,31 @@ table 246 "Requisition Line"
         Level := 1;
         "Action Message" := ReqLine."Action Message"::New;
         "User ID" := CopyStr(UserId(), 1, MaxStrLen("User ID"));
-        "Drop Shipment" := UnplannedDemand."Drop Shipment";
 
         UpdateSalesOrderDetailForDropShipment();
 
         UpdateDim();
 
         OnAfterTransferFromUnplannedDemand(Rec, UnplannedDemand);
+    end;
+
+    /// <summary>
+    /// Populates the current requisition line from the provided unplanned demand, unless the demanded item is blocked.
+    /// The blocked item check runs at its regular place during validation of the 'No.' field, including the OnBeforeCheckBlockedItem event.
+    /// </summary>
+    /// <param name="UnplannedDemand">Source unplanned demand record.</param>
+    /// <returns>False if the demand was skipped because the item is blocked; otherwise, true.</returns>
+    internal procedure TransferFromUnplannedDemandSkipBlockedItem(var UnplannedDemand: Record "Unplanned Demand"): Boolean
+    var
+        ItemSkipped: Boolean;
+    begin
+        SkipBlockedItem := true;
+        BlockedItemSkipped := false;
+        TransferFromUnplannedDemand(UnplannedDemand);
+        ItemSkipped := BlockedItemSkipped;
+        SkipBlockedItem := false;
+        BlockedItemSkipped := false;
+        exit(not ItemSkipped);
     end;
 
     local procedure InitRecordForOrderPlanning()
@@ -2898,7 +2946,11 @@ table 246 "Requisition Line"
     begin
         "Demand Date" := DemandDate;
         "Starting Date" := "Demand Date";
-        "Order Date" := "Demand Date";
+        // Don't use order date in the past for price calculation
+        if DemandDate >= WorkDate() then
+            "Order Date" := "Demand Date"
+        else
+            "Order Date" := WorkDate();
         Validate("Due Date", "Demand Date");
 
         if "Planning Level" = 0 then begin
@@ -3131,6 +3183,8 @@ table 246 "Requisition Line"
             GetLocation("Location Code");
             OnSetFromBinCodeOnSetBinCode(Rec, Location);
             ShouldGetDefaultBin := ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+            if ShouldGetDefaultBin then
+                ShouldGetDefaultBin := not IsDropShipment();
             OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
             if ShouldGetDefaultBin then
                 WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
@@ -3670,6 +3724,11 @@ table 246 "Requisition Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateQuantity(var RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer; GlobalCurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var RequisitionLine: Record "Requisition Line"; xRequisitionLine: Record "Requisition Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
@@ -3761,6 +3820,11 @@ table 246 "Requisition Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOrderReceiptDate(var RequisitionLine: Record "Requisition Line"; LeadTimeCalc: DateFormula; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateQuantity(var RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer; GlobalCurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
