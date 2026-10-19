@@ -1061,12 +1061,12 @@ table 6900 Expense
         DeleteExpensePerDiem();
 
         if KeepItemization then
-            BlankItemizationSubcategory()
+            ClearItemizationSubcategory()
         else
             DeleteExpenseItemization();
     end;
 
-    local procedure BlankItemizationSubcategory()
+    local procedure ClearItemizationSubcategory()
     var
         ExpenseItemization: Record "Expense Itemization";
     begin
