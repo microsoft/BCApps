@@ -140,7 +140,9 @@ app.json @microsoft/d365-bc-app-required
 
 # Required-reviewer repository rules gate these paths. Ownerless entries appear
 # last to prevent an additional CODEOWNERS approval from earlier patterns.
+# Both casings are listed because CODEOWNERS matching is case sensitive.
 Upgrade/
+upgrade/
 dotnet*.al
 .AL-Go/
 *.ps1
