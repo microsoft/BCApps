@@ -117,8 +117,9 @@ codeunit 144586 "Ext. SP ResourcePath Test"
         ContentOutStream.WriteText('content');
         TempBlob.CreateInStream(Stream);
 
+        // SplitPath and GetParentPath retain the parent separator, unlike listing the configured folder.
         Connector.CreateFile(Account.Id, FileName, Stream);
-        AssertDecodedRequestPath(BaseFolder);
+        AssertDecodedRequestPath(BaseFolder + '/');
         Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('/Files/AddUsingPath(decodedurl='), 'Upload must use AddUsingPath');
         Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('Invoice%20%2350%2523.pdf'), 'Upload must not decode the filename');
 
@@ -128,9 +129,9 @@ codeunit 144586 "Ext. SP ResourcePath Test"
         AssertDecodedRequestPath(BaseFolder + '/' + FileName);
 
         Assert.IsTrue(Connector.FileExists(Account.Id, FileName), 'FileExists must match the literal special-character filename');
-        AssertDecodedRequestPath(BaseFolder);
+        AssertDecodedRequestPath(BaseFolder + '/');
         Assert.IsFalse(Connector.FileExists(Account.Id, 'document.pdf'), 'FileExists must not match a different filename');
-        AssertDecodedRequestPath(BaseFolder);
+        AssertDecodedRequestPath(BaseFolder + '/');
 
         Connector.ListFiles(Account.Id, '', Pagination, TempContent);
         Assert.RecordCount(TempContent, 1);
@@ -140,7 +141,7 @@ codeunit 144586 "Ext. SP ResourcePath Test"
         Connector.CopyFile(Account.Id, FileName, 'Copy #50%23.pdf');
         Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('/Files/AddUsingPath(decodedurl='), 'Copy must finish by creating the target, not deleting the source');
         Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('Copy%20%2350%2523.pdf'), 'Copy must preserve the target filename');
-        AssertDecodedRequestPath(BaseFolder);
+        AssertDecodedRequestPath(BaseFolder + '/');
         Assert.IsTrue(SharePointTestLibrary.GetLastDownloadRequestUri().Contains('Invoice%20%2350%2523.pdf'), 'Copy must download the literal source filename');
         Assert.AreEqual('', SharePointTestLibrary.GetLastDeleteRequestUri(), 'Copy must not delete the source');
 
