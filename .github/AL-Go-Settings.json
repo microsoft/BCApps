@@ -59,6 +59,67 @@
     },
     {
       "projects": [
+        "build/projects/Test Apps *"
+      ],
+      "buildModes": [
+        "IntegrationTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "enabled": true,
+          "testType": "IntegrationTest",
+          "codeCoverageEnabled": true,
+          "codeCoverageFormats": [
+            "bc-json",
+            "cobertura"
+          ],
+          "codeCoverageSummary": "both"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps *"
+      ],
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "enabled": true,
+          "testType": "Uncategorized",
+          "codeCoverageEnabled": true,
+          "codeCoverageFormats": [
+            "bc-json",
+            "cobertura"
+          ],
+          "codeCoverageSummary": "both"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps *"
+      ],
+      "buildModes": [
+        "LegacyTestsBucket1",
+        "LegacyTestsBucket2"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "enabled": true,
+          "testType": "Legacy",
+          "codeCoverageEnabled": false,
+          "codeCoverageFormats": [
+            "bc-json",
+            "cobertura"
+          ],
+          "codeCoverageSummary": "both"
+        }
+      }
+    },
+    {
+      "projects": [
         "."
       ],
       "settings": {

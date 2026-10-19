@@ -123,6 +123,14 @@ Used in `RunTestsInBcContainer.ps1`, after retries are exhausted. Behavior: *all
 
 The artifact download (`Receive-UnstableTestsArtifact`) is deferred until tests have actually failed, avoiding unnecessary API calls on green builds.
 
+#### Separate RunTests action compatibility
+
+BCApps enables AL-Go's separate `RunTests` action for every existing test-project build mode. The `RunTestsInBcContainer` project override remains required because it preserves the exact legacy bucket lists, excludes legacy apps from the IntegrationTest and Uncategorized lanes, dispatches apps across the configured tenants, and retains clean-tenant execution for codeunits that require disabled test isolation.
+
+The separate action supplies its nested `useSeparateTestAction.testType` to the override. BCApps validates that value against the existing build-mode `testType` before dispatch, defaults the action's omitted tenant to `default`, and then follows the existing flow through `Invoke-PerProjectTestRun`, `Get-AppNamesForBucket`, `Invoke-ParallelTestExecution`, and `RunTestsInBcContainer.ps1`. This keeps the pull-request app rerun budget and the tolerance check unchanged.
+
+AL-Go's coverage branch does not collect coverage when a `RunTestsInBcContainer` override is present. IntegrationTest and Uncategorized request coverage so the action records the supported warning and continues without coverage; Legacy coverage is disabled because the built-in AlTool runner does not support that lane. The repository artifact setting is intentionally unchanged.
+
 ### 6.4 How the build interprets unstable tests
 
 Tests run normally; the build does not skip anything based on the artifact.

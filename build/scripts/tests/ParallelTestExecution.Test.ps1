@@ -199,6 +199,145 @@ Describe "ParallelTestExecution app-name resolution" {
     }
 }
 
+Describe "Separate RunTests action override contract" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    BeforeEach {
+        $script:savedSettings = $env:settings
+        $env:settings = @'
+{
+  "testType": "IntegrationTest",
+  "useSeparateTestAction": {
+    "enabled": true,
+    "testType": "IntegrationTest",
+    "codeCoverageEnabled": true
+  }
+}
+'@
+    }
+
+    AfterEach {
+        $env:settings = $script:savedSettings
+    }
+
+    It "uses the test type supplied by the separate action when it matches the bucket" {
+        InModuleScope ParallelTestExecution {
+            Resolve-TestTypeForRun -Parameters @{ testType = "IntegrationTest" } | Should -Be "IntegrationTest"
+        }
+    }
+
+    It "uses the merged bucket setting for the Run-AlPipeline compatibility path" {
+        InModuleScope ParallelTestExecution {
+            Resolve-TestTypeForRun -Parameters @{} | Should -Be "IntegrationTest"
+        }
+    }
+
+    It "fails before dispatch when the action and bucket test types differ" {
+        InModuleScope ParallelTestExecution {
+            {
+                Resolve-TestTypeForRun -Parameters @{ testType = "Uncategorized" }
+            } | Should -Throw "*supplied testType 'Uncategorized'*configured as 'IntegrationTest'*"
+        }
+    }
+
+    It "defaults the omitted separate-action tenant to default" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{}
+            Initialize-TestActionParameters -Parameters $parameters
+            $parameters.tenant | Should -Be "default"
+        }
+    }
+
+    It "preserves an explicitly supplied tenant" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{ tenant = "tenant2" }
+            Initialize-TestActionParameters -Parameters $parameters
+            $parameters.tenant | Should -Be "tenant2"
+        }
+    }
+}
+
+Describe "Separate RunTests action bucket configuration" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+        $script:configurationRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        $script:repoSettings = Get-Content (Join-Path $script:configurationRepoRoot '.github\AL-Go-Settings.json') -Raw |
+            ConvertFrom-Json
+        $script:testConfiguration = Get-Content (Join-Path $script:configurationRepoRoot 'build\scripts\TestConfiguration.json') -Raw |
+            ConvertFrom-Json
+        $script:testProjects = @(Get-ChildItem (Join-Path $script:configurationRepoRoot 'build\projects') -Directory -Filter 'Test Apps *')
+        $script:expectedCoverage = @{
+            IntegrationTests = $true
+            UncategorizedTests = $true
+            LegacyTestsBucket1 = $false
+            LegacyTestsBucket2 = $false
+        }
+    }
+
+    It "maps every existing test-project build mode to exactly one separate-action rule" {
+        $script:testProjects.Count | Should -BeGreaterThan 0
+
+        foreach ($project in $script:testProjects) {
+            $projectSettings = Get-Content (Join-Path $project.FullName '.AL-Go\settings.json') -Raw | ConvertFrom-Json
+            $projectPath = "build/projects/$($project.Name)"
+
+            foreach ($buildMode in @($projectSettings.buildModes)) {
+                $rules = @($script:repoSettings.conditionalSettings | Where-Object {
+                    @($_.projects | Where-Object { $projectPath -like $_ }).Count -gt 0 -and
+                    @($_.buildModes) -contains $buildMode -and
+                    $_.settings.PSObject.Properties.Name -contains 'useSeparateTestAction'
+                })
+                $rules.Count | Should -Be 1
+
+                $bucketRule = @($projectSettings.ConditionalSettings | Where-Object {
+                    @($_.buildModes) -contains $buildMode
+                })
+                $bucketRule.Count | Should -Be 1
+
+                $separateSettings = $rules[0].settings.useSeparateTestAction
+                $separateSettings.enabled | Should -BeTrue
+                $separateSettings.testType | Should -Be $bucketRule[0].settings.testType
+                $separateSettings.codeCoverageEnabled | Should -Be $script:expectedCoverage[$buildMode]
+            }
+        }
+    }
+
+    It "keeps the BC artifact selection unchanged" {
+        $script:repoSettings.artifact | Should -Be "bcinsider/Sandbox/30.0.56342.0//latest"
+    }
+
+    It "preserves each legacy bucket's configured membership and order" {
+        InModuleScope ParallelTestExecution -Parameters @{ Configuration = $script:testConfiguration } {
+            $installed = @($Configuration."LegacyTests-Bucket2") +
+                @("Modern Tests") +
+                @($Configuration."LegacyTests-Bucket1")
+
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "Legacy" -BucketNumber 1) |
+                Should -Be @($Configuration."LegacyTests-Bucket1")
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "Legacy" -BucketNumber 2) |
+                Should -Be @($Configuration."LegacyTests-Bucket2")
+        }
+    }
+
+    It "keeps legacy apps out of the IntegrationTest and Uncategorized lanes" {
+        InModuleScope ParallelTestExecution -Parameters @{ Configuration = $script:testConfiguration } {
+            $installed = @(
+                $Configuration."LegacyTests-Bucket1"[0]
+                "Modern Tests A"
+                $Configuration."LegacyTests-Bucket2"[0]
+                "Modern Tests B"
+            )
+
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "IntegrationTest") |
+                Should -Be @("Modern Tests A", "Modern Tests B")
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "Uncategorized") |
+                Should -Be @("Modern Tests A", "Modern Tests B")
+        }
+    }
+}
+
 Describe "ParallelTestExecution background-task profile" {
     BeforeAll {
         $script:profileRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path

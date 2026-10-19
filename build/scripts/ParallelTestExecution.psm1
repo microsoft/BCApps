@@ -1528,17 +1528,58 @@ function Invoke-ParallelTestExecution {
     }
 }
 
+function Initialize-TestActionParameters {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters
+    )
+
+    if (-not $Parameters.ContainsKey("tenant") -or [string]::IsNullOrWhiteSpace("$($Parameters["tenant"])")) {
+        $Parameters["tenant"] = "default"
+    }
+}
+
+function Resolve-TestTypeForRun {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters
+    )
+
+    $configuredTestType = "$(Get-ALGoSetting -Key "testType")"
+    $actionTestType = if ($Parameters.ContainsKey("testType")) { "$($Parameters["testType"])" } else { "" }
+
+    if (-not [string]::IsNullOrWhiteSpace($actionTestType) -and
+        -not [string]::IsNullOrWhiteSpace($configuredTestType) -and
+        $actionTestType -ne $configuredTestType) {
+        throw "The separate RunTests action supplied testType '$actionTestType', but the BCApps bucket is configured as '$configuredTestType'."
+    }
+
+    $testType = if (-not [string]::IsNullOrWhiteSpace($actionTestType)) {
+        $actionTestType
+    } else {
+        $configuredTestType
+    }
+
+    $supportedTestTypes = @("UnitTest", "IntegrationTest", "Uncategorized", "Legacy")
+    $matchingTestType = @($supportedTestTypes | Where-Object { $_ -eq $testType })
+    if ($matchingTestType.Count -ne 1) {
+        throw "The BCApps test bucket has unsupported or missing testType '$testType'."
+    }
+
+    return $matchingTestType[0]
+}
+
 <#
 .SYNOPSIS
-    Per-project Run-AlPipeline test override: dispatches the project's test apps in parallel
-    across the container's tenants and caches the result for subsequent override invocations.
+    Per-project test override: dispatches the project's test apps in parallel across the
+    container's tenants and caches the result for subsequent override invocations.
 .DESCRIPTION
-    Run-AlPipeline calls the per-project RunTestsInBcContainer.ps1 once per test app. The first
-    call computes the bucket's app list and dispatches them all in parallel; subsequent calls in
-    the same job short-circuit on the cached final result. Returns the cached result if there
-    are no apps to run for the project's testType.
+    Run-AlPipeline and the separate RunTests action call the per-project
+    RunTestsInBcContainer.ps1 once per test app. The first call computes the bucket's app list and
+    dispatches them all in parallel; subsequent calls in the same job short-circuit on the cached
+    final result. Returns the cached result if there are no apps to run for the project's testType.
 .PARAMETER parameters
-    The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
+    The standard AL-Go test parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
     [bool] $true if all dispatched apps passed; $false otherwise.
 #>
@@ -1551,9 +1592,15 @@ function Invoke-PerProjectTestRun {
     $cached = Get-CachedTestRunResult -ContainerName $parameters.containerName
     if ($null -ne $cached) { return $cached }
 
-    $testType = Get-ALGoSetting -Key "testType"
+    Initialize-TestActionParameters -Parameters $parameters
+    $testType = Resolve-TestTypeForRun -Parameters $parameters
     $country = Get-ALGoSetting -Key "country"
     $bucketNumber = if ($testType -eq "Legacy") { Get-ALGoSetting -Key "bucketNumber" } else { 0 }
+
+    $separateTestAction = Get-ALGoSetting -Key "useSeparateTestAction"
+    if ($separateTestAction -and $separateTestAction.enabled -and $separateTestAction.codeCoverageEnabled) {
+        Write-Host "::warning::BCApps uses the RunTestsInBcContainer override to preserve bucket selection, tenant isolation, retries, and test tolerance. The AL-Go coverage branch will continue tests without code coverage for this run."
+    }
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber
