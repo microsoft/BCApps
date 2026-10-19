@@ -31,8 +31,8 @@ codeunit 148156 "Service Commitment Test"
         RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing', Locked = true;
         BillingLineForServiceCommitmentExistErr: Label 'The contract line is in the current billing. Delete the billing line to be able to adjust the Subscription Line start date.', Locked = true;
         BillingLineArchiveForServiceCommitmentExistErr: Label 'The contract line has already been billed. The Subscription Line start date can no longer be changed.', Locked = true;
-        TermUntilNotCalculatedErr: Label '"Term Until" Date is not calculated correctly.', Locked = true;
-        CancellationPossibleUntilNotCalculatedErr: Label '"Cancellation Possible Until" Date is not calculated correctly.', Locked = true;
+        TermUntilNotCalculatedErr: Label '"Term Until" Date is not calculated correctly.';
+        CancellationPossibleUntilNotCalculatedErr: Label '"Cancellation Possible Until" Date is not calculated correctly.';
         BilledUntilEndOfTermDescriptionLbl: Label 'Billed until end of term', Locked = true;
         ClosedDescriptionLbl: Label 'Already closed', Locked = true;
         OnOverdueDateDescriptionLbl: Label 'Next Billing Date on the overdue date', Locked = true;
