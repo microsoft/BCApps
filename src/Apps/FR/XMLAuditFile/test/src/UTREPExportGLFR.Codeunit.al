@@ -168,21 +168,30 @@ codeunit 148006 "UT REP Export G/L FR"
     end;
 
     [Test]
-    procedure SetupVisibilityUpdatesWhenFormatChanges()
+    procedure SetupDataQualityEnablementUpdatesWhenFormatChanges()
     var
         AuditFileExportSetupPage: TestPage "Audit File Export Setup";
     begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Data-quality setup enablement follows the selected audit file format.
         Initialize();
+
+        // [GIVEN] The audit file export setup page is open with the default format selected
         AuditFileExportSetupPage.OpenEdit();
-
         AuditFileExportSetupPage.AuditFileExportFormatCode.SetValue("Audit File Export Format"::None);
-        Assert.IsTrue(AuditFileExportSetupPage.CheckCompanyInformation.Visible(), 'Other formats must retain data-quality settings.');
+        Assert.IsTrue(AuditFileExportSetupPage.CheckCompanyInformation.Enabled(), 'None must enable data-quality settings.');
 
+        // [WHEN] The XML format is selected
         AuditFileExportSetupPage.AuditFileExportFormatCode.SetValue("Audit File Export Format"::"GL Entries XML FR");
-        Assert.IsFalse(AuditFileExportSetupPage.CheckCompanyInformation.Visible(), 'XML must hide data-quality settings immediately.');
 
+        // [THEN] Data-quality settings are disabled immediately
+        Assert.IsFalse(AuditFileExportSetupPage.CheckCompanyInformation.Enabled(), 'XML must disable data-quality settings immediately.');
+
+        // [WHEN] The default format is selected again
         AuditFileExportSetupPage.AuditFileExportFormatCode.SetValue("Audit File Export Format"::None);
-        Assert.IsTrue(AuditFileExportSetupPage.CheckCompanyInformation.Visible(), 'Data-quality settings must reappear without reopening the page.');
+
+        // [THEN] Data-quality settings are enabled without reopening the page
+        Assert.IsTrue(AuditFileExportSetupPage.CheckCompanyInformation.Enabled(), 'None must restore data-quality settings without reopening.');
         AuditFileExportSetupPage.Close();
     end;
 
@@ -193,26 +202,71 @@ codeunit 148006 "UT REP Export G/L FR"
         AuditFileExportSetup: Record "Audit File Export Setup";
         AuditFileExportDocCard: TestPage "Audit File Export Doc. Card";
     begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Audit document visibility follows the selected audit file format.
         Initialize();
+
+        // [GIVEN] An XML audit document and a default setup format
         AuditFileExportSetup.InitSetup("Audit File Export Format"::None);
         CreateAuditFileExportDoc(AuditFileExportHeader, WorkDate(), WorkDate());
-        AuditFileExportDocCard.OpenEdit();
-        AuditFileExportDocCard.GoToRecord(AuditFileExportHeader);
+        Assert.AreEqual(
+            "Audit File Export Format"::"GL Entries XML FR", AuditFileExportHeader."Audit File Export Format",
+            'The audit document must use the XML format.');
 
+        // [WHEN] The audit document page opens on the XML document
+        AuditFileExportHeader.SetRecFilter();
+        AuditFileExportDocCard.Trap();
+        Page.Run(Page::"Audit File Export Doc. Card", AuditFileExportHeader);
+
+        // [THEN] The page uses the XML format visibility
+        AuditFileExportDocCard.AuditFileExportFormat.AssertEquals("Audit File Export Format"::"GL Entries XML FR");
         Assert.IsFalse(AuditFileExportDocCard.Contact.Visible(), 'Other installed formats must not override the hidden XML contact.');
         Assert.IsFalse(AuditFileExportDocCard.SplitByMonth.Visible(), 'Other installed formats must not override hidden XML fields.');
         Assert.IsFalse(AuditFileExportDocCard.DataCheck.Visible(), 'Other installed formats must not override the hidden XML action.');
 
+        // [WHEN] The default format is selected
         AuditFileExportDocCard.AuditFileExportFormat.SetValue("Audit File Export Format"::None);
+
+        // [THEN] The default format restores its controls
+        AuditFileExportDocCard.AuditFileExportFormat.AssertEquals("Audit File Export Format"::None);
         Assert.IsTrue(AuditFileExportDocCard.Contact.Visible(), 'The default format must restore contact visibility.');
         Assert.IsTrue(AuditFileExportDocCard.SplitByMonth.Visible(), 'The default format must restore field visibility.');
         Assert.IsTrue(AuditFileExportDocCard.DataCheck.Visible(), 'The default format must restore action visibility.');
 
+        // [WHEN] The XML format is selected again
         AuditFileExportDocCard.AuditFileExportFormat.SetValue("Audit File Export Format"::"GL Entries XML FR");
+
+        // [THEN] The XML format hides unsupported controls immediately
+        AuditFileExportDocCard.AuditFileExportFormat.AssertEquals("Audit File Export Format"::"GL Entries XML FR");
         Assert.IsFalse(AuditFileExportDocCard.Contact.Visible(), 'Switching back to XML must hide the contact immediately.');
         Assert.IsFalse(AuditFileExportDocCard.SplitByMonth.Visible(), 'Switching back to XML must hide unsupported fields immediately.');
         Assert.IsFalse(AuditFileExportDocCard.DataCheck.Visible(), 'Switching back to XML must hide data check immediately.');
         AuditFileExportDocCard.Close();
+    end;
+
+    [Test]
+    procedure XMLVisibilityProviderHidesUnsupportedControls()
+    var
+        PageVisibilityXML: Codeunit "Page Visibility XML";
+        FieldVisibility: Dictionary of [Text, Boolean];
+        ActionVisibility: Dictionary of [Text, Boolean];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The XML visibility provider hides unsupported fields and actions.
+        Initialize();
+
+        // [GIVEN] Audit document fields and actions are visible
+        FieldVisibility.Add('Contact', true);
+        FieldVisibility.Add('SplitByMonth', true);
+        ActionVisibility.Add('DataCheck', true);
+
+        // [WHEN] XML visibility is applied
+        PageVisibilityXML.GetUIVisibility(FieldVisibility, ActionVisibility);
+
+        // [THEN] XML-specific unsupported controls are hidden
+        Assert.IsFalse(FieldVisibility.Get('Contact'), 'XML must hide contact.');
+        Assert.IsFalse(FieldVisibility.Get('SplitByMonth'), 'XML must hide monthly splitting.');
+        Assert.IsFalse(ActionVisibility.Get('DataCheck'), 'XML must hide data check.');
     end;
 
     [Test]
