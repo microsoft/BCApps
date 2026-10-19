@@ -213,35 +213,9 @@ codeunit 144200 "FatturaPA Test"
             TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
         UnbindSubscription(FatturaPATest);
 
-        // [THEN] Internal article codes are associated with the correct line.
+        // [THEN] Check exact line association, child ordering, both events, and blank-GTIN behavior.
         LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
-        AssertFatturaPALineXPathValue(TempXMLBuffer, 1,
-            'CodiceArticolo[CodiceTipo="INTERNO"]/CodiceValore', FirstItemNo);
-        AssertFatturaPALineXPathValue(TempXMLBuffer, 2,
-            'CodiceArticolo[CodiceTipo="INTERNO"]/CodiceValore', SecondItemNo);
-
-        // [THEN] The standard GTIN is preserved on the first line, and absent on the second.
-        AssertFatturaPALineXPathValue(TempXMLBuffer, 1,
-            'CodiceArticolo[CodiceTipo="GTIN"]/CodiceValore', '8001234567890');
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 2, 'CodiceArticolo[CodiceTipo="GTIN"]', 0);
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 1, 'CodiceArticolo', 2);
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 2, 'CodiceArticolo', 1);
-
-        // [THEN] Article codes occur before Descrizione, including on the blank-GTIN line.
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 1,
-            'Descrizione/preceding-sibling::CodiceArticolo[CodiceTipo="INTERNO"]', 1);
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 2,
-            'Descrizione/preceding-sibling::CodiceArticolo[CodiceTipo="INTERNO"]', 1);
-
-        // [THEN] The original trailing event still runs for each individual line.
-        AssertFatturaPALineXPathValue(TempXMLBuffer, 1,
-            'AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto', '1');
-        AssertFatturaPALineXPathValue(TempXMLBuffer, 2,
-            'AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto', '2');
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 1,
-            'AltriDatiGestionali[TipoDato="RYRTEST"]/preceding-sibling::Descrizione', 1);
-        AssertFatturaPALineXPathCount(TempXMLBuffer, 2,
-            'AltriDatiGestionali[TipoDato="RYRTEST"]/preceding-sibling::Descrizione', 1);
+        VerifyAdditionalArticleCodesPerLine(TempXMLBuffer, FirstItemNo, SecondItemNo);
 
         // [THEN] Schema validation checks the actual order of siblings, including the blank-GTIN line.
         TempBlob.CreateInStream(InStr);
@@ -3450,26 +3424,93 @@ codeunit 144200 "FatturaPA Test"
     begin
         exit(Format(Amount, 0, '<Sign><Integer><Decimals,8><Comma,.>'))
     end;
-    local procedure AssertFatturaPALineXPathValue(var TempXMLBuffer: Record "XML Buffer" temporary; LineNo: Integer; RelativeXPath: Text; ExpectedValue: Text)
+    local procedure VerifyAdditionalArticleCodesPerLine(var TempXMLBuffer: Record "XML Buffer" temporary; FirstItemNo: Code[20]; SecondItemNo: Code[20])
     var
-        TempNodes: Record "XML Buffer" temporary;
+        TempLines: Record "XML Buffer" temporary;
     begin
-        TempXMLBuffer.FindNodesByXPath(TempNodes,
-            StrSubstNo('/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="%1"]/%2',
-                LineNo, RelativeXPath));
-        Assert.RecordCount(TempNodes, 1);
-        TempNodes.FindFirst();
-        Assert.AreEqual(ExpectedValue, TempNodes.Value, 'Unexpected FatturaPA line XML value.');
+        TempXMLBuffer.FindNodesByXPath(TempLines,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee');
+        Assert.RecordCount(TempLines, 2);
+        TempLines.FindFirst();
+        VerifyAdditionalArticleCodeLine(TempXMLBuffer, TempLines."Entry No.", FirstItemNo, '8001234567890', '1');
+        TempLines.Next();
+        VerifyAdditionalArticleCodeLine(TempXMLBuffer, TempLines."Entry No.", SecondItemNo, '', '2');
     end;
 
-    local procedure AssertFatturaPALineXPathCount(var TempXMLBuffer: Record "XML Buffer" temporary; LineNo: Integer; RelativeXPath: Text; ExpectedCount: Integer)
+    local procedure VerifyAdditionalArticleCodeLine(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; ExpectedItemNo: Code[20]; ExpectedGTIN: Text; ExpectedLineNo: Text)
     var
-        TempNodes: Record "XML Buffer" temporary;
+        TempChildren: Record "XML Buffer" temporary;
+        CodeType: Text;
+        DescriptionEntryNo: Integer;
+        InternalCodeEntryNo: Integer;
+        AdditionalDataEntryNo: Integer;
+        GTINCount: Integer;
+        InternalCount: Integer;
+        AdditionalDataCount: Integer;
     begin
-        TempXMLBuffer.FindNodesByXPath(TempNodes,
-            StrSubstNo('/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="%1"]/%2',
-                LineNo, RelativeXPath));
-        Assert.RecordCount(TempNodes, ExpectedCount);
+        TempChildren.CopyImportFrom(TempXMLBuffer);
+        TempChildren.Reset();
+        TempChildren.SetRange("Parent Entry No.", ParentEntryNo);
+        TempChildren.SetRange(Type, TempChildren.Type::Element);
+        if TempChildren.FindSet() then
+            repeat
+                case TempChildren.Name of
+                    'NumeroLinea':
+                        Assert.AreEqual(ExpectedLineNo, TempChildren.Value, 'Incorrect exported line number.');
+                    'CodiceArticolo':
+                        begin
+                            CodeType := GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceTipo');
+                            case CodeType of
+                                'GTIN':
+                                    begin
+                                        GTINCount += 1;
+                                        Assert.AreEqual(ExpectedGTIN, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceValore'), 'Incorrect standard GTIN.');
+                                    end;
+                                'INTERNO':
+                                    begin
+                                        InternalCount += 1;
+                                        InternalCodeEntryNo := TempChildren."Entry No.";
+                                        Assert.AreEqual(ExpectedItemNo, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceValore'), 'Incorrect line-specific internal code.');
+                                    end;
+                                else
+                                    Error('Unexpected CodiceArticolo type %1.', CodeType);
+                            end;
+                        end;
+                    'Descrizione':
+                        DescriptionEntryNo := TempChildren."Entry No.";
+                    'AltriDatiGestionali':
+                        begin
+                            if GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'TipoDato') = 'RYRTEST' then begin
+                                AdditionalDataCount += 1;
+                                AdditionalDataEntryNo := TempChildren."Entry No.";
+                                Assert.AreEqual(ExpectedLineNo, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'RiferimentoTesto'), 'Incorrect trailing line-specific data.');
+                            end;
+                        end;
+                end;
+            until TempChildren.Next() = 0;
+
+        Assert.AreEqual(1, InternalCount, 'Exactly one internal article code is required per line.');
+        if ExpectedGTIN = '' then
+            Assert.AreEqual(0, GTINCount, 'No standard GTIN should be emitted when blank.')
+        else
+            Assert.AreEqual(1, GTINCount, 'Expected standard GTIN was not emitted.');
+        Assert.AreEqual(1, AdditionalDataCount, 'Trailing event must emit once for the current line.');
+        Assert.IsTrue((InternalCodeEntryNo > 0) and (InternalCodeEntryNo < DescriptionEntryNo), 'CodiceArticolo must precede Descrizione.');
+        Assert.IsTrue((DescriptionEntryNo > 0) and (DescriptionEntryNo < AdditionalDataEntryNo), 'AltriDatiGestionali must follow Descrizione.');
+    end;
+
+    local procedure GetFatturaPAXMLChildValue(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; ChildName: Text): Text
+    var
+        TempChild: Record "XML Buffer" temporary;
+    begin
+        TempChild.CopyImportFrom(TempXMLBuffer);
+        TempChild.Reset();
+        TempChild.SetRange("Parent Entry No.", ParentEntryNo);
+        TempChild.SetRange(Name, ChildName);
+        TempChild.SetRange(Type, TempChild.Type::Element);
+        Assert.RecordCount(TempChild, 1);
+        TempChild.FindFirst();
+        exit(TempChild.Value);
     end;
 
     procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
