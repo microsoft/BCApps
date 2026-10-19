@@ -389,11 +389,11 @@ codeunit 139692 "Contract Renewal Test"
         SalesServiceCommitment: Record "Sales Subscription Line";
         ServiceCommitment: Record "Subscription Line";
         TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
-        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
         RenewalTerm: DateFormula;
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
     begin
-        // [SCENARIO 654043] The discount of a Customer Subscription Contract line is transferred to the Contract Renewal Quote
-        // [SCENARIO 654043] so the Subscription Billing totals printed on the Sales Quote include the discount.
+        // [SCENARIO 655904] The discount of a Customer Subscription Contract line is transferred to the Contract Renewal Quote
+        // [SCENARIO 655904] so the Subscription Billing totals printed on the Sales Quote include the discount.
         Initialize();
 
         // [GIVEN] A Customer Subscription Contract line with Quantity = 1, Price = 50, Discount % = 10, Billing Base Period = Billing Rhythm = <12M>
