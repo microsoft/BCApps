@@ -354,7 +354,7 @@ page 20504 "Subc. Subcontracting Worksheet"
                         CalculateSubContract.RunModal();
                     end;
                 }
-               action(AssignPurchaseOrder)
+                action(AssignPurchaseOrder)
                 {
                     Caption = 'Assign Purchase Order';
                     Image = Purchase;
@@ -430,7 +430,7 @@ page 20504 "Subc. Subcontracting Worksheet"
     trigger OnAfterGetCurrRecord()
     begin
         ReqJnlManagement.GetDescriptionAndRcptName(Rec, Description2, BuyFromVendorName);
-        CanShowPurchaseOrder := (Rec."Ref. Order Type" = Rec."Ref. Order Type"::Purchase) and (Rec."Ref. Order No." <> '');
+        UpdateCanShowPurchaseOrder();
     end;
 
     trigger OnAfterGetRecord()
@@ -439,6 +439,7 @@ page 20504 "Subc. Subcontracting Worksheet"
     begin
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
+        UpdateCanShowPurchaseOrder();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -473,6 +474,11 @@ page 20504 "Subc. Subcontracting Worksheet"
     protected var
         Description2: Text[100];
         BuyFromVendorName: Text[100];
+
+    local procedure UpdateCanShowPurchaseOrder()
+    begin
+        CanShowPurchaseOrder := (Rec."Ref. Order Type" = Rec."Ref. Order Type"::Purchase) and (Rec."Ref. Order No." <> '');
+    end;
 
     local procedure CurrentJnlBatchNameOnAfterVali()
     begin

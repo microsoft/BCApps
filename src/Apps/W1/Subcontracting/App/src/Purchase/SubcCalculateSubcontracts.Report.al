@@ -98,7 +98,6 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
         ReqLine.SetRange("Journal Batch Name", ReqLine."Journal Batch Name");
         ReqLine.LockTable();
-
         if ReqLine.FindLast() then
             ReqLine.Init();
 
@@ -153,7 +152,6 @@ report 20505 "Subc. Calculate Subcontracts"
         OnBeforeInsertReqWkshLine(ProdOrderRoutingLine, WorkCenter, ReqLine, IsHandled, ProdOrderLine);
         if IsHandled then
             exit;
-
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then
             SubcontractingManagement.CheckSubcontractingWorkCenter(ProdOrderRoutingLine."No.");
 
@@ -168,6 +166,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Line No." := ReqLine."Line No." + 10000;
         ReqLine.Validate(Type, ReqLine.Type::Item);
         ReqLine.Validate("No.", ProdOrderLine."Item No.");
+        ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Variant Code", ProdOrderLine."Variant Code");
         ReqLine.Validate("Unit of Measure Code", ProdOrderLine."Unit of Measure Code");
         ReqLine.Validate(Quantity, QtyToPurch);
@@ -237,7 +236,6 @@ report 20505 "Subc. Calculate Subcontracts"
             ReqLine."Action Message" := ReqLine."Action Message"::New;
             ReqLine."Accept Action Message" := true;
         end;
-
         if ReqLine."Action Message" = ReqLine."Action Message"::New then
             ReqLine.GetDimFromProdOrderLine(ProdOrderLine, true)
         else
@@ -273,7 +271,6 @@ report 20505 "Subc. Calculate Subcontracts"
     begin
         if ReqLine."No." = '' then
             exit;
-
         if Item."No." <> ReqLine."No." then begin
             Item.SetLoadFields("No.");
             Item.Get(ReqLine."No.");
@@ -290,7 +287,6 @@ report 20505 "Subc. Calculate Subcontracts"
     local procedure CalculateSubContractRequirements()
     begin
         OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(TempProdOrderRoutingLine);
-
         if TempProdOrderRoutingLine.IsEmpty() then
             exit;
 
