@@ -50,6 +50,11 @@ Describe 'Extensibility backport policy' {
             Test-BackportAutomaticSource $source | Should -BeFalse
         }
 
+        It 'excludes processed original main PRs carrying ext-backporting' {
+            $source = New-TestSource @('event-request', 'ext-backporting')
+            Test-BackportAutomaticSource $source ([DateTimeOffset]'2026-10-19T12:00:00Z') | Should -BeFalse
+        }
+
         It 'selects the highest numerical .x branch, not a patch release or lexical maximum' {
             Get-BackportLatestTarget @('releases/9.x', 'releases/29.9', 'releases/29.x',
                 'releases/30.x-preview', 'main', 'releases/28.x') | Should -Be 'releases/29.x'
@@ -177,6 +182,57 @@ Describe 'Backport discovery and recovery' {
             $requests.Count | Should -Be 1
             $requests[0].source_pr | Should -Be 42
             Should -Invoke Invoke-BackportApi -Times 2
+        }
+
+        It 'does not rediscover a processed source PR in the seven-day window' {
+            Mock Invoke-BackportApi {
+                @(
+                    @{
+                        number = 42; merged_at = [DateTimeOffset]::UtcNow.AddDays(-1).ToString('o')
+                        updated_at = [DateTimeOffset]::UtcNow.ToString('o'); base = @{ ref = 'main' }
+                        labels = @(@{ name = 'event-request' }, @{ name = 'ext-backporting' })
+                    }
+                    @{
+                        number = 43; merged_at = [DateTimeOffset]::UtcNow.AddDays(-1).ToString('o')
+                        updated_at = [DateTimeOffset]::UtcNow.ToString('o'); base = @{ ref = 'main' }
+                        labels = @(@{ name = 'request-for-external' })
+                    }
+                )
+            }
+            $requests = @(Find-ExtRequestBackport microsoft/BCApps)
+            $requests.Count | Should -Be 1
+            $requests[0].source_pr | Should -Be 43
+        }
+
+        It 'marks the original PR as processed only after a durable outcome' -ForEach @(
+            @{ status = 'created' }
+            @{ status = 'merged' }
+            @{ status = 'needs-attention' }
+            @{ status = 'already-present' }
+        ) {
+            Mock Ensure-BackportLabels {}
+            Mock Invoke-BackportApi {}
+            Add-BackportStatus microsoft/BCApps 42 $status 'releases/29.x'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and $Method -eq 'POST' -and
+                $Body.labels -contains 'ext-backporting' -and $Body.labels.Count -eq 2
+            }
+            Should -Invoke Ensure-BackportLabels -Times 1 -ParameterFilter {
+                @($Labels | Where-Object name -eq 'ext-backporting').Count -eq 1
+            }
+        }
+
+        It 'does not hide unfinished issue or PR creation from automatic recovery' -ForEach @(
+            @{ status = 'pending' }
+            @{ status = 'publishing' }
+        ) {
+            Mock Ensure-BackportLabels {}
+            Mock Invoke-BackportApi {}
+            Add-BackportStatus microsoft/BCApps 42 $status 'releases/29.x'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and
+                $Body.labels -notcontains 'ext-backporting' -and $Body.labels.Count -eq 1
+            }
         }
 
         It 'refuses manually selected unmerged PRs too' {
@@ -417,6 +473,15 @@ Describe 'Native Git backport integration' {
                 $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
                 { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
                 Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' }
+            }
+
+            It 'does not recreate processed work whose tracking issue is missing, even manually' {
+                $source.labels += @{ name = 'ext-backporting' }
+                $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
+                { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
+                Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
+                }
             }
 
             It 'does not repeat an uncertain release-PR POST' {

@@ -454,8 +454,14 @@ function Add-BackportStatus {
     param([string] $Repository, [long] $SourcePr, [string] $Status, [string] $Target)
 
     $name = Get-BackportStatusLabel $Status $Target
-    Ensure-BackportLabels $Repository @(@{ name = $name; color = 'C5DEF5'; description = 'Extensibility backport status.' })
-    $null = Invoke-BackportApi "repos/$Repository/issues/$SourcePr/labels" -Method POST -Body @{ labels = @($name) }
+    $definitions = @(@{ name = $name; color = 'C5DEF5'; description = 'Extensibility backport status.' })
+    $names = @($name)
+    if ($Status -in @('created', 'merged', 'needs-attention', 'already-present')) {
+        $definitions += @(Get-BackportLabels -Issues @() -PrLabels @())
+        $names += 'ext-backporting'
+    }
+    Ensure-BackportLabels $Repository $definitions
+    $null = Invoke-BackportApi "repos/$Repository/issues/$SourcePr/labels" -Method POST -Body @{ labels = $names }
 }
 
 function Remove-BackportIntents {
@@ -571,7 +577,8 @@ function Publish-ExtRequestBackport {
     if ((Get-BackportStatusLabel publishing $state.target) -in $labelsOnSource) {
         throw 'A previous PR creation is unconfirmed. Inspect closed/open PRs before clearing the publishing label.'
     }
-    if ($null -eq $tracking -and @($labelsOnSource | Where-Object { $_ -like 'ext-backport-*' }).Count -gt 0) {
+    if ($null -eq $tracking -and ($labelsOnSource -contains 'ext-backporting' -or
+        @($labelsOnSource | Where-Object { $_ -like 'ext-backport-*' }).Count -gt 0)) {
         throw 'Source has prior backport state but no tracking issue. Reconcile manually; do not create a duplicate.'
     }
     if ($null -ne $tracking -and ($tracking.state -eq 'closed' -or

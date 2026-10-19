@@ -6,7 +6,8 @@ last seven days for PRs merged into `main`, with no fixed start date. It include
 categories (`enum-request`, `extensibility-enhancement`, `extensibility-bug`,
 other `*-request` / `request-for-*` labels). Linked source issues must also have
 only the allowed request categories. Unrelated labels, including team labels,
-do not prevent selection.
+do not prevent selection. Original main PRs carrying `ext-backporting` are
+excluded from automatic discovery.
 
 The entire merged PR is backported, including all issues in a team batch.
 Each source PR gets one tracking issue of type **Task** and, when the complete
@@ -15,6 +16,10 @@ main PR and every issue in its `closingIssuesReferences`. Both new objects
 inherit the deduplicated union of the original issues' labels, excluding only
 `ext-ready-to-implement`, and add `ext-backporting`. For a manually selected PR
 with no closing issue references, labels come from that PR instead.
+
+This is not one combined backport per day: three eligible main PRs produce
+three tracking issues and three draft backport PRs, assuming all apply cleanly.
+A single team-batch main PR still produces only one issue/PR pair.
 
 ## Configuration
 
@@ -52,9 +57,10 @@ gh workflow run bc-extrequest-backport.yml --repo microsoft/BCApps --ref main `
   -f source_pr=12345 -f dry_run=false
 ```
 
-Manual runs accept a **PR number, not an issue number**. They bypass age and
-request-category filters but still require a merged `main` PR, safe content,
-the original target for an existing request, and duplicate prevention.
+Manual runs accept a **PR number, not an issue number**. They bypass age,
+request-category and processed-label discovery filters but still require a
+merged `main` PR, safe content, the original target for an existing request,
+and duplicate prevention. A processed source can be reconciled, not duplicated.
 
 Automatic failures older than seven days need a manual run. Discovery uses
 paginated REST data rather than the eventually indexed search API. More than
@@ -73,6 +79,7 @@ Source PR status labels are created as needed:
 
 | Label | Meaning |
 | --- | --- |
+| `ext-backporting` | Added to the original main PR once a backport PR exists, a conflict is tracked, or the patch is proven already present. Excludes that main PR from future automatic discovery. Also appears on the new backport issue and PR. |
 | `ext-backport-created:29.x` | The corresponding backport PR exists. |
 | `ext-backport-needs-attention:29.x` | The source conflicts or its backport PR was closed without merging. |
 | `ext-backport-merged:29.x` | The backport PR merged. |
@@ -80,8 +87,9 @@ Source PR status labels are created as needed:
 | `ext-backport-pending:29.x` | Durable intent to create the tracking issue. |
 | `ext-backport-publishing:29.x` | Durable intent to create the backport PR. |
 
-The version suffix follows the pinned release. Labels are display/recovery
-state, not the only duplicate check. A retry repairs missing issue/PR labels
+The version suffix follows the pinned release. `ext-backporting` is the
+automatic processed filter; versioned labels give its detailed status. Labels
+are not the only duplicate check. A retry repairs missing issue/PR labels
 and reciprocal links rather than creating another pair. A scheduled
 reconciliation also handles older open tracking issues: when their release PR
 merges, it closes the issue and marks the source PR, even outside the seven-day
