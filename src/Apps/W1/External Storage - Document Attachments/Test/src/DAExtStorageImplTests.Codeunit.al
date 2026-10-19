@@ -174,6 +174,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         OriginalDocumentAttachment := DocumentAttachment;
 
+        Commit(); // Preserve the fixture when the expected error rolls back the transaction.
         asserterror DocumentAttachment.MarkAsNotUploadedToExternal();
 
         Assert.ExpectedError('does not have confirmed nonempty internal content');
@@ -190,6 +191,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateExternallyStoredDocument(DocumentAttachment);
         OriginalDocumentAttachment := DocumentAttachment;
 
+        Commit(); // Preserve the fixture when the expected error rolls back the transaction.
         asserterror DocumentAttachment.MarkAsNotUploadedToExternal();
 
         Assert.ExpectedError(RetirementFeatureDisabledErr);
@@ -215,6 +217,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RefreshAttachment(CurrentDocumentAttachment);
         OriginalDocumentAttachment := CurrentDocumentAttachment;
 
+        Commit(); // Preserve the changed persisted row and the stale input snapshot across the expected error.
         asserterror DocumentAttachment.MarkAsNotUploadedToExternal();
 
         Assert.ExpectedError('attachment content or external reference has changed');
