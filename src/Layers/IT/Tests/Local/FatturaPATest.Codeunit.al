@@ -179,7 +179,6 @@ codeunit 144200 "FatturaPA Test"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Item: Record Item;
         TempXMLBuffer: Record "XML Buffer" temporary;
-        TempNodes: Record "XML Buffer" temporary;
         TempBlob: Codeunit "Temp Blob";
         FatturaPATest: Codeunit "FatturaPA Test";
         InStr: InStream;
@@ -214,27 +213,35 @@ codeunit 144200 "FatturaPA Test"
             TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
         UnbindSubscription(FatturaPATest);
 
-        // [THEN] Each line contains exactly one extension article code.
+        // [THEN] Internal article codes are associated with the correct line.
         LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
-        TempXMLBuffer.FindNodesByXPath(TempNodes,
-            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/CodiceArticolo/CodiceTipo');
-        TempNodes.SetRange(Value, 'INTERNO');
-        Assert.RecordCount(TempNodes, 2);
+        AssertFatturaPALineXPathValue(TempXMLBuffer, 1,
+            'CodiceArticolo[CodiceTipo="INTERNO"]/CodiceValore', FirstItemNo);
+        AssertFatturaPALineXPathValue(TempXMLBuffer, 2,
+            'CodiceArticolo[CodiceTipo="INTERNO"]/CodiceValore', SecondItemNo);
 
-        TempNodes.Reset();
-        TempXMLBuffer.FindNodesByXPath(TempNodes,
-            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/CodiceArticolo/CodiceValore');
-        TempNodes.SetRange(Value, FirstItemNo);
-        Assert.RecordCount(TempNodes, 1);
-        TempNodes.SetRange(Value, SecondItemNo);
-        Assert.RecordCount(TempNodes, 1);
+        // [THEN] The standard GTIN is preserved on the first line, and absent on the second.
+        AssertFatturaPALineXPathValue(TempXMLBuffer, 1,
+            'CodiceArticolo[CodiceTipo="GTIN"]/CodiceValore', '8001234567890');
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 2, 'CodiceArticolo[CodiceTipo="GTIN"]', 0);
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 1, 'CodiceArticolo', 2);
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 2, 'CodiceArticolo', 1);
 
-        // [THEN] The original trailing event still contributes data to both lines.
-        TempNodes.Reset();
-        TempXMLBuffer.FindNodesByXPath(TempNodes,
-            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/TipoDato');
-        TempNodes.SetRange(Value, 'RYRTEST');
-        Assert.RecordCount(TempNodes, 2);
+        // [THEN] Article codes occur before Descrizione, including on the blank-GTIN line.
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 1,
+            'Descrizione/preceding-sibling::CodiceArticolo[CodiceTipo="INTERNO"]', 1);
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 2,
+            'Descrizione/preceding-sibling::CodiceArticolo[CodiceTipo="INTERNO"]', 1);
+
+        // [THEN] The original trailing event still runs for each individual line.
+        AssertFatturaPALineXPathValue(TempXMLBuffer, 1,
+            'AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto', '1');
+        AssertFatturaPALineXPathValue(TempXMLBuffer, 2,
+            'AltriDatiGestionali[TipoDato="RYRTEST"]/RiferimentoTesto', '2');
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 1,
+            'AltriDatiGestionali[TipoDato="RYRTEST"]/preceding-sibling::Descrizione', 1);
+        AssertFatturaPALineXPathCount(TempXMLBuffer, 2,
+            'AltriDatiGestionali[TipoDato="RYRTEST"]/preceding-sibling::Descrizione', 1);
 
         // [THEN] Schema validation checks the actual order of siblings, including the blank-GTIN line.
         TempBlob.CreateInStream(InStr);
@@ -3443,6 +3450,28 @@ codeunit 144200 "FatturaPA Test"
     begin
         exit(Format(Amount, 0, '<Sign><Integer><Decimals,8><Comma,.>'))
     end;
+    local procedure AssertFatturaPALineXPathValue(var TempXMLBuffer: Record "XML Buffer" temporary; LineNo: Integer; RelativeXPath: Text; ExpectedValue: Text)
+    var
+        TempNodes: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.FindNodesByXPath(TempNodes,
+            StrSubstNo('/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="%1"]/%2',
+                LineNo, RelativeXPath));
+        Assert.RecordCount(TempNodes, 1);
+        TempNodes.FindFirst();
+        Assert.AreEqual(ExpectedValue, TempNodes.Value, 'Unexpected FatturaPA line XML value.');
+    end;
+
+    local procedure AssertFatturaPALineXPathCount(var TempXMLBuffer: Record "XML Buffer" temporary; LineNo: Integer; RelativeXPath: Text; ExpectedCount: Integer)
+    var
+        TempNodes: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.FindNodesByXPath(TempNodes,
+            StrSubstNo('/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee[NumeroLinea="%1"]/%2',
+                LineNo, RelativeXPath));
+        Assert.RecordCount(TempNodes, ExpectedCount);
+    end;
+
     procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
     begin
         EmitAdditionalArticleCodes := Enable;
