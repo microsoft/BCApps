@@ -8,7 +8,7 @@ using Microsoft.ExpenseAgent;
 using System.AI;
 using System.TestLibraries.Utilities;
 
-codeunit 148350 "Expense Quota Test"
+codeunit 148298 "Expense Quota Test"
 {
     Subtype = Test;
     TestType = UnitTest;
