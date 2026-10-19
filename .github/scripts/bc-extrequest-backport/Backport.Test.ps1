@@ -50,8 +50,8 @@ Describe 'Extensibility backport policy' {
             Test-BackportAutomaticSource $source | Should -BeFalse
         }
 
-        It 'excludes processed original main PRs carrying ext-backporting' {
-            $source = New-TestSource @('event-request', 'ext-backporting')
+        It 'excludes processed original main PRs carrying ext-backport-processed' {
+            $source = New-TestSource @('event-request', 'ext-backport-processed')
             Test-BackportAutomaticSource $source ([DateTimeOffset]'2026-10-19T12:00:00Z') | Should -BeFalse
         }
 
@@ -84,11 +84,13 @@ Describe 'Extensibility backport policy' {
 
         It 'uses source PR labels only when there are no linked main issues' {
             $labels = @(Get-BackportLabels -Issues @() -PrLabels @(
-                @{ name = 'event-request' }, @{ name = 'ext-ready-to-implement' }
+                @{ name = 'event-request' }, @{ name = 'ext-ready-to-implement' },
+                @{ name = 'ext-backport-processed' }
             ))
             $labels.name | Should -Contain 'event-request'
             $labels.name | Should -Contain 'ext-backporting'
             $labels.name | Should -Not -Contain 'ext-ready-to-implement'
+            $labels.name | Should -Not -Contain 'ext-backport-processed'
         }
 
         It 'pins an existing request to its original release after a new release appears' {
@@ -190,7 +192,7 @@ Describe 'Backport discovery and recovery' {
                     @{
                         number = 42; merged_at = [DateTimeOffset]::UtcNow.AddDays(-1).ToString('o')
                         updated_at = [DateTimeOffset]::UtcNow.ToString('o'); base = @{ ref = 'main' }
-                        labels = @(@{ name = 'event-request' }, @{ name = 'ext-backporting' })
+                        labels = @(@{ name = 'event-request' }, @{ name = 'ext-backport-processed' })
                     }
                     @{
                         number = 43; merged_at = [DateTimeOffset]::UtcNow.AddDays(-1).ToString('o')
@@ -215,10 +217,11 @@ Describe 'Backport discovery and recovery' {
             Add-BackportStatus microsoft/BCApps 42 $status 'releases/29.x'
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
                 $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and $Method -eq 'POST' -and
-                $Body.labels -contains 'ext-backporting' -and $Body.labels.Count -eq 2
+                $Body.labels -contains 'ext-backport-processed' -and
+                $Body.labels -notcontains 'ext-backporting' -and $Body.labels.Count -eq 2
             }
             Should -Invoke Ensure-BackportLabels -Times 1 -ParameterFilter {
-                @($Labels | Where-Object name -eq 'ext-backporting').Count -eq 1
+                @($Labels | Where-Object name -eq 'ext-backport-processed').Count -eq 1
             }
         }
 
@@ -231,7 +234,7 @@ Describe 'Backport discovery and recovery' {
             Add-BackportStatus microsoft/BCApps 42 $status 'releases/29.x'
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
                 $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and
-                $Body.labels -notcontains 'ext-backporting' -and $Body.labels.Count -eq 1
+                $Body.labels -notcontains 'ext-backport-processed' -and $Body.labels.Count -eq 1
             }
         }
 
@@ -476,7 +479,7 @@ Describe 'Native Git backport integration' {
             }
 
             It 'does not recreate processed work whose tracking issue is missing, even manually' {
-                $source.labels += @{ name = 'ext-backporting' }
+                $source.labels += @{ name = 'ext-backport-processed' }
                 $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
                 { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
                 Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {

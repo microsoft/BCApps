@@ -108,7 +108,8 @@ function Test-BackportCategory {
          $_ -in @('extensibility-enhancement', 'extensibility-bug'))
     })
     return @($Labels | Where-Object { $_ -in $allowed }).Count -gt 0 -and
-        $other.Count -eq 0 -and $Labels -notcontains 'ext-backporting'
+        $other.Count -eq 0 -and $Labels -notcontains 'ext-backporting' -and
+        $Labels -notcontains 'ext-backport-processed'
 }
 
 function Test-BackportAutomaticSource {
@@ -200,7 +201,7 @@ function Get-BackportLabels {
     $original = if ($Issues.Count -gt 0) {
         @($Issues | ForEach-Object { $_.labels.nodes })
     }
-    else { $PrLabels }
+    else { @($PrLabels | Where-Object { $_.name -ne 'ext-backport-processed' }) }
     foreach ($label in $original) {
         if ($label.name -ne 'ext-ready-to-implement') { $labels[$label.name] = $label }
     }
@@ -457,8 +458,11 @@ function Add-BackportStatus {
     $definitions = @(@{ name = $name; color = 'C5DEF5'; description = 'Extensibility backport status.' })
     $names = @($name)
     if ($Status -in @('created', 'merged', 'needs-attention', 'already-present')) {
-        $definitions += @(Get-BackportLabels -Issues @() -PrLabels @())
-        $names += 'ext-backporting'
+        $definitions += @{
+            name = 'ext-backport-processed'; color = 'C5DEF5'
+            description = 'Source PR handled by extensibility backport automation.'
+        }
+        $names += 'ext-backport-processed'
     }
     Ensure-BackportLabels $Repository $definitions
     $null = Invoke-BackportApi "repos/$Repository/issues/$SourcePr/labels" -Method POST -Body @{ labels = $names }
@@ -577,8 +581,7 @@ function Publish-ExtRequestBackport {
     if ((Get-BackportStatusLabel publishing $state.target) -in $labelsOnSource) {
         throw 'A previous PR creation is unconfirmed. Inspect closed/open PRs before clearing the publishing label.'
     }
-    if ($null -eq $tracking -and ($labelsOnSource -contains 'ext-backporting' -or
-        @($labelsOnSource | Where-Object { $_ -like 'ext-backport-*' }).Count -gt 0)) {
+    if ($null -eq $tracking -and @($labelsOnSource | Where-Object { $_ -like 'ext-backport-*' }).Count -gt 0) {
         throw 'Source has prior backport state but no tracking issue. Reconcile manually; do not create a duplicate.'
     }
     if ($null -ne $tracking -and ($tracking.state -eq 'closed' -or

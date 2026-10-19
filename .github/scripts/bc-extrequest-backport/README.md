@@ -6,7 +6,7 @@ last seven days for PRs merged into `main`, with no fixed start date. It include
 categories (`enum-request`, `extensibility-enhancement`, `extensibility-bug`,
 other `*-request` / `request-for-*` labels). Linked source issues must also have
 only the allowed request categories. Unrelated labels, including team labels,
-do not prevent selection. Original main PRs carrying `ext-backporting` are
+do not prevent selection. Original main PRs carrying `ext-backport-processed` are
 excluded from automatic discovery.
 
 The entire merged PR is backported, including all issues in a team batch.
@@ -15,7 +15,8 @@ change applies cleanly, one **draft** release PR. Both descriptions link the
 main PR and every issue in its `closingIssuesReferences`. Both new objects
 inherit the deduplicated union of the original issues' labels, excluding only
 `ext-ready-to-implement`, and add `ext-backporting`. For a manually selected PR
-with no closing issue references, labels come from that PR instead.
+with no closing issue references, labels come from that PR instead, excluding
+the source-only `ext-backport-processed` marker.
 
 This is not one combined backport per day: three eligible main PRs produce
 three tracking issues and three draft backport PRs, assuming all apply cleanly.
@@ -79,7 +80,7 @@ Source PR status labels are created as needed:
 
 | Label | Meaning |
 | --- | --- |
-| `ext-backporting` | Added to the original main PR once a backport PR exists, a conflict is tracked, or the patch is proven already present. Excludes that main PR from future automatic discovery. Also appears on the new backport issue and PR. |
+| `ext-backport-processed` | Added to the original main PR once a backport PR exists, a conflict is tracked, or the patch is proven already present. Excludes that main PR from future automatic discovery; does not imply the backport merged. |
 | `ext-backport-created:29.x` | The corresponding backport PR exists. |
 | `ext-backport-needs-attention:29.x` | The source conflicts or its backport PR was closed without merging. |
 | `ext-backport-merged:29.x` | The backport PR merged. |
@@ -87,8 +88,9 @@ Source PR status labels are created as needed:
 | `ext-backport-pending:29.x` | Durable intent to create the tracking issue. |
 | `ext-backport-publishing:29.x` | Durable intent to create the backport PR. |
 
-The version suffix follows the pinned release. `ext-backporting` is the
-automatic processed filter; versioned labels give its detailed status. Labels
+The version suffix follows the pinned release. `ext-backport-processed` is the
+automatic source filter; `ext-backporting` identifies the backport issue and PR.
+Versioned source labels give the detailed status. Labels
 are not the only duplicate check. A retry repairs missing issue/PR labels
 and reciprocal links rather than creating another pair. A scheduled
 reconciliation also handles older open tracking issues: when their release PR
