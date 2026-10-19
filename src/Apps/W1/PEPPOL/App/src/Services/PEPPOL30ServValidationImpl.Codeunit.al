@@ -7,6 +7,7 @@ namespace Microsoft.Peppol;
 using Microsoft.Sales.Document;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using System.Environment;
 using System.Reflection;
 
 codeunit 37220 "PEPPOL30 Serv. Validation Impl"
@@ -20,9 +21,12 @@ codeunit 37220 "PEPPOL30 Serv. Validation Impl"
         SalesHeader: Record "Sales Header";
         PEPPOL30Management: Codeunit "PEPPOL30";
         PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
         PEPPOL30Management.TransferHeaderToSalesHeader(ServiceHeader, SalesHeader);
         SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        if EnvironmentInformation.GetApplicationFamily() = 'DE' then
+            SalesHeader."Sell-to E-Mail" := ServiceHeader."E-Mail";
         PEPPOL30SalesValidationImpl.CheckSalesDocument(SalesHeader);
     end;
 
@@ -74,10 +78,13 @@ codeunit 37220 "PEPPOL30 Serv. Validation Impl"
         ServiceInvoiceLine: Record "Service Invoice Line";
         PEPPOL30Management: Codeunit "PEPPOL30";
         PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
         PEPPOL30Management.TransferHeaderToSalesHeader(ServiceInvoiceHeader, SalesHeader);
         SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
         SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        if EnvironmentInformation.GetApplicationFamily() = 'DE' then
+            SalesHeader."Sell-to E-Mail" := ServiceInvoiceHeader."E-Mail";
         PEPPOL30SalesValidationImpl.CheckSalesDocument(SalesHeader);
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         if ServiceInvoiceLine.FindSet() then
@@ -95,10 +102,13 @@ codeunit 37220 "PEPPOL30 Serv. Validation Impl"
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
         PEPPOL30Management: Codeunit "PEPPOL30";
         PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
         PEPPOL30Management.TransferHeaderToSalesHeader(ServiceCrMemoHeader, SalesHeader);
         SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
         SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        if EnvironmentInformation.GetApplicationFamily() = 'DE' then
+            SalesHeader."Sell-to E-Mail" := ServiceCrMemoHeader."E-Mail";
         PEPPOL30SalesValidationImpl.CheckSalesDocument(SalesHeader);
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         if ServiceCrMemoLine.FindSet() then

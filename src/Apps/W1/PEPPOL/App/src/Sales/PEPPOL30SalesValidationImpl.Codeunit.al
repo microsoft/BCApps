@@ -13,6 +13,8 @@ using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Peppol;
+using System.Environment;
 using System.Reflection;
 using System.Utilities;
 
@@ -42,7 +44,15 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         Customer: Record Customer;
         GLSetup: Record "General Ledger Setup";
         ResponsibilityCenter: Record "Responsibility Center";
+        EnvironmentInformation: Codeunit "Environment Information";
+        PEPPOLValidation: Codeunit "PEPPOL Validation";
     begin
+        if EnvironmentInformation.GetApplicationFamily() = 'DE' then begin
+            // Keep the existing German E-Document subscribers on the header validation path.
+            PEPPOLValidation.CheckSalesDocument(SalesHeader);
+            exit;
+        end;
+
         CompanyInfo.Get();
         GLSetup.Get();
 

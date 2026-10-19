@@ -19,11 +19,13 @@ using Microsoft.Peppol;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
+using System.Environment;
 using System.IO;
 using System.Text;
 using System.Utilities;
@@ -34,6 +36,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -53,9 +56,103 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+        HeaderValidationObserved: Boolean;
         WrongFileNameErr: Label 'File name should be: %1', Comment = '%1 - Client File Name';
         InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
         CreditNoteNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
+
+    [Test]
+    procedure DefaultValidationStillRequiresYourReference()
+    var
+        SalesHeader: Record "Sales Header";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 654755] Ordinary PEPPOL validation retains its reference requirement in every localization.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" has customer identity but no reference or email.
+        CreateSalesHeader(SalesHeader, CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::Invoice, '');
+        SalesHeader."Your Reference" := '';
+        SalesHeader."Sell-to E-Mail" := '';
+
+        // [WHEN] Validate without a German E-Document subscription.
+        asserterror PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] Your Reference is still required.
+        Assert.ExpectedError(SalesHeader.FieldCaption("Your Reference"));
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    procedure DefaultValidationDoesNotRequireGermanEmail()
+    var
+        SalesHeader: Record "Sales Header";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 654755] Ordinary exports do not acquire the E-Document-only email requirement.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" has customer identity and reference but no email.
+        CreateSalesHeader(SalesHeader, CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::Invoice, '');
+        SalesHeader."Sell-to E-Mail" := '';
+
+        // [WHEN] Validate without a German E-Document subscription.
+        PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] The source remains unchanged.
+        Assert.AreEqual('', SalesHeader."Sell-to E-Mail", 'Ordinary validation must not require or fill email.');
+    end;
+
+    [Test]
+    procedure DefaultValidationStillRequiresCustomerIdentifiers()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 654755] Ordinary validation must not receive a customer identity exemption.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" has reference and email but no customer GLN/VAT.
+        CreateSalesHeader(SalesHeader, CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::Invoice, '');
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        Customer.GLN := '';
+        Customer."VAT Registration No." := '';
+        Customer.Modify();
+
+        // [WHEN] Validate without a German E-Document subscription.
+        asserterror PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] Customer identification remains mandatory.
+        Assert.ExpectedError('You must specify either GLN or VAT Registration No. for Customer');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure LegacyHeaderEventsAreRestoredOnlyForGermany()
+    var
+        SalesHeader: Record "Sales Header";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+        HeaderObserver: Codeunit "PEPPOL BIS BillingTests";
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 654755] The compatibility path is selected by application localization, not company address.
+        Initialize();
+
+        // [GIVEN] Valid invoice "SI" and an observer of the existing BaseApp header event.
+        CreateSalesHeader(SalesHeader, CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::Invoice, '');
+        BindSubscription(HeaderObserver);
+
+        // [WHEN] Validate through the current PEPPOL facade.
+        PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] The BaseApp header path is used only in the DE application.
+        Assert.AreEqual(EnvironmentInformation.GetApplicationFamily() = 'DE', HeaderObserver.WasHeaderValidationObserved(), 'Only DE must use the legacy header event path.');
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -1546,6 +1643,17 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] Verify Tax Total Amounts
         InitXPathXMLReaderForInvoice(TempBlob);
         VerifyTaxTotalAmounts(0, VatPer, 0, 0);
+    end;
+
+    procedure WasHeaderValidationObserved(): Boolean
+    begin
+        exit(HeaderValidationObserved);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL Validation", 'OnAfterCheckSalesDocument', '', false, false)]
+    local procedure ObserveHeaderValidation()
+    begin
+        HeaderValidationObserved := true;
     end;
 
     local procedure Initialize()
