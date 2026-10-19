@@ -1364,6 +1364,33 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure UnmatchedInboundOrderResponseLeavesFailedEDocument()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        ErrorMessage: Record "Error Message";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] An inbound Order Response whose OrderReference matches no outgoing E-Document is not discarded silently.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [WHEN] The Order Response is imported
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        Assert.IsFalse(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-orderresponse-unmatched.xml', TempEDocImportParameters), 'The import should fail for an unmatched order response.');
+
+        // [THEN] The inbound E-Document is kept in an error state
+        Assert.IsTrue(EDocument.Get(EDocument."Entry No"), 'The inbound e-document should be kept for inspection.');
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'The e-document should be in error status.');
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors.');
+
+        // [THEN] The error explains that no outgoing e-document matches the order reference
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('UNKNOWN-ORDER-999', ErrorMessage."Message");
+    end;
+
+    [Test]
     procedure RejectOrderActionReachableOnInboundSalesOrderDraft()
     var
         EDocument: Record "E-Document";
@@ -1463,6 +1490,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure FinishDraftSalesOrder_AnyOrderTypeCodeCreatesSalesOrder()
     var
         EDocument: Record "E-Document";
+        EDocumentMessage: Record "E-Document Message";
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
@@ -1479,6 +1507,12 @@ codeunit 139883 "E-Doc Process Test"
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
         LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-221.xml', TempEDocImportParameters);
         EDocument.Get(EDocument."Entry No");
+
+        // [THEN] Reading the order into draft acknowledged it to the seller endpoint the order was addressed to
+        EDocumentMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentMessage.SetRange(Direction, "E-Document Direction"::Outgoing);
+        EDocumentMessage.SetRange("Response Type", "E-Doc. Response Type"::Acknowledged);
+        Assert.IsFalse(EDocumentMessage.IsEmpty(), 'Reading the order into draft should create an outgoing acknowledgement.');
 
         // [GIVEN] BC-resolved fields are set (customer + item), simulating what PrepareDraft would do
         LibraryEDoc.GetGenericItem(Item);
