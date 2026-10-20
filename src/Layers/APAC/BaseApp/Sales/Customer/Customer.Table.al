@@ -591,13 +591,8 @@ table 18 Customer
         {
             Caption = 'Invoice Copies';
             ObsoleteReason = 'This field is not used consequently and hence does not work as expected. It should be retired.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
 #endif
         /// <summary>
@@ -1326,13 +1321,7 @@ table 18 Customer
         /// <summary>
         /// Specifies the customer's website URL.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(103; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             OptimizeForTextSearch = true;

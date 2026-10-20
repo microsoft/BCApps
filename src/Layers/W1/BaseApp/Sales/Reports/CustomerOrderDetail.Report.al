@@ -33,50 +33,6 @@ report 108 "Customer - Order Detail"
             {
             }
 
-#if not CLEAN27
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(PageGroupNo; PageGroupNo)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(CustOrderDetailCaption; CustOrderDetailCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(PageCaption; PageCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(ShipmentDateCaption; ShipmentDateCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(QtyOnBackOrderCaption; QtyOnBackOrderCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(OutstandingOrdersCaption; OutstandingOrdersCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             column(PrintAmountsInLCY; PrintAmountsInLCY)
             {
             }
@@ -323,14 +279,6 @@ report 108 "Customer - Order Detail"
             column(CurrCode_CurrTotalBuff2; TempCurrencyTotalBuffer2."Currency Code")
             {
             }
-#if not CLEAN27
-            column(TotalCaption; TotalCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#endif
 
             trigger OnAfterGetRecord()
             begin
@@ -377,9 +325,7 @@ report 108 "Customer - Order Detail"
                         ObsoleteState = Pending;
                         ObsoleteReason = 'The New Page per Customer option is only supported by the RDLC layout which has been deprecated.';
                         ObsoleteTag = '28.0';
-#if CLEAN27
                         Visible = false;
-#endif
                     }
 #endif
                     field(PostingDateFilter; PostingDateFilter)
@@ -419,18 +365,6 @@ report 108 "Customer - Order Detail"
             LayoutFile = './Sales/Reports/CustomerOrderDetail.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Customer - Order Detail RDLC (Obsolete)';
-            Type = RDLC;
-            LayoutFile = './Sales/Reports/CustomerOrderDetail.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels
@@ -519,14 +453,6 @@ report 108 "Customer - Order Detail"
         AllAmtAreInLCYCaptionLbl: Label 'All amounts are in LCY';
         CustFilterLbl: Label 'Customer: %1', Comment = '%1 Customer Name';
         OrderNoAndDateLbl: Label 'Order No. %1 - %2', Comment = '%1 Sales Header No., %2 Order Date';
-#if not CLEAN27
-        CustOrderDetailCaptionLbl: Label 'Customer - Order Detail';
-        PageCaptionLbl: Label 'Page';
-        ShipmentDateCaptionLbl: Label 'Shipment Date';
-        QtyOnBackOrderCaptionLbl: Label 'Quantity on Back Order';
-        OutstandingOrdersCaptionLbl: Label 'Outstanding Orders';
-        TotalCaptionLbl: Label 'Total';
-#endif
 
     protected var
         SalesHeader: Record "Sales Header";
