@@ -140,6 +140,31 @@
     "method": "VerifySustainabilityLedgerEntryShouldBeShownWhenNavigating"
   },
   {
+    "codeunitId": 148188,
+    "codeunitName": "Sust. General Journal Test",
+    "method": "VerifyPreviewPostingOfGenJournalDoesNotConsumeSustainabilityLedgerEntryNo"
+  },
+  {
+    "codeunitId": 148188,
+    "codeunitName": "Sust. General Journal Test",
+    "method": "VerifyRepeatedGenJournalPreviewResetsNegativeTemporaryKeys"
+  },
+  {
+    "codeunitId": 148188,
+    "codeunitName": "Sust. General Journal Test",
+    "method": "VerifySustainabilityLedgerEntryIsReversedWhenGLTransactionIsReversed"
+  },
+  {
+    "codeunitId": 148188,
+    "codeunitName": "Sust. General Journal Test",
+    "method": "VerifySustainabilityLedgerEntryIsNotReversedTwiceWhenAlreadyReversedBeforeGLReversal"
+  },
+  {
+    "codeunitId": 148189,
+    "codeunitName": "Sust. Water/Waste Int. Test",
+    "method": "VerifySustAccountIsNotAllowedToUseInGeneralJournalDocumentWithIntensitySetup"
+  },
+  {
     "codeunitId": 148190,
     "codeunitName": "Sust. Value Entry Test",
     "method": "TestSustValueEntryIsCreatedForItemJournalWhenEntryTypeIsPurchase"
@@ -468,5 +493,35 @@
     "codeunitId": 148190,
     "codeunitName": "Sust. Value Entry Test",
     "method": "VerifySustainabilityValueEntryShouldBeCreatedWhenPurchDocumentIsPosted"
+  },
+  {
+    "codeunitId": 148219,
+    "codeunitName": "Sust. Value Chain Fixed Asset",
+    "method": "TestSustValueChainFixedAssetForFAGLJournalLineInvoicePosting"
+  },
+  {
+    "codeunitId": 148321,
+    "codeunitName": "ERM Withholding Tax Tests I",
+    "method": "WHTEntryOnPostedPurchaseInvoiceJournalWithWHT"
+  },
+  {
+    "codeunitId": 148321,
+    "codeunitName": "ERM Withholding Tax Tests I",
+    "method": "LessThanRuleNegativeAmountAboveMinCalculatesWHTOnGenJnlInvoice"
+  },
+  {
+    "codeunitId": 148322,
+    "codeunitName": "ERM Withholding Tax Tests II",
+    "method": "WithholdingTaxProductPostingGroupIsCopiedToWithholdingTaxEntry"
+  },
+  {
+    "codeunitId": 148322,
+    "codeunitName": "ERM Withholding Tax Tests II",
+    "method": "PostingWHTPaymentWithoutPurchaseJournalTemplateErr"
+  },
+  {
+    "codeunitId": 148326,
+    "codeunitName": "ERM Withholding VAT For SEA",
+    "method": "VerifyErrorOnWHTCertificateNoSeries"
   }
 ]

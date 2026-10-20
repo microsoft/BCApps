@@ -260,7 +260,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Transaction number linking this entry to other general ledger entries in the same posting transaction.
         /// </summary>
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
         }

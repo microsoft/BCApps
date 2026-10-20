@@ -188,10 +188,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
     /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
-    local procedure ProcessPosting(
-        var PurchHeader: Record "Purchase Header";
-        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        var EverythingInvoiced: Boolean)
+    local procedure ProcessPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
     var
         IgnoreCommit: Boolean;
     begin
@@ -458,7 +455,7 @@ codeunit 90 "Purch.-Post"
         InvtSetupRead: Boolean;
         LogErrorMode: Boolean;
         PurchSetupRead: Boolean;
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         InvoiceGreaterThanReturnShipmentErr: Label 'The quantity you are attempting to invoice is greater than the quantity in return shipment %1.', Comment = '%1 = Return Shipment No.';
         ReturnShipmentLinesDeletedErr: Label 'Return shipment lines have been deleted.';
@@ -593,7 +590,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     /// <summary>
-    /// Copies all the purchase lines to a temporary table, if they haven't been copied yet, to speed up later processing
+    /// Copies all the purchase lines to a temporary table, if they haven't been copied yet, to speed up later processing 
     /// </summary>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempPurchLine">Return value: The temp table that holds a copy of all purchase lines.</param>
@@ -742,14 +739,14 @@ codeunit 90 "Purch.-Post"
     /// <summary>
     /// Checks if document header and lines are valid for posting, updates the document and lines and creates posted documents.
     /// Prepayment lines are created for documents that are invoiced.
-    /// Unposted document is archived
+    /// Unposted document is archived   
     /// Check for over-receipt is performed
     /// </summary>
     /// <remarks>
     /// Transaction is committed after updating the document header if posting is not in PreviewMode
     /// Several related tables are locked for update after this procedure.
     /// DocumentIsReadyToBeChecked is set to true, so that PrepareCheckDocument() is not called again in CheckPurchDocument(). Preparation already happened in RunWithCheck() (parent procedure).
-    /// </remarks>
+    /// </remarks>    
     /// <param name="PurchHeader">Return Value: The purchase header of the document that is being posted, returned with updated values.</param>
     local procedure CheckAndUpdate(var PurchHeader: Record "Purchase Header")
     var
@@ -1548,7 +1545,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="ItemChargeNo">Item Charge No. to be assigned to the Item Journal Line.</param>
     /// <param name="TrackingSpecification">Tracking Specification for the purchase line. This parameter is exposed through events, but isn't directly used in the procedure</param>
     /// <returns>The Item Shipment Entry No. assigned to the Item Journal Line.</returns>
-    procedure PostItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: Integer
+    procedure PostItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         OriginalItemJnlLine: Record "Item Journal Line";
@@ -2457,7 +2454,7 @@ codeunit 90 "Purch.-Post"
             Error(RelatedItemLedgEntriesNotFoundErr)
     end;
 
-    procedure PostAssocItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): Integer
+    procedure PostAssocItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TempHandlingSpecification2: Record "Tracking Specification" temporary;
@@ -2948,7 +2945,7 @@ codeunit 90 "Purch.-Post"
     /// Update Posting Date on an associated drop shipment Sales Order
     /// </summary>
     /// <remarks>
-    /// Document Date is being retained after updating Posting Date
+    /// Document Date is being retained after updating Posting Date 
     /// </remarks>
     /// <param name="SalesHeader">Drop Shipment Sales Order related to current purchase document</param>
     /// <param name="PostingDate">New posting Date</param>
@@ -3714,7 +3711,7 @@ codeunit 90 "Purch.-Post"
 
     /// <summary>
     /// Collects the purchase lines for the specified Purchase Header and stores them in the PurchLine record set.
-    /// Collected lines will have the amounts divided by quantity the same way as they are divided during the posting process, depending on the selected QtyType.
+    /// Collected lines will have the amounts divided by quantity the same way as they are divided during the posting process, depending on the selected QtyType.    
     /// </summary>
     /// <remarks>
     /// Temporary/buffer table TempPurchLineGlobal is populated as part of the process
@@ -3736,7 +3733,7 @@ codeunit 90 "Purch.-Post"
     /// Sums the purchase lines for the specified Purchase Header and stores the results in the NewTotalPurchLine and NewTotalPurchLineLCY record variables.
     /// The amounts will be divided by quantity the same way as they are divided during the posting process, depending on the selected QtyType.
     /// </summary>
-    /// <remarks>
+    /// <remarks>    
     /// it always takes the lines for the specified Purchase Header (doesn't support a parameter for filtered or temp purchase lines).
     /// </remarks>
     /// <param name="NewPurchHeader">The Purchase Header of the document.</param>
@@ -3785,7 +3782,7 @@ codeunit 90 "Purch.-Post"
 
     /// <summary>
     /// Collects the purchase lines for the specified Purchase Header and stores them in the PurchLine record set.
-    /// Collected lines will have the amounts divided by quantity the same way as they are divided during the posting process, depending on the selected QtyType.
+    /// Collected lines will have the amounts divided by quantity the same way as they are divided during the posting process, depending on the selected QtyType.    
     /// If Invoice Rounding functionality is enabled, rounding line is created
     /// </summary>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
@@ -4780,7 +4777,7 @@ codeunit 90 "Purch.-Post"
                 Location.Get(LocationCode);
     end;
 
-    local procedure InsertRcptEntryRelation(var PurchRcptLine: Record "Purch. Rcpt. Line") Result: Integer
+    local procedure InsertRcptEntryRelation(var PurchRcptLine: Record "Purch. Rcpt. Line") Result: BigInteger
     var
         ItemEntryRelation: Record "Item Entry Relation";
         IsHandled: Boolean;
@@ -4804,7 +4801,7 @@ codeunit 90 "Purch.-Post"
         exit(ItemLedgShptEntryNo);
     end;
 
-    local procedure InsertReturnEntryRelation(var ReturnShptLine: Record "Return Shipment Line"): Integer
+    local procedure InsertReturnEntryRelation(var ReturnShptLine: Record "Return Shipment Line"): BigInteger
     var
         ItemEntryRelation: Record "Item Entry Relation";
         Result: Integer;
@@ -5935,7 +5932,7 @@ codeunit 90 "Purch.-Post"
     /// <remarks>
     /// Only Purchase Orders and Purchase Return Orders can be archived
     /// Archiving must be enabled in Purchase Setup
-    /// When archiving purchase line associated with deferrals, deferral amounts are rounded
+    /// When archiving purchase line associated with deferrals, deferral amounts are rounded 
     /// </remarks>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     procedure ArchiveUnpostedOrder(var PurchHeader: Record "Purchase Header")
@@ -8172,7 +8169,7 @@ codeunit 90 "Purch.-Post"
         if PurchInvHeader."No." = '' then
             exit;
 
-        // Do not change 'Order No.' if already set
+        // Do not change 'Order No.' if already set 
         if PurchInvHeader."Order No." <> '' then
             exit;
 
@@ -8269,7 +8266,7 @@ codeunit 90 "Purch.-Post"
         NoOfLinesWithShipmentNo: Integer;
         NoOfLinesWithParticularShipmentNo: Integer;
     begin
-        // Do not change 'Return Order No.' if already set
+        // Do not change 'Return Order No.' if already set 
         if PurchCrMemoHdr."Return Order No." <> '' then
             exit;
 

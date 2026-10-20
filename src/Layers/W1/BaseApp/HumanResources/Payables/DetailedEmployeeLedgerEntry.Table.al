@@ -164,7 +164,7 @@ table 5223 "Detailed Employee Ledger Entry"
             Caption = 'Initial Document Type';
             ToolTip = 'Specifies the document type that the initial vendor ledger entry was created with.';
         }
-        field(36; "Applied Empl. Ledger Entry No."; Integer)
+        field(36; "Applied Empl. Ledger Entry No."; BigInteger)
         {
             Caption = 'Applied Empl. Ledger Entry No.';
         }

@@ -76,7 +76,7 @@ table 5338 "Integration Synch. Job"
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
         }
-        field(13; "Job Queue Log Entry No."; Integer)
+        field(13; "Job Queue Log Entry No."; BigInteger)
         {
             Caption = 'Job Queue Log Entry No.';
         }

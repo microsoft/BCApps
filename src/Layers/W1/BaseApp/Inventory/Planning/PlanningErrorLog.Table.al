@@ -33,7 +33,7 @@ table 5430 "Planning Error Log"
             Caption = 'Journal Batch Name';
             TableRelation = "Requisition Wksh. Name".Name where("Worksheet Template Name" = field("Worksheet Template Name"));
         }
-        field(3; "Entry No."; Integer)
+        field(3; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

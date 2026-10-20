@@ -433,7 +433,7 @@ table 5137 "Job Planning Line Archive"
             Caption = 'Ledger Entry Type';
             ToolTip = 'Specifies the entry type of the project ledger entry associated with the planning line.';
         }
-        field(1051; "Ledger Entry No."; Integer)
+        field(1051; "Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Ledger Entry No.';

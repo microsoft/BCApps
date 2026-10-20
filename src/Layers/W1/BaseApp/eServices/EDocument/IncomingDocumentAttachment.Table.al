@@ -534,6 +534,7 @@ table 133 "Incoming Document Attachment"
         DateVar: Date;
         DecimalVar: Decimal;
         IntegerVar: Integer;
+        BigIntegerVar: BigInteger;
         GuidVar: Guid;
         XmlValue: Text;
         XPath: Text;
@@ -560,6 +561,9 @@ table 133 "Incoming Document Attachment"
             FieldType::Integer:
                 if Evaluate(IntegerVar, XmlValue, 9) then
                     FieldRef.Value := IntegerVar;
+            FieldType::BigInteger:
+                if Evaluate(BigIntegerVar, XmlValue, 9) then
+                    FieldRef.Value := BigIntegerVar;
             FieldType::Decimal:
                 if Evaluate(DecimalVar, XmlValue, 9) then
                     FieldRef.Value := DecimalVar;

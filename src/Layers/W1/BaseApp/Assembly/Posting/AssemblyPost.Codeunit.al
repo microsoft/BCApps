@@ -105,7 +105,7 @@ codeunit 900 "Assembly-Post"
         UOMMgt: Codeunit "Unit of Measure Management";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         Window: Dialog;
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         PostingDate: Date;
         SourceCode: Code[10];

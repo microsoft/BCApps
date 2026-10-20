@@ -38,7 +38,7 @@ table 5816 "Cost Adjustment Trace Log"
             Caption = 'Traced Table ID';
             ToolTip = 'Specifies the table ID of the traced entry.';
         }
-        field(5; "Traced Entry No."; Integer)
+        field(5; "Traced Entry No."; BigInteger)
         {
             Caption = 'Traced Entry No.';
             ToolTip = 'Specifies the traced entry number.';

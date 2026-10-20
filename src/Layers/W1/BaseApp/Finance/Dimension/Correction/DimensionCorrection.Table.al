@@ -85,7 +85,7 @@ table 2582 "Dimension Correction"
         /// <summary>
         /// Last entry number processed during undo operation for tracking progress.
         /// </summary>
-        field(10; "Undo Last Ledger Entry No."; Integer)
+        field(10; "Undo Last Ledger Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             Editable = false;
@@ -142,7 +142,7 @@ table 2582 "Dimension Correction"
         /// <summary>
         /// Entry number of the last updated general ledger entry during processing.
         /// </summary>
-        field(16; "Last Updated Entry No."; Integer)
+        field(16; "Last Updated Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             Editable = false;
@@ -151,7 +151,7 @@ table 2582 "Dimension Correction"
         /// <summary>
         /// Entry number of the last validated general ledger entry during validation process.
         /// </summary>
-        field(17; "Last Validated Entry No."; Integer)
+        field(17; "Last Validated Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             Editable = false;

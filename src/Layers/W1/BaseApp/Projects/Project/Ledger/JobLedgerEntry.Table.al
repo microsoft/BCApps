@@ -447,7 +447,7 @@ table 169 "Job Ledger Entry"
             Caption = 'Ledger Entry Type';
             ToolTip = 'Specifies the entry type that the project ledger entry is linked to.';
         }
-        field(1018; "Ledger Entry No."; Integer)
+        field(1018; "Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Ledger Entry No.';

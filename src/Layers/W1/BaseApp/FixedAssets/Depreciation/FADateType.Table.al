@@ -29,7 +29,7 @@ table 5645 "FA Date Type"
         {
             Caption = 'G/L Entry';
         }
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

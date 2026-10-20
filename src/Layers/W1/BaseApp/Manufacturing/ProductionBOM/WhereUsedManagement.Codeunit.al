@@ -24,7 +24,7 @@ codeunit 99000770 "Where-Used Management"
         VersionMgt: Codeunit VersionManagement;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         MultiLevel: Boolean;
-        NextWhereUsedEntryNo: BigInteger;
+        NextWhereUsedEntryNo: Integer;
 
     procedure FindRecord(Which: Text[30]; var WhereUsedList2: Record "Where-Used Line"): Boolean
     begin

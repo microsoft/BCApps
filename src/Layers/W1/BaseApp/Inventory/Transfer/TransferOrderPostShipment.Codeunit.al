@@ -255,7 +255,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
         WhsePostShpt: Codeunit "Whse.-Post Shipment";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         WhseShip: Boolean;

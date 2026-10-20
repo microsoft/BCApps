@@ -111,7 +111,7 @@ table 5855 "Invt. Shipment Line"
         {
             Caption = 'Applies-to Entry';
         }
-        field(32; "Item Shpt. Entry No."; Integer)
+        field(32; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
             Editable = false;

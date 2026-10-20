@@ -653,7 +653,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the last dimension correction applied to this G/L entry.
         /// </summary>
-        field(495; "Last Dim. Correction Entry No."; Integer)
+        field(495; "Last Dim. Correction Entry No."; BigInteger)
         {
             Caption = 'Last Dim. Correction Entry No.';
             Editable = false;

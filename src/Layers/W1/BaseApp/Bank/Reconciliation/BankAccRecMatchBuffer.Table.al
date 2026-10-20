@@ -29,7 +29,7 @@ table 2711 "Bank Acc. Rec. Match Buffer"
         /// Bank account ledger entry number being matched in many-to-one relationships.
         /// References the target ledger entry that multiple statement lines should match against.
         /// </summary>
-        field(1; "Ledger Entry No."; Integer)
+        field(1; "Ledger Entry No."; BigInteger)
         {
             Caption = 'Bank Account Ledger Entry No.';
             Editable = false;

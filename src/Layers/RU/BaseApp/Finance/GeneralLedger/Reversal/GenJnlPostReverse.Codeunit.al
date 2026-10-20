@@ -108,7 +108,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NextDtldCustLedgEntryEntryNo: BigInteger;
         NextDtldVendLedgEntryEntryNo: BigInteger;
         NextDtldEmplLedgEntryNo: BigInteger;
-        TransactionKey: Integer;
+        TransactionKey: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -222,7 +222,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverse(GLRegister, GLRegister2);
     end;
 
-    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: Integer; var NextDtldVendLedgEntryEntryNo: Integer; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var ReversalEntry: Record "Reversal Entry"; var TempTaxDiffLedgerEntry: Record "Tax Diff. Ledger Entry" temporary; var ReversalEntry2: Record "Reversal Entry")
+    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: BigInteger; var NextDtldVendLedgEntryEntryNo: BigInteger; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var ReversalEntry: Record "Reversal Entry"; var TempTaxDiffLedgerEntry: Record "Tax Diff. Ledger Entry" temporary; var ReversalEntry2: Record "Reversal Entry")
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
@@ -376,7 +376,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverseGLEntry(GLEntry);
     end;
 
-    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: Integer; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: Integer)
+    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: BigInteger; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: BigInteger)
     var
         NewCustLedgerEntry: Record "Cust. Ledger Entry";
         ReversedCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -925,7 +925,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             Description := ReversalEntry.Description;
     end;
 
-    local procedure GetTransactionKey(): Integer
+    local procedure GetTransactionKey(): BigInteger
     var
         ReversalEntry: Record "Reversal Entry";
     begin
@@ -1005,7 +1005,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         end;
     end;
 
-    local procedure SaveReversalEntries(var TempReversalEntry: Record "Reversal Entry" temporary; TransactionKey: Integer)
+    local procedure SaveReversalEntries(var TempReversalEntry: Record "Reversal Entry" temporary; TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -1023,7 +1023,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             until TempReversalEntry.Next() = 0;
     end;
 
-    local procedure DeleteReversalEntries(TransactionKey: Integer)
+    local procedure DeleteReversalEntries(TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -1561,7 +1561,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="GLEntry2">G/L entry records to be reversed</param>
     /// <param name="GLRegister">G/L register for the reversal</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
+    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: Record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
     begin
     end;
 

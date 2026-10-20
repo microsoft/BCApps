@@ -34,7 +34,7 @@ table 223 "Drop Shpt. Post. Buffer"
         /// <summary>
         /// Specifies the item ledger entry number created when the shipment was posted.
         /// </summary>
-        field(3; "Item Shpt. Entry No."; Integer)
+        field(3; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
             DataClassification = SystemMetadata;

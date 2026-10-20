@@ -59,7 +59,7 @@ codeunit 23 "Item Jnl.-Post Batch"
         InvtAdjmtHandler: Codeunit "Inventory Adjustment Handler";
         Window: Dialog;
         ItemsToAdjust: List of [Code[20]];
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemRegNo: BigInteger;
         WhseRegNo: BigInteger;
         StartLineNo: Integer;

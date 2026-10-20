@@ -313,7 +313,7 @@ table 5851 "Invt. Document Line"
                 end;
             end;
         }
-        field(32; "Item Shpt. Entry No."; Integer)
+        field(32; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
             Editable = false;

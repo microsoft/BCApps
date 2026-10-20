@@ -451,7 +451,7 @@ codeunit 90 "Purch.-Post"
         InvtSetupRead: Boolean;
         LogErrorMode: Boolean;
         PurchSetupRead: Boolean;
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         InvoiceGreaterThanReturnShipmentErr: Label 'The quantity you are attempting to invoice is greater than the quantity in return shipment %1.', Comment = '%1 = Return Shipment No.';
         ReturnShipmentLinesDeletedErr: Label 'Return shipment lines have been deleted.';
@@ -749,7 +749,7 @@ codeunit 90 "Purch.-Post"
     begin
         OnBeforeCheckAndUpdate(PurchHeader, ModifyHeader);
         DocumentIsReadyToBeChecked := true;
-        
+
         CheckPurchDocument(PurchHeader);
 
         if GuiAllowed() and not HideProgressWindow then
@@ -1518,7 +1518,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="ItemChargeNo">Item Charge No. to be assigned to the Item Journal Line.</param>
     /// <param name="TrackingSpecification">Tracking Specification for the purchase line. This parameter is exposed through events, but isn't directly used in the procedure</param>
     /// <returns>The Item Shipment Entry No. assigned to the Item Journal Line.</returns>
-    procedure PostItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: Integer
+    procedure PostItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification") Result: BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         OriginalItemJnlLine: Record "Item Journal Line";
@@ -2427,7 +2427,7 @@ codeunit 90 "Purch.-Post"
             Error(RelatedItemLedgEntriesNotFoundErr)
     end;
 
-    procedure PostAssocItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): Integer
+    procedure PostAssocItemJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal): BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TempHandlingSpecification2: Record "Tracking Specification" temporary;
@@ -4795,7 +4795,7 @@ codeunit 90 "Purch.-Post"
                 Location.Get(LocationCode);
     end;
 
-    local procedure InsertRcptEntryRelation(var PurchRcptLine: Record "Purch. Rcpt. Line") Result: Integer
+    local procedure InsertRcptEntryRelation(var PurchRcptLine: Record "Purch. Rcpt. Line") Result: BigInteger
     var
         ItemEntryRelation: Record "Item Entry Relation";
         IsHandled: Boolean;
@@ -4819,7 +4819,7 @@ codeunit 90 "Purch.-Post"
         exit(ItemLedgShptEntryNo);
     end;
 
-    local procedure InsertReturnEntryRelation(var ReturnShptLine: Record "Return Shipment Line"): Integer
+    local procedure InsertReturnEntryRelation(var ReturnShptLine: Record "Return Shipment Line"): BigInteger
     var
         ItemEntryRelation: Record "Item Entry Relation";
         Result: Integer;

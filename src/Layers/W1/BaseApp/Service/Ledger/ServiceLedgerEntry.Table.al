@@ -329,11 +329,11 @@ table 5907 "Service Ledger Entry"
             Caption = 'Prepaid';
             ToolTip = 'Specifies whether the service contract or contract-related service order was prepaid.';
         }
-        field(55; "Apply Until Entry No."; Integer)
+        field(55; "Apply Until Entry No."; BigInteger)
         {
             Caption = 'Apply Until Entry No.';
         }
-        field(56; "Applies-to Entry No."; Integer)
+        field(56; "Applies-to Entry No."; BigInteger)
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Applies-to Entry No.';

@@ -48,7 +48,7 @@ table 744 "VAT Report Line Relation"
         /// <summary>
         /// Entry number from the source table that contributes to the VAT report line amount.
         /// </summary>
-        field(11; "Entry No."; Integer)
+        field(11; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

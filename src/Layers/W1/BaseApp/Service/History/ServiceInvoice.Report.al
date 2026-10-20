@@ -821,7 +821,7 @@ report 5911 "Service - Invoice"
         NoOfLoops: Integer;
         CopyText: Text[30];
         ShowShippingAddr: Boolean;
-        NextEntryNo: BigInteger;
+        NextEntryNo: Integer;
         FirstValueEntryNo: BigInteger;
         OutputNo: Integer;
         TypeInt: Integer;

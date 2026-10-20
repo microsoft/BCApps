@@ -2505,6 +2505,16 @@
     "method": "FormatValueDuration"
   },
   {
+    "codeunitId": 139031,
+    "codeunitName": "Change Log",
+    "method": "InsertAllFields"
+  },
+  {
+    "codeunitId": 139031,
+    "codeunitName": "Change Log",
+    "method": "DeleteAllFields"
+  },
+  {
     "codeunitId": 139086,
     "codeunitName": "Azure AD Mgt. Tests",
     "method": "GetAuthCodeUrlSaasNoResourceCreatesValidGenericUrl"

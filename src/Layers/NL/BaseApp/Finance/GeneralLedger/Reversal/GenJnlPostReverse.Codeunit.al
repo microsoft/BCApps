@@ -101,7 +101,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NextDtldCustLedgEntryEntryNo: BigInteger;
         NextDtldVendLedgEntryEntryNo: BigInteger;
         NextDtldEmplLedgEntryNo: BigInteger;
-        TransactionKey: Integer;
+        TransactionKey: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -867,7 +867,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             Description := ReversalEntry.Description;
     end;
 
-    local procedure GetTransactionKey(): Integer
+    local procedure GetTransactionKey(): BigInteger
     var
         ReversalEntry: Record "Reversal Entry";
     begin
@@ -947,7 +947,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         end;
     end;
 
-    local procedure SaveReversalEntries(var TempReversalEntry: Record "Reversal Entry" temporary; TransactionKey: Integer)
+    local procedure SaveReversalEntries(var TempReversalEntry: Record "Reversal Entry" temporary; TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -965,7 +965,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             until TempReversalEntry.Next() = 0;
     end;
 
-    local procedure DeleteReversalEntries(TransactionKey: Integer)
+    local procedure DeleteReversalEntries(TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -1275,7 +1275,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="GLEntry2">G/L entry records to be reversed</param>
     /// <param name="GLRegister">G/L register for the reversal</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
+    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: Record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
     begin
     end;
 

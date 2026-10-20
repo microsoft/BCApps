@@ -304,7 +304,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
 #if not CLEAN28
         UOMMgt: Codeunit "Unit of Measure Management";
 #endif
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         WhseShip: Boolean;
