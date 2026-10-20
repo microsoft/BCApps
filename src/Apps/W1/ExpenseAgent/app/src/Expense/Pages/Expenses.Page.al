@@ -34,38 +34,30 @@ page 6989 Expenses
                 }
                 field("Expense User No."; Rec."Expense User No.")
                 {
-                    ToolTip = 'Specifies the expense user who incurred the expense.';
                 }
                 field("Expense Date"; Rec."Expense Date")
                 {
-                    ToolTip = 'Specifies the date the expense occurred.';
                 }
                 field(Status; Rec.Status)
                 {
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies the current status of the expense.';
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {
-                    ToolTip = 'Specifies the category of the expense.';
                 }
                 field("Merchant Name"; Rec."Merchant Name")
                 {
-                    ToolTip = 'Specifies the name of the merchant where the expense occurred.';
                 }
-                field(Amount; Rec.Amount)
+                field(Amount; Rec."Amount (LCY)")
                 {
-                    ToolTip = 'Specifies the total amount in the expense currency.';
                 }
                 field("No Receipt Type"; Rec."No Receipt Type")
                 {
-                    ToolTip = 'Specifies whether the original receipt was replaced by a no receipt declaration.';
                     Style = Unfavorable;
                     StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
                 }
                 field("Compliance Status"; Rec."Compliance Status")
                 {
-                    ToolTip = 'Specifies the compliance status assigned to the expense.';
                     Style = Unfavorable;
                     StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
                 }

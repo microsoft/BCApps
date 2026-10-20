@@ -21,4 +21,8 @@ enum 6914 "Expense Attachment Enforcement"
     {
         Caption = 'Error';
     }
+    value(3; "Not needed under limit")
+    {
+        Caption = 'Not needed under limit';
+    }
 }

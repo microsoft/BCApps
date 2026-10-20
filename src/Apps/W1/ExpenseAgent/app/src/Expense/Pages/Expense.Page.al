@@ -13,6 +13,7 @@ page 6988 "Expense"
     PageType = Card;
     SourceTable = Expense;
     DataCaptionFields = "No.", "Expense Category", Description;
+    RefreshOnActivate = true;
 
     layout
     {
@@ -36,12 +37,10 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the expense user who incurred the expense.';
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the category assigned to this expense.';
 
                     trigger OnValidate()
                     begin
@@ -51,7 +50,6 @@ page 6988 "Expense"
                 field("Expense Location"; Rec."Expense Location")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the travel location for the expense. Available for Per Diem expenses.';
                     ShowMandatory = IsPerDiemCategory;
                     Editable = IsPerDiemCategory;
 
@@ -63,14 +61,11 @@ page 6988 "Expense"
                 field("Expense Report No."; Rec."Expense Report No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the expense report that includes this expense. Set when added to a report.';
                     Importance = Additional;
                 }
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date the expense occurred.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -79,7 +74,6 @@ page 6988 "Expense"
                 field("Expense Time"; Rec."Expense Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the time the expense occurred.';
                     Importance = Additional;
 
                     trigger OnValidate()
@@ -90,18 +84,21 @@ page 6988 "Expense"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a short description of the expense.';
                 }
                 field("Expense Ext. Doc. No."; Rec."Expense Ext. Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Receipt No.';
-                    ToolTip = 'Specifies the receipt number or external reference on the document.';
+                }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount in the expense currency.';
                     Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
 
                     trigger OnValidate()
@@ -119,28 +116,24 @@ page 6988 "Expense"
                 field(Justification; Rec.Justification)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the justification for the expense per policy.';
                     Importance = Additional;
                 }
                 field("No Receipt Type"; Rec."No Receipt Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the original receipt was lost and replaced by a no receipt declaration.';
                     Style = Unfavorable;
                     StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
                 }
                 field("No Receipt Reason"; Rec."No Receipt Reason")
                 {
                     ApplicationArea = Basic, Suite;
-                    Editable = AllowNoReceipt and (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '');
-                    ToolTip = 'Specifies why the original receipt is unavailable.';
+                    Editable = AllowNoReceipt and (Rec.Status = Rec.Status::Open);
                     MultiLine = true;
                     Visible = AllowNoReceipt or (Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt");
                 }
                 field("Compliance Status"; Rec."Compliance Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the compliance status assigned to the expense.';
                     Style = Unfavorable;
                     StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
                 }
@@ -152,40 +145,28 @@ page 6988 "Expense"
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor or merchant registration number for this expense.';
                 }
                 field("Merchant VAT Registration No."; Rec."Merchant VAT Registration No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the vendor or merchant VAT registration number for this expense.';
                 }
                 field("Expense Vendor No."; Rec."Expense Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the expense vendor record created for this expense. Open the expense vendor to review and approve vendor creation.';
                 }
-                field("Currency Code"; Rec."Currency Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Currency Code field.';
-                    Importance = Additional;
-                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
-                }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the current status of the expense.';
                     Importance = Additional;
                 }
                 field("Rule Violations"; Rec."Rule Violations")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether any rule violations exist for this expense.';
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date and time the expense was created.';
                     Importance = Additional;
                     Editable = false;
                 }
@@ -223,7 +204,6 @@ page 6988 "Expense"
                 field("Starting Date and Time"; Rec."Starting Date and Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the start of the travel period for this expense. Editable for Per Diem expenses.';
                     Editable = IsPerDiemCategory;
 
                     trigger OnValidate()
@@ -234,7 +214,6 @@ page 6988 "Expense"
                 field("Ending Date and Time"; Rec."Ending Date and Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the end of the travel period for this expense. Editable for Per Diem expenses.';
                     Editable = IsPerDiemCategory;
 
                     trigger OnValidate()
@@ -245,19 +224,16 @@ page 6988 "Expense"
                 field("Starting Point"; Rec."Starting Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the starting location for mileage. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
                 }
                 field("Ending Point"; Rec."Ending Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending location for mileage. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
                 }
                 field(Mileage; Rec.Mileage)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the distance traveled for mileage reimbursement. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
@@ -297,7 +273,6 @@ page 6988 "Expense"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the unit of measure for mileage (for example, miles or kilometers). Available for Mileage expenses.';
                     Editable = false;
 
                     trigger OnValidate()
@@ -311,20 +286,16 @@ page 6988 "Expense"
                 field(Billable; Rec.Billable)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense is billable to a customer.';
                 }
                 field("Billable to Customer"; Rec."Billable to Customer")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = Rec.Billable;
-                    ToolTip = 'Specifies the customer to bill for this expense. Available when Billable is turned on.';
                     Importance = Additional;
                 }
                 field(Refundable; Rec.Refundable)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense is reimbursable.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -334,12 +305,10 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the type of reimbursement for this expense.';
                 }
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and the category does not require itemization.';
                     Editable = Rec.Refundable and (not IsItemizationCategory);
                     Importance = Additional;
 
@@ -351,31 +320,26 @@ page 6988 "Expense"
                 field("Reimbursable Amount"; Rec."Reimbursable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount eligible for reimbursement based on policy.';
                 }
                 field("Reimbursable Amount (LCY)"; Rec."Reimbursable Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reimbursable amount in the local currency.';
                     Importance = Additional;
                 }
                 field("Refundable Amount"; Rec."Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
-                    ToolTip = 'Specifies the amount eligible for refund based on policy.';
                 }
                 field("Refundable Amount (LCY)"; Rec."Refundable Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
-                    ToolTip = 'Specifies the refundable amount in the local currency.';
                     Importance = Additional;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment method used for this expense.';
                     Importance = Additional;
 
                     trigger OnValidate()
@@ -386,20 +350,17 @@ page 6988 "Expense"
                 field("Credit Card Feed No."; Rec."Credit Card Feed No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reference to the imported credit card transaction. Set by the system when matched to a card feed.';
                     Editable = false;
                     Importance = Additional;
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the job to assign this expense to.';
                     Importance = Additional;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the job task to assign this expense to.';
                     Importance = Additional;
                 }
             }
@@ -408,8 +369,6 @@ page 6988 "Expense"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies Shortcut Dimension 1 for this expense.';
-
                     trigger OnValidate()
                     begin
                         ShortcutDimension1CodeOnAfterV();
@@ -418,8 +377,6 @@ page 6988 "Expense"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies Shortcut Dimension 2 for this expense.';
-
                     trigger OnValidate()
                     begin
                         ShortcutDimension1CodeOnAfterV();
@@ -779,7 +736,6 @@ page 6988 "Expense"
     begin
         SetCategoryTypeVisibility();
         CalculateTotalMileage();
-
         if IsNullGuid(Rec."Applied Rule Id") then
             ShowAppliedRuleTxt := ''
         else

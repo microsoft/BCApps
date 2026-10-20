@@ -680,7 +680,6 @@ table 6930 "Expense Agent Setup"
         field(105; "VAT Rates Applied"; Boolean)
         {
             Caption = 'Default VAT Rates applied';
-            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default VAT rates have been applied.';
             Editable = false;
         }

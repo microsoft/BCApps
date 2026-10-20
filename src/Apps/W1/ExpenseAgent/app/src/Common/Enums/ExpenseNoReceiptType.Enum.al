@@ -17,4 +17,8 @@ enum 6925 "Expense No Receipt Type"
     {
         Caption = 'Lost Receipt';
     }
+    value(2; "Receipt not needed")
+    {
+        Caption = 'Receipt not needed';
+    }
 }
