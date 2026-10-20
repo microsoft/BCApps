@@ -263,6 +263,8 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
     BeforeAll {
         $script:runTestsScript = (Resolve-Path (Join-Path $PSScriptRoot '../RunTestsInBcContainer.ps1')).Path
         Import-Module (Join-Path $PSScriptRoot '../AlToolCoverageAdapter.psm1') -Force
+        Import-Module (Join-Path $PSScriptRoot '../TestTolerance/TestTolerance.psm1') -Force
+        $script:savedGitHubEventName = $env:GITHUB_EVENT_NAME
         function Run-TestsInBcContainer {
             param(
                 [string]$appName,
@@ -274,6 +276,10 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
             $null = $appName, $tenant, $testType, $disabledTests, $renewClientContextBetweenTests
             throw 'Run-TestsInBcContainer must be mocked.'
         }
+    }
+
+    AfterAll {
+        $env:GITHUB_EVENT_NAME = $script:savedGitHubEventName
     }
 
     BeforeEach {
@@ -323,6 +329,104 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
         }
         $parameters.testType | Should -Be $Lane
     }
+
+    It "persists final parent tolerance for subsequent AL-Go app callbacks" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Mock Get-ToleranceBranch { 'main' }
+        Mock Receive-UnstableTestsArtifact { 'unstable-tests.json' }
+        Mock Test-ShouldTolerateFailures { $true }
+        Mock Get-InstalledTestAppNames {
+            throw 'The second AL-Go app callback must use the final cached result.'
+        }
+        $previousRunnerTemp = $env:RUNNER_TEMP
+        $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+        $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+        Mock Invoke-ParallelTestExecution {
+            @{
+                completed = $true
+                finalResult = $false
+            } | ConvertTo-Json | Set-Content -LiteralPath $stateFile -Encoding utf8
+            return $false
+        }
+        try {
+            $env:RUNNER_TEMP = $TestDrive
+            & $script:runTestsScript -parameters @{
+                appName = 'First AL-Go App'
+                containerName = $containerName
+                tenant = 'default'
+                JUnitResultFileName = 'merged-results.xml'
+            } -TestType IntegrationTest -AppNamesToTest @('Tests A', 'Tests B') |
+                Should -BeTrue
+
+            Invoke-PerProjectTestRun -parameters @{
+                containerName = $containerName
+                appName = 'Second AL-Go App'
+            } | Should -BeTrue
+
+            (Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json).finalResult |
+                Should -BeTrue
+            Should -Invoke Invoke-ParallelTestExecution -Times 1 -Exactly
+            Should -Invoke Test-ShouldTolerateFailures -Times 1 -Exactly -ParameterFilter {
+                $TestResultsPath -eq 'merged-results.xml' -and
+                $UnstableTestsPath -eq 'unstable-tests.json'
+            }
+            Should -Invoke Get-InstalledTestAppNames -Times 0
+            Should -Invoke Run-TestsInBcContainer -Times 0
+        }
+        finally {
+            $env:RUNNER_TEMP = $previousRunnerTemp
+        }
+    }
+
+    It "does not apply test tolerance inside scheduler workers" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Mock Run-TestsInBcContainer { $false }
+        Mock Test-ShouldTolerateFailures { throw 'Worker tolerance must be deferred to the parent.' }
+
+        & $script:runTestsScript -parameters @{
+            appName = 'Worker Tests'
+            tenant = 'default'
+            JUnitResultFileName = 'worker-results.xml'
+        } -TestType IntegrationTest -SkipAutomaticDisabledPass -SkipTestTolerance |
+            Should -BeFalse
+
+        Should -Invoke Test-ShouldTolerateFailures -Times 0
+    }
+
+    It "does not tolerate a final test infrastructure failure" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $previousRunnerTemp = $env:RUNNER_TEMP
+        $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+        $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+        Mock Invoke-ParallelTestExecution {
+            @{
+                completed = $true
+                finalResult = $false
+            } | ConvertTo-Json | Set-Content -LiteralPath $stateFile -Encoding utf8
+            $parameters["_bcAppsTestInfrastructureBlocksTolerance"] = $true
+            return $false
+        }
+        Mock Test-ShouldTolerateFailures {
+            throw 'Infrastructure failures must bypass test tolerance.'
+        }
+        try {
+            $env:RUNNER_TEMP = $TestDrive
+            & $script:runTestsScript -parameters @{
+                appName = 'First AL-Go App'
+                containerName = $containerName
+                tenant = 'default'
+                JUnitResultFileName = 'merged-results.xml'
+            } -TestType IntegrationTest -AppNamesToTest @('Tests A') |
+                Should -BeFalse
+
+            Should -Invoke Test-ShouldTolerateFailures -Times 0
+            (Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json).finalResult |
+                Should -BeFalse
+        }
+        finally {
+            $env:RUNNER_TEMP = $previousRunnerTemp
+        }
+    }
 }
 
 Describe "ParallelTestExecution command isolation" {
@@ -370,6 +474,24 @@ Describe "Separate RunTests action bucket configuration" {
             UncategorizedTests = 'Uncategorized'
             LegacyTestsBucket1 = 'Legacy'
             LegacyTestsBucket2 = 'Legacy'
+        }
+        $script:expectedCompany = @{
+            IntegrationTests = 'My Company'
+            UncategorizedTests = 'CRONUS International Ltd.'
+            LegacyTestsBucket1 = 'CRONUS International Ltd.'
+            LegacyTestsBucket2 = 'CRONUS International Ltd.'
+        }
+        $script:expectedBucket = @{
+            IntegrationTests = $null
+            UncategorizedTests = $null
+            LegacyTestsBucket1 = 1
+            LegacyTestsBucket2 = 2
+        }
+        $script:expectedDemoData = @{
+            IntegrationTests = @()
+            UncategorizedTests = @()
+            LegacyTestsBucket1 = @('Standard', 'Evaluation')
+            LegacyTestsBucket2 = @()
         }
     }
 
@@ -444,6 +566,31 @@ Describe "Separate RunTests action bucket configuration" {
                     $settings.useSeparateTestAction.testType | Should -Be $script:expectedTestType[$buildMode]
                     $settings.useSeparateTestAction.codeCoverageEnabled |
                         Should -Be $script:expectedCoverage[$buildMode]
+                    @($settings.useSeparateTestAction.codeCoverageFormats) |
+                        Should -Be @('bc-json', 'cobertura')
+                    $settings.useSeparateTestAction.codeCoverageSummary | Should -Be 'both'
+                    $settings.testType | Should -Be $script:expectedTestType[$buildMode]
+                    $settings.companyName | Should -Be $script:expectedCompany[$buildMode]
+                    [int]$settings.numberOfTenantsForTesting | Should -Be 4
+                    $settings.artifact | Should -Be 'bcinsider/Sandbox/30.0.56342.0//latest'
+                    [bool]$settings.enableTaskScheduler |
+                        Should -Be ($buildMode -eq 'UncategorizedTests')
+                    if ($null -eq $script:expectedBucket[$buildMode]) {
+                        $settings.Contains('bucketNumber') | Should -BeFalse
+                    }
+                    else {
+                        [int]$settings.bucketNumber | Should -Be $script:expectedBucket[$buildMode]
+                    }
+                    $expectedDemoData = @($script:expectedDemoData[$buildMode])
+                    $demoDataOverride = @($projectSettings.ConditionalSettings | Where-Object {
+                        @($_.buildModes) -contains $buildMode -and
+                        @($_.settings.overwriteSettings) -contains 'additionalDemoDataTypes'
+                    }) | Select-Object -Last 1
+                    if ($demoDataOverride) {
+                        $expectedDemoData = @($demoDataOverride.settings.additionalDemoDataTypes)
+                    }
+                    @($settings.additionalDemoDataTypes) |
+                        Should -Be $expectedDemoData
                 }
             }
         }
@@ -590,7 +737,9 @@ Describe "ParallelTestExecution transient retry scheduling" {
             (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
             $job.State = 'Completed'
             (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Passed'
-            Should -Invoke Remove-Job -Times 5 -Exactly
+            Mock Receive-Job { throw 'Result stream failed.' } -RemoveParameterType Job
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
+            Should -Invoke Remove-Job -Times 6 -Exactly
         }
     }
 
@@ -778,6 +927,220 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 if (Test-Path $stateFile) {
                     Remove-Item $stateFile -Force
                 }
+            }
+        }
+    }
+
+    It "coordinates multi-tenant Integration coverage through a transient retry and cached final failure" {
+        InModuleScope ParallelTestExecution {
+            $previousRunnerTemp = $env:RUNNER_TEMP
+            $previousEventName = $env:GITHUB_EVENT_NAME
+            $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+            $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+            $resultFile = Join-Path $TestDrive 'aggregate-results.xml'
+            $script:jobId = 0
+            $script:waitCount = 0
+            $script:dispatches = [System.Collections.Generic.List[object]]::new()
+            $script:finalizedContext = $null
+            $coverageContext = @{
+                Enabled = $true
+                Reason = 'available'
+                ExpectedShards = @()
+            }
+
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
+            Mock Get-BcContainerAppInfo {
+                @('Big Tests', 'Small Tests') | ForEach-Object {
+                    [PSCustomObject]@{
+                        IsInstalled = $true
+                        Name = $_
+                        AppId = "id-$($_ -replace ' ', '-')"
+                    }
+                }
+            }
+            Mock New-BcAppsAlToolCoverageContext { $coverageContext }
+            Mock Get-ALGoSetting { $false } -ParameterFilter {
+                $Key -eq 'enableCleanTestCodeunitExecution'
+            }
+            Mock Get-RequiredDisabledWorkItems { @() }
+            Mock Get-AppRerunBudget { 0 }
+            Mock Start-Sleep {}
+            Mock Wait-ForSpecificTenant { 'default' }
+            Mock Wait-ForFreeTenant { 'tenant2' }
+            Mock Start-TestJob {
+                $script:jobId++
+                $script:dispatches.Add([PSCustomObject]@{
+                    AppName = "$($parameters.appName)"
+                    Tenant = $tenant
+                    TestType = $testType
+                    Attempt = [int]$parameters['_bcAppsAlToolCoverageAttempt']
+                })
+                [PSCustomObject]@{ Id = $script:jobId }
+            }
+            Mock Wait-ForAllTestJobs {
+                $script:waitCount++
+                if ($script:waitCount -eq 1) {
+                    $State.transient = @([PSCustomObject]@{
+                        Key = 'Big Tests'
+                        Tenant = 'default'
+                    })
+                }
+                else {
+                    $State.hasFailures = $true
+                }
+                $State.jobs = @()
+                return (-not $State.hasFailures)
+            }
+            Mock Merge-TenantTestResults {
+                '<testsuites />' | Set-Content -LiteralPath $resultFile -Encoding utf8
+            }
+            Mock Complete-BcAppsAlToolCoverage {
+                $script:finalizedContext = $Context
+                return @{
+                    runs = @(
+                        @{ state = 'failed' }
+                        @{ state = 'complete' }
+                    )
+                }
+            }
+            Mock Get-InstalledTestAppNames {
+                throw 'The second AL-Go callback must return the cached aggregate failure.'
+            }
+
+            try {
+                $env:RUNNER_TEMP = $TestDrive
+                $env:GITHUB_EVENT_NAME = 'push'
+                $params = @{
+                    containerName = $containerName
+                    tenant = 'default'
+                    JUnitResultFileName = $resultFile
+                }
+                Invoke-ParallelTestExecution -parameters $params `
+                    -scriptPath 'unused.ps1' -testType 'IntegrationTest' `
+                    -appNamesToTest @('Big Tests', 'Small Tests') |
+                    Should -BeFalse
+
+                @($script:dispatches | ForEach-Object {
+                    "$($_.AppName):$($_.Tenant):$($_.TestType):$($_.Attempt)"
+                }) | Should -Be @(
+                    'Big Tests:default:IntegrationTest:1'
+                    'Big Tests:default:IntegrationTest:2'
+                    'Small Tests:tenant2:IntegrationTest:1'
+                )
+                @($script:finalizedContext.ExpectedShards).Count | Should -Be 2
+                @($script:finalizedContext.ExpectedShards.logicalShard | Select-Object -Unique) |
+                    Should -Be @('normal')
+                $params['_bcAppsTestInfrastructureBlocksTolerance'] | Should -BeTrue
+
+                Invoke-PerProjectTestRun -parameters @{
+                    containerName = $containerName
+                    appName = 'Second AL-Go App'
+                } | Should -BeFalse
+                Should -Invoke Get-InstalledTestAppNames -Times 0
+            }
+            finally {
+                $env:RUNNER_TEMP = $previousRunnerTemp
+                $env:GITHUB_EVENT_NAME = $previousEventName
+                Remove-Item -LiteralPath $stateFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    It "fails immediately when the container has no operational tenants" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-AvailableBcTenantInfo { @() }
+
+            {
+                Invoke-ParallelTestExecution -parameters @{
+                    containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                    tenant = 'default'
+                } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
+            } | Should -Throw "*No operational tenants are available*"
+        }
+    }
+
+    It "marks vanished tracked jobs as failures" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-Job { $null }
+            $state = [PSCustomObject]@{
+                jobs = @([PSCustomObject]@{ jobId = 42; tenant = 'default'; appName = 'Tests' })
+                hasFailures = $false
+                retried = @{}
+            }
+
+            @(Get-FreeTenants -state $state -tenants @('default')) | Should -Be @('default')
+            $state.hasFailures | Should -BeTrue
+            $state.jobs.Count | Should -Be 0
+
+            $state.jobs = @([PSCustomObject]@{ jobId = 43; tenant = 'default'; appName = 'Tests' })
+            $state.hasFailures = $false
+            Wait-ForAllTestJobs -state $state
+            $state.hasFailures | Should -BeTrue
+            $state.jobs.Count | Should -Be 0
+        }
+    }
+
+    It "requires every configured aggregate result file to exist and contain supported XML" {
+        InModuleScope ParallelTestExecution {
+            $validFile = Join-Path $TestDrive 'valid-results.xml'
+            $invalidFile = Join-Path $TestDrive 'invalid-results.xml'
+            '<testsuites />' | Set-Content -LiteralPath $validFile -Encoding utf8
+            '<not-test-results />' | Set-Content -LiteralPath $invalidFile -Encoding utf8
+
+            Test-BcAppsExpectedTestResults -Parameters @{
+                JUnitResultFileName = $validFile
+            } | Should -BeTrue
+            Test-BcAppsExpectedTestResults -Parameters @{
+                JUnitResultFileName = (Join-Path $TestDrive 'missing-results.xml')
+            } | Should -BeFalse
+            Test-BcAppsExpectedTestResults -Parameters @{
+                JUnitResultFileName = $invalidFile
+            } | Should -BeFalse
+        }
+    }
+
+    It "blocks tolerance when the scheduler finishes without its configured aggregate result" {
+        InModuleScope ParallelTestExecution {
+            $previousRunnerTemp = $env:RUNNER_TEMP
+            $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+            $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+            $parameters = @{
+                containerName = $containerName
+                tenant = 'default'
+                JUnitResultFileName = (Join-Path $TestDrive 'missing-aggregate.xml')
+            }
+            Mock Get-AvailableBcTenantInfo {
+                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+            }
+            Mock Get-BcContainerAppInfo {
+                @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+            }
+            Mock Get-ALGoSetting { $false } -ParameterFilter {
+                $Key -eq 'enableCleanTestCodeunitExecution'
+            }
+            Mock Get-RequiredDisabledWorkItems { @() }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch {}
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults {}
+
+            try {
+                $env:RUNNER_TEMP = $TestDrive
+                Invoke-ParallelTestExecution -parameters $parameters `
+                    -scriptPath 'unused.ps1' -testType 'IntegrationTest' `
+                    -appNamesToTest @('Tests') |
+                    Should -BeFalse
+                $parameters['_bcAppsTestInfrastructureBlocksTolerance'] |
+                    Should -BeTrue
+            }
+            finally {
+                $env:RUNNER_TEMP = $previousRunnerTemp
+                Remove-Item -LiteralPath $stateFile -Force -ErrorAction SilentlyContinue
             }
         }
     }

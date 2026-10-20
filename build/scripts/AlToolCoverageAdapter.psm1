@@ -732,6 +732,7 @@ function Complete-BcAppsAlToolCoverage {
         }
     }
     Write-Host "::notice::BCApps coverage-aware RunTestsInBcContainer override owns the final code coverage status for this test dimension."
+    return $status
 }
 
 Export-ModuleMember -Function New-BcAppsAlToolCoverageContext, Disable-BcAppsAlToolCoverageContext,

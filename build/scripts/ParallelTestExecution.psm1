@@ -211,6 +211,24 @@ function Get-AppRerunBudget {
     return $budget
 }
 
+function Get-BcAppsParallelTestStateFile {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    $tempDir = if ($env:RUNNER_TEMP) {
+        $env:RUNNER_TEMP
+    }
+    elseif ($env:TEMP) {
+        $env:TEMP
+    }
+    else {
+        [System.IO.Path]::GetTempPath()
+    }
+    return (Join-Path $tempDir "parallelTests_$ContainerName.json")
+}
+
 <#
 .SYNOPSIS
     Returns the cached parallel-test-run result for a container, or $null if no run has finished.
@@ -228,8 +246,7 @@ function Get-CachedTestRunResult {
         [string]$ContainerName
     )
 
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$ContainerName.json"
+    $stateFile = Get-BcAppsParallelTestStateFile -ContainerName $ContainerName
     if (-not (Test-Path $stateFile)) { return $null }
 
     try {
@@ -241,6 +258,33 @@ function Get-CachedTestRunResult {
         Write-Host "WARNING: Failed to parse state file '$stateFile' ($($_.Exception.Message))."
     }
     return $null
+}
+
+<#
+.SYNOPSIS
+    Updates the completed project-wide scheduler result returned to later AL-Go app callbacks.
+.PARAMETER ContainerName
+    Name of the container whose scheduler state should be updated.
+.PARAMETER Result
+    Final result after parent-level retry merging and test tolerance.
+#>
+function Set-BcAppsCachedTestRunResult {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [bool]$Result
+    )
+
+    $stateFile = Get-BcAppsParallelTestStateFile -ContainerName $ContainerName
+    if (-not (Test-Path -LiteralPath $stateFile -PathType Leaf)) {
+        throw "Parallel test state file '$stateFile' does not exist."
+    }
+
+    $state = Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json
+    $state.finalResult = $Result
+    $state.completed = $true
+    $state | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $stateFile -Force
 }
 
 <#
@@ -649,9 +693,11 @@ function Receive-TestJobResult {
     )
 
     $sb = New-Object System.Text.StringBuilder
+    $receiveFailed = $false
     try {
         Receive-Job -Job $Job *>&1 | ForEach-Object { Write-Host $_; [void]$sb.AppendLine("$_") }
     } catch {
+        $receiveFailed = $true
         Write-Host "  (job emitted terminating error: $($_.Exception.Message))"
         # Capture the full ErrorRecord text (message + script stack trace + position info)
         # so the classifier can still match a transient signature that only appears outside
@@ -663,7 +709,7 @@ function Receive-TestJobResult {
     $output = $sb.ToString()
 
     $outcome = 'Passed'
-    if ($Job.State -eq 'Failed' -or $Job.State -eq 'Stopped') {
+    if ($receiveFailed -or $Job.State -eq 'Failed' -or $Job.State -eq 'Stopped') {
         if ((Test-TransientTestFailure $output) -and -not $Retried.ContainsKey($Entry.appName)) {
             $outcome = 'Transient'
         } else {
@@ -974,6 +1020,8 @@ function Get-FreeTenants {
     foreach ($entry in $state.jobs) {
         $job = Get-Job -Id $entry.jobId -ErrorAction SilentlyContinue
         if (-not $job) {
+            Write-Host "::error::Tracked test job $($entry.jobId) for '$($entry.appName)' on '$($entry.tenant)' no longer exists."
+            $state.hasFailures = $true
             continue
         }
         if ($job.State -notin $terminalStates) {
@@ -1099,7 +1147,7 @@ function Start-TestJob {
         # shared script skips the parallel dispatch branch and falls through to running this
         # one app's tests directly.
         $passed = . $scriptPath -parameters $params -TestType $testType -AppNamesToTest @() `
-            -SkipAutomaticDisabledPass:$skipDisabledPass
+            -SkipAutomaticDisabledPass:$skipDisabledPass -SkipTestTolerance
         if (-not $passed) { throw "Test execution failed" }
     }
 
@@ -1129,6 +1177,10 @@ function Wait-ForAllTestJobs {
 
             $result = Receive-TestJobResult -Entry $entry -Job $pendingJob -Retried $state.retried
             Register-TestJobOutcome -Result $result -State $state
+        }
+        else {
+            Write-Host "::error::Tracked test job $($entry.jobId) for '$($entry.appName)' on '$($entry.tenant)' no longer exists."
+            $state.hasFailures = $true
         }
     }
     # All jobs in $state.jobs have been received and removed; clear the list so any later
@@ -1229,6 +1281,42 @@ function Merge-TenantTestResults {
             $tenantFiles | Where-Object { Test-Path $_ } | ForEach-Object { Remove-Item $_ -Force }
         }
     }
+}
+
+function Test-BcAppsExpectedTestResults {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters
+    )
+
+    $validRootNames = @("testsuites", "testsuite", "assemblies")
+    $allValid = $true
+    foreach ($resultKey in @("XUnitResultFileName", "JUnitResultFileName")) {
+        if (-not $Parameters.ContainsKey($resultKey) -or
+            [string]::IsNullOrWhiteSpace("$($Parameters[$resultKey])")) {
+            continue
+        }
+
+        $resultFile = "$($Parameters[$resultKey])"
+        if (-not (Test-Path -LiteralPath $resultFile -PathType Leaf)) {
+            Write-Host "::error::Expected test result file '$resultFile' was not produced."
+            $allValid = $false
+            continue
+        }
+
+        try {
+            [xml]$resultXml = Get-Content -LiteralPath $resultFile -Raw
+            if ($null -eq $resultXml.DocumentElement -or
+                $resultXml.DocumentElement.LocalName -notin $validRootNames) {
+                throw "unsupported root element '$($resultXml.DocumentElement.LocalName)'"
+            }
+        }
+        catch {
+            Write-Host "::error::Test result file '$resultFile' is invalid. $($_.Exception.Message)"
+            $allValid = $false
+        }
+    }
+    return $allValid
 }
 
 <#
@@ -1363,8 +1451,7 @@ function Invoke-ParallelTestExecution {
     # GitHub Actions provides a per-job temp directory ($RUNNER_TEMP) that is cleaned up between
     # jobs, so a stale state file from a previous run cannot corrupt the current run. Fall back
     # to the local temp directory outside of CI.
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
+    $stateFile = Get-BcAppsParallelTestStateFile -ContainerName $parameters.containerName
 
     # Short-circuit ONLY when a previous call ran to completion (wait+merge done). The
     # 'dispatched' flag is set before the foreach starts; if the call crashed mid-flight we must
@@ -1383,6 +1470,9 @@ function Invoke-ParallelTestExecution {
     $tenantInfo = @(Get-AvailableBcTenantInfo -containerName $parameters.containerName)
     $tenants = @($tenantInfo | ForEach-Object { $_.Id })
     Write-Host "Available tenants: $($tenants -join ', ')"
+    if ($tenants.Count -eq 0) {
+        throw "No operational tenants are available in container '$($parameters.containerName)'."
+    }
 
     # Build a name -> appId map so we can set extensionId per dispatch. Run-TestsInBcContainer
     # selects which app's tests to run via extensionId; appName is just descriptive. Without
@@ -1622,10 +1712,19 @@ function Invoke-ParallelTestExecution {
 
         Merge-TenantTestResults -parameters $parameters -tenants $tenants `
             -workItems $requiredDisabledWorkItems -rerunSuffixes $rerunSuffixes
+        if (-not (Test-BcAppsExpectedTestResults -Parameters $parameters)) {
+            $parameters["_bcAppsTestInfrastructureBlocksTolerance"] = $true
+            $allPassed = $false
+        }
 
         if ($coverageContext.Enabled) {
             $coverageFinalized = $true
-            Complete-BcAppsAlToolCoverage -Context $coverageContext
+            $coverageStatus = Complete-BcAppsAlToolCoverage -Context $coverageContext
+            if (@($coverageStatus.runs | Where-Object { "$($_.state)" -eq "failed" }).Count -gt 0) {
+                $parameters["_bcAppsTestInfrastructureBlocksTolerance"] = $true
+                Write-Host "::error::Final AlTool coverage metadata contains a failed run. Test tolerance will not convert this infrastructure failure into success."
+                $allPassed = $false
+            }
         }
 
         # Persist final result and mark complete so subsequent override invocations short-circuit
@@ -1638,7 +1737,7 @@ function Invoke-ParallelTestExecution {
     }
     finally {
         if ($coverageContext.Enabled -and -not $coverageFinalized) {
-            Complete-BcAppsAlToolCoverage -Context $coverageContext
+            $null = Complete-BcAppsAlToolCoverage -Context $coverageContext
         }
         if ($templateDatabaseName) {
             Remove-BcTestTenantTemplate -ContainerName $parameters.containerName `
@@ -1718,7 +1817,7 @@ function Invoke-PerProjectTestRun {
 
     $separateTestAction = Get-ALGoSetting -Key "useSeparateTestAction"
     if ($separateTestAction -and $separateTestAction.enabled -and $separateTestAction.codeCoverageEnabled) {
-        Write-Host "::warning::BCApps uses the RunTestsInBcContainer override to preserve bucket selection, tenant isolation, retries, and test tolerance. The AL-Go coverage branch will continue tests without code coverage for this run."
+        Write-Host "::notice::BCApps uses its coverage-aware RunTestsInBcContainer override to preserve bucket selection, tenant isolation, retries, and final test tolerance."
     }
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
@@ -1736,4 +1835,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-BcAppsDisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget, Test-TransientTestFailure
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Set-BcAppsCachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-BcAppsDisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget, Test-TransientTestFailure

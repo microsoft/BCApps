@@ -6,7 +6,8 @@ Param(
     # override on the parent invocation. Empty when called from inside a background job, which
     # forces the sequential single-app path further down.
     [string[]] $AppNamesToTest = @(),
-    [switch] $SkipAutomaticDisabledPass
+    [switch] $SkipAutomaticDisabledPass,
+    [switch] $SkipTestTolerance
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -116,36 +117,38 @@ $parameters["renewClientContextBetweenTests"] = $true
 # circuit. When invoked from inside a background job (Start-TestJob), $AppNamesToTest is empty
 # and we fall through to the sequential single-app path below.
 if ($AppNamesToTest.Count -gt 0) {
-    return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
-}
-
-$isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $parameters["requiredTestIsolation"] -eq "Disabled"
-# A failing app is retried once by the parallel dispatcher, on a different tenant (see
-# ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
-# so the same residue could re-trigger the failure - hence a single attempt per dispatch.
-$alToolResult = Invoke-BcAppsAlToolCoverageLeaf -Parameters $parameters -TestType $TestType
-if ($alToolResult.Handled) {
-    $result = [bool]$alToolResult.Passed
+    $result = Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath `
+        -testType $TestType -appNamesToTest $AppNamesToTest
 }
 else {
-    $containerParameters = $parameters.Clone()
-    Remove-BcAppsAlToolCoverageParameters -Parameters $containerParameters
-    if ($TestType -eq "Legacy") {
-        $containerParameters.Remove("testType") | Out-Null
+    $isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $parameters["requiredTestIsolation"] -eq "Disabled"
+    # A failing app is retried once by the parallel dispatcher, on a different tenant (see
+    # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
+    # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
+    $alToolResult = Invoke-BcAppsAlToolCoverageLeaf -Parameters $parameters -TestType $TestType
+    if ($alToolResult.Handled) {
+        $result = [bool]$alToolResult.Passed
     }
-    $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
-}
+    else {
+        $containerParameters = $parameters.Clone()
+        Remove-BcAppsAlToolCoverageParameters -Parameters $containerParameters
+        if ($TestType -eq "Legacy") {
+            $containerParameters.Remove("testType") | Out-Null
+        }
+        $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
+    }
 
-# Preserve the old sequential fallback. Parallel project execution defers this pass to the
-# clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
-if (-not $alToolResult.Handled -and $TestType -eq "UnitTest" -and
-    -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
-    Write-Host "Running DisableTestIsolation pass for UnitTest"
-    $containerParameters["requiredTestIsolation"] = "Disabled"
-    $containerParameters["testRunnerCodeunitId"] = "130451"
-    $containerParameters.Remove("ReRun") # Clear rerun state from the first pass
-    $isolationResult = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
-    $result = $result -and $isolationResult
+    # Preserve the old sequential fallback. Parallel project execution defers this pass to the
+    # clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
+    if (-not $alToolResult.Handled -and $TestType -eq "UnitTest" -and
+        -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
+        Write-Host "Running DisableTestIsolation pass for UnitTest"
+        $containerParameters["requiredTestIsolation"] = "Disabled"
+        $containerParameters["testRunnerCodeunitId"] = "130451"
+        $containerParameters.Remove("ReRun") # Clear rerun state from the first pass
+        $isolationResult = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
+        $result = $result -and $isolationResult
+    }
 }
 
 # If tests failed, check if we can tolerate failures based on the test results and unstable tests list.
@@ -159,8 +162,11 @@ $testResultFileName = if ($parameters.ContainsKey("JUnitResultFileName") -and -n
 }
 
 $isPullRequest = $env:GITHUB_EVENT_NAME -eq 'pull_request'
+$infrastructureFailureBlocksTolerance = $parameters.ContainsKey("_bcAppsTestInfrastructureBlocksTolerance") -and
+    [bool]$parameters["_bcAppsTestInfrastructureBlocksTolerance"]
 
-if (-not $result -and $testResultFileName -and $isPullRequest) {
+if (-not $SkipTestTolerance -and -not $infrastructureFailureBlocksTolerance -and
+    -not $result -and $testResultFileName -and $isPullRequest) {
     Write-Host "Tests failed. Checking test tolerance using results file: $testResultFileName"
 
     # Download unstable tests artifact only when tests failed and tolerance may apply
@@ -176,6 +182,10 @@ if (-not $result -and $testResultFileName -and $isPullRequest) {
             Remove-Item -Path $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
+}
+
+if ($AppNamesToTest.Count -gt 0) {
+    Set-BcAppsCachedTestRunResult -ContainerName $parameters.containerName -Result $result
 }
 
 return $result

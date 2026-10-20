@@ -301,9 +301,10 @@ Describe "AlTool coverage status coordination" {
         $finalOutput = Write-TestCoverageSidecar -Context $script:context -LogicalShard "normal" `
             -Attempt 2 -State "complete"
 
-        Complete-BcAppsAlToolCoverage -Context $script:context
+        $completedStatus = Complete-BcAppsAlToolCoverage -Context $script:context
 
         $status = Get-Content -LiteralPath $script:context.StatusPath -Raw | ConvertFrom-Json
+        @($completedStatus.runs).Count | Should -Be 1
         $status.runs.Count | Should -Be 1
         $status.runs[0].state | Should -Be "complete"
         $status.runs[0].outputDirectory | Should -Be $finalOutput.RelativePath
@@ -316,7 +317,7 @@ Describe "AlTool coverage status coordination" {
         $null = Write-TestCoverageSidecar -Context $script:context -LogicalShard "normal" `
             -Attempt 1 -State "complete"
 
-        Complete-BcAppsAlToolCoverage -Context $script:context
+        $null = Complete-BcAppsAlToolCoverage -Context $script:context
 
         @(Get-ChildItem -LiteralPath $script:context.CoverageRoot -Filter "coverage-status.json" -File -Recurse).Count |
             Should -Be 1
@@ -342,7 +343,7 @@ Describe "AlTool coverage status coordination" {
         Copy-Item -LiteralPath (
             Join-Path $PSScriptRoot "TestArtifacts\AlToolCoverageAdapter\coverage.bc.json"
         ) -Destination (Join-Path $output.FullPath "coverage.bc.json")
-        Complete-BcAppsAlToolCoverage -Context $script:context
+        $null = Complete-BcAppsAlToolCoverage -Context $script:context
 
         Import-Module $env:BCAPPS_ALGO_ANALYZER_PATH -Force
         $model = Get-ProjectCoverageModel -CoveragePath (
