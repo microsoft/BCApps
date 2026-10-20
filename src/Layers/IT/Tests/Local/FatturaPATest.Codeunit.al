@@ -579,9 +579,9 @@ codeunit 144200 "FatturaPA Test"
 
         FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
         TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
-        TempFatturaLine.SetRange("Shipment No.", OldShipmentNo);
+        TempFatturaLine.SetRange("Document No.", OldShipmentNo);
         Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview included an already invoiced DDT.');
-        TempFatturaLine.SetRange("Shipment No.", PendingShipmentNo);
+        TempFatturaLine.SetRange("Document No.", PendingShipmentNo);
         Assert.IsFalse(TempFatturaLine.IsEmpty(), 'Preview omitted the DDT being invoiced.');
     end;
 
