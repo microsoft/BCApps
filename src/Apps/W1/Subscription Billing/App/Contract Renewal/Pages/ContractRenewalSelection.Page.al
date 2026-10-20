@@ -93,7 +93,7 @@ page 8006 "Contract Renewal Selection"
 
                         trigger OnAssistEdit()
                         begin
-                            Rec.OpenServiceObjectCard();
+                            OpenServiceObjectAndRefreshLines();
                         end;
                     }
                     field("Service Object Serial No."; ServiceObject."Serial No.")
@@ -112,7 +112,7 @@ page 8006 "Contract Renewal Selection"
 
                         trigger OnAssistEdit()
                         begin
-                            Rec.OpenServiceObjectCard();
+                            OpenServiceObjectAndRefreshLines();
                         end;
                     }
                     field("Service Object Customer Reference"; ServiceObject."Customer Reference")
@@ -137,7 +137,7 @@ page 8006 "Contract Renewal Selection"
 
                         trigger OnDrillDown()
                         begin
-                            Rec.OpenServiceObjectCard();
+                            OpenServiceObjectAndRefreshLines();
                         end;
                     }
                     field(Price; TempServiceCommitment.Price)
@@ -420,6 +420,40 @@ page 8006 "Contract Renewal Selection"
     procedure GetSalesQuoteCreated(): Boolean
     begin
         exit(SalesQuoteCreated);
+    end;
+
+    local procedure OpenServiceObjectAndRefreshLines()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        TempRenewalTermEnteredOnPage: Record "Subscription Line" temporary;
+    begin
+        // Renewal Terms entered on this page are only written to the Subscription Lines on closing, so keep them
+        TempServiceCommitment.Reset();
+        TempServiceCommitment.SetRange("Subscription Header No.", Rec."Subscription Header No.");
+        if TempServiceCommitment.FindSet() then
+            repeat
+                if SubscriptionLine.Get(TempServiceCommitment."Entry No.") then
+                    if SubscriptionLine."Renewal Term" <> TempServiceCommitment."Renewal Term" then begin
+                        TempRenewalTermEnteredOnPage := TempServiceCommitment;
+                        TempRenewalTermEnteredOnPage.Insert(false);
+                    end;
+            until TempServiceCommitment.Next() = 0;
+
+        Rec.OpenServiceObjectCard();
+
+        // Show the changes made on the Subscription
+        if TempServiceCommitment.FindSet() then
+            repeat
+                if SubscriptionLine.Get(TempServiceCommitment."Entry No.") then begin
+                    SubscriptionLine.CalcFields(Quantity);
+                    TempServiceCommitment.TransferFields(SubscriptionLine);
+                    if TempRenewalTermEnteredOnPage.Get(SubscriptionLine."Entry No.") then
+                        TempServiceCommitment."Renewal Term" := TempRenewalTermEnteredOnPage."Renewal Term";
+                    TempServiceCommitment.Modify(false);
+                end;
+            until TempServiceCommitment.Next() = 0;
+        TempServiceCommitment.Reset();
+        CurrPage.Update(false);
     end;
 
     local procedure TransferChangedValuesFromBufferToServiceCommitment()
