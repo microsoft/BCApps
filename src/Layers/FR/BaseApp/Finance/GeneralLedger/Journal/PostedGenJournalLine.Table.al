@@ -1816,12 +1816,21 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
-#if not CLEANSCHEMA33
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';

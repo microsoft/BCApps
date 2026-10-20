@@ -266,8 +266,7 @@ codeunit 147314 "Cartera Payables Installments"
         // Remove the line discount - without it we would get more GL/Lines
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.ModifyAll(PurchaseLine."Line Discount %", 0, true);
-        PurchaseLine.ModifyAll(PurchaseLine."Line Discount Amount", 0, true);
+        PurchaseLine.ModifyAll(PurchaseLine."Line Discount %", 0, PurchaseLine."Line Discount Amount", 0, true);
 
         // Exercise
         DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);

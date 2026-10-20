@@ -36,6 +36,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the customer
@@ -49,6 +50,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the vendor
@@ -62,6 +64,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Item
@@ -75,6 +78,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Employee
@@ -88,6 +92,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the customer
@@ -101,6 +106,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Vendor
@@ -114,6 +120,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Item
@@ -127,6 +134,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Employee
@@ -140,6 +148,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the customer, with mismatching dimesnion and dimension value
@@ -153,6 +162,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Vendor, with mismatching dimesnion and dimension value
@@ -166,6 +176,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Item, with mismatching dimesnion and dimension value
@@ -179,6 +190,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Employee, with mismatching dimesnion and dimension value
@@ -192,6 +204,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the customer
@@ -205,6 +218,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the Vendor
@@ -218,6 +232,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the Item
@@ -231,6 +246,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the Employee
@@ -244,6 +260,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the customer
@@ -257,6 +274,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the Vendor
@@ -270,6 +288,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the Item
@@ -283,6 +302,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the Employee
@@ -296,6 +316,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to delete the default dimension on the customer
@@ -309,6 +330,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to delete a default dimension on the Vendor
@@ -322,6 +344,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to delete a default dimension on the Item
@@ -335,6 +358,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee with a default dimension
         // [WHEN] The user posts a http request to delete a default dimension on the Employee
@@ -348,6 +372,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to get the default dimension on the customer
@@ -361,6 +386,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to get a default dimension on the Vendor
@@ -374,6 +400,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to get a default dimension on the Item
@@ -387,6 +414,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee with a default dimension
         // [WHEN] The user posts a http request to get a default dimension on the Employee
@@ -400,6 +428,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension on the customer
@@ -413,6 +442,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension on the Vendor
@@ -426,6 +456,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension on the Item
@@ -439,6 +470,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension on the Employee
@@ -452,6 +484,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the customer
@@ -465,6 +498,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension with a blocked dimension value on the Vendor
@@ -478,6 +512,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension with a blocked dimension value on the Item
@@ -491,6 +526,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a Employee with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension with a blocked dimension value on the Employee
@@ -504,6 +540,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Customer: Record "Customer";
     begin
+        Initialize();
         // [FEATURE] [Customer]
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the customer
@@ -517,6 +554,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Vendor: Record "Vendor";
     begin
+        Initialize();
         // [FEATURE] [Vendor]
         // [GIVEN] a vendor with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the vendor
@@ -530,6 +568,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Item: Record "Item";
     begin
+        Initialize();
         // [FEATURE] [Item]
         // [GIVEN] a item with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the item
@@ -543,6 +582,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
     var
         Employee: Record "Employee";
     begin
+        Initialize();
         // [FEATURE] [Employee]
         // [GIVEN] a employee with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the employee
@@ -562,6 +602,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionValueId: Text;
         ParentIdAsText: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         ParentIdAsText := LowerCase(Format(ParentId));
@@ -593,6 +635,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         ParentIdAsText := LowerCase(Format(ParentId));
@@ -625,6 +669,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValue2Id: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDimension(Dimension2);
@@ -654,6 +700,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         Dimension.Validate(Blocked, true);
@@ -683,6 +731,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         DimensionValue.Validate(Blocked, true);
@@ -712,6 +762,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         ParentIdAsText: Text;
         DimensionId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         DefaultDimension.Validate("Table ID", TableNo);
@@ -749,6 +801,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         DefaultDimension.Validate("Table ID", TableNo);
@@ -786,6 +840,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValue2Id: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDimensionValue(DimensionValue2, Dimension.Code);
@@ -827,6 +883,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValue2Id: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDimensionValue(DimensionValue2, Dimension.Code);
@@ -867,6 +925,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         ParentIdAsText: Text;
         DimensionId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimension(Dimension2);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
@@ -975,5 +1035,10 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
                 exit(DefaultDimensionParentType::Employee);
         end;
         exit(DefaultDimensionParentType::" ");
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }
