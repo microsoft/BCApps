@@ -23,7 +23,6 @@ report 11301 "Purchase Ledger"
     ApplicationArea = Basic, Suite;
     Caption = 'Purchase Ledger';
     UsageCategory = ReportsAndAnalysis;
-    DataAccessIntent = ReadOnly;
 
     dataset
     {
@@ -223,10 +222,10 @@ report 11301 "Purchase Ledger"
                         CurrencyAmount := 0;
 
                         VendorLedgerEntry.SetLoadFields("Vendor No.", "Currency Code");
+                        VendorLedgerEntry.SetAutoCalcFields(Amount);
                         if VendorLedgerEntry.Get("Entry No.") then begin
                             GLPostingDescription := VendorLedgerEntry."Vendor No.";
                             CurrencyCode := VendorLedgerEntry."Currency Code";
-                            VendorLedgerEntry.CalcFields(Amount);
                             CurrencyAmount := VendorLedgerEntry.Amount;
                             if CurrencyCode = '' then
                                 CurrencyAmount := 0;
