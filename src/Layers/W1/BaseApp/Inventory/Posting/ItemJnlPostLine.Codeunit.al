@@ -5881,8 +5881,16 @@ codeunit 22 "Item Jnl.-Post Line"
         if TempTrackingSpecification.Correction or CheckDropShipmentForSetupTempSplitItemJnlLine(TempSplitItemJnlLine) or IsServUndoConsumption then
             TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Item Ledger Entry No."
         else
-            TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Appl.-to Item Entry";
-        TempSplitItemJnlLine."Applies-from Entry" := TempTrackingSpecification."Appl.-from Item Entry";
+            if (TempTrackingSpecification."Appl.-to Item Entry" <> 0) or
+               not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                   ItemJnlLine2."Item No.", ItemJnlLine2."Applies-to Entry")
+            then
+                TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Appl.-to Item Entry";
+        if (TempTrackingSpecification."Appl.-from Item Entry" <> 0) or
+           not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+               ItemJnlLine2."Item No.", ItemJnlLine2."Applies-from Entry")
+        then
+            TempSplitItemJnlLine."Applies-from Entry" := TempTrackingSpecification."Appl.-from Item Entry";
 
         OnBeforeInsertSetupTempSplitItemJnlLine(TempTrackingSpecification, TempSplitItemJnlLine, PostItemJnlLine, ItemJnlLine2, SignFactor, FloatingFactor);
 
