@@ -133,7 +133,6 @@ page 4400 "SOA Setup"
                                 Message(AgentArchivedNotificationMsg);
                                 exit;
                             end;
-
                             if not SOACreateTaskImpl.OpenCreateTaskPageForData(Rec."User Security ID", SenderEmail, MessageText, TempAgentTaskFile) then
                                 exit;
 
@@ -150,7 +149,6 @@ page 4400 "SOA Setup"
                                     Rec.Modify();
                                 end
                             end;
-
                             if not ApplySetup(true) then
                                 exit;
 
@@ -484,6 +482,7 @@ page 4400 "SOA Setup"
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SOASetupCU: Codeunit "SOA Setup";
+        SOADispatcher: Codeunit "SOA Dispatcher";
         UserSecurityIDFilter: Text;
         UserName: Text[50];
         UserSecurityID: Guid;
@@ -497,20 +496,22 @@ page 4400 "SOA Setup"
         UserSecurityIDFilter := Rec.GetFilter("User Security ID");
         if not Evaluate(UserSecurityID, UserSecurityIDFilter) then
             Clear(UserSecurityID);
-
         if not AgentSystemPermissions.CurrentUserCanManageAgent(UserSecurityID) then
             Error(NotAuthorizedToConfigureAgentErr);
-
         if not IsNullGuid(UserSecurityID) then
             if SOASetupRec.GetBasedOnAgentUserSecurityID(UserSecurityID, false) then begin
                 Rec."Agent Name" := SOASetupRec."Agent Name";
                 Rec."Agent Initials" := SOASetupRec."Agent Initials";
             end;
 
+        // #TODO remove later - only for testing >>      
+        if SOADispatcher.DeactivateAgentIfUnattended(SOASetupRec) then
+            Message('Deactivated');
+        // #TODO remove later - only for testing <<
+
         if not IsNullGuid(UserSecurityID) then
             if AgentRec.Get(UserSecurityID) then
                 UserName := AgentRec."User Name";
-
         if UserName = '' then
             UserName := SOASetupCU.GetSOAUsername();
 
@@ -524,11 +525,11 @@ page 4400 "SOA Setup"
         InitialState := TempAgentSetupBuffer.State;
         AgentIsArchived := SOASetupCU.MustTreatAgentAsArchived(UserSecurityID);
         UpdateControls();
-
         if AgentIsArchived then begin
             CurrPage.Editable(false);
             NotifyAgentArchived();
-        end;
+        end else
+            NotifyAgentAutoDeactivated();
 
         FeatureTelemetry.LogUptake('0000QIK', SOASetupCU.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
@@ -564,7 +565,6 @@ page 4400 "SOA Setup"
             Message(AgentArchivedNotificationMsg);
             exit(true);
         end;
-
         if EnabledAgentFirstConfig() then
             if Confirm(ReadyToActivateLbl) then
                 Rec.State := Rec.State::Enabled;
@@ -588,7 +588,6 @@ page 4400 "SOA Setup"
             else begin
                 if Rec."Email Monitoring" and (MailboxName = '') then
                     Error(ActivateWithoutMailboxNameErr);
-
                 if not CreateTrialTask and not Rec."Email Monitoring" then
                     if not Confirm(ActivateWithoutMonitoringLbl) then
                         exit(false);
@@ -596,11 +595,9 @@ page 4400 "SOA Setup"
         end;
         if (Rec."Message Limit" <= 0) then
             Error(DailyEmailLimitErr);
-
         if ShowDeactivateAgentEmailPermissionsWarning() then
             if not Confirm(StrSubstNo(DeactivateWarningLbl, ConfiguredBy)) then
                 exit(false);
-
         if StateChanged() then
             SOASetupCU.UpdateSOASetupActivationDT(Rec);
 
@@ -634,7 +631,6 @@ page 4400 "SOA Setup"
         // The warning is only meaningful when the agent actually monitors a mailbox.
         if (not Rec."Email Monitoring") or IsNullGuid(Rec."Email Account ID") then
             exit(false);
-
         if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled) and StateChanged() and not IsFirstConfig() then
             if not SOASetupCU.ValidateEmailConnectionStatus(Rec) then
                 exit(true);
@@ -647,6 +643,23 @@ page 4400 "SOA Setup"
         ArchivedNotification.Message(AgentArchivedNotificationMsg);
         ArchivedNotification.Scope(NotificationScope::LocalScope);
         ArchivedNotification.Send();
+    end;
+
+    local procedure NotifyAgentAutoDeactivated()
+    var
+        SOASetupCU: Codeunit "SOA Setup";
+        AutoDeactivatedNotification: Notification;
+    begin
+        if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Disabled then
+            exit;
+
+        // "Activated At" is also updated when a user changes the state, so a later manual change hides this notification.
+        if (Rec."Auto-Deactivated At" = 0DT) or (Rec."Auto-Deactivated At" < Rec."Activated At") then
+            exit;
+
+        AutoDeactivatedNotification.Message(StrSubstNo(AgentAutoDeactivatedNotificationMsg, Format(Rec."Auto-Deactivated At"), SOASetupCU.GetUnattendedPeriodDays()));
+        AutoDeactivatedNotification.Scope(NotificationScope::LocalScope);
+        AutoDeactivatedNotification.Send();
     end;
 
     local procedure UpdateControls()
@@ -673,7 +686,6 @@ page 4400 "SOA Setup"
         DailyEmailLimit := Rec."Message Limit";
         if DailyEmailLimit = 0 then
             DailyEmailLimit := Rec.GetDefaultMessageLimit();
-
         if User.Get(TempAgentSetupBuffer."Configured By") then
             ConfiguredBy := User."Full Name";
 
@@ -686,7 +698,6 @@ page 4400 "SOA Setup"
         CheckIsValidConfig();
         CreateOrderFromQuoteActive := Rec."Create Order from Quote";
         OnlyAvailableItemsActive := Rec."Search Only Available Items";
-
         if EnabledAgentFirstConfig() then
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
     end;
@@ -702,7 +713,6 @@ page 4400 "SOA Setup"
         // Capable to Promise needs the Order Promising Setup template and worksheet; offer to configure it so the agent does not fail later.
         if Confirm(OrderPromisingSetupMissingQst, false, OrderPromisingSetup.TableCaption()) then
             Page.RunModal(Page::"Order Promising Setup");
-
         if not SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
             Rec."Incl. Capable to Promise" := false;
     end;
@@ -730,7 +740,6 @@ page 4400 "SOA Setup"
         // Use Outlook's well-known inbox folder id as a safe fallback.
         Rec."Email Folder" := InboxFolderNameTok;
         Rec."Email Folder Id" := InboxFolderIdTok;
-
         if not IsNullGuid(Rec."Email Account ID") then begin
             Email.GetMailFolders(Rec."Email Account ID", Rec."Email Connector", TempEmailFolders);
             if TempEmailFolders.FindSet() then
@@ -757,7 +766,6 @@ page 4400 "SOA Setup"
         EmailAccount.GetAllAccounts(false, TempEmailAccounts);
         if TempEmailAccounts.IsEmpty() then
             exit(false);
-
         repeat
             IConnector := TempEmailAccounts.Connector;
 #if not CLEAN28
@@ -780,7 +788,6 @@ page 4400 "SOA Setup"
             Message(AgentArchivedNotificationMsg);
             exit;
         end;
-
         if IsNullGuid(Rec."Email Account ID") then begin
             Message(SelectMailboxFirstMsg);
             exit;
@@ -807,10 +814,8 @@ page 4400 "SOA Setup"
             Message(AgentArchivedNotificationMsg);
             exit;
         end;
-
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -824,7 +829,6 @@ page 4400 "SOA Setup"
             Rec."Email Address" := TempEmailAccount."Email Address";
             SOASetupCU.CheckMailboxUnique(Rec);
         end;
-
         if MailboxName <> Rec."Email Address" then begin
             MailboxChanged := true;
             MailboxName := Rec."Email Address";
@@ -844,7 +848,6 @@ page 4400 "SOA Setup"
             Message(AgentArchivedNotificationMsg);
             exit;
         end;
-
         if not Rec."Configure Email Template" then
             exit;
         EmailTemplatePage.SetCurrentSignatureAsTxt(Rec.GetEmailSignatureAsTxt());
@@ -887,5 +890,6 @@ page 4400 "SOA Setup"
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
+        AgentAutoDeactivatedNotificationMsg: Label 'The agent was automatically deactivated on %1 to avoid unnecessary costs, because no one signed in to this company for %2 days, or no one responded to the agent''s requests and its settings weren''t changed for %2 days. To continue processing emails, activate the agent.', Comment = '%1 = date and time of deactivation, %2 = number of days';
         OrderPromisingSetupMissingQst: Label '%1 is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?', Comment = '%1 = Order Promising Setup caption';
 }
