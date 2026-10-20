@@ -32,11 +32,15 @@ codeunit 6969 "Expense Consumption Handler"
         V1Json := TempToken.AsObject();
         if not V1Json.Get('usage', TempToken) or not TempToken.IsValue() then
             exit(false);
+        if TempToken.AsValue().IsNull() then
+            exit(false);
         if not Evaluate(Usage, TempToken.AsValue().AsText()) then
             exit(false);
         if Usage < 0 then
             exit(false);
         if not V1Json.Get('usageType', TempToken) or not TempToken.IsValue() then
+            exit(false);
+        if TempToken.AsValue().IsNull() then
             exit(false);
         if not Evaluate(CopilotQuotaUsageType, TempToken.AsValue().AsText()) then
             exit(false);

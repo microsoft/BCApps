@@ -17,6 +17,7 @@ page 6968 "Expense User Cons. API"
     EntityName = 'userConsumption';
     EntitySetName = 'userConsumptions';
     PageType = API;
+    DelayedInsert = true;
     ODataKeyFields = SystemId;
     Editable = false;
     InsertAllowed = false;
@@ -152,11 +153,11 @@ page 6968 "Expense User Cons. API"
         ModelJson := AiConsumptionRequestJson.GetObject('model');
         TelemetryDimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
         TelemetryDimensions.Add('OperationName', ConsumptionSourceOperationName);
-        TelemetryDimensions.Add('modelResolvedName', GetModelTelemetryValue(ModelJson, 'modelResolvedName'));
-        TelemetryDimensions.Add('inputTokenCount', GetModelTelemetryValue(ModelJson, 'inputTokenCount'));
-        TelemetryDimensions.Add('outputTokenCount', GetModelTelemetryValue(ModelJson, 'outputTokenCount'));
-        TelemetryDimensions.Add('promptCacheReadTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheReadTokenCount'));
-        TelemetryDimensions.Add('promptCacheCreationTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheCreationTokenCount'));
+        TelemetryDimensions.Add('ModelResolvedName', GetModelTelemetryValue(ModelJson, 'modelResolvedName'));
+        TelemetryDimensions.Add('InputTokenCount', GetModelTelemetryValue(ModelJson, 'inputTokenCount'));
+        TelemetryDimensions.Add('OutputTokenCount', GetModelTelemetryValue(ModelJson, 'outputTokenCount'));
+        TelemetryDimensions.Add('PromptCacheReadTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheReadTokenCount'));
+        TelemetryDimensions.Add('PromptCacheCreationTokenCount', GetModelTelemetryValue(ModelJson, 'promptCacheCreationTokenCount'));
         Session.LogMessage('0000W41', LogV2QuotaStartedTelemetryMsg,
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
