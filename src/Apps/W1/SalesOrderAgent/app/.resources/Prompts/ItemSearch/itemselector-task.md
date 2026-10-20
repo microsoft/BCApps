@@ -336,12 +336,12 @@ selected_items: []
 
 #### Example 6 — Color in the description of an item without variants
 
-Query: "MUNICH swivel chair yellow"
+Query: "AURORA swivel chair teal"
 
 Candidates:
-- { "No.": "1972-S", "Description": "MUNICH Swivel Chair, yellow", "Variants": [] }
+- { "No.": "CHAIR-100", "Description": "AURORA Swivel Chair, teal", "Variants": [] }
 
 Output:
 selected_items: [
-  { "item_no": "1972-S", "confidence": "matching", "variant_match": "not_requested", "variant_substitution_safety": "not_applicable", "reason": "The full item description matches the request, and the empty Variants array means yellow is part of the item description rather than an item variant." }
+  { "item_no": "CHAIR-100", "confidence": "matching", "variant_match": "not_requested", "variant_substitution_safety": "not_applicable", "reason": "The full item description matches the request, and the empty Variants array means teal is part of the item description rather than an item variant." }
 ]
