@@ -259,6 +259,97 @@ Describe "Separate RunTests action override contract" {
     }
 }
 
+Describe "RunTestsInBcContainer BCH parameter forwarding" {
+    BeforeAll {
+        $script:runTestsScript = (Resolve-Path (Join-Path $PSScriptRoot '../RunTestsInBcContainer.ps1')).Path
+        Import-Module (Join-Path $PSScriptRoot '../AlToolCoverageAdapter.psm1') -Force
+        function Run-TestsInBcContainer {
+            param(
+                [string]$appName,
+                [string]$tenant,
+                [string]$testType,
+                [array]$disabledTests,
+                [bool]$renewClientContextBetweenTests
+            )
+            $null = $appName, $tenant, $testType, $disabledTests, $renewClientContextBetweenTests
+            throw 'Run-TestsInBcContainer must be mocked.'
+        }
+    }
+
+    BeforeEach {
+        Mock Get-BcAppsDisabledTestsForApp { @() }
+        Mock Invoke-BcAppsAlToolCoverageLeaf {
+            [PSCustomObject]@{ Handled = $false; Passed = $false }
+        }
+        Mock Run-TestsInBcContainer { $true }
+        Mock Start-Transcript { }
+        Mock Stop-Transcript { }
+        Mock Test-TransientTestFailure { $false }
+        Mock Write-Host { }
+    }
+
+    It "removes an action-supplied Legacy testType before BCH execution" {
+        $parameters = @{
+            appName = 'Legacy Tests'
+            tenant = 'default'
+            testType = 'Legacy'
+        }
+
+        & $script:runTestsScript -parameters $parameters -TestType Legacy -SkipAutomaticDisabledPass |
+            Should -BeTrue
+
+        Should -Invoke Run-TestsInBcContainer -Times 1 -Exactly -ParameterFilter {
+            -not $PSBoundParameters.ContainsKey('testType')
+        }
+        $parameters.testType | Should -Be 'Legacy'
+    }
+
+    It "preserves typed BCH lane <Lane>" -ForEach @(
+        @{ Lane = 'UnitTest' }
+        @{ Lane = 'IntegrationTest' }
+        @{ Lane = 'Uncategorized' }
+    ) {
+        $parameters = @{
+            appName = "$Lane Tests"
+            tenant = 'default'
+            testType = $Lane
+        }
+
+        & $script:runTestsScript -parameters $parameters -TestType $Lane -SkipAutomaticDisabledPass |
+            Should -BeTrue
+
+        Should -Invoke Run-TestsInBcContainer -Times 1 -Exactly -ParameterFilter {
+            $testType -eq $Lane
+        }
+        $parameters.testType | Should -Be $Lane
+    }
+}
+
+Describe "ParallelTestExecution command isolation" {
+    It "does not shadow the AL-Go disabled-test helper across override iterations" {
+        function Get-DisabledTestsForApp {
+            param(
+                [hashtable]$settings,
+                [string]$projectPath,
+                [string]$appId
+            )
+            "$($settings.marker):${projectPath}:$appId"
+        }
+
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+
+        $module = Get-Module ParallelTestExecution
+        $module.ExportedCommands.Keys | Should -Contain 'Get-BcAppsDisabledTestsForApp'
+        $module.ExportedCommands.Keys | Should -Not -Contain 'Get-DisabledTestsForApp'
+
+        foreach ($appId in @('first-app', 'second-app')) {
+            Get-DisabledTestsForApp -settings @{ marker = 'algo' } `
+                -projectPath 'project' -appId $appId |
+                Should -Be "algo:project:$appId"
+        }
+    }
+}
+
 Describe "Separate RunTests action bucket configuration" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
@@ -578,7 +669,7 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
     It "discovers selected apps once each while preserving isolation, lane and exclusion filters" {
         InModuleScope ParallelTestExecution {
             Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default' } }
-            Mock Get-DisabledTestsForApp {
+            Mock Get-BcAppsDisabledTestsForApp {
                 @([PSCustomObject]@{ codeunitId = 999; method = 'DisabledMethod' })
             }
             Mock Get-TestsFromBcContainer {
@@ -615,7 +706,7 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
     It "does not use unfiltered discovery for Legacy buckets" {
         InModuleScope ParallelTestExecution {
             Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default'; testType = 'stale' } }
-            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-BcAppsDisabledTestsForApp { @() }
             Mock Get-TestsFromBcContainer { @() }
 
             $result = @(Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c' } `
@@ -658,6 +749,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
             Mock Get-RequiredDisabledWorkItems { @() }
+            Mock Get-InstalledTestAppNames { throw 'The cached override must not rediscover apps.' }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Start-TestAppDispatch { }
             Mock Wait-ForAllTestJobs { $true }
@@ -675,6 +767,11 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
                 Test-Path $stateFile | Should -BeTrue
                 Get-CachedTestRunResult -ContainerName $containerName | Should -BeTrue
+                Invoke-PerProjectTestRun -parameters @{
+                    containerName = $containerName
+                    appName = 'second-algo-app'
+                } | Should -BeTrue
+                Should -Invoke Get-InstalledTestAppNames -Times 0
             } finally {
                 $env:RUNNER_TEMP = $previousRunnerTemp
                 $env:TEMP = $previousTemp
@@ -786,12 +883,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 '[{"codeunitId":501,"method":"*"}]' |
                     Set-Content (Join-Path $appFolder 'second.json')
 
-                $result = @(Get-DisabledTestsForApp -AppName 'Example Tests')
+                $result = @(Get-BcAppsDisabledTestsForApp -AppName 'Example Tests')
 
                 $result.Count | Should -Be 2
                 $result.codeunitId | Should -Contain 500
                 $result.codeunitId | Should -Contain 501
-                @(Get-DisabledTestsForApp -AppName 'Other Tests').Count | Should -Be 0
+                @(Get-BcAppsDisabledTestsForApp -AppName 'Other Tests').Count | Should -Be 0
                 Should -Invoke Get-ALGoSetting -Times 0
             } finally {
                 Remove-Item $script:disabledTestRoot -Recurse -Force
@@ -803,7 +900,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
 
-            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-BcAppsDisabledTestsForApp { @() }
             Mock Start-Sleep { }
             Mock Start-TestJob {
                 $script:capturedParameters = $parameters
@@ -840,7 +937,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
 
-            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-BcAppsDisabledTestsForApp { @() }
             Mock Reset-BcTestTenant { }
             Mock Start-Sleep { }
             Mock Start-TestJob {

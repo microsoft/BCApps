@@ -107,7 +107,7 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"])
+$parameters["disabledTests"] = @(Get-BcAppsDisabledTestsForApp -AppName $parameters["appName"])
 $parameters["renewClientContextBetweenTests"] = $true
 
 # When invoked from the per-project override on the parent process, $AppNamesToTest contains
@@ -130,6 +130,9 @@ if ($alToolResult.Handled) {
 else {
     $containerParameters = $parameters.Clone()
     Remove-BcAppsAlToolCoverageParameters -Parameters $containerParameters
+    if ($TestType -eq "Legacy") {
+        $containerParameters.Remove("testType") | Out-Null
+    }
     $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
 }
 

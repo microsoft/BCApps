@@ -21,7 +21,7 @@ Import-Module (Join-Path $PSScriptRoot "AlToolCoverageAdapter.psm1" -Resolve)
 .PARAMETER AppName
     Application name used to locate its DisabledTests folder.
 #>
-function Get-DisabledTestsForApp {
+function Get-BcAppsDisabledTestsForApp {
     param(
         [Parameter(Mandatory=$true)]
         [string]$AppName
@@ -127,7 +127,7 @@ function Get-RequiredDisabledWorkItems {
         $discoveryParameters = Get-ParametersForCommand -Parameters $Parameters -CommandName "Get-TestsFromBcContainer"
         $discoveryParameters["extensionId"] = $appId
         $discoveryParameters["requiredTestIsolation"] = "Disabled"
-        $discoveryParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $appName)
+        $discoveryParameters["disabledTests"] = @(Get-BcAppsDisabledTestsForApp -AppName $appName)
         $discoveryParameters["testType"] = $TestType
 
         Write-Host "Discovering RequiredTestIsolation=Disabled codeunits in '$appName'..."
@@ -162,7 +162,7 @@ function Get-BcAppsAlToolCoverageCodeunits {
         }
         $discoveryParameters = Get-ParametersForCommand -Parameters $Parameters -CommandName "Get-TestsFromBcContainer"
         $discoveryParameters["extensionId"] = $appId
-        $discoveryParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $appName)
+        $discoveryParameters["disabledTests"] = @(Get-BcAppsDisabledTestsForApp -AppName $appName)
         $discoveryParameters["testType"] = $TestType
         $discoveryParameters["ignoreGroups"] = $true
         $codeunitsByApp[$appName] = @(Get-TestsFromBcContainer @discoveryParameters)
@@ -769,7 +769,7 @@ function Start-RequiredDisabledDispatch {
     $codeunitParameters["testCodeunit"] = $WorkItem.CodeunitId
     $codeunitParameters["requiredTestIsolation"] = "Disabled"
     $codeunitParameters["testRunnerCodeunitId"] = "130451"
-    $codeunitParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $WorkItem.AppName)
+    $codeunitParameters["disabledTests"] = @(Get-BcAppsDisabledTestsForApp -AppName $WorkItem.AppName)
     $codeunitParameters.Remove("ReRun") | Out-Null
     if ($Verb -eq "Re-dispatching") {
         $codeunitParameters["ReRun"] = $true
@@ -1736,4 +1736,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-DisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget, Test-TransientTestFailure
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-BcAppsDisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget, Test-TransientTestFailure
