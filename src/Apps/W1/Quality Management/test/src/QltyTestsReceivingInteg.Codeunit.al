@@ -5,6 +5,7 @@
 namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
@@ -891,6 +892,87 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
         LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match source');
         LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
+    end;
+
+    [Test]
+    procedure AttemptCreateInspectionOn_OnTransferReceivePost_MultipleLots_UsesLotQuantity()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        OrderTransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryUtility: Codeunit "Library - Utility";
+        FirstLotNo: Code[50];
+        SecondLotNo: Code[50];
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 654801] Transfer receipt inspections for a line split across several lots use each lot quantity, not the transfer line total
+
+        // [GIVEN] From, To, and In-Transit locations are set up
+        Initialize();
+        LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+
+        // [GIVEN] A quality inspection template and transfer line generation rule are set up
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+
+        // [GIVEN] A lot-tracked item with 2 units of lot A and 4 units of lot B at the From location
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        FirstLotNo := LibraryUtility.GenerateGUID();
+        SecondLotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 6);
+        ItemJournalLine.Validate("Location Code", FromLocation.Code);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', FirstLotNo, 2);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', SecondLotNo, 4);
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+
+        // [GIVEN] A released transfer order with one line of 6 split into lot A = 2 and lot B = 4
+        LibraryWarehouse.CreateTransferHeader(OrderTransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(OrderTransferHeader, TransferLine, Item."No.", 6);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', FirstLotNo, 2);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', SecondLotNo, 4);
+        LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
+
+        // [GIVEN] The generation rule is set to trigger on transfer order receive post
+        QltyInspectionGenRule."Transfer Order Trigger" := QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] The transfer order is posted to ship and receive
+        LibraryWarehouse.PostTransferOrder(OrderTransferHeader, true, true);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One inspection per lot is created, each with the quantity of its own lot
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Should be one inspection per lot.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.SetRange("Source Lot No.", FirstLotNo);
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(2, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match the first lot quantity.');
+        QltyInspectionHeader.SetRange("Source Lot No.", SecondLotNo);
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match the second lot quantity.');
     end;
 
     [Test]
