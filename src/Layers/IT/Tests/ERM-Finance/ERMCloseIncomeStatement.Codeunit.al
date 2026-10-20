@@ -521,7 +521,7 @@ codeunit 134228 "ERM Close Income Statement"
         CreateIncomeStatementAccount(SecondClosedAccount);
         CreateIncomeStatementAccount(AuditAdjustmentAccount);
         BalancingAccountNo := CreateBalanceGLAccountNo();
-        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := FindRetainedEarningsAccountNo();
         IncomeAccountFilter :=
             StrSubstNo('%1|%2|%3', FirstClosedAccount."No.", SecondClosedAccount."No.", AuditAdjustmentAccount."No.");
         FirstClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -797,7 +797,7 @@ codeunit 134228 "ERM Close Income Statement"
         CreateIncomeStatementAccount(IncomeStatementAccounts[1]);
         CreateIncomeStatementAccount(IncomeStatementAccounts[2]);
         BalancingAccountNo := CreateBalanceGLAccountNo();
-        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := FindRetainedEarningsAccountNo();
         CreateDimensionSet(TempDimensionSetEntry);
         CreateAndAddDimValueToDimSetEntry(TempDimensionSetEntry, LibraryERM.GetGlobalDimensionCode(2));
         DimensionSetID := DimensionManagement.GetDimensionSetID(TempDimensionSetEntry);
@@ -825,7 +825,7 @@ codeunit 134228 "ERM Close Income Statement"
         PrepareIncomeStatementClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate, 'AUD');
         CreateIncomeStatementAccount(IncomeStatementAccount);
         BalancingAccountNo := CreateBalanceGLAccountNo();
-        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := FindRetainedEarningsAccountNo();
         PostIncomeStatementEntry(
             GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 10, 100, '');
         PostIncomeStatementEntry(
@@ -894,6 +894,8 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
         LibraryVariableStorage.Enqueue(DocumentNo);
+        LibraryVariableStorage.Enqueue('');
+        LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
         LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
@@ -1049,6 +1051,20 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryERM.CreateGLAccount(GLAccount);
         GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
         GLAccount.Modify();
+        exit(GLAccount."No.");
+    end;
+
+    local procedure FindRetainedEarningsAccountNo(): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+        GLAccountCategory: Record "G/L Account Category";
+    begin
+        GLAccountCategory.SetRange("Account Category", GLAccountCategory."Account Category"::Equity);
+        GLAccountCategory.SetRange(
+            "Additional Report Definition", GLAccountCategory."Additional Report Definition"::"Retained Earnings");
+        GLAccountCategory.FindFirst();
+        GLAccount.SetRange("Account Subcategory Entry No.", GLAccountCategory."Entry No.");
+        GLAccount.FindFirst();
         exit(GLAccount."No.");
     end;
 
