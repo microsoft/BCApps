@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Foundation.Reporting;
+using System.Security.Encryption;
+using System.Utilities;
+
 codeunit 43002 "Report Filename Context"
 {
     // Holds what one event knows and a later one needs, for the length of the call, because an app

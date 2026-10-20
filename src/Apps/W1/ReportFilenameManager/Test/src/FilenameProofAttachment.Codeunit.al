@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+
 codeunit 149520 "Filename Proof Attachment"
 {
     // Proofs for Attach as PDF (SaveAsDocumentAttachment, which stores a Document Attachment row).

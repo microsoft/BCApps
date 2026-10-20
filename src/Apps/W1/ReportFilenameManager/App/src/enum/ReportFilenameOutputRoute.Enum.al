@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
 enum 43000 "Report Filename Output Route"
 {
     // Values 1-4 map the report payload's 'intent' (PRINT, PREVIEW, SAVE, DOWNLOAD); any other

@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting;
+
 codeunit 149524 "Filename Proof Send Disk Vend"
 {
     // Vendor twin of Filename Proof Send Disk, isolated so a failing client download cannot end

@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.EServices.EDocument;
+
 tableextension 43000 "Report Filename Report Inbox" extends "Report Inbox"
 {
     // A scheduled report is saved into the row's Report Output stream, and at download Base

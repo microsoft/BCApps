@@ -2,6 +2,25 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Assembly.History;
+using Microsoft.EServices.EDocument;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Reports;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using System.EMail;
+using System.Environment;
+using System.Globalization;
+using System.Reflection;
+
 codeunit 149517 "Filename Proof Run"
 {
     // Proves a name is derived from a report run, whose selection may cover none, one or many

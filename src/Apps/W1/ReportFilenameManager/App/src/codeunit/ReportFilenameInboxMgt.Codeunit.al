@@ -2,6 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.EServices.EDocument;
+using System.Reflection;
+using System.Threading;
+
 codeunit 43011 "Report Filename Inbox Mgt."
 {
     // The scheduled route. Job Queue Start Report renders with REPORT.SaveAs into the Report Inbox

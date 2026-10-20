@@ -2,6 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting.FileNaming;
+using System.Globalization;
+
 codeunit 149536 "Filename Expected Texts"
 {
     // Word-for-word English copies of the app's labels, kept here so the app carries no procedure that

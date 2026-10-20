@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting;
+
 codeunit 149518 "Filename Proof Kind Source"
 {
     // Makes the proof document a kind of document Business Central can name, through the events

@@ -2,6 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Reminder;
+
 codeunit 149523 "Filename Proof Seed Rmdr"
 {
     // Makes sure the company has a level 1 issued reminder for the reminder proofs to start from.

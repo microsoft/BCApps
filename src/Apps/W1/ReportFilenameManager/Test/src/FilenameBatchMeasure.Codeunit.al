@@ -2,6 +2,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.Email;
+using System.IO;
+using System.Utilities;
+
 codeunit 149540 "Filename Batch Measure"
 {
     // Records (not pass/fail) what happens when one action produces several files with the same

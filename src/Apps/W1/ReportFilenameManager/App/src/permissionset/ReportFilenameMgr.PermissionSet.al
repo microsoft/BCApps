@@ -2,6 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.EServices.EDocument;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Reminder;
+using System.Reflection;
+using System.Threading;
+
 permissionset 43000 "Report Filename Mgr."
 {
     // For administrators who manage patterns and setup. Other users do not need it: naming reads

@@ -2,6 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.IO;
+using System.Utilities;
+
 codeunit 149544 "Filename Proof Elec. Doc."
 {
     // Proofs for the electronic document and its zip on the Electronic Document route, through the

@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Attachment;
+
 codeunit 149538 "Filename Failing Attach"
 {
     // Raises an error in Document Attachment.OnAfterInitFieldsFromRecRef. In Attach as PDF,

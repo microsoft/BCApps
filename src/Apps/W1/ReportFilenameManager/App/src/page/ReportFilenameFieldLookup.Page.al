@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using System.Reflection;
+
 page 43006 "Report Filename Field Lookup"
 {
     // Picks the document's language field by caption. The pattern stores the field number, which

@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.Finance.FinancialReports;
+
 pageextension 43002 "Report Filename Fin. Rep. Ov." extends "Acc. Schedule Overview"
 {
     // Records which financial report Open in Excel (using layout) exports, since Export Acc. Sched.

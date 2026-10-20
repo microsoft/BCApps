@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting;
+
 codeunit 149522 "Filename Proof Attach PDF"
 {
     // Calls Attach as PDF for real, isolated so a render failing on company setup cannot end the

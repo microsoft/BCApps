@@ -2,6 +2,22 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Assembly.History;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using System.EMail;
+using System.Environment;
+using System.Reflection;
+using System.TestLibraries.Security.AccessControl;
+using System.Threading;
+using System.Utilities;
+
 codeunit 149534 "Filename Review Tests"
 {
     // Regression tests. Expected names come from Base Application's own output where it has one;

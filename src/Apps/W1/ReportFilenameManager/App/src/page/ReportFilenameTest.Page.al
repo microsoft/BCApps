@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using System.Reflection;
+
 page 43007 "Report Filename Test"
 {
     // Shows the file name a chosen run would get, and whether it comes from this pattern, another

@@ -2,6 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.Reminder;
+
 codeunit 149503 "Filename Proof Reminders"
 {
     // Proves the Table Filter (applied in filter group 10, so it narrows the document's own

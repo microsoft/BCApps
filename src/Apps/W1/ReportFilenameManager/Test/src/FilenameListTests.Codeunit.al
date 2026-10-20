@@ -2,6 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.Reflection;
+
 codeunit 149501 "Filename List Tests"
 {
     // The pattern list: Priority, Show Overlapping Patterns, Copy/Enable/Disable, and the setup's

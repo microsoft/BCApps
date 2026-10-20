@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
 table 43004 "Report Filename Record Buffer"
 {
     // Records to test a pattern against, for tables with no lookup page (Table Metadata's

@@ -2,6 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.EServices.EDocument;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Reports;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.Reflection;
+
 codeunit 149502 "Filename Filter Tests"
 {
     // What a run is named from beyond its records: request-page filters (a FlowFilter has no value on

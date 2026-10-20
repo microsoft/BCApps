@@ -2,6 +2,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.EServices.EDocument;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.EMail;
+using System.Globalization;
+using System.Reflection;
+using System.Threading;
+using System.Utilities;
+
 codeunit 149508 "Filename Proof Maximal"
 {
     // One pattern with field, related-field and computed placeholders resolves identically on four

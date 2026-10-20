@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
 page 43008 "Report Filename Record Lookup"
 {
     // Chooses the record a pattern is tested against. Used only for tables with no lookup page

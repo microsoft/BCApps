@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using System.Reflection;
+
 codeunit 43004 "Report Filename Plh. Mgt."
 {
     // Which placeholders and tables are offered is derived from compiled metadata (Report

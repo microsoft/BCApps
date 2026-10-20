@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
 table 43002 "Report Filename Table Buffer"
 {
     // Tables that some non-processing report is about (Report Filename Mgt.SubjectTableNo), each

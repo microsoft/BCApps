@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.Finance.FinancialReports;
+
 codeunit 43013 "Report Filename Fin. Rep. Sub."
 {
     // Every financial report PDF renders through report 25 Account Schedule, and which one is running

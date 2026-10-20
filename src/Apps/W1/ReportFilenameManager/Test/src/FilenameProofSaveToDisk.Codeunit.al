@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Purchases.History;
+using Microsoft.Sales.History;
+
 codeunit 149525 "Filename Proof Save To Disk"
 {
     // Send to Disk (Disk = PDF), customer and vendor halves, named by two different hooks. The name

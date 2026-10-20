@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using System.Reflection;
+
 codeunit 149509 "Filename Proof Picker"
 {
     // Proofs for the placeholder picker, including how long building it takes on a posted sales

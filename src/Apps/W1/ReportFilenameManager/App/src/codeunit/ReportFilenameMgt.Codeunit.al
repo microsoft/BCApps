@@ -2,6 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting.FileNaming;
+
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Reminder;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+
 codeunit 43000 "Report Filename Mgt."
 {
     // Decides a report's output file name from the configured patterns; the delivery routes apply it.

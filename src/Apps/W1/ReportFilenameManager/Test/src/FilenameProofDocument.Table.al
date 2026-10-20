@@ -2,6 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using System.Globalization;
+
 table 149501 "Filename Proof Document"
 {
     // A stand-in document for proving language invariance: the W1 Base Application carries no .xlf

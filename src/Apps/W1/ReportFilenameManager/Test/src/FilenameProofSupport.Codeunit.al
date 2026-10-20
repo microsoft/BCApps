@@ -2,6 +2,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using System.Reflection;
+using System.Threading;
+
 codeunit 149512 "Filename Proof Support"
 {
     // Helpers shared by the proofs. Captions are read in an explicit language: a pattern's

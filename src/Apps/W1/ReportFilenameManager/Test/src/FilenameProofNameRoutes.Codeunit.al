@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.EMail;
+using System.Utilities;
+
 codeunit 149513 "Filename Proof Name Routes"
 {
     // Names one posted invoice on the three interactive routes, run through Codeunit.Run: the

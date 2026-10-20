@@ -2,6 +2,22 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Assembly.Document;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Inventory.Reports;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
+using Microsoft.Sales.Reminder;
+using System.Email;
+using System.Threading;
+
 codeunit 149510 "Filename Proof Demo Setup"
 {
     // Seeds a representative set of patterns and data for manual testing in a client.

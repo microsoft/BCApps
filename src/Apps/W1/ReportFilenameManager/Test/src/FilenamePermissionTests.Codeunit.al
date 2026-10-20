@@ -2,6 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Sales.History;
+using System.Environment;
+using System.Security.AccessControl;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 149528 "Filename Permission Tests"
 {
     // Every user who prints runs the naming code, but Report Filename Mgr. is meant for pattern

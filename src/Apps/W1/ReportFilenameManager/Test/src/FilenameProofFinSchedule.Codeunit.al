@@ -2,6 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.Foundation.Reporting.FileNaming;
+
+using Microsoft.EServices.EDocument;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Foundation.Reporting.FileNaming;
+using System.Security.AccessControl;
+using System.Threading;
+
 codeunit 149519 "Filename Proof Fin Schedule"
 {
     // Drives a real Financial Report Schedule end to end; Base Application's own job does the export.
