@@ -8,6 +8,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
+using Microsoft.Sales.History;
 using Microsoft.Finance.ReceivablesPayables;
 
 codeunit 12285 "FatturaPA Preview Mgt."
@@ -38,6 +39,7 @@ codeunit 12285 "FatturaPA Preview Mgt."
 
         BuildHeader(SalesHeader, PreviewProgressiveNo, TempFatturaHeader);
         BuildDocumentLines(SalesHeader, TempFatturaLine);
+        BuildSourceReferences(SalesHeader, TempFatturaHeader, TempFatturaLine);
 
         // Use the real posting engine for accounting output.
         PreviewCollector.Collect(
@@ -45,6 +47,8 @@ codeunit 12285 "FatturaPA Preview Mgt."
             TempVATEntry,
             TempCustLedgEntry,
             TempDtldCustLedgEntry);
+
+        PopulateTaxRepresentative(TempFatturaHeader, TempVATEntry);
 
         PreviewAccounting.AddVATRows(
             TempFatturaLine,
@@ -63,6 +67,19 @@ codeunit 12285 "FatturaPA Preview Mgt."
             SetPreviewDocumentTotalFromSource(SalesHeader, TempFatturaHeader);
     end;
 
+    local procedure PopulateTaxRepresentative(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        var TempVATEntry: Record "VAT Entry" temporary)
+    var
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        TempFatturaHeader.Reset();
+        if TempFatturaHeader.FindFirst() then begin
+            FatturaDocHelper.PopulatePreviewTaxRepresentative(TempFatturaHeader, TempVATEntry);
+            TempFatturaHeader.Modify();
+        end;
+    end;
+
     local procedure BuildHeader(
         SalesHeader: Record "Sales Header";
         PreviewProgressiveNo: Code[20];
@@ -74,6 +91,7 @@ codeunit 12285 "FatturaPA Preview Mgt."
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
     begin
         Customer.Get(SalesHeader."Bill-to Customer No.");
+        SalesHeader.CalcFields("Invoice Discount Amount");
 
         TempFatturaHeader.Init();
         TempFatturaHeader."Customer No" := Customer."No.";
@@ -110,6 +128,64 @@ codeunit 12285 "FatturaPA Preview Mgt."
                 PaymentTerms."Fattura Payment Terms Code";
 
         TempFatturaHeader.Insert();
+    end;
+
+    local procedure BuildSourceReferences(
+        SalesHeader: Record "Sales Header";
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        var TempFatturaLine: Record "Fattura Line" temporary)
+    var
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        TempShipmentBuffer: Record "Fattura Line" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        ShipmentLineNo: Integer;
+        HasShipmentReference: Boolean;
+    begin
+        TempFatturaHeader.Reset();
+        if not TempFatturaHeader.FindFirst() then
+            exit;
+
+        if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
+            SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+            SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+            if SalesShipmentLine.FindSet() then
+                repeat
+                    if SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then begin
+                        ShipmentLineNo += 1;
+                        FatturaDocHelper.InsertShipmentBuffer(
+                            TempShipmentBuffer, Format(SalesLine.Type::Item), ShipmentLineNo,
+                            SalesShipmentLine."Document No.", SalesShipmentLine."Shipment Date",
+                            SalesShipmentHeader."Fattura Project Code",
+                            SalesShipmentHeader."Fattura Tender Code",
+                            SalesShipmentHeader."Customer Purchase Order No.", false);
+                        HasShipmentReference := true;
+                    end;
+                until SalesShipmentLine.Next() = 0;
+        end;
+
+        // Standard export derives order metadata from shipment information.
+        // A direct invoice with only a customer PO does not generate an Order row.
+        // For sales orders, prepare known order metadata without inventing a DDT.
+        if (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) and
+           (SalesHeader."Customer Purchase Order No." <> '') and not HasShipmentReference
+        then begin
+            TempFatturaLine.Reset();
+            TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Order);
+            TempFatturaLine.Init();
+            TempFatturaLine."Line Type" := TempFatturaLine."Line Type"::Order;
+            TempFatturaLine."Line No." := 1;
+            TempFatturaLine."Document No." := SalesHeader."No.";
+            TempFatturaLine."Customer Purchase Order No." := SalesHeader."Customer Purchase Order No.";
+            TempFatturaLine."Fattura Project Code" := SalesHeader."Fattura Project Code";
+            TempFatturaLine."Fattura Tender Code" := SalesHeader."Fattura Tender Code";
+            TempFatturaLine.Insert();
+            TempFatturaLine.Reset();
+        end else
+            if HasShipmentReference then
+                FatturaDocHelper.BuildPreviewOrderShipmentBuffers(
+                    TempFatturaLine, TempShipmentBuffer, TempFatturaHeader);
     end;
 
     local procedure BuildDocumentLines(

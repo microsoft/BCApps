@@ -579,6 +579,13 @@ codeunit 12184 "Fattura Doc. Helper"
                 TempFatturaHeader."Tax Representative No." := VATEntry."Tax Representative No.";
             end;
 
+        ApplyCompanyTaxRepresentativeFallback(TempFatturaHeader);
+    end;
+
+    local procedure ApplyCompanyTaxRepresentativeFallback(var TempFatturaHeader: Record "Fattura Header" temporary)
+    var
+        VATEntry: Record "VAT Entry";
+    begin
         if (TempFatturaHeader."Tax Representative Type" = 0) and (CompanyInformation."Tax Representative No." <> '') then begin
             TempFatturaHeader."Tax Representative Type" := VATEntry."Tax Representative Type"::Vendor;
             TempFatturaHeader."Tax Representative No." := CompanyInformation."Tax Representative No.";
@@ -1068,6 +1075,37 @@ codeunit 12184 "Fattura Doc. Helper"
         VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         TempVATPostingSetup := VATPostingSetup;
         TempVATPostingSetup.Insert();
+    end;
+
+    /// <summary>
+    /// Reuses the standard order and shipment buffer writers for information
+    /// already available on the unposted source document.
+    /// </summary>
+    procedure BuildPreviewOrderShipmentBuffers(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        var TempShipmentBuffer: Record "Fattura Line" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary)
+    begin
+        BuildOrderDataBuffer(TempFatturaLine, TempShipmentBuffer, TempFatturaHeader);
+        BuildShipmentDataBuffer(TempFatturaLine, TempShipmentBuffer);
+    end;
+
+    /// <summary>
+    /// Applies the same VAT-entry override and company setup fallback used
+    /// by posted export, without querying persisted VAT entries.
+    /// </summary>
+    procedure PopulatePreviewTaxRepresentative(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        var TempVATEntry: Record "VAT Entry" temporary)
+    begin
+        CompanyInformation.Get();
+        TempVATEntry.Reset();
+        if TempVATEntry.FindFirst() then
+            if TempVATEntry."Tax Representative Type" <> 0 then begin
+                TempFatturaHeader."Tax Representative Type" := TempVATEntry."Tax Representative Type";
+                TempFatturaHeader."Tax Representative No." := TempVATEntry."Tax Representative No.";
+            end;
+        ApplyCompanyTaxRepresentativeFallback(TempFatturaHeader);
     end;
 
     local procedure BuildOrderDataBuffer(var TempFatturaLine: Record "Fattura Line" temporary; var TempShptFatturaLine: Record "Fattura Line" temporary; TempFatturaHeader: Record "Fattura Header" temporary)
