@@ -5183,6 +5183,20 @@
     ]
   },
   {
+    "name": "Tests-Company Creation",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-Misc",
     "groups": [
       {
@@ -6885,6 +6899,50 @@
       {
         "name": "FinancialsExtensions",
         "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Microsoft Fabric Mirroring",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Microsoft Fabric Mirroring Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
       },
       {
         "name": "OnPrem",
@@ -9252,6 +9310,56 @@
       },
       {
         "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Sales FR",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Sales FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },

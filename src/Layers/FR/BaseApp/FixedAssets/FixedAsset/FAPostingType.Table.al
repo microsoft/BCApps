@@ -55,7 +55,26 @@ table 5644 "FA Posting Type"
     procedure CreateTypes()
     var
         FADepreciationBook: Record "FA Depreciation Book";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        IsAcceleratedDeprFeatureEnabled: Boolean;
+#endif
+        DerogatoryPostingTypeNo: Integer;
+        DerogatoryPostingTypeName: Text[50];
     begin
+#if not CLEAN30
+        IsAcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+        if IsAcceleratedDeprFeatureEnabled then begin
+            DerogatoryPostingTypeNo := FADepreciationBook.FieldNo("Derogatory Amount");
+            DerogatoryPostingTypeName := CopyStr(FADepreciationBook.FieldCaption("Derogatory Amount"), 1, MaxStrLen("FA Posting Type Name"));
+        end else begin
+            DerogatoryPostingTypeNo := FADepreciationBook.FieldNo(Derogatory);
+            DerogatoryPostingTypeName := CopyStr(FADepreciationBook.FieldCaption(Derogatory), 1, MaxStrLen("FA Posting Type Name"));
+        end;
+#else
+        DerogatoryPostingTypeNo := FADepreciationBook.FieldNo("Derogatory Amount");
+        DerogatoryPostingTypeName := CopyStr(FADepreciationBook.FieldCaption("Derogatory Amount"), 1, MaxStrLen("FA Posting Type Name"));
+#endif
         LockTable();
         if not Find('-') then begin
             "FA Entry" := true;
@@ -76,11 +95,8 @@ table 5644 "FA Posting Type"
             "FA Entry" := false;
             "G/L Entry" := true;
             InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
-            "Entry No." := 13;
             "FA Entry" := true;
-            "FA Posting Type No." := FADepreciationBook.FieldNo(Derogatory);
-            "FA Posting Type Name" := FADepreciationBook.FieldCaption(Derogatory);
-            Insert();
+            InsertRec(13, DerogatoryPostingTypeNo, DerogatoryPostingTypeName);
         end else begin
             SetCurrentKey("Entry No.");
             Find('-');
@@ -170,13 +186,11 @@ table 5644 "FA Posting Type"
                         InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
                     end;
                 if "Entry No." = 13 then
-                    if ("FA Posting Type No." <> FADepreciationBook.FieldNo(Derogatory)) or
-                       ("FA Posting Type Name" <> FADepreciationBook.FieldCaption(Derogatory))
+                    if ("FA Posting Type No." <> DerogatoryPostingTypeNo) or
+                       ("FA Posting Type Name" <> DerogatoryPostingTypeName)
                     then begin
                         Delete();
-                        "FA Posting Type No." := FADepreciationBook.FieldNo(Derogatory);
-                        "FA Posting Type Name" := FADepreciationBook.FieldCaption(Derogatory);
-                        Insert();
+                        InsertRec(13, DerogatoryPostingTypeNo, DerogatoryPostingTypeName);
                     end;
             until Next() = 0;
         end;
@@ -196,4 +210,3 @@ table 5644 "FA Posting Type"
     begin
     end;
 }
-

@@ -41,6 +41,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using System.Automation;
 using System.Reflection;
@@ -55,6 +56,16 @@ codeunit 139940 "Qlty. Inspection Utility"
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
+
+    /// <summary>
+    /// Exposes the internal tracked inventory lookup to the Quality Management tests.
+    /// </summary>
+    internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
+    var
+        QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
+    begin
+        exit(QltyInventoryAvailability.GetCurrentLocationOfTrackedInventory(QltyInspectionHeader, TempBinContent));
+    end;
 
     /// <summary>
     /// Ensures baseline Quality Management setup exists and grants the current user the admin/supervisor permission set.
@@ -1252,14 +1263,14 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal procedure HandleNotificationActionIgnore from Qlty. Notification Mgmt. codeunit.
+    /// Wrapper for internal procedure HandleDontShowAssignToYourself from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
+    internal procedure HandleDontShowAssignToYourself(NotificationToShow: Notification)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
-        QltyNotificationMgmt.HandleNotificationActionIgnore(NotificationToShow);
+        QltyNotificationMgmt.HandleDontShowAssignToYourself(NotificationToShow);
     end;
 
     #endregion Qlty. Notification Mgmt. Wrappers
@@ -1829,6 +1840,20 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for internal QltyDispTransfer.PerformDisposition (8-argument version).
+    /// </summary>
+    internal procedure PerformTransferDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
+                                                                                                                                                                       OptionalSourceBinFilter: Text;
+                                                                                                                                                                       DestinationLocationCode: Code[10];
+                                                                                                                                                                       DestinationBinCode: Code[20];
+                                                                                                                                                                       OptionalInTransitLocationCode: Code[10]): Boolean
+    var
+        QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
+    begin
+        exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, DestinationLocationCode, DestinationBinCode, OptionalInTransitLocationCode));
+    end;
+
+    /// <summary>
     /// Wrapper for internal QltyDispMoveAutoChoose.MoveInventory.
     /// </summary>
     internal procedure MoveInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean): Boolean
@@ -2320,153 +2345,73 @@ codeunit 139940 "Qlty. Inspection Utility"
     #region Qlty. Permission Mgmt. Wrappers
 
     /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanCreateManualInspection
-    /// </summary>
-    internal procedure VerifyCanCreateManualInspection()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanCreateManualInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanCreateReinspection
-    /// </summary>
-    internal procedure VerifyCanCreateReinspection()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanCreateReinspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanDeleteOpenInspection
-    /// </summary>
-    internal procedure VerifyCanDeleteOpenInspection()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
-    end;
-
-    /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanDeleteFinishedInspection
     /// </summary>
-    internal procedure VerifyCanDeleteFinishedInspection()
+    internal procedure VerifyCanDeleteFinishedInspection(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
+        QltyPermissionMgmt.VerifyCanDeleteFinishedInspection(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.CanDeleteFinishedInspection
     /// </summary>
-    internal procedure CanDeleteFinishedInspection(): Boolean
+    internal procedure CanDeleteFinishedInspection(UserSecurityIdToCheck: Guid): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanDeleteFinishedInspection());
+        exit(QltyPermissionMgmt.CanDeleteFinishedInspection(UserSecurityIdToCheck));
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanChangeOtherInspections
     /// </summary>
-    internal procedure VerifyCanChangeOtherInspections()
+    internal procedure VerifyCanChangeOtherInspections(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanChangeOtherInspections();
+        QltyPermissionMgmt.VerifyCanChangeOtherInspections(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.CanChangeOtherInspections
     /// </summary>
-    internal procedure CanChangeOtherInspections(): Boolean
+    internal procedure CanChangeOtherInspections(UserSecurityIdToCheck: Guid): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanChangeOtherInspections());
+        exit(QltyPermissionMgmt.CanChangeOtherInspections(UserSecurityIdToCheck));
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanReopenInspection
     /// </summary>
-    internal procedure VerifyCanReopenInspection()
+    internal procedure VerifyCanReopenInspection(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanReopenInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanFinishInspection
-    /// </summary>
-    internal procedure VerifyCanFinishInspection()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanFinishInspection();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanFinishInspection
-    /// </summary>
-    internal procedure CanFinishInspection(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanFinishInspection());
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.VerifyCanChangeItemTracking
-    /// </summary>
-    internal procedure VerifyCanChangeItemTracking()
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        QltyPermissionMgmt.VerifyCanChangeItemTracking();
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanChangeItemTracking
-    /// </summary>
-    internal procedure CanChangeItemTracking(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanChangeItemTracking());
+        QltyPermissionMgmt.VerifyCanReopenInspection(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanChangeSourceQuantity
     /// </summary>
-    internal procedure VerifyCanChangeSourceQuantity()
+    internal procedure VerifyCanChangeSourceQuantity(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+        QltyPermissionMgmt.VerifyCanChangeSourceQuantity(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.CanChangeSourceQuantity
     /// </summary>
-    internal procedure CanChangeSourceQuantity(): Boolean
+    internal procedure CanChangeSourceQuantity(UserSecurityIdToCheck: Guid): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanChangeSourceQuantity());
-    end;
-
-    /// <summary>
-    /// Wrapper for QltyPermissionMgmt.CanEditLineComments
-    /// </summary>
-    internal procedure CanEditLineComments(): Boolean
-    var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        exit(QltyPermissionMgmt.CanEditLineComments());
+        exit(QltyPermissionMgmt.CanChangeSourceQuantity(UserSecurityIdToCheck));
     end;
 
     #endregion Qlty. Permission Mgmt. Wrappers

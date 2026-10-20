@@ -164,7 +164,13 @@ page 6991 "Expense Agent Setup Wizard"
                                         ConfigUpdated();
                                         CurrPage.Update(true);
                                     end;
-                                end;
+                                end else
+                                    if Rec."Default Approver No." <> '' then
+                                        if Confirm(ClearDefaultApproverQst, false) then begin
+                                            Rec."Default Approver No." := '';
+                                            ConfigUpdated();
+                                            CurrPage.Update(true);
+                                        end;
                             end;
                         }
                     }
@@ -927,6 +933,7 @@ page 6991 "Expense Agent Setup Wizard"
 
         FeatureTelemetry.LogUptake('0000UBU', Rec.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
 
+        if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
         ExpenseDashboardUrl := GetExpenseDashboardUrl();
@@ -956,9 +963,15 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        EAHttpClient: Codeunit "EA Http Client";
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
+
+        if StateChanged() then
+            if EAHttpClient.IsCurrentUserGuestUser() then
+                Error(GuestUserErr);
 
         if not ValidateManagementRulesDependencies() then
             exit(false);
@@ -1039,12 +1052,14 @@ page 6991 "Expense Agent Setup Wizard"
         PrivacyNoticeNotAcceptedMsg: Label 'To use the Expense Agent, you must first accept the privacy notice. Please accept the privacy notice and try again.';
         NoExpenseUsersErr: Label 'You must first specify who can access.';
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
+        GuestUserErr: Label 'You cannot enable or disable Expense Agent. Guest users and external administrators have currently limited access to the Expense Agent.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
         ApprovalWorkflowConflictErr: Label 'You must turn off "%1" in Expense Agent Setup to enable Expense Agent.', Comment = '%1 = Field Caption';
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
         AgentSummaryLbl: Label 'Processes employee expense reports by extracting receipt data, validating against company policies, and routing for approval.';
+        ClearDefaultApproverQst: Label 'Do you want to remove the current default approver?';
 
     local procedure LoadSetup()
     var

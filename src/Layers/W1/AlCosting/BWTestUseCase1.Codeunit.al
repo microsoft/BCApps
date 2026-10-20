@@ -688,8 +688,7 @@ codeunit 103351 "BW Test Use Case 1"
         TestScriptMgmt.InsertTransferLine(TransLine, TransHeader."No.", 20000, 'A_TEST', '', 'PCS', 20, 0, 20);
         TestScriptMgmt.InsertTransferLine(TransLine, TransHeader."No.", 30000, 'A_TEST', '', 'PCS', 18, 0, 18);
         TransLine.SetRange("Document No.", TransHeader."No.");
-        TransLine.ModifyAll("Transfer-from Bin Code", 'A1', true);
-        TransLine.ModifyAll("Transfer-To Bin Code", 'S-01-0001', true);
+        TransLine.ModifyAll("Transfer-from Bin Code", 'A1', "Transfer-To Bin Code", 'S-01-0001', true);
         TransLine.Get(TransHeader."No.", 20000);
         TransLine.Validate("Transfer-To Bin Code", 'S-01-0002');
         TransLine.Modify(true);
@@ -1344,8 +1343,7 @@ codeunit 103351 "BW Test Use Case 1"
         TestScriptMgmt.InsertTransferLine(TransLine, TransHeader."No.", 20000, 'A_TEST', '', 'PCS', 20, 0, 20);
         TestScriptMgmt.InsertTransferLine(TransLine, TransHeader."No.", 30000, 'A_TEST', '', 'PCS', 18, 0, 18);
         TransLine.SetRange("Document No.", TransHeader."No.");
-        TransLine.ModifyAll("Transfer-from Bin Code", 'A1', true);
-        TransLine.ModifyAll("Transfer-To Bin Code", 'S-01-0001', true);
+        TransLine.ModifyAll("Transfer-from Bin Code", 'A1', "Transfer-To Bin Code", 'S-01-0001', true);
         TransLine.Get(TransHeader."No.", 20000);
         TransLine.Validate("Transfer-To Bin Code", 'S-01-0002');
         TransLine.Modify(true);

@@ -46,13 +46,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         UpdateCapLedgerEntry(CapLedgEntry, ItemJournalLine);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnAfterPostOutput, '', false, false)]
-#pragma warning restore AL0432
-#else
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", OnAfterPostOutput, '', false, false)]
-#endif
     local procedure OnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
 #if not CLEAN29

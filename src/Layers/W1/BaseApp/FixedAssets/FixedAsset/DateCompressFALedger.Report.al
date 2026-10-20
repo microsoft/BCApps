@@ -7,6 +7,7 @@ namespace Microsoft.FixedAssets.Ledger;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Posting;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
 using System.DataAdministration;
@@ -131,6 +132,7 @@ report 5696 "Date Compress FA Ledger"
             trigger OnPreDataItem()
             var
                 GLSetup: Record "General Ledger Setup";
+                DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
             begin
                 if EntrdDateComprReg."Ending Date" = 0D then
                     Error(Text004, EntrdDateComprReg.FieldCaption("Ending Date"));
@@ -164,6 +166,7 @@ report 5696 "Date Compress FA Ledger"
                 SetRange("Entry No.", 0, LastEntryNo);
                 SetRange("FA Posting Date", EntrdDateComprReg."Starting Date", EntrdDateComprReg."Ending Date");
 
+                DerogatoryPostingMgt.CheckDateCompressionAllowed("FA Ledger Entry");
                 InitRegisters();
 
                 if UseDataArchive then
