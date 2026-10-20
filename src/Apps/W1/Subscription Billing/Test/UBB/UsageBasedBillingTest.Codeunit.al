@@ -92,6 +92,7 @@ codeunit 148153 "Usage Based Billing Test"
         FirstBillingLineEndDateLbl: Label 'First Billing Line should end at the first rhythm period end.', Locked = true;
         FirstBillingLineStartDateLbl: Label 'First Billing Line should start at the first Charge Start Date.', Locked = true;
         NextBillingDateLbl: Label 'Next Billing Date should follow the stretched billing period.', Locked = true;
+        NoBillingLineForUsageDataLbl: Label 'A Billing Line should be created for the open Usage Data Billing of the following period.', Locked = true;
         SecondBillingLineEndDateLbl: Label 'Second Billing Line should end at the second rhythm period end.', Locked = true;
         SecondBillingLineStartDateLbl: Label 'Second Billing Line should start at the second rhythm period start.', Locked = true;
 
@@ -2437,6 +2438,125 @@ codeunit 148153 "Usage Based Billing Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure UsageDataOfLaterPeriodIsBilledByNextCustomerBillingProposal()
+    var
+        InPeriodUsageDataBilling: Record "Usage Data Billing";
+        LaterUsageDataBilling: Record "Usage Data Billing";
+    begin
+        // [SCENARIO] Customer usage data of a later period that arrives after the billing proposal is billed by the next billing proposal
+        Initialize();
+
+        // [GIVEN] A customer billing proposal for the period of the processed usage data
+        SetupUsageDataBillingAndBillingProposal("Service Partner"::Customer, InPeriodUsageDataBilling);
+
+        // [GIVEN] Usage data of the following period is added after the billing proposal was created
+        AddUsageDataBillingForChargePeriod(LaterUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing to" + 1, CalcDate('<1M-1D>', BillingLine."Billing to" + 1));
+
+        // [GIVEN] The sales invoice is created from the billing proposal and posted
+        ResetSalesPostingNoSeriesDateUsage();
+        CreateBillingDocumentsFromBillingProposal(true);
+
+        // [WHEN] The next customer billing proposal is created
+        CreateBillingProposalForPartner("Service Partner"::Customer, LaterUsageDataBilling."Charge End Date");
+
+        // [THEN] A billing line is created for the usage data of the following period
+        VerifyBillingLineCreatedForUsageDataBilling(LaterUsageDataBilling);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure UsageDataOfLaterPeriodIsBilledByNextVendorBillingProposal()
+    var
+        InPeriodUsageDataBilling: Record "Usage Data Billing";
+        LaterUsageDataBilling: Record "Usage Data Billing";
+    begin
+        // [SCENARIO] Vendor usage data of a later period that arrives after the billing proposal is billed by the next billing proposal
+        Initialize();
+
+        // [GIVEN] A vendor billing proposal for the period of the processed usage data
+        SetupUsageDataBillingAndBillingProposal("Service Partner"::Vendor, InPeriodUsageDataBilling);
+
+        // [GIVEN] Usage data of the following period is added after the billing proposal was created
+        AddUsageDataBillingForChargePeriod(LaterUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing to" + 1, CalcDate('<1M-1D>', BillingLine."Billing to" + 1));
+
+        // [GIVEN] The purchase invoice is created from the billing proposal and posted
+        CreateBillingDocumentsFromBillingProposal(false);
+        ResetPurchasePostingNoSeriesDateUsage();
+        PostPurchaseDocuments();
+
+        // [WHEN] The next vendor billing proposal is created
+        CreateBillingProposalForPartner("Service Partner"::Vendor, LaterUsageDataBilling."Charge End Date");
+
+        // [THEN] A billing line is created for the usage data of the following period
+        VerifyBillingLineCreatedForUsageDataBilling(LaterUsageDataBilling);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure UsageDataOutsideBillingPeriodIsNotAssignedToPurchaseInvoice()
+    var
+        BoundaryUsageDataBilling: Record "Usage Data Billing";
+        EarlierUsageDataBilling: Record "Usage Data Billing";
+        InPeriodUsageDataBilling: Record "Usage Data Billing";
+        LaterUsageDataBilling: Record "Usage Data Billing";
+    begin
+        // [SCENARIO] Creating a purchase invoice from a billing line assigns only the vendor usage data of the billed period to the invoice
+        Initialize();
+
+        // [GIVEN] A vendor billing proposal for the period of the processed usage data
+        SetupUsageDataBillingAndBillingProposal("Service Partner"::Vendor, InPeriodUsageDataBilling);
+
+        // [GIVEN] Open usage data ending on the day after the billing period, which the billing line price includes
+        AddUsageDataBillingForChargePeriod(BoundaryUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing from", BillingLine."Billing to" + 1);
+
+        // [GIVEN] Open usage data before and after the billing period of the billing line
+        AddUsageDataBillingForChargePeriod(EarlierUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing from" - 10, BillingLine."Billing from" - 1);
+        AddUsageDataBillingForChargePeriod(LaterUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing to" + 1, CalcDate('<1M-1D>', BillingLine."Billing to" + 1));
+
+        // [WHEN] The purchase invoice is created from the billing line
+        CreateBillingDocumentsFromBillingProposal(false);
+
+        // [THEN] Only the usage data of the billing period is assigned to the purchase invoice
+        VerifyUsageDataBillingAssignedToBillingLineDocument(InPeriodUsageDataBilling);
+        VerifyUsageDataBillingAssignedToBillingLineDocument(BoundaryUsageDataBilling);
+        VerifyUsageDataBillingIsOpen(EarlierUsageDataBilling);
+        VerifyUsageDataBillingIsOpen(LaterUsageDataBilling);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure UsageDataOutsideBillingPeriodIsNotAssignedToSalesInvoice()
+    var
+        BoundaryUsageDataBilling: Record "Usage Data Billing";
+        EarlierUsageDataBilling: Record "Usage Data Billing";
+        InPeriodUsageDataBilling: Record "Usage Data Billing";
+        LaterUsageDataBilling: Record "Usage Data Billing";
+    begin
+        // [SCENARIO] Creating a sales invoice from a billing line assigns only the customer usage data of the billed period to the invoice
+        Initialize();
+
+        // [GIVEN] A customer billing proposal for the period of the processed usage data
+        SetupUsageDataBillingAndBillingProposal("Service Partner"::Customer, InPeriodUsageDataBilling);
+
+        // [GIVEN] Open usage data ending on the day after the billing period, which the billing line price includes
+        AddUsageDataBillingForChargePeriod(BoundaryUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing from", BillingLine."Billing to" + 1);
+
+        // [GIVEN] Open usage data before and after the billing period of the billing line
+        AddUsageDataBillingForChargePeriod(EarlierUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing from" - 10, BillingLine."Billing from" - 1);
+        AddUsageDataBillingForChargePeriod(LaterUsageDataBilling, InPeriodUsageDataBilling, BillingLine."Billing to" + 1, CalcDate('<1M-1D>', BillingLine."Billing to" + 1));
+
+        // [WHEN] The sales invoice is created from the billing line
+        CreateBillingDocumentsFromBillingProposal(false);
+
+        // [THEN] Only the usage data of the billing period is assigned to the sales invoice
+        VerifyUsageDataBillingAssignedToBillingLineDocument(InPeriodUsageDataBilling);
+        VerifyUsageDataBillingAssignedToBillingLineDocument(BoundaryUsageDataBilling);
+        VerifyUsageDataBillingIsOpen(EarlierUsageDataBilling);
+        VerifyUsageDataBillingIsOpen(LaterUsageDataBilling);
+    end;
+
+    [Test]
     procedure UT_ValidateBillingLineNoRelation()
     var
         BillingLines: array[4] of Record "Billing Line";
@@ -2860,6 +2980,16 @@ codeunit 148153 "Usage Based Billing Test"
         BillingLine.DeleteAll(false);
     end;
 
+    local procedure AddUsageDataBillingForChargePeriod(var NewUsageDataBilling: Record "Usage Data Billing"; SourceUsageDataBilling: Record "Usage Data Billing"; ChargeStartDate: Date; ChargeEndDate: Date)
+    begin
+        NewUsageDataBilling := SourceUsageDataBilling;
+        NewUsageDataBilling."Entry No." := 0;
+        NewUsageDataBilling."Charge Start Date" := ChargeStartDate;
+        NewUsageDataBilling."Charge End Date" := ChargeEndDate;
+        NewUsageDataBilling."Billing Line Entry No." := 0;
+        NewUsageDataBilling.Insert(false);
+    end;
+
     local procedure CheckIfCustomerSupplierReferencesAreIsCreated(CustomerID: Text[80])
     begin
         UsageDataSupplierReference.FilterUsageDataSupplierReference(UsageDataImport."Supplier No.", CustomerID, Enum::"Usage Data Reference Type"::Customer);
@@ -2958,6 +3088,41 @@ codeunit 148153 "Usage Based Billing Test"
     local procedure ConvertDocumentType(DocumentType: Enum "Rec. Billing Document Type"): Enum "Usage Based Billing Doc. Type"
     begin
         UsageBasedDocTypeConverter.ConvertRecurringBillingDocTypeToUsageBasedBillingDocType(DocumentType);
+    end;
+
+    local procedure CreateBillingDocumentsFromBillingProposal(PostDocuments: Boolean)
+    var
+        CreateBillingDocuments: Codeunit "Create Billing Documents";
+    begin
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        CreateBillingDocuments.SetSkipRequestPageSelection(true);
+        CreateBillingDocuments.SetDocumentDataFromRequestPage(WorkDate(), WorkDate(), PostDocuments, false);
+        CreateBillingDocuments.SetBillingGroupingPerContract(BillingTemplate.Partner);
+        CreateBillingDocuments.SetHideProcessingFinishedMessage();
+        CreateBillingDocuments.Run(BillingLine);
+    end;
+
+    local procedure CreateBillingProposalForPartner(ServicePartner: Enum "Service Partner"; BillingDate: Date)
+    var
+        ContractFilter: Text;
+    begin
+        case ServicePartner of
+            ServicePartner::Customer:
+                begin
+                    CustomerContract.SetRange("No.", CustomerContract."No.");
+                    ContractFilter := CustomerContract.GetView();
+                end;
+            ServicePartner::Vendor:
+                begin
+                    VendorContract.SetRange("No.", VendorContract."No.");
+                    ContractFilter := VendorContract.GetView();
+                end;
+        end;
+        ContractTestLibrary.CreateRecurringBillingTemplate(BillingTemplate, '<CM>', '', ContractFilter, ServicePartner);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, ServicePartner, BillingDate, 0D);
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
     end;
 
     local procedure CreateBillingProposalForSimpleCustomerContract()
@@ -3296,6 +3461,24 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
     end;
 
+    local procedure ResetPurchasePostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        PurchSetup.Get();
+        NoSeriesLine.SetFilter("Series Code", '%1|%2', PurchSetup."Posted Receipt Nos.", PurchSetup."Posted Invoice Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
+    end;
+
+    local procedure ResetSalesPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        SalesSetup.Get();
+        NoSeriesLine.SetFilter("Series Code", '%1|%2', SalesSetup."Posted Shipment Nos.", SalesSetup."Posted Invoice Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
+    end;
+
     local procedure SetupUsageBasedCustomerContractForMonthlyRhythm(var PeriodStartDate: Date; var SupplierSubscriptionID: Text)
     begin
         ContractTestLibrary.InitContractsApp();
@@ -3455,6 +3638,18 @@ codeunit 148153 "Usage Based Billing Test"
         CreateVendorContractAndAssignServiceCommitments();
     end;
 
+    local procedure SetupUsageDataBillingAndBillingProposal(ServicePartner: Enum "Service Partner"; var InPeriodUsageDataBilling: Record "Usage Data Billing")
+    begin
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDecInRange(1, 10, 2));
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        CreateBillingProposalForPartner(ServicePartner, WorkDate());
+        BillingLine.FindFirst();
+        FilterUsageDataBillingOnUsageDataImport(InPeriodUsageDataBilling, UsageDataImport."Entry No.", ServicePartner);
+        InPeriodUsageDataBilling.FindFirst();
+        InPeriodUsageDataBilling.TestField("Billing Line Entry No.", BillingLine."Entry No.");
+    end;
+
     local procedure SetupUsageDataForProcessingToGenericImport()
     begin
         SetupUsageDataForProcessingToGenericImport(WorkDate(), WorkDate(), WorkDate(), WorkDate(), LibraryRandom.RandDec(10, 2));
@@ -3556,6 +3751,33 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataGenericImport.FindFirst();
         Assert.AreEqual(ExpectedServiceObjectAvailability, UsageDataGenericImport."Service Object Availability", 'Service Object Availability is not set to expected value in Usage Data Generic Import.');
         Assert.AreEqual(ExpectedServiceObjectNo, UsageDataGenericImport."Subscription Header No.", 'Service Object No. is not set to expected value in Usage Data Generic Import.');
+    end;
+
+    local procedure VerifyBillingLineCreatedForUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing")
+    begin
+        UsageDataBilling.Get(UsageDataBilling."Entry No.");
+        UsageDataBilling.TestField("Document Type", "Usage Based Billing Doc. Type"::None);
+        Assert.IsTrue(BillingLine.FindFirst(), NoBillingLineForUsageDataLbl);
+        Assert.AreEqual(UsageDataBilling."Charge Start Date", BillingLine."Billing from", BillingLineStartDateLbl);
+        Assert.AreEqual(BillingLine."Entry No.", UsageDataBilling."Billing Line Entry No.", BillingLineNotLinkedToUsageDataLbl);
+    end;
+
+    local procedure VerifyUsageDataBillingAssignedToBillingLineDocument(var UsageDataBilling: Record "Usage Data Billing")
+    begin
+        BillingLine.Get(BillingLine."Entry No.");
+        BillingLine.TestField("Document No.");
+        UsageDataBilling.Get(UsageDataBilling."Entry No.");
+        UsageDataBilling.TestField("Document Type", "Usage Based Billing Doc. Type"::Invoice);
+        UsageDataBilling.TestField("Document No.", BillingLine."Document No.");
+        UsageDataBilling.TestField("Document Line No.", BillingLine."Document Line No.");
+    end;
+
+    local procedure VerifyUsageDataBillingIsOpen(var UsageDataBilling: Record "Usage Data Billing")
+    begin
+        UsageDataBilling.Get(UsageDataBilling."Entry No.");
+        UsageDataBilling.TestField("Document Type", "Usage Based Billing Doc. Type"::None);
+        UsageDataBilling.TestField("Document No.", '');
+        UsageDataBilling.TestField("Document Line No.", 0);
     end;
 
     #endregion Procedures
