@@ -17,9 +17,7 @@ using System.Security.AccessControl;
 using System.Utilities;
 
 /// <summary>
-/// The permission set assigned to the agent when created under Payables Agent v2 (task-based flow). Gives the agent
-/// access to its tasks, their email and PDF sources, and what it needs to create purchase documents. Selected by
-/// "PA Setup".GetDefaultAccessControls.
+/// The permission set assigned to the agent when created under Payables Agent v2 (task-based flow).
 /// </summary>
 permissionset 3346 "Payables Ag. - RunV2"
 {
@@ -45,11 +43,11 @@ permissionset 3346 "Payables Ag. - RunV2"
         tabledata "Dimension Set Tree Node" = im,
         // Missing permissions for vendor creation
         tabledata "VAT Registration Log" = i, // Validating VAT Registration No. on the vendor card writes an audit entry to the VAT Registration Log
-        // Change Log
+                                              // Change Log
         tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)
-        // Payables Agent tasks: "Payables Agent Task", "... Source" and "... Data" carry inherent permissions.
+                                          // Payables Agent tasks: "Payables Agent Task", "... Source" and "... Data" carry inherent permissions.
         tabledata "Email Inbox" = R, // Read the source email (sender, subject, body) through the Email module
-        // Other
+                                     // Other
         tabledata "Agent Task Message" = R, // Needed to resolve the task the current session works on
         tabledata "Agent Task" = RM, // Needed to read the agent task status and update the agent task title
         tabledata "PA Known Sender" = RI; // Read for dedup check + insert on agent-driven processing steps. Modify/Delete reserved for admins.

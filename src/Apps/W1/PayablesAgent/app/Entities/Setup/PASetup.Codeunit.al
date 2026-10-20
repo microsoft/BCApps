@@ -9,26 +9,21 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
-using System.Agents;
 using System.Email;
-using System.Environment;
-using System.Privacy;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Security.User;
 
 /// <summary>
-/// SDK for the Payables Agent setup: reads the setup, obtains consent, validates the mailbox, configures the agent
-/// and applies the setup, adapting to whether the setup is backed by the Outlook Setup and E-Document Service (v1)
-/// or self-contained (v2). Together with "PA Task" and "PA Task Collection", the only code that branches on
-/// "PA V1V2 Flag".
+/// The only entry point to the stored Payables Agent setup. It loads the setup into "PA Detailed Setup" and saves it
+/// back, knowing where each value is stored for the active Payables Agent version: "Payables Agent Setup" and, for v1,
+/// the Outlook Setup and the E-Document Service the e-document pipeline reads. It also fills the values derived from
+/// the version. Everything else in the app consumes "PA Detailed Setup"; logic on top of it lives in
+/// "Payables Agent Setup" (codeunit). One of the codeunits allowed to reference "PA V1V2 Flag".
 /// </summary>
 codeunit 3343 "PA Setup"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Payables Agent Setup" = RIM, tabledata Agent = R, tabledata "Outlook Setup" = RIM;
+    Permissions = tabledata "Payables Agent Setup" = RIMD, tabledata "Outlook Setup" = RIM;
 
     var
         PAV1V2Flag: Codeunit "PA V1V2 Flag";
@@ -37,325 +32,157 @@ codeunit 3343 "PA Setup"
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         PayablesAgentV2PermissionSetTok: Label 'Payables Ag. - RunV2', Locked = true;
         PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
-        ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
-        EmailConnectionErr: Label 'Failed to connect to the email mailbox.';
-        EmailConnectionMessageErr: Label 'Connection to mailbox failed. Please review the email account configuration for email %1', Comment = '%1 - Email account name';
-        EmailConnectionNavigationActionLbl: Label 'Show email accounts';
 
-    #region Setup - Get
+    #region Load
 
-    internal procedure GetSetup(var PayablesAgentDetailedSetup: Record "PA Detailed Setup")
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
-        OutlookSetup: Record "Outlook Setup";
+    /// <summary>
+    /// Loads the setup. The stored setup is created when it does not exist yet.
+    /// </summary>
+    internal procedure GetSetup(var TempPADetailedSetup: Record "PA Detailed Setup")
     begin
-        Clear(PayablesAgentDetailedSetup);
-        PayablesAgentDetailedSetup.DeleteAll();
-
-        PayablesAgentSetup.GetOrCreateSetup();
-        PayablesAgentDetailedSetup."Email Review Policy" := PayablesAgentSetup."Email Review Policy";
-        PayablesAgentDetailedSetup."Email Account Id" := PayablesAgentSetup."Email Account Id";
-        PayablesAgentDetailedSetup."Email Folder" := PayablesAgentSetup."Email Folder";
-        PayablesAgentDetailedSetup."Email Folder Id" := PayablesAgentSetup."Email Folder Id";
-        PayablesAgentDetailedSetup."Last Sync At" := PayablesAgentSetup."Last Sync At";
-        PayablesAgentDetailedSetup."Email Monitoring Consent" := PayablesAgentSetup."Email Monitoring Consent";
-
-        // V1/V2 dependent behavior
-        if PAV1V2Flag.IsV2Active() then begin
-            PayablesAgentDetailedSetup."Agent Profile" := PayablesAgentV2ProfileTok;
-        end else begin
-            if OutlookSetup.FindFirst() then begin
-                PayablesAgentDetailedSetup."Email Account Id" := OutlookSetup."Email Account ID";
-                PayablesAgentDetailedSetup."Email Folder" := OutlookSetup."Email Folder";
-                PayablesAgentDetailedSetup."Email Folder Id" := OutlookSetup."Email Folder Id";
-                PayablesAgentDetailedSetup."Last Sync At" := OutlookSetup."Last Sync At";
-                PayablesAgentDetailedSetup."Email Monitoring Consent" := OutlookSetup."Consent Received";
-            end;
-        end;
+        LoadSetup(TempPADetailedSetup, true);
     end;
 
     /// <summary>
-    /// When the agent was last activated. Blank when it was activated before this was recorded.
+    /// Loads the setup, optionally without creating the stored setup when it does not exist yet. When it does not
+    /// exist and is not created, the configured and maintained values are blank; the derived values are still filled.
     /// </summary>
-    internal procedure GetLastActivated(): DateTime
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
+    /// <returns>True when the stored setup exists or was created.</returns>
+    internal procedure GetSetup(var TempPADetailedSetup: Record "PA Detailed Setup"; InsertIfMissing: Boolean): Boolean
     begin
-        exit(PayablesAgentSetup."Last Activated");
-    end;
-
-    /// <summary>
-    /// The permission sets the agent gets on activation: "Payables Ag. - RunV2" for the v2 task-based flow when v2 is
-    /// active, otherwise the v1 draft-based "Payables Ag. - Run".
-    /// </summary>
-    internal procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
-    var
-        ModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(ModuleInfo);
-        TempAccessControlBuffer.Init();
-        TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
-        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
-        TempAccessControlBuffer."App ID" := ModuleInfo.Id;
-        if PAV1V2Flag.IsV2Active() then
-            TempAccessControlBuffer."Role ID" := PayablesAgentV2PermissionSetTok
-        else
-            TempAccessControlBuffer."Role ID" := PayablesAgentPermissionSetTok;
-        TempAccessControlBuffer.Insert();
-    end;
-
-    /// <summary>
-    /// Whether a mailbox folder (rather than the whole mailbox) is monitored. Under v1 the folder is read from the
-    /// Outlook Setup the e-document pipeline uses; without that record no folder is monitored (fail closed: a
-    /// configured folder skips sender review).
-    /// </summary>
-    internal procedure MonitoredFolderConfigured(): Boolean
-    var
-        PayablesAgentDetailedSetup: Record "PA Detailed Setup";
-        OutlookSetup: Record "Outlook Setup";
-    begin
-        if not PAV1V2Flag.IsV2Active() then begin
-            if not OutlookSetup.FindFirst() then
-                exit(false);
-            exit(OutlookSetup."Email Folder" <> '');
-        end;
-        GetSetup(PayablesAgentDetailedSetup);
-        exit(PayablesAgentDetailedSetup."Email Folder" <> '');
-    end;
-
-    /// <summary>
-    /// Whether the agent exists and is enabled.
-    /// </summary>
-    internal procedure IsAgentEnabled(): Boolean
-    var
-        Agent: Record Agent;
-        PayablesAgentSetup: Record "Payables Agent Setup";
-    begin
-        PayablesAgentSetup.GetOrCreateSetup();
-        if not Agent.Get(PayablesAgentSetup."User Security Id") then
-            exit(false);
-        exit(Agent.State = Agent.State::Enabled);
-    end;
-
-    /// <summary>
-    /// Fills the update parameters with the current setup: the agent framework setup buffer and the setup.
-    /// </summary>
-    internal procedure LoadParameters(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
-    var
-        Agent: Record Agent;
-        PayablesAgentSetupRec: Record "Payables Agent Setup";
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        AgentSetup: Codeunit "Agent Setup";
-    begin
-        // Skipping configuring the Agent framework records is valid in tests
-        if not PASetupUpdateParameters.GetSkipAgentConfiguration() then begin
-            if PayablesAgentSetup.GetAgent(Agent) then;
-            AgentSetup.GetSetupRecord(
-                TempAgentSetupBuffer,
-                Agent."User Security ID",
-                "Agent Metadata Provider"::"Payables Agent",
-                PayablesAgentSetup.AgentUserName(),
-                PayablesAgentSetup.AgentDisplayName(),
-                PayablesAgentSetup.AgentSummary()
-            );
-            PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        end;
-
-        GetSetup(PayablesAgentSetupRec);
-        PASetupUpdateParameters.SetDesiredSetup(PayablesAgentSetupRec);
-    end;
-
-    /// <summary>
-    /// Whether the setup offers configuring the additional purchase line fields of the e-document purchase drafts.
-    /// </summary>
-    internal procedure SupportsAdditionalFieldsSetup(): Boolean
-    begin
-        exit(not PAV1V2Flag.IsV2Active());
+        exit(LoadSetup(TempPADetailedSetup, InsertIfMissing));
     end;
 
     #endregion
 
-    #region Setup - Interactive
+    #region Save
 
     /// <summary>
-    /// Lets the user pick the Microsoft 365 mailbox to monitor.
+    /// Saves the configured and maintained values. Under v1 the configured values are first projected onto the
+    /// Outlook Setup and the E-Document Service. The setup is reloaded afterwards. Starts a write transaction.
     /// </summary>
-    /// <returns>True when a mailbox was picked; the account id and address are then updated.</returns>
-    internal procedure SelectEmailAccount(var EmailAccountId: Guid; var EmailAddress: Text): Boolean
-    var
-        TempEmailAccount: Record "Email Account" temporary;
-        OutlookIntegration: Codeunit "Outlook Integration Impl.";
-    begin
-        TempEmailAccount."Account Id" := EmailAccountId;
-        TempEmailAccount.Connector := "Email Connector"::"Microsoft 365";
-        if not OutlookIntegration.SelectEmailAccount(TempEmailAccount) then
-            exit(false);
-        EmailAccountId := TempEmailAccount."Account Id";
-        EmailAddress := TempEmailAccount."Email Address";
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Opens the configuration of the additional purchase line fields (v1 purchase drafts). Commits.
-    /// </summary>
-    /// <returns>True when the configuration was confirmed.</returns>
-    internal procedure OpenAdditionalFieldsSetup(): Boolean
-    var
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
-        EDocAdditionalFieldsSetup: Page "EDoc Additional Fields Setup";
-    begin
-        if PAV1V2Flag.IsV2Active() then
-            exit(false);
-        EDocAdditionalFieldsSetup.SetEDocumentService(PADraftBasedSetup.GetOrCreateAgentEDocumentService());
-        Commit();
-        EDocAdditionalFieldsSetup.LookupMode := true;
-        exit(EDocAdditionalFieldsSetup.RunModal() = Action::LookupOK);
-    end;
-
-    /// <summary>
-    /// Obtains the user's consent for the agent to monitor the mailbox, using the standard Microsoft-service consent
-    /// experience, and records it on the desired setup. Runs modally, so it must run before any write transaction.
-    /// </summary>
-    /// <returns>False when consent is declined.</returns>
-    internal procedure ObtainConsent(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"): Boolean
-    var
-        TempPayablesAgentSetup: Record "Payables Agent Setup" temporary;
-        CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
-    begin
-        TempPayablesAgentSetup := PASetupUpdateParameters.GetDesiredSetup();
-        if TempPayablesAgentSetup."Email Monitoring Consent" then
-            exit(true);
-        if not CustomerConsentMgt.ConfirmUserConsentToMicrosoftService() then
-            exit(false);
-        TempPayablesAgentSetup."Email Monitoring Consent" := true;
-        PASetupUpdateParameters.SetDesiredSetup(TempPayablesAgentSetup);
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Checks that the desired mailbox is selected and, in SaaS, reachable. Must run before any write transaction
-    /// (Codeunit.Run is used for the reachability check).
-    /// </summary>
-    internal procedure ValidateMailbox(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        PAValidateSetup: Codeunit "PA Validate Setup";
-        ErrorAccountNotConnecting: ErrorInfo;
-    begin
-        if not PASetupUpdateParameters.MonitorEmail() then
-            exit;
-        if IsNullGuid(PASetupUpdateParameters.GetDesiredSetup()."Email Account Id") then
-            Error(ActivateWithoutMailboxNameErr);
-
-        // SaaS only requirement. The setup already carries the mailbox configuration.
-        if not EnvironmentInformation.IsSaaS() then
-            exit;
-        PAValidateSetup.ConfigureSetupToValidate(PASetupUpdateParameters.GetDesiredSetup());
-        if not PAValidateSetup.Run() then begin
-            ErrorAccountNotConnecting.Title(EmailConnectionErr);
-            ErrorAccountNotConnecting.Message(StrSubstNo(EmailConnectionMessageErr, PASetupUpdateParameters.GetEmailAccount()."Email Address"));
-            ErrorAccountNotConnecting.PageNo := Page::"Email Accounts";
-            ErrorAccountNotConnecting.AddNavigationAction(EmailConnectionNavigationActionLbl);
-            Error(ErrorAccountNotConnecting);
-        end;
-    end;
-
-    #endregion
-
-    #region Setup - Set
-
-    /// <summary>
-    /// Applies the desired setup. Under v1 it is first projected onto the Outlook Setup and the E-Document Service
-    /// the e-document pipeline reads. Then the agent framework records are configured (unless skipped) and the
-    /// Payables Agent setup is persisted; the persisted setup is written back to the parameters.
-    /// Starts write transactions.
-    /// </summary>
-    internal procedure ApplySetup(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
+    /// <param name="Enabling">Whether the agent is enabled by this change (v1: drives the E-Document Service auto-import).</param>
+    internal procedure ApplySetup(var TempPADetailedSetup: Record "PA Detailed Setup"; Enabling: Boolean)
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
-        TempPayablesAgentSetup: Record "Payables Agent Setup" temporary;
     begin
-        TempPayablesAgentSetup := PASetupUpdateParameters.GetDesiredSetup();
         if not PAV1V2Flag.IsV2Active() then
-            SyncV1BackingTables(TempPayablesAgentSetup, PASetupUpdateParameters.Enabling());
+            SyncV1BackingTables(TempPADetailedSetup, Enabling);
 
         PayablesAgentSetup.GetOrCreateSetup();
-        PayablesAgentSetup.TransferFields(TempPayablesAgentSetup, false);
-        if not PASetupUpdateParameters.GetSkipAgentConfiguration() then // Skipping the agent's configuration is valid in tests
-            PayablesAgentSetup."User Security Id" := ConfigureAgent(PASetupUpdateParameters, PayablesAgentSetup."Applied Instr. Config Hash");
+        PayablesAgentSetup."Monitor Outlook" := TempPADetailedSetup."Monitor Outlook";
+        PayablesAgentSetup."Email Review Policy" := TempPADetailedSetup."Email Review Policy";
+        PayablesAgentSetup."Email Account Id" := TempPADetailedSetup."Email Account Id";
+        PayablesAgentSetup."Email Folder" := TempPADetailedSetup."Email Folder";
+        PayablesAgentSetup."Email Folder Id" := TempPADetailedSetup."Email Folder Id";
+        PayablesAgentSetup."Email Monitoring Consent" := TempPADetailedSetup."Email Monitoring Consent";
+        PayablesAgentSetup."User Security Id" := TempPADetailedSetup."User Security Id";
+        PayablesAgentSetup."Last Activated" := TempPADetailedSetup."Last Activated";
+        PayablesAgentSetup."Applied Instr. Config Hash" := TempPADetailedSetup."Applied Instr. Config Hash";
+        PayablesAgentSetup."Last Sync At" := TempPADetailedSetup."Last Sync At";
         PayablesAgentSetup.Modify();
 
-        PASetupUpdateParameters.SetDesiredSetup(PayablesAgentSetup);
+        GetSetup(TempPADetailedSetup);
     end;
 
     /// <summary>
-    /// Gives the users that have recently created posted purchase invoices access to the agent of the applied setup.
+    /// Saves the agent user the setup points to. Touches only the stored Payables Agent setup.
     /// </summary>
-    internal procedure GrantAccessToEligibleUsers(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
+    internal procedure SaveUserSecurityId(UserSecurityId: Guid)
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        PayablesAgentSetup: Record "Payables Agent Setup";
     begin
-        PayablesAgentSetup.InsertAccessControlForEligibleUsers(PASetupUpdateParameters.GetDesiredSetup()."User Security Id");
+        PayablesAgentSetup.GetOrCreateSetup();
+        if PayablesAgentSetup."User Security Id" = UserSecurityId then
+            exit;
+        PayablesAgentSetup."User Security Id" := UserSecurityId;
+        PayablesAgentSetup.Modify();
+    end;
+
+    /// <summary>
+    /// Saves the hash of the configuration the agent instructions were applied with. Touches only the stored Payables
+    /// Agent setup.
+    /// </summary>
+    internal procedure SaveAppliedInstrConfigHash(AppliedInstrConfigHash: Text[64])
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        PayablesAgentSetup.GetOrCreateSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" = AppliedInstrConfigHash then
+            exit;
+        PayablesAgentSetup."Applied Instr. Config Hash" := AppliedInstrConfigHash;
+        PayablesAgentSetup.Modify();
+    end;
+
+    /// <summary>
+    /// Deletes the stored setup of a company, for example of a company created by copying this one.
+    /// </summary>
+    internal procedure DeleteSetup(TargetCompanyName: Text[30])
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        PayablesAgentSetup.ChangeCompany(TargetCompanyName);
+        PayablesAgentSetup.DeleteAll();
     end;
 
     #endregion
 
     #region Private
 
-    local procedure ConfigureAgent(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; var AppliedInstrConfigHash: Text[64]): Guid
+    local procedure LoadSetup(var TempPADetailedSetup: Record "PA Detailed Setup"; InsertIfMissing: Boolean) SetupExists: Boolean
     var
-        AgentAdminPS: Record "Aggregate Permission Set";
-        AccessControl: Record "Access Control";
-        TempModifiedAgentAccessControl: Record "Agent Access Control" temporary;
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        AgentSetup: Codeunit "Agent Setup";
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        UserPermissions: Codeunit "User Permissions";
-        CurrentModuleInfo: ModuleInfo;
-        AgentUserId: Guid;
-        AgentAdminPermissionSetTok: Label 'Payables Ag. - Adm.', Locked = true;
+        PayablesAgentSetup: Record "Payables Agent Setup";
+        OutlookSetup: Record "Outlook Setup";
     begin
-        PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
-        AgentUserId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
-        // We assign the necessary permission sets to the users depending on whether or not users are able to modify the agent
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        Clear(AgentAdminPS);
-        AgentAdminPS.SetRange("App ID", CurrentModuleInfo.Id);
-        AgentAdminPS.SetRange("Role ID", AgentAdminPermissionSetTok);
-        AgentAdminPS.FindFirst();
-        Clear(TempModifiedAgentAccessControl);
-        if TempModifiedAgentAccessControl.FindSet() then
-            repeat
-                if TempModifiedAgentAccessControl."Can Configure Agent" then
-                    if (not UserPermissions.IsSuper(TempModifiedAgentAccessControl."User Security ID")) and (not UserPermissions.HasUserPermissionSetAssigned(TempModifiedAgentAccessControl."User Security ID", CompanyName(), AgentAdminPermissionSetTok, AccessControl.Scope::System, CurrentModuleInfo.Id)) then
-                        // If the user is allowed to configure the agent, we assign the admin permission set
-                        UserPermissions.AssignPermissionSets(TempModifiedAgentAccessControl."User Security ID", CompanyName(), AgentAdminPS);
-            until TempModifiedAgentAccessControl.Next() = 0;
+        Clear(TempPADetailedSetup);
+        TempPADetailedSetup.DeleteAll();
 
-        // Apply agent instructions and capture the hash; ApplySetup persists it in the single final Modify() so
-        // there is no nested row modification of Payables Agent Setup.
-        if not IsNullGuid(AgentUserId) then
-            AppliedInstrConfigHash := PayablesAgentSetup.ApplyAgentInstructions(AgentUserId);
-        exit(AgentUserId);
+        SetupExists := PayablesAgentSetup.GetSetup(InsertIfMissing);
+        TempPADetailedSetup."Monitor Outlook" := PayablesAgentSetup."Monitor Outlook";
+        TempPADetailedSetup."Email Review Policy" := PayablesAgentSetup."Email Review Policy";
+        TempPADetailedSetup."Email Account Id" := PayablesAgentSetup."Email Account Id";
+        TempPADetailedSetup."Email Folder" := PayablesAgentSetup."Email Folder";
+        TempPADetailedSetup."Email Folder Id" := PayablesAgentSetup."Email Folder Id";
+        TempPADetailedSetup."Email Monitoring Consent" := PayablesAgentSetup."Email Monitoring Consent";
+        TempPADetailedSetup."User Security Id" := PayablesAgentSetup."User Security Id";
+        TempPADetailedSetup."Last Activated" := PayablesAgentSetup."Last Activated";
+        TempPADetailedSetup."Applied Instr. Config Hash" := PayablesAgentSetup."Applied Instr. Config Hash";
+        TempPADetailedSetup."Last Sync At" := PayablesAgentSetup."Last Sync At";
+        TempPADetailedSetup."Agent Profile" := PayablesAgentV2ProfileTok;
+        TempPADetailedSetup."Agent Permission Set" := PayablesAgentV2PermissionSetTok;
+        TempPADetailedSetup."Supports Additional Fields" := false;
+
+        // V1 overrides
+        if not PAV1V2Flag.IsV2Active() then begin
+            TempPADetailedSetup."Agent Profile" := PayablesAgentProfileTok;
+            TempPADetailedSetup."Agent Permission Set" := PayablesAgentPermissionSetTok;
+            TempPADetailedSetup."Supports Additional Fields" := true;
+            if OutlookSetup.FindFirst() then begin
+                TempPADetailedSetup."Email Account Id" := OutlookSetup."Email Account ID";
+                TempPADetailedSetup."Email Folder" := OutlookSetup."Email Folder";
+                TempPADetailedSetup."Email Folder Id" := OutlookSetup."Email Folder Id";
+                TempPADetailedSetup."Last Sync At" := OutlookSetup."Last Sync At";
+                TempPADetailedSetup."Email Monitoring Consent" := OutlookSetup."Consent Received";
+            end;
+        end;
     end;
 
     /// <summary>
-    /// Projects the setup onto the v1 backing records (Outlook Setup and the E-Document Service).
+    /// Projects the setup onto the v1 backing records
     /// </summary>
-    local procedure SyncV1BackingTables(var PayablesAgentSetup: Record "Payables Agent Setup"; Enabling: Boolean)
+    local procedure SyncV1BackingTables(var TempPADetailedSetup: Record "PA Detailed Setup"; Enabling: Boolean)
     var
         OutlookSetup: Record "Outlook Setup";
         OutlookSetupExistedPreviously: Boolean;
         EmailAccountChanged: Boolean;
     begin
         OutlookSetupExistedPreviously := OutlookSetup.FindFirst();
-        EmailAccountChanged := OutlookSetup."Email Account ID" <> PayablesAgentSetup."Email Account Id";
-        OutlookSetup."Email Account ID" := PayablesAgentSetup."Email Account Id";
+        EmailAccountChanged := OutlookSetup."Email Account ID" <> TempPADetailedSetup."Email Account Id";
+        OutlookSetup."Email Account ID" := TempPADetailedSetup."Email Account Id";
         OutlookSetup."Email Connector" := "Email Connector"::"Microsoft 365";
-        OutlookSetup."Email Folder" := PayablesAgentSetup."Email Folder";
-        OutlookSetup."Email Folder Id" := PayablesAgentSetup."Email Folder Id";
-        OutlookSetup."Consent Received" := PayablesAgentSetup."Email Monitoring Consent";
+        OutlookSetup."Email Folder" := TempPADetailedSetup."Email Folder";
+        OutlookSetup."Email Folder Id" := TempPADetailedSetup."Email Folder Id";
+        OutlookSetup."Consent Received" := TempPADetailedSetup."Email Monitoring Consent";
         if EmailAccountChanged then
             OutlookSetup."Last Sync At" := 0DT;
         if OutlookSetupExistedPreviously then
@@ -363,10 +190,10 @@ codeunit 3343 "PA Setup"
         else
             OutlookSetup.Insert();
 
-        SyncV1EDocumentService(PayablesAgentSetup, Enabling, EmailAccountChanged);
+        SyncV1EDocumentService(TempPADetailedSetup, Enabling, EmailAccountChanged);
     end;
 
-    local procedure SyncV1EDocumentService(var PayablesAgentSetup: Record "Payables Agent Setup"; Enabling: Boolean; ReactivateAutoImport: Boolean)
+    local procedure SyncV1EDocumentService(var TempPADetailedSetup: Record "PA Detailed Setup"; Enabling: Boolean; ReactivateAutoImport: Boolean)
     var
         EDocumentService: Record "E-Document Service";
         OutlookSetup: Record "Outlook Setup";
@@ -381,6 +208,7 @@ codeunit 3343 "PA Setup"
             exit;
         end;
         EDocumentService := PADraftBasedSetup.GetOrCreateAgentEDocumentService();
+
         // We configure the default E-Document Service settings
         EDocumentService.Validate("Automatic Import Processing", "E-Doc. Automatic Processing"::No);
         EDocumentService.Validate("Import Process", "E-Document Import Process"::"Version 2.0");
@@ -390,8 +218,9 @@ codeunit 3343 "PA Setup"
         EDocumentService.Modify();
         if ReactivateAutoImport then
             EDocumentService.Validate("Auto Import", false);
+
         // If monitoring outlook is requested, we set the integration, auto-import and configure the Outlook Setup
-        if PayablesAgentSetup."Monitor Outlook" then begin
+        if TempPADetailedSetup."Monitor Outlook" then begin
             EDocumentService.Validate("Service Integration V2", "Service Integration"::Outlook);
             EDocumentService.Validate("Auto Import", true);
             OutlookSetup.FindFirst();
@@ -404,5 +233,4 @@ codeunit 3343 "PA Setup"
     end;
 
     #endregion
-
 }

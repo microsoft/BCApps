@@ -42,36 +42,23 @@ codeunit 3341 "PA Task"
         AgentNotActiveErr: Label 'The Payables Agent is not active.', Comment = 'Payables Agent is a term, and should not be translated.';
         UploadTaskTitleLbl: Label 'Uploaded document %1', Comment = '%1 is the file name.';
         UploadTaskMessageLbl: Label 'A new document has been uploaded. Your task is to create a Purchase Invoice in Business Central.', Locked = true;
+        EDocumentTaskTitleLbl: Label 'E-Document from %1', Comment = '%1 is the sender''s email address.';
+        EDocumentTaskMessageLbl: Label 'A new electronic document %1 has been received. Your task is to create a Purchase Invoice in Business Central.', Locked = true, Comment = '%1 is the e-document entry number.';
 
 
     #region Load
-
     /// <summary>
     /// Loads the task worked on by an agent task.
     /// </summary>
     /// <returns>False when no task is bound to the agent task; the instance is then empty (typed as an upload).</returns>
     internal procedure Load(AgentTaskId: BigInteger): Boolean
     var
-        PayablesAgentTask: Record "Payables Agent Task";
-        EDocument: Record "E-Document";
+        TaskKey: BigInteger;
     begin
         ClearLoaded();
-        if AgentTaskId = 0 then
+        if not TryGetKeyForAgentTask(AgentTaskId, TaskKey) then
             exit(false);
-        if PAV1V2Flag.IsV2Active() then begin
-            PayablesAgentTask.SetCurrentKey("Agent Task ID");
-            PayablesAgentTask.SetRange("Agent Task ID", AgentTaskId);
-            if not PayablesAgentTask.FindFirst() then
-                exit(false);
-            PopulateFromPayablesAgentTask(PayablesAgentTask);
-            exit(true);
-        end;
-        if not TryGetEDocumentForAgentTask(AgentTaskId, EDocument) then
-            exit(false);
-        PopulateFromEDocument(EDocument);
-        TempLoadedTask."Agent Task ID" := AgentTaskId;
-        PopulateAgentTaskStatus();
-        exit(true);
+        exit(LoadByKey(TaskKey));
     end;
 
     /// <summary>
@@ -90,7 +77,8 @@ codeunit 3341 "PA Task"
     end;
 
     /// <summary>
-    /// Loads a task already resolved into an enriched record, such as a row of a task list.
+    /// Loads a task already resolved into an enriched record, such as a row of a task list. Does not read storage;
+    /// use Refresh to re-read it.
     /// </summary>
     internal procedure LoadFromRecord(PADetailedTask: Record "PA Detailed Task")
     begin
@@ -99,68 +87,70 @@ codeunit 3341 "PA Task"
     end;
 
     /// <summary>
-    /// Loads a Payables Agent task (v2). For use by the facades only.
+    /// Loads a Payables Agent task (v2).
     /// </summary>
-    internal procedure LoadFromPayablesAgentTask(PayablesAgentTask: Record "Payables Agent Task")
+    /// <returns>False under v1, or when the task no longer exists.</returns>
+    internal procedure LoadFromPayablesAgentTask(PayablesAgentTask: Record "Payables Agent Task"): Boolean
     begin
         ClearLoaded();
-        PopulateFromPayablesAgentTask(PayablesAgentTask);
+        if not PAV1V2Flag.IsV2Active() then
+            exit(false);
+        exit(LoadByKey(PayablesAgentTask."Entry No."));
     end;
 
     /// <summary>
-    /// v1 bridge for the e-document pipeline: loads an e-document as a task before an agent task exists for it (for
-    /// example while deciding whether and how to create the agent task). Not for use under v2.
+    /// Loads a task by its external id, also before an agent task exists for it. The external id is the one the agent
+    /// task carries (see GetAgentTaskExternalId): the e-document entry no. (v1) or the Payables Agent task SystemId (v2).
     /// </summary>
-    internal procedure LoadForEDocument(EDocument: Record "E-Document")
-    begin
-        ClearLoaded();
-        PopulateFromEDocument(EDocument);
-    end;
-
-    /// <summary>
-    /// Re-reads the loaded task from where it is persisted.
-    /// </summary>
-    internal procedure Refresh()
+    /// <returns>False when the external id does not identify a task of the active Payables Agent version.</returns>
+    internal procedure Load(ExternalId: Text[2048]): Boolean
     var
         PayablesAgentTask: Record "Payables Agent Task";
-        EDocument: Record "E-Document";
+        PayablesAgentTaskSystemId: Guid;
+        EDocumentEntryNo: Integer;
     begin
+        ClearLoaded();
         if PAV1V2Flag.IsV2Active() then begin
-            if PayablesAgentTask.Get(TempLoadedTask."Entry No.") then
-                LoadFromPayablesAgentTask(PayablesAgentTask);
-            exit;
+            if not Evaluate(PayablesAgentTaskSystemId, ExternalId) then
+                exit(false);
+            PayablesAgentTask.SetLoadFields("Entry No.");
+            if not PayablesAgentTask.GetBySystemId(PayablesAgentTaskSystemId) then
+                exit(false);
+            exit(LoadByKey(PayablesAgentTask."Entry No."));
         end;
-        if TempLoadedTask."Agent Task ID" <> 0 then begin
-            if Load(TempLoadedTask."Agent Task ID") then;
-            exit;
-        end;
-        if TryGetEDocumentFromRecordId(TempLoadedTask."Source Record Id", EDocument) then
-            LoadForEDocument(EDocument);
+        if not Evaluate(EDocumentEntryNo, ExternalId) then
+            exit(false);
+        exit(LoadByKey(EDocumentEntryNo));
+    end;
+
+    /// <summary>
+    /// Re-reads the loaded task from storage.
+    /// </summary>
+    internal procedure Refresh()
+    begin
+        if LoadByKey(TempLoadedTask."Entry No.") then;
     end;
 
     #endregion
 
     #region Create
-
     /// <summary>
     /// Creates a task for a PDF uploaded by a user, hands it to the agent and loads it into this instance.
-    /// Under v1 the PDF is imported as an e-document of the agent's E-Document Service, whose pipeline creates the
-    /// agent task; under v2 a Payables Agent task is created and bound to a new agent task.
+    /// Under v1 the PDF is imported as an e-document of the agent's E-Document Service; the e-document pipeline then
+    /// calls CreateTask. Under v2 a Payables Agent task is created and handed to the agent directly.
     /// </summary>
     internal procedure CreateFromUpload(FileName: Text; PdfInStream: InStream)
     var
         PayablesAgentTask: Record "Payables Agent Task";
         EDocument: Record "E-Document";
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         EDocImport: Codeunit "E-Doc. Import";
         PADraftBasedSetup: Codeunit "PA Draft Based Setup";
-        AgentTaskId: BigInteger;
     begin
         if PAV1V2Flag.IsV2Active() then begin
-            CreateTask(CopyStr(FileName, 1, 250), PdfInStream, PayablesAgentTask);
-            LoadFromPayablesAgentTask(PayablesAgentTask);
-            StartAgentTask(PayablesAgentTask, PayablesAgentSetup.ShouldRequestReview(this));
-            LoadFromPayablesAgentTask(PayablesAgentTask);
+            InsertTask(0, InsertTaskData(CopyStr(FileName, 1, 250), PdfInStream), PayablesAgentTask);
+            // Nothing else holds the uploaded file under v2, so an upload the agent does not take is rolled back.
+            if not CreateTask("PA Source Type"::Upload, FormatSystemId(PayablesAgentTask.SystemId)) then
+                Error(AgentNotActiveErr);
             exit;
         end;
 
@@ -168,23 +158,106 @@ codeunit 3341 "PA Task"
         EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
         EDocument.Modify();
         EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
-        if FindAgentTaskId(EDocument, AgentTaskId) then
-            if Load(AgentTaskId) then
-                exit;
-        LoadForEDocument(EDocument);
+        if Load(Format(EDocument."Entry No")) then;
     end;
 
-    local procedure FindAgentTaskId(EDocument: Record "E-Document"; var AgentTaskId: BigInteger): Boolean
+    /// <summary>
+    /// Hands the task with the given external id to the agent and loads it into this instance. Called by every entry
+    /// point once the backing record exists.
+    /// </summary>
+    /// <param name="PASourceType">Where the work came from, as known by the entry point. Only email-sourced work is
+    /// checked against rejected senders.</param>
+    /// <param name="ExternalId">External id of the task (see Load).</param>
+    /// <returns>False when no task has that external id, or the agent did not take the task (see StartAgentTask).</returns>
+    internal procedure CreateTask(PASourceType: Enum "PA Source Type"; ExternalId: Text[2048]): Boolean
     var
+        Agent: Record Agent;
         AgentTask: Record "Agent Task";
+        KnownSender: Record "PA Known Sender";
+        PayablesAgentTask: Record "Payables Agent Task";
+        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        PATelemetry: Codeunit "PA Telemetry";
+        PATrial: Codeunit "PA Trial";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        RequiresReview: Boolean;
+        ExcludeBilling: Boolean;
     begin
-        AgentTask.SetRange("Company Name", CompanyName());
-        AgentTask.SetRange("External ID", Format(EDocument."Entry No"));
-        AgentTask.SetLoadFields(ID);
-        if not AgentTask.FindFirst() then
+        if not Load(ExternalId) then
             exit(false);
-        AgentTaskId := AgentTask.ID;
+        if TempLoadedTask."Agent Task ID" <> 0 then
+            exit(false);
+        ExternalId := GetAgentTaskExternalId();
+        AgentTask.SetRange("Company Name", CompanyName());
+        AgentTask.SetRange("External ID", ExternalId);
+        if not AgentTask.IsEmpty() then
+            exit(false);
+        if not PayablesAgentSetup.GetAgent(Agent) then
+            exit(false);
+        if Agent.State = Agent.State::Disabled then
+            exit(false);
+
+        // A sender explicitly set to Reject is a blocklist: no agent task is created.
+        if PASourceType = "PA Source Type"::Email then
+            if KnownSender.GetForTask(this, KnownSender) then
+                if KnownSender."Sender Policy" = "PA Sender Policy"::Reject then begin
+                    PATelemetry.LogTaskSkippedSenderRejected(this);
+                    exit(false);
+                end;
+
+        RequiresReview := PayablesAgentSetup.ShouldRequestReview(this);
+
+        ExcludeBilling := false;
+        if PATrial.IsActive() then begin
+            PATrial.IncrementTrialInvoiceCount();
+            PATelemetry.LogTrialTaskCreated(PATrial.GetTrialInvoiceCount(), PATrial.GetTrialInvoiceLimit());
+            ExcludeBilling := true;
+        end;
+
+        AgentTaskMessageBuilder
+            .Initialize(GetAgentTaskMessageFrom(), GetAgentTaskMessageText())
+            .SetRequiresReview(RequiresReview)
+            .SetMessageExternalID(ExternalId);
+        AgentTask := AgentTaskBuilder
+            .Initialize(Agent."User Security ID", GetAgentTaskTitle())
+            .SetExternalId(ExternalId)
+            .AddTaskMessage(AgentTaskMessageBuilder)
+            .SetBillingContext(ExcludeBilling ? Enum::"Agent Task Billing Context"::Excluded : Enum::"Agent Task Billing Context"::Default)
+            .Create();
+        if PAV1V2Flag.IsV2Active() then
+            if PayablesAgentTask.Get(TempLoadedTask."Entry No.") then begin
+                PayablesAgentTask."Agent Task ID" := AgentTask.ID;
+                PayablesAgentTask.Modify();
+            end;
+        Refresh();
+
+        PATelemetry.LogTaskReceived(this, RequiresReview);
         exit(true);
+    end;
+
+    #endregion
+
+    #region Telemetry
+
+    /// <summary>
+    /// Identifier of the backing record for telemetry: the e-document SystemId (v1, the same value the e-document
+    /// import telemetry uses) or the Payables Agent task SystemId (v2). Lowercase, without braces.
+    /// </summary>
+    internal procedure GetTelemetryId(): Text
+    var
+        PayablesAgentTask: Record "Payables Agent Task";
+        EDocument: Record "E-Document";
+        BackingSystemId: Guid;
+    begin
+        if PAV1V2Flag.IsV2Active() then begin
+            if PayablesAgentTask.Get(TempLoadedTask."Entry No.") then
+                BackingSystemId := PayablesAgentTask.SystemId;
+        end else
+            if GetLoadedEDocument(EDocument) then
+                BackingSystemId := EDocument.SystemId;
+        if IsNullGuid(BackingSystemId) then
+            exit('');
+        exit(FormatSystemId(BackingSystemId));
     end;
 
     #endregion
@@ -204,7 +277,7 @@ codeunit 3341 "PA Task"
         exit(TempLoadedTask."Agent Task ID");
     end;
 
-    internal procedure GetSourceType(): Enum "PA Agent Source Type"
+    internal procedure GetSourceType(): Enum "PA Source Type"
     begin
         exit(TempLoadedTask."Source Type");
     end;
@@ -362,7 +435,7 @@ codeunit 3341 "PA Task"
                 exit('');
             exit(DescribeSource(PayablesAgentTask));
         end;
-        if TempLoadedTask."Source Type" = "PA Agent Source Type"::Email then
+        if TempLoadedTask."Source Type" = "PA Source Type"::Email then
             exit(StrSubstNo(EmailSourceTxt, TempLoadedTask."Email From", TempLoadedTask."Email Subject"));
         if TempLoadedTask."File Name" <> '' then
             exit(StrSubstNo(PdfSourceTxt, TempLoadedTask."File Name"));
@@ -403,7 +476,7 @@ codeunit 3341 "PA Task"
                 OpenSource(PayablesAgentTask);
             exit;
         end;
-        if TempLoadedTask."Source Type" = "PA Agent Source Type"::Email then
+        if TempLoadedTask."Source Type" = "PA Source Type"::Email then
             OpenSourceEmail()
         else
             OpenSourcePdf();
@@ -555,9 +628,9 @@ codeunit 3341 "PA Task"
             exit(0);
         if PATask.Load(AgentTaskMessage."Task ID") then;
         case PATask.GetSourceType() of
-            "PA Agent Source Type"::Email:
+            "PA Source Type"::Email:
                 exit(Page::"PA Agent Email Task");
-            "PA Agent Source Type"::Upload:
+            "PA Source Type"::Upload:
                 exit(Page::"PA Agent Upload Task");
         end;
         exit(0);
@@ -576,15 +649,6 @@ codeunit 3341 "PA Task"
         end;
     end;
 
-    /// <summary>
-    /// Whether the e-document import pipeline is what feeds the agent (v1). The draft-based e-document subscribers
-    /// stay inert when this returns false.
-    /// </summary>
-    internal procedure IsEDocumentPipelineActive(): Boolean
-    begin
-        exit(not PAV1V2Flag.IsV2Active());
-    end;
-
     #endregion
 
     #region Private
@@ -593,7 +657,7 @@ codeunit 3341 "PA Task"
     begin
         Clear(TempLoadedTask);
         Clear(LoadedEDocument);
-        TempLoadedTask."Source Type" := "PA Agent Source Type"::Upload;
+        TempLoadedTask."Source Type" := "PA Source Type"::Upload;
     end;
 
     /// <summary>
@@ -618,9 +682,9 @@ codeunit 3341 "PA Task"
         TempLoadedTask."Source Record Id" := PayablesAgentTask.RecordId();
         TempLoadedTask."Has Pdf" := PayablesAgentTask."Task Data No." <> 0;
         if PayablesAgentTask."Source Data No." <> 0 then
-            TempLoadedTask."Source Type" := "PA Agent Source Type"::Email
+            TempLoadedTask."Source Type" := "PA Source Type"::Email
         else
-            TempLoadedTask."Source Type" := "PA Agent Source Type"::Upload;
+            TempLoadedTask."Source Type" := "PA Source Type"::Upload;
         if PayablesAgentTaskData.Get(PayablesAgentTask."Task Data No.") then
             TempLoadedTask."File Name" := PayablesAgentTaskData."File Name";
         if PayablesAgentTaskSource.Get(PayablesAgentTask."Source Data No.") then begin
@@ -642,10 +706,10 @@ codeunit 3341 "PA Task"
         if (EDocument."Unstructured Data Entry No." <> 0) and EDocumentDataStorage.Get(EDocument."Unstructured Data Entry No.") then
             TempLoadedTask."Has Pdf" := EDocumentDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
         if EDocument."Outlook Mail Message Id" = '' then begin
-            TempLoadedTask."Source Type" := "PA Agent Source Type"::Upload;
+            TempLoadedTask."Source Type" := "PA Source Type"::Upload;
             exit;
         end;
-        TempLoadedTask."Source Type" := "PA Agent Source Type"::Email;
+        TempLoadedTask."Source Type" := "PA Source Type"::Email;
         // Email is read from the Email module in both versions. For v1 the inbox row the connector created is
         // resolved by the external (Outlook) message id stored on the e-document.
         TempLoadedTask."Email Inbox Id" := ResolveEmailInboxId(EDocument."Outlook Mail Message Id");
@@ -693,24 +757,6 @@ codeunit 3341 "PA Task"
         exit(PurchaseHeader."Buy-from Vendor No.");
     end;
 
-    /// <summary>
-    /// The e-document an agent task works on (v1): the first message of the task carries the e-document entry
-    /// number as its external id.
-    /// </summary>
-    local procedure TryGetEDocumentForAgentTask(AgentTaskId: BigInteger; var EDocument: Record "E-Document"): Boolean
-    var
-        AgentTaskMessage: Record "Agent Task Message";
-        EDocumentEntryNo: Integer;
-    begin
-        AgentTaskMessage.SetRange("Task ID", AgentTaskId);
-        AgentTaskMessage.SetFilter("External ID", '<>%1', '');
-        if not AgentTaskMessage.FindFirst() then
-            exit(false);
-        if not Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
-            exit(false);
-        exit(EDocument.Get(EDocumentEntryNo));
-    end;
-
     local procedure TryGetEDocumentFromRecordId(SourceRecordId: RecordId; var EDocument: Record "E-Document"): Boolean
     var
         RecRef: RecordRef;
@@ -744,48 +790,129 @@ codeunit 3341 "PA Task"
     end;
 
     /// <summary>
-    /// Creates a task for a PDF that did not arrive by email, such as an upload.
+    /// The only procedure that reads a task from storage. The key is the Payables Agent task entry no. (v2) or the
+    /// e-document entry no. (v1).
     /// </summary>
-    local procedure CreateTask(FileName: Text[250]; PdfInStream: InStream; var PayablesAgentTask: Record "Payables Agent Task")
+    local procedure LoadByKey(TaskKey: BigInteger): Boolean
+    var
+        PayablesAgentTask: Record "Payables Agent Task";
+        EDocument: Record "E-Document";
     begin
-        InsertTask(0, InsertTaskData(FileName, PdfInStream), PayablesAgentTask);
+        ClearLoaded();
+        if TaskKey = 0 then
+            exit(false);
+        if PAV1V2Flag.IsV2Active() then begin
+            if not PayablesAgentTask.Get(TaskKey) then
+                exit(false);
+            PopulateFromPayablesAgentTask(PayablesAgentTask);
+            exit(true);
+        end;
+        if not EDocument.Get(TaskKey) then
+            exit(false);
+        PopulateFromEDocument(EDocument);
+        TempLoadedTask."Agent Task ID" := FindAgentTaskIdForExternalId(Format(EDocument."Entry No"));
+        PopulateAgentTaskStatus();
+        exit(true);
+    end;
+
+    /// <summary>
+    /// The key of the task an agent task works on: the Payables Agent task bound to it (v2), or the e-document whose
+    /// entry no. the first message of the agent task carries as its external id (v1).
+    /// </summary>
+    local procedure TryGetKeyForAgentTask(AgentTaskId: BigInteger; var TaskKey: BigInteger): Boolean
+    var
+        PayablesAgentTask: Record "Payables Agent Task";
+        AgentTaskMessage: Record "Agent Task Message";
+        EDocumentEntryNo: Integer;
+    begin
+        if AgentTaskId = 0 then
+            exit(false);
+        if PAV1V2Flag.IsV2Active() then begin
+            PayablesAgentTask.SetCurrentKey("Agent Task ID");
+            PayablesAgentTask.SetRange("Agent Task ID", AgentTaskId);
+            PayablesAgentTask.SetLoadFields("Entry No.");
+            if not PayablesAgentTask.FindFirst() then
+                exit(false);
+            TaskKey := PayablesAgentTask."Entry No.";
+            exit(true);
+        end;
+        AgentTaskMessage.SetRange("Task ID", AgentTaskId);
+        AgentTaskMessage.SetFilter("External ID", '<>%1', '');
+        if not AgentTaskMessage.FindFirst() then
+            exit(false);
+        if not Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
+            exit(false);
+        TaskKey := EDocumentEntryNo;
+        exit(true);
+    end;
+
+    local procedure FindAgentTaskIdForExternalId(ExternalId: Text[2048]): BigInteger
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.SetRange("Company Name", CompanyName());
+        AgentTask.SetRange("External ID", ExternalId);
+        AgentTask.SetLoadFields(ID);
+        if AgentTask.FindFirst() then
+            exit(AgentTask.ID);
+        exit(0);
+    end;
+
+    /// <summary>
+    /// External id of the agent task for the loaded task: the e-document entry no. (v1), or the Payables Agent task
+    /// SystemId (v2), which is not numeric on purpose so it can never be mistaken for an e-document entry no.
+    /// </summary>
+    local procedure GetAgentTaskExternalId(): Text[2048]
+    var
+        PayablesAgentTask: Record "Payables Agent Task";
+    begin
+        if PAV1V2Flag.IsV2Active() then begin
+            PayablesAgentTask.SetLoadFields(SystemId);
+            if PayablesAgentTask.Get(TempLoadedTask."Entry No.") then
+                exit(FormatSystemId(PayablesAgentTask.SystemId));
+            exit('');
+        end;
+        exit(Format(TempLoadedTask."Entry No."));
+    end;
+
+    /// <summary>
+    /// A SystemId as text: lowercase, without braces (the format the e-document telemetry uses too).
+    /// </summary>
+    local procedure FormatSystemId(SystemIdToFormat: Guid): Text[2048]
+    begin
+        exit(CopyStr(LowerCase(Format(SystemIdToFormat)).Replace('{', '').Replace('}', ''), 1, 2048));
+    end;
+
+    local procedure GetAgentTaskTitle(): Text[150]
+    var
+        EDocument: Record "E-Document";
+    begin
+        if PAV1V2Flag.IsV2Active() then
+            exit(CopyStr(StrSubstNo(UploadTaskTitleLbl, TempLoadedTask."File Name"), 1, 150));
+        if GetLoadedEDocument(EDocument) then;
+        exit(CopyStr(StrSubstNo(EDocumentTaskTitleLbl, LowerCase(EDocument."Source Details")), 1, 150));
+    end;
+
+    local procedure GetAgentTaskMessageFrom(): Text[250]
+    var
+        EDocument: Record "E-Document";
+    begin
+        if PAV1V2Flag.IsV2Active() then
+            exit(TempLoadedTask."File Name");
+        if GetLoadedEDocument(EDocument) then;
+        exit(CopyStr(EDocument."Source Details", 1, 250));
+    end;
+
+    local procedure GetAgentTaskMessageText(): Text
+    begin
+        if PAV1V2Flag.IsV2Active() then
+            exit(UploadTaskMessageLbl);
+        exit(StrSubstNo(EDocumentTaskMessageLbl, TempLoadedTask."Entry No."));
     end;
 
     local procedure RegisterOutcome(var PayablesAgentTask: Record "Payables Agent Task"; OutcomeRecordId: RecordId)
     begin
         PayablesAgentTask.Outcome := OutcomeRecordId;
-        PayablesAgentTask.Modify();
-    end;
-
-    /// <summary>
-    /// Hands the task to the agent: creates an Agent-framework task for it and binds the two.
-    /// </summary>
-    local procedure StartAgentTask(var PayablesAgentTask: Record "Payables Agent Task"; RequiresReview: Boolean)
-    var
-        Agent: Record Agent;
-        AgentTask: Record "Agent Task";
-        PayablesAgentTaskData: Record "Payables Agent Task Data";
-        PAAgentTaskCreation: Codeunit "PA Agent Task Creation";
-        FileName: Text[250];
-    begin
-        if not PAAgentTaskCreation.GetActiveAgent(Agent) then
-            Error(AgentNotActiveErr);
-
-        PayablesAgentTaskData.SetLoadFields("File Name");
-        if PayablesAgentTaskData.Get(PayablesAgentTask."Task Data No.") then
-            FileName := PayablesAgentTaskData."File Name";
-
-        // The external id is not numeric on purpose, so it can never be mistaken for the e-document entry number
-        // that v1 agent tasks carry as their external id.
-        AgentTask := PAAgentTaskCreation.Create(
-            Agent,
-            CopyStr(StrSubstNo(UploadTaskTitleLbl, FileName), 1, MaxStrLen(AgentTask.Title)),
-            FileName,
-            UploadTaskMessageLbl,
-            Format(PayablesAgentTask.SystemId),
-            RequiresReview);
-
-        PayablesAgentTask."Agent Task ID" := AgentTask.ID;
         PayablesAgentTask.Modify();
     end;
 

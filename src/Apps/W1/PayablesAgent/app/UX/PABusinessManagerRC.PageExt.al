@@ -1,4 +1,7 @@
-#pragma warning disable AA0247
+namespace Microsoft.Agent.PayablesAgent;
+
+using Microsoft.Finance.RoleCenters;
+
 pageextension 3312 PABusinessManagerRC extends "Business Manager Role Center"
 {
     layout

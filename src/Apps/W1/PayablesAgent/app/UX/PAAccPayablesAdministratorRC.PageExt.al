@@ -1,4 +1,7 @@
-#pragma warning disable AA0247
+namespace Microsoft.Agent.PayablesAgent;
+
+using Microsoft.Finance.RoleCenters;
+
 pageextension 3311 PAAccPayablesAdministratorRC extends "Acc. Payable Administrator RC"
 {
     layout

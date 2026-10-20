@@ -24,8 +24,9 @@ codeunit 3318 "PA Trial"
     [Scope('OnPrem')]
     procedure IsEligibleToStart(): Boolean
     var
-        PayablesAgentSetup: Record "Payables Agent Setup";
+        TempPADetailedSetup: Record "PA Detailed Setup";
         Agent: Record Agent;
+        PASetup: Codeunit "PA Setup";
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         // If trial has already ended or started, no company is eligible for trial
@@ -36,8 +37,8 @@ codeunit 3318 "PA Trial"
         if not EnvironmentInformation.IsProduction() then
             exit(false);
 
-        PayablesAgentSetup.GetOrCreateSetup();
-        if Agent.Get(PayablesAgentSetup."User Security Id") then
+        PASetup.GetSetup(TempPADetailedSetup);
+        if Agent.Get(TempPADetailedSetup."User Security Id") then
             exit(false);
 
         exit(true);

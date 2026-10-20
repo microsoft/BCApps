@@ -112,13 +112,9 @@ codeunit 3305 "Payables Agent Upgrade"
             exit;
         if PayablesAgentSetup.FindFirst() then
             if PayablesAgentSetup."Email Review Policy" = "PA Email Review Policy"::Unset then begin
-                if PayablesAgentSetup."Review Incoming Invoice" then
-                    PayablesAgentSetup."Email Review Policy" := "PA Email Review Policy"::Always
-                else
-                    PayablesAgentSetup."Email Review Policy" := "PA Email Review Policy"::OnlyIfUntrusted;
+                PayablesAgentSetup."Email Review Policy" := PayablesAgentSetup."Review Incoming Invoice" ? "PA Email Review Policy"::Always : "PA Email Review Policy"::OnlyIfUntrusted;
                 PayablesAgentSetup.Modify();
             end;
-
         UpgradeTag.SetUpgradeTag(GetMapEmailReviewPolicyTag());
     end;
 

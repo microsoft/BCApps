@@ -35,16 +35,17 @@ page 3313 "PA Known Senders"
 
     trigger OnOpenPage()
     var
+        TempPADetailedSetup: Record "PA Detailed Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PayablesAgentDetailedSetup: Record "PA Detailed Setup";
         PASetup: Codeunit "PA Setup";
         UnusedNotification: Notification;
         Impact: Enum "PA Setup Change Impact";
         SavedPolicy: Enum "PA Email Review Policy";
         SavedFolder: Text;
     begin
-        PASetup.GetSetup(PayablesAgentDetailedSetup);
-        SavedPolicy := PayablesAgentDetailedSetup."Email Review Policy";
+        PASetup.GetSetup(TempPADetailedSetup);
+        SavedPolicy := TempPADetailedSetup."Email Review Policy";
+        SavedFolder := TempPADetailedSetup."Email Folder";
 
         Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedReason(SavedPolicy, SavedFolder);
         case Impact of

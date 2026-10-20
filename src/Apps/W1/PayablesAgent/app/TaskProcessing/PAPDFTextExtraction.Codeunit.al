@@ -28,7 +28,6 @@ codeunit 3336 "PA PDF Text Extraction"
         PayablesAgentTaskData.Modify();
     end;
 
-    [NonDebuggable]
     local procedure GenerateText(PayablesAgentTaskData: Record "Payables Agent Task Data") ExtractedText: Text
     var
         AzureOpenAI: Codeunit "Azure OpenAI";

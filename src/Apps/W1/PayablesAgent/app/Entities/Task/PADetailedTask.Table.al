@@ -75,7 +75,7 @@ table 3332 "PA Detailed Task"
             Caption = 'Agent Task Status';
             DataClassification = SystemMetadata;
         }
-        field(20; "Source Type"; Enum "PA Agent Source Type")
+        field(20; "Source Type"; Enum "PA Source Type")
         {
             Caption = 'Source Type';
             DataClassification = SystemMetadata;

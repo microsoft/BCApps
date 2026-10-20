@@ -18,11 +18,11 @@ codeunit 3310 "PA Validate Setup"
     Permissions = tabledata "Email Inbox" = rid;
 
     var
-        PayablesAgentSetup: Record "Payables Agent Setup";
+        TempPADetailedSetup: Record "PA Detailed Setup";
 
-    procedure ConfigureSetupToValidate(NewPayablesAgentSetup: Record "Payables Agent Setup")
+    procedure ConfigureSetupToValidate(NewPADetailedSetup: Record "PA Detailed Setup")
     begin
-        PayablesAgentSetup := NewPayablesAgentSetup;
+        TempPADetailedSetup := NewPADetailedSetup;
     end;
 
     trigger OnRun()
@@ -32,8 +32,8 @@ codeunit 3310 "PA Validate Setup"
         Email: Codeunit "Email";
     begin
         TempFilters."Unread Emails" := true;
-        TempFilters."Earliest Email" := PayablesAgentSetup."Last Sync At";
+        TempFilters."Earliest Email" := TempPADetailedSetup."Last Sync At";
         TempFilters."Max No. of Emails" := 1;
-        Email.RetrieveEmails(PayablesAgentSetup."Email Account Id", "Email Connector"::"Microsoft 365", TempEmailInbox, TempFilters);
+        Email.RetrieveEmails(TempPADetailedSetup."Email Account Id", "Email Connector"::"Microsoft 365", TempEmailInbox, TempFilters);
     end;
 }

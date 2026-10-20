@@ -63,7 +63,7 @@ table 3308 "PA Known Sender"
     internal procedure InsertIfNew(PATask: Codeunit "PA Task")
     var
         Existing: Record "PA Known Sender";
-        PayablesAgentDetailedSetup: Record "PA Detailed Setup";
+        TempPADetailedSetup: Record "PA Detailed Setup";
         PASetup: Codeunit "PA Setup";
         SenderEmail: Text[250];
     begin
@@ -75,8 +75,8 @@ table 3308 "PA Known Sender"
             exit;
         Rec.Init();
         Rec.Email := SenderEmail;
-        PASetup.GetSetup(PayablesAgentDetailedSetup);
-        if PayablesAgentDetailedSetup."Email Review Policy" = "PA Email Review Policy"::OnlyIfUntrusted then
+        PASetup.GetSetup(TempPADetailedSetup);
+        if TempPADetailedSetup."Email Review Policy" = "PA Email Review Policy"::OnlyIfUntrusted then
             Rec."Sender Policy" := "PA Sender Policy"::Approve
         else
             Rec."Sender Policy" := "PA Sender Policy"::Ask;

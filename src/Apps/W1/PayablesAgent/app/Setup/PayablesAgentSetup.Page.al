@@ -15,7 +15,7 @@ page 3304 "Payables Agent Setup"
     Extensible = false;
     ApplicationArea = All;
     Caption = 'Configure Payables Agent', Comment = 'Payables Agent is a term, and should not be translated.';
-    SourceTable = "Payables Agent Setup";
+    SourceTable = "PA Detailed Setup";
     SourceTableTemporary = true;
     RefreshOnActivate = true;
     InherentEntitlements = X;
@@ -220,7 +220,7 @@ page 3304 "Payables Agent Setup"
                         begin
                             PrevAccountId := Rec."Email Account Id";
                             SelectedAccountId := Rec."Email Account Id";
-                            if PASetup.SelectEmailAccount(SelectedAccountId, SelectedAddress) then begin
+                            if PayablesAgentSetup.SelectEmailAccount(SelectedAccountId, SelectedAddress) then begin
                                 Rec."Email Account Id" := SelectedAccountId;
                                 MailboxAddress := SelectedAddress;
                                 if PrevAccountId <> Rec."Email Account Id" then begin
@@ -360,7 +360,7 @@ page 3304 "Payables Agent Setup"
 
                         trigger OnDrillDown()
                         begin
-                            if PASetup.OpenAdditionalFieldsSetup() then
+                            if PayablesAgentSetup.OpenAdditionalFieldsSetup(Rec) then
                                 SetupChanged := true;
                         end;
                     }
@@ -394,12 +394,12 @@ page 3304 "Payables Agent Setup"
         if not AzureOpenAI.IsEnabled("Copilot Capability"::"Payables Agent") then
             Error(EnableCapabilityFirstErr);
 
-        AdditionalFieldsSetupVisible := PASetup.SupportsAdditionalFieldsSetup();
         PASetupUpdate.Load(PASetupUpdateParameters);
         PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();
         Rec := PASetupUpdateParameters.GetDesiredSetup();
+        AdditionalFieldsSetupVisible := Rec."Supports Additional Fields";
         MailboxAddress := PASetupUpdateParameters.GetEmailAccount()."Email Address";
         CalcOpenAgentDemoGuideVisible();
         CalcTrialExperienceVisible();
@@ -529,7 +529,6 @@ page 3304 "Payables Agent Setup"
 
         PASetupUpdateParameters.SetTrialUpload(FileName, InStream);
         Rec."Monitor Outlook" := false;
-        Rec."Review Incoming Invoice" := false;
         SetupChanged := true;
         CurrPage.Close();
     end;
@@ -542,7 +541,6 @@ page 3304 "Payables Agent Setup"
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PASetupUpdate: Codeunit "PA Setup Update";
-        PASetup: Codeunit "PA Setup";
         PADemoGuide: Codeunit "PA Demo Guide";
         PayablesAgentOCV: Codeunit "Payables Agent OCV";
         PATrial: Codeunit "PA Trial";

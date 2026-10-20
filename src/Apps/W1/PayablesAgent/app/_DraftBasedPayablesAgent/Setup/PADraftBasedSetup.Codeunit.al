@@ -1,6 +1,7 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
 
 codeunit 3320 "PA Draft Based Setup"
 {
@@ -22,6 +23,20 @@ codeunit 3320 "PA Draft Based Setup"
             EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
             EDocServiceSupportedType.Insert(false);
         end;
+    end;
+
+    /// <summary>
+    /// Opens the configuration of the additional purchase line fields of the agent's E-Document Service. Commits.
+    /// </summary>
+    /// <returns>True when the configuration was confirmed.</returns>
+    procedure OpenAdditionalFieldsSetup(): Boolean
+    var
+        EDocAdditionalFieldsSetup: Page "EDoc Additional Fields Setup";
+    begin
+        EDocAdditionalFieldsSetup.SetEDocumentService(GetOrCreateAgentEDocumentService());
+        Commit();
+        EDocAdditionalFieldsSetup.LookupMode := true;
+        exit(EDocAdditionalFieldsSetup.RunModal() = Action::LookupOK);
     end;
 
     var

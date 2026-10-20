@@ -5,12 +5,14 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
+using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using Microsoft.Purchases.History;
 using System.Agents;
 using System.Reflection;
 using System.AI;
 using System.Azure.KeyVault;
 using System.Config;
+using System.Email;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.Encryption;
@@ -22,19 +24,63 @@ codeunit 3307 "Payables Agent Setup"
     InherentPermissions = X;
 
     Permissions =
-        tabledata "Payables Agent Setup" = rmid,
         tabledata "PA Known Sender" = r;
 
+    #region Setup makeup
+    // Logic on top of "PA Detailed Setup". This is what this codeunit is meant to contain.
+
+    /// <summary>
+    /// The profile the agent gets on activation, as derived for the active Payables Agent version.
+    /// </summary>
     procedure GetAgentProfile(var TempAllProfile: Record "All Profile" temporary)
     var
+        TempPADetailedSetup: Record "PA Detailed Setup";
         Agent: Codeunit Agent;
-        PASetup: Codeunit "PA Setup";
-        PayablesAgentDetailedSetup: Record "PA Detailed Setup";
         ModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(ModuleInfo);
-        PASetup.GetSetup(PayablesAgentDetailedSetup);
-        Agent.PopulateDefaultProfile(PayablesAgentDetailedSetup."Agent Profile", ModuleInfo.Id, TempAllProfile);
+        PASetup.GetSetup(TempPADetailedSetup);
+        Agent.PopulateDefaultProfile(TempPADetailedSetup."Agent Profile", ModuleInfo.Id, TempAllProfile);
+    end;
+
+    /// <summary>
+    /// The permission set the agent gets on activation, as derived for the active Payables Agent version.
+    /// </summary>
+    procedure GetAgentAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        TempPADetailedSetup: Record "PA Detailed Setup";
+        ModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        PASetup.GetSetup(TempPADetailedSetup);
+        TempAccessControlBuffer.Init();
+        TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
+        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
+        TempAccessControlBuffer."App ID" := ModuleInfo.Id;
+        TempAccessControlBuffer."Role ID" := TempPADetailedSetup."Agent Permission Set";
+        TempAccessControlBuffer.Insert();
+    end;
+
+    /// <summary>
+    /// Whether the agent exists and is enabled.
+    /// </summary>
+    internal procedure IsAgentEnabled(): Boolean
+    var
+        Agent: Record Agent;
+        TempPADetailedSetup: Record "PA Detailed Setup";
+    begin
+        PASetup.GetSetup(TempPADetailedSetup);
+        if not Agent.Get(TempPADetailedSetup."User Security Id") then
+            exit(false);
+        exit(Agent.State = Agent.State::Enabled);
+    end;
+
+    /// <summary>
+    /// Whether a mailbox folder (rather than the whole mailbox) is monitored.
+    /// </summary>
+    internal procedure MonitoredFolderConfigured(TempPADetailedSetup: Record "PA Detailed Setup"): Boolean
+    begin
+        exit(TempPADetailedSetup."Email Folder" <> '');
     end;
 
     /// <summary>
@@ -55,46 +101,70 @@ codeunit 3307 "Payables Agent Setup"
     /// <returns>True if an Agent was found, false otherwise</returns>
     procedure GetAgent(var Agent: Record Agent; UpdateSetup: Boolean): Boolean
     var
-        PayablesAgentSetup: Record "Payables Agent Setup";
+        TempPADetailedSetup: Record "PA Detailed Setup";
     begin
-        // When the setup record does not exist and we are not allowed to create it, we continue with a blank record, so the agent can still be located by user name.
-        if PayablesAgentSetup.GetSetup(UpdateSetup) then;
-        // We attempt to find the agent by the security id stored in the setup record.
-        if Agent.Get(PayablesAgentSetup."User Security Id") then
+        // When the setup does not exist and we are not allowed to create it, we continue with a blank setup, so the agent can still be located by user name.
+        if PASetup.GetSetup(TempPADetailedSetup, UpdateSetup) then;
+        // We attempt to find the agent by the security id stored in the setup.
+        if Agent.Get(TempPADetailedSetup."User Security Id") then
             exit(true);
         // If the agent could not be found, and there was a user security id configured, we need to clear it, since it is not valid anymore.
-        if not IsNullGuid(PayablesAgentSetup."User Security Id") then
-            Clear(PayablesAgentSetup."User Security Id");
+        if not IsNullGuid(TempPADetailedSetup."User Security Id") then
+            Clear(TempPADetailedSetup."User Security Id");
         // If the agent could not be found from the configured security id, we attempt to find it by the user name.
         Agent.SetRange("User Name", AgentUserName());
         if Agent.FindFirst() then
-            PayablesAgentSetup."User Security Id" := Agent."User Security ID";
+            TempPADetailedSetup."User Security Id" := Agent."User Security ID";
         if UpdateSetup then
-            PayablesAgentSetup.Modify();
+            PASetup.SaveUserSecurityId(TempPADetailedSetup."User Security Id");
         exit(not IsNullGuid(Agent."User Security ID"));
     end;
 
+    #endregion
+
+    #region Agent identity and telemetry
+    // Recommendation: move to Bootstrap/. These describe the agent itself (names, summary, telemetry category), not the
+    // setup. Note that the summary still describes the draft-based (v1) agent.
+
+    internal procedure AgentUserName(): Code[50]
+    begin
+        exit(CopyStr(AgentUserNameLbl + ' - ' + CompanyName(), 1, 50));
+    end;
+
+    internal procedure AgentDisplayName(): Text[80]
+    begin
+        exit(CopyStr(AgentDisplayNameLbl, 1, 80));
+    end;
+
+    internal procedure AgentSummary(): Text
+    begin
+        exit(AgentSummaryLbl);
+    end;
+
+    internal procedure FeatureName(): Text
+    begin
+        exit(PayablesAgentTelemetryTok);
+    end;
+
+    #endregion
+
+    #region Agent instructions
+    // Recommendation: move to its own codeunit (for example Bootstrap/Instructions/). Make the prompt resource a derived
+    // field of "PA Detailed Setup" (like "Agent Profile"), so the v2 instructions get applied: today the v1 prompts are
+    // always used.
+
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
-        NewConfigHash: Text[64];
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
 
-        NewConfigHash := ApplyAgentInstructions(AgentUserSecurityId);
-
-        PayablesAgentSetup.GetOrCreateSetup();
-        if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
-            PayablesAgentSetup."Applied Instr. Config Hash" := NewConfigHash;
-            PayablesAgentSetup.Modify();
-        end;
+        PASetup.SaveAppliedInstrConfigHash(ApplyAgentInstructions(AgentUserSecurityId));
     end;
 
     /// <summary>
     /// Applies the agent instructions for the given user and returns the configuration hash that was used.
-    /// This helper does NOT modify the Payables Agent Setup record, allowing callers that already hold
-    /// a loaded record (such as "PA Setup".ApplySetup) to persist the hash themselves in a single Modify().
+    /// This helper does NOT save the hash, allowing callers that are about to save the whole setup (such as
+    /// "PA Setup Update") to save it together with the rest of the setup.
     /// </summary>
     internal procedure ApplyAgentInstructions(AgentUserSecurityId: Guid) ConfigHash: Text[64]
     var
@@ -138,12 +208,12 @@ codeunit 3307 "Payables Agent Setup"
     /// </summary>
     internal procedure EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
     var
-        PayablesAgentSetup: Record "Payables Agent Setup";
+        TempPADetailedSetup: Record "PA Detailed Setup";
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
-        PayablesAgentSetup.GetOrCreateSetup();
-        if PayablesAgentSetup."Applied Instr. Config Hash" = GetInstructionsConfigHash() then
+        PASetup.GetSetup(TempPADetailedSetup);
+        if TempPADetailedSetup."Applied Instr. Config Hash" = GetInstructionsConfigHash() then
             exit;
         Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied due to experiment configuration drift.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureName());
         SetAgentInstructions(AgentUserSecurityId);
@@ -188,6 +258,12 @@ codeunit 3307 "Payables Agent Setup"
         Keys.Add(AgentDrivenLineMatchingTok);
     end;
 
+    #endregion
+
+    #region Who can create and use the agent
+    // Recommendation: move to an access/eligibility codeunit (Bootstrap/ or Setup/). These are rules about users and
+    // posted purchase invoices; they do not read the setup.
+
     internal procedure CanShowAgentActions(): Boolean
     var
         Agent: Record Agent;
@@ -207,30 +283,6 @@ codeunit 3307 "Payables Agent Setup"
             exit(false);
 
         exit(Agent."Can Current User Use Agent");
-    end;
-
-    internal procedure InsertAccessControlForEligibleUsers(AgentUserSecurityId: Guid)
-    var
-        AgentAccessControl: Record "Agent Access Control";
-        UserSecIds: List of [Guid];
-        SecId: Guid;
-    begin
-        UserSecIds := GetUsersThatHaveCreatedPostedPurchInvoice();
-        foreach SecId in UserSecIds do begin
-            Clear(AgentAccessControl);
-
-            // Platform Bug 630717: Access Control Table is virtual (Doing a if then on the insert does not capture the error, it gets surfaced)
-            AgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityId);
-            AgentAccessControl.SetRange("Company Name", CompanyName());
-            AgentAccessControl.SetRange("User Security ID", SecId);
-            if not AgentAccessControl.IsEmpty() then
-                continue;
-
-            AgentAccessControl."Agent User Security ID" := AgentUserSecurityId;
-            AgentAccessControl."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(AgentAccessControl."Company Name"));
-            AgentAccessControl."User Security ID" := SecId;
-            AgentAccessControl.Insert();
-        end;
     end;
 
     /// <summary>
@@ -260,39 +312,6 @@ codeunit 3307 "Payables Agent Setup"
             exit(false);
 
         exit(HasUserCreatedPostedPurchInvoice());
-    end;
-
-    internal procedure AgentUserName(): Code[50]
-    begin
-        exit(CopyStr(AgentUserNameLbl + ' - ' + CompanyName(), 1, 50));
-    end;
-
-    internal procedure AgentDisplayName(): Text[80]
-    begin
-        exit(CopyStr(AgentDisplayNameLbl, 1, 80));
-    end;
-
-    internal procedure AgentSummary(): Text
-    begin
-        exit(AgentSummaryLbl);
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
-    local procedure HandleOnAfterCreatedNewCompanyByCopyCompany(NewCompanyName: Text[30])
-    var
-        PayablesAgentSetup: Record "Payables Agent Setup";
-        PayablesAgentKPI: Record "Payables Agent KPI";
-    begin
-        PayablesAgentSetup.ChangeCompany(NewCompanyName);
-        PayablesAgentSetup.DeleteAll();
-
-        PayablesAgentKPI.ChangeCompany(NewCompanyName);
-        PayablesAgentKPI.DeleteAll();
-    end;
-
-    internal procedure FeatureName(): Text
-    begin
-        exit(PayablesAgentTelemetryTok);
     end;
 
     /// <summary>
@@ -335,6 +354,36 @@ codeunit 3307 "Payables Agent Setup"
         exit(Users);
     end;
 
+    internal procedure InsertAccessControlForEligibleUsers(AgentUserSecurityId: Guid)
+    var
+        AgentAccessControl: Record "Agent Access Control";
+        UserSecIds: List of [Guid];
+        SecId: Guid;
+    begin
+        UserSecIds := GetUsersThatHaveCreatedPostedPurchInvoice();
+        foreach SecId in UserSecIds do begin
+            Clear(AgentAccessControl);
+
+            // Platform Bug 630717: Access Control Table is virtual (Doing a if then on the insert does not capture the error, it gets surfaced)
+            AgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityId);
+            AgentAccessControl.SetRange("Company Name", CompanyName());
+            AgentAccessControl.SetRange("User Security ID", SecId);
+            if not AgentAccessControl.IsEmpty() then
+                continue;
+
+            AgentAccessControl."Agent User Security ID" := AgentUserSecurityId;
+            AgentAccessControl."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(AgentAccessControl."Company Name"));
+            AgentAccessControl."User Security ID" := SecId;
+            AgentAccessControl.Insert();
+        end;
+    end;
+
+    #endregion
+
+    #region Incoming task review decision
+    // Recommendation: move to TaskIntake/, next to Known Senders. These decide about a task (its source email, headers
+    // and sender); the review policy of the setup is only one input.
+
     /// <summary>
     /// Decides whether a task must be reviewed by a human before the agent processes it, based on the configured
     /// review policy, the monitored folder, sender authentication (compauth / internal), and the known-senders list.
@@ -342,18 +391,17 @@ codeunit 3307 "Payables Agent Setup"
     procedure ShouldRequestReview(PATask: Codeunit "PA Task"): Boolean
     var
         KnownSender: Record "PA Known Sender";
-        PayablesAgentDetailedSetup: Record "PA Detailed Setup";
-        PASetup: Codeunit "PA Setup";
+        TempPADetailedSetup: Record "PA Detailed Setup";
         HeaderValue: Text;
         SenderAuthenticated: Boolean;
     begin
         // Only incoming emails are subject to email review. Manually uploaded documents
         // (e.g. the trial experience) are user-initiated and processed without review.
-        if PATask.GetSourceType() <> "PA Agent Source Type"::Email then
+        if PATask.GetSourceType() <> "PA Source Type"::Email then
             exit(false);
 
-        PASetup.GetSetup(PayablesAgentDetailedSetup);
-        case PayablesAgentDetailedSetup."Email Review Policy" of
+        PASetup.GetSetup(TempPADetailedSetup);
+        case TempPADetailedSetup."Email Review Policy" of
             "PA Email Review Policy"::Always,
             "PA Email Review Policy"::Unset:
                 exit(true);
@@ -362,7 +410,7 @@ codeunit 3307 "Payables Agent Setup"
         end;
 
         // OnlyIfUntrusted: a configured subfolder is explicit consent, everything in it is trusted.
-        if PASetup.MonitoredFolderConfigured() then
+        if MonitoredFolderConfigured(TempPADetailedSetup) then
             exit(false);
 
         // Without an authenticated sender we always review. The sender is authenticated when composite
@@ -410,6 +458,12 @@ codeunit 3307 "Payables Agent Setup"
         // Case-insensitive match; tolerates surrounding tokens and a trailing reason=NNN.
         exit(StrPos(LowerCase(AuthenticationResults), 'compauth=pass') > 0);
     end;
+
+    #endregion
+
+    #region Known senders presentation
+    // Recommendation: move to the Known Senders entity or page. They only drive the Known Senders notification and the
+    // setup page confirmation. PolicyLabel largely repeats the enum captions; Format(Policy) may be enough.
 
     /// <summary>
     /// Classifies whether a pending setup change would leave the known-senders list unused.
@@ -463,7 +517,65 @@ codeunit 3307 "Payables Agent Setup"
         exit('');
     end;
 
+    #endregion
+
+    #region Setup page interactions
+    // Recommendation: move next to the setup page (Setup/). SelectEmailAccount uses the e-document connector's mailbox
+    // picker, so v2 needs a picker based on the Email module; OpenAdditionalFieldsSetup only forwards to v1.
+
+    /// <summary>
+    /// Lets the user pick the Microsoft 365 mailbox to monitor.
+    /// </summary>
+    /// <returns>True when a mailbox was picked; the account id and address are then updated.</returns>
+    internal procedure SelectEmailAccount(var EmailAccountId: Guid; var EmailAddress: Text): Boolean
     var
+        TempEmailAccount: Record "Email Account" temporary;
+        OutlookIntegration: Codeunit "Outlook Integration Impl.";
+    begin
+        TempEmailAccount."Account Id" := EmailAccountId;
+        TempEmailAccount.Connector := "Email Connector"::"Microsoft 365";
+        if not OutlookIntegration.SelectEmailAccount(TempEmailAccount) then
+            exit(false);
+        EmailAccountId := TempEmailAccount."Account Id";
+        EmailAddress := TempEmailAccount."Email Address";
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Opens the configuration of the additional purchase line fields, when the active Payables Agent version supports
+    /// it. Commits.
+    /// </summary>
+    /// <returns>True when the configuration was confirmed.</returns>
+    internal procedure OpenAdditionalFieldsSetup(TempPADetailedSetup: Record "PA Detailed Setup"): Boolean
+    var
+        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+    begin
+        if not TempPADetailedSetup."Supports Additional Fields" then
+            exit(false);
+        exit(PADraftBasedSetup.OpenAdditionalFieldsSetup());
+    end;
+
+    #endregion
+
+    #region Company lifecycle
+    // Recommendation: move to Bootstrap/. It reacts to a company being copied and also clears the KPIs, which are not
+    // setup.
+
+    [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
+    local procedure HandleOnAfterCreatedNewCompanyByCopyCompany(NewCompanyName: Text[30])
+    var
+        PayablesAgentKPI: Record "Payables Agent KPI";
+    begin
+        PASetup.DeleteSetup(NewCompanyName);
+
+        PayablesAgentKPI.ChangeCompany(NewCompanyName);
+        PayablesAgentKPI.DeleteAll();
+    end;
+
+    #endregion
+
+    var
+        PASetup: Codeunit "PA Setup";
         AgentUserNameLbl: Label 'Payables Agent', Comment = 'User name of the agent.', Locked = true;
         AgentSummaryLbl: Label 'Monitors incoming emails for vendor invoices, matches senders to registered vendors, and creates purchase document drafts for review.';
         AgentDisplayNameLbl: Label 'Payables Agent', Locked = true, Comment = 'Display name of the agent.';

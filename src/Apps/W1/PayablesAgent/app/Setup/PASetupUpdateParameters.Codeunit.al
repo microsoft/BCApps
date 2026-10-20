@@ -22,7 +22,7 @@ codeunit 3321 "PA Setup Update Parameters"
 
     var
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        TempPayablesAgentSetup: Record "Payables Agent Setup" temporary;
+        TempPADetailedSetup: Record "PA Detailed Setup";
         TempBlobTrialUpload: Codeunit "Temp Blob";
         TrialUploadFileName: Text;
         TrialUploadPending: Boolean;
@@ -49,14 +49,14 @@ codeunit 3321 "PA Setup Update Parameters"
         SkipEmailVerification := LocalSkipEmailVerification;
     end;
 
-    procedure GetDesiredSetup(): Record "Payables Agent Setup"
+    procedure GetDesiredSetup(): Record "PA Detailed Setup"
     begin
-        exit(TempPayablesAgentSetup);
+        exit(TempPADetailedSetup);
     end;
 
-    procedure SetDesiredSetup(PayablesAgentSetup: Record "Payables Agent Setup")
+    procedure SetDesiredSetup(NewPADetailedSetup: Record "PA Detailed Setup")
     begin
-        TempPayablesAgentSetup.Copy(PayablesAgentSetup);
+        TempPADetailedSetup := NewPADetailedSetup;
     end;
 
     /// <summary>
@@ -84,26 +84,25 @@ codeunit 3321 "PA Setup Update Parameters"
     /// </summary>
     procedure MonitorEmail(): Boolean
     begin
-        exit(TempPayablesAgentSetup."Monitor Outlook");
+        exit(TempPADetailedSetup."Monitor Outlook");
     end;
 
     /// <summary>
-    /// Turns off mailbox monitoring and the review of incoming invoices in the desired setup.
+    /// Turns off mailbox monitoring in the desired setup.
     /// </summary>
     procedure DisableEmailMonitoring()
     begin
-        TempPayablesAgentSetup."Monitor Outlook" := false;
-        TempPayablesAgentSetup."Review Incoming Invoice" := false;
+        TempPADetailedSetup."Monitor Outlook" := false;
     end;
 
     procedure GetEmailReviewPolicy(): Enum "PA Email Review Policy"
     begin
-        exit(TempPayablesAgentSetup."Email Review Policy");
+        exit(TempPADetailedSetup."Email Review Policy");
     end;
 
     procedure SetLastActivated(LastActivated: DateTime)
     begin
-        TempPayablesAgentSetup."Last Activated" := LastActivated;
+        TempPADetailedSetup."Last Activated" := LastActivated;
     end;
 
     procedure GetEmailAccount(): Record "Email Account"
@@ -111,10 +110,10 @@ codeunit 3321 "PA Setup Update Parameters"
         TempEmailAccount: Record "Email Account" temporary;
         EmailAccount: Codeunit "Email Account";
     begin
-        if IsNullGuid(TempPayablesAgentSetup."Email Account Id") then
+        if IsNullGuid(TempPADetailedSetup."Email Account Id") then
             exit(TempEmailAccount);
         EmailAccount.GetAllAccounts(false, TempEmailAccount);
-        if not TempEmailAccount.Get(TempPayablesAgentSetup."Email Account Id", "Email Connector"::"Microsoft 365") then
+        if not TempEmailAccount.Get(TempPADetailedSetup."Email Account Id", "Email Connector"::"Microsoft 365") then
             Clear(TempEmailAccount);
         exit(TempEmailAccount);
     end;

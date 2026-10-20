@@ -7,28 +7,23 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using System.Agents;
 using System.Telemetry;
 
+// Rule: all subscribers only apply for v1 (they all need a guard)
 codeunit 3312 "PA Draft Based Subscribers"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
     Access = Internal;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
-    local procedure CreateAgentTask(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
     var
-        Agent: Record Agent;
-        AgentTask: Record "Agent Task";
-        KnownSender: Record "PA Known Sender";
-        PayablesAgentDetailedSetup: Record "PA Detailed Setup";
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PASetup: Codeunit "PA Setup";
+        PAV1V2Flag: Codeunit "PA V1V2 Flag";
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
+    local procedure ImportStepOfEDocumentCompleted(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
+    var
         EDocumentPATask: Codeunit "PA Task";
-        PAAgentTaskCreation: Codeunit "PA Agent Task Creation";
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Telemetry: Codeunit Telemetry;
-        CustomDimensions: Dictionary of [Text, Text];
+        PASourceType: Enum "PA Source Type";
     begin
-        if not PATask.IsEDocumentPipelineActive() then
+        if PAV1V2Flag.IsV2Active() then
             exit;
         if not EDocument.Get(EDocument."Entry No") then
             exit;
@@ -38,34 +33,18 @@ codeunit 3312 "PA Draft Based Subscribers"
             exit;
         if (StartState = "Import E-Doc. Proc. Status"::Unprocessed) and (DesiredEndState <> "Import E-Doc. Proc. Status"::Unprocessed) then
             exit;
-
-        AgentTask.SetRange("Company Name", CompanyName());
-        AgentTask.SetRange("External ID", Format(EDocument."Entry No"));
-        if not AgentTask.IsEmpty() then
-            exit;
-
         EDocument.CalcFields("Import Processing Status");
         if EDocument."Import Processing Status" in ["Import E-Doc. Proc. Status"::Processed] then
             exit;
-        if not PAAgentTaskCreation.GetActiveAgent(Agent) then
-            exit;
 
-        PASetup.GetSetup(PayablesAgentDetailedSetup);
-        CustomDimensions.Set('Category', PayablesAgentSetup.FeatureName());
-        CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
-        CustomDimensions.Set('EmailReviewPolicy', Format(PayablesAgentDetailedSetup."Email Review Policy", 0, 9));
-
-        // A sender explicitly set to Reject is a blocklist: no agent task is created.
-        EDocumentPATask.LoadForEDocument(EDocument);
-        if KnownSender.GetForTask(EDocumentPATask, KnownSender) then
-            if KnownSender."Sender Policy" = "PA Sender Policy"::Reject then begin
-                Telemetry.LogMessage('0000QJ2', 'Payables Agent Task Skipped: sender rejected', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-                exit;
-            end;
-
-        BuildAgentTask(EDocument, EDocumentPATask, Agent);
-
-        Telemetry.LogMessage('0000PJA', 'Payables Agent Task Received', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        // Hand the e-document to the agent. Everything beyond the e-document specifics above (agent, duplicates,
+        // rejected senders, review, trial, billing and telemetry) is decided in "PA Task". Under v1 both emails and
+        // uploads reach the agent as e-documents; only emails carry an Outlook message id.
+        if EDocument."Outlook Mail Message Id" <> '' then
+            PASourceType := "PA Source Type"::Email
+        else
+            PASourceType := "PA Source Type"::Upload;
+        if EDocumentPATask.CreateTask(PASourceType, Format(EDocument."Entry No")) then;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
@@ -75,14 +54,14 @@ codeunit 3312 "PA Draft Based Subscribers"
         EDocumentPATask: Codeunit "PA Task";
         SessionID: BigInteger;
     begin
-        if not PATask.IsEDocumentPipelineActive() then
+        if PAV1V2Flag.IsV2Active() then
             exit;
         if not WasEDocumentCreatedByAgent(EDocument) then
             exit;
         if not PayablesAgent.IsPayablesAgentSession(SessionID) then
             exit;
-        EDocumentPATask.LoadForEDocument(EDocument);
-        EDocumentPATask.RecordKnownSender();
+        if EDocumentPATask.Load(Format(EDocument."Entry No")) then
+            EDocumentPATask.RecordKnownSender();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Purchase Draft Utility", OnInsertedEDocumentPurchaseHeader, '', false, false)]
@@ -90,7 +69,7 @@ codeunit 3312 "PA Draft Based Subscribers"
     var
         AgentTaskID: BigInteger;
     begin
-        if not PATask.IsEDocumentPipelineActive() then
+        if PAV1V2Flag.IsV2Active() then
             exit;
         if EDocumentPurchaseHeader.IsTemporary() then
             exit;
@@ -107,6 +86,8 @@ codeunit 3312 "PA Draft Based Subscribers"
     var
         ProcessedByPayablesAgentEmailCategoryTok: Label 'Processed by Payables Agent', Locked = true;
     begin
+        if PAV1V2Flag.IsV2Active() then
+            exit;
         CategoryDescription := ProcessedByPayablesAgentEmailCategoryTok;
     end;
 
@@ -120,23 +101,7 @@ codeunit 3312 "PA Draft Based Subscribers"
         exit(Found);
     end;
 
-    local procedure BuildAgentTask(EDocument: Record "E-Document"; EDocumentPATask: Codeunit "PA Task"; Agent: Record Agent)
-    var
-        PayablesAgentSetupMgt: Codeunit "Payables Agent Setup";
-        PAAgentTaskCreation: Codeunit "PA Agent Task Creation";
-        TaskTitleLbl: Label 'E-Document from %1', Comment = '%1 is the sender''s email address.';
-        MessageLbl: Label 'A new electronic document %1 has been received. Your task is to create a Purchase Invoice in Business Central.', Locked = true, Comment = '%1 is the e-document entry number.';
-    begin
-        PAAgentTaskCreation.Create(
-            Agent,
-            CopyStr(StrSubstNo(TaskTitleLbl, LowerCase(EDocument."Source Details")), 1, 150),
-            CopyStr(EDocument."Source Details", 1, 250),
-            StrSubstNo(MessageLbl, EDocument."Entry No"),
-            Format(EDocument."Entry No"),
-            PayablesAgentSetupMgt.ShouldRequestReview(EDocumentPATask));
-    end;
-
-    procedure WasEDocumentCreatedByAgent(EDocument: Record "E-Document"): Boolean
+    local procedure WasEDocumentCreatedByAgent(EDocument: Record "E-Document"): Boolean
     begin
         exit(EDocument.GetEDocumentService().Code = PayablesAgentEDocServiceTok);
     end;

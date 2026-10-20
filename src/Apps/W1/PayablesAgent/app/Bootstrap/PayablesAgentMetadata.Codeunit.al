@@ -18,7 +18,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     InherentEntitlements = X;
     InherentPermissions = X;
     Subtype = Install;
-    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R, tabledata Agent = R, tabledata "Agent Task Message" = R;
+    Permissions = tabledata User = R, tabledata Agent = R, tabledata "Agent Task Message" = R;
 
     #region IAgentMetadata
     procedure GetInitials(AgentUserId: Guid): Text[4]
@@ -82,7 +82,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
 
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
-        PASetup.GetDefaultAccessControls(TempAccessControlBuffer);
+        PayablesAgentSetup.GetAgentAccessControls(TempAccessControlBuffer);
     end;
     #endregion
     #region IAgentArchiving
@@ -136,15 +136,9 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
 
     procedure GetCustomDimensions(): Dictionary of [Text, Text]
     var
-        CustomDimensions: Dictionary of [Text, Text];
+        PATelemetry: Codeunit "PA Telemetry";
     begin
-        CustomDimensions.Set('category', GetCategory());
-        exit(CustomDimensions);
-    end;
-
-    local procedure GetCategory(): Text
-    begin
-        exit(PayablesAgentTelemetryTok);
+        exit(PATelemetry.GetCustomDimensions());
     end;
 
     /// <summary>
@@ -183,8 +177,6 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
 
     var
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PASetup: Codeunit "PA Setup";
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
-        PayablesAgentTelemetryTok: Label 'Payables Agent', Locked = true;
 
 }
