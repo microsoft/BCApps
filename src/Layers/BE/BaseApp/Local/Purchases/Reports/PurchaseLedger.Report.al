@@ -238,9 +238,15 @@ report 11301 "Purchase Ledger"
                         Clear(VATDetailVATAmount);
                         if not UseAmtsInAddCurr then
                             if TempPurchLedgerVATBuffer.Get("Entry No.") then begin
-                                VATDetailBaseAmount := TempPurchLedgerVATBuffer."VAT Base Amount";
-                                VATDetailVATAmount := TempPurchLedgerVATBuffer."VAT Amount";
-                            end;
+                                if TempPurchLedgerVATBuffer."VAT Entry Missing" then
+                                    CalculateVATDetailAmounts("Entry No.")
+                                else begin
+                                    VATDetailBaseAmount := TempPurchLedgerVATBuffer."VAT Base Amount";
+                                    VATDetailVATAmount := TempPurchLedgerVATBuffer."VAT Amount";
+                                end;
+                            end else
+                                // The entry may have been posted after the buffer was built.
+                                CalculateVATDetailAmounts("Entry No.");
                     end;
 
                     trigger OnPreDataItem()
@@ -802,7 +808,6 @@ report 11301 "Purchase Ledger"
         PurchaseLedgerVATStatementsCaptionLbl: Label 'Purchase Ledger - VAT Statements';
         VATDateCaptionLbl: Label 'VAT Date';
         PrnDateCaptionLbl: Label 'Posting Date';
-        DanglingVATEntryErr: Label 'A VAT Entry linked to G/L Entry No. %1 does not exist.', Comment = '%1 = G/L Entry No.';
 
     protected var
         PeriodStartDate: Date;
@@ -811,51 +816,52 @@ report 11301 "Purchase Ledger"
     local procedure BuildVATDetailBuffer()
     var
         VATDetailQuery: Query "Purch. Ledger VAT Detail";
-        VATLinksQuery: Query "Purch. Ledger VAT Links";
-        MatchedCountByEntry: Dictionary of [Integer, Integer];
-        MatchedCount: Integer;
     begin
         TempPurchLedgerVATBuffer.Reset();
         TempPurchLedgerVATBuffer.DeleteAll();
         if UseAmtsInAddCurr then
             exit;
 
-        // Aggregate the VAT detail (base/amount) per G/L entry in a single set-based query,
-        // filtered to exactly the entries shown in this period, so the render loop does an
-        // in-memory lookup instead of one query per row and no unrelated entries are scanned.
         VATDetailQuery.SetRange(JournalTemplName, "Gen. Journal Template".Name);
-        VATLinksQuery.SetRange(JournalTemplName, "Gen. Journal Template".Name);
-        if GLSetup."VAT Reporting Date" = GLSetup."VAT Reporting Date"::"Document Date" then begin
-            VATDetailQuery.SetRange(PostingDate, PeriodStartDate, PeriodEndDate);
-            VATLinksQuery.SetRange(PostingDate, PeriodStartDate, PeriodEndDate);
-        end else begin
+        if GLSetup."VAT Reporting Date" = GLSetup."VAT Reporting Date"::"Document Date" then
+            VATDetailQuery.SetRange(PostingDate, PeriodStartDate, PeriodEndDate)
+        else
             VATDetailQuery.SetRange(VATReportingDate, PeriodStartDate, PeriodEndDate);
-            VATLinksQuery.SetRange(VATReportingDate, PeriodStartDate, PeriodEndDate);
-        end;
 
         VATDetailQuery.Open();
         while VATDetailQuery.Read() do begin
-            TempPurchLedgerVATBuffer.Init();
-            TempPurchLedgerVATBuffer."G/L Entry No." := VATDetailQuery.GLEntryNo;
-            TempPurchLedgerVATBuffer."VAT Base Amount" := VATDetailQuery.BaseSum;
-            TempPurchLedgerVATBuffer."VAT Amount" := VATDetailQuery.AmountSum;
-            TempPurchLedgerVATBuffer.Insert();
-            MatchedCountByEntry.Add(VATDetailQuery.GLEntryNo, VATDetailQuery.MatchedCount);
+            if not TempPurchLedgerVATBuffer.Get(VATDetailQuery.GLEntryNo) then begin
+                TempPurchLedgerVATBuffer.Init();
+                TempPurchLedgerVATBuffer."G/L Entry No." := VATDetailQuery.GLEntryNo;
+                TempPurchLedgerVATBuffer.Insert();
+            end;
+            // SystemId distinguishes an unmatched outer join from a valid zero-valued entry.
+            if not IsNullGuid(VATDetailQuery.LinkSystemId) then
+                if IsNullGuid(VATDetailQuery.VATEntrySystemId) then
+                    TempPurchLedgerVATBuffer."VAT Entry Missing" := true
+                else begin
+                    TempPurchLedgerVATBuffer."VAT Base Amount" += VATDetailQuery.VATBaseAmount;
+                    TempPurchLedgerVATBuffer."VAT Amount" += VATDetailQuery.VATAmount;
+                end;
+            TempPurchLedgerVATBuffer.Modify();
         end;
         VATDetailQuery.Close();
+    end;
 
-        // Preserve the original fail-fast behavior: a link that points to a missing VAT entry
-        // is dropped by the inner join above, so compare the number of links against the
-        // number of matched VAT entries per G/L entry and stop the report on any mismatch.
-        VATLinksQuery.Open();
-        while VATLinksQuery.Read() do begin
-            MatchedCount := 0;
-            if MatchedCountByEntry.ContainsKey(VATLinksQuery.GLEntryNo) then
-                MatchedCount := MatchedCountByEntry.Get(VATLinksQuery.GLEntryNo);
-            if VATLinksQuery.LinkCount <> MatchedCount then
-                Error(DanglingVATEntryErr, VATLinksQuery.GLEntryNo);
-        end;
-        VATLinksQuery.Close();
+    local procedure CalculateVATDetailAmounts(GLEntryNo: Integer)
+    var
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        VATEntry: Record "VAT Entry";
+    begin
+        GLEntryVATEntryLink.SetLoadFields("VAT Entry No.");
+        GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntryNo);
+        VATEntry.SetLoadFields(Base, Amount);
+        if GLEntryVATEntryLink.FindSet() then
+            repeat
+                VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
+                VATDetailBaseAmount += VATEntry.Base;
+                VATDetailVATAmount += VATEntry.Amount;
+            until GLEntryVATEntryLink.Next() = 0;
     end;
 
 }

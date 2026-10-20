@@ -6,6 +6,7 @@ namespace Microsoft.Purchases.Reports;
 
 table 11302 "Purch. Ledger VAT Buffer"
 {
+    Access = Internal;
     Caption = 'Purchase Ledger VAT Buffer';
     TableType = Temporary;
     DataClassification = SystemMetadata;
@@ -25,6 +26,11 @@ table 11302 "Purch. Ledger VAT Buffer"
         field(3; "VAT Amount"; Decimal)
         {
             Caption = 'VAT Amount';
+            DataClassification = SystemMetadata;
+        }
+        field(4; "VAT Entry Missing"; Boolean)
+        {
+            Caption = 'VAT Entry Missing';
             DataClassification = SystemMetadata;
         }
     }

@@ -9,6 +9,7 @@ using Microsoft.Finance.VAT.Ledger;
 
 query 11302 "Purch. Ledger VAT Detail"
 {
+    Access = Internal;
     QueryType = Normal;
     Caption = 'Purchase Ledger VAT Detail';
 
@@ -31,22 +32,22 @@ query 11302 "Purch. Ledger VAT Detail"
             dataitem(Link; "G/L Entry - VAT Entry Link")
             {
                 DataItemLink = "G/L Entry No." = G_L_Entry."Entry No.";
-                SqlJoinType = InnerJoin;
+                SqlJoinType = LeftOuterJoin;
+                column(LinkSystemId; SystemId)
+                {
+                }
                 dataitem(VAT_Entry; "VAT Entry")
                 {
                     DataItemLink = "Entry No." = Link."VAT Entry No.";
-                    SqlJoinType = InnerJoin;
-                    column(MatchedCount; "Entry No.")
+                    SqlJoinType = LeftOuterJoin;
+                    column(VATEntrySystemId; SystemId)
                     {
-                        Method = Count;
                     }
-                    column(BaseSum; Base)
+                    column(VATBaseAmount; Base)
                     {
-                        Method = Sum;
                     }
-                    column(AmountSum; Amount)
+                    column(VATAmount; Amount)
                     {
-                        Method = Sum;
                     }
                 }
             }
