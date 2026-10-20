@@ -96,13 +96,14 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
         SOACreateTaskImpl.OpenCreateTaskPage(AgentUserId);
     end;
 
-    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean;
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
     var
+        AgentFeatureMgt: Codeunit "SOA Agent Feature Mgt.";
     begin
         if Feature <> Feature::BusinessIQ then
             exit(false);
 
-        exit(true);
+        exit(AgentFeatureMgt.IsBusinessIQEnabled(AgentUserId));
     end;
 
     var

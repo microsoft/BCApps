@@ -22,6 +22,7 @@ permissionset 4406 "SOA - Objects"
         tabledata "SOA Email" = RIM,
         tabledata "SOA Reply Attempt" = rimd,
         tabledata "SOA Task Contact Override" = rimd,
+        codeunit "SOA Agent Feature Mgt." = X,
         page "Contact Card" = X,
         page "Contact List" = X,
         page "SOA Contact Lookup" = X,

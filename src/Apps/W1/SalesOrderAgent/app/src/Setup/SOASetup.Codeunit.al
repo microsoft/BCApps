@@ -63,6 +63,7 @@ codeunit 4400 "SOA Setup"
     local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var TempSOASetup: Record "SOA Setup" temporary)
     var
         AgentSetup: Codeunit "Agent Setup";
+        AgentFeatureMgt: Codeunit "SOA Agent Feature Mgt.";
     begin
         EnsureAgentIdentityDefaults(TempSOASetup);
         ValidateAgentIdentity(TempSOASetup);
@@ -70,6 +71,7 @@ codeunit 4400 "SOA Setup"
         AgentSetupBuffer."Display Name" := GetSOAUserDisplayName(TempSOASetup."Agent Name");
         AgentSetupBuffer."User Name" := GetSOAUsername();
         TempSOASetup."User Security ID" := AgentSetup.SaveChanges(AgentSetupBuffer);
+        AgentFeatureMgt.SetBusinessIQEnabled(TempSOASetup."User Security ID", TempSOASetup."Use Business IQ");
         UpdateInstructions(TempSOASetup);
         if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
             if TempSOASetup."Email Monitoring" then
@@ -274,6 +276,7 @@ codeunit 4400 "SOA Setup"
         ExistingSOASetup: Record "SOA Setup";
         AzureADGraphUser: Codeunit "Azure AD Graph User";
         AgentSetup: Codeunit "Agent Setup";
+        AgentFeatureMgt: Codeunit "SOA Agent Feature Mgt.";
         SOAInstructions: Codeunit "SOA Instructions";
     begin
         if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then
@@ -286,6 +289,8 @@ codeunit 4400 "SOA Setup"
             AgentSetupBuffer."User Security ID" := TempSOASetup."User Security ID";
 
         CheckAgentNotArchived(TempSOASetup."User Security ID");
+        if TempSOASetup."Use Business IQ" then
+            SOAImpl.EnsureBusinessIQPrivacyNoticeApproval();
 
         EnsureAgentIdentityDefaults(TempSOASetup);
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
@@ -299,6 +304,7 @@ codeunit 4400 "SOA Setup"
             ValidateAgentIdentity(TempSOASetup);
             CheckMailboxUnique(TempSOASetup);
             AgentSetupBuffer."Display Name" := GetSOAUserDisplayName(TempSOASetup."Agent Name");
+            AgentFeatureMgt.SetBusinessIQEnabled(TempSOASetup."User Security ID", TempSOASetup."Use Business IQ");
             AgentSetup.SaveChanges(AgentSetupBuffer);
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
                 UpdateSOASetupActivationDT(TempSOASetup);
@@ -306,7 +312,11 @@ codeunit 4400 "SOA Setup"
                 if TempSOASetup."Email Monitoring" and (TempSOASetup."Earliest Sync At" = 0DT) then
                     UpdateSyncDateTime(TempSOASetup, false);
             end else
-                SOAInstructions.UpdateBusinessSkills();
+                if ExistingSOASetup."Use Business IQ" <> TempSOASetup."Use Business IQ" then
+                    UpdateInstructions(TempSOASetup)
+                else
+                    if TempSOASetup."Use Business IQ" then
+                        SOAInstructions.UpdateBusinessSkills();
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
                 EnableItemSearch();
                 if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") and Schedule then
@@ -383,6 +393,7 @@ codeunit 4400 "SOA Setup"
             SOASetup."Send Sales Quote" := TempSOASetup."Send Sales Quote";
             SOASetup."Agent Name" := TempSOASetup."Agent Name";
             SOASetup."Agent Initials" := TempSOASetup."Agent Initials";
+            SOASetup."Use Business IQ" := TempSOASetup."Use Business IQ";
 
             SOASetup.Modify();
         end
@@ -420,6 +431,7 @@ codeunit 4400 "SOA Setup"
         TelemetryCustomDimension.Add('IncomingMonitoring', Format(TempSOASetup."Incoming Monitoring"));
         TelemetryCustomDimension.Add('EmailMonitoring', Format(TempSOASetup."Email Monitoring"));
         TelemetryCustomDimension.Add('AnalyzeAttachments', Format(TempSOASetup."Analyze Attachments"));
+        TelemetryCustomDimension.Add('UseBusinessIQ', Format(TempSOASetup."Use Business IQ"));
         TelemetryCustomDimension.Add('SalesDocConfiguration', Format(TempSOASetup."Sales Doc. Configuration"));
         TelemetryCustomDimension.Add('QuoteReview', Format(TempSOASetup."Quote Review"));
         TelemetryCustomDimension.Add('OrderReview', Format(TempSOASetup."Order Review"));
@@ -488,7 +500,8 @@ codeunit 4400 "SOA Setup"
         CheckAgentNotArchived(TempSOASetup."User Security ID");
 
         SOAPromptBuilder.PrepareInstructions(InstructionsSecret, TempSOASetup);
-        SOAInstructions.UpdateBusinessSkills();
+        if TempSOASetup."Use Business IQ" then
+            SOAInstructions.UpdateBusinessSkills();
         Agent.SetInstructions(TempSOASetup."User Security ID", InstructionsSecret);
         TempSOASetup."Instructions Last Sync At" := CurrentDateTime();
     end;
@@ -567,6 +580,7 @@ codeunit 4400 "SOA Setup"
     internal procedure GetSOASetup(var TempSOASetup: Record "SOA Setup" temporary; AgentUserSecurityID: Guid)
     var
         SOASetup: Record "SOA Setup";
+        AgentFeatureMgt: Codeunit "SOA Agent Feature Mgt.";
     begin
         if IsNullGuid(AgentUserSecurityID) then begin
             SetSOASetupDefaults(TempSOASetup, AgentUserSecurityID);
@@ -577,6 +591,7 @@ codeunit 4400 "SOA Setup"
             if SOASetup.FindFirst() then begin
                 SOASetup.CalcFields("Email Template");
                 TempSOASetup := SOASetup;
+                TempSOASetup."Use Business IQ" := AgentFeatureMgt.IsBusinessIQEnabled(TempSOASetup."User Security ID");
                 TempSOASetup.Insert();
                 exit;
             end;
@@ -587,6 +602,7 @@ codeunit 4400 "SOA Setup"
         if SOASetup.GetBasedOnAgentUserSecurityID(TempSOASetup."User Security ID", false) then begin
             SOASetup.CalcFields("Email Template");
             TempSOASetup := SOASetup;
+            TempSOASetup."Use Business IQ" := AgentFeatureMgt.IsBusinessIQEnabled(TempSOASetup."User Security ID");
             TempSOASetup.Insert();
         end
         else
@@ -604,6 +620,8 @@ codeunit 4400 "SOA Setup"
         if not (CurrentSOASetup.State = CurrentSOASetup.State::Enabled) then
             exit(false);
         if SOASetup."Email Account ID" <> CurrentSOASetup."Email Account ID" then
+            exit(false);
+        if SOASetup."Use Business IQ" <> CurrentSOASetup."Use Business IQ" then
             exit(false);
 
         exit(true);

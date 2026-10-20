@@ -14,7 +14,7 @@ codeunit 4002 "SOA Prompt Builder"
     var
         SOAInstructions: Codeunit "SOA Instructions";
     begin
-        InstructionsSecret := SOAInstructions.GetSOAInstructions();
+        InstructionsSecret := SOAInstructions.GetSOAInstructions(SOASetup."Use Business IQ");
         BuildPromptBasedOnSetup(InstructionsSecret, SOASetup);
         BuildSignature(InstructionsSecret, SOASetup);
     end;

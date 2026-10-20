@@ -113,7 +113,7 @@ codeunit 4598 "SOA Instructions"
     end;
 
     [NonDebuggable]
-    internal procedure GetSOAInstructions(): SecretText
+    internal procedure GetSOAInstructions(UseBusinessIQ: Boolean): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         SignaturePlaceholderSecretText: SecretText;
@@ -123,6 +123,7 @@ codeunit 4598 "SOA Instructions"
         SignaturePlaceholderText: Text;
         InstructionsText: Text;
         SOAInstructionsPromptTok: Label 'Prompts/SalesOrderAgent-AgentInstructions.json', Locked = true;
+        SOAStandardInstructionsPromptTok: Label 'Prompts/SalesOrderAgent-StandardInstructions.json', Locked = true;
         SignaturePlaceholderTok: Label '%1', Locked = true;
         SecurityPromptReplacementTok: Label '%2', Locked = true;
         SOAInstructionsSecurityPromptTok: Label 'SalesOrderAgent-AgentInstructions-SecurityPromptV28', Locked = true;
@@ -130,7 +131,10 @@ codeunit 4598 "SOA Instructions"
         FailedToRetrieveKVAgentInstructionsSecurityPromptTxt: Label 'Failed to retrieve Sales Order Agent instructions security prompt from Azure Key Vault.', Locked = true;
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure Sales Order Agent instructions.';
     begin
-        InstructionsText := NavApp.GetResourceAsText(SOAInstructionsPromptTok, TextEncoding::UTF8);
+        if UseBusinessIQ then
+            InstructionsText := NavApp.GetResourceAsText(SOAInstructionsPromptTok, TextEncoding::UTF8)
+        else
+            InstructionsText := NavApp.GetResourceAsText(SOAStandardInstructionsPromptTok, TextEncoding::UTF8);
         if not AzureKeyVault.GetAzureKeyVaultSecret(SOAInstructionsSecurityPromptTok, SecurityPromptSecretText) then begin
             Session.LogMessage('0000U4D', FailedToRetrieveKVAgentInstructionsSecurityPromptTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SOASetup.GetFeatureName());
             Error(UnableToConfigureAgentInstructionsErr);

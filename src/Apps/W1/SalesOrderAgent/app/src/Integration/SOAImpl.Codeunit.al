@@ -6,7 +6,6 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.SalesOrderAgent;
 
-using System.Agents;
 using System.AI;
 using System.Email;
 using System.Environment;
@@ -264,22 +263,16 @@ codeunit 4587 "SOA Impl"
             CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Sales Order Agent", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlTxt)
         else
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Sales Order Agent", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlTxt);
-
-        EnsureBusinessIQPrivacyNoticeApproval();
     end;
 
-    local procedure EnsureBusinessIQPrivacyNoticeApproval()
+    internal procedure EnsureBusinessIQPrivacyNoticeApproval()
     var
         PrivacyNoticeStatus: Record "Privacy Notice";
         PrivacyNotice: Codeunit "Privacy Notice";
-        SOAMetadataProvider: Codeunit "SOA Metadata Provider";
         AIServiceName: Interface "AI Service Name";
         EmptyGuid: Guid;
-        PrivacyApprovalRequiredErr: Label 'An administrator must approve Azure OpenAI for everyone in Privacy Notices Status before registering Sales Order Agent with Business IQ.';
+        PrivacyApprovalRequiredErr: Label 'An administrator must approve Azure OpenAI for everyone in Privacy Notices Status before using Sales Order Agent with Business IQ.';
     begin
-        if not SOAMetadataProvider.IsOptInFeatureEnabled(EmptyGuid, Enum::"Agent Opt In Feature"::BusinessIQ) then
-            exit;
-
         AIServiceName := Enum::"Azure AI Service Type"::"Azure OpenAI";
         PrivacyNoticeStatus.SetRange("User SID Filter", EmptyGuid);
         PrivacyNoticeStatus.SetAutoCalcFields(Enabled);

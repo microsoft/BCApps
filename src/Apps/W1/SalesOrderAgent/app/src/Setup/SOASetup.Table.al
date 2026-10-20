@@ -223,6 +223,12 @@ table 4325 "SOA Setup"
             ToolTip = 'Specifies the initials for the sales order agent instance.';
             DataClassification = SystemMetadata;
         }
+        field(36; "Use Business IQ"; Boolean)
+        {
+            Caption = 'Use Business IQ';
+            ToolTip = 'Specifies whether the agent uses Business IQ skills instead of the standard Sales Order Agent instructions.';
+            DataClassification = SystemMetadata;
+        }
         field(50; "User Security ID"; Guid)
         {
             DataClassification = SystemMetadata;
