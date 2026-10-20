@@ -64,6 +64,50 @@ codeunit 135070 "Uri Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure IsSecureHttpUrlTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] An https URL, also with an uppercase scheme
+        // [Then] It is a secure HTTP URL
+        Uri.Init('https://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsSecureHttpUrl(), 'https URL should be secure');
+        Uri.Init('HTTPS://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsSecureHttpUrl(), 'HTTPS URL should be secure');
+
+        // [Given] Non-https URLs
+        // [Then] They are not secure HTTP URLs
+        Uri.Init('http://microsoft.com');
+        LibraryAssert.IsFalse(Uri.IsSecureHttpUrl(), 'http URL should not be secure');
+        Uri.Init('ftp://microsoft.com');
+        LibraryAssert.IsFalse(Uri.IsSecureHttpUrl(), 'ftp URL should not be secure');
+        Uri.Init('file:///c:/temp/file.txt');
+        LibraryAssert.IsFalse(Uri.IsSecureHttpUrl(), 'file URL should not be secure');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure IsHttpUrlTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] http and https URLs
+        // [Then] They are HTTP URLs
+        Uri.Init('http://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsHttpUrl(), 'http URL should be an HTTP URL');
+        Uri.Init('HTTPS://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsHttpUrl(), 'https URL should be an HTTP URL');
+
+        // [Given] Non-HTTP URLs
+        // [Then] They are not HTTP URLs
+        Uri.Init('ftp://microsoft.com');
+        LibraryAssert.IsFalse(Uri.IsHttpUrl(), 'ftp URL should not be an HTTP URL');
+        Uri.Init('file:///c:/temp/file.txt');
+        LibraryAssert.IsFalse(Uri.IsHttpUrl(), 'file URL should not be an HTTP URL');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure GetHostTest()
     var
         Uri: Codeunit Uri;
