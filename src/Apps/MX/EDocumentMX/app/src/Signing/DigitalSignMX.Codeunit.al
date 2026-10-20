@@ -236,8 +236,6 @@ codeunit 3358 "Digital Sign MX"
         Value := Value.Replace('&apos;', '''');
         Value := Value.Replace('&lt;', '<');
         Value := Value.Replace('&gt;', '>');
-        // The SAT XSLT normalizes tab, line feed and carriage return to a space, whether serialized
-        // as character references (&#x9; &#xA; &#xD;) or written literally
         Value := Value.Replace('&#x9;', ' ').Replace('&#9;', ' ');
         Value := Value.Replace('&#xA;', ' ').Replace('&#10;', ' ');
         Value := Value.Replace('&#xD;', ' ').Replace('&#13;', ' ');

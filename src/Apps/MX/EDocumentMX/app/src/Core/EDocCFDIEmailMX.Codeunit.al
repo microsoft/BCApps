@@ -23,8 +23,6 @@ codeunit 3370 "EDoc CFDI Email MX"
     var
         EDocumentService: Record "E-Document Service";
     begin
-        // Runs as a background task after the stamping transaction is committed,
-        // so a PDF or email failure never affects the stamped E-Document
         if EDocumentService.Get(Rec.Service) then;
         TrySendStampEmail(Rec, EDocumentService);
     end;

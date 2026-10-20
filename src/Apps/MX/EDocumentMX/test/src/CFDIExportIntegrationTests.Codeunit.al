@@ -198,7 +198,6 @@ codeunit 148754 "CFDI Export Integration Tests"
         CompanyInformation: Record "Company Information";
         EDocumentService: Record "E-Document Service";
     begin
-        // Signing requires a SAT certificate with its private key; these tests validate XML structure only
         if BindSubscription(this) then;
         EDocumentService.DeleteAll();
         CompanyInformation.Get();

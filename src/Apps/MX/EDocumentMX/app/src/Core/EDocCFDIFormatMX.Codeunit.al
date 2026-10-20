@@ -62,7 +62,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
 
     local procedure ShouldValidateSalesHeaderAsCFDI(SalesHeader: Record "Sales Header"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"): Boolean
     begin
-        // A ship-only posting of an order does not produce an invoice CFDI
         if (EDocumentProcessingPhase = EDocumentProcessingPhase::Post) and (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) then
             exit(SalesHeader.Invoice);
         exit(true);
@@ -70,7 +69,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
 
     local procedure ShouldValidateSalesHeaderAsCartaPorte(SalesHeader: Record "Sales Header"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"): Boolean
     begin
-        // Carta Porte belongs to the posted shipment; validate it only when the order is actually shipped
         exit(
             (EDocumentProcessingPhase = EDocumentProcessingPhase::Post) and
             (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) and
@@ -138,8 +136,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EnsureSupportedTypes(Rec.Code);
     end;
 
-    // Default supported types are created only when the service is set up as CFDI;
-    // afterwards the user manages them (e.g. removing Sales Shipment to opt out of Carta Porte)
     local procedure EnsureSupportedTypes(EDocumentServiceCode: Code[20])
     begin
         EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Sales Invoice");

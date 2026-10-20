@@ -348,7 +348,6 @@ report 3367 "EDoc CFDI Carta Porte MX"
                 DigitalSignatureBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(DigitalSignatureTextUnbounded));
                 DigitalSignaturePACBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(DigitalSignaturePACTextUnbounded));
 
-                // Origin and destination are printed for every Carta Porte, domestic or foreign trade
                 Clear(LocationFrom);
                 Clear(LocationTo);
                 if LocationFrom.Get("Transit-from Location") then;

@@ -157,7 +157,6 @@ codeunit 148756 "Carta Porte Fields Tests"
     var
         CompanyInformation: Record "Company Information";
     begin
-        // Signing requires a SAT certificate with its private key; these tests validate XML content only
         if BindSubscription(this) then;
         CompanyInformation.Get();
         CompanyInformation."RFC Number" := 'MME910620Q85';

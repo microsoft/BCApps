@@ -479,8 +479,6 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure GetReportedLineAmount(SalesInvoiceLine: Record "Sales Invoice Line"): Decimal
     begin
-        // Legacy parity: Importe is Cantidad x ValorUnitario before discounts (Descuento is reported separately).
-        // The rounded line Amount can fall outside the SAT tolerance (CFDI40_0067) when written with 6 decimals.
         exit(SalesInvoiceLine.Quantity * SalesInvoiceLine."Unit Price");
     end;
 
@@ -860,7 +858,6 @@ codeunit 3354 "Export Interfactura MX"
         TaxTotal := CalculatedTaxTotal;
         SetDocumentTotals(RootNode, ConceptsSubTotal, TotalDiscount, TaxTotal, 0, CurrencyCode);
         if TaxTotal <> 0 then begin
-            // Document-level tax amounts use the currency decimals, as in the other document types
             ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode := CreateCFDIElement('Traslados');
@@ -3626,7 +3623,6 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure FormatAmount(InAmount: Decimal; CurrencyCode: Code[10]): Text
     begin
-        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
         exit(ConvertStr(Format(Abs(InAmount), 0, '<Precision,' + Format(GetCurrencyDecimalPlaces(CurrencyCode)) + ':' +
             Format(GetCurrencyDecimalPlaces(CurrencyCode)) + '><Standard Format,1>'), ',', '.'));
     end;
@@ -3643,9 +3639,7 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure SetDocumentTotals(var RootNode: XmlElement; ConceptsSubTotal: Decimal; ConceptsDiscount: Decimal; TaxTotal: Decimal; RetentionTotal: Decimal; CurrencyCode: Code[10])
     begin
-        // Legacy parity: SubTotal and Descuento are derived from the concepts as written (CFDI40_0008), and
-        // Total = SubTotal - Descuento + traslados - retenciones (CFDI40_0016). The CFDI total can therefore
-        // differ by a cent from the posted document total, as in the legacy implementation.
+        // Totals come from the concepts (CFDI40_0008), so the CFDI Total can differ by a cent from the posted document
         ConceptsSubTotal := RoundToCurrency(ConceptsSubTotal, CurrencyCode);
         ConceptsDiscount := RoundToCurrency(ConceptsDiscount, CurrencyCode);
         RootNode.SetAttribute('SubTotal', FormatAmount(ConceptsSubTotal, CurrencyCode));
@@ -3762,7 +3756,6 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure FormatDecimalRange(InAmount: Decimal; DecimalPlacesFrom: Integer; DecimalPlacesTo: Integer): Text
     begin
-        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
         exit(
           ConvertStr(Format(Abs(InAmount), 0, '<Precision,' + Format(DecimalPlacesFrom) + ':' + Format(DecimalPlacesTo) + '><Standard Format,1>'), ',', '.'));
     end;

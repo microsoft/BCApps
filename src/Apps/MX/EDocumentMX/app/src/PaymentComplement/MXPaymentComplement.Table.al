@@ -67,7 +67,6 @@ table 3354 "MX Payment Complement"
     keys
     {
         key(PK; "Entry No.") { Clustered = true; }
-        // Not unique: a payment that is unapplied and reapplied keeps its reversed complements
         key(Payment; "Payment Entry No.", Reversed) { }
         key(Message; "E-Document Message Entry No.") { }
     }

@@ -51,7 +51,6 @@ codeunit 3356 "MX Payment Complement Builder"
         XmlDoc.GetRoot(Root);
         Root.SetAttribute('Version', '4.0');
         Root.SetAttribute('Folio', Payment."Document No.");
-        // Issue date must not be in the future for the PAC; use the current local time, same as FechaPago
         Root.SetAttribute('Fecha', FormatPaymentDateTime(Payment));
         Root.SetAttribute('Sello', '');
         Root.SetAttribute('NoCertificado', CertificateNo);
@@ -197,7 +196,6 @@ codeunit 3356 "MX Payment Complement Builder"
         Rate: Decimal;
         DocCurrencyFactor: Decimal;
     begin
-        // VAT entries are in LCY; BaseDR/ImporteDR must be in the invoice currency (MonedaDR)
         DocCurrencyFactor := GetCurrencyFactor(Applied);
         if EquivalenciaDR = 0 then
             EquivalenciaDR := 1;
@@ -220,7 +218,6 @@ codeunit 3356 "MX Payment Complement Builder"
             Helper.AddAttribute(TransferNode, 'ImpuestoDR', '002');
             if (Rate = 0) and (VATEntry.Base = 0) then begin
                 Helper.AddAttribute(TransferNode, 'TipoFactorDR', 'Exento');
-                // BaseP/ImporteP are in the payment currency (MonedaP): DR amount / EquivalenciaDR
                 BaseExempt += Base / EquivalenciaDR;
             end else begin
                 Helper.AddAttribute(TransferNode, 'TipoFactorDR', 'Tasa');
@@ -268,7 +265,6 @@ codeunit 3356 "MX Payment Complement Builder"
     begin
         if VATEntry.Base = 0 then
             exit(0);
-        // TasaOCuotaDR must be an exact c_TasaOCuota value; Amount/Base in LCY carries rounding (e.g. 16.0001)
         if VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group") then
             exit(VATPostingSetup."VAT %");
         exit(Round(Abs(VATEntry.Amount / VATEntry.Base) * 100, 1));
@@ -294,7 +290,6 @@ codeunit 3356 "MX Payment Complement Builder"
 
     local procedure AddTotals(Totals: XmlNode; Helper: Codeunit "CFDI XML Helper MX"; Base16: Decimal; Tax16: Decimal; Base8: Decimal; Tax8: Decimal; Base0: Decimal; Tax0: Decimal; BaseExempt: Decimal; TipoCambioP: Decimal; MontoTotalPagos: Decimal)
     begin
-        // Base*/Tax* are accumulated in the payment currency (MonedaP); Totales must be in MXN
         Base16 := Round(Base16 * TipoCambioP, 0.01);
         Tax16 := Round(Tax16 * TipoCambioP, 0.01);
         Base8 := Round(Base8 * TipoCambioP, 0.01);
@@ -336,7 +331,6 @@ codeunit 3356 "MX Payment Complement Builder"
 
     local procedure GetCurrencyFactor(CustLedgerEntry: Record "Cust. Ledger Entry"): Decimal
     begin
-        // LCY entries may carry a zero currency factor; treat it as 1 (1 LCY per LCY)
         if (CustLedgerEntry."Currency Code" = '') or (CustLedgerEntry."Original Currency Factor" = 0) then
             exit(1);
         exit(CustLedgerEntry."Original Currency Factor");
@@ -350,7 +344,6 @@ codeunit 3356 "MX Payment Complement Builder"
     begin
         Applied.CalcFields(Amount);
         PartialNo := 1;
-        // Application entries on the invoice; the applying payment is in "Applied Cust. Ledger Entry No."
         Detail.SetRange("Cust. Ledger Entry No.", Applied."Entry No.");
         Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
         Detail.SetRange(Unapplied, false);
@@ -371,8 +364,6 @@ codeunit 3356 "MX Payment Complement Builder"
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
-        // Legacy parity (GetPmtCustDtldEntry): Monto is what the payment actually applied, not its Amount
-        // FlowField, which also includes payment discounts and the unapplied remainder
         DetailedCustLedgEntry.SetFilter(
             "Entry Type", '%1|%2|%3|%4',
             DetailedCustLedgEntry."Entry Type"::Application,
@@ -390,7 +381,6 @@ codeunit 3356 "MX Payment Complement Builder"
     var
         PaymentComplement: Record "MX Payment Complement";
     begin
-        // The complement UUID is stored in MX Payment Complement, not on the payment ledger entry
         PaymentComplement.SetRange("Payment Entry No.", PaymentEntryNo);
         PaymentComplement.SetRange(Reversed, false);
         exit(not PaymentComplement.IsEmpty());
@@ -398,7 +388,6 @@ codeunit 3356 "MX Payment Complement Builder"
 
     local procedure FormatDecimal(Value: Decimal; Decimals: Integer): Text
     begin
-        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
         exit(ConvertStr(Format(Abs(Value), 0, '<Precision,' + Format(Decimals) + ':' + Format(Decimals) + '><Standard Format,1>'), ',', '.'));
     end;
 
@@ -452,7 +441,6 @@ codeunit 3356 "MX Payment Complement Builder"
 
     local procedure FormatPaymentReceivedDateTime(PostingDate: Date): Text
     begin
-        // FechaPago is the date the payment was received: the payment posting date at noon (legacy parity)
         exit(Format(CreateDateTime(PostingDate, 120000T), 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 

@@ -43,7 +43,6 @@ codeunit 3357 "MX Payment Complement Mgt."
         PaymentRef: RecordRef;
         Payload: Codeunit "Temp Blob";
     begin
-        // Only the current complement counts; reversed ones belong to a previous application of the payment
         Complement.SetRange("Payment Entry No.", Payment."Entry No.");
         Complement.SetRange(Reversed, false);
         if Complement.FindFirst() then begin
@@ -56,13 +55,11 @@ codeunit 3357 "MX Payment Complement Mgt."
                 TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
             exit;
         end;
-        // The occurrence already identifies the invoice E-Document
         if not Parent.Get(EDocPaymentOccurrence."E-Document Entry No.") then
             exit;
         if not ResolveService(Parent) then
             exit;
         if Parent."Clearance Date" = 0DT then begin
-            // Another E-Document of the same invoice may already be stamped; its occurrence creates the complement
             if HasClearedEDocument(Parent."Document Record ID") then
                 exit;
             // Fail so Core retries the occurrence once the invoice is stamped, instead of marking it processed
