@@ -4,16 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50186 "Filename Expected Texts"
 {
-    // The texts the app shows - its messages, errors and Test Pattern's explanations - as the tests
-    // expect them, in English. Each is a copy of the app's label, word for word, kept here so the app
-    // carries no procedure that only tests call. A wording change in the app must be made here too;
-    // the tests that compare against it fail until it is.
-    //
-    // English only, and checked: every procedure here first makes sure the session is in English, as
-    // each test that uses them sets it (Prepare in Filename Card Tests and Filename Proof Tests,
-    // PrepareWithNoPatterns in Filename List Tests). In any other language the app shows its
-    // translated text, and a comparison would fail on wording rather than on behaviour; this says so
-    // instead.
+    // Word-for-word English copies of the app's labels, kept here so the app carries no procedure that
+    // only tests call. A wording change in the app must be made here too.
+    // Every procedure checks the session is in English, so a translated text fails clearly instead of
+    // on wording.
 
     Access = Internal;
 
@@ -101,9 +95,6 @@ codeunit 50186 "Filename Expected Texts"
         TooMany := StrSubstNo(KindTooManyMsg, PlaceholderText, KindMaxRecordsToAgree());
     end;
 
-    /// <summary>
-    /// Stops with a clear message when the session is not in English, which these copies are written in.
-    /// </summary>
     local procedure EnsureEnglish()
     var
         FilenameProofSupport: Codeunit "Filename Proof Support";
@@ -113,8 +104,7 @@ codeunit 50186 "Filename Expected Texts"
     end;
 
     /// <summary>
-    /// The language's name, as the app words it: the Language table's Name, or the code itself when
-    /// there is no name.
+    /// As the app words it: the Language table's Name, or the code itself when there is no name.
     /// </summary>
     local procedure LanguageName(LanguageCode: Text): Text
     var
@@ -127,9 +117,7 @@ codeunit 50186 "Filename Expected Texts"
         exit(LanguageCode);
     end;
 
-    /// <summary>
-    /// How many documents [Kind of Document] checks before it gives up, as the app has it.
-    /// </summary>
+    // Must match the limit in the app's [Kind of Document] placeholder.
     local procedure KindMaxRecordsToAgree(): Integer
     begin
         exit(100);

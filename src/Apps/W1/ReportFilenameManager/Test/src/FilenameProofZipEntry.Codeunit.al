@@ -4,16 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50176 "Filename Proof Zip Entry"
 {
-    // The PDF inside a "PDF & Electronic Document" zip - the option a Document Sending Profile offers
-    // for both E-Mail Attachment and Disk. Base Application builds that zip in SendToZipForCust and
-    // SendToZipForVend, and names the PDF entry through Electronic Document Format.GetAttachmentFileName.
-    //
-    // The zip functions are called directly and the names are read back out of the archive itself,
-    // with Data Compression.GetEntryList. That is the name a person finds when they open the zip, and
-    // it involves no client download, so nothing here has to be inferred from an error message.
-    //
-    // Every check compares against the entry Business Central produces with no pattern, never against
-    // what this feature says it produced.
+    // The PDF inside a "PDF & Electronic Document" zip (SendToZipForCust / SendToZipForVend). Names
+    // are read back out of the archive itself and compared with the entry Business Central
+    // produces with no pattern.
 
     SingleInstance = true;
 
@@ -26,8 +19,8 @@ codeunit 50176 "Filename Proof Zip Entry"
     end;
 
     /// <summary>
-    /// The PDF in a customer document's zip is named from a pattern on the With Electronic Document
-    /// channel or on Any, and not by a pattern on Save to Disk.
+    /// The PDF in a customer document's zip is named from a pattern on the PDF &amp; Electronic Document
+    /// route or on Any, and not by a pattern on Disk.
     /// </summary>
     procedure ProveCustomerZip()
     var
@@ -37,7 +30,6 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // An invoice of the proof's own to zip, filtered to itself.
         TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('60 Invoice', SalesInvoiceHeader."No.");
 
@@ -66,7 +58,6 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // A purchase invoice of the proof's own, for a vendor of its own, filtered to itself.
         TestData.PostNewPurchaseInvoice(PurchInvHeader);
         ProofSupport.LogLine('70 Purchase invoice', PurchInvHeader."No.");
 
@@ -85,16 +76,8 @@ codeunit 50176 "Filename Proof Zip Entry"
     end;
 
     /// <summary>
-    /// A recorded zip entry that was never used cannot name a different document.
-    ///
-    /// The entry is recorded just before the PDF renders and used when the zip names it. If the render
-    /// fails in between, the entry is left behind in the session, and the next call to Business
-    /// Central's naming function with the same document type - for any document - reaches the naming
-    /// hook. It must decline, so that document keeps Business Central's own name, rather than be named
-    /// after the one that failed.
-    ///
-    /// A failed render is not something this proof can cause on demand, so the leftover entry is
-    /// recorded directly, exactly as the "before each file" subscriber records it.
+    /// A zip entry left behind by a failed render cannot name a different document. The leftover
+    /// is recorded directly, as the "before each file" subscriber records it.
     /// </summary>
     procedure ProveAStaleEntryCannotNameAnotherDocument()
     var
@@ -111,7 +94,6 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // Two invoices of the proof's own, each filtered to itself.
         TestData.PostNewInvoice(FirstInvoice);
         TestData.PostNewInvoice(SecondInvoice);
         ProofSupport.LogLine('80 Entry left behind for', FirstInvoice."No.");
@@ -129,8 +111,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         ProofGuard.ClearPatterns();
         CreatePattern(Database::"Sales Invoice Header", Enum::"Report Selection Usage"::"S.Invoice", Enum::"Report Filename Output Route"::PdfAndElectronicDocument);
 
-        // What Business Central calls the second invoice with nothing left behind. The pattern is live,
-        // but no entry is recorded, so the naming hook stands aside.
+        // With no entry recorded the naming hook stands aside, though the pattern is live.
         Baseline := ElectronicDocumentFormat.GetAttachmentFileName(SecondInvoice, SecondInvoice."No.", DocumentType, PdfExtensionTok);
         ProofSupport.LogLine('80 With nothing left behind', Baseline);
 
@@ -160,7 +141,6 @@ codeunit 50176 "Filename Proof Zip Entry"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // Two invoices of the proof's own for one new customer, in the order of their numbers.
         TestData.PostInvoicesOfOneCustomer(2, InvoiceNos);
         FirstNo := InvoiceNos.Get(1);
         SecondNo := InvoiceNos.Get(2);
@@ -183,9 +163,6 @@ codeunit 50176 "Filename Proof Zip Entry"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// The three patterns that settle the channel question, one after another on the same document.
-    /// </summary>
     local procedure ProveEachChannel(SourceTableNo: Integer; Usage: Enum "Report Selection Usage"; DocumentNo: Code[20]; Baseline: Text; IsCustomer: Boolean; DocumentVariant: Variant; Step: Text)
     var
         Expected: Text;
@@ -197,7 +174,6 @@ codeunit 50176 "Filename Proof Zip Entry"
         else
             Side := VendorTok;
 
-        // The extension in the case Business Central wrote it in.
         NoteBusinessCentralsCase(Baseline);
         Expected := DocumentNo + SuffixOf(Baseline);
 
@@ -216,8 +192,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         ProofSupport.LogLine(Step + '2 With an Any pattern', Entry);
         LogVerdict(StrSubstNo(NamedByAnyTok, Side), Expected, Entry);
 
-        // Save to Disk is the pattern an administrator is most likely to expect to reach the zip, and
-        // the decision was that it does not: the zip has its own channel.
+        // A Disk pattern does not reach the zip: the zip has its own route.
         ProofGuard.ClearPatterns();
         CreatePattern(SourceTableNo, Usage, Enum::"Report Filename Output Route"::Disk);
         Entry := EntryFor(IsCustomer, DocumentVariant);
@@ -225,15 +200,9 @@ codeunit 50176 "Filename Proof Zip Entry"
         LogVerdict(StrSubstNo(NotNamedBySaveToDiskTok, Side), Baseline, Entry);
     end;
 
-    /// <summary>
-    /// What the real "PDF &amp; Electronic Document" route has done by the time it names the PDF entry:
-    /// SendElectronically has named the electronic document earlier in the same zip, and the feature has
-    /// noted the case Business Central wrote its extension in. These proofs call the zip function on its
-    /// own, so the case Business Central wrote this entry in, with no pattern, is noted the same way -
-    /// otherwise the outcome would depend on what ran earlier in the session. The real route, electronic
-    /// document included, is proven by Filename Proof Elec. Doc.
-    /// </summary>
-    /// <param name="Baseline">The entry Business Central wrote with no pattern.</param>
+    // Stands in for SendElectronically, which on the real route notes Business Central's extension
+    // case earlier in the same zip; otherwise the outcome would depend on what ran before.
+    // Baseline is the entry Business Central wrote with no pattern.
     local procedure NoteBusinessCentralsCase(Baseline: Text)
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
@@ -256,10 +225,8 @@ codeunit 50176 "Filename Proof Zip Entry"
         exit(VendorEntry(PurchInvHeader));
     end;
 
-    /// <summary>
-    /// Builds the zip exactly as the Document Sending Profile does for a customer document, and
-    /// returns the name of the PDF entry in it.
-    /// </summary>
+    // Calls SendToZipForCust as Document Sending Profile does (there after adding the electronic
+    // document to the zip); returns the PDF entry's name.
     local procedure CustomerEntry(var SalesInvoiceHeader: Record "Sales Invoice Header"): Text
     var
         ReportSelections: Record "Report Selections";
@@ -267,7 +234,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         RecordVariant: Variant;
     begin
         Clear(CapturedChannel);
-        // The route renders a report, and Business Central refuses to render with a write transaction open.
+        // Committed before the route, which commits on its own (SaveReportAsPDFInTempBlob).
         Commit();
         RecordVariant := SalesInvoiceHeader;
         DataCompression.CreateZipArchive();
@@ -291,10 +258,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         exit(OnlyEntry(DataCompression));
     end;
 
-    /// <summary>
-    /// The one entry the zip holds. More than one would mean more than one report is selected for the
-    /// usage, and the proof would be reading an arbitrary one, so that is logged rather than hidden.
-    /// </summary>
+    // More than one entry means several reports are selected for the usage; that is logged.
     local procedure OnlyEntry(var DataCompression: Codeunit "Data Compression"): Text
     var
         FinishedZip: Codeunit "Data Compression";
@@ -302,9 +266,7 @@ codeunit 50176 "Filename Proof Zip Entry"
         Entries: List of [Text];
         Entry: Text;
     begin
-        // Saved and reopened for reading, because an archive still being written refuses to list
-        // its entries - measured: "Cannot access entries in Create mode". Reading the saved archive
-        // is also the stronger check: it is the file a person would open.
+        // Saved and reopened: an archive in Create mode refuses to list its entries.
         DataCompression.SaveZipArchive(ZipBlob);
         DataCompression.CloseZipArchive();
         FinishedZip.OpenZipArchive(ZipBlob, false);

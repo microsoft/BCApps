@@ -4,18 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 table 50110 "Report Filename Pattern"
 {
-    // The table of patterns. Empty on install and until an administrator adds a row, which is what
-    // makes the compatibility guarantee real: with no rows, every delivery path falls through to
-    // the name Business Central produces today.
+    // Empty on install; with no rows every report keeps Business Central's own file name.
 
     Caption = 'Report Filename Pattern';
     DataClassification = CustomerContent;
-    // Public: an extension may add rows of its own, which the App ID field records.
+    // Public, so other extensions can add rows. App ID records the inserting extension only when
+    // that extension sets it before Insert (see OnInsert).
     Access = Public;
-    // Naming reads a pattern's placeholder binding and condition through this table's own procedures,
-    // for users who hold no permission on it. Report Filename Mgt.TryResolve grants them indirect
-    // read for the length of the call, and indirect read is honoured only by an object that
-    // declares it - the codeunit declares it for its own reads, and this for the table's.
+    // Indirect read for the table's own procedures, which naming calls for users with no
+    // permission on this table (see Report Filename Mgt.TryResolve).
     Permissions = tabledata "Report Filename Pattern" = r;
     LookupPageId = "Report Filename Patterns";
     DrillDownPageId = "Report Filename Patterns";
@@ -43,10 +40,6 @@ table 50110 "Report Filename Pattern"
         }
         field(3; "Table No."; Integer)
         {
-            // Table No. and Table Caption, the pair Business Central itself uses wherever a setup
-            // row points at a table - Change Log Setup (Table), Retention Policy Setup and the
-            // configuration packages. It was captioned "Applies to", which collides with the
-            // Applies-to fields every finance user knows from applying payments to invoices.
             Caption = 'Table No.';
             BlankZero = true;
             ToolTip = 'Specifies the number of the table this pattern applies to. Table Caption shows it by name.';
@@ -54,22 +47,15 @@ table 50110 "Report Filename Pattern"
 
             trigger OnValidate()
             begin
-                // A report decides what it is about, so the two cannot be set independently.
-                // Naming requires BOTH to agree with what is running: a pattern naming report
-                // 1306 but claiming to be about customers is rejected on every run, because the
-                // document in hand is a sales invoice. It would save without complaint and
-                // silently never fire - which is the one failure this design exists to remove.
-                // Checked here rather than only in the lookup, so a configuration package or a
-                // line of code cannot create what the card refuses.
+                // A table that disagrees with the report would never match. Checked here, not
+                // only in the lookup, so a value set through Validate from code is checked too.
                 CheckReportDecidesWhatItIsAbout();
 
                 if "Table No." <> xRec."Table No." then begin
                     "Language Code Field" := 0;
                     SuggestLanguageField();
-                    // A binding holds field numbers of the table it was built against, so one
-                    // built for the old table must never survive the table changing. Rebuilt
-                    // rather than cleared, so a pattern that no longer fits says so here
-                    // instead of declining silently the next time the report runs.
+                    // The binding holds field numbers of the old table. Rebuilt rather than
+                    // cleared, so a pattern that no longer fits errors now.
                     BuildPlaceholderBinding();
                 end;
             end;
@@ -79,19 +65,11 @@ table 50110 "Report Filename Pattern"
             Caption = 'Table Filter';
             ToolTip = 'Specifies a filter the records must match for this pattern to apply, such as a reminder level. Leave it blank to apply the pattern to every record in the table.';
         }
-        // Field 5 was Output Route, one route per pattern. A pattern for Print did not name the
-        // same document previewed and then downloaded - that is the Preview route - so naming
-        // both took two identical patterns. It is a filter now, field 23.
         field(23; "Output Route Filter"; Text[250])
         {
-            // The routes as their enum ordinals joined by |, in ascending order - identities
-            // rather than captions, so the filter reads the same whatever language set it, the way
-            // the placeholder binding does. Blank means every route. Set and read only through
-            // this table's procedures, and shown in words by OutputRouteFilterText.
+            // Enum ordinals joined by |, in the enum's Ordinals() order, so the value is language independent. Blank
+            // means every route. Use this table's procedures to set and read it.
             Caption = 'Output Route Filter';
-            // What produces a file on each route is said beside its tick box on the page the
-            // lookup opens (Report Filename Route Buffer.RouteDescription), where the route is
-            // chosen; several captions read as synonyms on their own.
             ToolTip = 'Specifies which ways out of Business Central this pattern applies to, such as Print|Preview. All routes when it is blank. Choose the field to select routes; each one says what produces a file on it.';
         }
         field(6; "Language Code"; Code[10])
@@ -102,9 +80,7 @@ table 50110 "Report Filename Pattern"
 
             trigger OnValidate()
             begin
-                // Naming a language with no field to read it from would leave a row that can
-                // only ever match the fallback language, which is not what the administrator
-                // meant to say.
+                // Without a language field the pattern could only match the fallback language.
                 if "Language Code" = '' then
                     exit;
                 if "Language Code Field" = 0 then
@@ -115,8 +91,6 @@ table 50110 "Report Filename Pattern"
         }
         field(7; "File Name Pattern"; Text[250])
         {
-            // Not "Pattern": that is what the whole row is called, so messages had to say "the
-            // file name pattern of this pattern" or leave the reader to guess which one was meant.
             Caption = 'File Name Pattern';
             ToolTip = 'Specifies the file name without the extension. Use placeholders in square brackets, such as Invoice-[No.]. The output format adds the extension automatically.';
 
@@ -124,18 +98,8 @@ table 50110 "Report Filename Pattern"
             begin
                 BuildPlaceholderBinding();
 
-                // A live pattern cannot be nameless. Completeness was checked on the way on and
-                // never again, so clearing the text of an enabled pattern left it switched on
-                // with nothing to name a file - inert, because selection skips a blank pattern,
-                // but reading as live in the list. It is switched off instead, and said out loud:
-                // silently changing a setting somebody else can see is its own defect.
-                //
-                // Switched off rather than refused, because refusing would trap an administrator
-                // rewriting a pattern from scratch - clearing the field is the first thing they
-                // would do. Base Application guards the same way where a live record has
-                // something at stake: Shopify's Shop Card refuses a change to the shop URL while
-                // the shop is enabled, and Workflow refuses every change while it is running.
-                // A file name has nothing in flight, so the softer guard is the right one.
+                // Clearing an enabled pattern turns it off (with a message) rather than being
+                // refused, so an administrator can rewrite a pattern from scratch.
                 if ("File Name Pattern" = '') and Enabled then begin
                     Enabled := false;
                     if GuiAllowed() then
@@ -148,13 +112,9 @@ table 50110 "Report Filename Pattern"
             Caption = 'Date Format';
             ToolTip = 'Specifies how dates are written in the file name.';
         }
-        // Field 9 was Max. Length. One maximum now applies to every pattern, from
-        // Report Filename Setup, so two patterns can no longer disagree about how long a name may be.
         field(10; "Max. Values Named"; Integer)
         {
-            // Says what is counted: distinct values, per placeholder. CollectValues lists each value
-            // once however many records carry it, and applies this limit to each field placeholder
-            // separately - 100 invoices for two customers still list both customer numbers.
+            // Counts distinct values per placeholder: 100 invoices for two customers list both.
             Caption = 'Max. Values Named';
             InitValue = 3;
             ToolTip = 'Specifies how many different values each placeholder lists when one file covers several records. Repeated values are listed once. Beyond this number, only the first and the last value are named, joined by the range word.';
@@ -167,10 +127,6 @@ table 50110 "Report Filename Pattern"
         }
         field(11; "Separator"; Text[5])
         {
-            // Bare, because the group it sits in supplies the rest. It was "Value Separator",
-            // which read as though it separated one placeholder from the next - which it never
-            // has; text typed between two placeholders does that. Under the Multiple Records
-            // group, what it separates needs no adjective.
             Caption = 'Separator';
             InitValue = '-';
             ToolTip = 'Specifies the text placed between the records named in one file, when the file covers several records - for example, a report run for a range of invoices or for several customers. A file for a single record never uses it. To put text between two placeholders, type it into the file name pattern.';
@@ -181,22 +137,14 @@ table 50110 "Report Filename Pattern"
             begin
                 if "Separator" = '' then
                     exit;
-                // Judged as a separator, not as a whole file name. Sanitise also trims leading
-                // and trailing spaces and periods, because a file name may not begin or end
-                // with one - but a separator sits in the middle, where a space is perfectly
-                // legal and common: "Invoice - 103001" is what somebody types first. Checking
-                // it with the whole-name rule refused " - " and blamed the hyphen.
+                // Not checked as a whole file name: leading and trailing spaces are legal mid-name.
                 if not ReportFilenameMgt.IsUsableSeparator("Separator") then
                     Error(SeparatorErr, ReportFilenameMgt.DisallowedCharacters());
             end;
         }
         field(22; "Range Word"; Text[10])
         {
-            // The one word this feature used to put into a file name on its own authority. It
-            // was a Label marked Locked, which means never translated, so a Danish company got
-            // 10000-to-99999 and had no way to change it. Everything else in a name is either
-            // typed by the administrator, read off the records, or a caption Business Central
-            // itself translates - this was the only exception, and it is one no longer.
+            // A field rather than a label, so each company can set it in its own language.
             Caption = 'Range Word';
             InitValue = 'to';
             ToolTip = 'Specifies the word placed between the first and the last record when a run covers more records than are named one by one, so the name reads 10000-to-99999. It sits between two separators. Leave it blank to join the two with the separator only.';
@@ -207,8 +155,7 @@ table 50110 "Report Filename Pattern"
             begin
                 if "Range Word" = '' then
                     exit;
-                // Judged the way the separator is, for the same reason: it sits in the middle of
-                // a name, where a space is legal, rather than at either end.
+                // Checked like the separator: it sits mid-name.
                 if not ReportFilenameMgt.IsUsableSeparator("Range Word") then
                     Error(RangeWordErr, ReportFilenameMgt.DisallowedCharacters());
             end;
@@ -216,19 +163,13 @@ table 50110 "Report Filename Pattern"
         field(12; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            // Off, so a pattern begins as a draft. The primary key is an auto-incremented
-            // entry number, so New always succeeds with nothing filled in - a table keyed on
-            // a code field would have forced the administrator to type something. Price List
-            // Line is the one setup table in Base Application behind a surrogate key, and it
-            // does the same: it tolerates an incomplete row, keeps it inert, and enforces
-            // completeness at the moment of activation rather than refusing to create it.
+            // A new pattern starts as an inert draft; completeness is checked when it is enabled.
             InitValue = false;
             ToolTip = 'Specifies whether this pattern is used.';
 
             trigger OnValidate()
             begin
-                // Only on the way on. A pattern being switched off needs no completeness -
-                // and demanding it would trap an administrator who had half-edited a row.
+                // Only when enabling, so a half-edited pattern can always be turned off.
                 if Enabled then
                     Verify();
             end;
@@ -237,22 +178,13 @@ table 50110 "Report Filename Pattern"
         {
             Caption = 'Language Code Field';
             BlankZero = true;
-            // The pattern card shows this field by name through a page variable, which carries
-            // this same caption and tooltip word for word. Change them together.
+            // The pattern card repeats this caption and tooltip. Change them together.
             ToolTip = 'Specifies which field on the table holds the language of the record: a field that relates to the Language table. Where a run covers several records, they must all have the same language, or the run has none. Suggested when the table has one such field.';
             TableRelation = Field."No." where(TableNo = field("Table No."), Class = const(Normal));
 
             trigger OnValidate()
             begin
-                // Only a field that relates to the Language table holds a language. Any other field
-                // read as one gives a "language" that is no language at all, and every placeholder
-                // that follows the document's language then declines: a test once chose Shopify
-                // Order No. here, and [Kind of Document] gave no value for an invoice plainly in
-                // English (8 October). Base Application's own rule for a document's language reads
-                // such a field on every document it knows (Report Distribution Management.
-                // GetDocumentLanguageCode), and of the 90 code and text fields named after a
-                // language in Base Application, System Application and the platform, every one on a
-                // table a report prints relates to the Language table.
+                // Only a field related to the Language table holds a language code.
                 if "Language Code Field" = 0 then
                     exit;
                 if not IsLanguageField("Table No.", "Language Code Field") then
@@ -266,35 +198,15 @@ table 50110 "Report Filename Pattern"
         }
         field(15; "Placeholder Binding"; Blob)
         {
-            // The canonical form of the pattern: every placeholder replaced by the field number it
-            // resolved to when it was saved, so nothing is looked up by name when a report
-            // runs. That is what makes a pattern survive a field rename, resolve identically
-            // whatever language it was authored in, and fail in front of the person who
-            // mistyped a placeholder rather than silently at render time.
-            //
-            // A Blob rather than a Text[250]: the pattern is capped at 250 characters, but its
-            // bound form can be longer once a short caption becomes a longer placeholder.
-            // Editable is not a property a Blob accepts. The field is kept off every page
-            // instead, which is the stronger guarantee: it is derived data, and there is
-            // nothing in it an administrator could usefully change by hand.
+            // The pattern with each placeholder replaced by its field number or computed key, so nothing is looked
+            // up by name at run time. A Blob, because the bound form can exceed 250 characters.
+            // Derived data, kept off every page.
             Caption = 'Placeholder Binding';
         }
         field(20; "Table Caption"; Text[250])
         {
-            // Captioned here, not on each page, so the card and the list cannot diverge - which
-            // they did while each page captioned it itself.
-            //
-            // Named four times before getting here. "Source Table" was the internal name.
-            // "Document type" collided with the Document Type field, whose values are Quote,
-            // Order, Invoice, Credit Memo. "Report is about" described a report that did not
-            // exist in the one case where a human edits this field. "Applies to" collided with
-            // Applies-to Doc. No. and the other Applies-to fields, which to a finance user mean
-            // applying a payment to an invoice. Table Caption is what Business Central calls the
-            // same thing on its own setup pages, beside Table No.
+            // Caption and tooltip are set here, not on the pages, so the card and list agree.
             Caption = 'Table Caption';
-            // The tooltip lives here too, for the same reason the caption does. It is worth
-            // stating fully, because this one field decides whether a pattern is used at all and
-            // which fields are offered as placeholders.
             ToolTip = 'Specifies the table this pattern applies to - the records that one file is named after. It decides which patterns can apply and which fields are offered as placeholders. Choosing a report fills this in. Leave the report blank and choose a table to cover every report on that table.';
             FieldClass = FlowField;
             CalcFormula = lookup("Table Metadata".Caption where(ID = field("Table No.")));
@@ -302,9 +214,6 @@ table 50110 "Report Filename Pattern"
         }
         field(21; "Report Name"; Text[250])
         {
-            // Report Name, as the Report Inbox, Report Selections and Custom Report Layouts
-            // caption the same lookup. Here, not on each page: the card said one thing and the
-            // list another about the same field.
             Caption = 'Report Name';
             ToolTip = 'Specifies the report this pattern applies to. Leave it blank to apply the pattern to every report on the same table.';
             FieldClass = FlowField;
@@ -322,8 +231,7 @@ table 50110 "Report Filename Pattern"
         key(Selection; Enabled, "Report ID", "Table No.")
         {
         }
-        // The order the list opens in: grouped by table, so the patterns that can compete for
-        // the same files sit next to each other.
+        // The list's sort order.
         key(Grouping; "Table No.", "Report ID", "Language Code")
         {
         }
@@ -354,19 +262,14 @@ table 50110 "Report Filename Pattern"
     var
         ModuleInfo: ModuleInfo;
     begin
-        // Nothing in the platform stamps the inserting extension, so the code that inserts
-        // records it. Rows added by an extension are recognisable by this.
+        // Kept when the inserting code has set it. Otherwise this app's ID: GetCurrentModuleInfo
+        // reports the app that contains the running object, which is this table.
         if IsNullGuid("App ID") then begin
             NavApp.GetCurrentModuleInfo(ModuleInfo);
             "App ID" := ModuleInfo.Id();
         end;
     end;
 
-    /// <summary>
-    /// Opens a filter page on the source table so the administrator states the condition by
-    /// picking fields and values, rather than writing a filter expression. This is what lets
-    /// "a level 3 reminder is named differently" be a row instead of a branch in code.
-    /// </summary>
     internal procedure LookupTableFilter()
     var
         TableMetadata: Record "Table Metadata";
@@ -374,9 +277,7 @@ table 50110 "Report Filename Pattern"
         TableName: Text;
         ExistingView: Text;
     begin
-        // Not TestField: its message names the field as the table declares it and quotes the
-        // record's entry number, so an administrator is told "Source Table must have a value in
-        // Report Filename Pattern: Entry No.=627" about a field the card calls Document type.
+        // Not TestField, whose message quotes the entry number.
         if "Table No." = 0 then
             Error(NoDocumentTypeForFilterErr);
         TableMetadata.Get("Table No.");
@@ -395,12 +296,6 @@ table 50110 "Report Filename Pattern"
         SetTableFilterView(FilterPageBuilder.GetView(TableName, false));
     end;
 
-    /// <summary>
-    /// Stores the condition and saves the row. This is the page's path: the filter page has
-    /// just been closed, so the row has to end up on disk without the administrator having to
-    /// do anything else.
-    /// </summary>
-    /// <param name="ViewText">The view to store.</param>
     local procedure SetTableFilterView(ViewText: Text)
     begin
         WriteTableFilter(ViewText);
@@ -408,12 +303,9 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Stores the condition on the record in memory, leaving it to the caller's own insert or
-    /// modify to persist it. Code that builds a pattern row - a test, or an extension seeding
-    /// one - needs this rather than the page's path, which would have to modify a row that
-    /// does not exist yet.
+    /// Sets the filter on the record in memory without saving, for code that builds a row before inserting it.
     /// </summary>
-    /// <param name="ViewText">The view to store. An empty view clears the condition, so a pattern can be widened again.</param>
+    /// <param name="ViewText">An empty view clears the filter.</param>
     internal procedure WriteTableFilter(ViewText: Text)
     var
         FilterOutStream: OutStream;
@@ -426,9 +318,6 @@ table 50110 "Report Filename Pattern"
         FilterOutStream.WriteText(ViewText);
     end;
 
-    /// <summary>
-    /// The stored condition as a view.
-    /// </summary>
     internal procedure GetTableFilterView() ViewText: Text
     var
         FilterInStream: InStream;
@@ -441,16 +330,13 @@ table 50110 "Report Filename Pattern"
         FilterInStream.ReadText(ViewText);
     end;
 
-    /// <summary>
-    /// Whether this pattern is narrowed to particular documents.
-    /// </summary>
     internal procedure HasTableFilter(): Boolean
     begin
         exit(GetTableFilterView() <> '');
     end;
 
     /// <summary>
-    /// The condition in the words an administrator used, rather than view syntax.
+    /// The filter as captions and values (GetFilters), not view syntax.
     /// </summary>
     internal procedure GetTableFilterDisplayText(): Text
     var
@@ -468,20 +354,15 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// What the card and the list show for a pattern with no table filter. One place, because the
-    /// card said "Every record of this kind" while the list showed nothing for the same row.
+    /// Shared by the card and the list so both show the same text.
     /// </summary>
-    /// <returns>The text for an empty table filter.</returns>
     internal procedure NoTableFilterText(): Text
     begin
         exit(AllRecordsLbl);
     end;
 
     /// <summary>
-    /// Opens the routes with a tick box each, ticked where the pattern already applies, and stores
-    /// what was ticked when the page closes. The page offers only Close, and Close and Esc both
-    /// return OK (measured in the client, 7 October), so what is ticked is kept as any edit on a
-    /// page is. Nothing ticked, or every route ticked, is stored as blank: every route.
+    /// Closing the page with Close returns OK, so the ticks are kept as any page edit is.
     /// </summary>
     internal procedure LookupOutputRouteFilter()
     var
@@ -499,12 +380,10 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Limits this pattern to these routes, on the record in memory; an empty list applies it to
-    /// every route, and so does a list holding every route - stored as blank, so a route another
-    /// extension adds later is covered too, as the administrator meant. Any is not a route of its
-    /// own - it is what a delivery is when the platform does not say - so it is never stored.
+    /// Sets the record in memory. No routes, or every route, is stored as blank so routes added
+    /// later by other extensions are covered too. Any is never stored.
     /// </summary>
-    /// <param name="Routes">The routes, as enum ordinals.</param>
+    /// <param name="Routes">Enum ordinals.</param>
     internal procedure SetOutputRoutes(Routes: List of [Integer])
     var
         Ordinal: Integer;
@@ -526,10 +405,7 @@ table 50110 "Report Filename Pattern"
         "Output Route Filter" := CopyStr(FilterText, 1, MaxStrLen("Output Route Filter"));
     end;
 
-    /// <summary>
-    /// The routes this pattern is limited to, as enum ordinals; empty when it applies to every route.
-    /// </summary>
-    /// <param name="Routes">Receives the routes.</param>
+    /// <param name="Routes">Receives enum ordinals; empty when the pattern applies to every route.</param>
     internal procedure GetOutputRoutes(var Routes: List of [Integer])
     var
         Part: Text;
@@ -539,27 +415,21 @@ table 50110 "Report Filename Pattern"
         if "Output Route Filter" = '' then
             exit;
         foreach Part in "Output Route Filter".Split(RouteSeparatorTok) do begin
-            // Only this table writes the field, so a part that is not a number is a defect.
+            // In this app only SetOutputRoutes writes the field, so a part that is not a number is a defect.
             if not Evaluate(Ordinal, Part) then
                 Error(RouteFilterDamagedErr, "Output Route Filter");
             Routes.Add(Ordinal);
         end;
     end;
 
-    /// <summary>
-    /// Whether this pattern is limited to some routes.
-    /// </summary>
     internal procedure HasOutputRouteFilter(): Boolean
     begin
         exit("Output Route Filter" <> '');
     end;
 
     /// <summary>
-    /// Whether this pattern applies to a delivery by this route. A pattern with no route filter
-    /// applies to every route, including one the platform does not name.
+    /// A pattern with no route filter applies to every route, including Any.
     /// </summary>
-    /// <param name="Route">The delivery's route.</param>
-    /// <returns>True when the pattern applies.</returns>
     internal procedure AppliesToRoute(Route: Enum "Report Filename Output Route"): Boolean
     var
         Routes: List of [Integer];
@@ -571,10 +441,8 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// The routes in words, as the card and the list show them: their captions joined by |, the
-    /// way a filter reads; for a pattern with none, that it applies to every route.
+    /// Route captions joined by |, or "All routes".
     /// </summary>
-    /// <returns>The text.</returns>
     internal procedure OutputRouteFilterText() RouteText: Text
     var
         Routes: List of [Integer];
@@ -584,7 +452,7 @@ table 50110 "Report Filename Pattern"
             exit(AllRoutesLbl);
         GetOutputRoutes(Routes);
         foreach Ordinal in Routes do
-            // A route an extension added and then took away has no caption left to show.
+            // Skips routes whose extension has been uninstalled.
             if Enum::"Report Filename Output Route".Ordinals().Contains(Ordinal) then begin
                 if RouteText <> '' then
                     RouteText += RouteSeparatorTok;
@@ -593,10 +461,8 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// The route Test Pattern starts from: the first this pattern is limited to, or Any for a
-    /// pattern that applies to every route.
+    /// The pattern's first route, or Any when it applies to every route.
     /// </summary>
-    /// <returns>The route.</returns>
     internal procedure DefaultTestRoute(): Enum "Report Filename Output Route"
     var
         Routes: List of [Integer];
@@ -607,11 +473,6 @@ table 50110 "Report Filename Pattern"
         exit(Enum::"Report Filename Output Route".FromInteger(Routes.Get(1)));
     end;
 
-    /// <summary>
-    /// Whether this pattern and another can be used for at least one route in common.
-    /// </summary>
-    /// <param name="Other">The pattern to compare with.</param>
-    /// <returns>True when a route is open to both.</returns>
     local procedure SharesARouteWith(var Other: Record "Report Filename Pattern"): Boolean
     var
         Mine: List of [Integer];
@@ -641,45 +502,27 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Insists a pattern is complete enough to be used, at the moment it is switched on. This
-    /// is Price List Line's rule: an incomplete row is allowed to exist as a draft, is inert
-    /// while it is one, and is checked when somebody activates it.
-    ///
-    /// Explicit errors rather than TestField. TestField names the field as the table declares
-    /// it and quotes the record's key, so it would tell an administrator that "Source Table
-    /// must have a value in Report Filename Pattern: Entry No.=726" about a field the card
-    /// calls Document type - and the entry number is a surrogate they have never been shown.
+    /// Checks completeness when the pattern is enabled. Explicit errors rather than TestField,
+    /// whose message quotes the entry number.
     /// </summary>
     local procedure Verify()
     begin
         if "File Name Pattern" = '' then
             Error(NoPatternToEnableErr);
 
-        // Either is enough. A pattern tied to one report names that report's document; a
-        // pattern tied only to a table names every report on that table.
         if ("Report ID" = 0) and ("Table No." = 0) then
             Error(NoReportOrDocumentTypeErr);
     end;
 
     /// <summary>
-    /// How specific this pattern is, which is what decides between two patterns that both
-    /// apply to the same file: the higher number wins.
-    ///
-    /// The one definition of the rule. Report Filename Mgt. scores every candidate with this when
-    /// a report runs, and the list shows it as Priority, so what the administrator reads and
-    /// what naming does cannot drift apart.
-    ///
-    /// Each criterion has its own power of two, so the score says exactly which criteria are
-    /// set. Two patterns can therefore only tie when they set the same criteria - and when both
-    /// match the same file, those criteria hold the same values, so they differ only in the table
-    /// filter. The selection then keeps the first it reads, which is the one created first.
+    /// The higher score wins when several patterns apply. Used both by naming and by Priority, so
+    /// they cannot disagree. Each criterion has its own power of two; on a tie the pattern
+    /// created first wins.
     /// </summary>
-    /// <param name="HasTableFilterValue">Whether this pattern has a table filter. Passed in because the caller has usually just read it, and reading it means reading a Blob.</param>
-    /// <returns>The specificity, 0 to 31.</returns>
+    /// <param name="HasTableFilterValue">Passed in to avoid reading the Blob again.</param>
+    /// <returns>0 to 31.</returns>
     internal procedure Specificity(HasTableFilterValue: Boolean) Score: Integer
     begin
-        // The condition on the records is the most specific thing a pattern can say, so a row for
-        // level 3 reminders beats the row for all of them.
         if HasTableFilterValue then
             Score += 16;
         if "Report ID" <> 0 then
@@ -692,31 +535,19 @@ table 50110 "Report Filename Pattern"
             Score += 1;
     end;
 
-    /// <summary>
-    /// The specificity turned into a priority, where 1 is the highest - the way Business Central's
-    /// Payment Application Rules number theirs.
-    /// </summary>
-    /// <returns>The priority, 1 to 32.</returns>
+    /// <returns>1 (highest) to 32.</returns>
     internal procedure Priority(): Integer
     begin
         exit(32 - Specificity(HasTableFilter()));
     end;
 
     /// <summary>
-    /// Whether this pattern and another could both apply to the same file, judged from their
-    /// criteria alone. Each criterion either is blank on one of them, or holds the same value on
-    /// both. Table filters are not compared: two filters may or may not select the same records,
-    /// and only running the report against real records can say which - which is Test Pattern's
-    /// job, not this one's.
+    /// Each criterion is blank on one side or equal on both. Table filters are not compared;
+    /// Test Pattern checks real records.
     /// </summary>
-    /// <param name="Other">The pattern to compare with.</param>
-    /// <returns>True when both could apply to one file.</returns>
     internal procedure CanCompeteWith(var Other: Record "Report Filename Pattern"): Boolean
     begin
-        // A pattern with neither a report nor a table can never be turned on (Verify), so it can
-        // never apply to any file. Judged by its blank criteria alone it would match everything:
-        // found in the container client on 8 October, a draft left by New was listed as
-        // overlapping every pattern, and a pattern nothing competes with no longer said so.
+        // A draft with neither report nor table would otherwise match everything.
         if not (CouldEverApply() and Other.CouldEverApply()) then
             exit(false);
         if not SameOrBlank("Report ID", Other."Report ID") then
@@ -731,10 +562,6 @@ table 50110 "Report Filename Pattern"
         exit(true);
     end;
 
-    /// <summary>
-    /// Whether any other pattern could apply to the same files as this one (CanCompeteWith).
-    /// </summary>
-    /// <returns>True when at least one other pattern could.</returns>
     internal procedure HasCompetitor(): Boolean
     var
         Other: Record "Report Filename Pattern";
@@ -748,17 +575,13 @@ table 50110 "Report Filename Pattern"
         exit(false);
     end;
 
-    /// <summary>
-    /// What Show Overlapping Patterns says when no other pattern could apply to the same files.
-    /// </summary>
     internal procedure NothingCompetesMessage(): Text
     begin
         exit(StrSubstNo(NothingCompetesMsg, DisplayCaption()));
     end;
 
     /// <summary>
-    /// Whether this pattern names a report or a table - what Verify requires before it can be turned
-    /// on, so the only patterns that could ever apply to a file.
+    /// Verify requires a report or a table before a pattern can be enabled.
     /// </summary>
     internal procedure CouldEverApply(): Boolean
     begin
@@ -770,17 +593,12 @@ table 50110 "Report Filename Pattern"
         exit((Value = 0) or (OtherValue = 0) or (Value = OtherValue));
     end;
 
-    /// <summary>
-    /// A title for the card: what the pattern applies to, in the words the card itself uses.
-    /// The entry number would be a counter that means nothing to an administrator.
-    /// </summary>
     /// <returns>The report, or else the table, followed by the output routes and language when set.</returns>
     internal procedure DisplayCaption() CaptionText: Text
     var
         Pattern: Record "Report Filename Pattern";
     begin
-        // Worked out on a copy, so that a page asking for its title does not change the record it
-        // shows: calculating FlowFields on the page's own record is a change the client notices.
+        // On a copy, so CalcFields does not change the caller's record.
         Pattern := Rec;
         Pattern.CalcFields("Report Name", "Table Caption");
         CaptionText := Pattern."Report Name";
@@ -795,30 +613,22 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Inserts a copy of this pattern, turned off, and hands it back. Turned off so that the copy
-    /// changes nothing until the administrator has made it say something different - an enabled
-    /// copy would be an exact rival of the pattern it came from.
+    /// The copy is disabled, as an enabled copy would compete with the original.
     /// </summary>
-    /// <param name="NewPattern">Receives the inserted copy.</param>
     internal procedure CopyToNewPattern(var NewPattern: Record "Report Filename Pattern")
     begin
-        // Blobs travel with TransferFields only once they have been read.
+        // CalcFields loads the Blobs' content into the record before TransferFields copies it.
         CalcFields("Table Filter", "Placeholder Binding");
         NewPattern.Init();
         NewPattern.TransferFields(Rec, false);
         NewPattern.Enabled := false;
-        // The inserting extension is recorded again, by OnInsert, for the copy.
+        // OnInsert sets the App ID again for the copy.
         Clear(NewPattern."App ID");
         NewPattern.Insert(true);
     end;
 
     /// <summary>
-    /// Insists that what a pattern says it is about agrees with the report it names.
-    ///
-    /// A report's first data item IS what it is about, so when a report is named the answer is
-    /// already settled and any other answer produces a pattern that can never match. Nothing
-    /// stops the two being set independently otherwise: naming a report and then claiming a
-    /// different kind of record saved happily and then declined on every single run.
+    /// When a report is set, the table must be the report's subject table, or the pattern never matches.
     /// </summary>
     local procedure CheckReportDecidesWhatItIsAbout()
     var
@@ -833,12 +643,10 @@ table 50110 "Report Filename Pattern"
         if not ReportMetadata.Get("Report ID") then
             exit;
 
-        // What the run is about, which is not always the report's first data item - for 35 of
-        // the 901 reports installed that first item is a virtual table and the real subject is
-        // its child. See the manager, which owns the rule.
+        // Not always the first data item: see Report Filename Mgt.SubjectTableNo.
         SubjectTableNo := ReportFilenameMgt.SubjectTableNo("Report ID");
 
-        // Nothing is decided when the run is about no record at all, so nothing is refused.
+        // A report with no record subject constrains nothing.
         if not IsRealTable(SubjectTableNo) then
             exit;
         if SubjectTableNo = "Table No." then
@@ -848,34 +656,18 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Whether a table number names a kind of record a file can be named after.
-    ///
-    /// Business Central's system and virtual tables start at 2,000,000,000, and a report whose
-    /// first data item is one of those - the virtual Integer table, most often, which is how a
-    /// report driven entirely by its request page is written - is a report with no document
-    /// behind it. Thirty-nine of the reports installed in the test container are like that.
+    /// False for zero and for system tables (from 2000000000), such as the virtual Integer table.
     /// </summary>
-    /// <param name="TableNo">The table number to judge.</param>
-    /// <returns>True when it is a real kind of record.</returns>
     local procedure IsRealTable(TableNo: Integer): Boolean
     begin
         exit((TableNo > 0) and (TableNo < SystemTableFromTok()));
     end;
 
-    /// <summary>
-    /// The first table number Business Central reserves for system and virtual tables.
-    /// </summary>
-    /// <returns>The lowest system table number.</returns>
     local procedure SystemTableFromTok(): Integer
     begin
         exit(2000000000);
     end;
 
-    /// <summary>
-    /// Picks the report this pattern applies to, by name. Clearing the choice widens the
-    /// pattern to every report, which is what a blank criterion means everywhere in this
-    /// design.
-    /// </summary>
     internal procedure LookupReport()
     var
         ReportMetadata: Record "Report Metadata";
@@ -884,9 +676,8 @@ table 50110 "Report Filename Pattern"
         if "Report ID" <> 0 then
             if ReportMetadata.Get("Report ID") then
                 ReportLookup.SetRecord(ReportMetadata);
-        // A pattern that already names a table and no report accepts only a report about that
-        // table (CheckReportDecidesWhatItIsAbout refuses any other), so only those are offered. Once a report is
-        // set, the table follows from it and the whole list is offered again.
+        // With a table and no report, only reports about that table would pass
+        // CheckReportDecidesWhatItIsAbout.
         if ("Report ID" = 0) and ("Table No." <> 0) then
             ReportLookup.SetReportsAbout("Table No.");
 
@@ -899,11 +690,7 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Takes the report off the pattern and keeps its table, so the pattern then covers every report
-    /// on that table. The lookup can only choose another report, and Report Name is not editable, so
-    /// without this a report-specific pattern could never go back to covering the whole table.
-    /// The binding is rebuilt because a placeholder may have come from the report itself - a filter
-    /// on its request page - and a pattern that no longer fits should say so now.
+    /// Keeps the table, so the pattern covers every report on it.
     /// </summary>
     internal procedure ClearReport()
     begin
@@ -913,22 +700,14 @@ table 50110 "Report Filename Pattern"
         BuildPlaceholderBinding();
     end;
 
-    /// <summary>
-    /// Picks the document type, by name, for a pattern that covers every report naming that
-    /// kind of document.
-    /// </summary>
     internal procedure LookupTable()
     var
         TableLookup: Page "Report Filename Table Lookup";
     begin
-        // Refused outright rather than offered and then rejected on save. Choosing from a list
-        // of several hundred kinds, only to be told the one thing you are allowed is the one
-        // already filled in, is worse than not opening the list.
+        // Refused before opening the list: with a report set, the table is fixed.
         if "Report ID" <> 0 then
             Error(ReportDecidesErr, "Report Name");
 
-        // The list builds itself from report metadata, so there is no record to position it on
-        // beforehand - and nothing is lost by that: the list is short enough to find a name in.
         TableLookup.LookupMode(true);
         if TableLookup.RunModal() <> Action::LookupOK then
             exit;
@@ -936,10 +715,6 @@ table 50110 "Report Filename Pattern"
         Validate("Table No.", TableLookup.ChosenTableNo());
     end;
 
-    /// <summary>
-    /// Picks which field holds the document's language, by caption, from the fields of this
-    /// pattern's own source table.
-    /// </summary>
     internal procedure LookupLanguageCodeField()
     var
         FieldRec: Record Field;
@@ -952,9 +727,7 @@ table 50110 "Report Filename Pattern"
         FieldRec.SetRange(Class, FieldRec.Class::Normal);
         FieldRec.SetRange(Enabled, true);
         FieldRec.SetRange(ObsoleteState, FieldRec.ObsoleteState::No);
-        // Only the fields that hold a language - those that relate to the Language table. Offering
-        // every code and text field let a field such as Shopify Order No. be chosen, which the
-        // field's own validation now refuses.
+        // The rule the field's validation enforces.
         FieldRec.SetRange(RelationTableNo, Database::Language);
         if FieldRec.IsEmpty() then
             Error(NoLanguageFieldOnTableErr, TableCaptionOf("Table No."));
@@ -972,9 +745,6 @@ table 50110 "Report Filename Pattern"
         Validate("Language Code Field", FieldRec."No.");
     end;
 
-    /// <summary>
-    /// Whether a field of a table holds a language: whether it relates to the Language table.
-    /// </summary>
     local procedure IsLanguageField(TableNo: Integer; FieldNo: Integer): Boolean
     var
         FieldRec: Record Field;
@@ -1002,10 +772,6 @@ table 50110 "Report Filename Pattern"
         exit(TableMetadata.Caption);
     end;
 
-    /// <summary>
-    /// The caption of the field currently chosen as holding the document's language, so the
-    /// card can show a name where it stores a number.
-    /// </summary>
     internal procedure LanguageCodeFieldCaption(): Text
     var
         FieldRec: Record Field;
@@ -1018,9 +784,7 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Rebuilds the canonical binding from the pattern text. Raises an error naming the placeholder
-    /// when one cannot be resolved, which is the point of the field: the person who mistyped
-    /// it is still on the screen.
+    /// Errors on a placeholder that cannot be resolved, while the user who typed it is still there.
     /// </summary>
     local procedure BuildPlaceholderBinding()
     var
@@ -1029,9 +793,6 @@ table 50110 "Report Filename Pattern"
         SetPlaceholderBinding(FilenamePlaceholderMgt.BuildBinding(Rec));
     end;
 
-    /// <summary>
-    /// The canonical binding, as the manager reads it when a report runs.
-    /// </summary>
     internal procedure GetPlaceholderBinding() BindingText: Text
     var
         BindingInStream: InStream;
@@ -1042,8 +803,7 @@ table 50110 "Report Filename Pattern"
             exit('');
 
         "Placeholder Binding".CreateInStream(BindingInStream, TextEncoding::UTF8);
-        // Read in chunks rather than once: ReadText stops at a line break, and a pattern
-        // pasted with one in it would otherwise bind only as far as the break.
+        // ReadText stops at a line break, so read until EOS.
         while not BindingInStream.EOS() do begin
             BindingInStream.ReadText(Chunk);
             BindingText += Chunk;
@@ -1051,11 +811,9 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Stores the binding on the record in memory. Deliberately does not modify: the binding
-    /// is built during validation, so the insert or modify the caller is already performing
-    /// is what persists it.
+    /// Does not modify: it runs during validation, and the caller's insert or modify saves it.
     /// </summary>
-    /// <param name="BindingText">The binding to store. Empty clears it.</param>
+    /// <param name="BindingText">Empty clears it.</param>
     local procedure SetPlaceholderBinding(BindingText: Text)
     var
         BindingOutStream: OutStream;
@@ -1069,8 +827,7 @@ table 50110 "Report Filename Pattern"
     end;
 
     /// <summary>
-    /// Fills in the source table from the report, using the deterministic report-to-table
-    /// link in report metadata, and suggests a language field for that table.
+    /// Sets the table from the report's subject and suggests a language field.
     /// </summary>
     local procedure SuggestFromReport()
     var
@@ -1081,19 +838,11 @@ table 50110 "Report Filename Pattern"
         if not ReportMetadata.Get("Report ID") then
             exit;
 
-        // The subject rather than the first data item. Report 910 Posted Assembly Order is the
-        // clearest case: its first data item is the virtual Integer table, so this used to leave
-        // the pattern claiming no kind of record and offering no field placeholders, for a report that
-        // is plainly about a posted assembly order.
+        // The subject, not the first data item: report 910 Posted Assembly Order starts with Integer.
         SubjectTableNo := ReportFilenameMgt.SubjectTableNo("Report ID");
 
         if not IsRealTable(SubjectTableNo) then begin
-            // The report has no document behind it - its first data item is a system table, as
-            // it is for a report driven entirely by its request page. There is no kind of record
-            // to fill in, and saying Integer would be worse than saying nothing: the pattern
-            // would then only match a document that is an Integer, which no delivery produces.
-            // Left empty, the pattern is one that uses only the computed values, which is
-            // exactly what such a report can supply.
+            // No record subject: leave the table blank so only computed placeholders are offered.
             "Table No." := 0;
             "Language Code Field" := 0;
             BuildPlaceholderBinding();
@@ -1106,15 +855,12 @@ table 50110 "Report Filename Pattern"
         "Table No." := SubjectTableNo;
         "Language Code Field" := 0;
         SuggestLanguageField();
-        // The table is assigned here rather than validated, so the binding has to be rebuilt
-        // for the new table the same way field 3's own validation does it.
+        // Assigned, not validated, so the binding is rebuilt here.
         BuildPlaceholderBinding();
     end;
 
     /// <summary>
-    /// Offers the field that points at the Language table, when the source table has exactly
-    /// one. A suggestion rather than a rule - a table with two such fields, or none, is left
-    /// for the administrator to settle.
+    /// Suggests only when the table has exactly one field related to the Language table.
     /// </summary>
     local procedure SuggestLanguageField()
     var

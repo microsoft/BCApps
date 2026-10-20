@@ -6,7 +6,6 @@ permissionset 50150 "Rep. Filename Test"
 {
     Assignable = true;
 
-    // Direct permissions needed for tests
     Permissions =
         tabledata "Filename Proof Document" = RIMD,
         tabledata "Filename Proof Log" = RIMD;

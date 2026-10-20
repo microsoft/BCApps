@@ -6,14 +6,8 @@ table 50153 "Filename Proof Log"
 {
     Access = Internal;
 
-    // Where the proofs write what they found, one row per line, and where Filename Proof Gate reads
-    // their verdicts back. Owned by the test app, so the tests depend on nothing that does not ship
-    // with them.
-    //
-    // Rows are never written while a report is running. Filename Proof Log Mgt. buffers them in a
-    // temporary record and copies them here at a point where a write transaction is safe - see its
-    // Flush. Writing during the run would open a transaction, and Base Application's print flow
-    // calls Report.RunModal with a request page, which Business Central forbids once locks are held.
+    // Proof results, read back by Filename Proof Gate. Never written while a report runs (see
+    // Filename Proof Log Mgt.'s Flush), so logging adds no write transaction to the flow being proven.
 
     Caption = 'Filename Proof Log';
     DataClassification = SystemMetadata;
@@ -70,9 +64,6 @@ table 50153 "Filename Proof Log"
         }
     }
 
-    /// <summary>
-    /// Returns the next unused run number, so each proof's lines are separable.
-    /// </summary>
     procedure NextRunId(): Integer
     var
         FilenameProofLog: Record "Filename Proof Log";

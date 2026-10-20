@@ -4,33 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50192 "Filename Reminder Tests"
 {
-    // Drives two Base Application workflows that put several report files on one email, end to end,
-    // and checks the name each file gets: reminder automation sending a reminder with its overdue
-    // invoices attached, and the email download fallback Base Application uses when no email account
-    // is set up. Each with no pattern - Business Central's own names, untouched - and with a reminder
-    // pattern and an invoice pattern.
-    //
-    // The reminder is constructed rather than issued: issuing one for real needs overdue customer
-    // entries, and posting those would leave ledger entries behind that cannot be removed. Everything
-    // after that is Base Application's own: Send Reminder Action Job.SendReminders with a Send
-    // Reminders Setup that attaches the invoices, two report selections for the invoice so that two
-    // invoice files go on the email, and the email as Document-Mailing builds it. Base Application
-    // asks each invoice's name once and gives it to both copies, which is why every invoice appears
-    // twice under one name.
-    //
-    // A test codeunit because the download fallback asks a question first, which only a handler can
-    // answer. The two invoices are posted for a customer of the test's own, and stay, as posted
-    // documents do. Every other row it creates carries the code ZZMEASURE or the number ZZRM-MEASURE
-    // and is removed before and after; scripts/checkleftovers.ps1 checks that nothing is left.
+    // Names on a reminder automation email with its overdue invoices attached, sent and through the
+    // download fallback (no email account), with and without patterns. The reminder is constructed
+    // rather than issued, so no reminder entries are posted; Base Application asks each invoice's name
+    // once for both report selections, so every invoice appears twice under one name. The setup rows
+    // carry ZZMEASURE or ZZRM-MEASURE and are removed before and after; the posted invoices stay.
 
     Subtype = Test;
     TestPermissions = Disabled;
 
     /// <summary>
-    /// Reminder automation's email, stopped where Base Application raises OnBeforeSendEmail with every
-    /// attachment named. With patterns the reminder carries its own pattern's name and each invoice
-    /// its pattern's name - measured on 5 October, before the fix, as Business Central's names for all
-    /// five files.
+    /// Reminder automation's email at OnBeforeSendEmail: with patterns the reminder and each invoice
+    /// carry their own pattern's name.
     /// </summary>
     [Test]
     procedure ReminderAutomationNamesTheReminderAndItsInvoices()
@@ -82,9 +67,7 @@ codeunit 50192 "Filename Reminder Tests"
         Commit();
     end;
 
-    /// <summary>
-    /// The names on the one email, in Base Application's order: the reminder, then each invoice twice.
-    /// </summary>
+    // In Base Application's order: the reminder, then each invoice twice.
     local procedure AssertNames(Captured: List of [Text]; ReminderName: Text; InvoiceStart: Text; Situation: Text)
     var
         Expected: Text;
@@ -100,10 +83,7 @@ codeunit 50192 "Filename Reminder Tests"
             Error(WrongNamesErr, Situation, Expected, Actual);
     end;
 
-    /// <summary>
-    /// Runs reminder automation's send action once, for a freshly built reminder, and returns what the
-    /// email carried: stopped at OnBeforeSendEmail, or let through to the download fallback.
-    /// </summary>
+    // Returns what the email carried, stopped at OnBeforeSendEmail or at the download fallback.
     local procedure RunReminderAutomation(StopBeforeSend: Boolean): List of [Text]
     var
         ReminderAction: Record "Reminder Action";
@@ -116,8 +96,7 @@ codeunit 50192 "Filename Reminder Tests"
         ErrorsOccured: Boolean;
     begin
         BuildReminder();
-        // A run of the group first, as Reminders Automation Job starts one: the send action logs its
-        // progress against the group's latest run and refuses to start without one.
+        // The send action refuses to start without a run of the group to log against.
         ReminderActionGroup.Get(GroupCodeTok);
         ReminderActionProgress.CreateGroupEntry(ReminderActionGroup, ReminderActionGroupLog);
         Commit();
@@ -136,11 +115,7 @@ codeunit 50192 "Filename Reminder Tests"
         exit(EmailCapture.CapturedDownloads());
     end;
 
-    /// <summary>
-    /// Reminder terms and a level of their own, so that reminder automation's terms filter selects
-    /// this reminder and nothing in the company; two invoices posted for a new customer; a second
-    /// report selection for the invoice; and reminder automation's group, send action and setup.
-    /// </summary>
+    // Reminder terms of the test's own, so reminder automation's terms filter selects nothing else.
     local procedure SetUpReminder()
     var
         ReminderTerms: Record "Reminder Terms";
@@ -192,10 +167,7 @@ codeunit 50192 "Filename Reminder Tests"
         Commit();
     end;
 
-    /// <summary>
-    /// An issued reminder at level 1 for the customer, not yet emailed, with one reminder line for each
-    /// of the two invoices. Built again for every run, so the run finds it unsent.
-    /// </summary>
+    // Built again for every run, so the run finds it unsent.
     local procedure BuildReminder()
     var
         IssuedReminderHeader: Record "Issued Reminder Header";
@@ -215,7 +187,8 @@ codeunit 50192 "Filename Reminder Tests"
         IssuedReminderHeader."Due Date" := WorkDate();
         IssuedReminderHeader."Language Code" := Customer."Language Code";
         IssuedReminderHeader."Currency Code" := Customer."Currency Code";
-        // What Reminder-Make copies from the customer, and the reminder report reads.
+        // What a reminder copies from its customer (Reminder Header's Customer No. validation), and
+        // the reminder report reads.
         IssuedReminderHeader."Customer Posting Group" := Customer."Customer Posting Group";
         IssuedReminderHeader."Gen. Bus. Posting Group" := Customer."Gen. Bus. Posting Group";
         IssuedReminderHeader."VAT Bus. Posting Group" := Customer."VAT Bus. Posting Group";
@@ -273,9 +246,7 @@ codeunit 50192 "Filename Reminder Tests"
         IssuedReminderHeader.DeleteAll(false);
     end;
 
-    /// <summary>
-    /// Removes every row this codeunit creates, and the rows reminder automation writes about its run.
-    /// </summary>
+    // Includes the rows reminder automation writes about its run.
     local procedure RemoveEverything()
     var
         ReminderTerms: Record "Reminder Terms";
@@ -324,7 +295,7 @@ codeunit 50192 "Filename Reminder Tests"
         InvoicePatternTok: Label 'Invoice-[No.]', Locked = true;
         ReminderPrefixTok: Label 'Reminder-', Locked = true;
         InvoicePrefixTok: Label 'Invoice-', Locked = true;
-        // Business Central's own names for the two documents, as measured on 5 October in English.
+        // Business Central's own names for the two documents, in English.
         BusinessCentralReminderTok: Label 'Issued Reminder ', Locked = true;
         BusinessCentralInvoiceTok: Label 'Sales Invoice ', Locked = true;
         PdfTok: Label '.pdf', Locked = true;

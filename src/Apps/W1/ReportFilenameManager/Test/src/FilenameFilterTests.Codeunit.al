@@ -4,27 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50152 "Filename Filter Tests"
 {
-    // Filter placeholders: a FlowFilter field a report's request page declares, such as the Date
-    // Filter on Detail Trial Balance. Available Placeholders offers them with Source "Filter", so the
-    // promise it makes - nothing is offered that cannot be filled in - holds only if a run that
-    // sets the filter is named from it. A FlowFilter holds no value on a record; the value exists
-    // only as the filter the run was given.
-    //
-    // Named through the manager with the platform's own filterviews payload, the one source every
-    // route carries, rather than through a page.
-    //
-    // Also here, because it is the other rule about what a run is named from rather than which
-    // records: the language of a record that names none. It is the company's default, which is
-    // Microsoft's own rule, and not the language of whoever produces the file.
-    //
-    // And the financial report's period, [Period], which is the same idea for report 25: the
-    // period is a variable of the report rather than a filter, and is captured as the request page
-    // closes. Those tests drive Base Application's own entry points - Financial Report Mgt.Print,
-    // the Acc. Schedule Overview's Print action, a Financial Report Export Log row - on financial
-    // reports they create (Filename Test Data), with the feature switched off while the report
-    // runs, so the run's subject and period are still recorded afterwards, and then name the run
-    // through the manager exactly as the naming hook does. Switched on during the run, the
-    // preview's own naming hook would take them first.
+    // What a run is named from beyond its records: request-page filters (a FlowFilter has no value on
+    // a record, only as the run's filter, passed here in the platform's filterviews payload), the
+    // financial report's [Period] (a report 25 variable captured as the request page closes), and the
+    // language of a record that names none (the company's default, not the user's).
 
     Subtype = Test;
     TestPermissions = Disabled;
@@ -125,8 +108,8 @@ codeunit 50152 "Filename Filter Tests"
         FinancialReport: Record "Financial Report";
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
     begin
-        // The overview's request page lets the Financial Report be changed, and report 25 then runs
-        // the one chosen. The name must follow it rather than the one the overview was opened on.
+        // The name follows the financial report chosen on the request page, not the one the overview
+        // was opened on.
         PrepareFinancialReportRun(NamedPatternTok);
         SwitchTo := BalanceOnlyReport();
         FinancialReport.Get(SwitchTo);
@@ -143,8 +126,8 @@ codeunit 50152 "Filename Filter Tests"
         FinancialReport: Record "Financial Report";
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
     begin
-        // A role centre runs report 25 as RunObject, with nothing recorded beforehand: the financial
-        // report and the period are chosen on the request page, and are what the run is about.
+        // A role centre runs report 25 with nothing recorded beforehand: report and period come from
+        // the request page.
         PrepareFinancialReportRun(NamedPatternTok);
         SwitchTo := PeriodColumnsReport();
         FinancialReport.Get(SwitchTo);
@@ -154,8 +137,7 @@ codeunit 50152 "Filename Filter Tests"
         Commit();
         Report.Run(Report::"Account Schedule");
 
-        // What was recorded can be read back only while nothing has named the run yet: naming takes
-        // it. Where the run's own hook named it, the name below is the proof of both.
+        // Naming takes what was recorded, so it can be read back only if the run's hook did not name it.
         if not NamingCapture.HasNameFor(Report::"Account Schedule") then
             AssertRunRecorded(FinancialReport.Name);
         AssertNamed(ReportFilenameMgt.Sanitise(FinancialReport.Description) + '-' + TypedYearTok);
@@ -169,8 +151,7 @@ codeunit 50152 "Filename Filter Tests"
         SubjectRecRef: RecordRef;
         Filename: Text;
     begin
-        // Recorded with a period, named once; recorded again without one, the same financial report
-        // must decline rather than be named after the period that went before.
+        // Recorded again without a period, the run must not be named after the previous period.
         PrepareFinancialReportRun(PeriodPatternTok);
         SetFeature(true);
         FinancialReport.Get(PeriodColumnsReport());
@@ -191,8 +172,7 @@ codeunit 50152 "Filename Filter Tests"
         FinancialReportSchedule: Record "Financial Report Schedule";
         ReportInbox: Record "Report Inbox";
     begin
-        // The export job's own first step is the export log row, and the schedule's date formulas
-        // decide the period; the Report Inbox row inserted afterwards is named from both.
+        // The Report Inbox row is named from the export log row and the schedule's date formulas.
         PrepareFinancialReportRun(PeriodPatternTok);
         SetFeature(true);
         WorkDate(20260915D);
@@ -214,10 +194,8 @@ codeunit 50152 "Filename Filter Tests"
     end;
 
     /// <summary>
-    /// A Time field has no file name form - resolving one gives nothing - so offering it would make
-    /// a pattern that never names a file. Found by the documentation audit on 6 October: the picker
-    /// offered Time fields with an example, while the design said they were excluded. Checked on
-    /// whichever table holds a public Time field, with the table's other fields as the control.
+    /// A Time field resolves to nothing, so offering it would make a pattern that never names a file.
+    /// The table's other fields are the control.
     /// </summary>
     [Test]
     procedure ATimeFieldIsNotOfferedAsAPlaceholder()
@@ -249,10 +227,8 @@ codeunit 50152 "Filename Filter Tests"
     end;
 
     /// <summary>
-    /// Decided by the user on 7 October: in Available Placeholders the filters come straight after
-    /// the computed values, then the record's fields, then the tables one relation away. Read in the
-    /// page's own order (its Tree key) for Detail Trial Balance, whose request page offers Date
-    /// Filter, so every kind is present.
+    /// Available Placeholders order: computed values, filters, record fields, related tables. Read in
+    /// the page's Tree key order for Detail Trial Balance, which offers every kind.
     /// </summary>
     [Test]
     procedure TheFiltersFollowTheComputedPlaceholders()
@@ -363,9 +339,7 @@ codeunit 50152 "Filename Filter Tests"
         GLAccount: Record "G/L Account";
         Filename: Text;
     begin
-        // No date filter means the placeholder has no value, and a pattern is used only when every
-        // placeholder has one - so the run keeps Business Central's own name rather than becoming
-        // "TB-.pdf".
+        // A placeholder without a value means the pattern is not used, rather than naming "TB-.pdf".
         Prepare();
         CreatePattern(Pattern);
 
@@ -397,8 +371,7 @@ codeunit 50152 "Filename Filter Tests"
         GLAccount: Record "G/L Account";
         Filename: Text;
     begin
-        // Two separate dates are not a range, and naming the file after the span between them
-        // would claim the days in between.
+        // Naming two separate dates as a span would claim the days in between.
         Prepare();
         CreatePattern(Pattern);
 
@@ -420,9 +393,8 @@ codeunit 50152 "Filename Filter Tests"
         Filename: Text;
         Named: Boolean;
     begin
-        // The session is English (Prepare), the invoice names no language, and the company's
-        // default is German - so a pattern for DEU applies only if the company's default is what
-        // decides. Falling back to the user's language, as naming once did, leaves it unnamed.
+        // Session English, invoice without a language, company default German: the DEU pattern applies
+        // only if the company's default decides.
         Prepare();
         TestData.EnsureLanguage(GermanLanguageTok, FilenameProofSupport.GermanLanguageId());
         TestData.PostNewInvoice(SalesInvoiceHeader);
@@ -443,8 +415,8 @@ codeunit 50152 "Filename Filter Tests"
         Named := ReportFilenameMgt.TryResolve(Report::"Standard Sales - Invoice", Enum::"Report Filename Output Route"::Download,
             NoRecord, FilenameProofSupport.InvoiceFilterViews(SalesInvoiceHeader), Filename);
 
-        // The company's own language back before anything is asserted: the runner rolls back only when
-        // the whole codeunit ends, and the tests after this one name financial reports in it.
+        // Restored before asserting: with codeunit isolation the runner rolls back only when the
+        // codeunit ends, and later tests depend on the company's language.
         CompanyInformation."Default Language Code" := CompanyLanguageCode;
         CompanyInformation.Modify();
 
@@ -470,8 +442,7 @@ codeunit 50152 "Filename Filter Tests"
     end;
 
     /// <summary>
-    /// The filterviews payload the platform hands the naming hook for a Detail Trial Balance run with the
-    /// G/L Account's filters: one entry per data item, the view written with field numbers.
+    /// The filterviews payload as the platform gives it to the naming hook: one entry per data item.
     /// </summary>
     local procedure FilterViewsFor(var GLAccount: Record "G/L Account") Payload: Text
     var
@@ -492,11 +463,9 @@ codeunit 50152 "Filename Filter Tests"
         ReportInbox: Record "Report Inbox";
         WorkbookInbox: Record "Report Inbox";
     begin
-        // Measured on 28 September: a schedule exporting a workbook and a PDF named neither. The
-        // export writes the workbook rows (report 29) first, and naming one cleared the subject
-        // the PDF rows (report 25) then needed. Here the workbook row comes first, as it does there.
-        // Report 29 is processing-only and can have no pattern, so the workbook is named by the
-        // financial report's own pattern: the same name as the PDF, another extension.
+        // The export writes the workbook row (report 29) before the PDF row (report 25); naming the
+        // first must not clear the subject the second needs. Report 29 can have no pattern, so the
+        // workbook takes the PDF's name.
         PrepareFinancialReportRun(PeriodPatternTok);
         SetFeature(true);
         WorkDate(20260915D);
@@ -520,8 +489,7 @@ codeunit 50152 "Filename Filter Tests"
         ReportFilenameFinRepSub: Codeunit "Report Filename Fin. Rep. Sub.";
         FileName: Text;
     begin
-        // What the overview's Open in Excel records, with the same financial report and date filter
-        // TheOverviewsPeriodNamesTheReportItPrints prints: the workbook takes the same name.
+        // Open in Excel from the overview, with the same input as TheOverviewsPeriodNamesTheReportItPrints.
         PrepareFinancialReportRun(PeriodPatternTok);
         SetFeature(true);
         FinancialReport.Get(PeriodColumnsReport());
@@ -544,8 +512,7 @@ codeunit 50152 "Filename Filter Tests"
         FinancialReportSchedule: Record "Financial Report Schedule";
         ReportInbox: Record "Report Inbox";
     begin
-        // The export ends by modifying its schedule (next run date). After that nothing may be
-        // named after its financial report, or a later run in the same session would inherit it.
+        // The export ends by modifying its schedule; after that a later run must not inherit its subject.
         PrepareFinancialReportRun(PeriodPatternTok);
         SetFeature(true);
         WorkDate(20260915D);
@@ -560,9 +527,7 @@ codeunit 50152 "Filename Filter Tests"
     end;
 
     /// <summary>
-    /// What Financial Report Export Job does first: a schedule with date formulas for this year, and
-    /// the export log row that names the financial report. The financial report is a new one, so no
-    /// earlier test's schedule is on it.
+    /// A schedule for this year, and the export log row Financial Report Export Job inserts first.
     /// </summary>
     local procedure StartScheduledExport(var FinancialReportSchedule: Record "Financial Report Schedule")
     var
@@ -584,9 +549,7 @@ codeunit 50152 "Filename Filter Tests"
         FinancialReportExportLog.Insert();
     end;
 
-    /// <summary>
-    /// A Report Inbox row as the export's CreateInboxEntries inserts it.
-    /// </summary>
+    // Inserted as the export's CreateInboxEntries inserts a row (Entry No. 0, Insert(true)), without the output.
     local procedure InsertExportInboxRow(ReportId: Integer; OutputType: Enum "Report Inbox Output Type"): Integer
     var
         ReportInbox: Record "Report Inbox";
@@ -601,26 +564,18 @@ codeunit 50152 "Filename Filter Tests"
         exit(ReportInbox."Entry No.");
     end;
 
-    /// <summary>
-    /// A financial report run with its request page, the way the Financial Reports list prints one.
-    /// </summary>
     local procedure PrintFromTheList(FinancialReportName: Code[10])
     var
         FinancialReport: Record "Financial Report";
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
     begin
         FinancialReport.Get(FinancialReportName);
-        // The request page is modal and cannot open inside the write transaction the test's own
-        // setup started ("An error occurred and the transaction is stopped"). The runner rolls the
-        // whole codeunit back afterwards, committed changes included.
+        // The modal request page cannot open inside the setup's write transaction. With codeunit
+        // isolation the runner still rolls back committed changes when the codeunit ends.
         Commit();
         FinancialReportMgt.Print(FinancialReport);
     end;
 
-    /// <summary>
-    /// A financial report printed from its overview, with the overview's own date filter - the
-    /// overview's Print action, pressed on the page.
-    /// </summary>
     local procedure PrintFromTheOverview(FinancialReportName: Code[10]; DateFilterText: Text)
     var
         FinancialReports: TestPage "Financial Reports";
@@ -633,8 +588,8 @@ codeunit 50152 "Filename Filter Tests"
         AccScheduleOverview.Trap();
         FinancialReports.Overview.Invoke();
         AccScheduleOverview.DateFilter.SetValue(DateFilterText);
-        // The client commits each page interaction on its own; a test page does not, so the
-        // overview's writes as its date filter is set would otherwise hold the request page off.
+        // A test page does not commit each interaction as the client does; the overview's writes would
+        // otherwise block the request page.
         Commit();
         AccScheduleOverview.Print.Invoke();
         AccScheduleOverview.Close();
@@ -654,20 +609,19 @@ codeunit 50152 "Filename Filter Tests"
             AccountSchedule.StartDate.SetValue(TypedFirst);
             AccountSchedule.EndDate.SetValue(TypedLast);
         end;
-        // A report's request page has no OK; Preview closes it the way Print and Send to do.
+        // Only a processing-only report's request page has OK; report 25 is run with Preview.
         AccountSchedule.Preview().Invoke();
     end;
 
     /// <summary>
-    /// Names the run just made, as the naming hook does: report 25, printed, no record handed over.
+    /// Takes the name the run's naming hook gave, or else names the run as the hook does (report 25,
+    /// printed, no record).
     /// </summary>
     local procedure AssertNamed(Expected: Text)
     var
         Filename: Text;
     begin
         SetFeature(true);
-        // The name the run's own naming hook gave, when it gave one - taken, so it names one
-        // assertion only.
         Filename := NamingCapture.TakeNameWithoutExtension(Report::"Account Schedule");
         if Filename = '' then
             if not TryNameFinancialReportRun(Filename) then
@@ -677,8 +631,7 @@ codeunit 50152 "Filename Filter Tests"
     end;
 
     /// <summary>
-    /// That the run's request page recorded this financial report, with a period - read back
-    /// without taking either, so a failure says which half is missing.
+    /// Peeks rather than takes, so a failure says whether the report or the period is missing.
     /// </summary>
     local procedure AssertRunRecorded(ExpectedName: Code[10])
     var
@@ -715,13 +668,9 @@ codeunit 50152 "Filename Filter Tests"
         TypedLast := 0D;
         ClearTheDates := false;
         SwitchTo := '';
-        // Before the feature is switched off: the proof guard's ClearPatterns, which this calls,
-        // switches it back on.
         CreateFinancialReportPattern(PatternText);
-        // On while the report runs: the run's subject and period are recorded only while the
-        // feature can name something (Report Filename Mgt.IsActive). The name the run's own naming
-        // hook gives is captured as it is given; where no hook names the run in this session, the
-        // recorded run is named afterwards instead.
+        // The feature stays on while the report runs: subject and period are recorded only while it
+        // can name something. The hook's name is captured; if no hook names the run, AssertNamed does.
         NamingCapture.Reset();
         if not NamingCaptureBound then
             NamingCaptureBound := BindSubscription(NamingCapture);
@@ -750,20 +699,12 @@ codeunit 50152 "Filename Filter Tests"
         ReportFilenameSetup.Modify();
     end;
 
-    /// <summary>
-    /// A new financial report whose columns include one that is not Balance at Date, so report 25
-    /// keeps Starting Date.
-    /// </summary>
     local procedure PeriodColumnsReport(): Code[10]
     begin
         exit(TestData.CreateFinancialReport(PeriodColumnsDescriptionTok, true));
     end;
 
-    /// <summary>
-    /// A new financial report whose columns are all Balance at Date, so report 25 can switch
-    /// Starting Date off. Described otherwise than PeriodColumnsReport's, so a name built from the
-    /// description says which of the two was run.
-    /// </summary>
+    // Described differently from PeriodColumnsReport, so a name built from the description says which ran.
     local procedure BalanceOnlyReport(): Code[10]
     begin
         exit(TestData.CreateFinancialReport(BalanceOnlyDescriptionTok, false));

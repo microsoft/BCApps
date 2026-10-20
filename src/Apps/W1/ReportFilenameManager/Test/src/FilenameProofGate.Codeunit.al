@@ -4,20 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50164 "Filename Proof Gate"
 {
-    // Turns the proof log into something that can fail.
-    //
-    // Every proof writes its conclusion as a line beginning RESULT, and until now that was all
-    // it did: a regression produced a green run and a log line nobody was obliged to read.
-    // This reads the lines a run produced and errors if any of them is not a pass, so the run
-    // itself carries the verdict - whether it was started by the test runner or by hand.
+    // Makes a run fail when any RESULT line it wrote to the proof log is not a pass.
 
     Access = Internal;
 
     /// <summary>
-    /// The last log entry before a run starts, so the verdicts of that run can be told apart
-    /// from every earlier one in the same company.
+    /// The last log entry before a run starts, so that run's verdicts can be told from earlier ones.
     /// </summary>
-    /// <returns>The entry number to check from.</returns>
     internal procedure Baseline(): Integer
     var
         FilenameProofLog: Record "Filename Proof Log";
@@ -27,11 +20,6 @@ codeunit 50164 "Filename Proof Gate"
         exit(0);
     end;
 
-    /// <summary>
-    /// Errors unless every verdict written since the baseline is a pass, naming the ones that
-    /// are not.
-    /// </summary>
-    /// <param name="FromEntryNo">The entry number returned by Baseline before the run.</param>
     internal procedure AssertAllVerdictsPassed(FromEntryNo: Integer)
     var
         Failures: Text;
@@ -42,16 +30,11 @@ codeunit 50164 "Filename Proof Gate"
         if Failures <> '' then
             Error(VerdictsFailedErr, Failures);
 
-        // A run that produced no verdict at all is not a pass either: it means the proofs did
-        // not reach their conclusions, which is the failure mode a green light hides best.
+        // No verdict at all means the proofs never reached their conclusions.
         if Checked = 0 then
             Error(NoVerdictsErr);
     end;
 
-    /// <summary>
-    /// Reads the verdicts a run wrote.
-    /// </summary>
-    /// <param name="FromEntryNo">The entry number to read after.</param>
     /// <param name="Failures">Receives one line per verdict that is not a pass.</param>
     /// <returns>How many verdicts were found.</returns>
     internal procedure CollectFailures(FromEntryNo: Integer; var Failures: Text) Checked: Integer
@@ -66,8 +49,7 @@ codeunit 50164 "Filename Proof Gate"
             exit(0);
 
         repeat
-            // A long verdict is written across several rows, and only the first carries the
-            // conclusion; the continuations are the rest of the sentence.
+            // A long verdict spans several rows; only the first carries the conclusion.
             if StrPos(FilenameProofLog.Item, ContinuationTok) = 0 then begin
                 Checked += 1;
                 if not IsPass(FilenameProofLog.Value) then
@@ -76,10 +58,7 @@ codeunit 50164 "Filename Proof Gate"
         until FilenameProofLog.Next() = 0;
     end;
 
-    /// <summary>
-    /// Whether a verdict reads as a pass. The proofs write either PASS or, where the point is
-    /// that several routes agree, IDENTICAL followed by the name they agreed on.
-    /// </summary>
+    // A pass is PASS, or IDENTICAL (several routes gave the same name).
     local procedure IsPass(Verdict: Text): Boolean
     begin
         if CopyStr(Verdict, 1, StrLen(PassPrefixTok)) = PassPrefixTok then

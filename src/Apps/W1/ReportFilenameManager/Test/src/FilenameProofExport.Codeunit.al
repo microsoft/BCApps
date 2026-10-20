@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50196 "Filename Proof Export"
 {
-    // The export of the proof's own electronic document format: a fixed, minimal XML in place of a
-    // real format's document, so a proof of the file's name does not depend on the demonstration
-    // company passing a real format's checks.
+    // Export for the proof's own electronic document format: a fixed XML, so the name proof does not
+    // depend on the company passing a real format's checks.
 
     TableNo = "Record Export Buffer";
 

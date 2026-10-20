@@ -4,12 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50165 "Filename Proof Tests"
 {
-    // The proofs as tests, one per thing being proven, so a regression fails a run instead of
-    // writing a line into a log that nobody has to read.
-    //
-    // Each test notes where the log has got to, runs one proof, and then insists that every
-    // verdict that proof wrote is a pass. The verdicts stay in the log as evidence - what
-    // changes is that they are now a gate.
+    // Runs each proof as a test and fails unless every verdict that proof wrote to the log is a pass.
 
     Subtype = Test;
     TestPermissions = Disabled;
@@ -515,9 +510,7 @@ codeunit 50165 "Filename Proof Tests"
     end;
 
     /// <summary>
-    /// Refuses to run anywhere the proofs could destroy a real configuration, notes where the
-    /// log has got to, and pins the session language so that a pattern authored with an English
-    /// caption is authored in English whoever runs the test.
+    /// Pins the session language so patterns authored with English captions stay English whoever runs the test.
     /// </summary>
     local procedure Prepare()
     var

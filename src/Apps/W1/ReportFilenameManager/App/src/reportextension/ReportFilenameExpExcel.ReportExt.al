@@ -4,15 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 reportextension 50111 "Report Filename Exp. Excel" extends "Export Acc. Sched. to Excel"
 {
-    // Bounds the Excel naming to report 29's own run.
-    //
-    // Open in Excel on a financial report's overview records which financial report report 29 is
-    // about to export, just before the action runs it (Report Filename Fin. Rep. Ov.). What it records
-    // must name that workbook and nothing else - not a workbook downloaded later in the session after
-    // the export failed half way, and not one report 29 writes when it is started from somewhere that
-    // recorded nothing. So the workbook is named only while report 29 runs, started by that action:
-    // it starts here, and ends here or wherever anything else is rendered (Report Filename Context).
-    //
+    // Limits the Excel naming recorded by Report Filename Fin. Rep. Ov. to this run of report 29,
+    // so a later workbook in the session is not named after it.
     // SCAFFOLDING with Report Filename Excel Sub. and Report Filename Fin. Rep. Ov., until Base
     // Application raises a file name event in report 29 carrying the financial report (ask 4).
 

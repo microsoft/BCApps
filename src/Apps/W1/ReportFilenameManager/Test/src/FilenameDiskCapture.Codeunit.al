@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50182 "Filename Disk Capture"
 {
-    // Reads the name Send to Disk downloads a customer document under, at the last point Base
-    // Application raises before the download, and takes the download over: a test session has no
-    // client to receive a file. Report Selections raises this event after the naming event the
-    // feature answers, so what it reads is the name the user would get. Bound manually.
+    // Reads the name Send to Disk downloads under and handles the download, so no client download
+    // is attempted. The event is raised after the naming events, so this is the name the user would get.
 
     Access = Internal;
     EventSubscriberInstance = Manual;
@@ -24,9 +22,6 @@ codeunit 50182 "Filename Disk Capture"
         IsHandled := true;
     end;
 
-    /// <summary>
-    /// The name of the last download, and forgets it.
-    /// </summary>
     internal procedure TakeName() Name: Text
     begin
         Name := LastName;

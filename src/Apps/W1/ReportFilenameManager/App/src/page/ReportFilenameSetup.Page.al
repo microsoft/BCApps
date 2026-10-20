@@ -4,15 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 page 50119 "Report Filename Setup"
 {
-    // The setup card: the switch for the whole feature, how many patterns it puts to work, and the
-    // one maximum length. Captions and
-    // tooltips come from the table, as on every other page in this app.
+    // Captions and tooltips come from the table.
 
     Caption = 'Report Filename Setup';
     PageType = Card;
     SourceTable = "Report Filename Setup";
     UsageCategory = Administration;
-    // Tell Me matches whole words; see the same property on Report Filename Patterns.
+    // Tell Me matches the letters and words typed; see the same property on Report Filename Patterns.
     AdditionalSearchTerms = 'file name, file names, file name setup, document name, PDF name, attachment name, report naming';
     ApplicationArea = All;
     InsertAllowed = false;
@@ -74,8 +72,7 @@ page 50119 "Report Filename Setup"
 
     trigger OnOpenPage()
     begin
-        // The row is created the first time somebody opens the setup, the way Base Application's
-        // setup pages do it - and only here, never while a report is being named.
+        // The setup row is created only here, never while a report is being named.
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();
@@ -84,11 +81,8 @@ page 50119 "Report Filename Setup"
     end;
 
     /// <summary>
-    /// Opens the patterns list, and counts Enabled Patterns again when it closes. Opened without
-    /// waiting for it, the list left the count as it was when this page opened, until the page was
-    /// refreshed - a pattern turned on there still showed 0 here.
+    /// Runs the list modally so Enabled Patterns can be recounted when it closes.
     /// </summary>
-    /// <param name="Pattern">The patterns to show, with their filters.</param>
     local procedure ShowPatterns(var Pattern: Record "Report Filename Pattern")
     begin
         Page.RunModal(Page::"Report Filename Patterns", Pattern);

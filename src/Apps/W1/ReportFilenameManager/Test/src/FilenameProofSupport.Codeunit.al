@@ -4,22 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50162 "Filename Proof Support"
 {
-    // Shared by the proofs, so that the amount-format reference, the caption lookups and the
-    // language switching exist once rather than in two copies that can drift apart.
-    //
-    // The language handling here is the important part. A proof that authors a pattern with an
-    // English caption while the session happens to be Danish does not fail with a wrong name -
-    // it fails to save at all, and takes the rest of the run with it. Which language a pattern
-    // is authored in has to be a decision, never an accident of who is logged in.
+    // Helpers shared by the proofs. Captions are read in an explicit language: a pattern's
+    // placeholders are matched against captions in the session language (or AL field names), so a
+    // pattern written with another language's captions is refused when it is validated.
 
     Access = Internal;
 
-    /// <summary>
-    /// Writes one line to Filename Proof Log. Every proof records its findings this way, and it lived
-    /// as an identical private copy in six of them before it was moved here.
-    /// </summary>
-    /// <param name="ItemName">What is being reported. A name beginning RESULT is a verdict.</param>
-    /// <param name="ItemValue">What was found.</param>
+    /// <param name="ItemName">A name beginning RESULT is a verdict.</param>
     internal procedure LogLine(ItemName: Text; ItemValue: Text)
     var
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
@@ -32,12 +23,7 @@ codeunit 50162 "Filename Proof Support"
         exit(1033);
     end;
 
-    /// <summary>
-    /// Limits a pattern to one route, on the record in memory, as the proofs written for a single
-    /// Output Route need. Any leaves the pattern for every route.
-    /// </summary>
-    /// <param name="Pattern">The pattern.</param>
-    /// <param name="Route">The route.</param>
+    // On the record in memory; Any leaves the pattern for every route.
     internal procedure LimitToRoute(var Pattern: Record "Report Filename Pattern"; Route: Enum "Report Filename Output Route")
     var
         Routes: List of [Integer];
@@ -72,13 +58,7 @@ codeunit 50162 "Filename Proof Support"
         exit('DEU');
     end;
 
-    /// <summary>
-    /// A field's caption as one language has it, without leaving the session in that language.
-    /// </summary>
-    /// <param name="LanguageId">The language to read in.</param>
-    /// <param name="TableNo">The table.</param>
-    /// <param name="FieldNo">The field.</param>
-    /// <returns>The caption, or an empty string when the field does not exist.</returns>
+    // Without leaving the session in that language; empty when the field does not exist.
     internal procedure FieldCaptionIn(LanguageId: Integer; TableNo: Integer; FieldNo: Integer) Caption: Text
     var
         FieldRec: Record Field;
@@ -91,9 +71,6 @@ codeunit 50162 "Filename Proof Support"
         GlobalLanguage(RestoreLanguage);
     end;
 
-    /// <summary>
-    /// A table's caption as one language has it.
-    /// </summary>
     internal procedure TableCaptionIn(LanguageId: Integer; TableNo: Integer) Caption: Text
     var
         TableMetadata: Record "Table Metadata";
@@ -106,9 +83,6 @@ codeunit 50162 "Filename Proof Support"
         GlobalLanguage(RestoreLanguage);
     end;
 
-    /// <summary>
-    /// A report's caption as one language has it.
-    /// </summary>
     internal procedure ReportCaptionIn(LanguageId: Integer; ReportId: Integer) Caption: Text
     var
         ReportMetadata: Record "Report Metadata";
@@ -121,30 +95,19 @@ codeunit 50162 "Filename Proof Support"
         GlobalLanguage(RestoreLanguage);
     end;
 
-    /// <summary>
-    /// A field placeholder as an administrator working in one language would write it - the caption
-    /// in that language, in brackets. Composed rather than written down, so a proof that claims
-    /// to author in Danish really does, whatever translations happen to be installed.
-    /// </summary>
+    // The caption in that language, in brackets.
     internal procedure FieldPlaceholderIn(LanguageId: Integer; TableNo: Integer; FieldNo: Integer): Text
     begin
         exit('[' + FieldCaptionIn(LanguageId, TableNo, FieldNo) + ']');
     end;
 
-    /// <summary>
-    /// A placeholder reaching one relation away, as that language writes it: the related table's
-    /// caption, a full stop, and the field's caption.
-    /// </summary>
+    // The related table's caption, a full stop, and the field's caption.
     internal procedure HopPlaceholderIn(LanguageId: Integer; RelatedTableNo: Integer; RelatedFieldNo: Integer): Text
     begin
         exit('[' + TableCaptionIn(LanguageId, RelatedTableNo) + '.' + FieldCaptionIn(LanguageId, RelatedTableNo, RelatedFieldNo) + ']');
     end;
 
-    /// <summary>
-    /// Whether two languages actually say something different here. A cross-language proof
-    /// against captions that read the same in both languages passes while proving nothing, so
-    /// every such proof asks this first and reports the answer.
-    /// </summary>
+    // A cross-language proof against identical captions proves nothing, so each asks this first.
     internal procedure CaptionsDifferBetweenLanguages(TableNo: Integer; FieldNo: Integer): Boolean
     var
         English: Text;
@@ -158,16 +121,9 @@ codeunit 50162 "Filename Proof Support"
     end;
 
     /// <summary>
-    /// Sets the language on a posted invoice, reading the row again first and handing the
-    /// caller a fresh copy back.
-    ///
-    /// Both halves matter. Rendering an invoice increments No. Printed on the header, so a copy
-    /// held from before a render cannot be saved; and the caller goes on to name the document
-    /// from its own variable, so a variable still carrying the old language would have the
-    /// proof measuring the wrong thing and reporting a failure against correct code.
+    /// Re-reads the invoice first (a render increments No. Printed, so an older copy cannot be
+    /// saved) and hands the caller the updated copy to name from.
     /// </summary>
-    /// <param name="SalesInvoiceHeader">The invoice. Re-read in place.</param>
-    /// <param name="LanguageCode">The language to record on it.</param>
     internal procedure SetInvoiceLanguage(var SalesInvoiceHeader: Record "Sales Invoice Header"; LanguageCode: Code[10])
     var
         Writable: Record "Sales Invoice Header";
@@ -184,22 +140,13 @@ codeunit 50162 "Filename Proof Support"
         SalesInvoiceHeader.Get(InvoiceNo);
     end;
 
-    /// <summary>
-    /// The filterviews payload a single posted sales invoice arrives as on the platform hook.
-    /// </summary>
-    /// <param name="SalesInvoiceHeader">The invoice the payload should select.</param>
-    /// <returns>The payload, as Business Central itself writes it.</returns>
+    // A filterviews payload (name, tableid, view, as in OnGetFilename's payload) for one invoice.
     internal procedure InvoiceFilterViews(var SalesInvoiceHeader: Record "Sales Invoice Header"): Text
     begin
         exit(InvoiceFilterViewsFor(SalesInvoiceHeader."No."));
     end;
 
-    /// <summary>
-    /// The same payload for a filter value the caller has built - three document numbers
-    /// alternated, say, which is how a multi-document selection arrives.
-    /// </summary>
-    /// <param name="FilterValue">The filter expression the view should carry.</param>
-    /// <returns>The payload, as Business Central itself writes it.</returns>
+    // For a caller-built filter, e.g. several document numbers joined with |.
     internal procedure InvoiceFilterViewsFor(FilterValue: Text): Text
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -208,45 +155,25 @@ codeunit 50162 "Filename Proof Support"
             SalesInvoiceHeader.FieldNo("No."), SalesInvoiceHeader.FieldNo("No."), FilterValue));
     end;
 
-    /// <summary>
-    /// The filterviews payload a single issued reminder arrives as on the platform hook.
-    /// </summary>
-    /// <param name="IssuedReminderHeader">The reminder the payload should select.</param>
-    /// <returns>The payload, as Business Central itself writes it.</returns>
     internal procedure IssuedReminderFilterViews(var IssuedReminderHeader: Record "Issued Reminder Header"): Text
     begin
         exit(StrSubstNo(FilterViewsTok, IssuedReminderDataItemTok, Database::"Issued Reminder Header",
             IssuedReminderHeader.FieldNo("No."), IssuedReminderHeader.FieldNo("No."), IssuedReminderHeader."No."));
     end;
 
-    /// <summary>
-    /// The filterviews payload the proof's own document arrives as on the platform hook.
-    /// </summary>
-    /// <param name="ProofDocument">The document the payload should select.</param>
-    /// <returns>The payload, as Business Central itself writes it.</returns>
     internal procedure ProofDocumentFilterViews(var ProofDocument: Record "Filename Proof Document"): Text
     begin
         exit(StrSubstNo(FilterViewsTok, ProofDocumentDataItemTok, Database::"Filename Proof Document",
             ProofDocument.FieldNo("No."), ProofDocument.FieldNo("No."), ProofDocument."No."));
     end;
 
-    /// <summary>
-    /// The amount as a file name has to carry it: the decimal places the document's own
-    /// currency uses, with an invariant separator. Derived from the currency and the company's
-    /// setup directly, so it is a reference the manager has to match rather than a copy of what
-    /// the manager does.
-    /// </summary>
+    // The currency's decimal places with an invariant separator, derived independently of the manager.
     internal procedure AmountForFileName(Value: Decimal; CurrencyCode: Code[10]): Text
     begin
         exit(Format(Value, 0, StrSubstNo(InvariantAmountTok, DecimalPlacesFor(CurrencyCode))));
     end;
 
-    /// <summary>
-    /// Removes a job queue entry a proof created and ran itself through Job Queue Start Report,
-    /// as the job queue removes a one-off entry once it has run. They were left behind before: by
-    /// 8 October the container held about 110 of them, many still Ready.
-    /// </summary>
-    /// <param name="JobQueueEntryId">The entry's ID.</param>
+    // As the job queue removes a one-off entry once it has run.
     internal procedure RemoveJobQueueEntry(JobQueueEntryId: Guid)
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -277,9 +204,6 @@ codeunit 50162 "Filename Proof Support"
     var
         InvariantAmountTok: Label '<Precision,%1><Standard Format,9>', Comment = '%1 the decimal places', Locked = true;
         DefaultDecimalPlacesTok: Label '2:2', Locked = true;
-        // The one place this payload's shape is written down. It stood in three proofs before,
-        // twice character for character, and the field numbers are asked of the record rather
-        // than typed so that the payload cannot quietly stop selecting anything.
         FilterViewsTok: Label '[{"name":"%1","tableid":%2,"view":"VERSION(1) SORTING(Field%3) WHERE(Field%4=1(%5))"}]', Comment = '%1 data item name, %2 table number, %3 sorting field, %4 filtered field, %5 document number', Locked = true;
         InvoiceDataItemTok: Label 'Header', Locked = true;
         IssuedReminderDataItemTok: Label 'IssuedReminderHeader', Locked = true;

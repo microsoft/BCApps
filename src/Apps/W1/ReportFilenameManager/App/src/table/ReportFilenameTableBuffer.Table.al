@@ -4,18 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 table 50112 "Report Filename Table Buffer"
 {
-    // The kinds of record a report can actually be about, so the lookup offers those and
-    // nothing else.
-    //
-    // The lookup used to run straight over Table Metadata with no filter, which offered every
-    // table in the system - buffers, session tables, setup tables, things no report is ever
-    // about. Choosing one produced a pattern that could never match anything, and it
-    // contradicted the rule the rest of this feature keeps: offer only what compiled metadata
-    // says is real.
-    //
-    // A buffer rather than a filter on Table Metadata, because the set is derived by walking
-    // every report's first data item and a filter listing several hundred table numbers would
-    // be both enormous and fragile.
+    // Tables that some non-processing report is about (Report Filename Mgt.SubjectTableNo), each
+    // with its number of reports, which a filter on Table Metadata could not carry.
 
     Caption = 'Report Filename Table Buffer';
     TableType = Temporary;

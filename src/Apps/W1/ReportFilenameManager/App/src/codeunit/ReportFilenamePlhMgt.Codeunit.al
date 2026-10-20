@@ -4,21 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50114 "Report Filename Plh. Mgt."
 {
-    // Derives what an administrator may choose from, entirely from compiled metadata:
-    //   report            -> the run's subject: Report Metadata.FirstDataItemTableID when that
-    //                        is a real table, else the shallowest real Report Data Items entry
-    //   record fields     -> Field, excluding FlowFilters, which hold no value on a record
-    //   filter placeholders     -> Report Data Items."Request Filter Fields"
-    // No list is written by hand, nothing is learned from previous runs, and the result is
-    // identical in an empty database and in a ten-year-old company.
+    // Which placeholders and tables are offered is derived from compiled metadata (Report
+    // Metadata, Report Data Items, Table Metadata, Field), not from the company's records.
 
     Access = Internal;
 
-    /// <summary>
-    /// Fills the buffer with every placeholder the pattern's report and table can supply.
-    /// </summary>
-    /// <param name="Pattern">The pattern being edited.</param>
-    /// <param name="PlaceholderBuffer">Receives the available placeholders.</param>
     internal procedure BuildPlaceholders(var Pattern: Record "Report Filename Pattern"; var PlaceholderBuffer: Record "Report Filename Plh. Buffer")
     begin
         NextEntryNo := 0;
@@ -35,17 +25,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The kinds of record that reports are actually about, each with how many reports are about
-    /// it. Derived from every non-processing report's first data item - the same thing the card
-    /// fills in when a report is chosen - so the lookup can only offer a choice that could
-    /// really match something.
-    ///
-    /// The run's subject and not every table the report touches: a name is decided where only
-    /// the primary data item is in scope, which is why that is the one a pattern binds to. For
-    /// most reports the subject IS the first data item; where that is a virtual table, the
-    /// subject is the shallowest real one. The manager owns that rule.
+    /// The tables non-processing reports are about (each report's subject table, as the manager
+    /// defines it), each with how many reports are about it.
     /// </summary>
-    /// <param name="TableBuffer">Receives one row per kind of record.</param>
     internal procedure BuildTables(var TableBuffer: Record "Report Filename Table Buffer")
     var
         ReportMetadata: Record "Report Metadata";
@@ -57,28 +39,17 @@ codeunit 50114 "Report Filename Plh. Mgt."
 
         ReportMetadata.SetRange(ProcessingOnly, false);
 
-        // Two passes, because the subject of a run is not always its first data item and only
-        // one of the two cases can be filtered in the database.
-        //
-        // First the reports whose first data item is already a real table - 786 of the 901
-        // installed - which the database can select outright.
-        //
-        // Asked through the manager rather than read straight off the row, because for one
-        // report the two differ: report 25 renders every financial report there is, and its
-        // first data item names the row definition rather than the financial report. Reading
-        // the row directly here is what left Financial Report out of the list an administrator
-        // chooses from, so report 25 could be named by nothing they could set up.
+        // Two passes, split on the first data item's table.
+        // First: reports whose first data item is a real table. Still asked through the manager,
+        // because report 25's subject is Financial Report, not its first data item.
         ReportMetadata.SetFilter(FirstDataItemTableID, '>%1&<%2', 0, SystemTableFrom());
         if ReportMetadata.FindSet() then
             repeat
                 CountTable(TableBuffer, TableMetadata, ReportFilenameMgt.SubjectTableNo(ReportMetadata));
             until ReportMetadata.Next() = 0;
 
-        // Then the ones whose first data item is a system or virtual table. Most are reports
-        // driven entirely by their request page, which are about no record and contribute
-        // nothing - but 35 of them hide a real subject one or two data items in, and leaving
-        // those out is what kept report 910 Posted Assembly Order from offering a kind of
-        // record at all. Only this handful pays for the extra metadata read.
+        // Then: reports whose first data item is a system or virtual table; some have a real
+        // subject further in (e.g. report 910 Posted Assembly Order).
         ReportMetadata.SetFilter(FirstDataItemTableID, '%1|>=%2', 0, SystemTableFrom());
         if ReportMetadata.FindSet() then
             repeat
@@ -87,12 +58,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Records one more report as being about a kind of record. A table with no caption of its
-    /// own is skipped: it would be offered as a blank line, and a blank line is not a choice.
+    /// Counts one more report for a table. Tables without a caption are skipped.
     /// </summary>
-    /// <param name="TableBuffer">The list being built.</param>
-    /// <param name="TableMetadata">A metadata record to read the caption through.</param>
-    /// <param name="TableNo">The kind of record, or zero when the run is about none.</param>
+    /// <param name="TableNo">Zero when the report is about no table.</param>
     local procedure CountTable(var TableBuffer: Record "Report Filename Table Buffer"; var TableMetadata: Record "Table Metadata"; TableNo: Integer)
     begin
         if (TableNo <= 0) or (TableNo >= SystemTableFrom()) then
@@ -117,18 +85,10 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// What a field placeholder produces when the run covers several records: a first-to-last range,
-    /// exactly as the resolver renders one.
-    ///
-    /// Every field placeholder collapses this way, on every report. That is the point the picker used
-    /// to leave unsaid: [No.] looks perfectly reasonable on a chart of accounts, it resolves,
-    /// and what it resolves to is a range - which nothing on the screen admitted. Saying it here
-    /// is better than withholding the placeholder, because the placeholder is not wrong; it was only
-    /// undescribed.
+    /// What a field placeholder produces when the run covers several records: a first-to-last
+    /// range, as the resolver renders one.
     /// </summary>
-    /// <param name="Pattern">The pattern being edited, which carries the separator.</param>
-    /// <param name="FieldRec">The field the placeholder reads.</param>
-    /// <returns>The collapsed form, or blank when the field has no shape.</returns>
+    /// <returns>Blank when the field has no shape.</returns>
     local procedure CollapsedShapeOf(var Pattern: Record "Report Filename Pattern"; var FieldRec: Record Field): Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -141,27 +101,13 @@ codeunit 50114 "Report Filename Plh. Mgt."
 
         LastShape := ShapeOfValue(Pattern, FieldRec, true);
 
-        // A field whose shape is its own name - a text field - reads the same at both ends of
-        // any range, so showing it twice would say nothing. The single shape is the honest
-        // answer there.
+        // A text field's shape is its own name, the same at both ends.
         if LastShape = FirstShape then
             exit(FirstShape);
 
-        // Joined exactly as a real name is, with the pattern's own separator and range word. It
-        // used a fixed English 'to' here, so the list could show a different word from the
-        // example on the card and from the file itself.
         exit(FirstShape + ReportFilenameMgt.RangeJoinOf(Pattern) + LastShape);
     end;
 
-    /// <summary>
-    /// What a computed placeholder produces when the run covers several records. Most are one value
-    /// for the whole run and are unchanged; the one that is not says so in words rather than
-    /// being quietly withheld, because withholding it would leave an administrator wondering
-    /// where it had gone.
-    /// </summary>
-    /// <param name="Pattern">The pattern being edited.</param>
-    /// <param name="PlaceholderImplementation">The computed value.</param>
-    /// <returns>What it produces over a run of many records.</returns>
     local procedure OverManyForComputed(var Pattern: Record "Report Filename Pattern"; PlaceholderImplementation: Interface "Report Filename Placeholder"): Text
     begin
         if PlaceholderImplementation.SpeaksForARunOfManyRecords() then
@@ -169,22 +115,11 @@ codeunit 50114 "Report Filename Plh. Mgt."
         exit(CannotNameARunMsg);
     end;
 
-    /// <summary>
-    /// The first table number Business Central reserves for system and virtual tables. Anything
-    /// at or above it is machinery rather than a record a file could be named after.
-    /// </summary>
-    /// <returns>The lowest system table number.</returns>
     local procedure SystemTableFrom(): Integer
     begin
         exit(2000000000);
     end;
 
-    /// <summary>
-    /// Says in plain words what the list is derived from, including the case where a report
-    /// has no document behind it.
-    /// </summary>
-    /// <param name="Pattern">The pattern being edited.</param>
-    /// <returns>A sentence for the administrator.</returns>
     internal procedure DescribeScope(var Pattern: Record "Report Filename Pattern"): Text
     var
         ReportMetadata: Record "Report Metadata";
@@ -209,13 +144,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Turns the pattern text into its canonical binding: every placeholder replaced by the field
-    /// number it resolves to, or by the canonical name of the value it computes. Raises an
-    /// error naming any placeholder that resolves to nothing, so a mistyped placeholder is refused while
-    /// the person who typed it is still looking at it.
+    /// Turns the pattern text into its binding: each placeholder replaced by its field number or
+    /// computed canonical name. Raises an error for any placeholder that resolves to nothing.
     /// </summary>
-    /// <param name="Pattern">The pattern whose text is being bound.</param>
-    /// <returns>The binding, or an empty string when the pattern has no text.</returns>
     internal procedure BuildBinding(var Pattern: Record "Report Filename Pattern") Binding: Text
     var
         Remaining: Text;
@@ -247,9 +178,7 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Binds one placeholder. A field on the source table is tried first, so a table that happens
-    /// to have a field called Created is still nameable by it rather than being shadowed by
-    /// the computed value of the same name.
+    /// A field on the source table wins over a computed value of the same name.
     /// </summary>
     local procedure BindPlaceholder(var Pattern: Record "Report Filename Pattern"; PlaceholderName: Text): Text
     var
@@ -276,8 +205,7 @@ codeunit 50114 "Report Filename Plh. Mgt."
         if not TableMetadata.Get(Pattern."Table No.") then
             Error(UnknownPlaceholderErr, PlaceholderName);
 
-        // Tried last, because it is the only interpretation that has to guess where a name
-        // ends. A placeholder naming a field on the document itself never reaches this point.
+        // Tried last: the only interpretation that has to guess where a name splits.
         if StrPos(PlaceholderName, HopSeparatorTok) > 0 then
             exit(BindHopPlaceholder(Pattern, PlaceholderName, TableMetadata.Caption));
 
@@ -285,12 +213,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Binds a placeholder that reaches one table relation away, such as
-    /// [Finance Charge Terms.Interest Rate]. Every position the name could split at is tried,
-    /// because a caption may itself contain a full stop - "No." is one - so the split cannot
-    /// be decided by looking at the text. Exactly one interpretation has to work: none means
-    /// the placeholder names nothing, and more than one would mean picking silently between two
-    /// readings of what the administrator wrote.
+    /// Binds a placeholder one relation away, such as [Finance Charge Terms.Interest Rate]. Every
+    /// full stop is tried as the split, since captions such as "No." contain one; exactly one
+    /// interpretation must work.
     /// </summary>
     local procedure BindHopPlaceholder(var Pattern: Record "Report Filename Pattern"; PlaceholderName: Text; SourceTableCaption: Text): Text
     var
@@ -302,8 +227,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         NextSeparator: Integer;
     begin
         SplitPos := 0;
-        // Walks the separators from left to right. The offset always advances past the one just
-        // found, and the loop ends when there is no separator left in the remainder.
         repeat
             NextSeparator := StrPos(CopyStr(PlaceholderName, SplitPos + 1), HopSeparatorTok);
             if NextSeparator > 0 then begin
@@ -320,11 +243,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
         if Interpretations > 1 then
             Error(AmbiguousHopErr, PlaceholderName);
 
-        // A full stop in a placeholder is not evidence that a relation was meant - most field
-        // captions end in one. The relation message is only the right thing to say when part
-        // of the placeholder really did name a table the document points at; otherwise this is an
-        // ordinary field name that does not exist, and saying so is more use than explaining
-        // a feature the administrator was not trying to use.
+        // A full stop does not mean a relation was intended; only mention relations when part of
+        // the name matched one.
         if RelationsMatched = 0 then
             Error(UnknownFieldPlaceholderErr, PlaceholderName, SourceTableCaption);
 
@@ -332,10 +252,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Counts one candidate reading of a hop placeholder, keeping the field numbers of the last one
-    /// that worked. The left side may name the related table, or the field on the document
-    /// that points at it - the second form is what makes a document with two relations to the
-    /// same table, a bill-to and a sell-to customer, expressible at all.
+    /// Counts one candidate split. The left side may name the related table or the relation field,
+    /// which is how two relations to the same table (sell-to and bill-to customer) are told apart.
     /// </summary>
     local procedure CountHopInterpretation(SourceTableNo: Integer; LeftName: Text; RightName: Text; var LocalFieldNo: Integer; var RelatedFieldNo: Integer; var Interpretations: Integer; var RelationsMatched: Integer)
     var
@@ -367,17 +285,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Finds the field a placeholder names. The caption is tried first, in the language the
-    /// administrator is working in, so a pattern can be authored as it reads on screen. The
-    /// AL field name is tried second: it is language-invariant and unique within a table, so
-    /// a pattern authored in another session's language, or before captions were accepted,
-    /// still binds.
+    /// Matches the caption in the session language first, then the language-invariant AL field name.
     /// </summary>
-    /// <param name="SourceTableNo">The table to search.</param>
-    /// <param name="PlaceholderName">The placeholder as the administrator wrote it.</param>
-    /// <param name="FieldNo">Receives the field number when exactly one field matches.</param>
-    /// <param name="MatchCount">Receives how many fields carry that caption, so the caller can tell "no such field" from "more than one".</param>
-    /// <returns>True when exactly one field matches.</returns>
+    /// <param name="MatchCount">How many fields carry that caption, so the caller can tell "no such field" from "more than one".</param>
     local procedure FindFieldByPlaceholder(SourceTableNo: Integer; PlaceholderName: Text; var FieldNo: Integer; var MatchCount: Integer): Boolean
     var
         FieldRec: Record Field;
@@ -392,9 +302,7 @@ codeunit 50114 "Report Filename Plh. Mgt."
         FieldRec.SetRange(ObsoleteState, FieldRec.ObsoleteState::No);
         ExcludeUnnameableTypes(FieldRec);
 
-        // Captions are compared in AL rather than filtered on, because the caption is
-        // resolved per session language rather than stored, and counting the matches is what
-        // lets two fields sharing a caption be reported instead of silently picking one.
+        // Every field with the caption is counted, so an ambiguous caption can be reported.
         if FieldRec.FindSet() then
             repeat
                 if FieldRec."Field Caption" = PlaceholderName then begin
@@ -420,31 +328,17 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Leaves out the field types that have no file name form at all. A Blob holds a document
-    /// or an image - Issued Reminder Header's Email Text is one, on the very table this design
-    /// centres on - and offering it would put either something meaningless or an error into a
-    /// file name. A Time has no file-safe form that stays readable, so resolving one gives nothing
-    /// (Report Filename Mgt.) - offered, it would make a pattern that never names a file. Applied
-    /// wherever fields are offered and wherever a placeholder is bound, so that a pattern saved before
-    /// this existed cannot reach one either.
+    /// Excludes types with no file name form: Blob and Media, and Time, which Report Filename Mgt.
+    /// resolves to nothing. Applied both when offering and when binding.
     /// </summary>
-    /// <param name="FieldRec">The field record to filter.</param>
     local procedure ExcludeUnnameableTypes(var FieldRec: Record Field)
     begin
         FieldRec.SetFilter(Type, '<>%1&<>%2&<>%3&<>%4', FieldRec.Type::BLOB, FieldRec.Type::Media, FieldRec.Type::MediaSet, FieldRec.Type::Time);
     end;
 
     /// <summary>
-    /// The fields of a table that can be offered as a placeholder: public, live, and holding a value a
-    /// name can be built from. FlowFilters are excluded because they exist only as filters, so a
-    /// placeholder bound to one would look pickable and then resolve to nothing.
-    ///
-    /// Filtered in one place because the picker and the binding have to agree on what is
-    /// offerable - a field the picker offers and the binding then refuses is the one failure an
-    /// administrator cannot act on.
+    /// Fields that can be offered as a placeholder. FlowFilters hold no value on a record.
     /// </summary>
-    /// <param name="FieldRec">The field record to filter.</param>
-    /// <param name="SourceTableNo">The table whose fields are wanted.</param>
     local procedure FilterNameableFields(var FieldRec: Record Field; SourceTableNo: Integer)
     begin
         FieldRec.SetRange(TableNo, SourceTableNo);
@@ -456,13 +350,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The fields of a table that point at another table, which are the one hop a placeholder may
-    /// take. Filtered in one place so the three passes over them - counting how many fields
-    /// reach each related table, offering the related fields, and reading a hop placeholder back -
-    /// cannot disagree about what counts as a relation.
+    /// Relation fields a placeholder may hop through. Shared by every pass so they agree on what counts as a relation.
     /// </summary>
-    /// <param name="RelationFieldRec">The field record to filter.</param>
-    /// <param name="SourceTableNo">The document table whose relations are wanted.</param>
     local procedure FilterRelationFields(var RelationFieldRec: Record Field; SourceTableNo: Integer)
     begin
         RelationFieldRec.SetRange(TableNo, SourceTableNo);
@@ -473,13 +362,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Matches a placeholder against the computed values, by the name shown to the administrator in
-    /// their own language and by the canonical name the binding records. Both are accepted, so
-    /// a pattern authored in Danish and one authored in English bind to the same thing.
+    /// Accepts both the display name and the canonical name.
     /// </summary>
-    /// <param name="PlaceholderName">The placeholder as the administrator wrote it.</param>
-    /// <param name="ComputedKey">Receives the canonical name.</param>
-    /// <returns>True when the placeholder names a computed value.</returns>
     local procedure TryResolveComputedName(PlaceholderName: Text; var ComputedKey: Text): Boolean
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -493,19 +377,13 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Protects literal braces in the pattern text, which are legal in a file name, from
-    /// being read back as the binding's own placeholder delimiters.
+    /// Doubles literal braces so they are not read back as binding delimiters.
     /// </summary>
     local procedure EscapeLiteral(LiteralText: Text): Text
     begin
         exit(LiteralText.Replace(BindStartTok, BindStartTok + BindStartTok).Replace(BindEndTok, BindEndTok + BindEndTok));
     end;
 
-    /// <summary>
-    /// Every computed value declared on the enum, including ones an extension added. Nothing
-    /// here knows what they are, which is what makes the extension point real rather than
-    /// nominal.
-    /// </summary>
     local procedure AddComputedPlaceholders(var Pattern: Record "Report Filename Pattern"; var PlaceholderBuffer: Record "Report Filename Plh. Buffer")
     var
         PlaceholderValue: Enum "Report Filename Placeholder";
@@ -517,17 +395,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
         foreach Ordinal in PlaceholderValue.Ordinals() do begin
             PlaceholderValue := Enum::"Report Filename Placeholder".FromInteger(Ordinal);
             PlaceholderImplementation := PlaceholderValue;
-            // Asked, not assumed. Every other kind of placeholder is listed only when compiled
-            // metadata says where its value would come from, and until this was here the
-            // computed ones were the exception that made the picker's own promise false: a
-            // pattern on a customer was offered [Total Incl. VAT], which can never resolve
-            // there, and the whole pattern would then decline at the moment it was used.
-            //
-            // Nor when a field of the table carries the same name. The binding lets the field
-            // win (BindPlaceholder), so the computed value could never be chosen there: Issued
-            // Reminder Header has a User ID field, and choosing the computed [User ID] - "the
-            // user who produced the file", example ADMIN - bound the user who issued the
-            // reminder (container client, 8 October). Asked of the same lookup the binding uses.
+            // Skipped when the table is not supported, or when any field has the same name (a single
+            // such field wins in BindPlaceholder, so the computed value could not be chosen).
             if PlaceholderImplementation.IsTableSupported(Pattern."Table No.") then
                 if not (FindFieldByPlaceholder(Pattern."Table No.", PlaceholderImplementation.DisplayName(), FieldNo, MatchCount) or (MatchCount > 1)) then
                     AddPlaceholder(PlaceholderBuffer, PlaceholderBuffer.Source::Computed, PlaceholderImplementation.DisplayName(), PlaceholderImplementation.Description(),
@@ -536,18 +405,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The fields one table relation away, offered as ready-made placeholders so the administrator
-    /// picks a path rather than writing one. The left side of the placeholder names the related
-    /// table where that is unambiguous, and the field on the document where it is not - a
-    /// posted invoice points at Customer twice, as sell-to and as bill-to, and
-    /// [Customer.Name] could not say which.
-    ///
-    /// Each relation contributes a row naming the table itself, at indentation zero, and its
-    /// fields under it at indentation one, so the picker can show the relation as a step the
-    /// administrator takes rather than as a prefix repeated down forty rows. The table row is
-    /// written only once its fields are known to exist, so the tree never offers a branch that
-    /// opens onto nothing. It is presentation only and carries no field number: it is not a
-    /// placeholder and never reaches the binding.
+    /// The fields one relation away. Each relation adds a table row (indentation 0, no field
+    /// number, never bound) and its fields under it (indentation 1); the table row is only
+    /// added when it has fields.
     /// </summary>
     local procedure AddRelatedFieldPlaceholders(var Pattern: Record "Report Filename Pattern"; var PlaceholderBuffer: Record "Report Filename Plh. Buffer")
     var
@@ -589,9 +449,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The unambiguous left-hand name for a relation: the related table's caption when the
-    /// document points at that table once, and the pointing field's own caption when it points
-    /// at it more than once.
+    /// The related table's caption, or the relation field's caption when the document relates
+    /// to that table more than once (e.g. sell-to and bill-to customer).
     /// </summary>
     local procedure HopLeftName(var RelationFieldRec: Record Field; var RelationCounts: Dictionary of [Integer, Integer]; var TableMetadata: Record "Table Metadata"): Text
     var
@@ -609,9 +468,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         exit(TableMetadata.Caption);
     end;
 
-    /// <summary>
-    /// How many fields on the document point at each related table.
-    /// </summary>
     local procedure CountRelations(SourceTableNo: Integer; var RelationCounts: Dictionary of [Integer, Integer])
     var
         RelationFieldRec: Record Field;
@@ -629,11 +485,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         until RelationFieldRec.Next() = 0;
     end;
 
-    /// <summary>
-    /// Every field on the document that can hold a value. FlowFilters are excluded: they
-    /// exist only as filters, so a placeholder bound to one would look pickable and then resolve
-    /// to nothing.
-    /// </summary>
     local procedure AddRecordFieldPlaceholders(var Pattern: Record "Report Filename Pattern"; var PlaceholderBuffer: Record "Report Filename Plh. Buffer")
     var
         FieldRec: Record Field;
@@ -652,10 +503,7 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The placeholder to offer for a field: its caption, which is what the administrator reads on
-    /// the document and can be authored in their own language, unless the table has two
-    /// fields carrying that caption - in which case the caption would be ambiguous and the
-    /// AL field name, which is unique, is offered instead.
+    /// The field's caption, or its unique AL name when another field shares the caption.
     /// </summary>
     local procedure PlaceholderNameForField(var FieldRec: Record Field; var CaptionCounts: Dictionary of [Text, Integer]): Text
     var
@@ -670,9 +518,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// How many fields on a table carry each caption. Counted over exactly the fields the
-    /// binding will search, so the picker never offers a placeholder that the binding would then
-    /// refuse as ambiguous.
+    /// Counted over every field the binding searches (and more), so the picker never offers a
+    /// caption the binding would refuse as ambiguous.
     /// </summary>
     local procedure CountCaptions(SourceTableNo: Integer; var CaptionCounts: Dictionary of [Text, Integer])
     var
@@ -694,10 +541,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The fields the request page declares as filters. These may be FlowFilters, because
-    /// they resolve from the filter the run was given rather than from the record - which is
-    /// how an analytical report's period reaches the file name. Their example is a range,
-    /// because that is what a period is, and it reads the same over one record or many.
+    /// The request page's FlowFilter fields, resolved from the run's filter rather than the
+    /// record. Shown as a range over one record or many.
     /// </summary>
     local procedure AddFilterPlaceholders(var Pattern: Record "Report Filename Pattern"; var PlaceholderBuffer: Record "Report Filename Plh. Buffer")
     var
@@ -727,15 +572,9 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// What a computed value will actually produce. These are safe to show for real: the company
-    /// name, today's date, the signed-in user and the chosen report's caption are properties of
-    /// the company, the session and the pattern - not anybody's data. Resolved against no
-    /// document, so a value that needs one - the document total - declines and shows nothing
-    /// rather than reaching into a record.
+    /// Resolves the computed value against no document, falling back to its declared shape.
+    /// Values needing no document (company, date, user) are not document data, so safe to show.
     /// </summary>
-    /// <param name="Pattern">The pattern being edited, which carries the date format and the report.</param>
-    /// <param name="PlaceholderImplementation">The computed value to ask.</param>
-    /// <returns>The value, or blank when it needs a document.</returns>
     local procedure ComputedExample(var Pattern: Record "Report Filename Pattern"; PlaceholderImplementation: Interface "Report Filename Placeholder"): Text
     var
         NoDocument: RecordRef;
@@ -747,37 +586,19 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The shape a field's value takes in a file name, worked out from the field's own type.
-    ///
-    /// Generated, never read from a record. The examples used to come from whichever document
-    /// happened to be first in the table, which was wrong twice over: an administrator setting
-    /// up names for a payroll report would be shown a real person's real figures, for no
-    /// purpose - and the record was arbitrary, so the value told them nothing they could rely
-    /// on anyway. The card already had the honest form of this - "Dates will look like" shows a
-    /// made-up date, not a posting date taken off a real invoice.
+    /// The shape of a field's value, generated from its type and never read from a record, so
+    /// no real data is shown.
     /// </summary>
-    /// <param name="Pattern">The pattern being edited, whose date format decides how a date reads.</param>
-    /// <param name="FieldRec">The field to describe.</param>
-    /// <returns>An example of the form its value takes.</returns>
     local procedure ShapeOfValue(var Pattern: Record "Report Filename Pattern"; var FieldRec: Record Field): Text
     begin
         exit(ShapeOfValue(Pattern, FieldRec, false));
     end;
 
     /// <summary>
-    /// The shape of a value, either the first in a run or the last.
-    ///
-    /// A run covering many records collapses a field placeholder into a first-to-last range, and an
-    /// example that showed the same shape at both ends would read as a defect rather than as a
-    /// range. So the types where ranges actually occur - document numbers, entry numbers,
-    /// amounts and dates - each offer a distinct second sample. For a text field the shape is
-    /// the field's own name, and the name of the field is the same at both ends of any range,
-    /// so those are left alone rather than given a fictitious second value.
+    /// Types where ranges occur (codes, numbers, amounts, dates) give a distinct last sample so a
+    /// range reads as a range; a text field's shape is its own name at both ends.
     /// </summary>
-    /// <param name="Pattern">The pattern being described.</param>
-    /// <param name="FieldRec">The field whose shape is wanted.</param>
     /// <param name="Last">True for the shape of the last value in a run.</param>
-    /// <returns>The shape.</returns>
     local procedure ShapeOfValue(var Pattern: Record "Report Filename Pattern"; var FieldRec: Record Field; Last: Boolean): Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -797,10 +618,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
             FieldRec.Type::Guid:
                 exit(SampleGuidTok);
             FieldRec.Type::Option:
-                // The option list is only populated for an option field; a field typed as an
-                // enum leaves it empty, and most of these are enums now. Falling back keeps the
-                // column complete rather than blank on a third of the rows for a reason that
-                // has nothing to do with the administrator.
                 if FirstOptionCaption(FieldRec) <> '' then
                     exit(FirstOptionCaption(FieldRec))
                 else
@@ -811,33 +628,17 @@ codeunit 50114 "Report Filename Plh. Mgt."
                 else
                     exit(SampleCodeTok);
             FieldRec.Type::Text:
-                // The field's own name, not a made-up string, and qualified by its table when
-                // that is not the table the pattern names. A code has a shape worth showing and
-                // a date has a format that matters, but a text field can hold anything - so what
-                // is useful is which field lands there.
-                //
-                // "Some text" said nothing at all. The field name alone was not enough either:
-                // field names repeat across tables, so [Payment Terms.Description] reading as
-                // "Description" leaves an administrator guessing which Description it is. It
-                // reads "Payment Terms Description" now, which is the one thing that could not
-                // be mistaken for another table's field of the same name.
+                // Text can hold anything, so show which field lands there.
                 exit(NameOfField(Pattern, FieldRec));
         end;
-        // Every other type offered - a date formula such as a customer's Shipping Time, a
-        // duration, a record ID, a table filter - has no sample of its own, so it reads as the
-        // field's name, as a text field does. It used to read as nothing: an empty Example in
-        // Available Placeholders and no example on the card (container client, 8 October).
+        // Other types (DateFormula, Duration, RecordId, TableFilter) have no sample of their own.
         exit(NameOfField(Pattern, FieldRec));
     end;
 
     /// <summary>
-    /// A field's name as the administrator reads it, for use where the field's identity is more
-    /// useful than a sample of its contents - qualified by its table when the field belongs to
-    /// another one, because field names are not unique across tables.
+    /// The field's caption, prefixed by its table's caption when it is on a related table,
+    /// because field names repeat across tables.
     /// </summary>
-    /// <param name="Pattern">The pattern being described, whose own table needs no qualifying.</param>
-    /// <param name="FieldRec">The field.</param>
-    /// <returns>Its name, qualified by its table when the field is one relation away.</returns>
     local procedure NameOfField(var Pattern: Record "Report Filename Pattern"; var FieldRec: Record Field): Text
     var
         TableMetadata: Record "Table Metadata";
@@ -848,10 +649,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         else
             FieldName := FieldRec.FieldName;
 
-        // Unqualified while the field is on the table the pattern itself names - there is only
-        // one of those, so there is nothing to confuse it with. Qualified as soon as the field
-        // is one relation away, because that is exactly where two tables can both have a
-        // Description and only the table says which is meant.
         if FieldRec.TableNo = Pattern."Table No." then
             exit(FieldName);
 
@@ -862,13 +659,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The first caption an option field offers that is not blank. That is a real value of the
-    /// field itself and gives away nothing about any record. Not blank, because many option
-    /// fields start with a blank option - Applies-to Doc. Type does - and an example of nothing
-    /// was shown for them (Available Placeholders in the container client, 8 October).
+    /// The first non-blank entry in the field's OptionString; an option field can start with a blank option.
     /// </summary>
-    /// <param name="FieldRec">The option field.</param>
-    /// <returns>Its first caption that is not blank, or blank when it declares none.</returns>
     local procedure FirstOptionCaption(var FieldRec: Record Field): Text
     var
         Captions: List of [Text];
@@ -884,27 +676,15 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The shape a field's value takes, for a caller that has no document - the setup card's
-    /// preview, which has to work in a company where the first invoice has not been entered
-    /// yet, and for an administrator who has no permission to read one.
+    /// The shape of a field's value for a caller without a document, such as the card's preview.
     /// </summary>
-    /// <param name="Pattern">The pattern being previewed, whose date format shapes a date.</param>
-    /// <param name="TableNo">The table the field belongs to.</param>
-    /// <param name="FieldNo">The field.</param>
-    /// <returns>The shape, or blank when there is no such field.</returns>
+    /// <returns>Blank when there is no such field.</returns>
     internal procedure ShapeForField(var Pattern: Record "Report Filename Pattern"; TableNo: Integer; FieldNo: Integer): Text
     begin
         exit(ShapeForField(Pattern, TableNo, FieldNo, false));
     end;
 
-    /// <summary>
-    /// The shape of a field's value, at either end of a run.
-    /// </summary>
-    /// <param name="Pattern">The pattern being described.</param>
-    /// <param name="TableNo">The table the field belongs to.</param>
-    /// <param name="FieldNo">The field.</param>
     /// <param name="Last">True for the shape of the last value in a run.</param>
-    /// <returns>The shape, or blank when the field has none.</returns>
     internal procedure ShapeForField(var Pattern: Record "Report Filename Pattern"; TableNo: Integer; FieldNo: Integer; Last: Boolean): Text
     var
         FieldRec: Record Field;
@@ -914,13 +694,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         exit(ShapeOfValue(Pattern, FieldRec, Last));
     end;
 
-    /// <summary>
-    /// The table a field points at, so a placeholder that reaches one relation away can be shaped
-    /// without following the relation into a record that may not exist.
-    /// </summary>
-    /// <param name="TableNo">The table the pointing field belongs to.</param>
-    /// <param name="FieldNo">The pointing field.</param>
-    /// <returns>The table it relates to, or zero.</returns>
     internal procedure RelatedTableOf(TableNo: Integer; FieldNo: Integer): Integer
     var
         FieldRec: Record Field;
@@ -931,13 +704,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// What a computed value will show when there is no document: its real value where it needs
-    /// none, and otherwise the shape it declares. The same rule the placeholder picker uses, so the
-    /// preview and the Example column cannot disagree.
+    /// Same rule as the picker's Example column, so the preview and the picker agree.
     /// </summary>
-    /// <param name="Pattern">The pattern being previewed.</param>
-    /// <param name="CanonicalName">The language-invariant name recorded in the binding.</param>
-    /// <param name="Shape">Receives the value.</param>
     /// <returns>True when the name is one of the computed values.</returns>
     internal procedure ShapeForComputed(var Pattern: Record "Report Filename Pattern"; CanonicalName: Text; var Shape: Text): Boolean
     var
@@ -952,15 +720,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// Where a kind of placeholder sits in the picker. The computed values come first: this app has seven
-    /// of them, each offered wherever it supports the pattern's table, and they are what somebody
-    /// naming a file reaches for before hunting through a hundred and fifty fields. The report's
-    /// request-page filters follow them, by the user's decision of 7 October 2026, then the
-    /// record's fields and the related tables' fields. Held here rather than in the enum's
-    /// ordinals, which are identities and must not be reordered to move rows on a page.
+    /// Picker order by source, independent of the enum's ordinals.
     /// </summary>
-    /// <param name="PlaceholderSource">The kind of placeholder.</param>
-    /// <returns>Its position among the kinds.</returns>
     local procedure SortOrderFor(PlaceholderSource: Enum "Report Filename Plh. Source"): Integer
     begin
         case PlaceholderSource of
@@ -984,11 +745,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         AddRow(PlaceholderBuffer, PlaceholderSource, '[' + PlaceholderName + ']', DescriptionText, ExampleText, OverManyText, FieldNo, 0, '', SortOrderFor(PlaceholderSource));
     end;
 
-    /// <summary>
-    /// A field one relation away, written under the table it belongs to. Its description is the
-    /// field's own name rather than the relation, because the relation is now said once on the
-    /// table row above it instead of once per field.
-    /// </summary>
     local procedure AddRelatedFieldPlaceholder(var PlaceholderBuffer: Record "Report Filename Plh. Buffer"; GroupName: Text; PlaceholderName: Text; DescriptionText: Text; ExampleText: Text; OverManyText: Text; FieldNo: Integer)
     begin
         if PlaceholderName = '' then
@@ -998,9 +754,8 @@ codeunit 50114 "Report Filename Plh. Mgt."
     end;
 
     /// <summary>
-    /// The row standing for a related table. It is written without brackets, precisely so that
-    /// it does not read as something to type: it is a branch of the tree, not a placeholder, and the
-    /// picker refuses it if the administrator tries to choose it.
+    /// A tree branch for a related table, written without brackets because it is not a placeholder;
+    /// the picker refuses it.
     /// </summary>
     local procedure AddRelatedTableRow(var PlaceholderBuffer: Record "Report Filename Plh. Buffer"; GroupName: Text; DescriptionText: Text)
     begin
@@ -1046,10 +801,6 @@ codeunit 50114 "Report Filename Plh. Mgt."
         SampleBooleanLbl: Label 'Yes';
         AmbiguousHopErr: Label '%1 can be read in more than one way, so it is not clear which field is meant. Choose it from Available Placeholders instead.', Comment = '%1 the placeholder as it was typed';
         UnknownHopErr: Label '%1 cannot be found. A placeholder can use a field on a related table, as in [Finance Charge Terms.Interest Rate]: the first part must be a table that %2 relates to, and the second a field on that table. A table related to a related table cannot be used.', Comment = '%1 the placeholder as it was typed, %2 the table name';
-        // Written as something to do rather than as a name. The branch row carried the same
-        // words as the field it is reached through, one row below it and without the
-        // brackets - "Transaction Type" sitting under "[Transaction Type]" reads as the same
-        // thing twice, and a search flattens the tree so the two end up adjacent.
         ExpandForFieldsMsg: Label 'Expand to use a field from %1, through %2', Comment = '%1 related table name, %2 the field on the record that relates to it';
         UnterminatedPlaceholderErr: Label 'The file name pattern has an opening bracket that is never closed, at %1. Close the placeholder or remove the bracket.', Comment = '%1 the rest of the file name pattern from the unclosed bracket';
         EmptyPlaceholderErr: Label 'The file name pattern contains an empty placeholder. Put a placeholder name between the brackets, or remove them.';

@@ -4,26 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50175 "Filename Proof Save To Disk"
 {
-    // Send to Disk: the Disk = PDF option of a Document Sending Profile, which renders the report
-    // and hands the PDF straight to a client download. Two halves in Base Application,
-    // SendToDiskForCust and SendToDiskForVend, named by two different hooks in this feature.
-    //
-    // This route was subscribed on 24 September 2026 and never worked: the customer hook stood down
-    // whenever the name was not empty, and Base Application always fills it in first. Nothing ran
-    // the route, so nothing noticed. This proof runs it for real.
-    //
-    // WHAT IS READ, AND WHY THERE
-    //
-    // Customer half: the name is read at the download helper's own event, OnBeforeDownload-
-    // AttachmentFromStream, which Base Application raises with the name it is about to download
-    // under - after every naming subscriber has run, whatever their order. That is the name a
-    // person would receive, so the checks compare it with what Business Central produces on its
-    // own, never with what this feature says it produced.
-    //
-    // Vendor half: this feature performs the download itself, so the name never reaches an event
-    // Base Application raises. It is read from the manager's own OnAfterNamingDelivery, and the
-    // control arm - no naming at all without a pattern, none for another channel - is what keeps
-    // the check from agreeing with itself.
+    // Send to Disk (Disk = PDF), customer and vendor halves, named by two different hooks. The name
+    // is read at OnBeforeDownloadAttachmentFromStream, raised after every naming subscriber has
+    // run, and compared with what Business Central produces with no pattern.
 
     SingleInstance = true;
 
@@ -48,13 +31,12 @@ codeunit 50175 "Filename Proof Save To Disk"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // An invoice of the proof's own to send.
         TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('40 Invoice', SalesInvoiceHeader."No.");
 
         ProofGuard.ClearPatterns();
 
-        // The control arm: no pattern, so this is Business Central's own name.
+        // Control: no pattern, so this is Business Central's own name.
         RunCustomerRoute(SalesInvoiceHeader, '40 Unnamed run returned');
         Baseline := DownloadName;
         ProofSupport.LogLine('40 Business Central downloads it as', Baseline);
@@ -70,9 +52,7 @@ codeunit 50175 "Filename Proof Save To Disk"
         ProofSupport.LogLine('41 With a Save to Disk pattern it downloads as', DownloadName);
         ProofSupport.LogLine('41 Channel it was named on', Format(CapturedChannel));
 
-        // The extension is Business Central's, taken from its own name: it passes 'pdf' as a
-        // Code[3], and a Code value is upper case, so its name ends in .PDF. Measured - the first run
-        // of this proof expected .pdf and failed on a name that was otherwise exactly right.
+        // In the case Business Central wrote the extension (lower case in Base Application 30).
         Expected := SalesInvoiceHeader."No." + SuffixOf(Baseline);
         if DownloadName = Expected then
             ProofSupport.LogLine('RESULT Send to Disk downloads a customer document under the pattern''s name', PassMsg)
@@ -86,10 +66,8 @@ codeunit 50175 "Filename Proof Save To Disk"
             ProofSupport.LogLine('RESULT it is named on the Save to Disk channel',
                 StrSubstNo(ExpectedButGotMsg, Format(Enum::"Report Filename Output Route"::Disk), Format(CapturedChannel)));
 
-        // A subscriber that renamed the file on purpose keeps its name. Which of the two runs first
-        // is unspecified: if the rename runs after this feature it wins by overwriting, and if it
-        // runs before, this feature must see a name that is no longer Business Central's and stand
-        // down. Either way the file must carry the rename.
+        // A deliberate rename must win in either subscriber order: run before, this feature must
+        // see a name that is no longer Business Central's and stand down.
         RenameAsAnotherExtension := true;
         RunCustomerRoute(SalesInvoiceHeader, '42 Run with a renaming subscriber returned');
         RenameAsAnotherExtension := false;
@@ -102,7 +80,6 @@ codeunit 50175 "Filename Proof Save To Disk"
             ProofSupport.LogLine('RESULT a subscriber that renamed the file keeps its name',
                 StrSubstNo(ExpectedButGotMsg, Expected, DownloadName));
 
-        // A pattern for another channel must leave the route exactly as Business Central names it.
         MovePatternToPrint();
         RunCustomerRoute(SalesInvoiceHeader, '43 Run with a Print pattern returned');
         ProofSupport.LogLine('43 With a Print pattern it downloads as', DownloadName);
@@ -117,8 +94,8 @@ codeunit 50175 "Filename Proof Save To Disk"
     end;
 
     /// <summary>
-    /// Send to Disk for a posted purchase invoice is named from the pattern on the Save to Disk
-    /// channel, is not named without one, and is not named by a pattern for another channel.
+    /// Send to Disk for a posted purchase invoice is named from the pattern on the Disk route, is not
+    /// named without one, and is not named by a pattern for another route.
     /// </summary>
     procedure ProveVendorDocument()
     var
@@ -129,7 +106,6 @@ codeunit 50175 "Filename Proof Save To Disk"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // A purchase invoice of the proof's own, for a vendor of its own.
         TestData.PostNewPurchaseInvoice(PurchInvHeader);
         ProofSupport.LogLine('50 Purchase invoice', PurchInvHeader."No.");
 
@@ -149,8 +125,8 @@ codeunit 50175 "Filename Proof Save To Disk"
         ProofSupport.LogLine('51 With a Save to Disk pattern it is named', CapturedName);
         ProofSupport.LogLine('51 Channel it was named on', Format(CapturedChannel));
 
-        // Lower case: the vendor document is named inside GetAttachmentFileName's own event, in place of
-        // Business Central's name, so there is no case of Business Central's to copy (ask 8).
+        // Lower case: the vendor document is named in place of Business Central's name, so there is
+        // no case of Business Central's to copy (ask 8).
         Expected := PurchInvHeader."No." + LowerCase(SuffixOf(Baseline));
         if CapturedName = Expected then
             ProofSupport.LogLine('RESULT Send to Disk names a vendor document from the pattern', PassMsg)
@@ -158,10 +134,7 @@ codeunit 50175 "Filename Proof Save To Disk"
             ProofSupport.LogLine('RESULT Send to Disk names a vendor document from the pattern',
                 StrSubstNo(ExpectedButGotMsg, Expected, CapturedName));
 
-        // The name the download is issued under. Base Application performs the vendor download itself
-        // and raises OnBeforeDownloadAttachmentFromStream with the name just before it, which
-        // CaptureDownloadName reads - so this is the name the user gets, whether or not this session
-        // can complete the download.
+        // Read just before the download, so this is the name the user gets.
         if DownloadName = Expected then
             ProofSupport.LogLine('RESULT the vendor download is issued under that name', PassMsg)
         else
@@ -187,8 +160,7 @@ codeunit 50175 "Filename Proof Save To Disk"
     end;
 
     /// <summary>
-    /// Two invoices for one customer, sent together, are one PDF - and the file is named after both,
-    /// not after the one the selection happens to sit on.
+    /// Two invoices of one customer sent together are one PDF, named after both.
     /// </summary>
     procedure ProveASelectionOfSeveralInvoices()
     var
@@ -213,7 +185,6 @@ codeunit 50175 "Filename Proof Save To Disk"
         RunManyRoute(SalesInvoiceHeader, '46 Named run returned');
         ProofSupport.LogLine('46 With a Save to Disk pattern it downloads as', DownloadName);
 
-        // Both numbers, joined by the pattern's separator, in the field's own order.
         Expected := FirstNo + '-' + SecondNo + SuffixOf(Baseline);
         if DownloadName = Expected then
             ProofSupport.LogLine('RESULT a selection of several invoices is named after all of them', PassMsg)
@@ -225,10 +196,6 @@ codeunit 50175 "Filename Proof Save To Disk"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// Two invoices posted for one new customer, in the order of their numbers, and a selection of
-    /// exactly those two.
-    /// </summary>
     local procedure TwoInvoicesOfOneCustomer(var FirstNo: Code[20]; var SecondNo: Code[20]; var Selection: Record "Sales Invoice Header")
     var
         InvoiceNos: List of [Code[20]];
@@ -252,11 +219,9 @@ codeunit 50175 "Filename Proof Save To Disk"
     local procedure RunCustomerRoute(var SalesInvoiceHeader: Record "Sales Invoice Header"; FailureLabel: Text)
     begin
         ClearCaptures();
-        // The route renders a report, and Business Central refuses to render while a write
-        // transaction is open - the pattern setup above has just written.
+        // Codeunit.Run with its result used must not start inside a write transaction.
         Commit();
-        // The route ends in a client download, which a session without a client may refuse. The
-        // name is decided before that, so a failure here is logged and is not the verdict.
+        // Isolated so a failing client download cannot end the proof; the name is decided before it.
         if not Codeunit.Run(Codeunit::"Filename Proof Send Disk", SalesInvoiceHeader) then
             ProofSupport.LogLine(FailureLabel, GetLastErrorText());
     end;
@@ -279,19 +244,14 @@ codeunit 50175 "Filename Proof Save To Disk"
         Clear(DownloadName);
     end;
 
-    /// <summary>
-    /// The name Base Application is about to download the file under. Raised after every naming
-    /// subscriber on the customer half has run, so its order relative to them does not matter.
-    /// </summary>
+    // Raised after every naming subscriber has run, so subscriber order does not matter.
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeDownloadAttachmentFromStream', '', false, false)]
     local procedure CaptureDownloadName(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; var AttachmentInStream: InStream; ClientAttachmentFileName: Text; var IsHandled: Boolean)
     begin
         DownloadName := CopyStr(ClientAttachmentFileName, 1, MaxStrLen(DownloadName));
     end;
 
-    /// <summary>
-    /// Stands in for a partner extension that renames Send to Disk files on purpose.
-    /// </summary>
+    // Stands in for a partner extension that renames Send to Disk files on purpose.
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendToDiskForCustOnBeforeDownloadAttachment', '', false, false)]
     local procedure RenameLikeAnotherExtension(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; DocumentNo: Code[20]; DocumentName: Text; Extension: Code[3]; var ClientAttachmentFileName: Text)
     begin
@@ -329,9 +289,7 @@ codeunit 50175 "Filename Proof Save To Disk"
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// The extension on a name, dot included, as Business Central wrote it.
-    /// </summary>
+    // Dot included, in the case Business Central wrote it.
     local procedure SuffixOf(FileName: Text): Text
     var
         DotPosition: Integer;

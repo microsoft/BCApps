@@ -4,11 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 enum 50116 "Report Filename Refusal"
 {
-    // Why a name every placeholder gave a value to is still not used as a file name, so that
-    // Test Pattern can say so instead of blaming a placeholder. None means the name is used.
+    // Why a fully resolved name is still not used as a file name, so Test Pattern can say so
+    // instead of blaming a placeholder. None means the name is used.
 
-    // Not extensible: an internal enum cannot be reached by another extension, so declaring
-    // it extensible would promise something impossible.
     Extensible = false;
     Caption = 'Report Filename Refusal';
     Access = Internal;

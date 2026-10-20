@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50157 "Filename Proof Show Inbox"
 {
-    // Calls the download the way both Report Inbox pages call it. Isolated in its own codeunit
-    // so that the failure a non-interactive session produces - it cannot receive a file - does
-    // not end the proof. By the time it fails, the name has already been decided and captured.
+    // Calls the download as the Report Inbox pages do (ShowReport), isolated so a failing download
+    // cannot end the proof; the name is decided and captured before the download.
 
     TableNo = "Report Inbox";
 

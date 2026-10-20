@@ -4,30 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50169 "Filename Proof Fin Schedule"
 {
-    // Drives a real Financial Report Schedule, end to end, in this container.
-    //
-    // This is the one Financial Reporting route that cannot be proven from a codeunit calling the
-    // manager. The scheduled export renders with SaveAs into a stream, so the platform never asks
-    // anybody for a name; the name is decided when the Report Inbox row is written. And the
-    // export writes ONE file and then ONE ROW PER RECIPIENT, which is why the recorded subject is
-    // read without being consumed - taking it would name the first person's copy and leave
-    // everybody else's with Business Central's own name. A schedule with two recipients is
-    // therefore the only run that can tell those two designs apart, and it is what this sets up.
-    //
-    // Nothing here is a stand-in for the export. Microsoft's own job does the work: it inserts
-    // the Financial Report Export Log row this feature reads the subject from, renders, and
-    // inserts the inbox rows. This only builds the schedule an administrator would build, and
-    // then reads what came out.
-    //
-    // Creating or changing a Financial Report Schedule makes Business Central schedule the
-    // recurring job that runs it - read at
-    // BaseApp\Source\Base Application\Finance\FinancialReports\FinancialReportExport.Codeunit.al,
-    // which subscribes to the schedule's own insert and modify events. So there is no job to set
-    // up by hand, and none is set up here.
+    // Drives a real Financial Report Schedule end to end; Base Application's own job does the export.
+    // The export writes one file and then one Report Inbox row per recipient, so the recorded
+    // subject must be read without being consumed - two recipients are what test that.
 
-    /// <summary>
-    /// A financial report schedule with two recipients, exporting to PDF, due to run now.
-    /// </summary>
     procedure SetUpScheduleWithTwoRecipients()
     var
         FinancialReport: Record "Financial Report";
@@ -59,9 +39,7 @@ codeunit 50169 "Filename Proof Fin Schedule"
     end;
 
     /// <summary>
-    /// Gives the schedule SetUpScheduleWithTwoRecipients made a Start and End Date Filter Formula,
-    /// for client-pass row P.6: a scheduled export is named by the period its formulas give on the
-    /// day it runs. Modified with its trigger, as editing the row on Financial Report Schedules does.
+    /// A scheduled export is named by the period its formulas give on the day it runs.
     /// </summary>
     /// <param name="StartAndEnd">The two formulas joined by |, such as -CM|CM.</param>
     procedure SetDateFilterFormulas(StartAndEnd: Text)
@@ -81,20 +59,9 @@ codeunit 50169 "Filename Proof Fin Schedule"
     end;
 
     /// <summary>
-    /// Schedules the job that exports financial report schedules.
-    ///
-    /// Business Central normally does this itself the moment a schedule is created - Financial
-    /// Report Export subscribes to the schedule's own insert event and schedules a recurring job
-    /// for codeunit 8361. It declines to, among other reasons, when the session cannot create a
-    /// task, and the session a codeunit is invoked in from outside the client is one of those:
-    /// measured on 15 September, a schedule created that way left no job queue entry behind and
-    /// no export ever ran.
-    ///
-    /// So the entry is created here with the same call Base Application uses for it -
-    /// ScheduleRecurrentJobQueueEntryWithFrequency on Job Queue Entry, read at
-    /// BaseApp\Source\Base Application\Finance\FinancialReports\FinancialReportExport.Codeunit.al.
-    /// Nothing about the export changes: this only puts the schedule in front of the job queue,
-    /// which is where creating one in a client would have put it.
+    /// Base Application schedules this job when a schedule is inserted, but not where
+    /// TaskScheduler.CanCreateTask() is false (Financial Report Export.ScheduleJob), so it is
+    /// scheduled here with the same ScheduleRecurrentJobQueueEntryWithFrequency, at a shorter interval.
     /// </summary>
     procedure ScheduleTheExportJob()
     var
@@ -112,22 +79,14 @@ codeunit 50169 "Filename Proof Fin Schedule"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// How often the export job is asked to look for due schedules. Base Application uses ten
-    /// minutes; this asks for the shortest the job queue accepts, because a proof waiting for a
-    /// run should wait for the job queue rather than for a recurrence interval.
-    /// </summary>
+    // One minute, so the proof need not wait (Base Application schedules it every 60 minutes).
     local procedure ExportEveryMinutes(): Integer
     begin
         exit(1);
     end;
 
     /// <summary>
-    /// What the export actually produced: the Report Inbox row each recipient received, and
-    /// whether both carry the pattern's name.
-    ///
-    /// Read from the rows rather than from the export log, because the row is what a person
-    /// downloads and the log only says that a run happened.
+    /// Whether each recipient's Report Inbox row (what a person downloads) carries the pattern's name.
     /// </summary>
     procedure ReadWhatTheScheduleProduced()
     var
@@ -171,10 +130,7 @@ codeunit 50169 "Filename Proof Fin Schedule"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// Puts the container back: the schedule, its recipients, the job Business Central scheduled
-    /// for it, the rows the export produced and the two users created to receive them.
-    /// </summary>
+    // Removes the schedule, recipients, job, inbox rows and the two users.
     procedure TakeTheScheduleDown()
     var
         FinancialReport: Record "Financial Report";
@@ -195,14 +151,8 @@ codeunit 50169 "Filename Proof Fin Schedule"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// The financial report this schedule exports. Named outright where the company has it, so
-    /// two runs of this are about the same report; otherwise the first one carrying a description,
-    /// because the demo pattern names a financial report by its description and one without would
-    /// leave nothing to read.
-    /// </summary>
-    /// <param name="FinancialReport">Receives the report.</param>
-    /// <returns>True when this company has one to export.</returns>
+    // A named report where the company has it, else the first with a description (the demo pattern
+    // names a financial report by its description).
     local procedure FindFinancialReport(var FinancialReport: Record "Financial Report"): Boolean
     begin
         if FinancialReport.Get(PreferredFinancialReportTok) then
@@ -214,13 +164,8 @@ codeunit 50169 "Filename Proof Fin Schedule"
         exit(FinancialReport.FindFirst());
     end;
 
-    /// <summary>
-    /// What the seeded demo pattern for report 25 makes of this financial report, asked of the
-    /// manager rather than assembled here - a proof that builds the expected name itself is
-    /// comparing the feature with a copy of the feature.
-    /// </summary>
-    /// <param name="FinancialReport">The financial report being exported.</param>
-    /// <returns>The name, or an empty string when no pattern claims the run.</returns>
+    // What the demo pattern for report 25 makes of this financial report, asked of the manager;
+    // empty when no pattern claims the run.
     local procedure ExpectedName(var FinancialReport: Record "Financial Report"): Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -259,18 +204,14 @@ codeunit 50169 "Filename Proof Fin Schedule"
         FinancialReportSchedule.Code := ScheduleCodeTok;
         FinancialReportSchedule.Description := ScheduleDescriptionTok;
         FinancialReportSchedule."Export to PDF" := true;
-        // Both outputs, so one run proves the PDF and the Excel copies are named alike. Set here
-        // rather than written to the database afterwards, so the server's own copy of the row is
-        // the one the export job reads.
+        // Both outputs, with Excel exported first; only the PDF rows (report 25) are read back.
         FinancialReportSchedule."Export to Excel" := true;
 
-        // Email deliberately left off. It would need an email account and a mailbox on each
-        // recipient, and none of that is what this proves - the Report Inbox row is.
+        // Email would need each recipient's User Setup e-mail; the Report Inbox row is what is proven.
         FinancialReportSchedule."Send Email" := false;
         FinancialReportSchedule."Next Run Date/Time" := CurrentDateTime();
 
-        // Inserted with its trigger, because that is what makes Business Central schedule the
-        // job that runs it.
+        // With the trigger: Financial Report Export schedules the job from OnAfterInsertEvent only then.
         FinancialReportSchedule.Insert(true);
     end;
 
@@ -285,11 +226,7 @@ codeunit 50169 "Filename Proof Fin Schedule"
         FinancialReportRecipient.Insert(true);
     end;
 
-    /// <summary>
-    /// A user to receive a copy. The export skips a recipient that is not a real, enabled user,
-    /// so two of them have to exist before two rows can be produced.
-    /// </summary>
-    /// <param name="UserId">The user name.</param>
+    // The export skips a recipient that is not a real, enabled user.
     local procedure EnsureRecipientUser(UserId: Code[50])
     var
         User: Record User;
@@ -349,13 +286,7 @@ codeunit 50169 "Filename Proof Fin Schedule"
         ReportInbox.DeleteAll();
     end;
 
-    /// <summary>
-    /// The codeunit Business Central schedules to export financial reports.
-    ///
-    /// By number rather than by name: it is Access = Internal, so it cannot be named from here -
-    /// which is the same reason this feature reads the subject from the export log the job writes
-    /// rather than from the job's own events.
-    /// </summary>
+    // By number: the export codeunit is Access = Internal, so it cannot be named from here.
     local procedure FinancialReportExportJobCodeunitId(): Integer
     begin
         exit(8361);

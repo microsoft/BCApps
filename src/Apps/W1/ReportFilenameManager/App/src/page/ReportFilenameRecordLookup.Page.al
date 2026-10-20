@@ -4,15 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 page 50118 "Report Filename Record Lookup"
 {
-    // Chooses the record a pattern is tested against.
-    //
-    // Lookup mode is set by the caller on a Page variable, the same way as the report, kinds and
-    // field lookups.
-    //
-    // Used only where a kind of record has no list page of its own. Where it has one, that page
-    // is what opens, with the columns it shows - a sales invoice is chosen from Posted Sales
-    // Invoices. This page exists so that a report about a kind of record Business Central never
-    // built a list for can still be tested.
+    // Chooses the record a pattern is tested against. Used only for tables with no lookup page
+    // (Table Metadata's LookupPageID is 0); otherwise the table's lookup page opens instead.
 
     Caption = 'Choose a Record to Test Against';
     PageType = List;
@@ -58,9 +51,7 @@ page 50118 "Report Filename Record Lookup"
 
     trigger OnAfterGetCurrRecord()
     begin
-        // Said once, and only when it is true. A list silently showing part of a table is the
-        // kind of quiet half-answer this feature exists to remove, but saying it on every
-        // keystroke would be worse than not saying it.
+        // Tell the user once that the list is truncated, not on every record change.
         if MoreThanListed and not MoreThanListedSaid then begin
             MoreThanListedSaid := true;
             Message(MoreThanListedMsg, Rec.Count());
@@ -68,21 +59,16 @@ page 50118 "Report Filename Record Lookup"
     end;
 
     /// <summary>
-    /// Which kind of record to list. Set before the page is run, because the list is built when
-    /// the page opens and there is nothing to show until the table is known.
+    /// Must be called before the page runs; the list is built in OnOpenPage.
     /// </summary>
-    /// <param name="NewTableNo">The table the pattern applies to.</param>
-    /// <param name="NewReportId">The report the pattern names, so the list shows only the records that report could render. Zero lists the whole kind.</param>
+    /// <param name="NewReportId">Limits the list to records this report could render. Zero lists the whole table.</param>
     internal procedure SetRecordTable(NewTableNo: Integer; NewReportId: Integer)
     begin
         RecordTableNo := NewTableNo;
         RecordReportId := NewReportId;
     end;
 
-    /// <summary>
-    /// The record the administrator chose, identified exactly rather than by description.
-    /// </summary>
-    /// <returns>Its RecordId; a blank RecordId when nothing was chosen.</returns>
+    /// <returns>A blank RecordId when nothing was chosen.</returns>
     internal procedure ChosenRecordId(): RecordId
     begin
         exit(Rec."Record ID");

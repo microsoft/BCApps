@@ -4,16 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50194 "Filename Proof Elec. Doc."
 {
-    // The electronic document - the XML a Document Sending Profile writes to Disk or puts in a zip -
-    // and the zip itself, on the Electronic Document output route.
-    //
-    // The real route runs: Document Sending Profile.Send, whose Disk step ends in File Management.
-    // BLOBExport. Its OnBeforeBlobExport carries the name the file is downloaded under, and this
-    // codeunit reads it there and takes the download over, so a test session without a client gets
-    // the same name a person would. It does so only while a proof is running.
-    //
-    // Every check compares against the name Business Central produces with no pattern, read from
-    // Business Central, never against what this feature says it produced.
+    // Proofs for the electronic document and its zip on the Electronic Document route, through the
+    // real Document Sending Profile.Send. The download name is read at File Management's
+    // OnBeforeBlobExport, which takes the download over while a proof runs.
 
     SingleInstance = true;
 
@@ -118,9 +111,8 @@ codeunit 50194 "Filename Proof Elec. Doc."
     end;
 
     /// <summary>
-    /// Two invoices for one customer sent together: Business Central puts their electronic documents in
-    /// one zip, which it names after a document. The zip and both documents in it take the pattern's
-    /// names - the one case where the zip's name is not built from the electronic document's.
+    /// Two invoices of one customer sent together go in one zip; the zip and both documents in it
+    /// take the pattern's names.
     /// </summary>
     procedure ProveTwoDocumentsInOneZip()
     var
@@ -137,7 +129,6 @@ codeunit 50194 "Filename Proof Elec. Doc."
         Capturing := false;
         NameLikeAnotherApp := false;
 
-        // Two invoices of the proof's own for one new customer, in the order of their numbers.
         TestData.PostInvoicesOfOneCustomer(2, InvoiceNos);
         FirstNo := InvoiceNos.Get(1);
         SecondNo := InvoiceNos.Get(2);
@@ -174,8 +165,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
     end;
 
     /// <summary>
-    /// The electronic document service gets Business Central's own name, whatever the patterns say: the
-    /// service's delivery code receives the name and may rely on it.
+    /// The electronic document service gets Business Central's own name whatever the patterns say.
     /// </summary>
     procedure ProveServiceDeliveryIsNotRenamed()
     var
@@ -203,22 +193,15 @@ codeunit 50194 "Filename Proof Elec. Doc."
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// An invoice of the proof's own to send, filtered to itself.
-    /// </summary>
     local procedure PostInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
-        // This codeunit lives for the session, so a proof that failed half-way must not leave the
-        // next one capturing or naming like another app.
+        // This codeunit lives for the session; reset what a proof that failed half-way left on.
         Capturing := false;
         NameLikeAnotherApp := false;
         TestData.PostNewInvoice(SalesInvoiceHeader);
         ProofSupport.LogLine('Invoice', SalesInvoiceHeader."No.");
     end;
 
-    /// <summary>
-    /// What Business Central itself calls the invoice's electronic document.
-    /// </summary>
     local procedure BusinessCentralsName(var SalesInvoiceHeader: Record "Sales Invoice Header"): Text
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
@@ -227,10 +210,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
             SalesInvoiceHeader, SalesInvoiceHeader."No.", ElectronicDocumentFormat.GetDocumentType(SalesInvoiceHeader), XmlTok));
     end;
 
-    /// <summary>
-    /// Sends the invoice through a Document Sending Profile whose only option is the given Disk option,
-    /// and returns the name the file is downloaded under.
-    /// </summary>
+    // Sends through a profile whose only option is the given Disk option; returns the download name.
     local procedure DiskDownload(var SalesInvoiceHeader: Record "Sales Invoice Header"; Option: Enum "Doc. Sending Profile Disk"): Text
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -244,10 +224,9 @@ codeunit 50194 "Filename Proof Elec. Doc."
         Clear(CapturedDownload);
         Clear(CapturedEntries);
         Capturing := true;
-        // The route renders a report, and Business Central refuses to render with a write transaction open.
+        // Committed before the send: with a PDF the route commits on its own (SaveReportAsPDFInTempBlob).
         Commit();
-        // Send, as Post and Send and the Send action do. TrySendToDisk, the Disk action, sets Disk to PDF
-        // first, so it never writes an electronic document.
+        // Send, not TrySendToDisk: that sets Disk to PDF first and never writes an electronic document.
         DocumentSendingProfile.Send(
             Enum::"Report Selection Usage"::"S.Invoice".AsInteger(), RecordVariant, SalesInvoiceHeader."No.", SalesInvoiceHeader."Bill-to Customer No.", DocumentNameTok,
             SalesInvoiceHeader.FieldNo("Bill-to Customer No."), SalesInvoiceHeader.FieldNo("No."));
@@ -255,13 +234,8 @@ codeunit 50194 "Filename Proof Elec. Doc."
         exit(CapturedDownload);
     end;
 
-    /// <summary>
-    /// An electronic document format of the proof's own for posted sales invoices, whose export writes
-    /// a fixed, minimal XML. Business Central builds the file's name in SendElectronically whatever the
-    /// format, and a format's export only fills the file - so this proves the naming exactly, without
-    /// the validation a real format such as PEPPOL applies to the demonstration company's data.
-    /// Removed again by RemoveProofFormat.
-    /// </summary>
+    // The proof's own format, exporting a fixed XML: SendElectronically names the file whatever the
+    // format, so this avoids a real format's (e.g. PEPPOL's) validation of the company's data.
     internal procedure ElectronicFormatCode(): Code[20]
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
@@ -277,9 +251,6 @@ codeunit 50194 "Filename Proof Elec. Doc."
         exit(ElectronicDocumentFormat.Code);
     end;
 
-    /// <summary>
-    /// Takes the proof's electronic document format away again.
-    /// </summary>
     internal procedure RemoveProofFormat()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
@@ -306,10 +277,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
             CapturedServiceName := ClientFileName;
     end;
 
-    /// <summary>
-    /// Names the electronic document the way another app would - through GetAttachmentFileName's own
-    /// event - while the proof asks for it.
-    /// </summary>
+    // Names the electronic document as another app would, while the proof asks for it.
     [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnBeforeGetAttachmentFileName', '', false, false)]
     local procedure NameAsAnotherApp(RecordVariant: Variant; DocumentNo: Code[20]; DocumentType: Text; Extension: Code[3]; var IsHandled: Boolean; var FileName: Text[250])
     begin
@@ -321,10 +289,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         IsHandled := true;
     end;
 
-    /// <summary>
-    /// The names of the entries in a zip, joined, in the order the zip holds them; blank for a file
-    /// that is not a zip.
-    /// </summary>
+    // Joined in zip order; blank for a file that is not a zip.
     local procedure EntriesOf(var TempBlob: Codeunit "Temp Blob"; Name: Text): Text
     var
         DataCompression: Codeunit "Data Compression";
@@ -345,10 +310,7 @@ codeunit 50194 "Filename Proof Elec. Doc."
         exit(Joined);
     end;
 
-    /// <summary>
-    /// The entries Business Central's own zip holds, each renamed to the document number with its own
-    /// extension - what a pattern of [No.] makes of every entry.
-    /// </summary>
+    // What a pattern of [No.] makes of every entry.
     local procedure EachNamed(Entries: Text; DocumentNo: Code[20]): Text
     var
         Entry: Text;

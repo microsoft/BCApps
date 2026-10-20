@@ -4,14 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 page 50114 "Report Filename Report Lookup"
 {
-    // Picks a report by its name. The pattern stores the report's object id, and no page in
-    // this design shows one: a number is not something an administrator should have to know,
-    // recognise or type.
-    //
-    // Reports that render nothing are left out. Two objects share the caption
-    // Customer Statement - one is the launcher a user chooses from the customer list, which
-    // renders nothing itself and delegates - and filtering those out resolves the collision
-    // without showing an object number to tell them apart.
+    // Picks a report by caption. Processing-only reports are left out, so of the two reports
+    // captioned Customer Statement only 1316 is listed; 153 is processing-only and runs the
+    // statement through Customer Layout - Statement.
 
     Caption = 'Reports';
     PageType = List;
@@ -43,8 +38,7 @@ page 50114 "Report Filename Report Lookup"
     trigger OnOpenPage()
     begin
         Rec.SetCurrentKey(Caption);
-        // In a filter group of its own, so it cannot be cleared from the page: the reports shown
-        // are the only ones a run of this pattern's records could come from.
+        // Filter group 2 so the user cannot clear the filter.
         if ReportIdFilter <> '' then begin
             Rec.FilterGroup(2);
             Rec.SetFilter(ID, ReportIdFilter);
@@ -53,12 +47,8 @@ page 50114 "Report Filename Report Lookup"
     end;
 
     /// <summary>
-    /// Offers only the reports a run of which is about this table - for a pattern that names a
-    /// table and no report, where every other report is one its records never come out of.
-    /// Raised by the user on 28 September: Test Pattern on an Assembly Header pattern offered every
-    /// report in the company.
+    /// Limits the list to reports whose records come from this table.
     /// </summary>
-    /// <param name="TableNo">The pattern's table.</param>
     internal procedure SetReportsAbout(TableNo: Integer)
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";

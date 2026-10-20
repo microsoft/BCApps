@@ -4,12 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 pageextension 50111 "Report Filename Inbox Part" extends "Report Inbox Part"
 {
-    // The same column on the Report Inbox part that sits on the Role Centers. It drills down
-    // through the same ShowReport, so it is named by this feature too - and showing the name on
-    // one of the two pages and not the other would be the same invisibility the field exists to
-    // remove, just in a place people look at more often.
-    //
-    // This stays in the shipped app, like the extension on the full page.
+    // Shows the stored file name on the Role Center part, as on the full Report Inbox page.
 
     layout
     {

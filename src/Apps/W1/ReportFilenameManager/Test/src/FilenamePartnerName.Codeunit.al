@@ -4,11 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50183 "Filename Partner Name"
 {
-    // Stands for another extension that names documents itself, through Electronic Document
-    // Format.GetAttachmentFileName's own event, and always gives the same name - whether or not
-    // anything named the file before it, as extensions commonly do. Send to Disk names its file
-    // through that procedure, so with this bound the partner's name must be the one the file gets,
-    // whichever order the subscribers run in. Bound manually.
+    // Stands for another extension that always sets its own name, ignoring any name set before it.
+    // With this bound, the partner's name must win whichever order the subscribers run in.
 
     Access = Internal;
     EventSubscriberInstance = Manual;

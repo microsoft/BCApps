@@ -4,16 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50163 "Filename Proof Name Routes"
 {
-    // Names one posted invoice on the three interactive routes, in isolation.
-    //
-    // It exists because of what the caller does around it: the language proofs alter a posted
-    // document, name it, and put it back. The email route renders the report for real, which
-    // both writes to the document and can fail for reasons that have nothing to do with naming
-    // - and a straight-line call would then skip the restore and leave a customer's posted
-    // invoice permanently carrying a language somebody's test gave it.
-    //
-    // Run through Codeunit.Run, a failure here rolls back what it did and hands control back,
-    // so the restore always runs.
+    // Names one posted invoice on the three interactive routes, run through Codeunit.Run: the
+    // caller alters the invoice's language and restores it afterwards, and the email route's real
+    // render can fail, which must not skip that restore.
 
     SingleInstance = true;
 
@@ -28,18 +21,11 @@ codeunit 50163 "Filename Proof Name Routes"
         EmailName := NameAsEmail();
     end;
 
-    /// <summary>
-    /// The document to name. Set before running.
-    /// </summary>
-    /// <param name="NewSalesInvoiceHeader">The invoice.</param>
     internal procedure SetInvoice(var NewSalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         SalesInvoiceHeader := NewSalesInvoiceHeader;
     end;
 
-    /// <summary>
-    /// The three names, after a successful run.
-    /// </summary>
     internal procedure GetNames(var NewPreviewName: Text; var NewDownloadName: Text; var NewEmailName: Text)
     begin
         NewPreviewName := PreviewName;

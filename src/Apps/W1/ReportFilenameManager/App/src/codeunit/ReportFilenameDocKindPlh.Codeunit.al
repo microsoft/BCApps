@@ -6,14 +6,10 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
 {
     Access = Internal;
 
-    // Business Central's own name for a kind of document - Sales Invoice, Salgsfaktura - which
-    // it already uses when it attaches one to an email. Report Distribution Management's
-    // GetFullDocumentTypeText is where that name lives, and it is public.
-    //
-    // It switches on the TABLE rather than on a Document Type field, which is why it serves a
-    // posted invoice: a posted document carries no Document Type at all. For the two unposted
-    // header tables, which do, it reads that field as well - so on those the answer varies from
-    // record to record, and a run covering several must agree before it can be named.
+    // Business Central's own name for a kind of document (Report Distribution Management's
+    // GetFullDocumentTypeText). It switches on the table, on Sales Header and Purchase Header also
+    // on Document Type, and for Job Task includes the project number, so the records of a run
+    // must agree on one value.
 
     procedure CanonicalName(): Text
     begin
@@ -34,11 +30,8 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
     var
         Probe: RecordRef;
     begin
-        // Asked of the procedure itself rather than answered from a list written down here.
-        // It names twelve tables today and an extension can add its own through the else case
-        // it raises, so a list kept here would be wrong the moment either changed. An empty
-        // record of the table is enough: what it returns for one decides the whole table,
-        // except on the two header tables, where every value it can return is non-blank.
+        // Asks GetFullDocumentTypeText with an empty record instead of keeping a table list,
+        // because extensions can add tables through its else case.
         if TableNo = 0 then
             exit(false);
         if not TryOpen(TableNo, Probe) then
@@ -49,22 +42,14 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
 
     procedure SpeaksForARunOfManyRecords(): Boolean
     begin
-        // One kind of document for the whole run - and where that is not true, the run is not
-        // named at all rather than named after one of the kinds it covered. TryResolve below
-        // enforces it, so whenever this value appears in a file name the promise holds.
+        // TryResolve declines a run that mixes kinds of document.
         exit(true);
     end;
 
     procedure ExampleWithoutDocument(): Text
     begin
-        // This one always needs a document, so the card can never resolve it for real while a
-        // pattern is being set up. Returning nothing would fail the whole example and report a
-        // placeholder naming something that no longer exists - which is how the report caption's own
-        // blank shape misled somebody, and is not a mistake worth making twice.
-        //
-        // The shape is the value's own name rather than a specimen word. Any specimen would be
-        // one of twelve kinds of document, and putting Sales Invoice on the card of a pattern
-        // about purchase credit memos would be a guess dressed up as an example.
+        // Not blank, which would fail the whole example; the value's own name rather than a
+        // specimen such as Sales Invoice, which could be the wrong kind for the pattern.
         exit(ShapeLbl);
     end;
 
@@ -74,44 +59,19 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
         SecondDetail: Text;
         Decline: Option None,OtherLanguage,OtherLanguageInRun,MixedKinds,TooMany,NotNamed,Unreadable;
     begin
-        // The language is Business Central's own here, not this placeholder's, and keeping the two in
-        // step is the whole of what follows.
-        //
-        // GetFullDocumentTypeText decides the language itself: it opens by calling
-        // SetGlobalLanguageByCode with the document's own language code and closes by restoring
-        // what was there before - read at
-        // BaseApp\Source\Base Application\Foundation\Reporting\ReportDistributionManagement.Codeunit.al.
-        // So a switch of our own cannot win, and writing one would look like the thing that makes
-        // this translate without being it.
-        //
-        // What our switch does do is cover the case Microsoft's own code leaves alone:
-        // SetGlobalLanguageByCode returns without changing anything when the code is blank, so a
-        // document that reaches it with no language at all resolves in whatever language is
-        // current - which must be the pattern's, not the session's.
-        //
-        // "No language at all" is a narrower case than "the document names none". GetDocumentLanguageCode
-        // reads the document's own language for six kinds of document only - posted sales invoices and
-        // credit memos, sales and purchase documents, projects and project tasks. For any other it raises
-        // OnGetDocumentLanguageCodeCaseElse, and then CompanyInformationMgt.GetLanguageDefault fills a
-        // blank in from the company's Default Language Code. So for an issued reminder, a shipment or a
-        // posted purchase invoice it answered in the company's language even when the document has one of
-        // its own. An earlier version of this comment said it returned "the document's own language where
-        // it has one", which was not true for those six: a German reminder in a Danish company declined
-        // (measured 8 October). The pattern's language field now answers that event while this asks
-        // (Report Filename Subscribers.OnGetDocumentLanguageForKindOfDocument).
+        // GetFullDocumentTypeText sets the language itself from GetDocumentLanguageCode, so our own
+        // switch (in ResolveWithReason) only matters when that code is blank. GetDocumentLanguageCode
+        // reads a Language Code field on six tables only and raises OnGetDocumentLanguageCodeCaseElse
+        // for the others, which the pattern's language field answers while this runs (Report
+        // Filename Subscribers.OnGetDocumentLanguageForKindOfDocument); a code still blank becomes
+        // the company's Default Language Code.
         exit(ResolveWithReason(Pattern, DocumentRecRef, LanguageCode, PlaceholderValue, Decline, FirstDetail, SecondDetail));
     end;
 
     /// <summary>
-    /// Why [Kind of Document] has no value for a run, in words an administrator can act on, for Test
-    /// Pattern. Worked out by the same procedure that decides it, so the two cannot disagree. Blank when
-    /// it does have a value, or when the reason is one this cannot put into words.
+    /// Why [Kind of Document] has no value for a run, for Test Pattern. Uses the same procedure that
+    /// decides it. Blank when it has a value or the reason cannot be put into words.
     /// </summary>
-    /// <param name="Pattern">The pattern being tested.</param>
-    /// <param name="DocumentRecRef">The run.</param>
-    /// <param name="LanguageCode">The language the name is written in.</param>
-    /// <param name="PlaceholderText">The placeholder as written in the pattern.</param>
-    /// <returns>The explanation, or blank.</returns>
     internal procedure ExplainNoValue(var Pattern: Record "Report Filename Pattern"; var DocumentRecRef: RecordRef; LanguageCode: Code[10]; PlaceholderText: Text): Text
     var
         PlaceholderValue: Text;
@@ -154,9 +114,8 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
 
         PreviousGlobalLanguage := GlobalLanguage();
         GlobalLanguage(LanguageMgt.GetLanguageIdOrDefault(LanguageCode));
-        // Business Central is told the document's language from the pattern's own language field, for
-        // the length of this request only. Every call below is wrapped in a try, so nothing between here
-        // and the clear can leave it set.
+        // The Base Application calls until the clear run in try functions, so a failing subscriber
+        // cannot leave the language field set.
         ReportFilenameContext.SetKindOfDocumentLanguageField(WorkRecRef.Number(), Pattern."Language Code Field");
         Resolved := TryResolveInCurrentLanguage(WorkRecRef, LanguageCode, PlaceholderValue, Decline, FirstDetail, SecondDetail);
         ReportFilenameContext.ClearKindOfDocumentLanguageField();
@@ -167,10 +126,6 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
         exit(Resolved);
     end;
 
-    /// <summary>
-    /// A language's name as the Language table holds it - German rather than DEU - or the code itself
-    /// where it has none.
-    /// </summary>
     local procedure LanguageName(LanguageCode: Text): Text
     var
         Language: Record Language;
@@ -183,16 +138,9 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
     end;
 
     /// <summary>
-    /// Walks the run with the global language already set to the one the whole name is being
-    /// built in, and declines rather than answering in a second language.
+    /// Walks the run, already positioned on the first record, with the global language set to the name's.
     /// </summary>
-    /// <param name="WorkRecRef">The run's records, already positioned on the first.</param>
-    /// <param name="LanguageCode">The language this name is being built in.</param>
-    /// <param name="PlaceholderValue">Receives the value.</param>
-    /// <param name="Decline">Receives why there is no value, when there is none.</param>
-    /// <param name="FirstDetail">Receives the first detail the reason names: a language code, or a kind of document.</param>
-    /// <param name="SecondDetail">Receives the second.</param>
-    /// <returns>True when every record in the run agrees on one kind, in that language.</returns>
+    /// <param name="FirstDetail">A language code or a kind of document, depending on Decline.</param>
     local procedure TryResolveInCurrentLanguage(var WorkRecRef: RecordRef; LanguageCode: Code[10]; var PlaceholderValue: Text; var Decline: Option None,OtherLanguage,OtherLanguageInRun,MixedKinds,TooMany,NotNamed,Unreadable; var FirstDetail: Text; var SecondDetail: Text): Boolean
     var
         FirstValue: Text;
@@ -203,25 +151,15 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
     begin
         ManyRecords := WorkRecRef.Count() > 1;
 
-        // A run larger than this is declined whatever it holds - by the bound below, and before that by
-        // the manager, which gives up reading the run's language at the same number and so writes the
-        // name in the company's language. Said first, so a run of 173 English invoices is called too
-        // large rather than "in more than one language", which it is not.
+        // Checked first so a large run in one language is reported as too large, not as mixed
+        // languages: past this bound the manager stops reading the run's language.
         if WorkRecRef.Count() > MaxRecordsToAgree() then begin
             Decline := Decline::TooMany;
             exit(false);
         end;
 
         repeat
-            // Which language Business Central would answer in, asked of the procedure that
-            // decides it rather than worked out again here - the per-table mapping is Microsoft's
-            // and duplicating it is the fragmentation this feature exists to remove.
-            //
-            // A document that names a language other than the one this name is being built in
-            // would put two languages in one file name, which is the defect the whole design
-            // exists to remove. The pattern declines instead. A blank means Microsoft's code
-            // changes nothing, so the language set above stands and there is nothing to disagree
-            // with.
+            // A document in another language would put two languages in one file name, so decline.
             if not LanguageAgrees(WorkRecRef, LanguageCode, DocumentLanguageCode) then begin
                 if DocumentLanguageCode = '' then
                     Decline := Decline::Unreadable
@@ -239,10 +177,6 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
             Seen += 1;
             ThisValue := KindOf(WorkRecRef);
 
-            // Nothing to say about this kind of record. Most of the reports installed are about
-            // something this procedure does not name, so declining is the ordinary case and not
-            // a failure: the pattern stands down and Business Central names the file as it
-            // always has.
             if ThisValue = '' then begin
                 Decline := Decline::NotNamed;
                 exit(false);
@@ -251,9 +185,7 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
             if Seen = 1 then
                 FirstValue := ThisValue
             else
-                // A run over a mix - a quote and an order selected together on Sales Header -
-                // has no one kind, and naming it after the first would put the wrong word on a
-                // file holding both.
+                // e.g. a quote and an order selected together on Sales Header.
                 if ThisValue <> FirstValue then begin
                     Decline := Decline::MixedKinds;
                     FirstDetail := FirstValue;
@@ -261,9 +193,6 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
                     exit(false);
                 end;
 
-            // The same bound the manager uses when it asks a set to agree on one value: past
-            // this, reading on to be sure would make naming expensive on a large run, and
-            // stopping early and accepting what was seen would name a run after part of itself.
             if Seen > MaxRecordsToAgree() then begin
                 Decline := Decline::TooMany;
                 exit(false);
@@ -274,14 +203,7 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
         exit(PlaceholderValue <> '');
     end;
 
-    /// <summary>
-    /// Whether Business Central would name this document's kind in the language the rest of the
-    /// name is being built in.
-    /// </summary>
-    /// <param name="DocumentRecRef">The document about to be named.</param>
-    /// <param name="LanguageCode">The language this name is being built in.</param>
-    /// <param name="DocumentLanguageCode">Receives the language Business Central words the document in; blank when it cannot be read.</param>
-    /// <returns>True when the two agree, or when the document names no language at all.</returns>
+    /// <returns>True also when the document names no language: GetFullDocumentTypeText then keeps the language already set.</returns>
     local procedure LanguageAgrees(var DocumentRecRef: RecordRef; LanguageCode: Code[10]; var DocumentLanguageCode: Code[10]): Boolean
     var
         ReportDistributionManagement: Codeunit "Report Distribution Management";
@@ -304,18 +226,12 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
         DocumentLanguageCode := ReportDistributionManagement.GetDocumentLanguageCode(DocumentRecRef);
     end;
 
-    /// <summary>
-    /// Business Central's own name for the kind of document a record is.
-    /// </summary>
-    /// <param name="DocumentRecRef">The document to name.</param>
-    /// <returns>The name, or an empty string for a record it does not name.</returns>
     local procedure KindOf(var DocumentRecRef: RecordRef): Text
     var
         ReportDistributionManagement: Codeunit "Report Distribution Management";
         KindText: Text;
     begin
-        // Isolated, because this reaches an else case any extension may subscribe to and a
-        // partner's handler failing must not take somebody's file name down with it.
+        // Isolated: a partner's subscriber to the else case may fail.
         if not TryReadKind(ReportDistributionManagement, DocumentRecRef, KindText) then
             exit('');
 
@@ -341,10 +257,7 @@ codeunit 50124 "Report Filename Doc. Kind Plh." implements "Report Filename Plac
         WorkRecRef := DocumentRecRef.Duplicate();
     end;
 
-    /// <summary>
-    /// How many records this is willing to read to establish that a run is about one kind of
-    /// document. The same number the manager uses for the same question, for the same reason.
-    /// </summary>
+    // Same bound the manager uses when a run must agree on one value.
     local procedure MaxRecordsToAgree(): Integer
     begin
         exit(100);

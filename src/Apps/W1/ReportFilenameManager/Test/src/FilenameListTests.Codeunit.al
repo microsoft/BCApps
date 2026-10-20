@@ -4,14 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50151 "Filename List Tests"
 {
-    // The pattern list's own answers: which pattern wins (Priority), which patterns compete
-    // (Show Overlapping Patterns, the one list that shows Priority), and the bulk actions an
-    // administrator uses instead of opening every card (Copy, Enable, Disable). Also the setup's
-    // count of enabled patterns, which repeats one of those answers.
-    //
-    // Priority is checked against what naming actually does, not against a number worked out
-    // here. The list promises "1 is the one used"; the only honest test of that promise is to ask
-    // Test Pattern which pattern named the file and compare.
+    // The pattern list: Priority, Show Overlapping Patterns, Copy/Enable/Disable, and the setup's
+    // count of enabled patterns. Priority is checked against which pattern Test Pattern says named
+    // the file, not against a number worked out here.
 
     Subtype = Test;
     TestPermissions = Disabled;
@@ -82,9 +77,8 @@ codeunit 50151 "Filename List Tests"
     end;
 
     /// <summary>
-    /// Raised by the user on 6 October: Show Overlapping Patterns narrowed the list to the selected
-    /// pattern alone, saying nothing, which read as a filter gone wrong. With nothing else that could
-    /// apply to the same files, it now says so and leaves the list as it is.
+    /// With nothing else that could apply to the same files, Show Overlapping Patterns says so and
+    /// leaves the list as it is.
     /// </summary>
     [Test]
     [HandlerFunctions('ShownMessageHandler')]
@@ -98,9 +92,8 @@ codeunit 50151 "Filename List Tests"
         PrepareWithNoPatterns();
         CreatePattern(Lone, GeneralPatternTok, false, '');
         CreateCreditMemoPattern(OtherReport);
-        // What New leaves when a lookup is opened and nothing else is filled in: no report, no
-        // table. It can never be turned on, so it competes with nothing (found in the container
-        // client on 8 October, where such drafts were listed as overlapping every pattern).
+        // A draft with no report and no table (what New leaves after a lookup) can never be turned
+        // on, so it competes with nothing.
         Draft.Init();
         Draft.Insert(true);
         ShownMessage := '';
@@ -117,11 +110,8 @@ codeunit 50151 "Filename List Tests"
     end;
 
     /// <summary>
-    /// Raised by the user on 7 October, night: Priority on every row and on the card read as a
-    /// setting to manage, though it means something only where patterns compete. Show Overlapping
-    /// Patterns opens the competing patterns in a list of their own, the only place Priority is
-    /// shown, each row with the priority naming uses; the list it was opened from keeps every
-    /// pattern and shows no Priority.
+    /// Show Overlapping Patterns opens the competing patterns in their own list, the only place
+    /// Priority is shown; the list it was opened from keeps every pattern and shows no Priority.
     /// </summary>
     [Test]
     procedure ShowOverlappingOpensTheCompetingPatternsWithTheirPriority()
@@ -176,10 +166,7 @@ codeunit 50151 "Filename List Tests"
         ShownMessage := Message;
     end;
 
-    /// <summary>
-    /// A pattern for the posted credit memo report: it can never apply to the same files as one
-    /// for the invoice report.
-    /// </summary>
+    // Can never apply to the same files as a pattern for the invoice report.
     local procedure CreateCreditMemoPattern(var Pattern: Record "Report Filename Pattern")
     begin
         Pattern.Init();
@@ -188,9 +175,6 @@ codeunit 50151 "Filename List Tests"
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// The rows the list shows now.
-    /// </summary>
     local procedure CountRows(var PatternList: TestPage "Report Filename Patterns") Rows: Integer
     begin
         if PatternList.First() then
@@ -216,7 +200,7 @@ codeunit 50151 "Filename List Tests"
             Error(CopyIsLiveErr);
         if TheCopy."File Name Pattern" <> Original."File Name Pattern" then
             Error(CopyLostFieldErr, TheCopy.FieldCaption("File Name Pattern"));
-        // The two Blobs are the parts a plain TransferFields would silently drop.
+        // The two Blobs: a record holds their content only after CalcFields, so a copy can lose them.
         if TheCopy.GetTableFilterView() <> Original.GetTableFilterView() then
             Error(CopyLostFieldErr, TheCopy.FieldCaption("Table Filter"));
         if TheCopy.GetPlaceholderBinding() <> Original.GetPlaceholderBinding() then
@@ -316,9 +300,7 @@ codeunit 50151 "Filename List Tests"
     end;
 
     /// <summary>
-    /// The setup says how many patterns its switch puts to work, counting only those turned on,
-    /// and choosing the number shows exactly those. The expected count is written out, never
-    /// worked out by the code under test.
+    /// The setup counts only the patterns turned on, and choosing the number shows exactly those.
     /// </summary>
     [Test]
     [HandlerFunctions('EnabledPatternsDrillDownHandler')]
@@ -329,8 +311,7 @@ codeunit 50151 "Filename List Tests"
         TurnedOff: Record "Report Filename Pattern";
         ReportFilenameSetupPage: TestPage "Report Filename Setup";
     begin
-        // One record variable per pattern: Init keeps the primary key, so reusing one would insert
-        // the same Entry No. twice.
+        // One record variable per pattern: Init keeps the primary key.
         PrepareWithNoPatterns();
         CreatePattern(General, GeneralPatternTok, true, '');
         CreatePattern(Specific, SpecificPatternTok, true, NewInvoiceNo());
@@ -363,8 +344,7 @@ codeunit 50151 "Filename List Tests"
         FilenameProofGuard.AssertSafeEnvironment();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
         FilenameProofGuard.ClearPatterns();
-        // On, so the list opens without its switched-off notification, which a test page would
-        // otherwise have to handle.
+        // On, so the list opens without its switched-off notification.
         if not ReportFilenameSetup.Get() then begin
             ReportFilenameSetup.Init();
             ReportFilenameSetup.Insert();
@@ -373,9 +353,6 @@ codeunit 50151 "Filename List Tests"
         ReportFilenameSetup.Modify();
     end;
 
-    /// <summary>
-    /// A pattern for the posted sales invoice report, optionally narrowed to one invoice.
-    /// </summary>
     local procedure CreatePattern(var Pattern: Record "Report Filename Pattern"; PatternText: Text; Live: Boolean; OnlyInvoiceNo: Code[20])
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -392,9 +369,6 @@ codeunit 50151 "Filename List Tests"
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// The number of a sales invoice posted for the test, for a pattern narrowed to one invoice.
-    /// </summary>
     local procedure NewInvoiceNo(): Code[20]
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";

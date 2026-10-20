@@ -8,22 +8,13 @@ page 50110 "Report Filename Patterns"
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
-    // Tell Me matches whole words, and an administrator looking for this is as likely to type
-    // "file name" as the product's own one-word spelling.
+    // Tell Me matches the letters and words typed, so "file name" is added beside the caption's "Filename".
     AdditionalSearchTerms = 'file name, file names, document name, PDF name, attachment name, email attachment name, report naming';
     SourceTable = "Report Filename Pattern";
-    // Grouped by table, so the patterns that can compete for the same files sit together. It used
-    // to open in the order rows were created.
+    // Grouped by table, so patterns that can compete for the same files sit together.
     SourceTableView = sorting("Table No.", "Report ID", "Language Code");
     CardPageId = "Report Filename Pattern Card";
-    // Read-only, as 187 of Base Application's list pages with a card page are - Customer List
-    // among them. A pattern is authored with Available Placeholders and five assist-edits, none
-    // of which a grid can offer, so the card is the only editing surface. The card opens from
-    // the first column, exactly as a customer does.
-    //
-    // There is no Edit action. There was one, bound to Enter, and it matched none of those 187
-    // pages: 180 add no action for opening the card at all, and the other seven caption theirs
-    // Card. Counted from the Base Application 28.4 source on 28 September 2026.
+    // Read-only: patterns are edited on the card, where the assist-edits are.
     Editable = false;
 
     layout
@@ -44,24 +35,16 @@ page 50110 "Report Filename Patterns"
                     DrillDown = false;
                     StyleExpr = RowStyleText;
                 }
-                // Third, and dimmed rows behind it, following the closest thing Microsoft ships:
-                // Quality Management's Inspection Source Configuration list, which also says what
-                // applies to which records through a filter. It puts Enabled straight after the
-                // identifying columns and styles every field in the row, so a row that is turned
-                // off reads as off at a glance. Here it used to be the eighth column, which
-                // in practice meant off the right-hand edge - a pattern could sit there doing
-                // nothing with no visible sign of it.
+                // Next to the identifying columns, with disabled rows dimmed, as on Quality
+                // Management's Quality Inspection Source Configurations list.
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = All;
                     StyleExpr = RowStyleText;
                 }
-                // Which pattern wins when several apply to one file, worked out by the same
-                // procedure naming uses, so the two cannot disagree. Shown only where patterns are
-                // compared - the list Show Overlapping Patterns opens - because beside a pattern that
-                // competes with nothing the number means nothing and reads as a setting to manage.
-                // That list is told it is the overlap view before it opens, since a field's
-                // visibility is read only when its page opens (Microsoft Learn, Visible property).
+                // Computed by the same procedure naming uses. Shown only in the overlap view, which
+                // is set before the page opens: a field's Visible variable must be resolved by
+                // OnInit or OnOpenPage.
                 field(Priority; Rec.Priority())
                 {
                     Caption = 'Priority';
@@ -130,16 +113,11 @@ page 50110 "Report Filename Patterns"
                 var
                     TestPatternPage: Page "Report Filename Test";
                 begin
-                    // Run in code rather than with RunObject, so that it opens modally, and so
-                    // that the pattern is handed in: the page holds no record of its own, which is
-                    // what stops it offering to step through the other patterns.
+                    // Not RunObject: the pattern is handed in, so the page cannot step through others.
                     TestPatternPage.SetPattern(Rec);
                     TestPatternPage.RunModal();
                 end;
             }
-            // The list is read-only on purpose, so without these every copy, and every pattern
-            // turned on or off, meant opening its card - tedious once patterns are multiplied
-            // across output routes and languages.
             action(CopyPattern)
             {
                 Caption = 'Copy';
@@ -180,15 +158,12 @@ page 50110 "Report Filename Patterns"
                     SetEnabledOnSelection(false);
                 end;
             }
-            // Answers "what else could name this file?" from the list, for a pattern at a time, in
-            // a list of its own where Priority says which of them wins. Close it to return.
             action(ShowOverlappingPatterns)
             {
                 Caption = 'Show Overlapping Patterns';
                 ToolTip = 'Opens the patterns that could apply to the same files as the selected pattern, with their priorities, so you can see which one is used. Table filters are not compared, so use Test Pattern to check real records.';
                 ApplicationArea = All;
                 Image = FilterLines;
-                // Not offered inside the overlap list itself, which already is the answer.
                 Visible = not ShowingOverlap;
 
                 trigger OnAction()
@@ -232,7 +207,6 @@ page 50110 "Report Filename Patterns"
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
     begin
         TableFilterText := Rec.GetTableFilterDisplayText();
-        // The same words the card shows for the same row. The list used to show nothing here.
         if TableFilterText = '' then
             TableFilterText := Rec.NoTableFilterText();
         RouteFilterText := Rec.OutputRouteFilterText();
@@ -242,7 +216,7 @@ page 50110 "Report Filename Patterns"
             RowStyle := RowStyle::Subordinate;
         RowStyleText := Format(RowStyle);
 
-        // The list said it was empty when it opened, and now shows a pattern - one added from here.
+        // A pattern was added after the empty-list notification was shown.
         if EmptyStateShown then
             RecallEmptyStateNotification();
     end;
@@ -254,8 +228,7 @@ page 50110 "Report Filename Patterns"
         if ShowingOverlap then
             NarrowToOverlap();
 
-        // Turned off comes first: with the feature off, no pattern names anything, and an
-        // administrator looking at a list of enabled patterns would otherwise have no way to know.
+        // The switched-off notification takes precedence over the empty-list one.
         if ReportFilenameMgt.NotifyIfSwitchedOff() then
             exit;
 
@@ -264,11 +237,8 @@ page 50110 "Report Filename Patterns"
     end;
 
     /// <summary>
-    /// Turns the selected patterns on or off. Each is checked as the card checks it, so a pattern
-    /// that is not complete cannot be turned on from here either - and the refusal names the
-    /// pattern, because with several selected the card's own message would not say which.
+    /// Validates each pattern as the card does; the error names the pattern, since several may be selected.
     /// </summary>
-    /// <param name="NewEnabled">True to turn the patterns on, false to turn them off.</param>
     local procedure SetEnabledOnSelection(NewEnabled: Boolean)
     var
         Pattern: Record "Report Filename Pattern";
@@ -299,9 +269,7 @@ page 50110 "Report Filename Patterns"
     end;
 
     /// <summary>
-    /// Opens the patterns that could compete with the selected one, the selected one included, in
-    /// a list of their own with Priority. When nothing else could apply, it says so and opens
-    /// nothing: a list of the one row would read as a filter gone wrong.
+    /// When nothing competes, shows a message instead of a one-row list.
     /// </summary>
     local procedure ShowOverlapping()
     var
@@ -319,11 +287,8 @@ page 50110 "Report Filename Patterns"
     end;
 
     /// <summary>
-    /// Makes this list the overlap view for a pattern: only the patterns that could compete with
-    /// it, with Priority shown. Called before the page opens, which is when a field's visibility
-    /// is read.
+    /// Must be called before the page opens, when field visibility is read.
     /// </summary>
-    /// <param name="Selected">The pattern whose competitors are shown.</param>
     internal procedure SetOverlapping(Selected: Record "Report Filename Pattern")
     begin
         OverlapWith := Selected;
@@ -331,13 +296,7 @@ page 50110 "Report Filename Patterns"
     end;
 
     /// <summary>
-    /// Narrows the list to the patterns that could compete with OverlapWith, it included. Marks
-    /// rather than a filter, because what overlaps is a comparison between two rows, which no
-    /// field filter can express. Choosing the All view in the filter pane opens the page afresh,
-    /// so it becomes the ordinary list - every pattern, under its own title, without Priority -
-    /// as a list Business Central opens from a cue becomes unfiltered when its filter is removed.
-    /// A filter handed in with SetTableView does not survive that either (measured in the
-    /// container client on 8 October); only an action's own RunPageLink does.
+    /// Uses marks, because overlap compares two rows, which no field filter can express.
     /// </summary>
     local procedure NarrowToOverlap()
     begin
@@ -364,8 +323,7 @@ page 50110 "Report Filename Patterns"
     end;
 
     /// <summary>
-    /// Withdraws the notification that the list is empty. A notification stays until it is dismissed,
-    /// so without this it kept saying no pattern was set up after one had been added from this list.
+    /// A notification stays until dismissed, so it is recalled once a pattern is added.
     /// </summary>
     local procedure RecallEmptyStateNotification()
     var

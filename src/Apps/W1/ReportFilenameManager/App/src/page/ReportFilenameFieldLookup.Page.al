@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 page 50116 "Report Filename Field Lookup"
 {
-    // Picks which field on the document holds its language, by caption. The pattern stores the
-    // field number, because a number survives a rename and a translation where a name does
-    // not - but the number never appears on a page. It lists only fields that relate to the
-    // Language table, so it no longer says which table each field relates to: it is always that.
+    // Picks the document's language field by caption. The pattern stores the field number, which
+    // survives renames and translations. Only fields related to the Language table are listed.
 
     Caption = 'Fields';
     PageType = List;

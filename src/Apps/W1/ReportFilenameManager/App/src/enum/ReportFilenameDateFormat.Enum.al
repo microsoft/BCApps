@@ -4,18 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 enum 50111 "Report Filename Date Format"
 {
-    // Deliberately not localised. A date in a file name is an identifier, not presentation:
-    // it has to sort correctly, mean the same thing to everyone who receives it, and survive
-    // the sanitiser. A regional format fails all three - dd/MM/yyyy and MM/dd/yyyy are
-    // indistinguishable once read back, and the slashes are illegal in a file name anyway,
-    // so stripping them turns 07/09/2026 into an ambiguous 07092026.
-    //
-    // The choice is the administrator's, from a validated list, and it is the same for every
-    // user and every language. Year first is the default because it sorts.
+    // Fixed formats rather than the user's regional format, so a date in a file name is unambiguous
+    // and has no characters that are illegal in a file name. The default, year first, sorts by date.
 
     Extensible = true;
     Caption = 'Report Filename Date Format';
-    // Public: extensible means an extension adds values, which requires reaching it.
     Access = Public;
 
     value(0; YearMonthDay)

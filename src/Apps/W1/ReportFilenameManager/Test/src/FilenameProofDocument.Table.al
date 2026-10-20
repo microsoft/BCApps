@@ -4,14 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 table 50151 "Filename Proof Document"
 {
-    // A stand-in document, and the only way to prove language invariance in this container.
-    //
-    // The W1 container carries no Danish or German translations, so every Base Application
-    // field caption reads identically in all three languages - a cross-language proof against
-    // those captions would pass while proving nothing at all. This table's captions are
-    // translated by the .xlf files shipped beside it, so its captions genuinely differ per
-    // language and a pattern authored against the Danish caption cannot possibly resolve by
-    // name in a German session. If it still resolves, it resolved by field number.
+    // A stand-in document for proving language invariance: the W1 Base Application carries no .xlf
+    // translations of its captions, but this table's captions are translated by the test app's .xlf
+    // files, so a pattern that still resolves in another language resolved by field number.
 
     Caption = 'Filename Proof Document';
     DataClassification = SystemMetadata;
@@ -36,23 +31,11 @@ table 50151 "Filename Proof Document"
         {
             Caption = 'Document Language Code';
 
-            // Deliberately carries NO relation to the Language table, though it holds a language
-            // code. A pattern suggests its language field from the one field that relates to
-            // Language, and suggests nothing where a table has two - so relating this one would
-            // stop the suggestion on this table and quietly change what the translated-caption
-            // proofs measure. This field is never a field an administrator points a pattern at;
-            // it is read by Filename Proof Kind Source and by nothing else.
-            //
-            // The language BUSINESS CENTRAL answers in for this document, as distinct from the
-            // one above, which is the language a pattern is told to build the name in.
-            //
-            // On every real table the two are the same field, which is why a mismatch between
-            // them cannot be built on a posted invoice without writing a language code into a
-            // field that means something else. Here they are separate, so the case the kind-of-
-            // document placeholder declines on can be constructed deliberately and without touching
-            // any company data. Filename Proof Kind Source is what hands this one to Business
-            // Central, through the event Report Distribution Management raises for a table it
-            // does not know.
+            // The language Business Central answers in for this document, kept separate from
+            // "Language Code" (the pattern's language) so a mismatch can be built; on real tables
+            // they are one field. Read only by Filename Proof Kind Source. Deliberately has no
+            // relation to Language: a pattern suggests its language field only when exactly one
+            // field relates to Language.
         }
     }
 

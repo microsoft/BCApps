@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50160 "Filename Proof Demo Setup"
 {
-    // Seeds a representative set of patterns, so the setup can be looked at and photographed
-    // as an administrator would meet it rather than as whatever the last proof left behind.
-    // Every row is created through Validate, so each one gets its binding built exactly as it
-    // would if somebody typed it on the card.
+    // Seeds a representative set of patterns and data for manual testing in a client.
+    // Rows are created through Validate so each gets its binding built as if typed on the card
+    // (except the deliberately stale one in AddTheStalePlaceholderPattern).
 
     trigger OnRun()
     begin
@@ -23,30 +22,20 @@ codeunit 50160 "Filename Proof Demo Setup"
         FilenameProofLogMgt.StartNewRun();
         FilenameProofGuard.ClearPatterns();
 
-        // The plain case: every sales invoice, every route, named after the document.
         AddPattern(Report::"Standard Sales - Invoice", 0, InvoicePatternTok, false);
 
-        // The same document by email, in German, named differently - two rows differing only
-        // by channel and language, which is how that is expressed without code.
         AddPatternForChannel(Report::"Standard Sales - Invoice", InvoiceGermanPatternTok, GermanLanguageCodeTok, Enum::"Report Filename Output Route"::Email);
 
-        // A credit memo, by source table rather than by report, so it covers every report that
-        // names one.
+        // By source table, so it covers every report that prints one.
         AddPattern(0, Database::"Sales Cr.Memo Header", CreditMemoPatternTok, false);
 
-        // Reminders, and then reminders at level 3 - the same table, differing only by the
-        // condition on the document.
         AddPattern(0, Database::"Issued Reminder Header", ReminderPatternTok, false);
         AddPattern(0, Database::"Issued Reminder Header", ReminderLevel3PatternTok, true);
 
-        // Financial Reporting, which renders every report an administrator sets up through one
-        // report object. Named after the financial report itself, because that is the only thing
-        // that tells a balance sheet from a trial balance.
+        // One report object renders every financial report, so [Description] says which one it was.
         AddPattern(Report::"Account Schedule", 0, FinancialReportPatternTok, false);
 
-        // And the maximal one, using every kind of placeholder there is. Given its own channel so it
-        // does not score identically to the first row - two rows with the same criteria are a
-        // coin toss, which is the last thing a setup meant to be looked at should show.
+        // Own route, so it does not tie with the first row on selection criteria.
         AddPatternForChannel(Report::"Standard Sales - Invoice", MaximalPatternTok, '', Enum::"Report Filename Output Route"::Download);
 
         ProofSupport.LogLine('Demo setup', StrSubstNo(SeededMsg, Pattern.Count()));
@@ -54,13 +43,8 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Installs one pattern naming a sales invoice by its kind of document, so that the placeholder
-    /// can be driven from a real client rather than only through the manager.
-    ///
-    /// On its own, because it replaces the demo set while it is in place: the ordinary demo
-    /// patterns already name report 1306 on every channel, and two patterns with the same
-    /// criteria would make which one applied a coin toss. Seed the demo patterns again
-    /// afterwards.
+    /// Replaces the demo set with a single [Kind of Document] pattern, because a demo pattern already
+    /// matches report 1306 with the same criteria. Seed the demo patterns again afterwards.
     /// </summary>
     procedure SeedKindOfDocumentPattern()
     var
@@ -78,9 +62,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Points the financial report demo pattern at the user's [Period] pattern, so a real client print
-    /// of a financial report can be named by its period and compared with what the tests prove.
-    /// Raised by the user on 28 September. Seed the demo patterns again afterwards.
+    /// Switches the financial report demo pattern to one using [Period]. Seed the demo patterns again afterwards.
     /// </summary>
     procedure UseThePeriodPattern()
     var
@@ -99,9 +81,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Adds a pattern for report 711 Inventory - Top 10 List, whose default layout is Excel, so a
-    /// real client download can show whether an Excel file is named. Raised by the user on
-    /// 28 September, over the Max. File Name Length field and Excel's 218-character path limit.
+    /// Adds a pattern for report 711, whose default layout is Excel, to check Excel output naming.
     /// Seed the demo patterns again afterwards.
     /// </summary>
     procedure AddTheExcelPattern()
@@ -118,13 +98,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Switches the German email pattern off, so the list can be looked at - and photographed -
-    /// with a dimmed row in it.
-    ///
-    /// A switched-off pattern is a state administrators really have, and how the list shows one
-    /// is a thing a person has to be able to see. Doing it from here rather than by hand makes
-    /// it reproducible: the screenshot in the retest guide can be retaken by anybody without
-    /// having to guess which row was clicked.
+    /// Disables the German email pattern so the list shows a dimmed row, reproducibly.
     /// </summary>
     procedure SwitchTheGermanPatternOff()
     var
@@ -148,11 +122,8 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Adds a pattern as one saved before [Report Caption] was renamed [Report Name] still holds it:
-    /// the old text and a binding recording the old canonical name, saved without the insert
-    /// trigger, which would refuse the old text - as Filename Card Tests.AStalePlaceholderIsNamedInTheReason
-    /// builds it. The card refuses typing it, so client-pass row C.3 needs it made here. Seed the
-    /// demo patterns again afterwards.
+    /// Adds a pattern holding a placeholder name that is no longer valid, with its binding. The text is
+    /// assigned, not validated, because validation would refuse it. Seed the demo patterns again afterwards.
     /// </summary>
     procedure AddTheStalePlaceholderPattern()
     var
@@ -173,10 +144,8 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Adds an assembly quote for client-pass row C.4, which chooses one in Test Pattern's record
-    /// lookup. CRONUS has no assembly documents, the Assembly Quotes list offers no New - a quote
-    /// comes from a sales quote line for an assemble-to-order item - so it is made here, through
-    /// Base Application's own triggers: the number from Assembly Setup, the item validated.
+    /// Adds an assembly quote for the Test Pattern record lookup. The demo data has none, and the
+    /// Assembly Quote card has InsertAllowed = false.
     /// </summary>
     procedure AddAnAssemblyQuote()
     var
@@ -195,10 +164,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Posts a sales invoice with no Language Code, for client-pass row K.4, through Base
-    /// Application's own posting. Every customer and posted invoice in CRONUS has a language, so
-    /// the row has nothing to print without it. The customer's language is cleared on the invoice
-    /// only; the customer is left as it is.
+    /// The language is cleared on the invoice only, not on the customer.
     /// </summary>
     procedure PostAnInvoiceWithNoLanguage()
     var
@@ -228,11 +194,8 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Sets the company's Default Language Code, for client-pass row K.4: blank in CRONUS, so a
-    /// document with no language of its own could not show whether the company's default or the
-    /// user's language names it. Set it back to blank afterwards.
+    /// Blank in CRONUS. Set it back to blank afterwards.
     /// </summary>
-    /// <param name="LanguageCode">The language code, or blank.</param>
     procedure SetCompanyDefaultLanguage(LanguageCode: Text)
     var
         CompanyInformation: Record "Company Information";
@@ -244,19 +207,13 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Sets the company's Default Language Code back to blank, as CRONUS has it, after K.4. A
-    /// procedure of its own because a blank argument does not reach SetCompanyDefaultLanguage:
-    /// BcContainerHelper drops it and the server then looks for a procedure without one.
+    /// Sets the company's Default Language Code back to blank, with no argument to pass.
     /// </summary>
     procedure ClearCompanyDefaultLanguage()
     begin
         SetCompanyDefaultLanguage('');
     end;
 
-    /// <summary>
-    /// Sets the language of the proofs' issued reminder PROOF-RMDR-1, to show [Kind of Document] on a
-    /// reminder whose language differs from the company's (8 October). PROOF-RMDR-1 is in ENG.
-    /// </summary>
     procedure SetProofReminderLanguage(LanguageCode: Text)
     var
         IssuedReminderHeader: Record "Issued Reminder Header";
@@ -267,8 +224,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// A pattern [Kind of Document]-[No.] for the report issued reminders print with, for the same
-    /// demonstration. Tied to the report, so it outranks the demo pattern for every issued reminder.
+    /// Tied to the reminder report, so it outranks the unfiltered table-only demo pattern.
     /// </summary>
     procedure AddKindOfDocumentReminderPattern()
     var
@@ -302,9 +258,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Gives reminder level 1 of the DOMESTIC terms an attachment text with a File Name, in the
-    /// language of customer 10000, for client-pass rows R.1 and R.2. CRONUS has no attachment
-    /// texts. Written as Filename Proof Run.SeedReminderFileName writes it.
+    /// Points DOMESTIC level 1 at a new attachment text with a File Name, in customer 10000's language.
     /// </summary>
     procedure GiveReminderLevelAFileName()
     var
@@ -325,8 +279,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Fills in what the Reminder report reads on the stand-in issued reminder PROOF-RMDR-1, which
-    /// was made without it and could not be printed (client-pass row R.1).
+    /// Fills in the fields the Reminder report needs on the stand-in issued reminder PROOF-RMDR-1.
     /// </summary>
     procedure CompleteTheProofReminder()
     var
@@ -336,8 +289,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Clears File Name on the attachment text GiveReminderLevelAFileName made, keeping the text,
-    /// for client-pass row R.3.
+    /// Keeps the attachment text GiveReminderLevelAFileName made, with File Name blank.
     /// </summary>
     procedure ClearReminderLevelFileName()
     var
@@ -347,10 +299,6 @@ codeunit 50160 "Filename Proof Demo Setup"
         ReminderAttachmentText.ModifyAll("File Name", '', false);
     end;
 
-    /// <summary>
-    /// Removes the attachment text GiveReminderLevelAFileName made and points the level at none
-    /// again, as CRONUS has it.
-    /// </summary>
     procedure RemoveReminderLevelAttachmentText()
     var
         ReminderLevel: Record "Reminder Level";
@@ -365,9 +313,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Removes the job queue entries the scheduled-route proofs left behind before they removed
-    /// their own (Filename Proof Support.RemoveJobQueueEntry) - found by the two descriptions only
-    /// those proofs give an entry.
+    /// Finds leftover scheduled-route proof entries by the descriptions only those proofs use.
     /// </summary>
     procedure RemoveProofJobQueueEntries()
     var
@@ -381,12 +327,9 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// What client-pass row R.5 needs before Start is chosen on Reminder Automation, built as Filename
-    /// Reminder Tests builds it but under codes of its own (ZZCLIENT, ZZRM-CLIENT), so the two can never
-    /// meet: reminder terms with a level, a second report selection for the invoice, a reminder
-    /// automation group with a Send action that emails and attaches every invoice, and an issued
-    /// reminder for two posted invoices of one customer. Constructed rather than issued, for the
-    /// reason the tests give: issuing one for real posts ledger entries that cannot be removed.
+    /// Sets up reminder automation that emails an issued reminder with two invoices attached, under codes
+    /// that do not collide with Filename Reminder Tests. The reminder is constructed rather than issued,
+    /// because issuing writes Reminder/Fin. Charge Entries, and G/L entries when there is an amount.
     /// </summary>
     procedure SetUpClientPassReminderAutomation()
     var
@@ -489,8 +432,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Takes down everything SetUpClientPassReminderAutomation made, the rows reminder automation wrote
-    /// about its runs, and the job queue entry Start scheduled for the group.
+    /// Also removes the automation's logs and the job queue entry its Start action scheduled.
     /// </summary>
     procedure RemoveClientPassReminderAutomation()
     var
@@ -538,8 +480,7 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Clears the VAT registration number an aborted run of an early electronic document proof left on a
-    /// customer (8 October). Only that exact value is cleared, so nothing a person entered is touched.
+    /// Clears only this exact value, so no other VAT registration number is touched.
     /// </summary>
     procedure RemoveLeftoverProofVatRegistrationNo()
     var
@@ -554,9 +495,8 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Takes down the default email scenario that deleting the client pass's email account on Email
-    /// Accounts leaves pointing at nothing. The email that could not be sent is deleted on Email
-    /// Outbox in the client: System Application keeps the fields that identify it internal.
+    /// Unassigns the default scenario left pointing at a deleted email account. Unsent emails must be
+    /// deleted from Email Outbox in the client: System Application keeps their identifying fields internal.
     /// </summary>
     procedure RemoveClientPassEmailScenario()
     var
@@ -566,11 +506,8 @@ codeunit 50160 "Filename Proof Demo Setup"
     end;
 
     /// <summary>
-    /// Removes the email messages Filename Batch Measure left behind before it cleaned up after
-    /// itself - three, "Duplicate attachment names", from 5 October. Email Message's own cleanup:
-    /// it deletes every message in this company that is neither in the outbox nor sent, with its
-    /// attachments. In the container those three were the only email messages; run it only where
-    /// that has been checked, because it does not tell one orphaned message from another.
+    /// Deletes every message in the company that is neither in the outbox nor sent. It cannot tell
+    /// one orphaned message from another, so run it only where that is acceptable.
     /// </summary>
     procedure RemoveOrphanedEmailMessages()
     var
@@ -600,16 +537,11 @@ codeunit 50160 "Filename Proof Demo Setup"
             Pattern.WriteTableFilter(ConditionSource.GetView(false));
         end;
 
-        // Said explicitly. A pattern is created as a draft now - Enabled starts off, so an
-        // administrator cannot leave an incomplete row switched on - which means code that
-        // intends a pattern to be live has to say so, or it would be inert and match nothing.
+        // Patterns are created disabled, so a live one must be enabled explicitly.
         Pattern.Enabled := true;
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// The row that shows two patterns differing only by delivery and language.
-    /// </summary>
     local procedure AddPatternForChannel(ReportId: Integer; PatternText: Text; LanguageCode: Code[10]; Channel: Enum "Report Filename Output Route")
     var
         Pattern: Record "Report Filename Pattern";
@@ -634,20 +566,18 @@ codeunit 50160 "Filename Proof Demo Setup"
         CreditMemoPatternTok: Label 'CreditMemo-[No.]', Locked = true;
         FinancialReportPatternTok: Label '[Description]-[Report Run Date]', Locked = true;
         ExcelPatternTok: Label 'XLSX-Top10-[Report Run Date]', Locked = true;
-        // The user's own pattern from their sandbox, 28 September, so the container run is theirs.
         FinancialReportPeriodPatternTok: Label '[Display Title] [Period] - run [Report Run Date] by [Report Run By]', Locked = true;
         KindOfDocumentPatternTok: Label '[Kind of Document]-[No.]', Locked = true;
         ReminderPatternTok: Label 'Reminder-[No.]-[Posting Date]', Locked = true;
         ReminderLevel3PatternTok: Label 'Reminder-L3-[No.]', Locked = true;
-        // Authored with the name the picker offers, not the canonical name the binding
-        // records - which is the two-name design doing its job: both are accepted.
+        // Uses the display names the picker offers; canonical names are accepted too.
         MaximalPatternTok: Label '[Your Company Name]-Invoice-[No.]-[Sell-to Customer No.]-[Payment Terms.Description]-[Amount Including VAT]-[Total Incl. VAT]-[Posting Date]-[Report Name]', Locked = true;
         GermanLanguageCodeTok: Label 'DEU', Locked = true;
         SeededMsg: Label '%1 patterns configured.', Comment = '%1 how many';
         AddedMsg: Label 'Added pattern %1, %2.', Comment = '%1 the entry number, %2 the pattern text';
         StalePatternTok: Label '[Report Caption]-[No.]', Locked = true;
         AddedQuoteMsg: Label 'Added assembly quote %1 for item %2.', Comment = '%1 the quote number, %2 the item number';
-        // Conference Bundle 1-6, an assembly item in CRONUS.
+        // Conference Bundle 1-6, which has an assembly BOM in the demo data.
         AssemblyItemTok: Label '1925-W', Locked = true;
         PostedNoLanguageMsg: Label 'Posted invoice %1 with no language code.', Comment = '%1 the posted invoice number';
         DefaultLanguageMsg: Label 'Company Default Language Code is now "%1".', Comment = '%1 the language code';
@@ -663,7 +593,7 @@ codeunit 50160 "Filename Proof Demo Setup"
         RemovedEntriesMsg: Label 'Removed %1 job queue entries left by the scheduled-route proofs.', Comment = '%1 the number removed';
         ReminderFileNameTok: Label 'Reminder from attachment text', Locked = true;
         ReminderFileNameMsg: Label 'Reminder level 1 of DOMESTIC now has the attachment text File Name "%1" in %2.', Comment = '%1 the file name, %2 the language code';
-        // ATHENS Desk, an item CRONUS sells.
+        // ATHENS Desk, an item in the demo data.
         NoLanguageItemTok: Label '1896-S', Locked = true;
         StaleBindingTok: Label '{c:Report Caption}-{f:3}', Locked = true;
 }

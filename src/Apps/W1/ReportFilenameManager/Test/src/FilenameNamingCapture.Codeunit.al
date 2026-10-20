@@ -4,12 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50180 "Filename Naming Capture"
 {
-    // Records the name the feature gives on a route, as it gives it, through the feature's own
-    // OnAfterNamingDelivery. Bound manually by the tests that use it, so nothing else is affected.
-    //
-    // A test can then assert on the name a real delivery produced instead of naming the run again
-    // afterwards - which matters where naming takes what the run recorded, as a financial report's
-    // subject and period are taken.
+    // Records the name a real delivery produced, so a test need not name the run again afterwards -
+    // which matters where naming uses what the run recorded (a financial report's subject and period).
 
     Access = Internal;
     EventSubscriberInstance = Manual;
@@ -23,25 +19,17 @@ codeunit 50180 "Filename Naming Capture"
         Names.Set(ReportId, FileName);
     end;
 
-    /// <summary>
-    /// Forgets every name captured so far.
-    /// </summary>
     internal procedure Reset()
     begin
         Clear(Names);
     end;
 
-    /// <summary>
-    /// Whether a name was captured for the report.
-    /// </summary>
     internal procedure HasNameFor(ReportId: Integer): Boolean
     begin
         exit(Names.ContainsKey(ReportId));
     end;
 
-    /// <summary>
-    /// The name last captured for the report, with its extension, and forgets it.
-    /// </summary>
+    // Takes the name and forgets it.
     internal procedure TakeName(ReportId: Integer) FileName: Text
     begin
         if not Names.Get(ReportId, FileName) then
@@ -49,9 +37,6 @@ codeunit 50180 "Filename Naming Capture"
         Names.Remove(ReportId);
     end;
 
-    /// <summary>
-    /// The name last captured for the report without its extension, and forgets it.
-    /// </summary>
     internal procedure TakeNameWithoutExtension(ReportId: Integer) FileName: Text
     var
         DotPosition: Integer;

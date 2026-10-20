@@ -4,24 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50127 "Report Filename Excel Sub."
 {
-    // Stands in for one event Base Application does not raise yet: a file name event where Export
-    // Acc. Sched. to Excel downloads a financial report's workbook, which it names after the
-    // financial report's code. Every hook on that path passes the name read-only (Excel Buffer's
-    // OnBeforeOpenUsingDocumentService, File Management's OnBeforeDownloadHandler), so the only way
-    // to give it another name is to take the download over and make it again under that name.
-    //
-    // That takes File Management.DownloadHandler, which is Scope('OnPrem'): a Cloud app may not call
-    // it (AL0296, measured on 28 September). Hence this app targets OnPrem, as Microsoft's own apps
-    // alongside Base Application may - Shopify Connector, E-Document Core and Business Foundation do,
-    // read from their manifests in the 28.4 container. During development this subscriber lived in a
-    // separate app, only because an online sandbox accepts a Cloud app from a partner and nothing
-    // else.
-    //
-    // WHAT THIS BECOMES
-    //
-    // Preferred: Base Application raises the file name event (ask 4), the manager subscribes and sets
-    // the name from Report Filename Fin. Rep. Sub.TryNameExcelDownload, nobody takes a download over,
-    // and this codeunit is removed.
+    // Temporary stand-in until Base Application raises a file name event for the financial report
+    // workbook that Export Acc. Sched. to Excel downloads (ask 4); then this codeunit is removed.
+    // Every hook on that path passes the name read-only, so the download is taken over and made
+    // again under the new name. File Management.DownloadHandler is Scope('OnPrem'), which is why
+    // this app targets OnPrem.
 
     Access = Internal;
     SingleInstance = true;
@@ -37,9 +24,8 @@ codeunit 50127 "Report Filename Excel Sub."
     begin
         if IsHandled then
             exit;
-        // This subscriber's own download, re-entering: recognised by the name it is downloading under,
-        // not by a flag alone, so a download that failed half way cannot leave Excel naming switched
-        // off - any other download clears what it left behind.
+        // Re-entry from this subscriber's own download is recognised by name, not a flag, so a
+        // download that failed half way cannot leave naming switched off.
         if DownloadingName <> '' then begin
             if ToFileName = DownloadingName then
                 exit;
@@ -49,16 +35,12 @@ codeunit 50127 "Report Filename Excel Sub."
             exit;
         if not ReportFilenameMgt.IsActive() then
             exit;
-        // Only the workbook report 29 is writing right now, for the financial report the overview's
-        // action recorded and armed - not any other workbook downloaded while something was left
-        // behind (Report Filename Context.IsExcelExportRunning).
+        // Only the workbook report 29 is writing right now, not any other workbook.
         if not ReportFilenameContext.IsExcelExportRunning() then
             exit;
         if not ReportFilenameFinRepSub.TryNameExcelDownload(NewFileName) then
             exit;
 
-        // The download is made again through the same procedure, under the new name; the guard
-        // keeps this subscriber out of its own call.
         DownloadingName := NewFileName;
         Downloaded := FileManagement.DownloadHandler(FromFileName, '', ToFolder, ExcelFilterTok, NewFileName);
         Clear(DownloadingName);

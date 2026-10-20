@@ -4,12 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50195 "Filename Proof Send Service"
 {
-    // Sends an invoice through a Document Sending Profile whose Electronic Document option is the
-    // electronic document service, isolated so its failure cannot end the proof.
-    //
-    // No service is set up in a test company, so the send fails - after Electronic Document Format.
-    // SendElectronically has built the file and handed its name on, which is what Filename Proof Elec.
-    // Doc. reads.
+    // Sends an invoice through the electronic document service, isolated: with no service set up the
+    // send fails, after SendElectronically has built and named the file.
 
     TableNo = "Sales Invoice Header";
 

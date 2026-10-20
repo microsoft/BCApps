@@ -4,21 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50156 "Filename Proof Scheduled"
 {
-    // Proves the scheduled route end to end: a report scheduled through the job queue produces
-    // a Report Inbox entry that downloads under the configured name.
-    //
-    // The run is the real one. A Job Queue Entry is created exactly as scheduling a report
-    // creates it, and codeunit 487 "Job Queue Start Report" is run against it - the same
-    // codeunit the job queue itself invokes for a PDF output type, reached through the same
-    // interface on enum 482. The report really renders, Base Application really inserts the
-    // Report Inbox row, and the naming subscribers really fire. The only thing left out is the
-    // task scheduler noticing the entry, which is platform infrastructure rather than any part
-    // of this design.
-    //
-    // The download side is proven by calling ShowReport and catching the name the download
-    // decided, through the integration event the feature raises just before it downloads. That
-    // matters because the session a test runs in cannot receive a file: what has to be proven
-    // is which name the download uses, not that a browser saved it.
+    // Proves a report scheduled through the job queue produces a Report Inbox entry that downloads
+    // under the configured name. The Job Queue Entry is run through "Job Queue Start Report", which
+    // reaches the same Job Queue Start Report Base.RunReport the job queue does; the task scheduler
+    // and Job Queue Start Codeunit are left out. The download name is caught at
+    // the feature's OnBeforeDownloadWithResolvedName.
 
     SingleInstance = true;
 
@@ -38,7 +28,6 @@ codeunit 50156 "Filename Proof Scheduled"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // An invoice of the proof's own to schedule.
         TestData.PostNewInvoice(SalesInvoiceHeader);
 
         ConfigurePattern();
@@ -47,8 +36,7 @@ codeunit 50156 "Filename Proof Scheduled"
         ProofSupport.LogLine('11 Pattern', ScheduledPatternTok);
         ProofSupport.LogLine('11 Expected file name', ExpectedName + PdfExtensionTok);
 
-        // Everything above is committed before the isolated run below, so a failure inside it
-        // cannot take the evidence with it.
+        // Codeunit.Run with its result used must not start inside a write transaction.
         Commit();
 
         Clear(ResolvedDownloadName);
@@ -67,8 +55,7 @@ codeunit 50156 "Filename Proof Scheduled"
         ProofSupport.LogLine('11 Report Inbox entry', Format(ReportInbox."Entry No."));
         ProofSupport.LogLine('RESULT scheduled report produced an inbox entry', PassMsg);
 
-        // What Business Central would have called it, from the same row. This is the name the
-        // scheduled route produces today, and the reason the route needed integrating at all.
+        // What Business Central would have called it, from the same row.
         ReportInbox.CalcFields("Report Name");
         NameBeforeFeature := ReportInbox.GetFileNameWithExtension();
         ProofSupport.LogLine('11 Name Business Central derives at download', NameBeforeFeature);
@@ -79,8 +66,7 @@ codeunit 50156 "Filename Proof Scheduled"
         else
             ProofSupport.LogLine('RESULT the configured name is stored at production time', StrSubstNo(ExpectedButGotMsg, ExpectedName, ReportInbox."File Name"));
 
-        // The download itself. ShowReport is what every download path on both Report Inbox
-        // pages calls, and the name it settles on is captured through the event below.
+        // ShowReport is what both Report Inbox pages call to download.
         RunShowReport(ReportInbox);
 
         ProofSupport.LogLine('11 Name the download used', ResolvedDownloadName);
@@ -100,15 +86,9 @@ codeunit 50156 "Filename Proof Scheduled"
     end;
 
     /// <summary>
-    /// Report Inbox.ShowReport refuses two things with errors of its own, right after the event the
-    /// feature takes the download over from: an entry that is not a stored row, and another user's
-    /// entry. The takeover is scaffolding until Base Application has a file name event, so it must
-    /// step aside for both and leave the refusal to Base Application.
-    ///
-    /// Two things are asserted for each, and neither compares Base Application's wording: that
-    /// ShowReport raised an error, and that the feature's download never started - its
-    /// OnBeforeDownloadWithResolvedName was not raised. Both entries carry a stored name, so a
-    /// takeover that did not step aside would announce a download and the proof would go red.
+    /// The download takeover (a stand-in until Base Application has a file name event) steps aside
+    /// for what ShowReport refuses - an unstored entry and another user's entry: ShowReport errors
+    /// and OnBeforeDownloadWithResolvedName is not raised.
     /// </summary>
     /// <param name="ReportInbox">The user's own named entry, produced by the scheduled run.</param>
     local procedure ProveTheDownloadStepsAsideForWhatShowReportRefuses(var ReportInbox: Record "Report Inbox")
@@ -153,21 +133,13 @@ codeunit 50156 "Filename Proof Scheduled"
             ProofSupport.LogLine(UnstoredVerdictTok, StrSubstNo(FailStepAsideMsg, Format(Refused), ResolvedDownloadName));
     end;
 
-    /// <summary>
-    /// Captures what the download decided. Subscribing to the feature's own event is what
-    /// makes the decision observable in a session that cannot receive a file.
-    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Filename Inbox Mgt.", 'OnBeforeDownloadWithResolvedName', '', false, false)]
     local procedure CaptureResolvedDownloadName(var ReportInbox: Record "Report Inbox"; FileName: Text)
     begin
         ResolvedDownloadName := CopyStr(FileName, 1, MaxStrLen(ResolvedDownloadName));
     end;
 
-    /// <summary>
-    /// Creates the job queue entry a scheduled report produces, and runs it through the
-    /// codeunit the job queue would run. Isolated, because the render and the insert both
-    /// write and either could fail on company setup this proof does not control.
-    /// </summary>
+    // Isolated: the render and the inbox insert can fail on company setup.
     local procedure CreateAndRunJobQueueEntry(var SalesInvoiceHeader: Record "Sales Invoice Header"; var JobQueueEntry: Record "Job Queue Entry") Ran: Boolean
     begin
         JobQueueEntry.Init();
@@ -182,14 +154,11 @@ codeunit 50156 "Filename Proof Scheduled"
         Commit();
 
         Ran := Codeunit.Run(Codeunit::"Job Queue Start Report", JobQueueEntry);
-        // The Report Inbox row is found by this entry's ID afterwards, which the variable keeps.
+        // The variable keeps the ID the Report Inbox row is found by afterwards.
         ProofSupport.RemoveJobQueueEntry(JobQueueEntry.ID);
     end;
 
-    /// <summary>
-    /// Runs the download in isolation: the session cannot receive a file, so this is expected
-    /// to fail, and what matters is the name the feature had already decided by then.
-    /// </summary>
+    // Isolated, so a failing download cannot end the proof; the name is captured before it.
     local procedure RunShowReport(var ReportInbox: Record "Report Inbox")
     begin
         if not Codeunit.Run(Codeunit::"Filename Proof Show Inbox", ReportInbox) then
@@ -213,9 +182,7 @@ codeunit 50156 "Filename Proof Scheduled"
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
         Pattern.Validate("File Name Pattern", ScheduledPatternTok);
-        // Said explicitly. A pattern is created as a draft now - Enabled starts off, so an
-        // administrator cannot leave an incomplete row switched on - which means code that
-        // intends a pattern to be live has to say so, or it would be inert and match nothing.
+        // A pattern is created as a draft.
         Pattern.Enabled := true;
         Pattern.Insert(true);
     end;

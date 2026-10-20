@@ -4,12 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 enum 50115 "Report Filename Criterion"
 {
-    // Which of a pattern's criteria a document does not meet, in the order naming checks them,
-    // so that Test Pattern can say why a pattern does not apply instead of guessing. None means
-    // the pattern applies.
+    // The first pattern criterion a document fails, in the order naming checks them, so Test
+    // Pattern can say why a pattern does not apply. None means the pattern applies.
 
-    // Not extensible: an internal enum cannot be reached by another extension, so declaring
-    // it extensible would promise something impossible.
     Extensible = false;
     Caption = 'Report Filename Criterion';
     Access = Internal;

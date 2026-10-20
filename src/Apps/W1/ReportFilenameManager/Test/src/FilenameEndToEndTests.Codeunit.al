@@ -4,20 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50185 "Filename End-To-End Tests"
 {
-    // The whole user flow, from the pages to the file: the pattern is created and changed on the
-    // Pattern Card, the feature switched on and off in Report Filename Setup, and the file produced
-    // by the action a user takes. Everything else in this suite either reads a page or creates a
-    // pattern in code; these connect the two.
-    //
-    // Each test posts an invoice of its own, so what is named is a document the test created.
+    // The whole user flow: pattern set up and changed on the Pattern Card, feature switched in Setup,
+    // and the file produced by the action a user takes.
 
     Subtype = Test;
     TestPermissions = Disabled;
 
     /// <summary>
-    /// Attach as PDF, from the posted invoice's own action: named by the pattern set up on the card,
-    /// renamed when the pattern is changed on the card, and given Business Central's own name once
-    /// the feature is switched off in Setup.
+    /// Attach as PDF follows the pattern set up and changed on the card, and falls back to Business
+    /// Central's own name once the feature is switched off.
     /// </summary>
     [Test]
     [HandlerFunctions('PickChosenReportHandler')]
@@ -40,16 +35,14 @@ codeunit 50185 "Filename End-To-End Tests"
         ExpectStandardAttachment(SalesInvoiceHeader."No.");
     end;
 
-    /// <summary>
-    /// Send to Disk: the same flow, read from the name the download is given.
-    /// </summary>
     [Test]
     [HandlerFunctions('PickChosenReportHandler')]
     procedure SendToDiskFollowsWhatIsSetUpOnThePages()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        ElectronicDocumentFormat: Record "Electronic Document Format";
         DiskCapture: Codeunit "Filename Disk Capture";
-        Name: Text;
+        StandardName: Text;
     begin
         PrepareThroughPages(SalesInvoiceHeader, FirstPatternTok);
         BindSubscription(DiskCapture);
@@ -62,22 +55,22 @@ codeunit 50185 "Filename End-To-End Tests"
         ExpectName(SecondPrefixTok + SalesInvoiceHeader."No." + PdfExtensionTok, DiskCapture.TakeName());
 
         SwitchFeatureOnTheSetupPage(false);
+        StandardName := ElectronicDocumentFormat.GetAttachmentFileName(SalesInvoiceHeader, SalesInvoiceHeader."No.", InvoiceDocumentNameTok, PdfTok);
         SendToDisk(SalesInvoiceHeader);
-        Name := DiskCapture.TakeName();
+        ExpectStandardName(StandardName, DiskCapture.TakeName());
         UnbindSubscription(DiskCapture);
-        if StrPos(Name, SecondPrefixTok) = 1 then
-            Error(StillNamedErr, Name);
     end;
 
     /// <summary>
-    /// The emailed invoice: the same flow, read from the attachment on the email Base Application
-    /// builds, stopped before it is sent.
+    /// The same flow, read from the email's attachment, captured before the email is sent.
     /// </summary>
     [Test]
     [HandlerFunctions('PickChosenReportHandler')]
     procedure EmailFollowsWhatIsSetUpOnThePages()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        DocumentMailing: Codeunit "Document-Mailing";
+        StandardName: Text[250];
         Emailed: Text;
     begin
         PrepareThroughPages(SalesInvoiceHeader, FirstPatternTok);
@@ -90,13 +83,15 @@ codeunit 50185 "Filename End-To-End Tests"
         ExpectListed(SecondPrefixTok + SalesInvoiceHeader."No." + PdfExtensionTok, Emailed);
 
         SwitchFeatureOnTheSetupPage(false);
+        DocumentMailing.GetAttachmentFileName(
+            StandardName, SalesInvoiceHeader."No.", InvoiceDocumentNameTok, Enum::"Report Selection Usage"::"S.Invoice".AsInteger());
         Emailed := EmailAttachmentNames(SalesInvoiceHeader);
-        if StrPos(Emailed, SecondPrefixTok) > 0 then
-            Error(StillNamedErr, Emailed);
+        // One email with one attachment, under Business Central's own name.
+        ExpectStandardName(StrSubstNo(OneAttachmentTok, StandardName), Emailed);
     end;
 
     /// <summary>
-    /// A scheduled report: the same flow, read from the Report Inbox entry the job queue run writes.
+    /// The same flow, read from the Report Inbox entry the job queue run writes.
     /// </summary>
     [Test]
     [HandlerFunctions('PickChosenReportHandler')]
@@ -116,10 +111,6 @@ codeunit 50185 "Filename End-To-End Tests"
         ExpectName('', ScheduledInboxName(SalesInvoiceHeader));
     end;
 
-    /// <summary>
-    /// No patterns, the feature switched on in Setup, an invoice of the test's own, and a pattern for
-    /// the invoice report created on the Pattern Card the way an administrator creates it.
-    /// </summary>
     local procedure PrepareThroughPages(var SalesInvoiceHeader: Record "Sales Invoice Header"; PatternText: Text)
     var
         FilenameProofGuard: Codeunit "Filename Proof Guard";
@@ -181,8 +172,7 @@ codeunit 50185 "Filename End-To-End Tests"
     end;
 
     /// <summary>
-    /// The names of the attachments on the invoice's email, read where Base Application has named
-    /// them and before it sends - or, with no email account set up, before it downloads them instead.
+    /// Read and stopped at Document-Mailing's OnBeforeSendEmail.
     /// </summary>
     local procedure EmailAttachmentNames(SalesInvoiceHeader: Record "Sales Invoice Header") Names: Text
     var
@@ -207,9 +197,8 @@ codeunit 50185 "Filename End-To-End Tests"
     end;
 
     /// <summary>
-    /// Schedules the invoice report for the invoice exactly as scheduling a report does, runs the job
-    /// queue's own report runner against it, and returns the File Name of the Report Inbox entry it
-    /// wrote.
+    /// Schedules the report as a user would, runs the job queue's report runner, and returns the
+    /// File Name of the Report Inbox entry it wrote.
     /// </summary>
     local procedure ScheduledInboxName(SalesInvoiceHeader: Record "Sales Invoice Header"): Text
     var
@@ -266,6 +255,14 @@ codeunit 50185 "Filename End-To-End Tests"
             Error(WrongNameErr, Expected, Actual);
     end;
 
+    local procedure ExpectStandardName(Expected: Text; Actual: Text)
+    begin
+        if Actual = '' then
+            Error(NothingCapturedErr);
+        if Actual <> Expected then
+            Error(StillNamedErr, Expected, Actual);
+    end;
+
     local procedure ExpectListed(Expected: Text; Listed: Text)
     begin
         if StrPos(LowerCase(Listed), LowerCase(Expected)) = 0 then
@@ -296,7 +293,9 @@ codeunit 50185 "Filename End-To-End Tests"
         PdfExtensionTok: Label '.pdf', Locked = true;
         WrongNameErr: Label 'Expected the file name %1, got %2.', Comment = '%1 expected, %2 actual';
         NotListedErr: Label 'Expected an attachment %1 on the email; it has %2.', Comment = '%1 expected name, %2 the attachments';
-        StillNamedErr: Label 'With the feature switched off the file should have Business Central''s own name, but is %1.', Comment = '%1 the name';
+        StillNamedErr: Label 'With the feature switched off the file should have Business Central''s own name %1, but is %2.', Comment = '%1 the standard name, %2 the name';
+        NothingCapturedErr: Label 'With the feature switched off no file was captured.';
+        OneAttachmentTok: Label '1 attachments: %1 | ', Comment = '%1 the attachment name', Locked = true;
         AttachmentMissingErr: Label 'Expected an attachment %1.%2. The document has: %3', Comment = '%1 name, %2 extension, %3 the attachments';
         NoEmailErr: Label 'No email was built for invoice %1.', Comment = '%1 the invoice';
         ScheduledRunFailedErr: Label 'The scheduled run failed: %1', Comment = '%1 the error';

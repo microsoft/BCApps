@@ -4,23 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50178 "Filename Permission Tests"
 {
-    // Runs as a user who holds no permission set from this app: D365 BUS FULL ACCESS and nothing of
-    // ours. Microsoft's Permissions Mock narrows the test session to exactly that set, which is how
-    // Microsoft's own tests run as a restricted user. A second real user was the first choice, and
-    // could not be made: the container's user commands refuse this machine's account.
-    //
-    // Each test first sets up, as the administrator who runs the suite, the pattern and the posted
-    // invoice it is about - an ordinary user may not create a pattern, which is the point - and only
-    // then narrows the session.
-    //
-    // Every user who prints a report runs this feature's code, because the naming happens inside
-    // the print. Only people who set up patterns hold Report Filename Mgr. So an ordinary user must be
-    // named by a pattern without being able to read the patterns table, and must never get a
-    // permission error out of a print.
-    //
-    // Nothing here writes once the session is narrowed: the user could not, and a write would change
-    // what is being measured.
-    // A failure is an error, so Run-TestsInBcContainer reports it.
+    // Every user who prints runs the naming code, but Report Filename Mgr. is meant for pattern
+    // administrators only: an ordinary user must be named by a pattern without reading the patterns
+    // table. Each test sets up as the administrator, then narrows the session with Permissions Mock.
 
     Subtype = Test;
     TestPermissions = Disabled;
@@ -42,8 +28,6 @@ codeunit 50178 "Filename Permission Tests"
         Success: Boolean;
         ProbeInstalled: Boolean;
     begin
-        // Prepared as the administrator who runs the suite, before the session is narrowed: the one
-        // pattern the user is named by, on the invoice report and every route, and an invoice to print.
         FilenameProofGuard.ClearPatterns();
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
@@ -51,25 +35,21 @@ codeunit 50178 "Filename Permission Tests"
         Pattern.Enabled := true;
         Pattern.Insert(true);
         TestData.PostNewInvoice(SalesInvoiceHeader);
-        // Read before the session is narrowed, which may take away the right to read it.
+        // Read before the session is narrowed, so the narrowed set's rights do not matter.
         ProbeInstalled := IsPermissionSetInstalled(ProbeSetTok);
         PermissionsMock.Set(OrdinaryUserSetTok);
-        // Where the diagnostic probe is installed beside this app, it listens to the same naming
-        // event, writing to its own log. It is not part of the deliverable, and without its set the
-        // first run of this test failed inside the probe - before this feature's code was reached -
-        // which measured nothing about this feature. Its set covers only the probe's own objects.
-        // Where the probe is not installed there is no such set, and nothing to assign.
+        // A diagnostic probe app, where installed, also subscribes to OnGetFilename and writes its
+        // own log, which fails without its set; that set covers only the probe's own objects.
         if ProbeInstalled then
             PermissionsMock.Assign(ProbeSetTok);
 
-        // The control. If this user can read the patterns table directly, the test proves nothing
-        // about a user who cannot.
+        // Control: a user who can read the patterns table proves nothing about one who cannot.
         if Pattern.ReadPermission() then
             Error(UserCanReadPatternsErr, UserId());
 
         Payload.ReadFrom(StrSubstNo(PayloadTok, ProofSupport.InvoiceFilterViews(SalesInvoiceHeader)));
 
-        // The platform's own naming hook, raised exactly as a print raises it.
+        // Raised as a print raises it.
         ReportingTriggers.GetFilename(
             Report::"Standard Sales - Invoice", InvoiceCaptionTok, Payload, PdfExtensionTok, NoRecord, Filename, Success);
 
@@ -81,11 +61,9 @@ codeunit 50178 "Filename Permission Tests"
     end;
 
     /// <summary>
-    /// The other half: somebody who manages file names holds Report Filename Mgr. beside their
-    /// ordinary set, and nothing more - not SUPER, which every check in a client made by the person
-    /// who installed the app would otherwise run as. Each page is opened the way an administrator
-    /// opens it, by its action or its lookup, so a page, table or codeunit missing from the set
-    /// stops the test where the administrator would be stopped.
+    /// Report Filename Mgr. beside the ordinary set (not SUPER) is enough to manage patterns: the
+    /// pages and the card's lookups are opened as a manager would, so a right missing for any of
+    /// them stops the test.
     /// </summary>
     [Test]
     [HandlerFunctions('PickInvoiceReportHandler,PickLastFieldHandler,AppendFirstPlaceholderHandler,TestPatternOnInvoiceHandler,ChooseInvoiceHandler,PickFirstTableHandler,TickPrintRouteHandler')]
@@ -103,7 +81,6 @@ codeunit 50178 "Filename Permission Tests"
         SecondCard: TestPage "Report Filename Pattern Card";
         ProbeInstalled: Boolean;
     begin
-        // Prepared as the administrator who runs the suite, before the session is narrowed.
         FilenameProofGuard.AssertSafeEnvironment();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
         FilenameProofGuard.SwitchFeatureOn();
@@ -117,8 +94,7 @@ codeunit 50178 "Filename Permission Tests"
         if ProbeInstalled then
             PermissionsMock.Assign(ProbeSetTok);
 
-        // The control: the narrowed session holds this set. Without it, as the test above shows,
-        // the patterns cannot even be read.
+        // Control: the narrowed session holds this set.
         if not Pattern.WritePermission() then
             Error(ManagerCannotWriteErr, UserId());
 
@@ -173,9 +149,8 @@ codeunit 50178 "Filename Permission Tests"
     var
         CompanyPlaceholder: Interface "Report Filename Placeholder";
     begin
-        // A named placeholder, not whichever sorts first: once the computed values were renamed,
-        // the first became [Kind of Document], which declines here because the language field
-        // this test picks (the last one offered) does not hold the invoice's language.
+        // A named placeholder, not whichever sorts first, which could be one that can decline (such
+        // as [Kind of Document] on a language mismatch).
         CompanyPlaceholder := Enum::"Report Filename Placeholder"::CompanyPrefix;
         Placeholders.Filter.SetFilter(Placeholder, '[' + CompanyPlaceholder.DisplayName() + ']');
         if not Placeholders.First() then
@@ -211,16 +186,12 @@ codeunit 50178 "Filename Permission Tests"
     [ModalPageHandler]
     procedure TickPrintRouteHandler(var RoutesPage: TestPage "Report Filename Routes")
     begin
-        // Print, because Test Pattern starts on the pattern's first route, and the name it shows
-        // is then this pattern's.
+        // Print: Test Pattern starts on the pattern's first route.
         RoutesPage.First();
         RoutesPage.Selected.SetValue(true);
         RoutesPage.OK().Invoke();
     end;
 
-    /// <summary>
-    /// Whether a permission set by this name is installed, from any app.
-    /// </summary>
     local procedure IsPermissionSetInstalled(RoleId: Text): Boolean
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";

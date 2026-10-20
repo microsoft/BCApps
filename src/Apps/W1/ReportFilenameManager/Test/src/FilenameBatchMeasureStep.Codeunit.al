@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50191 "Filename Batch Measure Step"
 {
-    // Runs one report step of Filename Batch Measure in isolation. A report render writes, which a
-    // TryFunction does not allow, so a step that may fail is run through Codeunit.Run instead and
-    // its error read by the caller.
+    // Runs one step of Filename Batch Measure through Codeunit.Run: a report render writes, which a
+    // TryFunction does not allow on-premises by default.
 
     trigger OnRun()
     var

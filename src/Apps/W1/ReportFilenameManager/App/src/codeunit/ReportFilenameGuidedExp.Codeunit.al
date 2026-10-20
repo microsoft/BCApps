@@ -4,11 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50125 "Report Filename Guided Exp."
 {
-    // Lists Report Filename Setup under Manual Setup, beside Report Layout Selection, so an
-    // administrator can find it without knowing the page's name. Base Application registers its
-    // own setup pages the same way, from Business Setup Subscribers, and puts Report Layout
-    // Selection in the System category - the closest neighbour this setup has. A separate app
-    // registers its own setup the same way, through the same event.
+    // Lists Report Filename Setup under Manual Setup, in the System category, where Base
+    // Application also lists Report Layout Selection.
 
     Access = Internal;
 

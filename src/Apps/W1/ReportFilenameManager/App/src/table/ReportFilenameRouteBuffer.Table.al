@@ -4,13 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 table 50116 "Report Filename Route Buffer"
 {
-    // The routes a pattern's Output Route Filter is chosen from, one row per route with a tick
-    // box, the way Base Application's Dimension Selection Buffer offers dimensions. Never stored:
-    // the routes are filled in, ticked and read back in memory.
-    //
-    // It replaced a filter page, which offered the table's system fields - Created At, Row Version
-    // and the rest - beside the one field that meant anything, and asked for a filter expression
-    // where a choice from a handful of fixed routes was all there was to make.
+    // One row per route for choosing a pattern's Output Route Filter, like Dimension Selection Buffer.
 
     Caption = 'Report Filename Route Buffer';
     TableType = Temporary;
@@ -53,8 +47,7 @@ table 50116 "Report Filename Route Buffer"
     }
 
     var
-        // One rule for every row, agreed with the user on 7 October, night: the action that makes
-        // the file, in Business Central's own words, in one sentence that reads on its own.
+        // Each describes the action or setting that produces the file.
         PrintDescriptionLbl: Label 'Print... then Print.';
         PreviewDescriptionLbl: Label 'Print... then Preview: the file downloaded from the preview.';
         SaveDescriptionLbl: Label 'A file saved without being shown, such as by a job queue entry or an extension.';
@@ -67,11 +60,9 @@ table 50116 "Report Filename Route Buffer"
         ElectronicDocumentDescriptionLbl: Label 'Send with a document sending profile whose Disk or Email Attachment includes Electronic Document: the XML and its zip.';
 
     /// <summary>
-    /// One row for every route a pattern can be limited to, ticked where the pattern already is.
-    /// Any is left out: it is what a delivery is when the platform does not say which route it
-    /// took, not a route a pattern is limited to.
+    /// Any is left out: it means the platform did not say which route, not a route to limit to.
     /// </summary>
-    /// <param name="SelectedRoutes">The routes to tick, as enum ordinals.</param>
+    /// <param name="SelectedRoutes">Enum ordinals of the routes to tick.</param>
     internal procedure FillRoutes(SelectedRoutes: List of [Integer])
     var
         Ordinal: Integer;
@@ -92,12 +83,9 @@ table 50116 "Report Filename Route Buffer"
     end;
 
     /// <summary>
-    /// Where a route is listed: in the enum's order, except that Download follows Preview, so the
-    /// three buttons of the window Print... opens - Print, Preview and Send to... - are listed
-    /// together. Raised by the user on 7 October, night: Save sat between them.
+    /// Enum order, except Download follows Preview, so the routes of the request page's Print,
+    /// Preview and Send to... buttons are listed together.
     /// </summary>
-    /// <param name="Route">The route.</param>
-    /// <returns>The position to sort by.</returns>
     local procedure RouteDisplayOrder(Route: Enum "Report Filename Output Route"): Integer
     begin
         if Route = Route::Download then
@@ -105,10 +93,7 @@ table 50116 "Report Filename Route Buffer"
         exit(Route.AsInteger() * 10);
     end;
 
-    /// <summary>
-    /// The ticked routes, in the enum's order.
-    /// </summary>
-    /// <param name="Routes">Receives the routes, as enum ordinals.</param>
+    /// <param name="Routes">Receives enum ordinals, in enum order.</param>
     internal procedure GetSelectedRoutes(var Routes: List of [Integer])
     var
         TempRouteBuffer: Record "Report Filename Route Buffer" temporary;
@@ -123,13 +108,7 @@ table 50116 "Report Filename Route Buffer"
             until TempRouteBuffer.Next() = 0;
     end;
 
-    /// <summary>
-    /// What produces a file on a route, in the words of the buttons that do it - several captions
-    /// read as synonyms on their own, Save, Download and Disk above all. A route another extension
-    /// adds has no description here.
-    /// </summary>
-    /// <param name="Route">The route.</param>
-    /// <returns>The description; blank for a route this app does not know.</returns>
+    /// <returns>Blank for a route added by another extension.</returns>
     local procedure RouteDescription(Route: Enum "Report Filename Output Route"): Text[250]
     begin
         case Route of

@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 table 50113 "Report Filename Plh. Buffer"
 {
-    // Holds the placeholders available for one pattern, so the administrator picks from a list
-    // rather than knowing what to type. Populated from compiled metadata, so the same
-    // pattern offers the same placeholders in an empty database as in production.
+    // The placeholders available for one pattern. Which ones are listed depends on metadata only,
+    // not on the records in the database.
 
     Caption = 'Report Filename Placeholder Buffer';
     TableType = Temporary;
@@ -58,10 +57,7 @@ table 50113 "Report Filename Plh. Buffer"
         }
         field(9; "Sort Order"; Integer)
         {
-            // Presentation order, held apart from Source. Sorting by Source put the computed values
-            // third because of the order the enum happens to declare them in, and an enum
-            // ordinal is an identity, not a position - the computed values belong first,
-            // because they are the short list that works anywhere.
+            // Display order, kept separate from Source because enum ordinals are not positions.
             Caption = 'Sort Order';
         }
     }
@@ -72,24 +68,16 @@ table 50113 "Report Filename Plh. Buffer"
         {
             Clustered = true;
         }
-        // The order the tree is shown in, and the reason the group name is a field of its own
-        // rather than something read back out of the placeholder text. Sorting a tree by placeholder alone
-        // does not work: "[Customer Posting Group]" sorts between "[Customer]" and
-        // "[Customer.Name]", because a space sorts before a full stop - which would put an
-        // unrelated row inside a table's children and break the contiguity a tree needs.
-        // Grouping first and indenting second makes the order independent of how the text reads.
+        // Tree order. Grouped by Group Name first, so a related table's fields stay under its row
+        // even when another placeholder, such as "[Customer Posting Group]", shares its prefix.
         key(Tree; "Sort Order", Source, "Group Name", Indentation, Placeholder)
         {
         }
     }
 
     /// <summary>
-    /// Whether this row stands for a related table rather than for a placeholder. Asked in one place
-    /// so the picker, the refusal message and the proof all agree on what a branch is: a row of
-    /// the related kind sitting at the top level, which is the only row that has children under
-    /// it and the only one with nothing to insert.
+    /// True for a top-level related-table row: a tree branch with nothing to insert.
     /// </summary>
-    /// <returns>True when the row is a branch of the tree and not a placeholder.</returns>
     internal procedure IsRelatedTableRow(): Boolean
     begin
         exit((Source = Source::"Related Field") and (Indentation = 0));

@@ -4,15 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50181 "Filename Review Support"
 {
-    // What the review tests and the end-to-end tests share: the report a posted sales invoice is
-    // printed with, the feature switch, patterns, and reading attachments back. The documents they
-    // name are their own, created by Filename Test Data.
+    // Helpers shared by the review tests and the end-to-end tests.
 
     Access = Internal;
 
     /// <summary>
-    /// The report Business Central prints, attaches and sends a posted sales invoice with: the first
-    /// report selection for the usage that has a report.
+    /// The first report selection for posted sales invoices that has a report.
     /// </summary>
     internal procedure InvoiceReportId(): Integer
     var
@@ -28,9 +25,6 @@ codeunit 50181 "Filename Review Support"
         Error(NoInvoiceReportErr);
     end;
 
-    /// <summary>
-    /// Switches the feature on or off, as the setup does.
-    /// </summary>
     internal procedure SetFeature(Enabled: Boolean)
     var
         ReportFilenameSetup: Record "Report Filename Setup";
@@ -43,9 +37,6 @@ codeunit 50181 "Filename Review Support"
         ReportFilenameSetup.Modify();
     end;
 
-    /// <summary>
-    /// A live pattern for a report, on one route or on every route.
-    /// </summary>
     internal procedure AddPattern(var Pattern: Record "Report Filename Pattern"; ReportId: Integer; PatternText: Text; Route: Enum "Report Filename Output Route")
     var
         FilenameProofSupport: Codeunit "Filename Proof Support";
@@ -59,9 +50,6 @@ codeunit 50181 "Filename Review Support"
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// Whether the document has an attachment of this name and extension.
-    /// </summary>
     internal procedure HasAttachment(TableNo: Integer; DocumentNo: Code[20]; FileName: Text; FileExtension: Text): Boolean
     var
         DocumentAttachment: Record "Document Attachment";
@@ -76,7 +64,7 @@ codeunit 50181 "Filename Review Support"
     end;
 
     /// <summary>
-    /// The attachments of the document, as Name.extension joined by a comma, for a failure message.
+    /// The document's attachments as Name.extension, comma-separated, for a failure message.
     /// </summary>
     internal procedure ListAttachments(TableNo: Integer; DocumentNo: Code[20]) Listed: Text
     var

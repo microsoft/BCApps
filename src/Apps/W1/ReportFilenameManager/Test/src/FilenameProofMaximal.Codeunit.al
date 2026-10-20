@@ -4,22 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50158 "Filename Proof Maximal"
 {
-    // The maximal case: one pattern using every kind of placeholder the design has, resolved
-    // identically on all four delivery routes, with a competing pattern present so selection
-    // has to score correctly, and with the two limits - how many values a placeholder may list and
-    // how long the name may be - both doing something.
-    //
-    //   [Your Company Name]        a computed value, through the placeholder interface
-    //   [No.]                 a field on the document
-    //   [Sell-to Customer No.] another field, and the one the request page filters on
-    //   [Payment Terms.Description]  a field one table relation away
-    //   [Amount Including VAT]       a decimal, to the document's own precision
-    //   [Total Incl. VAT]     a computed value that is not a field
-    //   [Posting Date]        a date, in the pattern's chosen format
-    //   [Report Name]         a translated caption, read in the document's language
-    //
-    // Authored in a Danish session and rendered in a German one, because a pattern is
-    // configured once and then used by whoever happens to produce the report.
+    // One pattern with field, related-field and computed placeholders resolves identically on four
+    // routes (preview, download, email, scheduled), with a competing pattern present. Authored in a
+    // Danish session; preview, download and email render in a German one. Also proves that a mixed
+    // batch declines and that Max. Values Named and Max. File Name Length apply.
 
     SingleInstance = true;
 
@@ -46,16 +34,12 @@ codeunit 50158 "Filename Proof Maximal"
     begin
         FilenameProofLogMgt.StartNewRun();
 
-        // An invoice of the proof's own, on payment terms of its own whose description carries no
-        // character the sanitiser would touch - see ExpectedMaximalName.
+        // Payment terms description has no character the sanitiser would touch - see ExpectedMaximalName.
         PostInvoiceOnTerms(TestData.CreateCustomer(), BaseUnitPrice(), SalesInvoiceHeader);
 
-        // A pattern that would also match, so the specific one has to be chosen rather than
-        // merely being the only one there.
+        // Also matches, so the specific pattern has to win on selection.
         ConfigureCompetingPattern();
-        // With the limit at exactly the name's own length, so the whole maximal name is what the
-        // routes are compared on. Since 28 September the default limit (100) is shorter than this
-        // name, and a cut name proves less; the cut itself is proven by ProveValueCollapseAndTruncation.
+        // Limit set to the name's own length, so the default limit (100) cannot cut it.
         ExpectedName := ExpectedMaximalName(SalesInvoiceHeader);
         ConfigureMaximalPattern(StrLen(ExpectedName));
         ProofSupport.LogLine('12 Document', SalesInvoiceHeader."No.");
@@ -93,9 +77,7 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// A run covering several documents that disagree has no honest name, and the design says
-    /// so: the pattern declines and the caller keeps the name it already had, rather than the
-    /// file being named after whichever document happened to come first.
+    /// A run over invoices with different amounts declines, so the caller keeps its own name.
     /// </summary>
     procedure ProveMixedBatchDeclines()
     var
@@ -125,11 +107,8 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// The two limits. A placeholder whose field carries a filter is named from the filter, so three
-    /// selected invoices produce three values joined by the separator - and once there are more
-    /// values than the pattern allows, the list collapses to first-to-last so a fifty-document
-    /// selection cannot produce a fifty-part file name. Max. Length then applies to whatever
-    /// came out, last, with the trailing separator trimmed rather than left dangling.
+    /// Filtered values are joined until they exceed Max. Values Named, then collapse to first-to-last.
+    /// The length limit applies last and trims a trailing separator.
     /// </summary>
     procedure ProveValueCollapseAndTruncation()
     var
@@ -152,7 +131,6 @@ codeunit 50158 "Filename Proof Maximal"
         ThreeInvoices := ThreeInvoiceFilter(Numbers);
         ThreeInvoiceBounds(Numbers, FirstNo, LastNo);
 
-        // Three values allowed: the selection is listed in the order it was made.
         ClearPatterns();
         CreateSimplePattern(3, 0);
         ExpectedJoined := InvoicePrefixTok + ThreeInvoicesJoined(Numbers);
@@ -163,7 +141,6 @@ codeunit 50158 "Filename Proof Maximal"
         else
             ProofSupport.LogLine('RESULT a selection is listed in full while it fits', StrSubstNo(ExpectedButGotMsg, ExpectedJoined, JoinedName));
 
-        // Two values allowed: it collapses to first-to-last.
         ClearPatterns();
         CreateSimplePattern(2, 0);
         ExpectedCollapsed := InvoicePrefixTok + FirstNo + CollapseJoinTok + LastNo;
@@ -174,10 +151,8 @@ codeunit 50158 "Filename Proof Maximal"
         else
             ProofSupport.LogLine('RESULT too many values collapse to first-to-last', StrSubstNo(ExpectedButGotMsg, ExpectedCollapsed, CollapsedName));
 
-        // And the length limit, applied after everything else. The limit is chosen to fall
-        // exactly on a separator, so the trailing separator has to be trimmed as well - and
-        // the name is checked to have actually got shorter, because a limit longer than the
-        // name would make this pass without the limit doing anything at all.
+        // The limit is put on a separator where there is one, so the trim is exercised; the
+        // length check guards against a limit that cuts nothing.
         Limit := LimitThatCutsAfterASeparator(ExpectedJoined);
         ClearPatterns();
         CreateSimplePattern(3, Limit);
@@ -198,15 +173,9 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// Names how one route's file name differs from what was expected, from the first character
-    /// that differs rather than by quoting both names in full. A verdict that has to fit in an
-    /// error message cannot carry four names of a hundred characters, and the whole name was
-    /// being truncated before it reached the part that mattered.
+    /// Describes the difference from the first differing character, so the verdict fits in an error message.
     /// </summary>
-    /// <param name="RouteName">The route being described.</param>
-    /// <param name="Expected">The name the proof expects.</param>
-    /// <param name="Actual">The name that route produced.</param>
-    /// <returns>A description of the difference, or blank when they match.</returns>
+    /// <returns>Blank when they match.</returns>
     local procedure RouteDifference(RouteName: Text; Expected: Text; Actual: Text): Text
     var
         i: Integer;
@@ -232,12 +201,6 @@ codeunit 50158 "Filename Proof Maximal"
         exit(StrSubstNo(DifferenceLbl, RouteName, Position, TailFrom(Expected, Position), TailFrom(Actual, Position)));
     end;
 
-    /// <summary>
-    /// What is left of a name from a position onwards, capped so a message stays readable.
-    /// </summary>
-    /// <param name="Value">The name.</param>
-    /// <param name="Position">Where to start.</param>
-    /// <returns>The tail, or a marker when the name stops there.</returns>
     local procedure TailFrom(Value: Text; Position: Integer): Text
     begin
         if Position > StrLen(Value) then
@@ -246,8 +209,7 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// The name this pattern has to produce, built from the document by reading each part
-    /// independently of the manager.
+    /// Built from the document independently of the manager.
     /// </summary>
     local procedure ExpectedMaximalName(var SalesInvoiceHeader: Record "Sales Invoice Header") Expected: Text
     var
@@ -268,18 +230,10 @@ codeunit 50158 "Filename Proof Maximal"
             Format(SalesInvoiceHeader."Posting Date", 0, '<Year4>-<Month,2>-<Day,2>') + '-' +
             ReportCaptionInDocumentLanguage(SalesInvoiceHeader);
 
-        // Deliberately not put through the manager's own sanitiser. An expectation that calls
-        // the code under test moves with it: a mutation test proved exactly that, by breaking
-        // the sanitiser and leaving this proof green while every other name-checking proof went
-        // red. None of the values above contains a character the sanitiser would touch, so
-        // there is nothing to sanitise - and if one ever does, this proof should fail and say so
-        // rather than quietly agree.
+        // Deliberately not put through the manager's sanitiser: an expectation that calls the code
+        // under test moves with it. Assumes no value contains a character the sanitiser changes.
     end;
 
-    /// <summary>
-    /// The report caption as the document's own language has it, which is what the file name
-    /// has to use however the report is delivered and whoever delivers it.
-    /// </summary>
     local procedure ReportCaptionInDocumentLanguage(var SalesInvoiceHeader: Record "Sales Invoice Header") Caption: Text
     var
         ReportMetadata: Record "Report Metadata";
@@ -294,8 +248,7 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// The language the manager will resolve for this document: its own, then the user's, then
-    /// the application default - the chain Base Application uses for the same question.
+    /// Document language, then the session language (where the invoice report falls back too), then the application default.
     /// </summary>
     local procedure DocumentLanguageOf(var SalesInvoiceHeader: Record "Sales Invoice Header") LanguageCode: Code[10]
     var
@@ -315,11 +268,7 @@ codeunit 50158 "Filename Proof Maximal"
         RestoreLanguage: Integer;
         PatternText: Text;
     begin
-        // Authored in a Danish session, which is the whole point of binding placeholders: the pattern
-        // is saved by one person and used by everybody. The placeholders are composed from the
-        // captions Danish actually uses, read at the moment of authoring - written out in
-        // English they would not be what a Danish administrator types, and with the Danish
-        // language installed they would not even save.
+        // Typed with Danish captions in a Danish session, as a Danish administrator would.
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(ProofSupport.DanishLanguageId());
         PatternText := MaximalPatternText();
@@ -327,13 +276,10 @@ codeunit 50158 "Filename Proof Maximal"
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
         Pattern.Validate("Date Format", Pattern."Date Format"::YearMonthDay);
-        // One maximum for every pattern now, in the setup.
         if MaxLength <> 0 then
             SetMaxFileNameLength(MaxLength);
         Pattern.Validate("File Name Pattern", CopyStr(PatternText, 1, MaxStrLen(Pattern."File Name Pattern")));
-        // Said explicitly. A pattern is created as a draft now - Enabled starts off, so an
-        // administrator cannot leave an incomplete row switched on - which means code that
-        // intends a pattern to be live has to say so, or it would be inert and match nothing.
+        // Patterns are created disabled, so a live one must be enabled explicitly.
         Pattern.Enabled := true;
         Pattern.Insert(true);
 
@@ -342,10 +288,8 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// The maximal pattern, written the way an administrator working in the session's language
-    /// would write it: every field placeholder is that language's caption for the field, and the
-    /// relation hop is that language's caption for the table and the field on it. The computed
-    /// values are named by their canonical names, which are accepted in any language.
+    /// Field and relation placeholders use the session language's captions; computed values use
+    /// their canonical names, which are accepted in any language.
     /// </summary>
     local procedure MaximalPatternText(): Text
     var
@@ -367,8 +311,7 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// A pattern that matches the same documents on a weaker criterion, so that the maximal
-    /// one has to be selected on its merits.
+    /// Matches the same documents on a weaker criterion (table only), so it must lose selection.
     /// </summary>
     local procedure ConfigureCompetingPattern()
     var
@@ -415,7 +358,7 @@ codeunit 50158 "Filename Proof Maximal"
     var
         Pattern: Record "Report Filename Pattern";
     begin
-        // The maximal row is the one with a channel; the competing row has none.
+        // The maximal row is the one with a report ID; the competing row has none.
         Pattern.SetFilter("Report ID", '%1', Report::"Standard Sales - Invoice");
         if not Pattern.FindLast() then
             exit('');
@@ -487,8 +430,7 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// Schedules the report the way the job queue does and reads the name off the entry the run
-    /// produced, which is where the scheduled route records it.
+    /// Runs codeunit Job Queue Start Report on a one-off entry and reads the name from the Report Inbox entry it produces.
     /// </summary>
     local procedure NameAsScheduled(var SalesInvoiceHeader: Record "Sales Invoice Header"): Text
     var
@@ -510,7 +452,7 @@ codeunit 50158 "Filename Proof Maximal"
         Commit();
 
         Ran := Codeunit.Run(Codeunit::"Job Queue Start Report", JobQueueEntry);
-        // The Report Inbox row is found by this entry's ID afterwards, which the variable keeps.
+        // The entry's ID stays in the variable and finds the Report Inbox row below.
         ProofSupport.RemoveJobQueueEntry(JobQueueEntry.ID);
         if not Ran then
             exit(DidNotResolveMsg);
@@ -538,14 +480,10 @@ codeunit 50158 "Filename Proof Maximal"
 
 
     /// <summary>
-    /// Three invoices of the proof's own that disagree on everything a document can: each is for
-    /// a customer of its own and for an amount of its own, so no field of the maximal pattern
-    /// reads the same on all three. All three are on payment terms, as the maximal invoice is, so
-    /// the relation placeholder has something to reach on each and a decline cannot come from a
-    /// missing related record. Returned in the order they were posted, which is their order by
-    /// number.
+    /// Three invoices with different customers and amounts. Amount Including VAT must agree across a run
+    /// and Total Incl. VAT names one record only, so the maximal pattern declines. Each has payment
+    /// terms, so a decline cannot come from a missing related record. Returned in posting order.
     /// </summary>
-    /// <param name="Numbers">Receives the three invoice numbers.</param>
     local procedure PostThreeInvoices(var Numbers: List of [Text])
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -558,26 +496,16 @@ codeunit 50158 "Filename Proof Maximal"
         end;
     end;
 
-    /// <summary>
-    /// Posts an invoice for the customer given, at the unit price given, on new payment terms with a
-    /// plain description.
-    /// </summary>
     local procedure PostInvoiceOnTerms(CustomerNo: Code[20]; UnitPrice: Decimal; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         TestData.PostNewInvoice(CustomerNo, '', TestData.CreatePaymentTerms(PaymentTermsDescriptionTok), UnitPrice, SalesInvoiceHeader);
     end;
 
-    /// <summary>
-    /// The unit price of the maximal invoice, and the step between the three a batch is made of.
-    /// </summary>
     local procedure BaseUnitPrice(): Decimal
     begin
         exit(100);
     end;
 
-    /// <summary>
-    /// The filter the three selected invoices arrive as.
-    /// </summary>
     local procedure ThreeInvoiceFilter(var Numbers: List of [Text]): Text
     begin
         exit(ProofSupport.InvoiceFilterViewsFor(ThreeInvoicesJoinedWith(Numbers, AlternationTok)));
@@ -606,8 +534,7 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// The length rule as the design states it: cut to the limit, then trim a separator left
-    /// dangling at the end.
+    /// Cut to the limit, then trim a trailing separator.
     /// </summary>
     local procedure TrimmedToLength(Value: Text; MaxLength: Integer): Text
     begin
@@ -617,21 +544,13 @@ codeunit 50158 "Filename Proof Maximal"
     end;
 
     /// <summary>
-    /// A length that cuts the name immediately after a separator, so that both halves of the
-    /// rule are exercised: the cut itself, and trimming the separator the cut leaves dangling.
-    /// Derived from the name rather than written down, because the document numbers are
-    /// whatever this company's number series hands out. The field refuses anything below 20,
-    /// so a very short name falls back to that.
+    /// Derived from the name because document numbers depend on the number series. The field
+    /// accepts no limit below 20, so that is the fallback.
     /// </summary>
-    /// <param name="Value">The untruncated name.</param>
-    /// <returns>The limit to configure.</returns>
     local procedure LimitThatCutsAfterASeparator(Value: Text): Integer
     var
         Position: Integer;
     begin
-        // The first separator at or beyond the shortest limit the field accepts, so the cut
-        // lands on one and the trailing separator has to be trimmed. Falling back to the
-        // minimum still cuts, and the caller reports that the trim was not reached.
         for Position := 20 to StrLen(Value) - 1 do
             if CopyStr(Value, Position, 1) = SeparatorTok then
                 exit(Position);
@@ -644,9 +563,7 @@ codeunit 50158 "Filename Proof Maximal"
     var
         ProofSupport: Codeunit "Filename Proof Support";
         TestData: Codeunit "Filename Test Data";
-        // The name an administrator sees and would type. A pattern may also carry the canonical
-        // name, which is what the binding records - this used to say that instead, and so broke
-        // when the canonical name was corrected on 24 September 2026.
+        // The canonical names, which the app accepts in any session language.
         CompanyPlaceholderTok: Label 'Your Company Name', Locked = true;
         TotalPlaceholderTok: Label 'Total Incl. VAT', Locked = true;
         ReportCaptionPlaceholderTok: Label 'Report Name', Locked = true;

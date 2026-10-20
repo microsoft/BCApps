@@ -4,16 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50150 "Report Filename Proof"
 {
-    // Proves the design's central claim: one pattern, configured once, produces the same file
-    // name however the report is delivered.
-    //
-    // Three of the delivery shapes can be driven without a client, using the payloads measured
-    // from real runs:
-    //   Preview   - the platform hook with filterviews and NO record (measured: ref is 0)
-    //   Download  - the platform hook with filterviews AND a positioned record
-    //   Email     - the real Document-Mailing hook, after a render has set the context
-    //
-    // If the three names differ, the claim is false. The comparison is the test.
+    // Proves one pattern produces the same file name on three routes:
+    //   Preview   - TryResolve with filter views and an unopened record reference
+    //   Download  - TryResolve with filter views and the record
+    //   Email     - Document-Mailing.GetAttachmentFileName, after a render has set the context
 
     trigger OnRun()
     var
@@ -23,27 +17,18 @@ codeunit 50150 "Report Filename Proof"
         RestoreLanguage: Integer;
         BaselineEntryNo: Integer;
     begin
-        // Refused outright anywhere it could destroy a real configuration. Every proof below
-        // clears the pattern table to isolate its own rows.
+        // The proofs delete every pattern, so refuse to run online outside a sandbox.
         FilenameProofGuard.AssertSafeEnvironment();
         FilenameProofGuard.LogEnvironment();
 
-        // Every proof below that authors a pattern with an English caption depends on the
-        // session being English. Left to chance it is whatever language the user running this
-        // happens to have - and with Danish installed, an English placeholder then fails to save at
-        // all and takes the whole run down. The proofs that are about language switch
-        // deliberately from here.
+        // Patterns here use English captions, which bind in another session language only where they
+        // equal the AL field name; language proofs switch explicitly.
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
 
-        // Where the log has got to, so the verdicts this run writes can be told from every
-        // earlier run's - and so the run can end by insisting on them.
         BaselineEntryNo := FilenameProofGate.Baseline();
 
-        // Committed between proofs on purpose. The log is written inside the same transaction
-        // as the proof that produced it, so without this a failure in a later proof would roll
-        // back the evidence from every earlier one and the run would look like it produced
-        // nothing at all.
+        // Commit between proofs so a later failure does not roll back earlier log entries.
         ProveRouteIndependence();
         Commit();
         ProveBadPlaceholderIsRefusedAtSave();
@@ -69,16 +54,10 @@ codeunit 50150 "Report Filename Proof"
 
         GlobalLanguage(RestoreLanguage);
 
-        // The run carries its own verdict. Without this the suite writes PASS and FAIL lines
-        // into a log and finishes successfully either way, which makes a green run worth
-        // nothing.
+        // Fails the run unless every verdict it wrote is a pass.
         FilenameProofGate.AssertAllVerdictsPassed(BaselineEntryNo);
     end;
 
-    /// <summary>
-    /// Configures Invoice-[No.] for Standard Sales - Invoice, then names one invoice of the
-    /// proof's own three ways and logs whether the names agree.
-    /// </summary>
     procedure ProveRouteIndependence()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -114,8 +93,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Names the invoice the way the Preview route presents it: the platform supplies the data
-    /// item filter but leaves the record reference empty.
+    /// The data item filter with an unopened record reference.
     /// </summary>
     local procedure NameAsPreview(var SalesInvoiceHeader: Record "Sales Invoice Header") Name: Text
     var
@@ -129,10 +107,6 @@ codeunit 50150 "Report Filename Proof"
             exit(DidNotResolveMsg);
     end;
 
-    /// <summary>
-    /// Names the invoice the way the Download route presents it: filter and a positioned
-    /// record both available.
-    /// </summary>
     local procedure NameAsDownload(var SalesInvoiceHeader: Record "Sales Invoice Header") Name: Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -149,9 +123,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Names the invoice through the real email hook. Rendering to a stream first is what puts
-    /// the document into the context the hook reads, exactly as it happens when a user sends
-    /// an invoice by email.
+    /// Rendering first puts the document into the context the email hook reads, as when a user emails an invoice.
     /// </summary>
     local procedure NameAsEmail(var SalesInvoiceHeader: Record "Sales Invoice Header"): Text
     var
@@ -178,8 +150,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Resolution with the shape the email hook has: a positioned record and no filter views.
-    /// Isolates whether a failure is in the hook or in resolution.
+    /// The email hook's input shape (record, no filter views), to tell a hook failure from a resolution failure.
     /// </summary>
     local procedure NameAsEmailShape(var SalesInvoiceHeader: Record "Sales Invoice Header") Name: Text
     var
@@ -197,8 +168,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// What Report Selections offers for the invoice usage, which is how the email hook works
-    /// out which report is being attached.
+    /// When no render has recorded the report, the email hook takes it from Report Selections.
     /// </summary>
     local procedure DescribeReportSelections() Description: Text
     var
@@ -214,15 +184,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The filterviews array exactly as the platform was measured to supply it for one posted
-    /// sales invoice.
-    /// </summary>
-
-    /// <summary>
-    /// Configures the one pattern the ticket itself uses as its example. Every pattern is
-    /// cleared first: patterns compete with each other by design, so a row left behind by an
-    /// earlier run could win over the one being proven and the proof would be measuring
-    /// something else.
+    /// Clears every pattern first, because a leftover row could win selection over this one.
     /// </summary>
     local procedure EnsurePattern()
     var
@@ -233,9 +195,7 @@ codeunit 50150 "Report Filename Proof"
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
         Pattern.Validate("File Name Pattern", InvoicePatternTok);
-        // Said explicitly. A pattern is created as a draft now - Enabled starts off, so an
-        // administrator cannot leave an incomplete row switched on - which means code that
-        // intends a pattern to be live has to say so, or it would be inert and match nothing.
+        // Patterns are created disabled, so a live one must be enabled explicitly.
         Pattern.Enabled := true;
         Pattern.Insert(true);
 
@@ -250,9 +210,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The main prize of binding placeholders: a mistyped placeholder is refused while the person who
-    /// typed it is still looking at the screen, instead of resolving to nothing at render time
-    /// and leaving the file with Business Central's default name and nothing to explain why.
+    /// A mistyped placeholder is refused at save, naming the placeholder, rather than resolving to nothing at render time.
     /// </summary>
     procedure ProveBadPlaceholderIsRefusedAtSave()
     var
@@ -279,10 +237,8 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Proves resolution reads the binding and not the pattern text. The pattern is saved
-    /// normally, then its visible text is overwritten - without validation, so the binding
-    /// stays - with text that matches no field on the table at all. If the file still comes
-    /// out correctly named, the name demonstrably came from the bound field number.
+    /// Resolution reads the binding, not the pattern text: the text is overwritten without validation
+    /// to name no field, and the name must still come out right.
     /// </summary>
     procedure ProveBindingResolvesByFieldNumber()
     var
@@ -310,8 +266,7 @@ codeunit 50150 "Report Filename Proof"
         else
             ProofSupport.LogLine('5 Binding is by field number', StrSubstNo(ExpectedButGotMsg, ExpectedInvoiceBindingTok, Binding));
 
-        // The text now names a field that does not exist. Assigned rather than validated, so
-        // the binding built a moment ago is left exactly as it was.
+        // Assigned rather than validated, so the binding is left as it was.
         Pattern."File Name Pattern" := TypoPatternTok;
         Pattern.Modify(false);
 
@@ -339,18 +294,13 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Names one document on all three interactive routes. Isolated so that a failure in any
-    /// of them cannot skip the caller's restore of the document it altered - the email route
-    /// renders for real, and a render can fail for reasons that have nothing to do with naming.
+    /// Isolated so a render failure cannot skip the caller's restore of the document it altered.
     /// </summary>
     local procedure TryNameAllRoutes(var SalesInvoiceHeader: Record "Sales Invoice Header"; var PreviewName: Text; var DownloadName: Text; var EmailName: Text): Boolean
     var
         NameRoutes: Codeunit "Filename Proof Name Routes";
     begin
-        // Committed first, because the caller has just written the document's language and
-        // Business Central refuses Codeunit.Run once a write transaction is open. Committing is
-        // what makes the isolation work rather than defeating it: the call can now fail and
-        // return, so the caller's restore of the document always runs.
+        // Codeunit.Run with a return value is refused while a write transaction is open.
         Commit();
 
         NameRoutes.SetInvoice(SalesInvoiceHeader);
@@ -367,12 +317,8 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The proof that a binding is language-invariant: a pattern authored in a Danish session,
-    /// using the Danish caption of a field, must name the document identically when the report
-    /// is later run by somebody working in German. Under name matching this could not work at
-    /// all - the Danish caption matches nothing in a German session - which is why the
-    /// container's own captions are reported first, so this cannot appear to pass on a
-    /// language that turns out not to be translated.
+    /// A pattern authored with a Danish Base Application caption names the document identically in a
+    /// German session. The captions are logged first, so an untranslated environment is visible.
     /// </summary>
     procedure ProveLanguageInvariance()
     var
@@ -392,8 +338,6 @@ codeunit 50150 "Report Filename Proof"
         FilenameProofLogMgt.StartNewRun();
         ClearPatterns();
 
-        // An invoice of the proof's own, and the language row it is given below, so the language
-        // the document carries is one this company knows.
         TestData.PostNewInvoice(SalesInvoiceHeader);
         TestData.EnsureLanguage(FilenameProofSupport.DanishLanguageCode(), FilenameProofSupport.DanishLanguageId());
 
@@ -404,7 +348,6 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('6 Sell-to Customer No. caption DAN', DanishCaption);
         ProofSupport.LogLine('6 Sell-to Customer No. caption DEU', ProofSupport.FieldCaptionIn(ProofSupport.GermanLanguageId(), Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("Sell-to Customer No.")));
 
-        // Authored in Danish, by the caption a Danish administrator reads on the document.
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(ProofSupport.DanishLanguageId());
         PatternText := DanishInvoicePrefixTok + '[' + DanishCaption + ']';
@@ -418,17 +361,12 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('6 Pattern authored in a Danish session', PatternText);
         ProofSupport.LogLine('6 Binding stored', Pattern.GetPlaceholderBinding());
 
-        // The document carries the language, so the name follows the document rather than
-        // whoever renders it. Restored at the end, so the invoice is left as it was posted.
+        // Restored at the end, so the invoice is left as it was posted.
         OriginalLanguageCode := SalesInvoiceHeader."Language Code";
-        // Re-read as it is written, so the naming calls below work from the document as it now
-        // is rather than from a copy still carrying the old language.
         FilenameProofSupport.SetInvoiceLanguage(SalesInvoiceHeader, FilenameProofSupport.DanishLanguageCode());
 
         ExpectedName := DanishInvoicePrefixTok + SalesInvoiceHeader."Sell-to Customer No.";
 
-        // Rendered in German, in isolation: this posted document has been altered, and the
-        // restore below has to happen even if a render fails.
         GlobalLanguage(ProofSupport.GermanLanguageId());
         if not TryNameAllRoutes(SalesInvoiceHeader, PreviewName, DownloadName, EmailName) then
             ProofSupport.LogLine('6 A naming route failed', GetLastErrorText());
@@ -441,10 +379,7 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('6 Download rendered in German', DownloadName);
         ProofSupport.LogLine('6 Email    rendered in German', EmailName);
 
-        // With the Danish and German language apps installed, Base Application's own captions
-        // differ - so this is a genuine cross-language proof on Base Application data, not only
-        // on the objects this app translates itself. Stated either way, because a pass against
-        // captions that read the same in both languages would prove nothing about language.
+        // Logged either way: a pass against captions that read the same proves nothing about language.
         if FilenameProofSupport.CaptionsDifferBetweenLanguages(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("Sell-to Customer No.")) then
             ProofSupport.LogLine('6 Base App captions differ by language', PassMsg)
         else
@@ -458,11 +393,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// A report caption is translated, so a pattern using it would name the same document
-    /// differently for a Danish and a German user - the very defect this feature exists to
-    /// remove. The caption has to follow the document's language, which is what this proves:
-    /// the same document, named from two different sessions, comes out identical, and it comes
-    /// out in the document's language rather than the session's.
+    /// [Report Name] uses the document's language, so Danish and German sessions name the same document identically.
     /// </summary>
     procedure ProveReportCaptionFollowsDocument()
     var
@@ -504,9 +435,7 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('7 Binding stored', Pattern.GetPlaceholderBinding());
         ProofSupport.LogLine('7 Document language', ProofDocument."Language Code");
 
-        // The document is Danish, so the caption in the name is the Danish one whichever
-        // session does the naming. If the caption were read in the session's language, the
-        // German session would produce the German caption and the two would not agree.
+        // The document is Danish, so the Danish caption is expected from either session.
         ExpectedName := SanitisedCaption(DanishReportCaption) + '-' + ProofDocument."No.";
 
         RestoreLanguage := GlobalLanguage();
@@ -530,8 +459,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Reports whether the container has the translations this proof depends on, so a pass
-    /// against untranslated captions is impossible to mistake for a real one.
+    /// Logs the language IDs that DAN and DEU map to; the session language when a code is not in the Language table.
     /// </summary>
     local procedure ReportCaptionsInstalled()
     var
@@ -542,13 +470,9 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The language proof that actually bites. Every Base Application caption in this W1
-    /// container reads the same in English, Danish and German, so a cross-language test built
-    /// on one of them passes while proving nothing. This one uses a table and a report whose
-    /// captions are genuinely translated - shipped with this app - so the Danish caption a
-    /// pattern is authored from does not exist at all in a German session. Under the old
-    /// name-matching resolution the name could not possibly come out right; if it does, it
-    /// came from the bound field number.
+    /// Uses a test table and report with translated captions, because W1 Base Application has no Danish or
+    /// German translations. The Danish caption matches nothing in a German session, so a correct
+    /// name must come from the bound field number.
     /// </summary>
     procedure ProveTranslatedCaptionBinding()
     var
@@ -576,8 +500,7 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('8 Proof field caption DAN', DanishCaption);
         ProofSupport.LogLine('8 Proof field caption DEU', GermanCaption);
 
-        // Stated before anything is asserted: if the three captions are the same, the rest of
-        // this proof is meaningless and must not be read as a pass.
+        // Identical captions would make the rest of this proof meaningless.
         if (DanishCaption = EnglishCaption) or (GermanCaption = DanishCaption) then begin
             ProofSupport.LogLine('RESULT captions genuinely differ by language', NoTranslationMsg);
             FilenameProofLogMgt.Flush();
@@ -585,7 +508,6 @@ codeunit 50150 "Report Filename Proof"
         end;
         ProofSupport.LogLine('8 Captions genuinely differ by language', PassMsg);
 
-        // Authored in Danish, from the Danish caption.
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(ProofSupport.DanishLanguageId());
         PatternText := DanishInvoicePrefixTok + '[' + DanishCaption + ']';
@@ -621,10 +543,8 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The document the translated-caption proofs are about. Inserted once and left in place;
-    /// it is a table belonging to this proof app only.
+    /// Inserted once and left in place; the table belongs to this test app only.
     /// </summary>
-    /// <param name="ProofDocument">Receives the document.</param>
     local procedure EnsureProofDocument(var ProofDocument: Record "Filename Proof Document")
     begin
         if ProofDocument.Get(ProofDocumentNoTok) then begin
@@ -641,10 +561,6 @@ codeunit 50150 "Report Filename Proof"
         ProofDocument.Insert(false);
     end;
 
-    /// <summary>
-    /// Names the proof document the way the Preview route presents it: the data item filter
-    /// only, with no record reference, which is what the platform was measured to supply.
-    /// </summary>
     local procedure NameProofDocumentAsPreview(var ProofDocument: Record "Filename Proof Document") Name: Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -657,10 +573,6 @@ codeunit 50150 "Report Filename Proof"
             exit(DidNotResolveMsg);
     end;
 
-    /// <summary>
-    /// Names the proof document the way the Download route presents it: filter and positioned
-    /// record both available.
-    /// </summary>
     local procedure NameProofDocumentAsDownload(var ProofDocument: Record "Filename Proof Document") Name: Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -679,10 +591,6 @@ codeunit 50150 "Report Filename Proof"
 
 
 
-    /// <summary>
-    /// What the caption looks like once the manager's sanitiser has been over it, which is
-    /// what actually reaches the file name.
-    /// </summary>
     local procedure SanitisedCaption(Caption: Text): Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -694,14 +602,8 @@ codeunit 50150 "Report Filename Proof"
 
 
     /// <summary>
-    /// The three capabilities section 10 of the design requires and that did not exist: a placeholder
-    /// reaching one table relation away, an amount formatted through Auto Format with the
-    /// document's currency, and a computed total that is not a field at all. All three in one
-    /// pattern, because that is how the design's conformance case uses them.
-    ///
-    /// The expected values are derived independently - the related record is read directly, and
-    /// the amount is formatted by calling Base Application's own Auto Format - so this compares
-    /// the manager against the document rather than against itself.
+    /// A relation hop, an amount in the document's currency precision and a computed total, in one pattern.
+    /// Expected values are derived independently of the manager.
     /// </summary>
     procedure ProveComplexPlaceholders()
     var
@@ -726,10 +628,7 @@ codeunit 50150 "Report Filename Proof"
         FilenameProofLogMgt.StartNewRun();
         ClearPatterns();
 
-        // An invoice of the proof's own, on payment terms of its own - the related record to
-        // reach - and for an amount large enough to carry a thousands separator. A small amount
-        // formats identically with and without Auto Format, which would make the Auto Format
-        // half of this proof unfalsifiable - a thousands separator is what makes it visible.
+        // Large enough for a thousands separator, so the invariant format differs from the session format.
         PaymentTermsCode := TestData.CreatePaymentTerms(ComplexPaymentTermsTok);
         TestData.PostNewInvoice(TestData.CreateCustomer(), '', PaymentTermsCode, LargeUnitPrice(), SalesInvoiceHeader);
         TestData.EnsureLanguage(FilenameProofSupport.DanishLanguageCode(), FilenameProofSupport.DanishLanguageId());
@@ -739,13 +638,9 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('9 Document', SalesInvoiceHeader."No.");
         ProofSupport.LogLine('9 Amount including VAT on the document', Format(SalesInvoiceHeader."Amount Including VAT"));
 
-        // The document is Danish, so the amount in the name is formatted the Danish way
-        // whoever produces the file - the same rule the report caption follows.
         OriginalLanguageCode := SalesInvoiceHeader."Language Code";
         FilenameProofSupport.SetInvoiceLanguage(SalesInvoiceHeader, FilenameProofSupport.DanishLanguageCode());
-        // Calculated again: the row was read afresh to write its language, and a FlowField
-        // does not survive that. Without this the expected amount is zero and the proof
-        // reports a failure against a name that is perfectly correct.
+        // SetInvoiceLanguage re-reads the row, which clears the FlowField.
         SalesInvoiceHeader.CalcFields("Amount Including VAT");
 
         Pattern.Init();
@@ -768,9 +663,6 @@ codeunit 50150 "Report Filename Proof"
         else
             ProofSupport.LogLine('9 Total resolves through the interface', StrSubstNo(ExpectedButGotMsg, TotalBindingMarkerTok, Binding));
 
-        // Independently derived: the related record read directly, and the amount formatted by
-        // Base Application's own Auto Format with this document's currency, in the language
-        // the document carries.
         ExpectedAmount := AmountForFileNameIn(SalesInvoiceHeader, ProofSupport.DanishLanguageId());
         PlainAmount := Format(SalesInvoiceHeader."Amount Including VAT");
         ExpectedName := InvoicePrefixTok + PaymentTerms.Description + '-' + ExpectedAmount + '-' + ExpectedAmount;
@@ -779,17 +671,12 @@ codeunit 50150 "Report Filename Proof"
         ProofSupport.LogLine('9 Amount for the file name, from a Danish session', ExpectedAmount);
         ProofSupport.LogLine('9 Amount for the file name, from an English session', AmountForFileNameIn(SalesInvoiceHeader, ProofSupport.EnglishLanguageId()));
         ProofSupport.LogLine('9 Amount as the session would format it', PlainAmount);
-        // The point of the invariant form: it differs from what the session would produce, so
-        // the file name cannot drift with whoever is looking at it.
         if ExpectedAmount <> PlainAmount then
             ProofSupport.LogLine('9 Invariant form differs from the session form, so it is measurable', PassMsg)
         else
             ProofSupport.LogLine('9 Invariant form differs from the session form, so it is measurable', SameEitherWayMsg);
 
-        // Named from an English session. The amount still has to come out the Danish way,
-        // because the document is Danish and the file name follows the document.
-        // Named in isolation, so the restore below runs whatever happens: this posted document
-        // is carrying a language the proof gave it.
+        // Named from English and Danish sessions; the result must be the same in both.
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(ProofSupport.EnglishLanguageId());
         if not TryNameAllRoutes(SalesInvoiceHeader, PreviewName, DownloadName, EmailNameUnused) then
@@ -816,19 +703,13 @@ codeunit 50150 "Report Filename Proof"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// A unit price that puts the invoice's total in the thousands, so that Auto Format visibly
-    /// does something: the session's form of the amount carries a thousands separator and the
-    /// file name's does not.
-    /// </summary>
     local procedure LargeUnitPrice(): Decimal
     begin
         exit(12345.67);
     end;
 
     /// <summary>
-    /// One relation away is the documented limit, so two has to be refused where the person
-    /// writing it can see the refusal, not silently at render time.
+    /// One relation away is the limit, so two must be refused at save.
     /// </summary>
     local procedure ProveTwoHopsRefused()
     var
@@ -849,10 +730,7 @@ codeunit 50150 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// The amount as a file name has to carry it: to the decimal places the document's own
-    /// currency uses, with an invariant separator. Derived here from the currency and the
-    /// company's setup directly, so it is a reference the manager has to match rather than a
-    /// copy of what the manager does.
+    /// The document currency's decimal places with an invariant separator, derived without the manager.
     /// </summary>
     local procedure AmountForFileNameIn(var SalesInvoiceHeader: Record "Sales Invoice Header"; LanguageId: Integer) Formatted: Text
     var

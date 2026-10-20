@@ -4,11 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50174 "Filename Proof Send Disk Vend"
 {
-    // Calls the real Send to Disk route for a vendor document, isolated so its failure cannot end
-    // the proof - the twin of Filename Proof Send Disk. The route ends in a client download, which a
-    // session without a client may not be able to complete; the name is decided before that.
-    //
-    // Report Selections.SendToDiskForVend is Scope = 'OnPrem', like its customer twin.
+    // Vendor twin of Filename Proof Send Disk, isolated so a failing client download cannot end
+    // the proof. SendToDiskForVend is Scope = 'OnPrem'.
 
     TableNo = "Purch. Inv. Header";
 

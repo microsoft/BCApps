@@ -4,23 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50121 "Report Filename Inbox Mgt."
 {
-    // The scheduled route, which reaches the manager through neither naming hook.
-    //
-    // Job Queue Start Report renders with REPORT.SaveAs into a stream, so the platform never
-    // asks anybody for a name. The name is therefore decided here, at the moment the Report
-    // Inbox row is inserted, and read back here when the entry is downloaded. The route is the
-    // richest of the three despite that: the job queue entry carries the record the report is
-    // about and the request page parameters it was scheduled with, so field, filter and
-    // computed placeholders all resolve.
+    // The scheduled route. Job Queue Start Report renders with REPORT.SaveAs into the Report Inbox
+    // row's stream, and Report Inbox names the download itself; the name is decided when the row
+    // is inserted and read back when the entry is downloaded.
 
     Access = Internal;
 
-    /// <summary>
-    /// Resolves the name a scheduled report's output should download under.
-    /// </summary>
-    /// <param name="JobQueueEntry">The entry being run.</param>
     /// <param name="Filename">Receives the name, without extension.</param>
-    /// <returns>True when a pattern applied.</returns>
     internal procedure TryResolveForJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry"; var Filename: Text): Boolean
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -44,9 +34,8 @@ codeunit 50121 "Report Filename Inbox Mgt."
     end;
 
     /// <summary>
-    /// The record the entry was scheduled against, when it has one. A job queue entry may name
-    /// a report with no record at all - a batch run over a filter - which is why the filter
-    /// from the request page parameters is supplied as well.
+    /// An entry may have no record (a batch run over a filter), which is why the request page
+    /// filters are supplied as well.
     /// </summary>
     [TryFunction]
     local procedure TryOpenRecordToProcess(var JobQueueEntry: Record "Job Queue Entry"; var SourceRecRef: RecordRef)
@@ -56,18 +45,11 @@ codeunit 50121 "Report Filename Inbox Mgt."
     end;
 
     /// <summary>
-    /// Turns the request page parameters the report was scheduled with into the same shape the
-    /// platform hands to GetFilename on the interactive routes, so one resolution path serves
-    /// every route: one entry per data item that carries a view, with the data item's table.
-    ///
-    /// Every data item, not only the first. A report whose first data item is an Integer loop -
-    /// report 910 Posted Assembly Order, CopyLoop over Posted Assembly Header - keeps the filter
-    /// on its business table in a child, and with only the first view the resolver found no filter
-    /// for the subject and named the file after the whole table. Each data item's table is read
-    /// from Report Data Items, by the name the parameters give it.
+    /// Builds the same filterviews shape the platform hands to GetFilename on the interactive
+    /// routes. Every data item is read, not only the first: a report whose first data item is an
+    /// Integer loop (e.g. report 910) keeps the business table's filter in a child.
     /// </summary>
-    /// <param name="JobQueueEntry">The entry being run.</param>
-    /// <param name="FilterViews">Receives the filterviews array, empty when no data item carries a view.</param>
+    /// <param name="FilterViews">Empty when no data item carries a view.</param>
     [TryFunction]
     local procedure TryFilterViewsFromParameters(var JobQueueEntry: Record "Job Queue Entry"; var FilterViews: Text)
     var
@@ -104,22 +86,12 @@ codeunit 50121 "Report Filename Inbox Mgt."
             FilterViews := '[' + Entries.ToText() + ']';
     end;
 
-    /// <summary>
-    /// A view contains double quotes whenever a filter value does, and the payload the manager
-    /// reads is JSON.
-    /// </summary>
     local procedure EscapeForJson(ViewText: Text): Text
     begin
         exit(ViewText.Replace(BackslashTok, BackslashTok + BackslashTok).Replace(QuoteTok, BackslashTok + QuoteTok));
     end;
 
-    /// <summary>
-    /// The name a Report Inbox entry downloads under, or an empty string when no pattern
-    /// applied when it was produced - in which case Business Central names it exactly as it
-    /// always has.
-    /// </summary>
-    /// <param name="ReportInbox">The entry being downloaded.</param>
-    /// <returns>The file name including its extension.</returns>
+    /// <returns>The file name including its extension, or empty when no pattern applied.</returns>
     internal procedure GetDownloadFileName(var ReportInbox: Record "Report Inbox"): Text
     begin
         if ReportInbox."File Name" = '' then
@@ -130,14 +102,9 @@ codeunit 50121 "Report Filename Inbox Mgt."
 
     /// <summary>
     /// FOR TESTS ONLY - nothing in the app subscribes, and being internal, only the test app can.
-    /// Raised when a scheduled entry is about to be downloaded under a name this feature decided.
-    ///
-    /// It has to be here: Report Filename Inbox Sub. performs that download itself, so nothing in
-    /// Business Central sees the name afterwards, and this is the only way a test can establish that
-    /// the download really is made under the decided name.
+    /// Report Filename Inbox Sub. performs the download itself, so this is the only way a test can
+    /// see the name it is made under.
     /// </summary>
-    /// <param name="ReportInbox">The entry being downloaded.</param>
-    /// <param name="FileName">The name it is being downloaded under, including the extension.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeDownloadWithResolvedName(var ReportInbox: Record "Report Inbox"; FileName: Text)
     begin

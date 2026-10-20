@@ -4,20 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 enum 50113 "Report Filename Placeholder" implements "Report Filename Placeholder"
 {
-    // The computed values a pattern can use. Extensible on purpose: this is the enum section 5
-    // of the design names as the extension point, so a partner adds a value by extending this
-    // and shipping one codeunit, without touching anything here.
+    // The computed values a pattern can use. Extension point: a partner adds a value by
+    // extending this enum and shipping one codeunit implementing the interface.
 
     Extensible = true;
     Caption = 'Report Filename Placeholder';
-    // Public: extensible means an extension adds values, which requires reaching it.
     Access = Public;
 
     value(0; CompanyPrefix)
     {
-        // The value's name stays CompanyPrefix: it is the identifier an extension writes, and
-        // it is what the saved binding records. Only the caption is corrected, because what
-        // this hands over is the whole company name rather than a prefix of anything.
+        // Despite the name, the value is the whole company name. Bindings record the canonical
+        // name 'Your Company Name', not this value name.
         Caption = 'Your Company Name';
         Implementation = "Report Filename Placeholder" = "Report Filename Company Plh.";
     }
@@ -33,7 +30,6 @@ enum 50113 "Report Filename Placeholder" implements "Report Filename Placeholder
     }
     value(3; ReportName)
     {
-        // Report Name, the caption the Report Inbox and Report Selections give the same value.
         Caption = 'Report Name';
         Implementation = "Report Filename Placeholder" = "Report Filename Report Plh.";
     }
@@ -44,16 +40,11 @@ enum 50113 "Report Filename Placeholder" implements "Report Filename Placeholder
     }
     value(5; KindOfDocument)
     {
-        // Not Document Type. That is a field on the unposted Sales Header, and a posted invoice
-        // has none - so borrowing the name would promise a field the record does not carry.
-        // Kind of Document says what the value is: what Business Central calls this kind of
-        // document, in the document's own language.
         Caption = 'Kind of Document';
         Implementation = "Report Filename Placeholder" = "Report Filename Doc. Kind Plh.";
     }
     value(6; Period)
     {
-        // Report 25's own caption for the same value ("Period", and "Period Ending").
         Caption = 'Period';
         Implementation = "Report Filename Placeholder" = "Report Filename Period Plh.";
     }

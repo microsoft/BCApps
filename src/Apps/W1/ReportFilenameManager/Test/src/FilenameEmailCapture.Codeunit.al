@@ -4,17 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50193 "Filename Email Capture"
 {
-    // Reads the attachment names of an email at the last two points Base Application raises before
-    // the email leaves or is downloaded, and stops it there: a test session has no mailbox to send
-    // from and no browser to receive a file.
-    //
-    //   Document-Mailing.OnBeforeSendEmail          every attachment on the email item, after Base
-    //                                                Application has added the reminder's invoices
-    //                                                and named the first attachment
-    //   Mail Management.OnBeforeDownloadPdfAttachment the email download fallback, used when no email
-    //                                                account is set up
-    //
-    // Bound manually by Filename Reminder Tests, so nothing outside it is affected.
+    // Reads an email's attachment names at the last point before it is sent (after Base Application
+    // has added the reminder's invoices) or downloaded (the fallback with no email account), and
+    // stops it there, so nothing is sent or downloaded.
 
     EventSubscriberInstance = Manual;
 
@@ -35,11 +27,8 @@ codeunit 50193 "Filename Email Capture"
         IsHandled := true;
     end;
 
-    /// <summary>
-    /// Whether an email is stopped at OnBeforeSendEmail and recorded there, or let through to the
-    /// rest of Base Application's sending - which, with no email account, is the download fallback.
-    /// </summary>
-    /// <param name="NewStopBeforeSend">True to stop and record at OnBeforeSendEmail.</param>
+    /// <param name="NewStopBeforeSend">False lets the email through to Base Application's sending, which
+    /// with no email account is the download fallback.</param>
     internal procedure Start(NewStopBeforeSend: Boolean)
     begin
         StopBeforeSend := NewStopBeforeSend;

@@ -4,11 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50159 "Filename Proof Picker"
 {
-    // The placeholder picker is what an administrator actually uses, and it grew a great deal when
-    // fields one relation away were added to it: a posted sales invoice points at dozens of
-    // tables, and some of those have well over a hundred fields. A list nobody can wait for is
-    // not a usable list, so this measures what opening it costs on the busiest document type
-    // in the company rather than assuming.
+    // Proofs for the placeholder picker, including how long building it takes on a posted sales
+    // invoice, whose related tables add their fields to the list.
 
     trigger OnRun()
     begin
@@ -47,9 +44,7 @@ codeunit 50159 "Filename Proof Picker"
         Computed := CountSource(TempPlaceholderBuffer, TempPlaceholderBuffer.Source::Computed);
         OwnFields := CountSource(TempPlaceholderBuffer, TempPlaceholderBuffer.Source::"Record Field");
         RelatedRows := CountSource(TempPlaceholderBuffer, TempPlaceholderBuffer.Source::"Related Field");
-        // Counted apart from each other on purpose. The related kind now holds two sorts of row -
-        // a branch standing for a table, which is not a placeholder, and the fields under it, which are.
-        // Reporting only their sum would let a change that stopped emitting either one go unseen.
+        // Table branches and their fields counted apart, so losing either one shows.
         RelatedTables := CountRelatedAtIndentation(TempPlaceholderBuffer, 0);
         RelatedFields := CountRelatedAtIndentation(TempPlaceholderBuffer, 1);
 
@@ -93,13 +88,8 @@ codeunit 50159 "Filename Proof Picker"
 
 
     /// <summary>
-    /// The picker says what becomes of every placeholder when the run covers several records.
-    ///
-    /// A field placeholder on a chart of accounts looks perfectly reasonable, resolves, and resolves
-    /// to a first-to-last range - and until now nothing on the screen admitted it. The column is
-    /// checked three ways: a field placeholder must show a range, the computed value that cannot speak
-    /// for a run of many must say so, and one that can must be unchanged. Checking only the
-    /// first would pass a column that said "range" on every row.
+    /// The picker says what becomes of each placeholder in a run of several records: a field shows
+    /// a range, a computed value that cannot speak for many says so, one that can is unchanged.
     /// </summary>
     local procedure ProveTheColumnSaysWhatARunOfManyProduces()
     var
@@ -155,12 +145,7 @@ codeunit 50159 "Filename Proof Picker"
     end;
 
     /// <summary>
-    /// The list an administrator chooses a kind of record from offers only kinds a file can
-    /// actually be named after: tables that at least one report is about, and never one of
-    /// Business Central's own system or virtual tables.
-    ///
-    /// Before the guard, filtering that list to the virtual Integer table found entries - which
-    /// meant the list invited an administrator to choose something no document could ever be.
+    /// The table list offers only tables some report is about, never a system or virtual table.
     /// </summary>
     local procedure ProveTheTablesOfferedAreWhatReportsAreAbout()
     var
@@ -200,13 +185,8 @@ codeunit 50159 "Filename Proof Picker"
     end;
 
     /// <summary>
-    /// A report driven entirely by its request page has no document behind it, and a pattern for
-    /// one is left claiming no kind of record at all rather than claiming the virtual table the
-    /// report happens to loop over.
-    ///
-    /// The report is found through metadata rather than written down here, because which reports
-    /// are installed differs between databases and a number in a test would be a number that is
-    /// right in one company only.
+    /// A pattern for a report driven only by its request page claims no table, not the virtual
+    /// table it loops over. The report is found through metadata, as installed reports differ.
     /// </summary>
     local procedure ProveAReportWithNoDocumentClaimsNoTable()
     var
@@ -234,35 +214,21 @@ codeunit 50159 "Filename Proof Picker"
                 StrSubstNo(TableClaimedAnywayMsg, ReportMetadata.Caption, Pattern."Table No."));
     end;
 
-    /// <summary>
-    /// The first table number Business Central reserves for system and virtual tables. Stated
-    /// here rather than read from the app, so that the proof does not agree with the code by
-    /// construction.
-    /// </summary>
-    /// <returns>The lowest system table number.</returns>
+    // Stated here, not read from the app, so the proof does not agree with the code by construction.
     local procedure SystemTableFromTok(): Integer
     begin
         exit(2000000000);
     end;
 
-    /// <summary>
-    /// What a person will wait for a list to appear. Chosen rather than measured, and stated
-    /// here so that a future change making the picker slower fails this instead of quietly
-    /// becoming the new normal.
-    /// </summary>
+    // What a person will wait for the list to appear; chosen, not measured.
     local procedure BudgetMs(): Integer
     begin
         exit(3000);
     end;
 
     /// <summary>
-    /// Walks the related rows in exactly the order the page shows them and checks the tree is a
-    /// tree. This is the assertion the sorting trap needs: a tree drawn from a flat list is only
-    /// a tree if each branch's children follow it and nothing else does, and that property is
-    /// destroyed by any ordering that lets an unrelated row sort between a table and its fields.
-    /// Every failure is named as the specific defect rather than as a count that came out wrong.
+    /// Walks the related rows in page order: each table's fields must follow it and nothing else may.
     /// </summary>
-    /// <param name="TempPlaceholderBuffer">The built placeholder list.</param>
     /// <returns>Empty when the tree is well formed, otherwise what is wrong with it.</returns>
     local procedure TreeDefect(var TempPlaceholderBuffer: Record "Report Filename Plh. Buffer"): Text
     var
@@ -273,9 +239,7 @@ codeunit 50159 "Filename Proof Picker"
     begin
         CurrentGroup := '';
         ChildrenInGroup := 0;
-        // Tracked separately from the group name rather than inferred from it being non-empty.
-        // A field that sorts ahead of every table row carries no group either, so testing the
-        // name alone would read the very defect this looks for as a match.
+        // Not inferred from the group name: a field sorted ahead of every table has no group either.
         InsideBranch := false;
 
         TempPlaceholderBuffer.Reset();
@@ -312,13 +276,8 @@ codeunit 50159 "Filename Proof Picker"
     end;
 
     /// <summary>
-    /// A computed placeholder is offered only where it could actually resolve. [Total Incl. VAT] is
-    /// the discriminating case: a posted sales invoice has a total, a customer does not, and
-    /// before this the picker offered it on both - so an administrator could build a pattern
-    /// that declined the first time it was used, against the picker's own printed promise.
-    ///
-    /// Both counts are asserted, not just the absence. A change that stopped offering computed
-    /// placeholders altogether would satisfy "not on a customer" and has to fail here.
+    /// A computed placeholder is offered only where it can resolve: [Total Incl. VAT] on a posted
+    /// sales invoice but not on a customer. Both sides are asserted.
     /// </summary>
     local procedure ProveComputedPlaceholdersFollowTheDocument()
     var
@@ -342,9 +301,7 @@ codeunit 50159 "Filename Proof Picker"
         TotalPlaceholder := TotalPlaceholderValue;
         TotalName := TotalPlaceholder.DisplayName();
 
-        // The same question of the kind of document, which is offered on the eleven tables
-        // Business Central has a word for and on nothing else. Checked here rather than asserted
-        // in the client checklist, which is where it had been written down first.
+        // The kind of document is offered only on tables GetFullDocumentTypeText has a word for.
         KindPlaceholderValue := KindPlaceholderValue::KindOfDocument;
         KindPlaceholder := KindPlaceholderValue;
         KindName := KindPlaceholder.DisplayName();
@@ -379,10 +336,7 @@ codeunit 50159 "Filename Proof Picker"
         end;
     end;
 
-    /// <summary>
-    /// Whether the picker offered a named computed value, matched as the picker writes it -
-    /// in brackets, because that is what an administrator would put in a pattern.
-    /// </summary>
+    // Matched in brackets, as the picker writes it.
     local procedure HasComputedPlaceholder(var TempPlaceholderBuffer: Record "Report Filename Plh. Buffer"; PlaceholderDisplayName: Text): Boolean
     begin
         TempPlaceholderBuffer.Reset();

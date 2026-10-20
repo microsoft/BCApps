@@ -4,22 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50167 "Filename Proof Run"
 {
-    // Proves the run model: that a name is derived from a report RUN, whose selection may cover
-    // none, one, or many records - and not from a single document.
-    //
-    // Every other proof in this project names one record. These name runs that cover several,
-    // and a run that covers a whole table, which is what a list report actually does.
+    // Proves a name is derived from a report run, whose selection may cover none, one or many
+    // records, not from a single document.
 
     Access = Internal;
 
     /// <summary>
-    /// A run over many records keeps its whole selection instead of being collapsed to whichever
-    /// record the reference happens to sit on.
-    ///
-    /// Shown by naming the same three invoices twice: once through the payload's filter and once
-    /// through a record reference carrying the same filter. Both must produce the collapsed
-    /// first-to-last form, and both must agree - if the reference were collapsed to one record,
-    /// the second would name a single invoice instead.
+    /// A run over many records keeps its whole selection, whether it arrives as a payload filter or as
+    /// a filtered record reference.
     /// </summary>
     procedure ProveARunKeepsItsWholeSelection()
     var
@@ -38,12 +30,9 @@ codeunit 50167 "Filename Proof Run"
 
         SetPattern('Invoices-[No.]');
 
-        // The Preview route: no reference at all, the selection carried by the payload.
         FromFilter := NameWith(Report::"Standard Sales - Invoice", Channel::Preview,
             SourceRecRef, ProofSupport.InvoiceFilterViewsFor(InvoiceFilter));
 
-        // The email route: a reference carrying the selection, and no payload at all. This is
-        // the one that used to be collapsed to a single record by SetRecFilter.
         SalesInvoiceHeader.SetFilter("No.", InvoiceFilter);
         SourceRecRef.GetTable(SalesInvoiceHeader);
         FromReference := NameWith(Report::"Standard Sales - Invoice", Channel::Email, SourceRecRef, '');
@@ -66,13 +55,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A run that narrowed nothing can still be named.
-    ///
-    /// An unfiltered run carries no filterviews entry for its own table - measured on the
-    /// platform payload for Chart of Accounts, which lists only its layout loop - so requiring
-    /// one left the commonest list run with no name at all. Naming such a run from a pattern of
-    /// literal text and computed values is the case an administrator printing a whole chart of
-    /// accounts actually meets.
+    /// A run that narrowed nothing can still be named. Called with no filter views and no record, so the
+    /// manager falls back to the whole table.
     /// </summary>
     procedure ProveAnUnfilteredRunIsStillNamed()
     var
@@ -93,17 +77,12 @@ codeunit 50167 "Filename Proof Run"
             exit;
         end;
 
-        // Deliberately a pattern with no field placeholder: a whole-table run has no one account to
-        // name, and a pattern that tried would rightly decline.
         SetPatternFor(Report::"Chart of Accounts", Database::"G/L Account", 'Chart of Accounts-[Your Company Name]');
 
-        // No reference and no payload - which is exactly what the manager was given for an
-        // unfiltered run, and what it used to refuse.
+        // No reference and no payload: the manager falls back to the whole table.
         Name := NameWith(Report::"Chart of Accounts", Channel::Preview, EmptyRecRef, '');
 
-        // Through the sanitiser, because the expectation has to be what a file can actually be
-        // called. CRONUS International Ltd. ends in a period, and a Windows file name may not,
-        // so the name that reaches disk is one character shorter than the company's own.
+        // Sanitised: a company name ending in a period cannot end a Windows file name.
         Expected := ReportFilenameMgt.Sanitise('Chart of Accounts-' + CompanyDisplayName());
 
         ProofSupport.LogLine('18 Accounts in the whole table', Format(GLAccount.Count()));
@@ -116,13 +95,8 @@ codeunit 50167 "Filename Proof Run"
             ProofSupport.LogLine('RESULT an unfiltered run is still named',
                 StrSubstNo(FailNamedMsg, Expected, Name));
 
-        // The other half, and it used to expect the opposite.
-        //
-        // A field placeholder over a run covering every account once declined: there was no filter to
-        // read a range out of, and the rule was that a name came from the filter. It does not -
-        // it comes from the records - so a whole-table run is named after the first and the last
-        // account there are, exactly as a run filtered to that same range is. The two used to
-        // produce different answers for identical selections, which is what this now pins down.
+        // Field values come from the records, not the filter, so a whole-table run is named after the
+        // first and last account, as a run filtered to that range is.
         ClearPatterns();
         SetPatternFor(Report::"Chart of Accounts", Database::"G/L Account", 'Accounts-[No.]');
         WithFieldPlaceholder := NameWith(Report::"Chart of Accounts", Channel::Preview, EmptyRecRef, '');
@@ -144,17 +118,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A pattern conditioned on one record does not claim a run that contains that record and
-    /// others as well.
-    ///
-    /// This is the whole of the condition question. Asking whether anything survived the
-    /// condition reads as "does this document meet it" only while a run covers one record; over
-    /// a run of three it reads "does ANY of them meet it", and a pattern written for one invoice
-    /// would put that invoice's name on a file holding three.
-    ///
-    /// Both halves are proven, because only proving the refusal would also pass if conditions
-    /// had simply stopped working: the same pattern must still claim the run that contains only
-    /// the record it names.
+    /// A pattern conditioned on one record does not claim a run that also contains others: the condition
+    /// must hold for every record. The single-record run is checked too, so broken conditions cannot pass.
     /// </summary>
     procedure ProveAConditionMustHoldForTheWholeRun()
     var
@@ -172,7 +137,6 @@ codeunit 50167 "Filename Proof Run"
         ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers);
         OneInvoice := FirstOf(Numbers);
 
-        // A pattern that applies only to that one invoice, by a condition on its number.
         SetConditionedPattern('Just-This-One', OneInvoice);
 
         NamedAlone := NameWith(Report::"Standard Sales - Invoice", Channel::Preview,
@@ -203,14 +167,7 @@ codeunit 50167 "Filename Proof Run"
 
     /// <summary>
     /// A run whose records disagree about their language is not named in one of them.
-    ///
-    /// Built on this app's own document and its own report, not on a posted sales invoice and
-    /// Standard Sales - Invoice. That is not a convenience. Measured 24 September 2026 with a
-    /// diagnostic that printed all three: report 1306 reads "Sales - Invoice" in English, Danish
-    /// and German alike in a W1 container, so a proof built on it compared a name against itself
-    /// and would have passed however broken the feature was. This app ships translations of its
-    /// own - "Proof Document" is "Bevisdokument" and "Nachweisdokument" - and its report really
-    /// is about its own document, which is what the pattern table insists on.
+    /// Uses the test app's own report, because report 1306's caption is the same in every language in W1.
     /// </summary>
     procedure ProveARunWithTwoLanguagesPicksOne()
     var
@@ -228,9 +185,7 @@ codeunit 50167 "Filename Proof Run"
         ProofSupport.LogLine('20 Proof report caption DAN', DanishCaption);
         ProofSupport.LogLine('20 Proof report caption DEU', GermanCaption);
 
-        // Failed rather than skipped. If the two read the same there is nothing here to tell one
-        // run's language from another's, and every comparison below would hold for a feature that
-        // ignored language entirely - so the suite must go red rather than report a pass.
+        // Failed rather than skipped: identical captions would let a language-blind feature pass.
         if DanishCaption = GermanCaption then begin
             ProofSupport.LogLine('RESULT a run in two languages is named in one',
                 StrSubstNo(FailAgreedLanguageMsg, CaptionsDoNotDifferMsg));
@@ -242,11 +197,9 @@ codeunit 50167 "Filename Proof Run"
         WriteLanguageDocument(LanguageDocumentTwoTok, ProofSupport.DanishLanguageCode());
         SetProofLanguagePattern();
 
-        // Both Danish: the run agrees, so it is named in Danish.
         BothDanish := NameLanguageRun(ProofDocument, SourceRecRef);
 
-        // One Danish and one German: the run does not agree, so it has no document language and
-        // must not be named as though it had one.
+        // One Danish, one German: the run has no single document language.
         WriteLanguageDocument(LanguageDocumentTwoTok, ProofSupport.GermanLanguageCode());
         Mixed := NameLanguageRun(ProofDocument, SourceRecRef);
 
@@ -272,9 +225,6 @@ codeunit 50167 "Filename Proof Run"
         Done();
     end;
 
-    /// <summary>
-    /// Names the run covering both language documents, as one run over two records.
-    /// </summary>
     local procedure NameLanguageRun(var ProofDocument: Record "Filename Proof Document"; var SourceRecRef: RecordRef): Text
     var
         Channel: Enum "Report Filename Output Route";
@@ -288,10 +238,6 @@ codeunit 50167 "Filename Proof Run"
         exit(NameWith(Report::"Filename Proof Report", Channel::Preview, SourceRecRef, ''));
     end;
 
-    /// <summary>
-    /// A pattern naming this app's own report, over this app's own document, reading the language
-    /// from the document's own language field.
-    /// </summary>
     local procedure SetProofLanguagePattern()
     var
         Pattern: Record "Report Filename Pattern";
@@ -301,8 +247,7 @@ codeunit 50167 "Filename Proof Run"
         Pattern.Validate("Report ID", Report::"Filename Proof Report");
         Pattern.Validate("Table No.", Database::"Filename Proof Document");
         Pattern.Validate("File Name Pattern", ReportCaptionOnlyTok);
-        // Language Code, the field that relates to the Language table, as on a real document: a field
-        // that does not is refused (8 October). WriteLanguageDocument writes both language fields alike.
+        // Must be a field related to the Language table; others are refused.
         Pattern.Validate("Language Code Field", ProofDocument.FieldNo("Language Code"));
         Pattern.Enabled := true;
         Pattern.Insert(true);
@@ -336,12 +281,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A report whose first data item is a virtual table still knows what it is about.
-    ///
-    /// Report 910 Posted Assembly Order declares the virtual Integer table as its first data
-    /// item and carries its real subject, Posted Assembly Header, one level in. Reading only the
-    /// first data item left 35 of the 901 installed reports with no kind of record at all, and
-    /// therefore no field placeholders - for reports that plainly are about something.
+    /// A report whose first data item is a virtual table still has a subject table: report 910 has
+    /// Integer first and Posted Assembly Header one level in.
     /// </summary>
     procedure ProveAHiddenSubjectIsFound()
     var
@@ -365,7 +306,7 @@ codeunit 50167 "Filename Proof Run"
 
         case true of
             ReportFilenameMgt.IsNamableTable(FirstDataItem):
-                // The report changed shape, so this proof is no longer testing what it says.
+                // The report changed shape, so this proof no longer tests what it claims.
                 ProofSupport.LogLine('RESULT a hidden subject is found',
                     StrSubstNo(FailNotHiddenMsg, FirstDataItem));
             Subject <> Database::"Posted Assembly Header":
@@ -380,17 +321,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Test Pattern can test a filter, not only a single record - which is the only question
-    /// worth asking about a list report.
-    ///
-    /// "Choose one record" tests a run that never happens for a chart of accounts. This sets the
-    /// selection the way the administrator does, by a filter, and checks three things: that the
-    /// name is the collapsed first-to-last form the pattern's separator and maximum dictate,
-    /// that the run is reported as covering the number of accounts it actually covers, and that
-    /// the administrator is told which pattern decided it.
-    ///
-    /// The unfiltered case is checked in the same breath, because "all of them" is the commonest
-    /// selection of all and an empty filter has to mean that rather than mean nothing.
+    /// Test Pattern can test a filter, not only a single record: checks the name, the record count and
+    /// which pattern decided it. An empty filter must mean the whole table.
     /// </summary>
     procedure ProveAFilterCanBeTested()
     var
@@ -427,8 +359,7 @@ codeunit 50167 "Filename Proof Run"
         if not ReportFilenamePreviewMgt.TryCountRun(Database::"G/L Account", FilterView, Counted) then
             Counted := 0;
 
-        // With the extension, because the explain path shows the administrator the whole file
-        // name rather than the stem - the same as it does for a single record.
+        // The explain path shows the whole file name, extension included.
         Expected := StrSubstNo(AccountRangeLbl, FirstOf(Numbers), LastOf(Numbers)) + '.pdf';
 
         ProofSupport.LogLine('22 Accounts the run covers', Format(Counted));
@@ -448,7 +379,6 @@ codeunit 50167 "Filename Proof Run"
                     StrSubstNo(PassFilterMsg, Counted, Filename));
         end;
 
-        // And the same page path with no filter at all, which is a selection of everything.
         ReportFilenamePreviewMgt.ExplainNameForRun(
             Pattern, '', Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
         if not ReportFilenamePreviewMgt.TryCountRun(Database::"G/L Account", '', Counted) then
@@ -476,12 +406,7 @@ codeunit 50167 "Filename Proof Run"
         exit(GLAccount.Count());
     end;
 
-    /// <summary>
-    /// Three G/L accounts, and the alternation filter that selects exactly those three.
-    /// </summary>
-    /// <param name="AccountFilter">Receives the alternation.</param>
-    /// <param name="Numbers">Receives the three numbers in order.</param>
-    /// <returns>True when this company has three to work with.</returns>
+    /// <returns>False when the company has fewer than three G/L accounts.</returns>
     local procedure ThreeAccounts(var AccountFilter: Text; var Numbers: List of [Text]): Boolean
     var
         GLAccount: Record "G/L Account";
@@ -508,21 +433,9 @@ codeunit 50167 "Filename Proof Run"
 
 
     /// <summary>
-    /// The example on the setup card does not imply that a run always covers one record.
-    ///
-    /// The card used to show only the single-record form - Invoice-ABC-01.pdf - so a pattern on
-    /// a report that prints a list advertised a name that report will never produce. Both forms
-    /// are now available, and the assertions are on their SHAPE rather than on any real value:
-    /// the example has to work in a company with no data at all and for an administrator with no
-    /// permission to read a record, which is the whole reason it reads none.
-    ///
-    /// Three things are checked. The single-record example must carry the generated shape and
-    /// not a real invoice number: not that of an invoice the proof posts first, so there
-    /// certainly is one a record-reading example could carry, nor that of the first or the last
-    /// posted invoice there is, which are what a read would return. The run-of-many example must
-    /// carry a first-to-last range. And a pattern built only from computed values must offer no second
-    /// example at all, because nothing in it changes with the size of the run - without that, a
-    /// change that always showed a range would pass on the strength of the first two.
+    /// The setup card offers a single-record and a run-of-many example, built from generated shapes
+    /// rather than real records (the example must work without data or read permission). A pattern of
+    /// computed values only must offer no second example.
     /// </summary>
     procedure ProveTheExampleDoesNotImplyOneRecord()
     var
@@ -558,8 +471,6 @@ codeunit 50167 "Filename Proof Run"
 
         ClearPatterns();
 
-        // A pattern whose only value is computed. The company name is one value however many
-        // records the run covered, so there is no second example to show.
         SetPattern('Chart-[Your Company Name]');
         Pattern.FindFirst();
         ComputedHasSecond := ReportFilenamePreviewMgt.TryPreviewShapeOverManyRecords(Pattern, ComputedOnly);
@@ -591,18 +502,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Whether an example carries a real posted invoice number, which would mean it read a
-    /// record instead of building a shape.
-    ///
-    /// The pattern is Invoice-[No.] on posted sales invoices, so the one value an example built
-    /// from a record could carry is that record's number - and the records a read would return are
-    /// the first and the last there are, so those are checked as well as the proof's own. They
-    /// are read only to be looked for in the example: a company with no posted invoice besides the
-    /// proof's passes the same way.
+    /// Checks the proof's own invoice and the first and last posted invoices, which are what a record read would return.
     /// </summary>
-    /// <param name="InvoiceNo">The number of the invoice the proof posted.</param>
-    /// <param name="Example">The example to inspect.</param>
-    /// <returns>True when one of those invoice numbers appears in it.</returns>
     local procedure RealInvoiceLeaked(InvoiceNo: Code[20]; Example: Text): Boolean
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -624,26 +525,8 @@ codeunit 50167 "Filename Proof Run"
 
 
     /// <summary>
-    /// EVERY installed report lands somewhere this design handles, and the ones that do not are
-    /// named.
-    ///
-    /// This exists because the model was settled from a handful of examples - an invoice and a
-    /// chart of accounts - and a model justified by two reports is a model nobody has checked.
-    /// Every report in the system is put through the same three questions the design asks:
-    ///
-    ///   Does it produce a file at all? A processing-only report produces none, so there is
-    ///   nothing to name and it is out of scope rather than unhandled.
-    ///
-    ///   What is the run about? The subject rule answers: the first data item when that is a real
-    ///   table, otherwise the shallowest real one, otherwise nothing.
-    ///
-    ///   Can an administrator actually build a pattern for it? A subject the setup cannot show,
-    ///   cannot offer in the kinds list, or cannot read a single field from is a subject that
-    ///   fails the administrator even though the rule returned a number.
-    ///
-    /// A report is a FAILURE only if it produces a file, is about a real kind of record, and that
-    /// kind of record cannot be set up. Being about no record is a handled answer, not a gap:
-    /// such a report is named from the computed values.
+    /// Every installed report fits the model. A report fails only if it produces a file and has a subject
+    /// table that cannot be set up; processing-only reports and reports about no record are handled.
     /// </summary>
     procedure ProveEveryReportFitsTheModel()
     var
@@ -662,8 +545,6 @@ codeunit 50167 "Filename Proof Run"
         Reason: Text;
         FailureList: Text;
     begin
-        // Counted from zero explicitly. Listed is read before it is written to, in the guard
-        // that caps how many failures are named.
         Total := 0;
         NoFile := 0;
         SubjectIsFirst := 0;
@@ -683,8 +564,6 @@ codeunit 50167 "Filename Proof Run"
         repeat
             Total += 1;
 
-            // A processing-only report writes no file, so there is nothing for this feature to
-            // name. Out of scope is a real answer.
             if ReportMetadata.ProcessingOnly then
                 NoFile += 1
             else begin
@@ -729,13 +608,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Whether an administrator could actually build a pattern for this kind of record: the
-    /// setup has to be able to name it, offer it, and read a field from it.
+    /// The setup must be able to name the table, offer it in the table list, and read a field from it.
     /// </summary>
-    /// <param name="SubjectTableNo">The kind of record the run is about.</param>
-    /// <param name="TempTableBuffer">The kinds list the picker offers, already built.</param>
-    /// <param name="Reason">Receives why it could not, when it could not.</param>
-    /// <returns>True when a pattern could be built for it.</returns>
     local procedure SubjectCanBeSetUp(SubjectTableNo: Integer; var TempTableBuffer: Record "Report Filename Table Buffer"; var Reason: Text): Boolean
     var
         TableMetadata: Record "Table Metadata";
@@ -752,17 +626,11 @@ codeunit 50167 "Filename Proof Run"
             exit(false);
         end;
 
-        // The picker has to offer it, or the administrator can reach it only by choosing a
-        // report - and a pattern that covers every report about a kind of record is exactly the
-        // thing the kinds list exists for.
         if not TempTableBuffer.Get(SubjectTableNo) then begin
             Reason := NotOfferedMsg;
             exit(false);
         end;
 
-        // And there has to be at least one field a name could be built from. A table with none
-        // would give the placeholder picker nothing but the computed values, on a pattern that claims
-        // to be about a record.
         FieldRec.SetRange(TableNo, SubjectTableNo);
         FieldRec.SetRange(Class, FieldRec.Class::Normal);
         FieldRec.SetRange(Enabled, true);
@@ -778,23 +646,9 @@ codeunit 50167 "Filename Proof Run"
 
 
     /// <summary>
-    /// The platform naming hook really does reach this feature, and really does name the file.
-    ///
-    /// Every other proof in this project calls the manager directly. That tests the naming, and
-    /// it leaves the most important question untested: whether the hook the platform calls is
-    /// wired to the manager at all. A subscriber with the wrong event name, the wrong parameter
-    /// names, or a signature the platform will not bind to compiles perfectly and does nothing.
-    ///
-    /// This raises the platform's own event - Reporting Triggers.GetFilename, the BusinessEvent
-    /// codeunit 44 subscribes to - and lets the whole chain run: platform event, Base
-    /// Application's re-raise as OnGetFilename, then this feature's subscriber. Nothing is
-    /// simulated except the platform's decision to ask.
-    ///
-    /// What this does NOT prove, and must not be read as proving: that the platform asks on any
-    /// particular delivery route. The platform raises this only when it must produce a file for
-    /// a person, which no headless run does. That whether-it-asks question is a client
-    /// observation and is in the retest guide. What is proven here is that when it asks, this
-    /// feature answers, and answers correctly.
+    /// Raises Reporting Triggers.GetFilename and lets the whole chain run (codeunit 44's OnGetFilename,
+    /// then this app's subscriber), so a subscriber that compiles but never binds is caught.
+    /// It does not prove the platform raises the event on any given delivery route; that needs a client.
     /// </summary>
     procedure ProveTheNamingHookNamesTheFile()
     var
@@ -812,9 +666,7 @@ codeunit 50167 "Filename Proof Run"
 
         SetPattern('Invoice-[No.]');
 
-        // The payload exactly as the platform sends it: the run's filters keyed by table, and
-        // the delivery intent the channel is derived from. Read from text rather than built
-        // field by field, so the shape is the one that was measured off a real render.
+        // Read from text, in the shape the platform sends: filters keyed by table and the delivery intent.
         if not Payload.ReadFrom(StrSubstNo(PayloadLbl, ProofSupport.InvoiceFilterViews(SalesInvoiceHeader))) then begin
             ProofSupport.LogLine('RESULT the platform naming hook reaches this feature', BadPayloadMsg);
             ClearPatterns();
@@ -822,8 +674,7 @@ codeunit 50167 "Filename Proof Run"
             exit;
         end;
 
-        // No record reference at all, which is what Preview hands over. Everything the name is
-        // built from has to come out of the payload.
+        // No record reference, so the name must come from the payload filter.
         Success := false;
         ReportingTriggers.GetFilename(
             Report::"Standard Sales - Invoice", InvoiceCaptionLbl, Payload, PdfExtensionLbl, NoRecord, Filename, Success);
@@ -851,9 +702,7 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// The switch in Report Filename Setup turns every pattern off at once, and on again, without
-    /// touching the patterns. The platform's naming hook is raised for real both ways, with the same
-    /// enabled pattern in place.
+    /// The switch in Report Filename Setup turns naming off and on again without touching the patterns.
     /// </summary>
     procedure ProveTheSwitchTurnsNamingOff()
     var
@@ -901,27 +750,9 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A file somebody else has already named survives the whole chain untouched.
-    ///
-    /// The promise this design makes is that it never overrides a deliberate decision somebody
-    /// else made. Raising the event with Success already true has to come back untouched, or a
-    /// partner subscriber that named a file first would silently lose.
-    ///
-    /// BE PRECISE ABOUT WHAT THIS PROVES. It is an end-to-end property of the chain, not a test
-    /// of this feature's own guard. Measured by mutation: removing the "if Success then exit"
-    /// from this feature's subscriber leaves this proof green, because Base Application's
-    /// codeunit 44 carries the same guard and it runs FIRST - so this feature's subscriber is
-    /// never reached at all on that path.
-    ///
-    /// That is a limitation of THIS proof, not a statement that the guard is unreachable. An
-    /// earlier note here said the guard was belt and braces and that the event it protects
-    /// cannot be raised from anywhere else; both were wrong. Another subscriber to the same
-    /// event can name a file first, and ProveOurGuardStandsDownForAnotherSubscriber exercises
-    /// the guard through one.
-    ///
-    /// The proof is kept because the property it states is the one that matters to a customer -
-    /// a name somebody else set is not lost - and because it would catch the day Base
-    /// Application drops its guard. It is not evidence about code in this app.
+    /// A file already named (Success true) survives the whole chain untouched. This is a property of the
+    /// chain, not of this app's guard: codeunit 44 does not raise OnGetFilename when Success is already true.
+    /// ProveOurGuardStandsDownForAnotherSubscriber exercises this app's guard.
     /// </summary>
     procedure ProveTheHookLeavesAnAlreadyNamedFileAlone()
     var
@@ -968,40 +799,10 @@ codeunit 50167 "Filename Proof Run"
 
 
     /// <summary>
-    /// This feature's own "already named" guard, exercised through a real second subscriber.
-    ///
-    /// The guard is the line "if Success then exit" at the top of this feature's OnGetFilename
-    /// subscriber: a file another subscriber has already named is left alone. No proof reached
-    /// it until this one. Raising the chain with Success already true does not reach it either,
-    /// because Base Application's codeunit 44 carries the same guard and refuses to re-raise -
-    /// which is what ProveTheHookLeavesAnAlreadyNamedFileAlone measures instead.
-    ///
-    /// Reaching it needs a second subscriber that names a file from inside the same event.
-    /// Base Application has one: ReminderCommunication subscribes to ReportManagement's
-    /// OnGetFilename and sets Success when it names a reminder, provided all four of its own
-    /// guards pass - report 117, a .pdf extension, an incoming name containing its own word for
-    /// a reminder, and a record reference on Issued Reminder Header - and provided the level's
-    /// attachment text carries a file name. This proof configures exactly that, then raises the
-    /// real event with a pattern of this feature's own also enabled for the same report.
-    ///
-    /// THREE RAISES, BECAUSE ONE CANNOT TELL THE CASES APART. A single raise that came back
-    /// with the reminder's name would be consistent with the guard working, with this feature's
-    /// pattern silently not matching report 117, and with the whole setup being wrong - and the
-    /// last two would leave the mutation green while the proof claimed a pass:
-    ///   ours alone   - this feature's pattern must name the file, or it was never a competitor
-    ///                  and nothing that follows means anything;
-    ///   theirs alone - ReminderCommunication must name the file, or its guards were not met
-    ///                  and the second subscriber is not in play;
-    ///   both         - the name that comes back says which subscriber won.
-    ///
-    /// AND THE THIRD RAISE IS NOT A GUARANTEE ABOUT ORDER. Microsoft documents subscriber
-    /// invocation order as unspecified: "the subscriber methods are run one at a time in no
-    /// particular order. You cannot specify the order in which the subscriber methods are
-    /// called." Since 30 September the order no longer decides the outcome: run first, this
-    /// feature leaves a reminder Base Application names to it (Report Filename Mgt.
-    /// IsNamedByReminderCommunication); run second, the guard stands down. So the third raise now
-    /// proves the two coexist, and no longer reaches the guard on its own - the guard is handed a
-    /// file already named directly, after raise one, where nothing else would stop this feature.
+    /// This app's "if Success then exit" guard stands down for another subscriber, using Base Application's
+    /// Reminder Communication as the second subscriber. Each subscriber is first shown to name the file
+    /// alone, so a pass cannot come from one of them never being in play. Subscriber order is unspecified,
+    /// so the guard is also exercised by calling this app's subscriber directly with a file already named.
     /// </summary>
     procedure ProveOurGuardStandsDownForAnotherSubscriber()
     var
@@ -1019,19 +820,14 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // The other subscriber reads an issued reminder's terms and level, so the proof makes a
-        // reminder carrying both - on terms of its own, which carry no attachment text, so that
-        // nothing names it from one until raise two gives the level a file name.
+        // New terms with no attachment text, so nothing names it until the level gets a file name.
         CreateReminderForTheChain(IssuedReminderHeader, ReminderLevel);
 
         ProofSupport.LogLine('27 Reminder the chain is raised for', IssuedReminderHeader."No.");
         ProofSupport.LogLine('27 Its reminder terms and level',
             StrSubstNo(TermsAndLevelLbl, IssuedReminderHeader."Reminder Terms Code", IssuedReminderHeader."Reminder Level"));
 
-        // Raise one: this feature alone. Its pattern has to name the file, or the run where both
-        // are in play proves nothing - a pattern that never claimed report 117 would leave the
-        // name to the other subscriber whether the guard existed or not, and the mutation would
-        // stay green.
+        // Raise one: this app alone must name the file, or it is not a competitor.
         SetPatternFor(Report::Reminder, Database::"Issued Reminder Header", OurReminderPatternTok);
         ExpectedOurs := OurReminderPrefixTok + IssuedReminderHeader."No." + PdfExtensionLbl;
         NameOursAlone := RaiseTheRealChain(IssuedReminderHeader);
@@ -1044,12 +840,8 @@ codeunit 50167 "Filename Proof Run"
             exit;
         end;
 
-        // The guard itself, reached directly, while this feature's pattern would name the file.
-        // Raise three below cannot reach it any more: since 30 September a reminder Base
-        // Application names is declined before the guard by Report Filename Mgt.
-        // IsNamedByReminderCommunication, so it passes whichever subscriber runs first - and the
-        // real event cannot be made to arrive after another subscriber, because the order is
-        // unspecified. So the subscriber's own body is handed a file already named.
+        // The guard reached directly: raise three reaches it only if Reminder Communication runs first
+        // (otherwise IsNamedByReminderCommunication declines), and subscriber order cannot be forced.
         NameAfterSomebodyElse := CallOurSubscriberAfterSomebodyElse(IssuedReminderHeader);
         ProofSupport.LogLine('27 Handed to this feature already named', NameAfterSomebodyElse);
         if NameAfterSomebodyElse = AlreadyNamedLbl then
@@ -1057,11 +849,8 @@ codeunit 50167 "Filename Proof Run"
         else
             ProofSupport.LogLine(GuardDirectVerdictTok, StrSubstNo(FailOverrodeMsg, AlreadyNamedLbl, NameAfterSomebodyElse));
 
-        // Raise two: the other subscriber alone. Its four guards are all supplied by the way the
-        // chain is raised, and the fifth condition - a configured file name for this level - is
-        // what is seeded here. Reported separately, because a proof that cannot tell "the guard
-        // worked" from "the other subscriber never ran" is the failure this whole proof exists
-        // to avoid.
+        // Raise two: Reminder Communication alone. Its other conditions come from the raise; the level's
+        // file name is seeded here.
         ClearPatterns();
 
         LanguageCode := AttachmentLanguageCode(IssuedReminderHeader."Customer No.");
@@ -1088,8 +877,7 @@ codeunit 50167 "Filename Proof Run"
             exit;
         end;
 
-        // Raise three: both in play, which is the question. Whichever subscriber the platform
-        // happens to run first, the name that comes back says which one it was.
+        // Raise three: both in play.
         SetPatternFor(Report::Reminder, Database::"Issued Reminder Header", OurReminderPatternTok);
         NameBothInPlay := RaiseTheRealChain(IssuedReminderHeader);
         ProofSupport.LogLine('27 With both in play', NameBothInPlay);
@@ -1111,25 +899,10 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A reminder Base Application names from its attachment text keeps that name on every route,
-    /// and a reminder it does not name is named by its pattern on every route - whichever order the
-    /// platform runs the two subscribers in.
-    ///
-    /// Base Application's Reminder Communication and this feature subscribe to the same two naming
-    /// events, and Microsoft documents subscriber order as unspecified, so which of them named a
-    /// printed reminder depended on the deployment. The rule now is Base Application's own setup:
-    /// a File Name on the attachment text means Base Application names the reminder, as it does
-    /// without this app, and this feature leaves it alone everywhere.
-    ///
-    /// WHY THIS CANNOT PASS BY LUCK OF ORDER. Two of the routes are ones Reminder Communication never
-    /// names: Preview, where the platform hands over no record and its subscriber declines, and the
-    /// routes it does not subscribe to at all (Send to Disk, Attach as PDF). On those this feature is
-    /// the only candidate, so the outcome does not depend on order: with the rule removed, the pattern
-    /// names them and the proof goes red. The print and email routes show that Base Application's own
-    /// name still comes through, which is the existing behaviour that has to stay.
-    ///
-    /// And Test Pattern has to say the same thing, rather than "This pattern" for a reminder that
-    /// every real print names from the attachment text.
+    /// A File Name on the reminder level's attachment text means Base Application names the reminder and
+    /// this app leaves it alone on every route; without one, the pattern names every route. Reminder
+    /// Communication names only on the naming event with the reminder record and on the email attachment,
+    /// so the other routes do not depend on subscriber order. Test Pattern must report the same.
     /// </summary>
     procedure ProveAReminderBaseApplicationNamesKeepsItsName()
     var
@@ -1155,9 +928,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // A reminder of the proof's own, on terms of its own with no attachment text, so that
-        // whether Base Application names it is decided by the File Name this proof gives it below
-        // and by nothing a company has configured.
+        // New terms with no attachment text, so only the File Name seeded below decides.
         CreateReminderForTheChain(IssuedReminderHeader, ReminderLevel);
 
         ProofSupport.LogLine('29 Reminder', IssuedReminderHeader."No.");
@@ -1168,8 +939,7 @@ codeunit 50167 "Filename Proof Run"
         ExpectedOurs := OurReminderPrefixTok + IssuedReminderHeader."No.";
         ExpectedTheirs := TheirFileNameTok + PdfExtensionLbl;
 
-        // One: Base Application names nothing - no attachment text carries a File Name - so the
-        // pattern names every route.
+        // One: no File Name, so the pattern names every route.
         NameOnEveryRoute(IssuedReminderHeader, Names);
         Expected[1] := ExpectedOurs + PdfExtensionLbl;
         Expected[2] := ExpectedOurs + PdfExtensionLbl;
@@ -1182,7 +952,7 @@ codeunit 50167 "Filename Proof Run"
         else
             ProofSupport.LogLine(ReminderUnconfiguredVerdictTok, StrSubstNo(FailRoutesMsg, RoutesText(Names, Expected)));
 
-        // Two: Base Application's attachment text for the level carries a File Name.
+        // Two: the level's attachment text carries a File Name.
         PreviousAttachmentTextId := ReminderLevel."Reminder Attachment Text";
         if not SeedReminderFileName(ReminderLevel, AttachmentLanguageCode(IssuedReminderHeader."Customer No."), SeededAttachmentTextId) then begin
             ProofSupport.LogLine(ReminderConfiguredVerdictTok, StrSubstNo(FailCouldNotSeedMsg, GetLastErrorText()));
@@ -1191,8 +961,7 @@ codeunit 50167 "Filename Proof Run"
             exit;
         end;
 
-        // Base Application's name where Base Application names it (the record handed over, and
-        // email), and its own default everywhere else - exactly what it does without this app.
+        // Base Application's name where it names the reminder, its default elsewhere - as without this app.
         NameOnEveryRoute(IssuedReminderHeader, Names);
         Expected[1] := ExpectedTheirs;
         Expected[2] := '';
@@ -1205,7 +974,7 @@ codeunit 50167 "Filename Proof Run"
         else
             ProofSupport.LogLine(ReminderConfiguredVerdictTok, StrSubstNo(FailRoutesMsg, RoutesText(Names, Expected)));
 
-        // Three: Test Pattern says so, in its own words. The pattern set above is the only one.
+        // Three: Test Pattern says so.
         Pattern.FindFirst();
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(Pattern, IssuedReminderHeader.RecordId(), ShownName, NameComesFrom, WhyNotThisPattern, FromThisPattern);
         ExpectedTexts.ReminderTextTexts(ExpectedOurs + PdfExtensionLbl, ExpectedShownName, ExpectedWhy);
@@ -1226,14 +995,12 @@ codeunit 50167 "Filename Proof Run"
 
     /// <summary>
     /// Names one reminder on each route this proof tells apart:
-    ///   1 the platform's naming event with the reminder handed over (Print, Download);
-    ///   2 the same event with no record handed over (Preview);
+    ///   1 the platform's naming event with the reminder handed over;
+    ///   2 the same event with no record handed over;
     ///   3 the emailed attachment, through Document-Mailing's own GetAttachmentFileName;
     ///   4 Send to Disk and 5 Attach as PDF, through the manager, which is what those subscribers call.
     /// A route that names nothing comes back empty.
     /// </summary>
-    /// <param name="IssuedReminderHeader">The reminder.</param>
-    /// <param name="Names">Receives the five names, in that order.</param>
     local procedure NameOnEveryRoute(var IssuedReminderHeader: Record "Issued Reminder Header"; var Names: array[5] of Text)
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
@@ -1245,15 +1012,14 @@ codeunit 50167 "Filename Proof Run"
         Names[1] := RaiseTheRealChain(IssuedReminderHeader);
         Names[2] := RaiseTheRealChainWithoutRecord(IssuedReminderHeader);
 
-        // The email subscriber reads the document the render recorded, as it does in a real send.
+        // The email subscriber reads the document the render recorded.
         IssuedReminderHeader.SetRecFilter();
         ReminderRecRef.GetTable(IssuedReminderHeader);
         ReportFilenameContext.SetRenderedDocument(ReminderRecRef, Report::Reminder);
         DocumentMailing.GetAttachmentFileName(AttachmentFileName, IssuedReminderHeader."No.", ReminderCaptionLbl, "Report Selection Usage"::Reminder.AsInteger());
         ReportFilenameContext.ClearLastRendered();
         ReportFilenameContext.ClearHeldDocument();
-        // Business Central's own email name is not this proof's business; only a pattern's or
-        // Reminder Communication's is. Either is recognisable, and anything else counts as unnamed.
+        // Only a pattern's or Reminder Communication's name counts; Business Central's default counts as unnamed.
         if (AttachmentFileName = OurReminderPrefixTok + IssuedReminderHeader."No." + PdfExtensionLbl) or (AttachmentFileName = TheirFileNameTok + PdfExtensionLbl) then
             Names[3] := AttachmentFileName;
 
@@ -1305,12 +1071,10 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Raises the platform's naming event for a reminder the way Preview does: the payload's filter
-    /// and no record at all. Reminder Communication declines on this shape (it reads the record), so
-    /// this feature is the only candidate and the outcome does not depend on subscriber order.
+    /// The naming event with no record. Reminder Communication names a file only when handed the issued
+    /// reminder record, so the outcome does not depend on subscriber order.
     /// </summary>
-    /// <param name="IssuedReminderHeader">The reminder the run is about.</param>
-    /// <returns>The name the chain came back with, or an empty string when it named nothing.</returns>
+    /// <returns>Empty when nothing named the file.</returns>
     local procedure RaiseTheRealChainWithoutRecord(var IssuedReminderHeader: Record "Issued Reminder Header") Filename: Text
     var
         ReportingTriggers: Codeunit "Reporting Triggers";
@@ -1331,11 +1095,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Hands this feature's own OnGetFilename body a reminder file somebody else has already named,
-    /// shaped exactly as the real raise is, and returns the name it leaves.
+    /// Calls this app's subscriber with a file already named (Success true), shaped as the real raise.
     /// </summary>
-    /// <param name="IssuedReminderHeader">The reminder the run is about.</param>
-    /// <returns>The name after this feature has seen it.</returns>
     local procedure CallOurSubscriberAfterSomebodyElse(var IssuedReminderHeader: Record "Issued Reminder Header") Filename: Text
     var
         ReportFilenameSubscribers: Codeunit "Report Filename Subscribers";
@@ -1353,12 +1114,10 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Raises the platform's own naming event for a reminder, shaped so that every one of the
-    /// other subscriber's four guards is met: report 117, a .pdf extension, an incoming name
-    /// carrying the word it looks for, and a positioned reference to the reminder itself.
+    /// Shaped to meet Reminder Communication's conditions: report 117, a .pdf extension, an incoming name
+    /// containing its word for a reminder, and a reference to the issued reminder.
     /// </summary>
-    /// <param name="IssuedReminderHeader">The reminder the run is about.</param>
-    /// <returns>The name the chain came back with, or an empty string when it named nothing.</returns>
+    /// <returns>Empty when nothing named the file.</returns>
     local procedure RaiseTheRealChain(var IssuedReminderHeader: Record "Issued Reminder Header") Filename: Text
     var
         ReportingTriggers: Codeunit "Reporting Triggers";
@@ -1381,9 +1140,7 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// What the chain was handed, written out so that a proof which fails to reach the other
-    /// subscriber says which of its conditions it supplied rather than leaving a reader to
-    /// guess which one was not met.
+    /// Lists the conditions supplied, so a failure to reach Reminder Communication can be diagnosed.
     /// </summary>
     local procedure SuppliedGuardsText(var IssuedReminderHeader: Record "Issued Reminder Header"): Text
     begin
@@ -1392,14 +1149,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// An issued reminder the other subscriber can act on, with the level row it reads its
-    /// configured file name from: issued at level 1 of new reminder terms, for a new customer.
-    /// The terms and the level carry no attachment text, so Base Application names the reminder
-    /// from none until SeedReminderFileName gives the level one. Constructed rather than issued,
-    /// as Filename Test Data explains.
+    /// Level 1 of new reminder terms, for a new customer, with no attachment text until SeedReminderFileName.
     /// </summary>
-    /// <param name="IssuedReminderHeader">Receives the reminder.</param>
-    /// <param name="ReminderLevel">Receives its level.</param>
     local procedure CreateReminderForTheChain(var IssuedReminderHeader: Record "Issued Reminder Header"; var ReminderLevel: Record "Reminder Level")
     begin
         TestData.CreateIssuedReminder(TestData.CreateCustomer(), TestData.CreateReminderTerms(1), 1, '', IssuedReminderHeader);
@@ -1407,13 +1158,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// The language the other subscriber reads its attachment text in. Worked out the same way
-    /// it works it out - the customer's language, then the user's, then the application's
-    /// default - rather than written down, so that a company whose customer speaks something
-    /// else still has its file name found.
+    /// The language Reminder Communication reads its attachment text in: customer, then user, then application default.
     /// </summary>
-    /// <param name="CustomerNo">The reminder's customer.</param>
-    /// <returns>The language code.</returns>
     local procedure AttachmentLanguageCode(CustomerNo: Code[20]) LanguageCode: Code[10]
     var
         Customer: Record Customer;
@@ -1430,17 +1176,9 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Gives the reminder level a configured attachment file name, which is the one condition
-    /// the other subscriber needs that the shape of the raise cannot supply.
-    ///
-    /// The file name carries no per-cent sign: the other subscriber puts it through StrSubstNo
-    /// to fill in document values, and a name with a placeholder in it would not come back the
-    /// way it was written.
+    /// The file name has no per-cent sign, because Reminder Communication puts it through StrSubstNo.
     /// </summary>
-    /// <param name="ReminderLevel">The level to point at the new text. Modified in place.</param>
-    /// <param name="LanguageCode">The language the text is stored for.</param>
-    /// <param name="SeededId">Receives the identifier of the row that was created.</param>
-    /// <returns>True when both writes succeeded.</returns>
+    /// <param name="ReminderLevel">Modified in place.</param>
     local procedure SeedReminderFileName(var ReminderLevel: Record "Reminder Level"; LanguageCode: Code[10]; var SeededId: Guid): Boolean
     var
         ReminderAttachmentText: Record "Reminder Attachment Text";
@@ -1458,13 +1196,6 @@ codeunit 50167 "Filename Proof Run"
         exit(ReminderLevel.Modify(false));
     end;
 
-    /// <summary>
-    /// Puts the reminder level back the way it was and removes the row this proof created, so
-    /// that the proof's reminder terms are not left with a reminder file name nobody configured.
-    /// </summary>
-    /// <param name="ReminderLevel">The level to restore.</param>
-    /// <param name="PreviousId">What it pointed at before.</param>
-    /// <param name="SeededId">The row this proof created.</param>
     local procedure RestoreReminderFileName(var ReminderLevel: Record "Reminder Level"; PreviousId: Guid; SeededId: Guid)
     var
         ReminderAttachmentText: Record "Reminder Attachment Text";
@@ -1478,21 +1209,8 @@ codeunit 50167 "Filename Proof Run"
 
 
     /// <summary>
-    /// One selection gets one name, however the administrator described it.
-    ///
-    /// The same records can be asked for in several ways. Three invoices are "A|B|C" or
-    /// "A..C"; every G/L account is "10000..99999", "10000.." or no filter at all. Those
-    /// describe one selection each time, so they have to produce one name each time.
-    ///
-    /// THEY USED NOT TO. The name was rendered from the text of the filter rather than from the
-    /// records, so a list of three values was named after three values, a range after its two
-    /// endpoints, an open-ended range after the one endpoint it had, and an unfiltered run was
-    /// not named at all. Four descriptions of one run, four answers, one of them no answer.
-    /// Each was found by an administrator comparing two screens that ought to have agreed.
-    ///
-    /// Both halves matter. The first shows that several records are still listed individually
-    /// while they fit, so the change did not simply collapse everything into a range; the
-    /// second shows the whole-table case, which is the one that produced no name before.
+    /// One selection gets one name however its filter is written ("A|B|C" or "A..C"; a closed range,
+    /// an open range or no filter), because the name comes from the records, not the filter text.
     /// </summary>
     procedure ProveOneSelectionGetsOneName()
     var
@@ -1510,9 +1228,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // Three invoices, described two ways. The pattern names three individually so that the
-        // listed form is genuinely exercised - at a lower limit both descriptions would collapse
-        // to a range and agree for the wrong reason.
+        // Three named individually: at a lower limit both filters would collapse to a range and agree trivially.
         ThreeInvoices(SalesInvoiceHeader, InvoiceFilter, Numbers);
 
         SetPatternNaming(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", 'Invoices-[No.]', 3);
@@ -1537,7 +1253,6 @@ codeunit 50167 "Filename Proof Run"
                     StrSubstNo(PassOneNameMsg, Listed));
         end;
 
-        // Every account, described three ways - including the way that used to produce nothing.
         ClearPatterns();
         if GLAccount.IsEmpty() then begin
             ProofSupport.LogLine('RESULT every way of saying the whole table agrees', StrSubstNo(SkippedMsg, NoAccountsMsg));
@@ -1575,24 +1290,19 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Names a run over posted invoices selected by a filter expression, the way the Preview
-    /// route presents it.
+    /// The selection in the payload filter, with no record.
     /// </summary>
     local procedure NameForInvoiceFilter(FilterExpression: Text): Text
     var
         EmptyRecRef: RecordRef;
         Channel: Enum "Report Filename Output Route";
     begin
-        // The selection reaches the manager the way the platform sends it - as the run's filter
-        // in the payload - rather than as a positioned record, so this measures the same path a
-        // Preview does.
         exit(NameWith(Report::"Standard Sales - Invoice", Channel::Preview, EmptyRecRef,
             ProofSupport.InvoiceFilterViewsFor(FilterExpression)));
     end;
 
     /// <summary>
-    /// Names a run over G/L accounts. An empty expression is a run over every account, which is
-    /// the case that used to have no name at all.
+    /// An empty expression is a run over every account.
     /// </summary>
     local procedure NameForAccountFilter(FilterExpression: Text): Text
     var
@@ -1618,9 +1328,6 @@ codeunit 50167 "Filename Proof Run"
         end;
     end;
 
-    /// <summary>
-    /// Values joined by a hyphen, which is the separator every pattern in these proofs uses.
-    /// </summary>
     local procedure JoinedWithDash(var Values: List of [Text]) Joined: Text
     var
         Value: Text;
@@ -1650,9 +1357,6 @@ codeunit 50167 "Filename Proof Run"
             exit(GLAccount."No.");
     end;
 
-    /// <summary>
-    /// A pattern that names a stated number of values individually before collapsing them.
-    /// </summary>
     local procedure SetPatternNaming(ReportId: Integer; TableNo: Integer; PatternText: Text; MaxNamed: Integer)
     var
         Pattern: Record "Report Filename Pattern";
@@ -1668,17 +1372,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// The example for a run covering several records shows both shapes such a run has.
-    ///
-    /// A run is named by listing its values while there are no more than the pattern names
-    /// individually, and by first-to-last beyond that. The example used to show only the
-    /// collapsed form, so an administrator naming three individually was told that a run over
-    /// two records produces a range - which it does not. Two screens disagreeing about one
-    /// pattern is the defect this whole area keeps producing.
-    ///
-    /// The second half is the one that stops this from being decoration: a pattern that names
-    /// only one individually collapses even a run of two, so it has no listed form and must not
-    /// be offered one.
+    /// The example shows both shapes of a run: listed values while they fit Max. Values Named, and
+    /// first-to-last beyond. A pattern with Max. Values Named 1 has no listed form and must not offer one.
     /// </summary>
     procedure ProveTheExampleShowsBothShapesOfARun()
     var
@@ -1702,7 +1397,6 @@ codeunit 50167 "Filename Proof Run"
         ProofSupport.LogLine('30 Naming three individually, a few records', AFewRecords);
         ProofSupport.LogLine('30 Naming three individually, many records', ManyRecords);
 
-        // And a pattern that names one individually, which has no listed form at all.
         ClearPatterns();
         SetPatternNaming(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", 'Invoice-[No.]', 1);
         Pattern.FindFirst();
@@ -1740,25 +1434,9 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A run whose records point at different related records is named after all of them.
-    ///
-    /// A placeholder reaching one relation away used to resolve only when every record in the run
-    /// pointed at the SAME related record. So three invoices on three different payment terms
-    /// left the whole pattern unnamed, while three invoice numbers on the same run were listed
-    /// happily - the rule the design had already abandoned for fields, still in force one level
-    /// out.
-    ///
-    /// All three branches are measured, because only the middle one would also pass if relation
-    /// placeholders had simply stopped working:
-    ///   every record on the same terms - one description, which is what a single document and
-    ///     most runs produce, and nothing about it may change;
-    ///   three different, named individually - all three descriptions listed;
-    ///   three different, naming two individually - first-to-last.
-    ///
-    /// The two ends are the related values of the FIRST and LAST values of the pointing field,
-    /// in that field's order - not the alphabetically first and last descriptions. The proof's
-    /// own payment terms are described so that the two orders differ on purpose, so a proof that
-    /// quietly sorted the descriptions instead would fail.
+    /// A run whose records point at different related records is named after all of them: same terms
+    /// give one description, three different are listed, or collapse to first-to-last. The ends follow
+    /// the pointing field's order, not the descriptions' alphabetical order; the test data makes these differ.
     /// </summary>
     procedure ProveARunOverSeveralRelatedRecordsIsNamed()
     var
@@ -1787,18 +1465,15 @@ codeunit 50167 "Filename Proof Run"
         ProofSupport.LogLine('31 Payment terms used', JoinedWithDash(Codes));
         ProofSupport.LogLine('31 Their descriptions, in the order of the code', JoinedWithDash(Descriptions));
 
-        // One related record for the whole run, which is what nearly every run looks like.
         PutSameTermsOnEvery(Numbers, Codes.Get(1));
         SetPatternNaming(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", TermsPatternTok + HopPlaceholder, 3);
         SameTerms := NameForInvoiceFilter(AlternationOf(Numbers));
         ExpectedSame := TermsPrefixTok + Descriptions.Get(1);
 
-        // Three different related records, with room to name all three.
         PutADifferentTermOnEach(Numbers, Codes);
         Listed := NameForInvoiceFilter(AlternationOf(Numbers));
         ExpectedListed := TermsPrefixTok + JoinedWithDash(Descriptions);
 
-        // The same three, with room to name only two.
         ClearPatterns();
         SetPatternNaming(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", TermsPatternTok + HopPlaceholder, 2);
         Collapsed := NameForInvoiceFilter(AlternationOf(Numbers));
@@ -1824,13 +1499,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Three new payment terms, in the order of their code, with the descriptions that go with
-    /// them. Created one after another, so each gets a code after the one before it. Their
-    /// descriptions do not sort in that order - the first sorts last - so the ends of a run in
-    /// the codes' order are not the alphabetical ends.
+    /// Returned in code order. The descriptions deliberately do not sort in that order.
     /// </summary>
-    /// <param name="Codes">Receives the codes, in code order.</param>
-    /// <param name="Descriptions">Receives their descriptions, in the same order.</param>
     local procedure CreateThreePaymentTerms(var Codes: List of [Text]; var Descriptions: List of [Text])
     begin
         Clear(Codes);
@@ -1863,9 +1533,6 @@ codeunit 50167 "Filename Proof Run"
                 WritePaymentTerms(Numbers.Get(i), Codes.Get(i));
     end;
 
-    /// <summary>
-    /// Sets the payment terms on one of the proof's own posted invoices.
-    /// </summary>
     local procedure WritePaymentTerms(InvoiceNo: Text; TermsCode: Text)
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1878,16 +1545,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A financial report is named after itself, and two of them are named differently.
-    ///
-    /// Financial Reporting renders every report an administrator sets up through one report
-    /// object, so a name built from the report alone calls all of them the same thing - measured
-    /// in a real client print, where every financial report downloads as Run Financial Report.
-    /// What tells them apart is recorded by the action that starts the render, because nothing
-    /// in the run itself says which one is running.
-    ///
-    /// Two are named rather than one, on purpose: naming one proves only that some name came
-    /// out, and a constant would pass that.
+    /// Two financial reports are named after themselves, differently. One report object renders them all,
+    /// so the action that starts the render records which one runs. Two are named so a constant cannot pass.
     /// </summary>
     procedure ProveAFinancialReportIsNamedAfterItself()
     var
@@ -1902,7 +1561,6 @@ codeunit 50167 "Filename Proof Run"
 
         SetPatternFor(Report::"Account Schedule", Database::"Financial Report", FinancialReportPatternTok);
 
-        // Two financial reports of the proof's own, described differently.
         FinancialReport.Get(TestData.CreateFinancialReport(FirstFinancialReportTok, false));
         FirstExpected := ReportFilenameMgt.Sanitise(FinancialReport.Description);
         FirstName := NameForFinancialReport(FinancialReport);
@@ -1933,14 +1591,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A financial report run that nothing identified gets no name at all, rather than a name
-    /// built from every financial report in the company - of which the proof makes sure there is
-    /// at least one, its own.
-    ///
-    /// This is the half that is easy to get wrong. A run that narrows nothing is normally taken
-    /// to cover the whole table, which is right for a chart of accounts and wrong here: report
-    /// 25 reads one financial report and none of the others, so collapsing all of them into a
-    /// first-to-last range would name a balance sheet after reports nobody ran.
+    /// A financial report run that nothing identified is not named. An unfiltered run otherwise falls back
+    /// to the whole table, but report 25 has no data item over Financial Report.
     /// </summary>
     procedure ProveAnUnidentifiedFinancialReportRunIsNotNamed()
     var
@@ -1954,8 +1606,7 @@ codeunit 50167 "Filename Proof Run"
 
         SetPatternFor(Report::"Account Schedule", Database::"Financial Report", FinancialReportPatternTok);
 
-        // Nothing recorded, which is the state a run started straight from a role centre arrives
-        // in: the platform hands over no filter and no record.
+        // Nothing recorded, no filter and no record.
         ForgetRunSubject();
         Name := NameWith(Report::"Account Schedule", Channel::Print, SourceRecRef, '');
 
@@ -1971,29 +1622,10 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// The kind of document is Business Central's own word for it, and it is the word in the
-    /// document's own language.
-    ///
-    /// Three things at once, because they are one behaviour, on a sales invoice the proof posts:
-    /// with no language of its own the invoice is named Sales Invoice; with a Danish language code
-    /// it is named with the word Report Distribution Management.GetFullDocumentTypeText gives for
-    /// it, asked here of the same invoice; and a run about a kind of record Business Central has
-    /// no word for is not named at all.
-    ///
-    /// The Danish half is the one that matters. A file name that came out in whoever happened to
-    /// render it language is the defect this whole design exists to remove. GetFullDocumentTypeText
-    /// switches to the document's language itself, so its answer is Business Central's word in the
-    /// document's language whatever translations are installed - and the session here stays
-    /// English, so a name that begins with it was asked for in the document's language rather than
-    /// the session's.
-    ///
-    /// Base Application's own Danish word, Salgsfaktura, is deliberately not compared: Base
-    /// Application's translations are not this app's to test, and on W1 they are not installed, so
-    /// there the Danish word reads as the English one. That the word really does change with the
-    /// document's language is proven on this app's own document, whose Danish caption the test app
-    /// ships, by ProveTheKindOfDocumentDeclinesOnALanguageMismatch: in this English session a Danish
-    /// proof document is named with its Danish caption, which that proof first checks differs from
-    /// the English.
+    /// [Kind of Document] is Business Central's word (GetFullDocumentTypeText) in the document's language,
+    /// and a record with no such word is not named. The Danish word is not hard-coded, because Base
+    /// Application translations are not installed on W1; ProveTheKindOfDocumentDeclinesOnALanguageMismatch
+    /// proves the language switch on this app's translated table.
     /// </summary>
     procedure ProveTheKindOfDocumentIsNamedInItsOwnLanguage()
     var
@@ -2010,7 +1642,6 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // An invoice of the proof's own, and the Danish language row it is given below.
         TestData.PostNewInvoice(SalesInvoiceHeader);
         TestData.EnsureLanguage(ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageId());
         InvoiceNo := SalesInvoiceHeader."No.";
@@ -2023,20 +1654,16 @@ codeunit 50167 "Filename Proof Run"
 
         SetInvoiceLanguage(InvoiceNo, ProofSupport.DanishLanguageCode());
         InDanish := NameForInvoice(InvoiceNo);
-        // Business Central's own word for the invoice while it is Danish, read afresh so the
-        // language it carries now is the one asked about.
+        // Re-read so the word is asked for in the language the invoice now carries.
         SalesInvoiceHeader.Get(InvoiceNo);
         DanishKind := ReportDistributionManagement.GetFullDocumentTypeText(SalesInvoiceHeader);
 
-        // Put back before anything is judged, so the invoice is left as it was posted.
+        // Restored before anything is judged, so the invoice is left as it was posted.
         SetInvoiceLanguage(InvoiceNo, OriginalLanguageCode);
 
-        // A kind of record Business Central has no word for. Most of the reports installed are
-        // about one of these, so declining has to be clean rather than exceptional.
+        // Business Central has no document word for a G/L account; declining must be clean.
         ClearPatterns();
         SetPatternFor(Report::"Chart of Accounts", Database::"G/L Account", KindPatternTok);
-        // Nothing handed over, which is what an unfiltered chart of accounts run looks like:
-        // the whole table is the selection, and no account is a kind of document.
         Clear(SourceRecRef);
         OnAnAccount := NameWith(Report::"Chart of Accounts", Channel::Print, SourceRecRef, '');
 
@@ -2064,26 +1691,11 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// The kind of document is left unsaid rather than said in the wrong language.
-    ///
-    /// Business Central names a kind of document in the DOCUMENT's language - GetFullDocumentTypeText
-    /// switches the global language to the document's own before it picks the word, and restores
-    /// it afterwards. The rest of a file name is built in the language the pattern was told to
-    /// use. Where those two differ, answering would put two languages in one file name, so the
-    /// placeholder declines and the pattern stands down.
-    ///
-    /// Why this is built on the proof document rather than on a posted invoice. For every table
-    /// Report Distribution Management maps a language for, it reads the record's own Language
-    /// Code - which is the field a pattern is pointed at as well, so the two agree by
-    /// construction and the disagreement is unreachable. Making them differ on a posted invoice
-    /// would mean pointing the pattern at a field that means something else, or writing a
-    /// language code into one. The proof document carries the two separately instead, and
-    /// Filename Proof Kind Source hands Business Central the document's own through the event it
-    /// raises for a table it does not know. The code under test is untouched: the guard is
-    /// reached through Microsoft's own GetDocumentLanguageCode either way.
-    ///
-    /// All three branches of the guard are covered, so that a mutation making it always agree
-    /// fails on the disagreement alone and not on a case that was never in question.
+    /// [Kind of Document] declines when the document's language (used by GetFullDocumentTypeText) differs
+    /// from the pattern's language, rather than mixing two languages in one name. Built on the proof
+    /// document, which holds the two language codes separately; on Base Application documents
+    /// GetDocumentLanguageCode reads the Language Code field. Filename Proof Kind Source supplies the document
+    /// language through GetDocumentLanguageCode's event. All three branches are covered.
     /// </summary>
     procedure ProveTheKindOfDocumentDeclinesOnALanguageMismatch()
     var
@@ -2096,28 +1708,20 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // The word itself, in both languages, read without leaving the session in either. If
-        // these two were the same text the proof could not tell a Danish answer from an English
-        // one and would pass while proving nothing - so it says so instead.
+        // Identical captions would make the proof meaningless; checked in the verdict below.
         DanishKind := ProofSupport.TableCaptionIn(ProofSupport.DanishLanguageId(), Database::"Filename Proof Document");
         EnglishKind := ProofSupport.TableCaptionIn(ProofSupport.EnglishLanguageId(), Database::"Filename Proof Document");
 
         SetKindPatternOnProofDocument();
 
-        // The two agree. The name is built in Danish and the kind is named in Danish.
         Agreed := NameProofDocumentByKind(ProofDocument, ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageCode());
 
-        // The document names no language at all, which is the case Microsoft's own switch leaves
-        // alone: SetGlobalLanguageByCode returns without changing anything for a blank code, so
-        // the pattern's language stands and there is nothing to disagree with.
+        // SetGlobalLanguageByCode leaves the language unchanged for a blank code, so there is no mismatch.
         Silent := NameProofDocumentByKind(ProofDocument, ProofSupport.DanishLanguageCode(), '');
 
-        // The case the guard exists for: Business Central would answer in English inside a name
-        // being built in Danish.
         Mismatched := NameProofDocumentByKind(ProofDocument, ProofSupport.DanishLanguageCode(), ProofSupport.EnglishLanguageCode());
 
-        // Taken away before anything is judged, so a failure below cannot leave a document behind
-        // for a proof that did not ask for one.
+        // Removed before judging, so a failure cannot leave the document behind.
         ForgetKindMismatchDocument();
 
         ProofSupport.LogLine('30 Kind of document, both languages Danish', NameOrNone(Agreed));
@@ -2147,12 +1751,7 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// One pattern naming the proof document by its kind, with the field holding the language the
-    /// name is built in named explicitly.
-    ///
-    /// Said rather than suggested: the suggestion offers the one field relating to the Language
-    /// table, and this table deliberately has only one such field even though it holds two
-    /// language codes. Naming it here means the proof does not rest on that.
+    /// Sets Language Code Field explicitly rather than relying on the suggested field.
     /// </summary>
     local procedure SetKindPatternOnProofDocument()
     var
@@ -2168,15 +1767,9 @@ codeunit 50167 "Filename Proof Run"
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// Names a run covering one proof document, with the two languages set as the caller asks.
-    /// </summary>
-    /// <param name="ProofDocument">Receives the document the run covers.</param>
-    /// <param name="PatternLanguageCode">The language the name is to be built in, written to the
-    /// field the pattern reads.</param>
-    /// <param name="DocumentLanguageCode">The language Business Central is to answer in, written
-    /// to the field handed over through Microsoft's own event.</param>
-    /// <returns>The name, or an empty string when nothing named the run.</returns>
+    /// <param name="PatternLanguageCode">Written to the field the pattern reads.</param>
+    /// <param name="DocumentLanguageCode">Written to the field handed to GetDocumentLanguageCode's event.</param>
+    /// <returns>Empty when nothing named the run.</returns>
     local procedure NameProofDocumentByKind(var ProofDocument: Record "Filename Proof Document"; PatternLanguageCode: Code[10]; DocumentLanguageCode: Code[10]): Text
     var
         SourceRecRef: RecordRef;
@@ -2216,14 +1809,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A pattern that names no report still shows an example.
-    ///
-    /// Reported from a real client on 15 September: a pattern about assembly headers, applying
-    /// to every report, using the report caption - and the card said no name could be built from
-    /// it because a placeholder named something that no longer exists. Nothing in it named anything
-    /// missing. The caption simply cannot be read while the pattern is being set up, because
-    /// which report will run is exactly what a pattern with no report leaves open, and a blank
-    /// where a shape should be took the whole example down.
+    /// A pattern with no report still shows an example, although the report caption cannot be read
+    /// until a report runs.
     /// </summary>
     procedure ProveAPatternWithNoReportStillShowsAnExample()
     var
@@ -2233,8 +1820,7 @@ codeunit 50167 "Filename Proof Run"
     begin
         ClearPatterns();
 
-        // Report deliberately left at zero - the pattern applies to every report about this kind
-        // of record, which is the state the card was reporting a missing placeholder for.
+        // Report ID left at zero: the pattern applies to every report on this table.
         Pattern.Init();
         Pattern.Validate("Table No.", Database::"Sales Invoice Header");
         Pattern.Validate("File Name Pattern", CopyStr(CaptionPatternTok, 1, MaxStrLen(Pattern."File Name Pattern")));
@@ -2255,11 +1841,7 @@ codeunit 50167 "Filename Proof Run"
         Done();
     end;
 
-    /// <summary>
-    /// Names one posted invoice, the way the print route does.
-    /// </summary>
-    /// <param name="InvoiceNo">The invoice to name.</param>
-    /// <returns>The name, or an empty string when nothing named the run.</returns>
+    /// <returns>Empty when nothing named the run.</returns>
     local procedure NameForInvoice(InvoiceNo: Code[20]): Text
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2275,13 +1857,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A financial report that a schedule exported is named too, and named the same way.
-    ///
-    /// This route never reaches the platform's naming hook at all: the export renders with
-    /// SaveAs into a stream, so nobody is asked for a name. The name has to be decided when the
-    /// Report Inbox row is inserted, and the row the schedule inserts is inserted by the export
-    /// itself rather than by the job queue's report runner - so it arrives by a different door
-    /// from every other scheduled report.
+    /// A scheduled financial report export is named the same way. The export renders with SaveAs and
+    /// inserts the Report Inbox row itself, so the name is decided on that insert, not by the naming hook.
     /// </summary>
     procedure ProveAScheduledFinancialReportIsNamed()
     var
@@ -2297,12 +1874,11 @@ codeunit 50167 "Filename Proof Run"
 
         SetPatternFor(Report::"Account Schedule", Database::"Financial Report", FinancialReportPatternTok);
 
-        // A financial report of the proof's own.
         FinancialReport.Get(TestData.CreateFinancialReport(ScheduledFinancialReportTok, false));
         Expected := ReportFilenameMgt.Sanitise(FinancialReport.Description);
 
-        // Recorded the way the export records it: for whatever that export produces, because one
-        // schedule can produce a PDF and a workbook from two different report objects.
+        // Report ID 0, as the export records it: one schedule can produce a PDF and a workbook from
+        // two different report objects.
         SubjectRecRef.GetTable(FinancialReport);
         ReportFilenameContext.SetRunSubject(SubjectRecRef, 0);
 
@@ -2324,10 +1900,8 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// A Report Inbox row of the shape the financial report export inserts - report 25, no file
-    /// name of its own, inserted directly rather than through the job queue's report runner.
+    /// Shaped as the financial report export inserts it: report 25, no file name, inserted directly.
     /// </summary>
-    /// <returns>The entry number of the row that was inserted.</returns>
     local procedure InsertScheduledInboxEntry(): Integer
     var
         ReportInbox: Record "Report Inbox";
@@ -2343,10 +1917,9 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Names one financial report the way its print action does: record it, then render.
+    /// As the print action does: record the subject, then render.
     /// </summary>
-    /// <param name="FinancialReport">The financial report about to be rendered.</param>
-    /// <returns>The name, or an empty string when nothing named the run.</returns>
+    /// <returns>Empty when nothing named the run.</returns>
     local procedure NameForFinancialReport(var FinancialReport: Record "Financial Report"): Text
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
@@ -2357,8 +1930,7 @@ codeunit 50167 "Filename Proof Run"
         SubjectRecRef.GetTable(FinancialReport);
         ReportFilenameContext.SetRunSubject(SubjectRecRef, Report::"Account Schedule");
 
-        // SourceRecRef is left unopened deliberately. The print route hands over no record at
-        // all - measured - so a proof that passed one would be proving something else.
+        // SourceRecRef left unopened, so only the recorded subject identifies the run.
         exit(NameWith(Report::"Account Schedule", Channel::Print, SourceRecRef, ''));
     end;
 
@@ -2377,11 +1949,7 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Writes the buffered verdicts into the log table, where the gate reads them.
-    ///
-    /// Filename Proof Log Mgt. buffers its lines in memory and only a flush puts them in the table. A proof
-    /// that forgets this leaves the gate with nothing to read, which the gate reports as
-    /// "no verdict at all" rather than as a pass.
+    /// Flushes the buffered verdicts to the log table, where the gate reads them.
     /// </summary>
     local procedure Done()
     var
@@ -2390,14 +1958,9 @@ codeunit 50167 "Filename Proof Run"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// Names a run through the manager, the way a delivery route would.
-    /// </summary>
-    /// <param name="ReportId">The report being run.</param>
-    /// <param name="Channel">The route.</param>
-    /// <param name="SourceRecRef">The caller's reference, which may be unopened.</param>
-    /// <param name="FilterViews">The payload's filter, which may be empty.</param>
-    /// <returns>The name, or an empty string when nothing named the run.</returns>
+    /// <param name="SourceRecRef">May be unopened.</param>
+    /// <param name="FilterViews">May be empty.</param>
+    /// <returns>Empty when nothing named the run.</returns>
     local procedure NameWith(ReportId: Integer; Channel: Enum "Report Filename Output Route"; var SourceRecRef: RecordRef; FilterViews: Text) Name: Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
@@ -2407,12 +1970,9 @@ codeunit 50167 "Filename Proof Run"
     end;
 
     /// <summary>
-    /// Three invoices the proof posts, for one new customer, and the alternation filter that
-    /// selects exactly those three.
+    /// Posts three invoices for one new customer and returns the alternation filter selecting them.
     /// </summary>
     /// <param name="SalesInvoiceHeader">Left filtered to the three.</param>
-    /// <param name="InvoiceFilter">Receives the alternation.</param>
-    /// <param name="Numbers">Receives the three numbers in order.</param>
     local procedure ThreeInvoices(var SalesInvoiceHeader: Record "Sales Invoice Header"; var InvoiceFilter: Text; var Numbers: List of [Text])
     var
         InvoiceNos: List of [Code[20]];
@@ -2461,11 +2021,6 @@ codeunit 50167 "Filename Proof Run"
         exit(CompanyName());
     end;
 
-    /// <summary>
-    /// One pattern for posted sales invoices, with the value separator and maximum the collapsed
-    /// form depends on set explicitly rather than left to whatever a previous proof wrote.
-    /// </summary>
-    /// <param name="PatternText">The pattern to configure.</param>
     local procedure SetPattern(PatternText: Text)
     begin
         SetPatternFor(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", PatternText);
@@ -2479,20 +2034,14 @@ codeunit 50167 "Filename Proof Run"
         Pattern."Report ID" := ReportId;
         Pattern.Validate("Table No.", TableNo);
         Pattern.Validate("File Name Pattern", CopyStr(PatternText, 1, MaxStrLen(Pattern."File Name Pattern")));
-        // Two allowed values, so three selected records collapse to first-to-last. The proofs
-        // that measure collapsing use the same setting.
+        // Two allowed values, so three selected records collapse to first-to-last.
         Pattern."Max. Values Named" := 2;
         Pattern."Separator" := '-';
         Pattern.Enabled := true;
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// A pattern that applies only when the run is about one named invoice.
-    /// </summary>
-    /// <param name="PatternText">The pattern text, which carries no placeholder so that the name
-    /// itself cannot be what distinguishes the two runs.</param>
-    /// <param name="InvoiceNo">The invoice the condition names.</param>
+    /// <param name="PatternText">Carries no placeholder, so the name itself cannot distinguish the runs.</param>
     local procedure SetConditionedPattern(PatternText: Text; InvoiceNo: Text)
     var
         Pattern: Record "Report Filename Pattern";
@@ -2509,11 +2058,6 @@ codeunit 50167 "Filename Proof Run"
         Pattern.WriteTableFilter(SalesInvoiceHeader.GetView(false));
         Pattern.Modify(true);
     end;
-
-    /// <summary>
-    /// A pattern whose only placeholder is the report caption, which is the value that changes with
-    /// the language the run is named in.
-    /// </summary>
 
     local procedure ClearPatterns()
     var
@@ -2603,7 +2147,7 @@ codeunit 50167 "Filename Proof Run"
         HopVerdictTok: Label 'RESULT a run pointing at several related records is named after all of them', Locked = true;
         TermsPatternTok: Label 'Terms-', Locked = true;
         TermsPrefixTok: Label 'Terms-', Locked = true;
-        // Their alphabetical order is not their order of creation, which is the order of their codes.
+        // Deliberately not in alphabetical order; creation order is code order.
         FirstTermsDescriptionTok: Label 'Net 30 days', Locked = true;
         SecondTermsDescriptionTok: Label 'Cash on delivery', Locked = true;
         ThirdTermsDescriptionTok: Label 'Monthly', Locked = true;

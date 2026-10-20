@@ -4,39 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50166 "Filename Card Tests"
 {
-    // The two pages an administrator drives by hand, driven the way they drive them: the setup
-    // card, and Test Pattern.
-    //
-    // Everything else in this suite proves resolution: given a pattern, is the file name right.
-    // Nothing proved that a pattern can be *created*, and that gap let a set of defects reach the
-    // user - among them every assist-edit on the card failing outright, because saving a new row
-    // opens a write transaction and the platform refuses a modal inside one.
-    //
-    // These assert on the card while it is still open, never on rows read back afterwards. That
-    // is deliberate. The first version of this codeunit closed the card and searched the table,
-    // which made it report on how TestPage persists records rather than on what the administrator
-    // sees - and it got the answer wrong in both directions, failing where the product works and
-    // passing where the product leaves an empty row behind.
-    //
-    // Two things here are still only checkable in a client, and are in the retest guide as manual
-    // steps: the write-transaction refusal, and whether abandoning a new pattern leaves an empty
-    // row. TestPage reproduces neither.
-    //
-    // The Test Pattern checks are here rather than in a codeunit of their own because they are
-    // the same kind of evidence: a page an administrator presses buttons on. They also reach
-    // somewhere the browser driver cannot - the record lookup is a modal opened from a modal, and
-    // the driver can only click inside the first one, whereas a ModalPageHandler takes a modal by
-    // page object however deeply it is nested.
+    // The pattern card and Test Pattern, driven as an administrator drives them. Assertions are made
+    // on the open card, not on rows read back afterwards, which would test how TestPage persists records.
+    // Not covered, because TestPage cannot reproduce them: the platform refusing a modal inside a
+    // write transaction, and whether abandoning a new pattern leaves an empty row.
 
     Subtype = Test;
     TestPermissions = Disabled;
 
     /// <summary>
-    /// Every name the card shows, and every file a pattern names, is cleaned by Report Filename
-    /// Mgt.Sanitise. It is built on Base Application's File Management.GetSafeFileName and adds
-    /// only what that does not do. The expected names are written out here, never produced by the
-    /// code under test - the other tests that call Sanitise compute their expectation with it, so
-    /// they cannot see a change to it.
+    /// Sanitise builds on File Management.GetSafeFileName. Expected names are written out, because other
+    /// tests compute theirs with Sanitise and cannot see a change to it.
     /// </summary>
     [Test]
     procedure ANameIsMadeSafeTheWayBaseApplicationDoesAndNoFurther()
@@ -48,8 +26,8 @@ codeunit 50166 "Filename Card Tests"
         Tab[1] := 9;
         LineFeed[1] := 10;
 
-        // Base Application's rule: characters the platform forbids, a tab among them, are removed,
-        // not turned into a space. Then % goes, which SharePoint and OneDrive reject.
+        // As File Management.GetSafeFileName does, forbidden characters (a tab among them) are
+        // removed, not turned into a space. % goes too: OneDrive for work or school reserves it.
         AssertSafeName(ReportFilenameMgt.Sanitise('Acme' + Tab + 'Ltd: 50% <draft>?'), 'AcmeLtd 50 draft');
         AssertSafeName(ReportFilenameMgt.Sanitise('a/b\c|d"e*f'), 'abcdef');
         // What is merely unusual stays: & ~ { } are legal, and a customer's name is not rewritten.
@@ -61,11 +39,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// The characters some device rejects are removed whatever the server's operating system:
-    /// Windows' set, which FAT32 and exFAT cards share, DEL, which Android rejects on such a card,
-    /// and # and %. Tested on the procedure itself rather than through Sanitise, because on a
-    /// Windows server - this container - GetSafeFileName removes Windows' set first, so through
-    /// Sanitise the removal would show nothing even if it were gone.
+    /// Windows' set (shared by FAT32 and exFAT), DEL (rejected by Android on such cards), # and %.
+    /// Tested directly: on a Windows server GetSafeFileName removes Windows' set first, hiding it in Sanitise.
     /// </summary>
     [Test]
     procedure EveryCharacterADeviceRejectsIsRemovedWhateverTheServer()
@@ -78,13 +53,11 @@ codeunit 50166 "Filename Card Tests"
         Del[1] := 127;
 
         AssertSafeName(ReportFilenameMgt.RemoveCharsEveryDeviceRejects('a"b*c:d<e>f?g\h/i|j#k%l' + Tab + 'm' + Del + 'n'), 'abcdefghijklmn');
-        // What every device accepts stays.
         AssertSafeName(ReportFilenameMgt.RemoveCharsEveryDeviceRejects('Smith & Co. ~ {North} æøå'), 'Smith & Co. ~ {North} æøå');
     end;
 
     /// <summary>
-    /// Windows reserves a device name followed by an extension as well as the bare name, and reads
-    /// superscript digits as digits of one. Names that only begin like one are left alone.
+    /// Windows reserves a device name with an extension too, and reads superscript digits as digits.
     /// </summary>
     [Test]
     procedure AReservedDeviceNameIsRefusedWithAnExtensionOrASuperscript()
@@ -99,11 +72,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// A name fits what every device stores: 255, a character above 127 counted as 4 - Mac, iPhone,
-    /// Android and Linux count bytes, and HFS+ counts characters after decomposing them. Proven on
-    /// the email route, where the resolved name is cut and then joined to its extension, and on the
-    /// join itself for a download with no length of its own. A Latin name of the same length is not
-    /// touched, and a character pair is never split.
+    /// A name fits 255 with each character above 127 counted as 4, the most UTF-8 bytes a character
+    /// takes, so it also fits where names are limited to 255 bytes. A surrogate pair is never split.
     /// </summary>
     [Test]
     procedure ANameIsKeptWithinWhatEveryDeviceStores()
@@ -147,10 +117,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// The cut to Max. File Name Length can undo what Sanitise established: a name that is no device
-    /// name until it is cut short, and one that is cut to nothing. Both must make the pattern
-    /// decline, through the real naming path, so the file keeps Business Central's own name rather
-    /// than being called CON.pdf or .pdf. 20 is the least Max. File Name Length allows.
+    /// A name cut to Max. File Name Length into a device name or into nothing makes the pattern
+    /// decline, rather than naming CON.pdf or .pdf. 20 is the least Max. File Name Length allows.
     /// </summary>
     [Test]
     procedure ANameCutToADeviceNameOrToNothingDeclines()
@@ -173,8 +141,7 @@ codeunit 50166 "Filename Card Tests"
         TestedFromThisPattern: Boolean;
         NothingNamed: Boolean;
     begin
-        // The cut itself, written out: trailing spaces and hyphens go, and a name that is left as a
-        // device name is refused; the same cut on an ordinary name keeps it.
+        // Trailing spaces and hyphens go; a device name left after the cut is refused.
         AssertSafeName(ReportFilenameMgt.FinishName('Invoice - - - - - - - x', 20), 'Invoice');
         AssertSafeName(ReportFilenameMgt.FinishName('CON - - - - - - - - - x', 20), '');
 
@@ -182,8 +149,7 @@ codeunit 50166 "Filename Card Tests"
         TestData.PostNewInvoice(Invoice);
         FilenameProofGuard.SetMaxFileNameLength(20);
 
-        // The control: on the same path and the same invoice, an ordinary name cut the same way is
-        // used. Without it, a pattern that declined for any other reason would pass both checks.
+        // Control: an ordinary name cut the same way is used, so a decline for another reason fails.
         CreatePattern(Pattern, CutOrdinaryPatternTok, true, '');
         ControlNamed := ReportFilenameMgt.TryResolve(Report::"Standard Sales - Invoice", Enum::"Report Filename Output Route"::Download,
             NoRecord, FilenameProofSupport.InvoiceFilterViews(Invoice), ControlFilename);
@@ -197,13 +163,11 @@ codeunit 50166 "Filename Card Tests"
         CreatePattern(Pattern, CutToNothingPatternTok, true, '');
         NothingNamed := ReportFilenameMgt.TryResolve(Report::"Standard Sales - Invoice", Enum::"Report Filename Output Route"::Download,
             NoRecord, FilenameProofSupport.InvoiceFilterViews(Invoice), NothingFilename);
-        // A delivery route already refuses an empty name (TryResolveOnce); Test Pattern and the
-        // example do not pass through that check, and showed "This pattern" with .pdf.
+        // Test Pattern does not pass through the delivery routes' empty-name check (TryResolveOnce).
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, Invoice.RecordId(), TestedFilename, TestedNameComesFrom, TestedWhy, TestedFromThisPattern);
 
-        // Back to the default before anything is asserted: the runner rolls back only when the
-        // whole codeunit ends, and the tests after this one name files at 100.
+        // Restored before asserting: with codeunit isolation the runner rolls back only when the codeunit ends.
         FilenameProofGuard.SetMaxFileNameLength(100);
         if (not ControlNamed) or (ControlFilename <> CutOrdinaryNameTok) then
             Error(CutControlNotNamedErr, CutOrdinaryPatternTok, CutOrdinaryNameTok, ControlFilename);
@@ -216,9 +180,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Raised by the user on 7 October: a pattern for Print did not name a document previewed and
-    /// then downloaded, which is the Preview route, so a pattern now holds a filter of routes. One
-    /// limited to Print and Preview names both, and names neither Email nor Download.
+    /// A pattern limited to Print and Preview names both, and neither Email nor Download.
     /// </summary>
     [Test]
     procedure ARouteFilterNamesTheRoutesItListsAndNoOther()
@@ -250,8 +212,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// A route filter makes a pattern more specific by the weight one route did, and the card and
-    /// the list show it in words; a pattern with none says it applies to every route.
+    /// A route filter raises priority and is shown in words; no filter reads as every route.
     /// </summary>
     [Test]
     procedure ARouteFilterRaisesPriorityAndReadsAsWords()
@@ -275,8 +236,7 @@ codeunit 50166 "Filename Card Tests"
 
         if Pattern.Priority() <> PriorityWithout - 2 then
             Error(WrongRoutePriorityErr, PriorityWithout - 2, Pattern.Priority());
-        // In the enum's order whatever order they were chosen in, so one set of routes always reads
-        // the same.
+        // In enum order, whatever order they were chosen in.
         Expected := Format(Enum::"Report Filename Output Route"::Print) + '|' + Format(Enum::"Report Filename Output Route"::Preview);
         if Pattern.OutputRouteFilterText() <> Expected then
             Error(WrongRouteWordsErr, Expected, Pattern.OutputRouteFilterText());
@@ -289,11 +249,9 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Raised by the user on 7 October, night: the route lookup was a filter page, which offered the
-    /// buffer's system fields beside Output Route. It is a tick box per route now. Driven through
-    /// the card's own assist-edit: the page lists every route but Any, each with a description; the
-    /// routes ticked are what the card shows and the pattern stores - PDF &amp; Electronic Document
-    /// among them, whose caption holds a filter operator; and the page reopens with them ticked.
+    /// The route page lists every route but Any, each with a description; the routes ticked are shown
+    /// and stored (including PDF &amp; Electronic Document, whose caption holds a filter operator) and
+    /// are ticked when it reopens.
     /// </summary>
     [Test]
     [HandlerFunctions('TickRoutesHandler')]
@@ -319,8 +277,7 @@ codeunit 50166 "Filename Card Tests"
             Error(RouteWithoutDescriptionErr, RouteRowWithoutDescription);
         if RoutesTickedOnOpen.Count() <> 0 then
             Error(TickedOnOpenErr, 0, RoutesTickedOnOpen.Count());
-        // The three buttons of the window Print... opens come first, together (raised by the user,
-        // 7 October, night).
+        // The request page's routes (Print, Preview, Download) come first, together.
         if (RouteRowOrder.Get(1) <> Enum::"Report Filename Output Route"::Print.AsInteger()) or
            (RouteRowOrder.Get(2) <> Enum::"Report Filename Output Route"::Preview.AsInteger()) or
            (RouteRowOrder.Get(3) <> Enum::"Report Filename Output Route"::Download.AsInteger())
@@ -336,7 +293,6 @@ codeunit 50166 "Filename Card Tests"
         if Pattern.OutputRouteFilterText() <> Expected then
             Error(WrongRouteWordsErr, Expected, Pattern.OutputRouteFilterText());
 
-        // Reopened, it starts from what is stored.
         ClearRouteHandlerState();
         RoutesToTick.Add(Enum::"Report Filename Output Route"::Print.AsInteger());
         RoutesToTick.Add(Enum::"Report Filename Output Route"::PdfAndElectronicDocument.AsInteger());
@@ -350,12 +306,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Ticking nothing and ticking every route both mean every route, stored as blank and shown as
-    /// All routes. There is no closing the page without keeping what is ticked: in the client it
-    /// offers only Close, and Close and Esc both return OK (measured); a test page likewise offers no
-    /// Cancel ("The built-in action = Cancel is not found on the page"), refuses Close from the
-    /// handler ("The RunModal procedure could not close the page 50120 as it has already been
-    /// closed"), and a handler that presses nothing closes it as OK.
+    /// Ticking nothing or every route means every route, stored blank and shown as All routes. The
+    /// page has no Cancel, so closing it returns OK.
     /// </summary>
     [Test]
     [HandlerFunctions('TickRoutesHandler')]
@@ -370,7 +322,6 @@ codeunit 50166 "Filename Card Tests"
         PatternCard.OpenEdit();
         PatternCard.GoToRecord(Pattern);
 
-        // Every route ticked.
         ClearRouteHandlerState();
         foreach Ordinal in Enum::"Report Filename Output Route".Ordinals() do
             RoutesToTick.Add(Ordinal);
@@ -398,7 +349,7 @@ codeunit 50166 "Filename Card Tests"
     var
         Ordinal: Integer;
     begin
-        // Each row is read and ticked as an administrator does it, by the route's caption on the row.
+        // Rows are identified by the route's caption, as an administrator reads them.
         if RoutesPage.First() then
             repeat
                 RouteRowsOffered += 1;
@@ -433,8 +384,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Test Pattern tests the route chosen on it. A pattern limited to Preview names a Preview run;
-    /// a Print run is not its route, and the reason says so in the words the card uses.
+    /// A pattern limited to Preview names a Preview run; for Print the reason says it is not its route.
     /// </summary>
     [Test]
     procedure TestPatternTestsTheRouteChosen()
@@ -472,20 +422,12 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// [Kind of Document] on an issued reminder in a language other than the company's is named in the
-    /// reminder's language. Business Central reads the language of six kinds of document only, and for
-    /// the others - issued reminders among them - used the company's, so a German reminder in a Danish
-    /// company declined (measured 8 October). What this proves is the app's answer to that, Report
-    /// Filename Subscribers.OnGetDocumentLanguageForKindOfDocument: while [Kind of Document] asks,
-    /// Business Central is told the reminder's own language. Without it Business Central answers Danish
-    /// for a name built in German, and the placeholder declines as a language mismatch; with it the
-    /// name comes from this pattern, as Business Central's own word for the reminder asked in German.
-    /// And Business Central's own answer, asked outside a name, is still the company's language.
-    ///
-    /// Proven by language codes, not by comparing words: the German word is asked of Business Central
-    /// here, so it is right whatever translations are installed. Comparing it with the Danish word
-    /// would test Base Application's translations, which are not this app's to test and are not
-    /// installed on W1, where both read alike.
+    /// [Kind of Document] on an issued reminder is named in the reminder's language. Base Application's
+    /// GetDocumentLanguageCode reads the language of only six tables and uses the company's for the
+    /// rest; the app's OnGetDocumentLanguageForKindOfDocument subscriber supplies it while the
+    /// placeholder asks, and Business Central's answer outside a name is unchanged. The word is compared
+    /// with Business Central's own German word, which differs from other languages' only where a German
+    /// translation is installed.
     /// </summary>
     [Test]
     procedure KindOfDocumentFollowsTheLanguageOfAReminder()
@@ -510,21 +452,18 @@ codeunit 50166 "Filename Card Tests"
         TestData.CreateIssuedReminder(
             TestData.CreateCustomer(), TestData.CreateReminderTerms(1), 1, FilenameProofSupport.GermanLanguageCode(), IssuedReminderHeader);
 
-        // Business Central's own word for it in German, asked as a German company would ask it: it
-        // switches to German itself, so the word is whatever the German translation installed says.
+        // Business Central's own German word, asked as a German company would.
         CompanyInformation.Get();
         CompanyLanguageCode := CompanyInformation."Default Language Code";
         CompanyInformation."Default Language Code" := FilenameProofSupport.GermanLanguageCode();
         CompanyInformation.Modify(false);
         GermanWord := ReportDistributionMgt.GetFullDocumentTypeText(IssuedReminderHeader);
 
-        // Then the Danish company the reminder belongs to.
         CompanyInformation."Default Language Code" := FilenameProofSupport.DanishLanguageCode();
         CompanyInformation.Modify(false);
 
-        // The name is built in the language the reminder's Language Code holds, German. The field is
-        // set here rather than left to the suggestion: without it the name would be built in the
-        // company's Danish, and would agree with Business Central with or without the app's answer.
+        // Set explicitly: otherwise the name is built in the company's Danish and agrees with Business
+        // Central with or without the app's subscriber.
         Pattern.Init();
         Pattern.Validate("Table No.", Database::"Issued Reminder Header");
         Pattern.Validate("Language Code Field", IssuedReminderHeader.FieldNo("Language Code"));
@@ -535,8 +474,7 @@ codeunit 50166 "Filename Card Tests"
             Pattern, Enum::"Report Filename Output Route"::Any, IssuedReminderHeader.RecordId(), Filename, NameComesFrom, Why, FromThisPattern);
         LanguageAskedOutsideAName := ReportDistributionMgt.GetDocumentLanguageCode(IssuedReminderHeader);
 
-        // The company's own language back before anything is asserted: the runner rolls back only when
-        // the whole codeunit ends, and the tests after this one name documents in it.
+        // Restored before asserting: with codeunit isolation the runner rolls back only when the codeunit ends.
         CompanyInformation."Default Language Code" := CompanyLanguageCode;
         CompanyInformation.Modify(false);
 
@@ -549,11 +487,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// When [Kind of Document] has no value, Test Pattern says why, in words an administrator can act
-    /// on: a run in two languages, a run of two kinds of document, a run too large to check. It used to
-    /// say only that the placeholder had no value (8 October). Every run is of documents made here, for
-    /// a customer of the test's own; the run too large to check is of invoice headers written directly,
-    /// because posting more than a hundred invoices would take minutes and prove nothing more.
+    /// Test Pattern says why [Kind of Document] has no value: two languages, two kinds of document, or
+    /// too many documents to check.
     /// </summary>
     [Test]
     procedure TestPatternSaysWhyKindOfDocumentHasNoValue()
@@ -578,7 +513,6 @@ codeunit 50166 "Filename Card Tests"
         TestData.EnsureLanguage(FilenameProofSupport.EnglishLanguageCode(), FilenameProofSupport.EnglishLanguageId());
         CustomerNo := TestData.CreateCustomer();
 
-        // A German and an English invoice in one run.
         TestData.PostNewInvoice(CustomerNo, FilenameProofSupport.GermanLanguageCode(), '', GermanInvoice);
         TestData.PostNewInvoice(CustomerNo, FilenameProofSupport.EnglishLanguageCode(), '', EnglishInvoice);
         CreateKindOfDocumentPattern(Pattern, Database::"Sales Invoice Header");
@@ -587,7 +521,7 @@ codeunit 50166 "Filename Card Tests"
         ExpectedTexts.ExplanationTexts(KindOfDocumentOnlyTok, '', '', '', '', OtherLanguage, OtherLanguageInRun, MixedKinds, TooMany);
         ExpectKindReason(Pattern, SalesInvoiceHeader.GetView(), OtherLanguageInRun);
 
-        // A run of more English invoices than are checked: one more than the hundred.
+        // One more than the 100 documents checked.
         TestData.InsertInvoiceHeaders(ManyInvoicesPrefixTok, CustomerNo, FilenameProofSupport.EnglishLanguageCode(), 101);
         SalesInvoiceHeader.Reset();
         SalesInvoiceHeader.SetFilter("No.", ManyInvoicesPrefixTok + '*');
@@ -595,7 +529,6 @@ codeunit 50166 "Filename Card Tests"
             Error(TooFewInvoicesErr, SalesInvoiceHeader.Count());
         ExpectKindReason(Pattern, SalesInvoiceHeader.GetView(), TooMany);
 
-        // A quote and an order in one language, in one run.
         TestData.CreateSalesDocument(Quote."Document Type"::Quote, CustomerNo, FilenameProofSupport.EnglishLanguageCode(), Quote);
         TestData.CreateSalesDocument(Order."Document Type"::Order, CustomerNo, FilenameProofSupport.EnglishLanguageCode(), Order);
         CreateKindOfDocumentPattern(Pattern, Database::"Sales Header");
@@ -633,9 +566,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// The language code field lookup offers exactly the fields that hold a language - those that
-    /// relate to the Language table. It used to offer every code and text field, and a test chose
-    /// Shopify Order No. there (8 October).
+    /// The language code field lookup offers exactly the fields that relate to the Language table.
     /// </summary>
     [Test]
     [HandlerFunctions('ReadLanguageFieldsHandler')]
@@ -664,9 +595,6 @@ codeunit 50166 "Filename Card Tests"
             until FieldRec.Next() = 0;
     end;
 
-    /// <summary>
-    /// A field that holds no language is refused as the language code field, however it is set.
-    /// </summary>
     [Test]
     procedure AFieldThatHoldsNoLanguageIsRefused()
     var
@@ -682,7 +610,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// On a table with no field that holds a language, the lookup says so rather than opening empty.
+    /// The lookup says so rather than opening empty.
     /// </summary>
     [Test]
     procedure ATableWithNoLanguageFieldSaysSo()
@@ -715,9 +643,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Test Pattern on the Electronic Document route describes the XML file, not a PDF: the pattern's
-    /// name with the extension Business Central gives the electronic document, and, where no pattern
-    /// names it, the name Business Central itself gives that file.
+    /// On the Electronic Document route Test Pattern shows the XML file's name (pattern name with
+    /// Business Central's extension, or Business Central's own name), not a PDF.
     /// </summary>
     [Test]
     procedure TestPatternDescribesTheElectronicDocument()
@@ -775,10 +702,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// An email attachment is named after the document Document-Mailing asks about, never after a
-    /// different document that happened to be rendered just before - which is the order reminder
-    /// automation works in: the reminder is rendered, then the overdue invoices' names are asked for.
-    /// The positive control comes first: asked about the rendered document itself, the pattern names it.
+    /// An email attachment is named after the document asked about, never after another document
+    /// rendered just before (as reminder automation does). The positive control comes first.
     /// </summary>
     [Test]
     procedure AnEmailIsNotNamedAfterAnotherDocument()
@@ -813,14 +738,9 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Reminder automation's order, with invoices standing in for the reminder: the email's own
-    /// document is rendered, then each attached document's name is asked for before it is rendered,
-    /// and only then the email's own name. Measured on 5 October in reminder automation itself: the
-    /// reminder kept Business Central's name, because the attached invoices' renders replaced it.
-    /// Two documents come in between, so the second cannot take the first one's place either.
-    ///
-    /// Asked under a usage with no report selection in the company, so the document cannot be found
-    /// by its number instead: only the document rendered for the email can name it here.
+    /// Reminder automation's order: the email's document is rendered, each attached document is asked
+    /// for then rendered, and only then the email's own name is asked for. Under a usage with no report
+    /// selection, so only the rendered document (not a lookup by number) can name it.
     /// </summary>
     [Test]
     procedure AnEmailIsNamedAfterItsOwnDocumentWhenOthersAreRenderedFirst()
@@ -855,10 +775,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// A name asked for before the document is rendered - as reminder automation asks for each
-    /// attached invoice's - is given by the document's pattern when its number alone identifies it:
-    /// a posted invoice. A sales quote's number does not (Sales Header is keyed on Document Type
-    /// and No.), so its pattern must not name it from the number.
+    /// Before rendering, a document is named from its number only when the number alone identifies it
+    /// (a posted invoice), not a quote (Sales Header is keyed on Document Type and No.).
     /// </summary>
     [Test]
     procedure AnEmailNamesADocumentNotYetRenderedWhenItsNumberIdentifiesIt()
@@ -893,14 +811,9 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// The API's PDF of a document - Base Application's PDF document handlers - renders the document
-    /// and then asks Document-Mailing for its name, so it is named by the document's pattern. Driven
-    /// through the handlers themselves: a posted invoice, a draft invoice and a sales quote, all made
-    /// here. Only the render can name the last two: Sales Header is keyed on Document Type and No., and
-    /// each is given documents of other types under its own number - the draft invoice an order, the
-    /// quote a blanket order and a return order, as quote 1001 has in the demonstration company - so
-    /// the pattern carries the document type and a name taken from another document of that number
-    /// shows.
+    /// The API's PDF document handlers render then ask Document-Mailing for the name, so the document's
+    /// pattern names it. The draft invoice and quote share their numbers with documents of other types,
+    /// and the pattern includes the document type, so a name taken from the wrong one would show.
     /// </summary>
     [Test]
     procedure AnApiPdfIsNamedByThePatternOfTheDocumentItRenders()
@@ -934,10 +847,6 @@ codeunit 50166 "Filename Card Tests"
         AssertApiPdfName(SalesQuotePDFDocHandler, Quote.SystemId, Enum::"Attachment Entity Buffer Document Type"::"Sales Quote", QuotePrefixTok + Quote."No." + PdfTok);
     end;
 
-    /// <summary>
-    /// Asks a PDF document handler for a document's PDF, as the API does, and checks the file name
-    /// it hands back.
-    /// </summary>
     local procedure AssertApiPdfName(PdfDocumentHandler: Interface IPdfDocumentHandler; DocumentId: Guid; DocumentType: Enum "Attachment Entity Buffer Document Type"; Expected: Text)
     var
         TempAttachmentEntityBuffer: Record "Attachment Entity Buffer" temporary;
@@ -949,8 +858,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// What Base Application does for each document it attaches to a reminder email: asks the
-    /// document's name, then renders it.
+    /// As Base Application does for each document attached to a reminder email.
     /// </summary>
     local procedure AskThenRender(var Attached: Record "Sales Invoice Header"; var DocumentMailing: Codeunit "Document-Mailing"; Usage: Integer)
     var
@@ -966,9 +874,6 @@ codeunit 50166 "Filename Card Tests"
         ReportFilenameContext.SetRenderedDocument(RenderedRecRef, Report::"Standard Sales - Invoice");
     end;
 
-    /// <summary>
-    /// A report usage the company has no report selection for, found rather than assumed.
-    /// </summary>
     local procedure UsageWithoutReportSelection(): Integer
     var
         ReportSelections: Record "Report Selections";
@@ -983,9 +888,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// In the Outlook add-in, Base Application collects several documents into one draft, and Office
-    /// Attachment Manager holds the names added so far. A name the pattern gives that the draft
-    /// already holds is numbered, the way Base Application numbers a repeated attachment.
+    /// In the Outlook add-in draft (names held by Office Attachment Manager), a repeated name is
+    /// numbered as Base Application numbers a repeated attachment.
     /// </summary>
     [Test]
     procedure ANameAlreadyInTheOutlookDraftIsNumbered()
@@ -1028,8 +932,6 @@ codeunit 50166 "Filename Card Tests"
     var
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
-        // The promise the card makes: pick a report and what it is about follows, so nobody has
-        // to know that a sales invoice is table 112.
         Prepare();
         PatternCard.OpenNew();
 
@@ -1049,18 +951,13 @@ codeunit 50166 "Filename Card Tests"
         PatternCard: TestPage "Report Filename Pattern Card";
         LastError: Text;
     begin
-        // The refusal is correct - a condition needs a kind of record - but it used to arrive as
-        // "Source Table must have a value in Report Filename Pattern: Entry No.=627", naming a
-        // field the card calls Applies to, and quoting a surrogate key at the administrator.
+        // The refusal must be in plain words, without the surrogate key or the table's field name.
         Prepare();
         PatternCard.OpenNew();
 
         asserterror PatternCard.TableFilterText.AssistEdit();
 
-        // Compared with the app's own text rather than a copy of it, so rewording the message
-        // does not break the test and the test holds in any language. The leak checks ask the
-        // table for its captions for the same reason: a copied 'Source Table' went on passing
-        // after the field was renamed, because nothing could contain it any more.
+        // The leak checks use the table's captions so they follow a field rename.
         LastError := GetLastErrorText();
         if LastError <> ExpectedTexts.NoTableForFilterMessage() then
             Error(WrongRefusalErr, LastError);
@@ -1100,9 +997,7 @@ codeunit 50166 "Filename Card Tests"
     var
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
-        // Pressing New used to create a pattern that was already switched on, so an
-        // administrator could leave a half-filled row live. A new pattern is a draft now, and
-        // this is asserted on the card because that is where the administrator sees it.
+        // A new pattern is a draft, so a half-filled row is never live.
         Prepare();
         PatternCard.OpenNew();
 
@@ -1118,17 +1013,13 @@ codeunit 50166 "Filename Card Tests"
         PatternCard: TestPage "Report Filename Pattern Card";
         LastError: Text;
     begin
-        // The completeness rule, enforced where Price List Line enforces its own: at the moment
-        // of activation, not by refusing to create the row. The message has to be the card's,
-        // naming what is missing, and must not quote the surrogate key or the field name the
-        // table declares - the same rule the condition refusal is held to above.
+        // Completeness is enforced on activation (as price list lines are verified when activated), not on creating the row.
         Prepare();
         PatternCard.OpenNew();
 
         asserterror PatternCard.Enabled.SetValue(true);
 
-        // Contained rather than equal: setting a field through a test page wraps the message in
-        // the platform's own "Validation error for Field: Enabled, Message = '...'".
+        // Contained rather than equal: a test page wraps the message in "Validation error for Field: ...".
         LastError := GetLastErrorText();
         if StrPos(LastError, ExpectedTexts.NoFileNamePatternMessage()) = 0 then
             Error(WrongEnableRefusalErr, LastError);
@@ -1145,9 +1036,7 @@ codeunit 50166 "Filename Card Tests"
     var
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
-        // The other half, and the one that matters more: the draft rule must not lock an
-        // administrator out of activating a pattern they have finished. A test that only
-        // proved the refusal would stay green if Enabled could never be set at all.
+        // Counterpart of the refusal test, which would pass if Enabled could never be set.
         Prepare();
         PatternCard.OpenNew();
         PatternCard.ReportName.AssistEdit();
@@ -1169,20 +1058,9 @@ codeunit 50166 "Filename Card Tests"
         Before: Text;
         After: Text;
     begin
-        // One of the two assist-edits that end with CurrPage.Update(false) rather than (true),
-        // because the lookup persists the field it sets. Neither had a test.
-        //
-        // The value has to be asserted as a CHANGE, and against the field the handler actually
-        // chose. The first version of this test only checked that the card was not blank after
-        // the lookup - and it passed even when the lookup was made to store nothing, because
-        // choosing a report has already filled in a suggested language field. It proved
-        // nothing. So the handler takes the LAST field in the list, which is not the suggested
-        // one, and reports which it took.
-        //
-        // Since 8 October the lookup offers only fields that relate to the Language table, and every
-        // document table has exactly one (Language Code; only Company Information has two). So the
-        // change is made from no field to that one: the pattern starts without a language field, as
-        // one made before a field was suggested does.
+        // The assist-edit ends with CurrPage.Update(true) because the lookup validates the field without
+        // saving it. Asserted as a change to the field the handler chose. Sales Invoice Header has one
+        // field related to Language, which is suggested, so the pattern starts with none.
         PrepareWithNoPatterns();
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
@@ -1210,16 +1088,8 @@ codeunit 50166 "Filename Card Tests"
         PatternCard: TestPage "Report Filename Pattern Card";
         Shown: Text;
     begin
-        // The other assist-edit on CurrPage.Update(false) opens a FilterPageBuilder page, which
-        // a ModalPageHandler cannot take: a handler is declared against a page object, and a
-        // filter page has none - there is no TestPage type to declare. So the modal itself
-        // cannot be driven from a test at all, and opening it stays a manual check in the
-        // retest guide.
-        //
-        // What can be driven is the half the administrator actually reads: that a stored
-        // condition comes back as words on the card rather than as a raw view string, and that
-        // a pattern with no condition says so instead of showing nothing. Writing a test that
-        // pretended to exercise the modal would have been worse than saying this plainly.
+        // Opening the FilterPageBuilder modal is not covered. Proven here: a stored condition reads as
+        // words, and no condition says so.
         Prepare();
         PatternCard.OpenNew();
         PatternCard.ReportName.AssistEdit();
@@ -1249,11 +1119,8 @@ codeunit 50166 "Filename Card Tests"
         Pattern: Record "Report Filename Pattern";
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
-        // " - " was refused, and the message blamed the hyphen. The separator was being judged by
-        // the whole-file-name rule, which trims leading and trailing spaces because a file name
-        // may not begin or end with one - but a separator sits in the middle, and "Invoice - 1001"
-        // is the first thing anybody types. Both halves are asserted: the spaced separator is
-        // accepted, and a character that genuinely cannot appear in a file name is still refused.
+        // A separator sits mid-name, so the file-name trim of spaces must not apply; an illegal
+        // character is still refused.
         Prepare();
         PatternCard.OpenNew();
 
@@ -1276,15 +1143,8 @@ codeunit 50166 "Filename Card Tests"
         Pattern: Record "Report Filename Pattern";
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
-        // Driven through the card's action, because Test Pattern is bound to no table: it holds
-        // the pattern it was handed rather than a row it can navigate. Binding it to the pattern
-        // table gave the page Previous and Next buttons, which invited an administrator testing
-        // one pattern to step through all the others.
-        //
-        // What this proves: a record chosen in the lookup comes back and reaches the page. What
-        // no test can prove is that the lookup window can be accepted at all - a ModalPageHandler
-        // answers LookupOK whichever mode the platform used, which is how a read-only Editable
-        // property kept that window unusable for most of a day while this suite stayed green.
+        // Through the card's action: Test Pattern is bound to no table. Not proven here: that the
+        // lookup window can be accepted in the client.
         PrepareWithNoPatterns();
         ChosenInvoiceNo := NewInvoiceNo();
         CreatePattern(Pattern, InvoiceNumberPatternTok, true, '');
@@ -1307,8 +1167,6 @@ codeunit 50166 "Filename Card Tests"
         Why: Text;
         FromThisPattern: Boolean;
     begin
-        // The first of the three answers, asked of the explain path directly rather than through
-        // the page. The page is one caller of this; the ranking is what is being proven.
         PrepareWithNoPatterns();
         ChosenInvoiceNo := NewInvoiceNo();
         CreatePattern(Pattern, InvoiceNumberPatternTok, true, '');
@@ -1320,8 +1178,7 @@ codeunit 50166 "Filename Card Tests"
             Error(WrongNameSourceErr, NameSourceText(1), NameComesFrom);
         if StrPos(Filename, ChosenInvoiceNo) = 0 then
             Error(NameMissesRecordErr, ChosenInvoiceNo, Filename);
-        // Nothing to explain when this pattern won, and the group holding the explanation is
-        // hidden on the page as a result.
+        // Empty, so the page hides the explanation group.
         if Why <> '' then
             Error(UnexpectedWhyErr, Why);
     end;
@@ -1337,9 +1194,7 @@ codeunit 50166 "Filename Card Tests"
         Why: Text;
         FromThisPattern: Boolean;
     begin
-        // The second answer, and the reason the page exists: looking at one pattern cannot show
-        // you that another out-ranks it for this record. A condition on the record scores higher
-        // than any other criterion.
+        // A condition on the record scores higher than any other criterion.
         PrepareWithNoPatterns();
         ChosenInvoiceNo := NewInvoiceNo();
         CreatePattern(Pattern, InvoiceNumberPatternTok, true, '');
@@ -1357,10 +1212,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Seen on 7 October: a pattern whose Table Filter excludes the record was told that a pattern
-    /// with a higher priority applies, naming one that ranks lower. The tested pattern here is
-    /// narrowed to one invoice, so it out-ranks the general pattern; tested on another invoice,
-    /// only a check that it applies at all can give the reason expected.
+    /// The reason is the Table Filter, not out-ranking: the tested pattern out-ranks the general one,
+    /// so only a check that it applies at all gives the expected reason.
     /// </summary>
     [Test]
     procedure APatternWhoseTableFilterExcludesTheRecordSaysSo()
@@ -1397,9 +1250,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// The same untruth for a pattern written for another language than the record's: it never
-    /// competed, so it was not out-ranked. A Language Code ranks it above the general pattern, so
-    /// only a check that it applies can give the reason expected.
+    /// The reason is the language, not out-ranking: its Language Code ranks it above the general pattern.
     /// </summary>
     [Test]
     procedure APatternForAnotherLanguageSaysSo()
@@ -1436,9 +1287,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Found while fixing the out-ranked reason: an enabled pattern whose Table Filter excludes the
-    /// record, with nothing else to name it, was told a placeholder had no value. Every placeholder
-    /// in this pattern has a value for the record, so only a check of the condition can say why.
+    /// With nothing else to name the record, the reason is the Table Filter; every placeholder has a
+    /// value, so a "no value" reason would be wrong.
     /// </summary>
     [Test]
     procedure AnExcludedRecordThatNothingElseNamesSaysWhatExcludesIt()
@@ -1460,9 +1310,6 @@ codeunit 50166 "Filename Card Tests"
             Error(WrongReasonErr, TableFilterExcludes, Why);
     end;
 
-    /// <summary>
-    /// The same for a pattern written for another language than the record's.
-    /// </summary>
     [Test]
     procedure ARecordInAnotherLanguageThatNothingElseNamesSaysSo()
     var
@@ -1484,8 +1331,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// A turned-off pattern was told what it would name the file turned on, from a name built
-    /// without its Table Filter: turned on, it would not apply to this record at all.
+    /// A turned-off pattern is told it would not apply when turned on, not what it would name the file.
     /// </summary>
     [Test]
     procedure ATurnedOffPatternWhoseTableFilterExcludesTheRecordSaysItWouldNotApply()
@@ -1505,9 +1351,6 @@ codeunit 50166 "Filename Card Tests"
             Error(WrongReasonErr, TableFilterPatternOff, Why);
     end;
 
-    /// <summary>
-    /// The same for a turned-off pattern written for another language than the record's.
-    /// </summary>
     [Test]
     procedure ATurnedOffPatternForAnotherLanguageSaysItWouldNotApply()
     var
@@ -1527,14 +1370,9 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Test Pattern on a record the only pattern does not apply to: narrowed by its Table Filter to
-    /// another invoice, or written for another language than the invoice's (posted in German here).
+    /// Test Pattern on a record the only pattern excludes: by language (invoice posted in German) when
+    /// ByLanguage, otherwise by a Table Filter on another invoice.
     /// </summary>
-    /// <param name="Live">Whether the pattern is turned on.</param>
-    /// <param name="ByLanguage">True to exclude the record by language, false by Table Filter.</param>
-    /// <param name="Pattern">Receives the pattern.</param>
-    /// <param name="NameComesFrom">Receives the Name Source.</param>
-    /// <param name="Why">Receives the Reason.</param>
     local procedure TestPatternAloneOnAnExcludedRecord(Live: Boolean; ByLanguage: Boolean; var Pattern: Record "Report Filename Pattern"; var NameComesFrom: Text; var Why: Text)
     var
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
@@ -1580,10 +1418,8 @@ codeunit 50166 "Filename Card Tests"
         Why: Text;
         FromThisPattern: Boolean;
     begin
-        // The third answer. The expectation is read from Report Metadata rather than from the
-        // manager that produces it, so the test would still fail if the fallback changed. Asked for
-        // the Print route: a route the platform names falls back to the report's caption, while with
-        // no route chosen the default depends on the route and the page says so.
+        // Expected from Report Metadata, not from the code under test. Print falls back to the report's
+        // caption; with no route chosen the default depends on the route.
         PrepareWithNoPatterns();
         ChosenInvoiceNo := NewInvoiceNo();
         CreatePattern(Pattern, '', false, '');
@@ -1603,13 +1439,9 @@ codeunit 50166 "Filename Card Tests"
     [ModalPageHandler]
     procedure TestPatternHandler(var TestPatternPage: TestPage "Report Filename Test")
     begin
-        // The page asks what the run covers before asking which records, so the scope is set
-        // first and the one lookup then opens the record picker. Left at its default this is
-        // already One record, and it is set explicitly so the test states what it relies on
-        // rather than inheriting it.
+        // Set explicitly though it is the default, so the lookup opens the record picker.
         TestPatternPage.RunScope.SetValue(Enum::"Report Filename Run Scope"::"One Record");
 
-        // The assist-edit and the assertion both belong here, while the page is open.
         TestPatternPage.RunTargetText.AssistEdit();
 
         if TestPatternPage.RunTargetText.Value() = '' then
@@ -1625,9 +1457,7 @@ codeunit 50166 "Filename Card Tests"
     var
         Pattern: Record "Report Filename Pattern";
     begin
-        // An enabled pattern could be emptied and stayed enabled - live and nameless. It reads
-        // as an active rule in the list while naming nothing at all, which is worse than being
-        // switched off, because nobody looking at the list would know to fix it.
+        // An emptied pattern must not stay enabled, reading as an active rule that names nothing.
         Pattern.DeleteAll(true);
         SwitchedOffMessageSeen := false;
 
@@ -1641,9 +1471,6 @@ codeunit 50166 "Filename Card Tests"
         if not Pattern.Enabled then
             Error(PatternNotEnabledErr);
 
-        // Clearing the text. The rule raises a Message, which the handler absorbs - an unhandled
-        // message fails a test outright, so the handler is what lets the behaviour be observed
-        // rather than merely survived.
         Pattern.Validate("File Name Pattern", '');
 
         if Pattern.Enabled then
@@ -1657,8 +1484,6 @@ codeunit 50166 "Filename Card Tests"
     [MessageHandler]
     procedure SwitchedOffMessageHandler(Message: Text[1024])
     begin
-        // Noted rather than merely swallowed: the rule has to SAY it switched the pattern off,
-        // and a handler that ignored the text would pass just as happily if it said nothing.
         SwitchedOffMessageSeen := Message <> '';
     end;
 
@@ -1676,26 +1501,19 @@ codeunit 50166 "Filename Card Tests"
         FromThisPattern: Boolean;
         MoreThanListed: Boolean;
     begin
-        // The fallback picker stands in wherever a kind of record has no list page of its own,
-        // and until now nothing had ever run it - in a test or in a client. It is reached only
-        // for such a table. The table is this app's own proof document, chosen on purpose so the
-        // record the picker lists is one the test made rather than whatever some table happens to
-        // hold. That it is such a table is checked through metadata, by the rule the picker
-        // follows, so this stays a check on the picker rather than on the table.
+        // The fallback picker is used for a table without a list page. The test app's proof document
+        // is such a table (checked by the rule the picker applies), so the record listed is the test's own.
         TableNo := Database::"Filename Proof Document";
         if not IsOfferedWithoutAListPage(TableNo) then
             Error(NoTableWithoutAListPageErr, TableNo);
         ProofDocument.Get(TestData.CreateProofDocument(ProofCustomerNameTok));
 
-        // Report zero: no report named, so the picker lists the whole kind. That is what this
-        // check is about - the picker itself - and a report would narrow the list to what that
-        // report can render, which is proven separately.
+        // Report 0: the whole table, not narrowed to what a report can render.
         ReportFilenamePreviewMgt.BuildRecordsToTestAgainst(TableNo, 0, TempRecordBuffer, MoreThanListed);
 
         if TempRecordBuffer.IsEmpty() then
             Error(FallbackPickerListedNothingErr, TableNo);
 
-        // The test's own record, found by what it is rather than taken as the first row listed.
         TempRecordBuffer.FindSet();
         while TempRecordBuffer."Record ID" <> ProofDocument.RecordId() do
             if TempRecordBuffer.Next() = 0 then
@@ -1703,13 +1521,10 @@ codeunit 50166 "Filename Card Tests"
         if TempRecordBuffer.Description = '' then
             Error(FallbackRowHasNoDescriptionErr, TableNo);
 
-        // The extra columns are the part nobody had looked at. They have to say something for a
-        // table the picker was not designed around, or it offers a column of blanks.
+        // The extra columns must say something even for a table the picker was not designed around.
         if (TempRecordBuffer.Details = '') and (TempRecordBuffer.More = '') then
             Error(FallbackRowSaysNothingElseErr, TableNo);
 
-        // And the record the picker returns has to reach the explain path, which is the whole
-        // point of choosing one.
         Pattern.DeleteAll(true);
         Pattern.Init();
         Pattern.Validate("Table No.", TableNo);
@@ -1738,13 +1553,9 @@ codeunit 50166 "Filename Card Tests"
         WholeTable: Integer;
         Narrowed: Integer;
     begin
-        // Sales Header is one table holding six kinds of document, and Standard Sales - Quote
-        // reads it WHERE(Document Type=Quote). Before this, Test Pattern offered every row -
-        // orders, invoices, credit memos - for a pattern whose report can only ever see quotes,
-        // and then scored them against patterns that were never competing for them.
+        // Standard Sales - Quote reads Sales Header WHERE(Document Type=Quote), so only quotes are offered.
         Prepare();
-        // A quote the report can render and an order it cannot, both the test's own, so the table
-        // holds both kinds whatever else the company has.
+        // A quote the report can render and an order it cannot.
         TestData.CreateSalesDocument(Quote."Document Type"::Quote, TestData.CreateCustomer(), Quote);
         TestData.CreateSalesDocument(Order."Document Type"::Order, Quote."Sell-to Customer No.", Order);
 
@@ -1771,12 +1582,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Whether a kind of record is one the fallback picker is reached for: one that reports are
-    /// about, with no list page of its own. Read from Table Metadata, by the same rule the picker
-    /// follows.
+    /// The fallback picker's rule: a table reports are about, with no list page.
     /// </summary>
-    /// <param name="TableNo">The table.</param>
-    /// <returns>True when the picker is what Test Pattern offers for it.</returns>
     local procedure IsOfferedWithoutAListPage(TableNo: Integer): Boolean
     var
         TempTableBuffer: Record "Report Filename Table Buffer" temporary;
@@ -1798,13 +1605,8 @@ codeunit 50166 "Filename Card Tests"
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         Shaped: Text;
     begin
-        // The example on the card is built from the shape each value takes, never from a record.
-        // Three separate reasons point the same way: a company on its first day has no document
-        // to read, an administrator may have no permission to read one, and showing a real
-        // customer's data in a setup preview is a confidentiality question nobody asked for.
-        //
-        // So the assertion is in two halves, and the second half is the one that matters: the
-        // example carries the generated shape, and it does not carry the real invoice's number.
+        // The card's example is built from value shapes, never from a record: there may be no
+        // document, no permission to read one, and real data does not belong in a setup preview.
         PrepareWithNoPatterns();
         ChosenInvoiceNo := NewInvoiceNo();
         CreatePattern(Pattern, InvoiceNumberPatternTok, true, '');
@@ -1819,9 +1621,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Found in the container client on 8 October: the Result section appeared only once there was
-    /// a result, and the web client then drew it collapsed, so the answer sat behind a click. It is
-    /// shown from the moment Test Pattern opens, before any record is chosen.
+    /// The result section is visible from the start, before a record is chosen.
     /// </summary>
     [Test]
     [HandlerFunctions('ResultShownOnOpenHandler')]
@@ -1854,13 +1654,7 @@ codeunit 50166 "Filename Card Tests"
         ReportMetadata: Record "Report Metadata";
         LastError: Text;
     begin
-        // The report decides what a pattern is about. Choosing the report fills it in, and it
-        // cannot then be changed to something the report is not about - a pattern claiming to be
-        // about customers on a report that prints invoices would never match anything, and would
-        // do so silently.
-        //
-        // The refusal has to name the report in the administrator's words, because "Source Table
-        // No. must not be 18" is not something anybody can act on.
+        // Such a pattern would silently never match. The refusal names the report, not the field.
         Prepare();
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
@@ -1882,18 +1676,8 @@ codeunit 50166 "Filename Card Tests"
         Pattern: Record "Report Filename Pattern";
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
-        // Settles a question that was being answered from folklore: when an action is activated
-        // on a card, is the record already saved, or does the action have to save it?
-        //
-        // It matters because Test Pattern works out which pattern WINS, and it does that by
-        // reading the pattern table. A row that is not in the table cannot be found, cannot win,
-        // and the page would answer "Business Central's own name" for a perfectly good pattern -
-        // a confidently wrong answer rather than an error.
-        //
-        // Run this with the SaveRecord and Commit removed from the action to see which way it
-        // falls. Neither Microsoft's documentation for Page.RunModal nor for SaveRecord states a
-        // rule either way, and the Base Application precedents that were cited for it are all
-        // field assist-edits, not actions.
+        // Test Pattern reads the pattern table to find the winner, so the action must save the new
+        // pattern first (SaveRecord and Commit) or a good pattern would be reported as not used.
         PrepareWithNoPatterns();
         PatternCard.OpenNew();
         PatternCard.ReportName.AssistEdit();
@@ -1913,21 +1697,14 @@ codeunit 50166 "Filename Card Tests"
     [ModalPageHandler]
     procedure CloseTestPatternHandler(var TestPatternPage: TestPage "Report Filename Test")
     begin
-        // Deliberately empty. The framework closes the page when the handler returns, and closing
-        // it here as well makes RunModal fail with "could not close the page as it has already
-        // been closed". Nothing is asserted either: the question this test asks is about the row
-        // the action left behind, not about what the page shows.
-        // Referenced so the parameter is not flagged as unused; nothing is done with it.
+        // Deliberately empty. The reference only keeps the parameter from being flagged as unused.
         if TestPatternPage.Editable() then;
     end;
 
     [ModalPageHandler]
     procedure ChooseTestInvoiceHandler(var PostedSalesInvoices: TestPage "Posted Sales Invoices")
     begin
-        // Posted Sales Invoices, because a sales invoice is chosen from the page Business Central
-        // already has for it. The lookup arrives carrying every posted invoice, so the one being
-        // tested is filtered to rather than trusted to be first - otherwise the test would pass
-        // while whichever row the list happened to open on was handed back.
+        // Filtered to the tested invoice rather than trusting it to be first.
         PostedSalesInvoices.Filter.SetFilter("No.", ChosenInvoiceNo);
         PostedSalesInvoices.First();
         PostedSalesInvoices.OK().Invoke();
@@ -1943,9 +1720,7 @@ codeunit 50166 "Filename Card Tests"
     [ModalPageHandler]
     procedure AppendFirstPlaceholderHandler(var Placeholders: TestPage "Report Filename Placeholders")
     begin
-        // The first row is a field on the document, never a branch: branches carry the related
-        // kind, which sorts last. Choosing a branch is refused, and that is covered by the picker
-        // proof rather than here.
+        // The first row is never a related-table branch, which sorts last.
         Placeholders.First();
         Placeholders.OK().Invoke();
     end;
@@ -1953,9 +1728,7 @@ codeunit 50166 "Filename Card Tests"
     [ModalPageHandler]
     procedure PickLastLanguageFieldHandler(var FieldLookup: TestPage "Report Filename Field Lookup")
     begin
-        // Deliberately not the row the lookup arrives on. That row is the suggested field,
-        // which choosing a report has already stored - taking it would let the test pass
-        // whether or not the lookup did anything at all.
+        // Not the row the lookup opens on, which is the already stored suggestion.
         FieldLookup.Last();
         ChosenFieldCaption := FieldLookup."Field Caption".Value();
         FieldLookup.OK().Invoke();
@@ -1968,9 +1741,7 @@ codeunit 50166 "Filename Card Tests"
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         IdFilter: Text;
     begin
-        // Raised by the user on 28 September: Test Pattern on an Assembly Header pattern offered
-        // every report in the company. The list is the reports a run of which is about the table,
-        // by the same rule the rest of the feature uses - and report 902 Assembly Order is one.
+        // Report 902 Assembly Order must be among them.
         Prepare();
         IdFilter := ReportFilenameMgt.ReportsAboutTable(Database::"Assembly Header");
         if IdFilter = '' then
@@ -1987,7 +1758,7 @@ codeunit 50166 "Filename Card Tests"
         if ReportMetadata.IsEmpty() then
             Error(ExpectedReportMissingErr, Report::"Assembly Order");
 
-        // And report 25, whose subject is not among its data items at all.
+        // Report 25's subject is not among its data items.
         if StrPos('|' + ReportFilenameMgt.ReportsAboutTable(Database::"Financial Report") + '|', '|' + Format(Report::"Account Schedule") + '|') = 0 then
             Error(ExpectedReportMissingErr, Report::"Account Schedule");
     end;
@@ -2000,8 +1771,7 @@ codeunit 50166 "Filename Card Tests"
         ReportMetadata: Record "Report Metadata";
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
     begin
-        // The lookup on a pattern that names a table and no report - the card's Report Name, which
-        // is the same page Test Pattern opens.
+        // A pattern with a table and no report; the same lookup page Test Pattern opens.
         Prepare();
         Pattern.Init();
         Pattern.Validate("Table No.", Database::"Assembly Header");
@@ -2026,11 +1796,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Found in the container client on 8 October: a stale pattern for the invoice report, tested
-    /// beside the general invoice pattern created before it, was told "A pattern with a higher
-    /// priority applies ... This pattern would not have produced a name for this record either." -
-    /// untrue, the two have the same priority and the older one wins, and silent on why this one
-    /// gives no name. The reason says the priorities are the same, and names the placeholder.
+    /// When an older pattern of the same priority wins, the reason says so (not "higher priority")
+    /// and names this pattern's unresolved placeholder.
     /// </summary>
     [Test]
     procedure AnEqualPatternThatWinsIsSaidToTieAndTheOwnReasonIsGiven()
@@ -2075,10 +1842,8 @@ codeunit 50166 "Filename Card Tests"
         TempPlaceholderBuffer: Record "Report Filename Plh. Buffer" temporary;
         ReportFilenamePlhMgt: Codeunit "Report Filename Plh. Mgt.";
     begin
-        // Available Placeholders on the invoice pattern showed [Applies-to Doc. Type] with an empty
-        // Example (container client, 8 October): its first option is blank, and the example of an
-        // option field is its first option. Every row that is a placeholder - a computed value or a
-        // field, not a related table's heading - must show something.
+        // Every computed value or field row (not a related table's heading) shows an example, also an
+        // option field whose first option is blank.
         PrepareWithNoPatterns();
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
@@ -2096,10 +1861,8 @@ codeunit 50166 "Filename Card Tests"
     [Test]
     procedure EveryComputedPlaceholderOfferedBindsToItself()
     begin
-        // Issued Reminder Header has a field called User ID, and the binding lets a field win
-        // over a computed value of the same name - so the computed [User ID] was offered, showed
-        // ADMIN as its example, and choosing it bound the table's field (container client,
-        // 8 October). Every computed row the list offers must bind to the computed value.
+        // A field wins the binding over a computed value of the same name (Issued Reminder Header has
+        // a User ID field), so every computed row offered must bind to the computed value.
         PrepareWithNoPatterns();
         ExpectComputedRowsBindToThemselves(Database::"Issued Reminder Header");
         ExpectComputedRowsBindToThemselves(Database::"Sales Invoice Header");
@@ -2112,10 +1875,8 @@ codeunit 50166 "Filename Card Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Contact: Record Contact;
     begin
-        // Who posted or issued the document and who ran the report can differ, and a name may
-        // want either. While the computed value was called User ID like the field, the field won
-        // and the computed one could not be offered on these tables at all (D8, 8 October). The
-        // same held for Company Name on a contact, where the field is the contact's employer.
+        // The field (who posted; a contact's employer) and the computed value (who ran the report;
+        // this company) can differ, so both must be offered.
         PrepareWithNoPatterns();
         ExpectFieldAndComputedValue(Database::"Issued Reminder Header", IssuedReminderHeader.FieldCaption("User ID"), Enum::"Report Filename Placeholder"::UserId);
         ExpectFieldAndComputedValue(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldCaption("User ID"), Enum::"Report Filename Placeholder"::UserId);
@@ -2145,7 +1906,7 @@ codeunit 50166 "Filename Card Tests"
         if TempPlaceholderBuffer.IsEmpty() then
             Error(NotOfferedErr, FieldCaptionText, SourceTableNo);
 
-        // Written together, each binds to its own source: the field first, the computed value after it.
+        // Written together, each binds to its own source.
         Pattern."File Name Pattern" := '[' + FieldCaptionText + '] [' + Computed.DisplayName() + ']';
         Binding := ReportFilenamePlhMgt.BuildBinding(Pattern);
         if not (Binding.StartsWith(FieldBindingPrefixTok) and Binding.EndsWith(ComputedBindingPrefixTok + Computed.CanonicalName() + '}')) then
@@ -2180,17 +1941,13 @@ codeunit 50166 "Filename Card Tests"
         NothingAfterCut: Text;
         ReservedAfterCut: Text;
     begin
-        // A customer named CON.2026 gives [Name] a value, and the name is refused because Windows
-        // reserves CON - yet Test Pattern said a placeholder had no value (client-pass row S.3,
-        // container client, 8 October). Each of the four refusals made after a name is built must
-        // be the reason given, with the name the pattern built.
+        // Each refusal made after the name is built is the reason given, not "a placeholder has no value".
         PrepareWithNoPatterns();
         Pattern.Init();
         Pattern.Validate("Table No.", Database::Customer);
         Pattern.Validate("File Name Pattern", NamePatternTok);
         Pattern.Enabled := true;
         Pattern.Insert(true);
-        // The test's own customer, renamed to each name in turn.
         Customer.Get(TestData.CreateCustomer());
 
         ExpectedTexts.RefusedNameReasonTexts(ReservedCustomerNameTok, 0, '', NothingUsable, ReservedName, NothingAfterCut, ReservedAfterCut);
@@ -2243,11 +2000,9 @@ codeunit 50166 "Filename Card Tests"
         NoLongerExists: Text;
         HasNoValue: Text;
     begin
-        // What a pattern saved before [Report Caption] was renamed [Report Name] holds: the old
-        // text, and a binding recording the old canonical name. The reason must say which one.
-        // Saved without its insert trigger, which would refuse the old text as it refuses any
-        // placeholder that names nothing - and saved at all because the binding is read back from
-        // the database (CalcFields), not from the record in hand.
+        // A pattern whose placeholder no longer exists (here the old [Report Caption]). Inserted
+        // without the trigger, which would refuse it; inserted at all because the binding is read
+        // back with CalcFields.
         PrepareWithNoPatterns();
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Standard Sales - Invoice");
@@ -2276,8 +2031,7 @@ codeunit 50166 "Filename Card Tests"
         HasNoValue: Text;
         FromThisPattern: Boolean;
     begin
-        // A placeholder that exists but is blank on the chosen record: the reason names it, so the
-        // administrator looks at the record's field rather than at the pattern.
+        // Blank on the chosen record: the reason names the placeholder.
         PrepareWithNoPatterns();
         TestData.PostNewInvoice(SalesInvoiceHeader);
         SalesInvoiceHeader.TestField("Your Reference", '');
@@ -2312,8 +2066,7 @@ codeunit 50166 "Filename Card Tests"
         FromBusinessCentral: Text;
         FromThisPattern: Boolean;
     begin
-        // Raised by the user on 28 September: with report file names turned off in the setup,
-        // Test Pattern said "This pattern" while every real print got Business Central's own name.
+        // With the feature off, the name comes from Business Central, not "This pattern".
         PrepareWithNoPatterns();
         TestData.PostNewInvoice(SalesInvoiceHeader);
         CreatePattern(Pattern, InvoiceNoPatternTok, true, '');
@@ -2324,8 +2077,7 @@ codeunit 50166 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, SalesInvoiceHeader.RecordId(), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
 
-        // Back on before anything is asserted: the runner rolls back only when the whole codeunit
-        // ends, and the tests after this one test with the feature on.
+        // Restored before asserting: with codeunit isolation the runner rolls back only when the codeunit ends.
         ReportFilenameSetup.Enabled := true;
         ReportFilenameSetup.Modify();
 
@@ -2350,8 +2102,7 @@ codeunit 50166 "Filename Card Tests"
         PatternOff: Text;
         FromThisPattern: Boolean;
     begin
-        // The pattern's own switch already kept it out of the competition; the reason now also
-        // says what it would name the file, so it can be tried before it is turned on.
+        // The reason says what it would name the file, so it can be tried before it is turned on.
         PrepareWithNoPatterns();
         TestData.PostNewInvoice(SalesInvoiceHeader);
         CreatePattern(Pattern, InvoiceNoPatternTok, false, '');
@@ -2365,8 +2116,7 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// Raised by the user on 6 October: the patterns list says when file name patterns are turned
-    /// off, and the card said nothing. A pattern opened straight from search is set up there.
+    /// The card says so, as the list does.
     /// </summary>
     [Test]
     [HandlerFunctions('SwitchedOffNotificationHandler')]
@@ -2385,17 +2135,15 @@ codeunit 50166 "Filename Card Tests"
         PatternCard.GoToRecord(Pattern);
         PatternCard.Close();
 
-        // Back on before anything is asserted: the runner rolls back only when the whole codeunit
-        // ends, and the tests after this one test with the feature on.
+        // Restored before asserting: with codeunit isolation the runner rolls back only when the codeunit ends.
         FilenameProofGuard.SwitchFeatureOn();
         if SentNotificationMessage <> ExpectedTexts.SwitchedOffMessage() then
             Error(CardSaysNothingWhenOffErr, ExpectedTexts.SwitchedOffMessage(), SentNotificationMessage);
     end;
 
     /// <summary>
-    /// Raised by the user on 6 October: choosing Open Setup on the notification takes it away, and
-    /// with the setup closed and patterns still turned off, the page said nothing any more. Turned
-    /// on in the setup, it stays away.
+    /// Open Setup removes the notification; it is sent again if the setup closes with patterns still
+    /// off, and not if they were turned on.
     /// </summary>
     [Test]
     [HandlerFunctions('SwitchedOffNotificationHandler,SetupModalHandler')]
@@ -2449,15 +2197,12 @@ codeunit 50166 "Filename Card Tests"
     begin
         FilenameProofGuard.AssertSafeEnvironment();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
-        // On, as every test here assumes: with patterns turned off the card sends a notification,
-        // which a test page that does not expect it fails on.
+        // With patterns off the card sends a notification, which tests without a SendNotificationHandler do not expect.
         FilenameProofGuard.SwitchFeatureOn();
     end;
 
     /// <summary>
-    /// The same preparation, with the table emptied first. Test Pattern answers which pattern
-    /// wins for a record, so what else is configured is part of the question: a pattern seeded by
-    /// an earlier run would compete, and the answer under test would be about that one instead.
+    /// Any other pattern would compete in Test Pattern's answer, so the table is emptied.
     /// </summary>
     local procedure PrepareWithNoPatterns()
     var
@@ -2468,12 +2213,8 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// A pattern for the posted sales invoice report, optionally narrowed to one invoice.
+    /// A pattern for the posted sales invoice report. Blank OnlyInvoiceNo means no table filter.
     /// </summary>
-    /// <param name="Pattern">Receives the pattern.</param>
-    /// <param name="PatternText">The file name pattern; blank for a pattern that names nothing.</param>
-    /// <param name="Live">Whether it is switched on. A pattern that names nothing cannot be.</param>
-    /// <param name="OnlyInvoiceNo">An invoice number to condition it on, or blank for none.</param>
     local procedure CreatePattern(var Pattern: Record "Report Filename Pattern"; PatternText: Text; Live: Boolean; OnlyInvoiceNo: Code[20])
     begin
         Pattern.Init();
@@ -2489,11 +2230,6 @@ codeunit 50166 "Filename Card Tests"
         Pattern.Insert(true);
     end;
 
-    /// <summary>
-    /// A posted invoice as its identifier, which is what the explain path works from.
-    /// </summary>
-    /// <param name="InvoiceNo">The invoice.</param>
-    /// <returns>Its RecordId.</returns>
     local procedure InvoiceRecordId(InvoiceNo: Code[20]): RecordId
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2502,12 +2238,6 @@ codeunit 50166 "Filename Card Tests"
         exit(SalesInvoiceHeader.RecordId());
     end;
 
-    /// <summary>
-    /// The number of a sales invoice posted for the test, rather than a number written into it. The
-    /// number is not the point of any of these checks - that a record of the test's own can be
-    /// chosen and named is.
-    /// </summary>
-    /// <returns>Its number.</returns>
     local procedure NewInvoiceNo(): Code[20]
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2516,11 +2246,6 @@ codeunit 50166 "Filename Card Tests"
         exit(SalesInvoiceHeader."No.");
     end;
 
-    /// <summary>
-    /// The number of a sales invoice posted for the test in German, for a pattern written for another
-    /// language than the invoice's.
-    /// </summary>
-    /// <returns>Its number.</returns>
     local procedure NewGermanInvoiceNo(): Code[20]
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2531,11 +2256,7 @@ codeunit 50166 "Filename Card Tests"
         exit(SalesInvoiceHeader."No.");
     end;
 
-    /// <summary>
-    /// The language a pattern is written for when it must not be the German invoice's: Danish, named
-    /// rather than taken from whatever the Language table lists first.
-    /// </summary>
-    /// <returns>Its code.</returns>
+    // Danish, named explicitly rather than whatever the Language table lists first.
     local procedure LanguageOtherThanGerman(): Code[10]
     var
         FilenameProofSupport: Codeunit "Filename Proof Support";
@@ -2545,11 +2266,9 @@ codeunit 50166 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// One of the three answers Test Pattern gives for where a name comes from, read from the app
-    /// rather than copied into this codeunit.
+    /// Test Pattern's Name Source text.
     /// </summary>
     /// <param name="Which">1 this pattern, 2 another pattern, 3 Business Central's own file name.</param>
-    /// <returns>The answer's text.</returns>
     local procedure NameSourceText(Which: Integer): Text
     var
         FromThisPattern: Text;

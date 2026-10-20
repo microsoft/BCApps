@@ -4,13 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50172 "Filename Proof Attach PDF"
 {
-    // Calls Attach as PDF for real, isolated so that a render failing on company setup this proof
-    // does not control cannot end the proof. The name is decided before anything is stored, so
-    // whatever happens after is not the verdict.
-    //
-    // Report Selections.SaveAsDocumentAttachment carries no Scope, so unlike Send to Disk this
-    // route can be driven from AL on any target - which is why it is the one route on the
-    // Print/Send menu that can be proven without a person clicking it.
+    // Calls Attach as PDF for real, isolated so a render failing on company setup cannot end the
+    // proof; the name is decided before anything is stored. SaveAsDocumentAttachment carries no
+    // Scope, so unlike Send to Disk it can be driven from AL on any target.
 
     TableNo = "Sales Invoice Header";
 
@@ -19,16 +15,11 @@ codeunit 50172 "Filename Proof Attach PDF"
         ReportSelections: Record "Report Selections";
         RecordVariant: Variant;
     begin
-        // Narrowed to this one document first. A Variant carries the record's FILTERS, not just
-        // the row it sits on, so a caller's reference filtered more loosely than to its one row
-        // has the route render every posted invoice that filter lets through, and Base
-        // Application stops it at 200 documents. Measured: that is exactly how it failed first,
-        // when the caller's reference was filtered only to "has a customer".
+        // A Variant carries the record's filters, not just its row: without this the route renders
+        // every invoice the caller's filter lets through.
         Rec.SetRecFilter();
         RecordVariant := Rec;
 
-        // The usage is declared as an Integer here, not as the enum, so it is converted
-        // deliberately rather than left to an implicit conversion the compiler warns about.
         ReportSelections.SaveAsDocumentAttachment(
             Enum::"Report Selection Usage"::"S.Invoice".AsInteger(), RecordVariant, Rec."No.", Rec."Bill-to Customer No.", false);
     end;

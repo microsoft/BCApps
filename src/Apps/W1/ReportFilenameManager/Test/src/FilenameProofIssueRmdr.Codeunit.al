@@ -4,28 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50154 "Filename Proof Issue Rmdr"
 {
-    // Issues a level 3 reminder for real, the way a company does: an invoice is left unpaid past
-    // its due date, and Base Application's own Reminder-Make creates a reminder for it and
-    // Reminder-Issue issues it - three times, because a reminder reaches level 3 only by levels 1
-    // and 2 having been issued for the same entry before it.
-    //
-    // Everything it uses is the proof's own: the customer and the reminder terms of the model
-    // reminder it is run on (Filename Test Data made both; the terms have levels 1 to 3 with no
-    // grace period, no due date calculation, no fees and no attachment texts), and an invoice it
-    // posts for that customer at the work date, which is therefore due at the work date. The three
-    // reminders are dated ten, twenty and thirty days after it, so each finds the entry overdue
-    // and the previous reminder's due date passed - which is what Reminder-Make asks of the next
-    // level. Nothing is posted to the general ledger: there is no fee and no interest.
-    //
-    // The first version of this codeunit wrote a reminder header at level 3 with one line of text
-    // and issued that. Reminder-Issue refuses a reminder with no amount on it - "There is nothing
-    // to issue" - so the real route never once ran, and the proof always fell back to a
-    // constructed document. A reminder Reminder-Make builds carries the open invoice, so it does.
-    //
-    // A separate codeunit rather than a TryFunction because it writes, and AL forbids writes
-    // inside a TryFunction. Run through Codeunit.Run, the caller gets the same isolation: if
-    // issuing will not work in this company, everything this does is rolled back and the caller
-    // carries on - except what Reminder-Issue itself commits, which is the proof's own data.
+    // Issues a level 3 reminder for real: posts an invoice for the model reminder's customer, then
+    // has Reminder-Make and Reminder-Issue make levels 1, 2 and 3 at ten-day steps (Reminder-Make
+    // takes an entry's level from its last issued one). Reminder-Issue refuses a reminder with no
+    // amount, so a hand-written header cannot be used.
+    // A codeunit rather than a TryFunction because it writes, which on-premises a TryFunction does
+    // not allow by default.
 
     TableNo = "Issued Reminder Header";
 
@@ -43,25 +27,18 @@ codeunit 50154 "Filename Proof Issue Rmdr"
         Customer.Validate("Reminder Terms Code", Rec."Reminder Terms Code");
         Customer.Modify(true);
 
-        // The entry the reminders are about.
         TestData.PostNewInvoice(Customer."No.", SalesInvoiceHeader);
 
         for Level := 1 to 3 do
             MakeAndIssue(Customer, Level);
     end;
 
-    /// <summary>
-    /// The number of the level 3 reminder the last run issued; blank when it did not get that far.
-    /// </summary>
+    // Blank when the last run did not reach level 3.
     internal procedure IssuedReminderNo(): Code[20]
     begin
         exit(IssuedLevel3No);
     end;
 
-    /// <summary>
-    /// Has Reminder-Make create the customer's next reminder, dated ten days on per level, issues it
-    /// through Reminder-Issue, and insists it came out at the level expected.
-    /// </summary>
     local procedure MakeAndIssue(var Customer: Record Customer; Level: Integer)
     var
         ReminderHeaderReq: Record "Reminder Header";
@@ -83,8 +60,7 @@ codeunit 50154 "Filename Proof Issue Rmdr"
         if not ReminderMake.Code() then
             Error(NotMadeErr, Level, Customer."No.");
 
-        // The customer is the proof's own, and an issued reminder leaves no reminder behind, so the
-        // one open reminder for that customer is the one just made.
+        // Issuing leaves no reminder behind, so the customer's one open reminder is the one just made.
         ReminderHeader.SetRange("Customer No.", Customer."No.");
         if not ReminderHeader.FindFirst() then
             Error(NotMadeErr, Level, Customer."No.");

@@ -4,22 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50190 "Filename Batch Measure"
 {
-    // Measures what happens when one action produces several files with the same name, in every
-    // Base Application workflow where that can happen and that can be driven from AL in a container.
-    // It records observations; it is not a pass or fail test. Run it with
-    // Invoke-NavContainerCodeunit and read the log lines beginning "B" with readlog.ps1.
-    //
-    // Two names are compared in each case: Business Central's own, with no pattern, and a pattern
-    // that names every file of the run the same way. A second Report Selections row for the
-    // usage is added for the run and removed again afterwards, which is how one action comes to
-    // produce two files: Base Application loops over the report selections.
-    //
-    // Not driven here, and why:
-    //   the Outlook add-in, which needs an Outlook host;
-    //   reminder automation and the email download fallback, whose own code is a loop of
-    //   Email Item.AddAttachment and Data Compression.AddEntry, both measured directly below;
-    //   the browser's handling of two downloads with one name, which needs a person's browser and
-    //   is measured with the web client instead.
+    // Records (not pass/fail) what happens when one action produces several files with the same
+    // name, in the Base Application workflows below that can be driven from AL; log lines begin "B".
+    // A second Report Selections row for the usage makes one action produce two files.
 
     SingleInstance = true;
     EventSubscriberInstance = Manual;
@@ -62,10 +49,8 @@ codeunit 50190 "Filename Batch Measure"
     end;
 
     /// <summary>
-    /// Names a pattern gives that repeat within one zip, or one Send to Disk, are numbered the way Base
-    /// Application numbers a repeated attachment; Base Application's own names are left as they are.
-    /// Two report selections for the invoice usage produce two files from one action. Every verdict
-    /// compares against names written out here, never against what the feature reports it produced.
+    /// Repeated pattern names within one zip or one Send to Disk are numbered as Base Application
+    /// numbers a repeated attachment; Base Application's own names are left as they are.
     /// </summary>
     procedure ProveRepeatedNamesAreNumbered()
     var
@@ -84,8 +69,7 @@ codeunit 50190 "Filename Batch Measure"
         AddSecondSelection();
         Commit();
 
-        // Base Application's own names: two files, one name, untouched. Their extension is the one the
-        // named files must carry, in Business Central's own case.
+        // Base Application's own names, untouched; their extension case is the one named files must carry.
         FilenameProofGuard.ClearPatterns();
         Commit();
         ZipEntries(Names);
@@ -95,12 +79,9 @@ codeunit 50190 "Filename Batch Measure"
         VerdictSameTwice(BaseAppDiskVerdictTok, Names);
         DiskSuffix := FirstSuffix(Names);
 
-        // A pattern that names both files alike: the second is numbered.
         SetSameNamePattern();
         Commit();
-        // On the real route SendElectronically names the electronic document earlier in the same zip,
-        // and the feature notes the case Business Central wrote it in; the zip is built on its own here,
-        // so that case is noted the same way.
+        // Stands in for SendElectronically, which on the real route notes the extension case earlier.
         ReportFilenameContext.NoteExtensionCasing(ZipSuffix = LowerCase(ZipSuffix));
         ZipEntries(Names);
         VerdictExactly(NumberedZipVerdictTok, Names, SameNamePatternTok + ZipSuffix, SameNamePatternTok + NumberOneTok + ZipSuffix);
@@ -114,9 +95,7 @@ codeunit 50190 "Filename Batch Measure"
         FilenameProofLogMgt.Flush();
     end;
 
-    /// <summary>
-    /// The extension, with its dot, of the first name: blank when there is none.
-    /// </summary>
+    // With its dot; blank when there is none.
     local procedure FirstSuffix(var Names: List of [Text]): Text
     var
         Name: Text;
@@ -207,11 +186,8 @@ codeunit 50190 "Filename Batch Measure"
         exit(Captured);
     end;
 
-    /// <summary>
-    /// The zip Base Application builds in four places - the "PDF &amp; Electronic Document" zip, the
-    /// email download fallback's Attachments.zip, Custom Layout Reporting's zip - all go through
-    /// Data Compression.AddEntry. What it does with a second entry of the same name decides all of them.
-    /// </summary>
+    // The report zips Base Application builds (Report Selections, Electronic Document Format) add
+    // their entries through Data Compression.AddEntry, so its handling of a repeated name decides them.
     local procedure MeasureDataCompression()
     var
         DataCompression: Codeunit "Data Compression";
@@ -240,10 +216,7 @@ codeunit 50190 "Filename Batch Measure"
         FinishedZip.CloseZipArchive();
     end;
 
-    /// <summary>
-    /// The email routes that put several report files on one email - reminder automation, and the
-    /// Outlook draft - add them as attachments to one message.
-    /// </summary>
+    // Reminder automation and the Outlook draft add several report files to one message.
     local procedure MeasureEmailMessage()
     var
         EmailMessage: Codeunit "Email Message";
@@ -269,19 +242,12 @@ codeunit 50190 "Filename Batch Measure"
             until EmailMessage.Attachments_Next() = 0;
         ProofSupport.LogLine('B2 Email Message, two attachments with the same name', StrSubstNo(EntriesMsg, Attachments, Listed));
 
-        // The message was never queued or sent, so it is an orphan, and Email Message's own cleanup
-        // removes it with its attachments. Started at this message's id and limited to one, it
-        // touches nothing else. Until 8 October it was left behind, one per run.
+        // Never queued, so an orphan; started at its id and limited to one, nothing else is touched.
         EmailMessage.DeleteOrphanedMessages(EmailMessage.GetId(), 1);
     end;
 
-    /// <summary>
-    /// Whether the email name for one document can come from another document rendered just before.
-    /// Reminder automation renders the reminder, then asks for each overdue invoice's attachment name,
-    /// then renders the invoices, then names the reminder's own attachment. The email hook names from
-    /// the document last rendered. This reproduces the order with two invoices: invoice A is recorded
-    /// as rendered, and the name is asked for invoice B.
-    /// </summary>
+    // Whether one document's email name can come from another rendered just before, as in reminder
+    // automation's order: invoice A is recorded as rendered, and the name is asked for invoice B.
     local procedure MeasureEmailNameForAnotherDocument()
     var
         InvoiceA: Record "Sales Invoice Header";
@@ -320,9 +286,7 @@ codeunit 50190 "Filename Batch Measure"
         Commit();
     end;
 
-    /// <summary>
-    /// "PDF &amp; Electronic Document": SendToZipForCust adds one PDF per report selection.
-    /// </summary>
+    // "PDF & Electronic Document": one PDF per report selection.
     local procedure MeasureZip(Situation: Text)
     var
         FinishedZip: Codeunit "Data Compression";
@@ -347,10 +311,8 @@ codeunit 50190 "Filename Batch Measure"
         ProofSupport.LogLine(StrSubstNo(ZipLbl, Situation), StrSubstNo(EntriesMsg, Entries.Count(), Listed));
     end;
 
-    /// <summary>
-    /// Runs one report step through Filename Batch Measure Step, so that a step which fails is
-    /// isolated and its error read - a render writes, which a TryFunction does not allow.
-    /// </summary>
+    // Isolated through Codeunit.Run: a render writes, which a TryFunction does not allow
+    // on-premises by default.
     local procedure RunStep(NewStep: Option None,Zip,Disk,Attach): Boolean
     begin
         Step := NewStep;
@@ -359,9 +321,7 @@ codeunit 50190 "Filename Batch Measure"
         exit(Codeunit.Run(Codeunit::"Filename Batch Measure Step"));
     end;
 
-    /// <summary>
-    /// The step Filename Batch Measure Step was started for. Called from that codeunit only.
-    /// </summary>
+    // Called from Filename Batch Measure Step only.
     internal procedure RunCurrentStep()
     var
         ReportSelections: Record "Report Selections";
@@ -381,11 +341,7 @@ codeunit 50190 "Filename Batch Measure"
         end;
     end;
 
-    /// <summary>
-    /// Send to Disk: SendToDiskForCust downloads one PDF per report selection. The download itself
-    /// cannot happen in a session without a browser, so the name each download is about to use is
-    /// read at Base Application's own last event before it, and the download is skipped.
-    /// </summary>
+    // One download per report selection; the names are read just before and the downloads skipped.
     local procedure MeasureSendToDisk(var Measure: Codeunit "Filename Batch Measure"; Situation: Text)
     begin
         Measure.StartCapture();
@@ -394,10 +350,7 @@ codeunit 50190 "Filename Batch Measure"
         ProofSupport.LogLine(StrSubstNo(DiskLbl, Situation), StrSubstNo(EntriesMsg, Measure.CapturedCount(), Measure.CapturedNames()));
     end;
 
-    /// <summary>
-    /// Attach as PDF: SaveAsDocumentAttachment stores one attachment per report selection on the
-    /// document. The rows it adds are read back and then removed.
-    /// </summary>
+    // One attachment per report selection; the rows added are read back and removed.
     local procedure MeasureAttach(Situation: Text)
     var
         DocumentAttachment: Record "Document Attachment";
@@ -425,10 +378,7 @@ codeunit 50190 "Filename Batch Measure"
         Commit();
     end;
 
-    /// <summary>
-    /// Records the name Send to Disk is about to download under, at Base Application's last event
-    /// before the download, and skips the download a session without a browser cannot make.
-    /// </summary>
+    // Skips the download, so the measurement does not depend on a client.
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeDownloadAttachmentFromStream', '', false, false)]
     local procedure CaptureDownload(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; var AttachmentInStream: InStream; ClientAttachmentFileName: Text; var IsHandled: Boolean)
     begin
@@ -454,9 +404,6 @@ codeunit 50190 "Filename Batch Measure"
             Listed += Name + ' | ';
     end;
 
-    /// <summary>
-    /// An invoice of the measurement's own, filtered to itself, for the report workflows to run on.
-    /// </summary>
     local procedure PostInvoice()
     var
         TestData: Codeunit "Filename Test Data";
@@ -465,11 +412,7 @@ codeunit 50190 "Filename Batch Measure"
         ProofSupport.LogLine('B0 Invoice', SalesInvoiceHeader."No.");
     end;
 
-    /// <summary>
-    /// A second report for the invoice usage, the same report as the first. Two rows for one usage is
-    /// what a company has when it sends, say, an invoice and its terms; the same report twice keeps
-    /// every other difference out of the measurement.
-    /// </summary>
+    // The same report as the first, to keep every other difference out of the measurement.
     local procedure AddSecondSelection()
     var
         ReportSelections: Record "Report Selections";

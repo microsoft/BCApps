@@ -4,18 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50184 "Filename Review Tests"
 {
-    // One test for each defect found in review, or while testing the review's changes in the client,
-    // each written to fail on the code before the fix.
-    // Expected names are built from Base Application's own output wherever it has one, never from
-    // what this feature says it produced.
+    // Regression tests. Expected names come from Base Application's own output where it has one;
+    // the rebuilt default that OnlyBusinessCentralsDefaultIsRecognised uses is itself checked
+    // against it by TheRebuiltDefaultIsTheNameBaseApplicationBuilds.
 
     Subtype = Test;
     TestPermissions = Disabled;
 
     /// <summary>
-    /// With the feature off - how it starts - the public naming call behaves exactly as without the
-    /// app, for a user who cannot read Report Selections. With it on, a lookup that user cannot make
-    /// leaves Business Central's name in place instead of raising a permission error.
+    /// For a user who cannot read Report Selections, the email name is Business Central's own with the
+    /// feature off or on, and no permission error is raised.
     /// </summary>
     [Test]
     procedure ARestrictedUserGetsTheStandardEmailNameWithTheFeatureOffOrOn()
@@ -33,7 +31,7 @@ codeunit 50184 "Filename Review Tests"
         DocumentMailing.GetAttachmentFileName(Baseline, UnknownDocumentNoTok, EmailDocumentNameTok, InvoiceUsage());
 
         PermissionsMock.Set(RestrictedSetTok);
-        // The control: a user who can read Report Selections proves nothing here.
+        // Control: a user who can read Report Selections proves nothing.
         if ReportSelections.ReadPermission() then
             Error(UserCanReadReportSelectionsErr);
         DocumentMailing.GetAttachmentFileName(Name, UnknownDocumentNoTok, EmailDocumentNameTok, InvoiceUsage());
@@ -51,10 +49,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// The print route - the platform's own naming hook, raised exactly as a print raises it - for a
-    /// user who cannot read the document a pattern would be built from: with the feature off and with it
-    /// on, no error and no name, so Business Central's own name stands. The pattern needs a field the
-    /// platform's filter does not carry, so naming would have to read the document.
+    /// The platform's print naming hook, for a user who cannot read the document: no error and no name,
+    /// feature off or on. The pattern needs a field the filter does not carry, so naming must read the document.
     /// </summary>
     [Test]
     procedure ARestrictedUserPrintsWithTheStandardNameWithTheFeatureOffOrOn()
@@ -76,19 +72,9 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// Send to Disk's naming, for a user who cannot read the document, with the feature off and with it
-    /// on: no error, and Business Central's own name.
-    ///
-    /// A real Send to Disk cannot run for this user at all - Base Application reads Report Selections
-    /// before any of this app's code - so each naming point is exercised directly, under the user's
-    /// permissions:
-    ///   - Send to Disk for a vendor document and the PDF in a "PDF &amp; Electronic Document" zip:
-    ///     Electronic Document Format.GetAttachmentFileName, with the PDF recorded as pending exactly as
-    ///     the selection loop's subscriber records it;
-    ///   - Send to Disk for a customer document: every step its subscriber takes - IsActive, the
-    ///     comparison with Business Central's default, and resolving the pattern.
-    /// Not covered here: the electronic document's subscriber, whose reads all sit in try functions, and
-    /// which Base Application likewise never reaches for this user.
+    /// Send to Disk naming for a user who cannot read the document: no error and Business Central's own
+    /// name, feature off or on. A real Send to Disk cannot run for this user (Base Application reads
+    /// Report Selections first), so the vendor/zip-PDF and customer naming points are called directly.
     /// </summary>
     [Test]
     procedure ARestrictedUserGetsTheStandardSendToDiskNameWithTheFeatureOffOrOn()
@@ -102,7 +88,6 @@ codeunit 50184 "Filename Review Tests"
         ReviewSupport.AddPattern(Pattern, ReviewSupport.InvoiceReportId(), DiskPatternTok, Enum::"Report Filename Output Route"::Any);
         TestData.PostNewInvoice(SalesInvoiceHeader);
 
-        // Business Central's own name, with the feature off and the test's own permissions.
         ReviewSupport.SetFeature(false);
         Baseline := ElectronicDocumentFormat.GetAttachmentFileName(SalesInvoiceHeader, SalesInvoiceHeader."No.", InvoiceDocumentNameTok, PdfCodeTok);
 
@@ -112,9 +97,7 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// The patterns list says it is empty when it opens with no pattern, and withdraws that as soon as
-    /// it shows one added from it. Found in the client: the notification stayed until the list was
-    /// opened again, saying no pattern was set up beside the pattern just added.
+    /// The patterns list's "no pattern" notification is withdrawn as soon as the list shows a pattern.
     /// </summary>
     [Test]
     [HandlerFunctions('EmptyNoticeSentHandler,EmptyNoticeRecalledHandler')]
@@ -129,7 +112,7 @@ codeunit 50184 "Filename Review Tests"
 
         PatternsPage.OpenView();
         ReviewSupport.AddPattern(Pattern, ReviewSupport.InvoiceReportId(), EmailPatternTok, Enum::"Report Filename Output Route"::Any);
-        // The list reads its rows again, as it does when the pattern's card closes, and shows the new one.
+        // Re-reads the rows, as the list does when the pattern's card closes.
         PatternsPage.Filter.SetFilter("Entry No.", Format(Pattern."Entry No."));
         if not PatternsPage.First() then
             Error(EmptyNoticeErr, 'test could not show the new pattern on the list');
@@ -142,13 +125,9 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// Enabled Patterns on the setup counts again when the patterns list opened from the setup closes.
-    /// Found in the client: a pattern turned on there still showed 0 until the page was refreshed,
-    /// because the action opened the list without waiting for it. A test page cannot reproduce that
-    /// timing - it runs a list opened without waiting to the end before the action returns - so this
-    /// proves the two things the fix consists of: the list opens as a dialog the setup waits for (on
-    /// the code before the fix this test stops at an unhandled page), and the count is right when it
-    /// closes.
+    /// Enabled Patterns is recounted when the patterns list opened from the setup closes. A test page
+    /// cannot reproduce the client's timing, so this proves the list opens modally and the count is
+    /// right afterwards.
     /// </summary>
     [Test]
     [HandlerFunctions('AddPatternOnTheListHandler,EmptyNoticeSentHandler')]
@@ -179,9 +158,6 @@ codeunit 50184 "Filename Review Tests"
         exit(true);
     end;
 
-    /// <summary>
-    /// The patterns list, opened from the setup: a pattern is added, and the list is closed.
-    /// </summary>
     [ModalPageHandler]
     procedure AddPatternOnTheListHandler(var PatternsPage: TestPage "Report Filename Patterns")
     var
@@ -200,7 +176,7 @@ codeunit 50184 "Filename Review Tests"
         Success: Boolean;
     begin
         PermissionsMock.Set(RestrictedSetTok);
-        // The control: a user who can read the invoice proves nothing here.
+        // Control: a user who can read the invoice proves nothing.
         if SalesInvoiceHeader.ReadPermission() then
             Error(UserCanReadInvoicesErr);
         ReportingTriggers.GetFilename(
@@ -224,9 +200,9 @@ codeunit 50184 "Filename Review Tests"
         IsDefault: Boolean;
         Named: Boolean;
     begin
-        // Read with the test's own permissions: the selection row Base Application hands its subscribers.
+        // Read with the test's own permissions, as Base Application hands the selection to subscribers.
         ReportId := ReviewSupport.InvoiceReportId();
-        // What the selection loop's subscriber records before Base Application names the PDF.
+        // As the selection loop's subscriber records it before the PDF is named.
         DocumentRecRef.GetTable(SalesInvoiceHeader);
         ReportFilenameContext.StartBatch();
         ReportFilenameContext.SetPendingFile(DocumentRecRef, ReportId, '', Enum::"Report Filename Output Route"::Disk);
@@ -236,7 +212,7 @@ codeunit 50184 "Filename Review Tests"
             Error(UserCanReadInvoicesErr);
         // Vendor Send to Disk and the zip's PDF.
         Name := ElectronicDocumentFormat.GetAttachmentFileName(SalesInvoiceHeader, SalesInvoiceHeader."No.", InvoiceDocumentNameTok, PdfCodeTok);
-        // Customer Send to Disk, step by step as its subscriber takes them.
+        // Customer Send to Disk, the subscriber's steps.
         Active := ReportFilenameMgt.IsActive();
         if Active then begin
             IsDefault := ReportFilenameMgt.IsBusinessCentralsDefaultName(Baseline, InvoiceDocumentNameTok, SalesInvoiceHeader."No.", PdfCodeTok);
@@ -257,11 +233,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// A PDF Base Application names through Electronic Document Format.GetAttachmentFileName and raises
-    /// no later event for - Send to Disk for a vendor document - is named by the pattern in that
-    /// procedure's own event, with the extension written lower case, as Base Application 30 writes it,
-    /// though the extension reaches the event upper case, as a Code. The vendor route itself is proven
-    /// end to end by Filename Proof Save To Disk; this is the same naming point, asked directly.
+    /// A PDF named only through GetAttachmentFileName (vendor Send to Disk) takes the pattern, with the
+    /// extension lower case as Base Application 30 writes it, though it reaches the event upper case.
     /// </summary>
     [Test]
     procedure AFileNamedThroughGetAttachmentFileNameTakesThePatternAndALowerCaseExtension()
@@ -278,8 +251,7 @@ codeunit 50184 "Filename Review Tests"
         TestData.PostNewInvoice(SalesInvoiceHeader);
         DocumentRecRef.GetTable(SalesInvoiceHeader);
 
-        // What OnSendToDiskForVendOnBeforeSendFileLoop records just before SendToDiskForVend names the
-        // file; the document only has to be one a pattern names.
+        // As OnSendToDiskForVendOnBeforeSendFileLoop records it before SendToDiskForVend names the file.
         ReportFilenameContext.StartBatch();
         ReportFilenameContext.SetPendingFile(DocumentRecRef, ReviewSupport.InvoiceReportId(), '', Enum::"Report Filename Output Route"::Disk);
         Name := ElectronicDocumentFormat.GetAttachmentFileName(SalesInvoiceHeader, SalesInvoiceHeader."No.", InvoiceDocumentNameTok, PdfCodeTok);
@@ -289,12 +261,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// One email attachment holding several invoices is named for all of them, not for the one the
-    /// rendered reference happened to sit on. Two invoices of the test's own, for one customer, are
-    /// emailed for real: with no email address on the customer, Report Selections.SendEmailToCust sends
-    /// directly, renders the whole selection into one PDF for the report selection, and Document-Mailing
-    /// names it for no single document. The email is stopped where Base Application has named every
-    /// attachment, just before it sends.
+    /// One email attachment holding several invoices is named for all of them, not for one. With no
+    /// email address on the customer, SendEmailToCust renders the whole selection into one PDF.
     /// </summary>
     [Test]
     procedure OneEmailAttachmentForSeveralInvoicesIsNamedForAllOfThem()
@@ -324,7 +292,7 @@ codeunit 50184 "Filename Review Tests"
         ReportSelections.SendEmailToCust(InvoiceUsage(), RecordVariant, '', EmailDocumentNameTok, false, CustomerNo);
         UnbindSubscription(EmailCapture);
 
-        // One email with one attachment - the combined PDF - and not one per invoice.
+        // One email with one combined PDF, not one per invoice.
         Emails := EmailCapture.CapturedEmails();
         if (Emails.Count() <> 1) or (EmailCapture.CapturedDownloads().Count() <> 0) then
             Error(NotOneEmailErr, Emails.Count(), EmailCapture.CapturedDownloads().Count());
@@ -355,7 +323,7 @@ codeunit 50184 "Filename Review Tests"
         Prepare();
         ReviewSupport.AddPattern(Pattern, ReviewSupport.InvoiceReportId(), AttachPatternTok, Enum::"Report Filename Output Route"::AttachAsPdf);
         TestData.PostNewInvoice(SalesInvoiceHeader);
-        // A second invoice of the test's own: the document armed in the last step, other than this one.
+        // The other document armed in the last step.
         TestData.PostNewInvoice(OtherInvoice);
         RecordVariant := SalesInvoiceHeader;
         ReportSelections.SaveAsDocumentAttachment(
@@ -367,23 +335,23 @@ codeunit 50184 "Filename Review Tests"
         DocumentAttachment.SaveAttachment(DocumentRecRef, UploadedFileTok + '.' + DocxTok, TempBlob);
         ExpectAttachment(SalesInvoiceHeader."No.", UploadedFileTok, DocxTok);
 
-        // A render remembered from earlier in the session - an email, say - is no report attachment.
+        // A render remembered from earlier in the session (an email, say) is no report attachment.
         ReportFilenameContext.SetRenderedDocument(DocumentRecRef, ReviewSupport.InvoiceReportId());
         Clear(DocumentAttachment);
         DocumentAttachment.SaveAttachment(DocumentRecRef, SecondUploadedFileTok + '.' + DocxTok, TempBlob);
         ReportFilenameContext.ClearLastRendered();
         ExpectAttachment(SalesInvoiceHeader."No.", SecondUploadedFileTok, DocxTok);
 
-        // What an Attach as PDF that failed half way could leave behind: the operation still marked,
-        // and one save armed. An upload that is not a PDF keeps its name...
+        // As a half-failed Attach as PDF leaves it: still marked, one save armed with the same content.
+        // A non-PDF upload keeps its name...
         ReportFilenameContext.StartAttachAsPdf();
-        ReportFilenameContext.ArmAttachAsPdf(DocumentRecRef.RecordId(), ReviewSupport.InvoiceReportId());
+        ReportFilenameContext.ArmAttachAsPdf(DocumentRecRef.RecordId(), ReviewSupport.InvoiceReportId(), TempBlob);
         Clear(DocumentAttachment);
         DocumentAttachment.SaveAttachment(DocumentRecRef, ThirdUploadedFileTok + '.' + DocxTok, TempBlob);
         ExpectAttachment(SalesInvoiceHeader."No.", ThirdUploadedFileTok, DocxTok);
 
         // ...and so does a PDF uploaded to a document other than the one armed.
-        ReportFilenameContext.ArmAttachAsPdf(OtherInvoice.RecordId(), ReviewSupport.InvoiceReportId());
+        ReportFilenameContext.ArmAttachAsPdf(OtherInvoice.RecordId(), ReviewSupport.InvoiceReportId(), TempBlob);
         Clear(DocumentAttachment);
         DocumentAttachment.SaveAttachment(DocumentRecRef, UploadedPdfTok + '.' + PdfTok, TempBlob);
         ReportFilenameContext.EndAttachAsPdf();
@@ -391,9 +359,43 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// Send to Disk for a customer document replaces Business Central's own name - recognised by
-    /// rebuilding it, not by asking GetAttachmentFileName again - keeping its extension as Business
-    /// Central wrote it, and keeps a name another extension gave, even while a matching pattern exists.
+    /// A PDF uploaded after Attach as PDF failed on the same document (armed, not saved) keeps its name.
+    /// </summary>
+    [Test]
+    procedure APdfUploadedAfterAFailedAttachAsPdfKeepsItsOwnName()
+    var
+        Pattern: Record "Report Filename Pattern";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        DocumentAttachment: Record "Document Attachment";
+        ReportSelections: Record "Report Selections";
+        ReportFilenameContext: Codeunit "Report Filename Context";
+        FailingAttach: Codeunit "Filename Failing Attach";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        RecordVariant: Variant;
+    begin
+        Prepare();
+        ReviewSupport.AddPattern(Pattern, ReviewSupport.InvoiceReportId(), AttachPatternTok, Enum::"Report Filename Output Route"::AttachAsPdf);
+        TestData.PostNewInvoice(SalesInvoiceHeader);
+        RecordVariant := SalesInvoiceHeader;
+
+        BindSubscription(FailingAttach);
+        asserterror ReportSelections.SaveAsDocumentAttachment(
+            InvoiceUsage(), RecordVariant, SalesInvoiceHeader."No.", SalesInvoiceHeader."Bill-to Customer No.", false);
+        UnbindSubscription(FailingAttach);
+        if GetLastErrorText() <> FailingAttach.FailureText() then
+            Error(UnexpectedAttachErrorErr, GetLastErrorText());
+
+        DocumentRecRef.GetTable(SalesInvoiceHeader);
+        WriteSomething(TempBlob);
+        DocumentAttachment.SaveAttachment(DocumentRecRef, UploadedFileTok + '.' + PdfTok, TempBlob);
+        ReportFilenameContext.EndAttachAsPdf();
+        ExpectAttachment(SalesInvoiceHeader."No.", UploadedFileTok, PdfTok);
+    end;
+
+    /// <summary>
+    /// Customer Send to Disk replaces Business Central's own name (keeping its extension as written),
+    /// but keeps a name another extension gave, even with a matching pattern.
     /// </summary>
     [Test]
     procedure SendToDiskNamesBusinessCentralsNameAndKeepsAPartnersName()
@@ -411,7 +413,6 @@ codeunit 50184 "Filename Review Tests"
         TestData.PostNewInvoice(SalesInvoiceHeader);
         BindSubscription(DiskCapture);
 
-        // Business Central's own name, with the feature off.
         ReviewSupport.SetFeature(false);
         SendToDisk(SalesInvoiceHeader);
         Baseline := DiskCapture.TakeName();
@@ -433,10 +434,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// The default the feature rebuilds is the name Base Application builds: for the electronic
-    /// document, its zip and a PDF, everything before the extension is identical and the extension
-    /// differs at most in case (version 29 writes it upper case, version 30 lower case). Fails as soon
-    /// as Microsoft changes the rule in Electronic Document Format.GetAttachmentFileName.
+    /// The rebuilt default matches Base Application's name for XML, ZIP and PDF, except the extension's
+    /// case (29 writes it upper case, 30 lower case). Fails if GetAttachmentFileName's rule changes.
     /// </summary>
     [Test]
     procedure TheRebuiltDefaultIsTheNameBaseApplicationBuilds()
@@ -446,7 +445,7 @@ codeunit 50184 "Filename Review Tests"
         DocumentRecRef: RecordRef;
         DocumentType: Text;
     begin
-        // No pattern, so nothing names the file and GetAttachmentFileName returns Business Central's own.
+        // No pattern, so GetAttachmentFileName returns Business Central's own name.
         Prepare();
         TestData.PostNewInvoice(SalesInvoiceHeader);
         DocumentRecRef.GetTable(SalesInvoiceHeader);
@@ -458,8 +457,7 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// Business Central's default is recognised with its extension in either case, and nothing else is:
-    /// not a partner's name, not the default with any other character changed - including when the
+    /// Only Business Central's default is recognised, with its extension in either case - also when the
     /// 250-character cut reaches into the extension.
     /// </summary>
     [Test]
@@ -482,8 +480,7 @@ codeunit 50184 "Filename Review Tests"
         ExpectRecognised(PartnerXmlNameTok, InvoiceDocumentNameTok, XmlCodeTok, false, '');
         ExpectRecognised('', InvoiceDocumentNameTok, XmlCodeTok, false, '');
 
-        // A document type long enough that Business Central's 250-character cut takes the last letter of
-        // the extension: what is left of it is still compared in either case.
+        // Long enough that the 250-character cut takes the extension's last letter.
         LongDocumentType := PadStr('', 251 - StrLen(ReportFilenameMgt.BusinessCentralsDocumentFileName('', TestDocumentNoTok, XmlCodeTok)), 'T');
         DefaultName := ReportFilenameMgt.BusinessCentralsDocumentFileName(LongDocumentType, TestDocumentNoTok, XmlCodeTok);
         if CopyStr(DefaultName, StrLen(DefaultName) - 2) <> '.xm' then
@@ -495,9 +492,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// The PDF in a "PDF &amp; Electronic Document" zip takes the case Business Central wrote the
-    /// electronic document's extension in, and lower case when that was not seen; Send to Disk for a
-    /// vendor document is lower case whatever was seen.
+    /// The PDF in a "PDF &amp; Electronic Document" zip takes the electronic document's extension case
+    /// (lower case if unseen); vendor Send to Disk is always lower case.
     /// </summary>
     [Test]
     procedure AZipsPdfTakesTheCaseOfItsElectronicDocument()
@@ -577,10 +573,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// A scheduled report whose first data item is an Integer loop, with the filter on its business
-    /// table in a child data item and no record to process, is named after the filtered record only.
-    /// Report 910 Posted Assembly Order is such a report: CopyLoop, then Posted Assembly Header. The
-    /// parameters are the ones its own request page produces, with the header filtered to one order.
+    /// A scheduled report whose root data item is an Integer loop (report 910: CopyLoop, then Posted
+    /// Assembly Header) is named from the filter on the child data item.
     /// </summary>
     [Test]
     [HandlerFunctions('PostedAssemblyOrderRequestPageHandler')]
@@ -597,14 +591,12 @@ codeunit 50184 "Filename Review Tests"
         InsertPostedAssemblyOrder(SecondAssemblyNoTok);
         ReviewSupport.AddPattern(Pattern, Report::"Posted Assembly Order", AssemblyPatternTok, Enum::"Report Filename Output Route"::Any);
 
-        // The request page, as scheduling the report shows it; the handler filters the header and clicks OK.
         // A page is not shown with a write transaction open.
         Commit();
         Parameters := Report.RunRequestPage(Report::"Posted Assembly Order");
         ExpectBothDataItems(Parameters);
 
-        // Saved first: the parameters are stored against the entry, as scheduling stores them. Not
-        // run - only the name the run would be given is asked for - so nothing schedules it.
+        // Stored as scheduling stores them; not run, only the name is asked for.
         JobQueueEntry.Init();
         JobQueueEntry.ID := CreateGuid();
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Report;
@@ -620,8 +612,7 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// Clear Report on the pattern card takes the report off and keeps the table, so a
-    /// report-specific pattern can go back to covering every report on its table.
+    /// Clear Report keeps the table, so the pattern covers every report on it.
     /// </summary>
     [Test]
     procedure ClearReportKeepsTheTable()
@@ -648,10 +639,9 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// Test Pattern shows the default name of the route being tested: Send to Disk's is the one Base
-    /// Application builds for it, not the report's caption; Attach as PDF's is built with Base
-    /// Application's own caption functions in the document's language, as SaveDocumentAttachmentFromRecRef
-    /// builds it; for email, whose default depends on the caller, it shows no exact name at all.
+    /// Test Pattern shows the tested route's default name: Base Application's for Send to Disk and
+    /// Attach as PDF (caption in the document's language); for email, which depends on the caller, a
+    /// message instead of a name.
     /// </summary>
     [Test]
     procedure TestPatternShowsTheDefaultNameOfTheRouteTested()
@@ -670,7 +660,7 @@ codeunit 50184 "Filename Review Tests"
     begin
         Prepare();
         ReviewSupport.AddPattern(Pattern, ReviewSupport.InvoiceReportId(), DiskPatternTok, Enum::"Report Filename Output Route"::Any);
-        // Off, so nothing names the file and the page shows Business Central's own name.
+        // Off, so the page shows Business Central's own name.
         Pattern.Enabled := false;
         Pattern.Modify();
         TestData.PostNewInvoice(SalesInvoiceHeader);
@@ -698,9 +688,7 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// A render left behind that is not the kind of document an email is for - here a customer of the
-    /// test's own - does not name the attachment of an email that names no document. Before, any
-    /// remembered render did.
+    /// A leftover render of another kind of record (a customer) does not name an email for no document.
     /// </summary>
     [Test]
     procedure AnEmailForNoDocumentIsNotNamedAfterAnUnrelatedRender()
@@ -732,8 +720,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// A document set aside because another document's name was asked for by number is given back only
-    /// to a request for its own number - never to an email that names no document.
+    /// A document set aside (another number was asked for) is given back only to a request for its own
+    /// number, never to an email for no document.
     /// </summary>
     [Test]
     procedure ADocumentSetAsideIsNotGivenToAnEmailThatNamesNoDocument()
@@ -756,7 +744,7 @@ codeunit 50184 "Filename Review Tests"
         TestData.PostNewInvoice(SalesInvoiceHeader);
         Rendered.GetTable(SalesInvoiceHeader);
         ReportFilenameContext.SetRenderedDocument(Rendered, ReviewSupport.InvoiceReportId());
-        // Another document's name, asked for by number: the rendered invoice is set aside.
+        // Another number is asked for, so the rendered invoice is set aside.
         DocumentMailing.GetAttachmentFileName(Ignored, UnknownDocumentNoTok, EmailDocumentNameTok, InvoiceUsage());
 
         DocumentMailing.GetAttachmentFileName(Name, '', EmailDocumentNameTok, InvoiceUsage());
@@ -767,8 +755,7 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// A PDF left pending by a Send to Disk that failed half way is not used for any other file named
-    /// for the same document - its electronic document here.
+    /// A PDF left pending by a failed Send to Disk does not name the same document's electronic document.
     /// </summary>
     [Test]
     procedure APendingPdfIsNotUsedForTheSameDocumentsElectronicDocument()
@@ -793,9 +780,8 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// The Excel export the overview records is used only while report 29 runs, started by that action:
-    /// another report rendering in between, or report 29 started without it, forgets it - so a
-    /// workbook downloaded after an export that failed half way is never named after it.
+    /// The recorded Excel export is used only while report 29 runs for it; another report rendering
+    /// first, or report 29 started again, forgets it, so a failed export never names a later workbook.
     /// </summary>
     [Test]
     procedure AnExcelExportIsNamedOnlyWhileReport29RunsForIt()
@@ -806,7 +792,7 @@ codeunit 50184 "Filename Review Tests"
         ReportFilenameFinRepSub: Codeunit "Report Filename Fin. Rep. Sub.";
     begin
         Prepare();
-        // A financial report pattern, so the feature can name something and the export is recorded.
+        // Needed so the feature can name something and the export is recorded.
         Pattern.Init();
         Pattern."Report ID" := Report::"Account Schedule";
         Pattern.Validate("Table No.", Database::"Financial Report");
@@ -815,7 +801,6 @@ codeunit 50184 "Filename Review Tests"
         Pattern.Insert(true);
         FinancialReport.Get(TestData.CreateFinancialReport(FinancialReportDescriptionTok, false));
 
-        // The normal run: armed by the action, running while report 29 runs, forgotten when it ends.
         RecordExcelExport(ReportFilenameFinRepSub, FinancialReport);
         ReportFilenameContext.StartExcelExportRun();
         if not ReportFilenameContext.IsExcelExportRunning() then
@@ -823,13 +808,13 @@ codeunit 50184 "Filename Review Tests"
         ReportFilenameContext.EndExcelExportRun();
         ExpectExcelExportForgotten(ReportFilenameContext, 'report 29 ended');
 
-        // Another report renders before report 29 starts - the export failed before it got there.
+        // Another report renders before report 29 starts.
         RecordExcelExport(ReportFilenameFinRepSub, FinancialReport);
         ReportFilenameContext.NoteReportRun(Report::"Standard Sales - Invoice");
         ReportFilenameContext.StartExcelExportRun();
         ExpectExcelExportForgotten(ReportFilenameContext, 'another report rendered first');
 
-        // Report 29 runs a second time with nothing new armed - started from somewhere else.
+        // Report 29 starts again with nothing new armed.
         RecordExcelExport(ReportFilenameFinRepSub, FinancialReport);
         ReportFilenameContext.StartExcelExportRun();
         ReportFilenameContext.StartExcelExportRun();
@@ -854,7 +839,7 @@ codeunit 50184 "Filename Review Tests"
     var
         FilenameProofGuard: Codeunit "Filename Proof Guard";
     begin
-        // Clears every pattern and switches the feature on; refuses to run anywhere it should not.
+        // Also switches the feature on and refuses to run in an unsafe environment.
         FilenameProofGuard.ClearPatterns();
     end;
 
@@ -883,10 +868,6 @@ codeunit 50184 "Filename Review Tests"
         PostedAssemblyHeader.Insert();
     end;
 
-    /// <summary>
-    /// The request page of report 910, as a user scheduling it fills it in: Posted Assembly Header
-    /// filtered to one order.
-    /// </summary>
     [RequestPageHandler]
     procedure PostedAssemblyOrderRequestPageHandler(var PostedAssemblyOrder: TestRequestPage "Posted Assembly Order")
     begin
@@ -895,9 +876,7 @@ codeunit 50184 "Filename Review Tests"
     end;
 
     /// <summary>
-    /// That the parameters hold both data items - the Integer root, and Posted Assembly Header with the
-    /// order's filter - so the test exercises a filter on a child data item. The names are read from
-    /// the report.
+    /// Precondition: the parameters hold the Integer root and the filtered child data item.
     /// </summary>
     local procedure ExpectBothDataItems(Parameters: Text)
     var
@@ -982,6 +961,7 @@ codeunit 50184 "Filename Review Tests"
         UserCanReadReportSelectionsErr: Label 'The restricted user can read Report Selections, so this test proves nothing.';
         NotNamedForAllErr: Label 'One attachment for invoices %1 and %2 should be named for both, but is called %3.', Comment = '%1 first invoice, %2 second invoice, %3 the name';
         AttachmentMissingErr: Label 'Expected an attachment %1.%2. The document has: %3', Comment = '%1 name, %2 extension, %3 the attachments';
+        UnexpectedAttachErrorErr: Label 'Attach as PDF should have failed between arming and saving, but failed with: %1', Comment = '%1 the error';
         PartnerNameOverriddenErr: Label 'Another extension named the file %1, and that name should stand, but it was downloaded as %2.', Comment = '%1 the partner name, %2 the name downloaded';
         ScheduledNotNamedErr: Label 'The scheduled report was not named; expected %1.', Comment = '%1 the expected name';
         ReportNotClearedErr: Label 'Clear Report left the report %1 on the pattern.', Comment = '%1 the report';

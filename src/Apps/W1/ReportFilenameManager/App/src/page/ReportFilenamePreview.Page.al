@@ -19,32 +19,16 @@ page 50112 "Report Filename Preview"
         {
             field(ResultingFileName; ResultingFileName)
             {
-                // No caption. The factbox is already called Example File Name, so a caption here
-                // said the same thing twice - and truncated to "Resulting file ..." it said it
-                // badly. The value is the whole content of the box.
                 ShowCaption = false;
                 ToolTip = 'Specifies an example of the file name this pattern produces. The values show the form each value takes and are not read from any record, so the example works before any records exist. Use Test Pattern to try the pattern on real records.';
                 ApplicationArea = All;
                 MultiLine = true;
                 StyleExpr = ResultStyle;
             }
-            // A run over many records collapses every value read off the records into a
-            // first-to-last range, so the same pattern produces a different name. Showing only
-            // the single-record form advertised a name that a report printing a list will never
-            // produce. Both are shapes; neither reads a document.
+            // A run over many records produces a different name than a single-record run.
             group(OverManyRecords)
             {
-                // The caption belongs on the GROUP, not on the field. A factbox is narrow, and a
-                // field caption there is given a fixed share of that width and truncated to fit -
-                // the wording came out as "Ov...". A group caption gets a line of its own across
-                // the whole box, which is the only place a phrase fits.
-                //
-                // Captioned as the pattern card captions its own group, because both are groups
-                // and Business Central captions a group with a short noun phrase. "Over several
-                // records" reads as a column header - which is exactly what it is on the placeholder
-                // list, where it heads a column saying what each placeholder turns into. One idea,
-                // two places, two jobs: a noun phrase names a group, and the longer wording
-                // describes behaviour wherever behaviour is being described.
+                // Caption on the group; the field shows none.
                 Caption = 'Multiple Records';
                 Visible = HasManyRecordsExample;
 
@@ -56,10 +40,7 @@ page 50112 "Report Filename Preview"
                     MultiLine = true;
                 }
             }
-            // A group, not the field itself. A field's Visible cannot change after the page
-            // opens - Microsoft documents dynamic visibility for group, part and action controls
-            // only - so the expression that used to sit on this field was evaluated once, while
-            // the explanation was still empty, and the note could never appear.
+            // Visible is on a group because a field's Visible is not re-evaluated after the page opens.
             group(Notes)
             {
                 ShowCaption = false;
@@ -67,11 +48,7 @@ page 50112 "Report Filename Preview"
 
                 field(Explanation; Explanation)
                 {
-                    // Not shown, for the reason the two fields above already give: a factbox is
-                    // narrow, a field caption there is truncated to whatever share of the width
-                    // it is given, and "Notes" came out as a bare "N" sitting beside the text.
-                    // The caption is kept because it is what a screen reader announces; only its
-                    // display is suppressed.
+                    // Not shown; the caption still names the control.
                     ShowCaption = false;
                     Caption = 'Notes';
                     ToolTip = 'Explains why the pattern cannot produce a name, when it cannot.';
@@ -91,10 +68,8 @@ page 50112 "Report Filename Preview"
         Explanation := '';
         OverManyRecordsName := '';
 
-        // The shape, not a real document. A company on its first day has no invoice to preview
-        // against, an administrator may have no permission to read one, and reading one would
-        // put somebody's real figures on a setup card - a real person's pay, for a payroll
-        // report. Test Pattern is the deliberate act that uses real data.
+        // Shaped without a document, so no record's values are shown. Test Pattern is the action
+        // that uses real records.
         if ReportFilenamePreviewMgt.TryPreviewShape(Rec, ResultingFileName, Explanation) then
             ResultStyle := 'Favorable'
         else begin
@@ -107,18 +82,8 @@ page 50112 "Report Filename Preview"
     end;
 
     /// <summary>
-    /// The example for a run covering several records.
-    ///
-    /// There are two shapes, not one, and which applies depends on how many records the run
-    /// covers: the values are listed while there are no more than the pattern names
-    /// individually, and collapse to first-to-last beyond that. Showing only the collapsed form
-    /// told an administrator naming three individually that a run over two produces a range,
-    /// which it does not.
-    ///
-    /// Both go into one field, on two lines, because a factbox is too narrow to caption two
-    /// fields - the caption gets a fixed share of the width and is truncated, which is why the
-    /// group carries the caption here and the field carries none. Where only one shape exists
-    /// it is shown alone and unlabelled, exactly as before.
+    /// A few records are listed individually; beyond the pattern's limit they collapse to a
+    /// first-to-last range. Both forms share one field.
     /// </summary>
     local procedure BuildMultipleRecordsExample()
     var

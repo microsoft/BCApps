@@ -23,20 +23,16 @@ codeunit 50117 "Report Filename Created Plh." implements "Report Filename Placeh
 
     procedure IsTableSupported(TableNo: Integer): Boolean
     begin
-        // The date the file is produced is a property of the run, not of the document, so it
-        // resolves whatever the pattern names - or nothing at all.
         exit(true);
     end;
 
     procedure SpeaksForARunOfManyRecords(): Boolean
     begin
-        // One run is produced at one moment, whatever it covered.
         exit(true);
     end;
 
     procedure ExampleWithoutDocument(): Text
     begin
-        // Always resolves - it needs no document - so the picker never has to fall back here.
         exit('');
     end;
 
@@ -44,9 +40,6 @@ codeunit 50117 "Report Filename Created Plh." implements "Report Filename Placeh
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
     begin
-        // Rendered through the pattern's own date format, which is a validated list rather than
-        // a regional setting: a date in a file name is an identifier, so it has to sort and to
-        // mean the same thing to everybody who receives the file.
         PlaceholderValue := ReportFilenameMgt.FormatPatternDate(Today(), Pattern."Date Format");
         exit(PlaceholderValue <> '');
     end;

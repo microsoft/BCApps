@@ -23,21 +23,16 @@ codeunit 50116 "Report Filename Company Plh." implements "Report Filename Placeh
 
     procedure IsTableSupported(TableNo: Integer): Boolean
     begin
-        // The company name is read from Company Information, which every company has. It does
-        // not touch the document, so there is no kind of document it cannot be used on.
         exit(true);
     end;
 
     procedure SpeaksForARunOfManyRecords(): Boolean
     begin
-        // The company is the same for every record a run covers, so it names a run of two
-        // hundred as truthfully as it names one.
         exit(true);
     end;
 
     procedure ExampleWithoutDocument(): Text
     begin
-        // Always resolves - it needs no document - so the picker never has to fall back here.
         exit('');
     end;
 
@@ -45,8 +40,8 @@ codeunit 50116 "Report Filename Company Plh." implements "Report Filename Placeh
     var
         CompanyInformation: Record "Company Information";
     begin
-        // The display name, not CompanyName(). They routinely differ, and the display name is
-        // the one an administrator recognises as their company.
+        // Company Information's name, the one reports print, rather than CompanyName(): it can be
+        // edited and longer (100 characters against 30), so the two can differ.
         if not CompanyInformation.Get() then
             exit(false);
 
@@ -55,8 +50,6 @@ codeunit 50116 "Report Filename Company Plh." implements "Report Filename Placeh
     end;
 
     var
-        // The canonical name is what a saved binding records, so it is language-invariant and
-        // locked.
         CanonicalTok: Label 'Your Company Name', Locked = true;
         DisplayLbl: Label 'Your Company Name';
         DescriptionLbl: Label 'Your company''s name, as Company Information holds it';

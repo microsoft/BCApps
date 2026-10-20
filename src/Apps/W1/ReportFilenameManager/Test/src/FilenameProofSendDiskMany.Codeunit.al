@@ -4,11 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50177 "Filename Proof Send Disk Many"
 {
-    // Calls Send to Disk for a selection of several invoices, the way a Document Sending Profile does
-    // when every selected invoice belongs to one customer: one call, the whole selection, one PDF.
-    //
-    // Deliberately NOT narrowed with SetRecFilter, unlike Filename Proof Send Disk. The caller's
-    // filter is the selection, and keeping it is the point.
+    // Calls Send to Disk for several invoices of one customer in one call, as a Document Sending
+    // Profile does. Deliberately not narrowed with SetRecFilter: the caller's filter is the selection.
 
     TableNo = "Sales Invoice Header";
 

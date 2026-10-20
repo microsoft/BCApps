@@ -4,53 +4,29 @@
 // ------------------------------------------------------------------------------------------------
 codeunit 50187 "Filename Test Data"
 {
-    // The business data the tests name, created by the tests themselves: customers, items and
-    // vendors, posted sales and purchase invoices, sales documents, payment terms, reminders,
-    // financial reports, and the test app's own proof documents. A test names a document of its own, built only from data it created and the
-    // company's setup - posting groups, number series, report selections, the chart of accounts -
-    // rather than whatever documents the company happens to hold, so its result does not depend on
-    // which demo data, or how much of it, the database carries.
+    // Creates the documents the tests name, from the company's setup only, so results do not depend
+    // on which demo data the database carries.
 
     Access = Internal;
 
-    /// <summary>
-    /// Posts a new sales invoice, for a new customer and a new item, and returns it.
-    /// </summary>
     internal procedure PostNewInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         PostNewInvoice(CreateCustomer(), SalesInvoiceHeader);
     end;
 
-    /// <summary>
-    /// Posts a new sales invoice of a new item for the customer given, and returns it.
-    /// </summary>
     internal procedure PostNewInvoice(CustomerNo: Code[20]; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         PostNewInvoice(CustomerNo, '', '', SalesInvoiceHeader);
     end;
 
     /// <summary>
-    /// Posts a new sales invoice of a new item for the customer given, in the language and on the
-    /// payment terms given (blank keeps the customer's), and returns it.
+    /// Blank LanguageCode or PaymentTermsCode keeps the customer's. Returns the invoice filtered to itself.
     /// </summary>
-    /// <param name="CustomerNo">The customer.</param>
-    /// <param name="LanguageCode">The invoice's language; blank for the customer's.</param>
-    /// <param name="PaymentTermsCode">The invoice's payment terms; blank for the customer's.</param>
-    /// <param name="SalesInvoiceHeader">Receives the posted invoice, filtered to itself.</param>
     internal procedure PostNewInvoice(CustomerNo: Code[20]; LanguageCode: Code[10]; PaymentTermsCode: Code[10]; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         PostNewInvoice(CustomerNo, LanguageCode, PaymentTermsCode, DefaultUnitPrice(), SalesInvoiceHeader);
     end;
 
-    /// <summary>
-    /// The same, with its one line sold at the unit price given - for a test whose invoices have to
-    /// differ in amount, or need an amount large enough to carry a thousands separator.
-    /// </summary>
-    /// <param name="CustomerNo">The customer.</param>
-    /// <param name="LanguageCode">The invoice's language; blank for the customer's.</param>
-    /// <param name="PaymentTermsCode">The invoice's payment terms; blank for the customer's.</param>
-    /// <param name="UnitPrice">The unit price of its one line, of quantity 1.</param>
-    /// <param name="SalesInvoiceHeader">Receives the posted invoice, filtered to itself.</param>
     internal procedure PostNewInvoice(CustomerNo: Code[20]; LanguageCode: Code[10]; PaymentTermsCode: Code[10]; UnitPrice: Decimal; var SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         SalesHeader: Record "Sales Header";
@@ -73,7 +49,7 @@ codeunit 50187 "Filename Test Data"
         SalesHeader.Invoice := true;
         Codeunit.Run(Codeunit::"Sales-Post", SalesHeader);
 
-        // The invoice this posting produced, by the number it was drafted under - not the last one posted.
+        // By the draft number, not the last one posted.
         SalesInvoiceHeader.Reset();
         SalesInvoiceHeader.SetRange("Pre-Assigned No.", DraftNo);
         SalesInvoiceHeader.FindFirst();
@@ -81,12 +57,8 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// Posts new sales invoices, as many as given, all for one new customer, and returns their
-    /// numbers in the order they were posted - which is their order by number, as the company's
-    /// number series hands numbers out in ascending order.
+    /// Returns the numbers in posting order, which is also ascending number order.
     /// </summary>
-    /// <param name="NumberOfInvoices">How many.</param>
-    /// <param name="InvoiceNos">Receives the numbers of the posted invoices.</param>
     internal procedure PostInvoicesOfOneCustomer(NumberOfInvoices: Integer; var InvoiceNos: List of [Code[20]])
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -102,26 +74,17 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// A new, unposted sales document of the type given - a quote, an order, an invoice - for the
-    /// customer given, with one line of a new item.
+    /// A new, unposted sales document with one line of a new item.
     /// </summary>
-    /// <param name="DocumentType">The type of document.</param>
-    /// <param name="CustomerNo">The customer.</param>
-    /// <param name="SalesHeader">Receives the document.</param>
     internal procedure CreateSalesDocument(DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20]; var SalesHeader: Record "Sales Header")
     begin
         CreateSalesDocument(DocumentType, CustomerNo, '', SalesHeader);
     end;
 
     /// <summary>
-    /// The same, in the language given. The language is set before the line is added: set on a
-    /// document that has lines, Business Central says the lines were not updated, in a message no
-    /// test expects.
+    /// The language is set before the line is added: changing it on a document with lines raises a
+    /// message no test expects.
     /// </summary>
-    /// <param name="DocumentType">The type of document.</param>
-    /// <param name="CustomerNo">The customer.</param>
-    /// <param name="LanguageCode">The document's language; blank for the customer's.</param>
-    /// <param name="SalesHeader">Receives the document.</param>
     internal procedure CreateSalesDocument(DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20]; LanguageCode: Code[10]; var SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
@@ -147,31 +110,20 @@ codeunit 50187 "Filename Test Data"
         SalesLine.Modify(true);
     end;
 
-    /// <summary>
-    /// The line number of a sales document's one line.
-    /// </summary>
     local procedure LineNo(): Integer
     begin
         exit(10000);
     end;
 
-    /// <summary>
-    /// The unit price a sales document's one line is sold at unless a test says otherwise.
-    /// </summary>
     local procedure DefaultUnitPrice(): Decimal
     begin
         exit(100);
     end;
 
     /// <summary>
-    /// Posted sales invoice headers, written directly and without lines, for a test that needs many
-    /// invoices in one selection and reads only their headers. Posting each would take minutes and
-    /// prove nothing more. Numbered from the prefix given, which must not be a number series' own.
+    /// Headers only, written directly: for tests that need many invoices and read only headers, where
+    /// posting each would be too slow. NoPrefix must not be a number series' own.
     /// </summary>
-    /// <param name="NoPrefix">The prefix of their numbers.</param>
-    /// <param name="CustomerNo">Their customer.</param>
-    /// <param name="LanguageCode">Their language.</param>
-    /// <param name="NumberOfInvoices">How many.</param>
     internal procedure InsertInvoiceHeaders(NoPrefix: Code[10]; CustomerNo: Code[20]; LanguageCode: Code[10]; NumberOfInvoices: Integer)
     var
         Customer: Record Customer;
@@ -196,18 +148,10 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// A sales header of the type given under the number given, written directly and without lines,
-    /// for a test that needs documents of different types to share a number: Sales Header is keyed on
-    /// Document Type and No., so Business Central allows it, but number series never produce it.
-    ///
-    /// When the company already has a document of that type under that number - a number series of
-    /// that type overlapping the other's - the two numbers already collide, which is all a caller
-    /// needs, so that document is left exactly as it is rather than the insert failing. Callers find
-    /// their own documents by their own keys, never by this number alone.
+    /// Written directly, for tests that need documents of different types to share a number, which
+    /// cannot be relied on from number series. An existing document under that type and number
+    /// already gives the collision, so it is left as it is.
     /// </summary>
-    /// <param name="DocumentType">The type of document.</param>
-    /// <param name="DocumentNo">Its number, which a document of another type already has.</param>
-    /// <param name="CustomerNo">Its customer.</param>
     internal procedure InsertSalesHeaderUnderNo(DocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; CustomerNo: Code[20])
     var
         Customer: Record Customer;
@@ -228,12 +172,6 @@ codeunit 50187 "Filename Test Data"
         SalesHeader.Insert(false);
     end;
 
-    /// <summary>
-    /// A new customer, numbered by the company's own number series, with posting groups the company has
-    /// set up for sales: a customer posting group with a receivables account, and a general and a VAT
-    /// business posting group that a sales posting setup exists for (FindSalesPostingSetup).
-    /// </summary>
-    /// <returns>The customer's number.</returns>
     internal procedure CreateCustomer(): Code[20]
     var
         Customer: Record Customer;
@@ -259,14 +197,9 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// A new item of type Service - so posting its sale needs no inventory posting setup and no stock -
-    /// with a unit of measure the company has, and the product posting groups of the sales posting
-    /// setup FindSalesPostingSetup chooses. Numbered by FreeCode rather than by the company's item
-    /// number series: every document a test makes has an item of its own, the data a codeunit's tests
-    /// make is rolled back only when the codeunit ends, and the demonstration company's series holds
-    /// a hundred numbers - one codeunit used them up, and the series' warning then failed the tests.
+    /// Type Service, so posting needs no inventory posting group or stock. Numbered by FreeCode, not
+    /// the item number series, so creating items does not depend on that series.
     /// </summary>
-    /// <returns>The item's number.</returns>
     local procedure CreateItem(): Code[20]
     var
         Item: Record Item;
@@ -290,11 +223,6 @@ codeunit 50187 "Filename Test Data"
         exit(Item."No.");
     end;
 
-    /// <summary>
-    /// The first general posting setup that can post a sale - both groups set, a sales account, not
-    /// blocked - and the first VAT posting setup that can: both groups set, normal VAT, a sales VAT
-    /// account, not blocked. The two are independent, as they are in Business Central.
-    /// </summary>
     local procedure FindSalesPostingSetup(var GeneralPostingSetup: Record "General Posting Setup"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
         GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
@@ -311,10 +239,6 @@ codeunit 50187 "Filename Test Data"
         VATPostingSetup.FindFirst();
     end;
 
-    /// <summary>
-    /// Posts a new purchase invoice, for a new vendor and a new item, and returns it.
-    /// </summary>
-    /// <param name="PurchInvHeader">Receives the posted invoice, filtered to itself.</param>
     internal procedure PostNewPurchaseInvoice(var PurchInvHeader: Record "Purch. Inv. Header")
     var
         PurchaseHeader: Record "Purchase Header";
@@ -350,11 +274,6 @@ codeunit 50187 "Filename Test Data"
         PurchInvHeader.SetRecFilter();
     end;
 
-    /// <summary>
-    /// A new vendor, numbered by the company's own number series, with posting groups the company has
-    /// set up for purchases: a vendor posting group with a payables account, and a general and a VAT
-    /// business posting group that a purchase posting setup exists for.
-    /// </summary>
     local procedure CreateVendor(): Code[20]
     var
         Vendor: Record Vendor;
@@ -378,10 +297,7 @@ codeunit 50187 "Filename Test Data"
         exit(Vendor."No.");
     end;
 
-    /// <summary>
-    /// A new item of type Service with the product posting groups of the purchase posting setup
-    /// FindPurchasePostingSetup chooses, numbered by FreeCode as CreateItem's are.
-    /// </summary>
+    // Type Service and numbered by FreeCode, for the same reasons as CreateItem.
     local procedure CreatePurchaseItem(): Code[20]
     var
         Item: Record Item;
@@ -404,11 +320,6 @@ codeunit 50187 "Filename Test Data"
         exit(Item."No.");
     end;
 
-    /// <summary>
-    /// The first general posting setup that can post a purchase - both groups set, a purchase account,
-    /// not blocked - and the first VAT posting setup that can: both groups set, normal VAT, a purchase
-    /// VAT account, not blocked.
-    /// </summary>
     local procedure FindPurchasePostingSetup(var GeneralPostingSetup: Record "General Posting Setup"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
         GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
@@ -425,11 +336,6 @@ codeunit 50187 "Filename Test Data"
         VATPostingSetup.FindFirst();
     end;
 
-    /// <summary>
-    /// New payment terms with the description given, under a code no other payment terms have.
-    /// </summary>
-    /// <param name="Description">The description, which is what a pattern names.</param>
-    /// <returns>The code.</returns>
     internal procedure CreatePaymentTerms(Description: Text[100]): Code[10]
     var
         PaymentTerms: Record "Payment Terms";
@@ -443,11 +349,8 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// New reminder terms with levels 1 to the number given and no attachment texts - so nothing in
-    /// Base Application names a reminder's attachment from them, and a pattern decides.
+    /// No attachment texts, so Base Application does not name the reminder's attachment and a pattern decides.
     /// </summary>
-    /// <param name="NumberOfLevels">How many levels.</param>
-    /// <returns>The terms' code.</returns>
     internal procedure CreateReminderTerms(NumberOfLevels: Integer): Code[10]
     var
         ReminderTerms: Record "Reminder Terms";
@@ -468,15 +371,9 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// An issued reminder at the level given, under the terms given, for the customer given and in the
-    /// language given, written directly: issuing one for real needs overdue entries and posting setup
-    /// that are not what the tests are about. It carries what the reminder report reads.
+    /// Written directly: issuing one for real needs overdue entries and posting setup the tests are
+    /// not about. Blank LanguageCode keeps the customer's.
     /// </summary>
-    /// <param name="CustomerNo">The customer.</param>
-    /// <param name="ReminderTermsCode">The reminder terms.</param>
-    /// <param name="Level">The reminder level.</param>
-    /// <param name="LanguageCode">The reminder's language; blank for the customer's.</param>
-    /// <param name="IssuedReminderHeader">Receives the reminder, filtered to itself.</param>
     internal procedure CreateIssuedReminder(CustomerNo: Code[20]; ReminderTermsCode: Code[10]; Level: Integer; LanguageCode: Code[10]; var IssuedReminderHeader: Record "Issued Reminder Header")
     var
         Customer: Record Customer;
@@ -508,13 +405,9 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// A new financial report with a row definition and a column definition of its own. With a period
-    /// column, one column is Net Change, so report 25 keeps its Starting Date; without, every column is
-    /// Balance at Date, so report 25 can switch Starting Date off.
+    /// With a period (Net Change) column report 25 keeps its Starting Date; with only Balance at Date
+    /// columns its SetBudgetFilterEnable can switch Starting Date off.
     /// </summary>
-    /// <param name="Description">The report's description.</param>
-    /// <param name="WithPeriodColumn">Whether one column is a period column.</param>
-    /// <returns>The financial report's name.</returns>
     internal procedure CreateFinancialReport(Description: Text[80]; WithPeriodColumn: Boolean): Code[10]
     var
         FinancialReport: Record "Financial Report";
@@ -566,10 +459,6 @@ codeunit 50187 "Filename Test Data"
         exit(FinancialReport.Name);
     end;
 
-    /// <summary>
-    /// Every posting account of the company's chart of accounts, as a totaling range: from the first
-    /// account to the last.
-    /// </summary>
     local procedure AllPostingAccounts(): Text[250]
     var
         GLAccount: Record "G/L Account";
@@ -581,12 +470,6 @@ codeunit 50187 "Filename Test Data"
         exit(CopyStr(FirstNo + '..' + GLAccount."No.", 1, 250));
     end;
 
-    /// <summary>
-    /// A new Filename Proof Document - the test app's own stand-in document - under a number no other
-    /// has, carrying the customer name given.
-    /// </summary>
-    /// <param name="CustomerName">The name it carries.</param>
-    /// <returns>Its number.</returns>
     internal procedure CreateProofDocument(CustomerName: Text[100]): Code[20]
     var
         ProofDocument: Record "Filename Proof Document";
@@ -599,11 +482,8 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// Makes sure the Language table has the language given, so a document can carry it. A test can
-    /// create the row; it cannot create Base Application's translations into that language.
+    /// Creates the Language row only; Base Application's translations into it cannot be created.
     /// </summary>
-    /// <param name="LanguageCode">The language code.</param>
-    /// <param name="WindowsLanguageId">Its Windows language ID.</param>
     internal procedure EnsureLanguage(LanguageCode: Code[10]; WindowsLanguageId: Integer)
     var
         Language: Record Language;
@@ -618,11 +498,9 @@ codeunit 50187 "Filename Test Data"
     end;
 
     /// <summary>
-    /// A code no record of the table has as the first field of its primary key: RFT followed by a
-    /// number, the first that is free. Ten characters at most, so it fits every Code[10] key.
+    /// The first free code of RFT and five digits for the table's first key field, so it fits every
+    /// Code[10] key.
     /// </summary>
-    /// <param name="TableNo">The table.</param>
-    /// <returns>The code.</returns>
     local procedure FreeCode(TableNo: Integer): Code[20]
     var
         RecRef: RecordRef;
