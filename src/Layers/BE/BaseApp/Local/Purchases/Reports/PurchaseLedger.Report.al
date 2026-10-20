@@ -23,6 +23,7 @@ report 11301 "Purchase Ledger"
     ApplicationArea = Basic, Suite;
     Caption = 'Purchase Ledger';
     UsageCategory = ReportsAndAnalysis;
+    DataAccessIntent = ReadOnly;
 
     dataset
     {
