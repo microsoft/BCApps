@@ -124,10 +124,12 @@ page 5872 "BOM Cost Shares"
                     Editable = false;
                     ToolTip = 'Specifies the unit of measure of the BOM item. ';
                 }
-                field("Replenishment System"; Rec."Replenishment System")
+                field("Replenishment System"; ShowReplenishmentSystem())
                 {
                     ApplicationArea = Assembly;
+                    Caption = 'Replenishment System';
                     Editable = false;
+                    ToolTip = 'Specifies the item''s replenishment system.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
@@ -370,6 +372,14 @@ page 5872 "BOM Cost Shares"
     end;
 #endif
 
+    local procedure ShowReplenishmentSystem(): Text
+    begin
+        if Rec.Type <> Rec.Type::Item then
+            exit('');
+
+        exit(Format(Rec."Replenishment System"));
+    end;
+
     local procedure UpdatePage()
     var
 #if not CLEAN27
@@ -470,4 +480,3 @@ page 5872 "BOM Cost Shares"
     begin
     end;
 }
-
