@@ -127,7 +127,34 @@ codeunit 12285 "FatturaPA Preview Mgt."
             TempFatturaHeader."Fattura Payment Terms Code" :=
                 PaymentTerms."Fattura Payment Terms Code";
 
+        if (SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo") and
+           (SalesHeader."Applies-to Doc. Type" = SalesHeader."Applies-to Doc. Type"::Invoice) and
+           (SalesHeader."Applies-to Doc. No." <> '')
+        then
+            PopulateKnownApplication(SalesHeader, TempFatturaHeader);
+
         TempFatturaHeader.Insert();
+    end;
+
+    local procedure PopulateKnownApplication(
+        SalesHeader: Record "Sales Header";
+        var TempFatturaHeader: Record "Fattura Header" temporary)
+    var
+        AppliedCustLedgerEntry: Record "Cust. Ledger Entry";
+        AppliedSalesInvoice: Record "Sales Invoice Header";
+    begin
+        AppliedCustLedgerEntry.SetRange("Customer No.", SalesHeader."Bill-to Customer No.");
+        AppliedCustLedgerEntry.SetRange("Document Type", AppliedCustLedgerEntry."Document Type"::Invoice);
+        AppliedCustLedgerEntry.SetRange("Document No.", SalesHeader."Applies-to Doc. No.");
+        if not AppliedCustLedgerEntry.FindFirst() then
+            exit;
+
+        TempFatturaHeader."Applied Doc. No." := AppliedCustLedgerEntry."Document No.";
+        TempFatturaHeader."Applied Posting Date" := AppliedCustLedgerEntry."Posting Date";
+        if AppliedSalesInvoice.Get(AppliedCustLedgerEntry."Document No.") then begin
+            TempFatturaHeader."Appl. Fattura Project Code" := AppliedSalesInvoice."Fattura Project Code";
+            TempFatturaHeader."Appl. Fattura Tender Code" := AppliedSalesInvoice."Fattura Tender Code";
+        end;
     end;
 
     local procedure BuildSourceReferences(
@@ -148,21 +175,15 @@ codeunit 12285 "FatturaPA Preview Mgt."
             exit;
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
-            SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
-            SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
-            if SalesShipmentLine.FindSet() then
+            SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+            SalesLine.SetRange("Document No.", SalesHeader."No.");
+            SalesLine.SetRange(Type, SalesLine.Type::Item);
+            SalesLine.SetFilter("Qty. to Invoice", '<>0');
+            if SalesLine.FindSet() then
                 repeat
-                    if SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then begin
-                        ShipmentLineNo += 1;
-                        FatturaDocHelper.InsertShipmentBuffer(
-                            TempShipmentBuffer, Format(SalesLine.Type::Item), ShipmentLineNo,
-                            SalesShipmentLine."Document No.", SalesShipmentLine."Shipment Date",
-                            SalesShipmentHeader."Fattura Project Code",
-                            SalesShipmentHeader."Fattura Tender Code",
-                            SalesShipmentHeader."Customer Purchase Order No.", false);
-                        HasShipmentReference := true;
-                    end;
-                until SalesShipmentLine.Next() = 0;
+                    AddPendingShipmentReferences(
+                        SalesHeader, SalesLine, TempShipmentBuffer, ShipmentLineNo, HasShipmentReference);
+                until SalesLine.Next() = 0;
         end;
 
         // Standard export derives order metadata from shipment information.
@@ -186,6 +207,43 @@ codeunit 12285 "FatturaPA Preview Mgt."
             if HasShipmentReference then
                 FatturaDocHelper.BuildPreviewOrderShipmentBuffers(
                     TempFatturaLine, TempShipmentBuffer, TempFatturaHeader);
+    end;
+
+    local procedure AddPendingShipmentReferences(
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        var TempShipmentBuffer: Record "Fattura Line" temporary;
+        var ShipmentLineNo: Integer;
+        var HasShipmentReference: Boolean)
+    var
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        QuantityToMatch: Decimal;
+        UninvoicedShipmentQty: Decimal;
+    begin
+        // Only shipment quantities belonging to this line's pending invoice may
+        // contribute DDT/order references. Already invoiced shipments are excluded.
+        QuantityToMatch := Abs(SalesLine."Qty. to Invoice");
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.SetRange("Order Line No.", SalesLine."Line No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        if SalesShipmentLine.FindSet() then
+            repeat
+                UninvoicedShipmentQty := Abs(SalesShipmentLine.Quantity) - Abs(SalesShipmentLine."Quantity Invoiced");
+                if (QuantityToMatch > 0) and (UninvoicedShipmentQty > 0) then
+                    if SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then begin
+                        ShipmentLineNo += 1;
+                        FatturaDocHelper.InsertShipmentBuffer(
+                            TempShipmentBuffer, Format(SalesLine.Type::Item), ShipmentLineNo,
+                            SalesShipmentLine."Document No.", SalesShipmentLine."Shipment Date",
+                            SalesShipmentHeader."Fattura Project Code",
+                            SalesShipmentHeader."Fattura Tender Code",
+                            SalesShipmentHeader."Customer Purchase Order No.", false);
+                        HasShipmentReference := true;
+                        QuantityToMatch -= Min(QuantityToMatch, UninvoicedShipmentQty);
+                    end;
+            until (SalesShipmentLine.Next() = 0) or (QuantityToMatch <= 0);
     end;
 
     local procedure BuildDocumentLines(
