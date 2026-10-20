@@ -55,7 +55,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             ToolTip = 'Specifies whether the travel is international.';
             DataClassification = CustomerContent;
             ObsoleteReason = 'Replaced by the Expense Location field.';
-#if not CLEAN30
+#if not CLEAN29
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
 #else
@@ -75,7 +75,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
             ObsoleteReason = 'Replaced by the Expense Location field.';
-#if not CLEAN30
+#if not CLEAN29
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
 #else
@@ -95,7 +95,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
             ObsoleteReason = 'Replaced by the Expense Location field.';
-#if not CLEAN30
+#if not CLEAN29
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
 #else

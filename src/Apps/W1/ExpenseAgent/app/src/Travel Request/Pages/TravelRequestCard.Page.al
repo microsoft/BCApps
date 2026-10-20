@@ -166,7 +166,7 @@ page 7129 "Travel Request Card"
                         CurrPage.Update();
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field("International Travel"; Rec."International Travel")
                 {
                     Importance = Additional;

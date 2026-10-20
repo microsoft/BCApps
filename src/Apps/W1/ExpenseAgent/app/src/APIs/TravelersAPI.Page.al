@@ -54,7 +54,7 @@ page 7103 "Travelers API"
                         Rec.ValidateEmployeeNo(EmployeeNumber);
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field(expenseUserNo; Rec."Expense User No.")
                 {
                     Caption = 'Expense User No.';

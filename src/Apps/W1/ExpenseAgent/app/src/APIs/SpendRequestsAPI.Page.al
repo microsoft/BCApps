@@ -118,18 +118,29 @@ page 7099 "Spend Requests API"
                 {
                     Caption = 'Travel Policy Acknowledgment';
                 }
+#if not CLEAN29
                 field(internationalTravel; Rec."International Travel")
                 {
                     Caption = 'International Travel';
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(originCountry; Rec."Origin Country/Region Code")
                 {
                     Caption = 'Origin Country';
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(destinationCountry; Rec."Dest. Country/Region Code")
                 {
                     Caption = 'Destination Country';
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(restrictions; Rec.Restrictions)
                 {
                     Caption = 'Restrictions';
@@ -180,7 +191,7 @@ page 7099 "Spend Requests API"
 
     trigger OnModifyRecord(): Boolean
     begin
-        // Protect travel request ownership while the legacy endpoint remains available before CLEAN30.
+        // Protect travel request ownership while the legacy endpoint remains available before CLEAN29.
         if Rec."Document Type" = Rec."Document Type"::"Travel Request" then begin
             if Rec."Requested By" <> xRec."Requested By" then
                 Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);

@@ -148,7 +148,7 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Travel Policy Acknowledgment';
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field(internationalTravel; Rec."International Travel")
                 {
                     Caption = 'International Travel';
