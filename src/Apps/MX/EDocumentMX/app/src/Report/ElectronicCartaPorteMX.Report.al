@@ -348,13 +348,14 @@ report 3367 "EDoc CFDI Carta Porte MX"
                 DigitalSignatureBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(DigitalSignatureTextUnbounded));
                 DigitalSignaturePACBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(DigitalSignaturePACTextUnbounded));
 
-                if "Foreign Trade" then begin
-                    LocationFrom.Get("Transit-from Location");
-                    if not LocationTo.Get("Transit-to Location") then begin
-                        LocationTo.Init();
-                        LocationTo."SAT Address ID" := "SAT Address ID";
-                        LocationTo.Address := "Bill-to/Pay-To Address";
-                    end;
+                // Origin and destination are printed for every Carta Porte, domestic or foreign trade
+                Clear(LocationFrom);
+                Clear(LocationTo);
+                if LocationFrom.Get("Transit-from Location") then;
+                if not LocationTo.Get("Transit-to Location") then begin
+                    LocationTo.Init();
+                    LocationTo."SAT Address ID" := "SAT Address ID";
+                    LocationTo.Address := "Bill-to/Pay-To Address";
                 end;
                 if FixedAssetVehicle.Get("Vehicle Code") then;
                 if FixedAssetTrailer1.Get("Trailer 1") then

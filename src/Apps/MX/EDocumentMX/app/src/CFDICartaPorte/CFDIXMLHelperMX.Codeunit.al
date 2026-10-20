@@ -132,10 +132,11 @@ codeunit 3361 "CFDI XML Helper MX"
         else
             DecimalPlaces := 6;
 
+        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
         exit(
-          Format(
+          ConvertStr(Format(
             Abs(Amount), 0,
-            '<Precision,' + Format(DecimalPlaces) + ':' + Format(DecimalPlaces) + '><Standard Format,1>'));
+            '<Precision,' + Format(DecimalPlaces) + ':' + Format(DecimalPlaces) + '><Standard Format,1>'), ',', '.'));
     end;
 
     procedure FormatDateTime(DT: DateTime): Text

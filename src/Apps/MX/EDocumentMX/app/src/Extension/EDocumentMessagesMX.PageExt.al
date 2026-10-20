@@ -43,6 +43,6 @@ pageextension 3353 "EDoc Messages MX" extends "E-Document Messages FactBox"
     }
 
     var
-        ResponseNotAvailableErr: Label 'No saved PAC response is available for this message. Responses are saved for successful payment complement transmissions after this feature is installed. For older messages, check the communication logs.';
+        ResponseNotAvailableErr: Label 'No saved PAC response is available for this message.';
         ResponseFileNameTok: Label 'MX-Payment-Response-%1.xml', Locked = true;
 }

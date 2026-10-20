@@ -138,18 +138,8 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EnsureSupportedTypes(Rec.Code);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnBeforeEDocumentCheck', '', false, false)]
-    local procedure OnBeforeEDocumentCheck(RecRef: RecordRef; EDocumentProcessingPhase: Enum "E-Document Processing Phase"; var IsHandled: Boolean)
-    var
-        EDocumentService: Record "E-Document Service";
-    begin
-        EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::CFDI);
-        if EDocumentService.FindSet() then
-            repeat
-                EnsureSupportedTypes(EDocumentService.Code);
-            until EDocumentService.Next() = 0;
-    end;
-
+    // Default supported types are created only when the service is set up as CFDI;
+    // afterwards the user manages them (e.g. removing Sales Shipment to opt out of Carta Porte)
     local procedure EnsureSupportedTypes(EDocumentServiceCode: Code[20])
     begin
         EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Sales Invoice");

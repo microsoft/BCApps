@@ -236,11 +236,17 @@ codeunit 3358 "Digital Sign MX"
         Value := Value.Replace('&apos;', '''');
         Value := Value.Replace('&lt;', '<');
         Value := Value.Replace('&gt;', '>');
+        // The SAT XSLT normalizes tab, line feed and carriage return to a space, whether serialized
+        // as character references (&#x9; &#xA; &#xD;) or written literally
+        Value := Value.Replace('&#x9;', ' ').Replace('&#9;', ' ');
+        Value := Value.Replace('&#xA;', ' ').Replace('&#10;', ' ');
+        Value := Value.Replace('&#xD;', ' ').Replace('&#13;', ' ');
         Value := Value.Replace('&amp;', '&');
         Value := DelChr(Value, '=', '|');
-        Value := DelChr(Value, '<>', ' ');
         for I := 1 to StrLen(Value) do begin
             C := CopyStr(Value, I, 1);
+            if PayCO_IsWhiteSpace(C) then
+                C := ' ';
             if C = ' ' then begin
                 if not PrevSpace then begin
                     Normalized += C;
@@ -251,6 +257,7 @@ codeunit 3358 "Digital Sign MX"
                 PrevSpace := false;
             end;
         end;
+        Normalized := DelChr(Normalized, '<>', ' ');
         if Normalized <> '' then
             OriginalString += Normalized + '|';
     end;
@@ -334,8 +341,16 @@ codeunit 3358 "Digital Sign MX"
     end;
 
     local procedure PayCO_IsWhiteSpace(C: Text[1]): Boolean
+    var
+        Tab: Char;
+        LineFeed: Char;
+        CarriageReturn: Char;
     begin
-        exit((C = ' ') or (C = Format(9)) or (C = Format(10)) or (C = Format(13)));
+        // Format(9) would be the digit '9', not a tab; compare against the actual control characters
+        Tab := 9;
+        LineFeed := 10;
+        CarriageReturn := 13;
+        exit((C = ' ') or (C = Format(Tab)) or (C = Format(LineFeed)) or (C = Format(CarriageReturn)));
     end;
 
     local procedure PayCO_LocalName(ElementName: Text): Text

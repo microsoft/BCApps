@@ -63,7 +63,8 @@ codeunit 3355 "Interfactura Processing"
 
         Session.LogMessage('0000QXG', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         TryProcessAdvanceReverseAfterSettle(EDocument);
-        EDocCFDIEmailMX.TrySendStampEmail(EDocument, EDocumentService);
+        // Email in a background task so a PDF/email failure cannot fail the already stamped document
+        EDocCFDIEmailMX.ScheduleStampEmail(EDocument);
     end;
 
     internal procedure SendPaymentComplement(var TempBlob: Codeunit "Temp Blob"; MessageContext: Codeunit "E-Doc. Message Context")

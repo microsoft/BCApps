@@ -17,6 +17,26 @@ codeunit 3370 "EDoc CFDI Email MX"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    TableNo = "E-Document";
+
+    trigger OnRun()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        // Runs as a background task after the stamping transaction is committed,
+        // so a PDF or email failure never affects the stamped E-Document
+        if EDocumentService.Get(Rec.Service) then;
+        TrySendStampEmail(Rec, EDocumentService);
+    end;
+
+    procedure ScheduleStampEmail(EDocument: Record "E-Document")
+    begin
+        if not TaskScheduler.CanCreateTask() then begin
+            Session.LogMessage('0000QXI', StrSubstNo(ScheduleEmailFailedMsg, EDocument."Entry No"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            exit;
+        end;
+        TaskScheduler.CreateTask(Codeunit::"EDoc CFDI Email MX", 0, true, CompanyName(), CurrentDateTime(), EDocument.RecordId());
+    end;
 
     procedure TrySendStampEmail(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service")
     var
@@ -135,4 +155,5 @@ codeunit 3370 "EDoc CFDI Email MX"
         NoCustomerEmailMsg: Label 'Customer %1 has no email address. Stamped CFDI email was not sent.', Locked = true;
         NoEmailAccountMsg: Label 'No default email account configured. Stamped CFDI email was not sent.', Locked = true;
         SendEmailFailedMsg: Label 'Failed to send stamped CFDI email: %1', Locked = true;
+        ScheduleEmailFailedMsg: Label 'Background tasks are not available; stamped CFDI email was not scheduled for E-Document %1.', Locked = true;
 }

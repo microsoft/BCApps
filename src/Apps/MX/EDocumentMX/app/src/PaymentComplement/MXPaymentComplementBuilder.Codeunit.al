@@ -25,6 +25,7 @@ codeunit 3356 "MX Payment Complement Builder"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "MX Payment Complement" = r;
 
     procedure Build(Payment: Record "Cust. Ledger Entry"; var TempBlob: Codeunit "Temp Blob")
     var
@@ -123,9 +124,9 @@ codeunit 3356 "MX Payment Complement Builder"
         Tax0: Decimal;
         BaseExempt: Decimal;
         TipoCambioP: Decimal;
+        AmountLCY: Decimal;
     begin
-        Payment.CalcFields(Amount, "Amount (LCY)");
-        Amount := Abs(Payment.Amount);
+        GetAppliedPaymentAmounts(Payment."Entry No.", Amount, AmountLCY);
         Node := Root.AsXmlNode();
         Helper.AddElementCFDI(Node, 'Complemento', '', Complement);
         Dom.AddElementWithPrefix(Complement, 'Pagos', '', 'pago20', PagosNamespaceTok, Pagos);
@@ -135,8 +136,8 @@ codeunit 3356 "MX Payment Complement Builder"
         Helper.AddAttribute(Pago, 'FechaPago', FormatPaymentReceivedDateTime(Payment."Posting Date"));
         Helper.AddAttribute(Pago, 'FormaDePagoP', GetSATMethod(Payment."Payment Method Code"));
         Helper.AddAttribute(Pago, 'MonedaP', Currency(Payment."Currency Code", LCY));
-        if Currency(Payment."Currency Code", LCY) <> LCY then begin
-            TipoCambioP := Round(Abs(Payment."Amount (LCY)") / Amount, 0.000001);
+        if (Currency(Payment."Currency Code", LCY) <> LCY) and (Amount <> 0) then begin
+            TipoCambioP := Round(AmountLCY / Amount, 0.000001);
             Helper.AddAttribute(Pago, 'TipoCambioP', FormatDecimal(TipoCambioP, 6));
         end else begin
             TipoCambioP := 1;
@@ -182,7 +183,7 @@ codeunit 3356 "MX Payment Complement Builder"
                 end
             until Detail.Next() = 0;
         AddPaymentTaxes(Pago, Helper, Dom, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt);
-        AddTotals(Totals, Helper, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt, TipoCambioP, Abs(Payment."Amount (LCY)"));
+        AddTotals(Totals, Helper, Base16, Tax16, Base8, Tax8, Base0, Tax0, BaseExempt, TipoCambioP, AmountLCY);
     end;
 
     local procedure AddRelatedTaxes(Related: XmlNode; Applied: Record "Cust. Ledger Entry"; Ratio: Decimal; EquivalenciaDR: Decimal; Helper: Codeunit "CFDI XML Helper MX"; Dom: Codeunit "XML DOM Management"; var Base16: Decimal; var Tax16: Decimal; var Base8: Decimal; var Tax8: Decimal; var Base0: Decimal; var Tax0: Decimal; var BaseExempt: Decimal)
@@ -358,7 +359,7 @@ codeunit 3356 "MX Payment Complement Builder"
             repeat
                 if PreviousPayment.Get(Detail."Applied Cust. Ledger Entry No.") and
                    (PreviousPayment."Document Type" = PreviousPayment."Document Type"::Payment) and
-                   (PreviousPayment."Fiscal Invoice Number PAC" <> '') then begin
+                   HasCurrentComplement(PreviousPayment."Entry No.") then begin
                     PreviousPaid += Abs(Detail.Amount);
                     PartialNo += 1;
                 end;
@@ -366,9 +367,39 @@ codeunit 3356 "MX Payment Complement Builder"
         BalanceBefore := Abs(Applied.Amount) - PreviousPaid;
     end;
 
+    local procedure GetAppliedPaymentAmounts(PaymentEntryNo: Integer; var Amount: Decimal; var AmountLCY: Decimal)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        // Legacy parity (GetPmtCustDtldEntry): Monto is what the payment actually applied, not its Amount
+        // FlowField, which also includes payment discounts and the unapplied remainder
+        DetailedCustLedgEntry.SetFilter(
+            "Entry Type", '%1|%2|%3|%4',
+            DetailedCustLedgEntry."Entry Type"::Application,
+            DetailedCustLedgEntry."Entry Type"::"Realized Gain",
+            DetailedCustLedgEntry."Entry Type"::"Realized Loss",
+            DetailedCustLedgEntry."Entry Type"::"Correction of Remaining Amount");
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", PaymentEntryNo);
+        DetailedCustLedgEntry.SetRange("Initial Document Type", DetailedCustLedgEntry."Initial Document Type"::Payment);
+        DetailedCustLedgEntry.CalcSums(Amount, "Amount (LCY)");
+        Amount := Abs(DetailedCustLedgEntry.Amount);
+        AmountLCY := Abs(DetailedCustLedgEntry."Amount (LCY)");
+    end;
+
+    local procedure HasCurrentComplement(PaymentEntryNo: Integer): Boolean
+    var
+        PaymentComplement: Record "MX Payment Complement";
+    begin
+        // The complement UUID is stored in MX Payment Complement, not on the payment ledger entry
+        PaymentComplement.SetRange("Payment Entry No.", PaymentEntryNo);
+        PaymentComplement.SetRange(Reversed, false);
+        exit(not PaymentComplement.IsEmpty());
+    end;
+
     local procedure FormatDecimal(Value: Decimal; Decimals: Integer): Text
     begin
-        exit(Format(Abs(Value), 0, '<Precision,' + Format(Decimals) + ':' + Format(Decimals) + '><Standard Format,1>'));
+        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
+        exit(ConvertStr(Format(Abs(Value), 0, '<Precision,' + Format(Decimals) + ':' + Format(Decimals) + '><Standard Format,1>'), ',', '.'));
     end;
 
     local procedure GetUUID(Applied: Record "Cust. Ledger Entry"; WriteBack: Codeunit "CFDI Write-Back MX"): Text

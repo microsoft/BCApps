@@ -70,7 +70,7 @@ table 3353 "MX PAC Web Service Detail"
             MXConnectionSetup."Send Mode"::Test:
                 Address := InterfacturaServiceUrlLbl;
             MXConnectionSetup."Send Mode"::Production:
-                Address := InterfacturaServiceUrlLbl;
+                Address := '';
         end;
 
         case Type of

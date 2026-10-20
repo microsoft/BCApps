@@ -479,7 +479,9 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure GetReportedLineAmount(SalesInvoiceLine: Record "Sales Invoice Line"): Decimal
     begin
-        exit(SalesInvoiceLine.Amount);
+        // Legacy parity: Importe is Cantidad x ValorUnitario before discounts (Descuento is reported separately).
+        // The rounded line Amount can fall outside the SAT tolerance (CFDI40_0067) when written with 6 decimals.
+        exit(SalesInvoiceLine.Quantity * SalesInvoiceLine."Unit Price");
     end;
 
     local procedure AddInformacionGlobalNode(var ParentNode: XmlElement; Customer: Record Customer; CFDIPeriod: Option "Diario","Semanal","Quincenal","Mensual"; PostingDate: Date)
@@ -621,6 +623,7 @@ codeunit 3354 "Export Interfactura MX"
         LineAmount: Decimal;
         LineDiscount: Decimal;
         TotalDiscount: Decimal;
+        ConceptsSubTotal: Decimal;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
     begin
@@ -679,7 +682,7 @@ codeunit 3354 "Export Interfactura MX"
         if SalesCrMemoLine.FindSet() then
             repeat
                 ConceptoNode := CreateCFDIElement('Concepto');
-                LineAmount := SalesCrMemoLine.Amount;
+                LineAmount := SalesCrMemoLine.Quantity * SalesCrMemoLine."Unit Price";
                 LineDiscount := SalesCrMemoLine."Line Discount Amount";
                 ConceptoNode.SetAttribute('ClaveProdServ', SATUtilities.GetSATClassification(SalesCrMemoLine.Type, SalesCrMemoLine."No."));
                 ConceptoNode.SetAttribute('NoIdentificacion', SalesCrMemoLine."No.");
@@ -690,7 +693,8 @@ codeunit 3354 "Export Interfactura MX"
                 ConceptoNode.SetAttribute('ValorUnitario', FormatDecimal(SalesCrMemoLine."Unit Price", 6));
                 ConceptoNode.SetAttribute('Importe', FormatDecimal(LineAmount, 6));
                 ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
-                TotalDiscount += LineDiscount;
+                TotalDiscount += Round(LineDiscount, 0.000001);
+                ConceptsSubTotal += Round(LineAmount, 0.000001);
                 ConceptoNode.SetAttribute('ObjetoImp', '02');
 
                 if SalesCrMemoLine."VAT %" <> 0 then begin
@@ -717,7 +721,7 @@ codeunit 3354 "Export Interfactura MX"
         RootNode.Add(ConceptosNode.AsXmlNode());
 
         TaxTotal := CalculatedTaxTotal;
-        RootNode.SetAttribute('Total', FormatAmount(SubTotal + TaxTotal, CurrencyCode));
+        SetDocumentTotals(RootNode, ConceptsSubTotal, TotalDiscount, TaxTotal, 0, CurrencyCode);
         if TaxTotal <> 0 then begin
             ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
@@ -756,6 +760,7 @@ codeunit 3354 "Export Interfactura MX"
         LineAmount: Decimal;
         LineDiscount: Decimal;
         TotalDiscount: Decimal;
+        ConceptsSubTotal: Decimal;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
     begin
@@ -814,7 +819,7 @@ codeunit 3354 "Export Interfactura MX"
         if ServiceInvoiceLine.FindSet() then
             repeat
                 ConceptoNode := CreateCFDIElement('Concepto');
-                LineAmount := ServiceInvoiceLine.Amount;
+                LineAmount := ServiceInvoiceLine.Quantity * ServiceInvoiceLine."Unit Price";
                 LineDiscount := ServiceInvoiceLine."Line Discount Amount";
                 ConceptoNode.SetAttribute('ClaveProdServ', SATUtilities.GetSATClassification(ServiceInvoiceLine.Type, ServiceInvoiceLine."No."));
                 ConceptoNode.SetAttribute('NoIdentificacion', ServiceInvoiceLine."No.");
@@ -825,7 +830,8 @@ codeunit 3354 "Export Interfactura MX"
                 ConceptoNode.SetAttribute('ValorUnitario', FormatDecimal(ServiceInvoiceLine."Unit Price", 6));
                 ConceptoNode.SetAttribute('Importe', FormatDecimal(LineAmount, 6));
                 ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
-                TotalDiscount += LineDiscount;
+                TotalDiscount += Round(LineDiscount, 0.000001);
+                ConceptsSubTotal += Round(LineAmount, 0.000001);
                 ConceptoNode.SetAttribute('ObjetoImp', '02');
 
                 if ServiceInvoiceLine."VAT %" <> 0 then begin
@@ -852,17 +858,18 @@ codeunit 3354 "Export Interfactura MX"
         RootNode.Add(ConceptosNode.AsXmlNode());
 
         TaxTotal := CalculatedTaxTotal;
-        RootNode.SetAttribute('Total', FormatDecimal(SubTotal + TaxTotal, 6));
+        SetDocumentTotals(RootNode, ConceptsSubTotal, TotalDiscount, TaxTotal, 0, CurrencyCode);
         if TaxTotal <> 0 then begin
+            // Document-level tax amounts use the currency decimals, as in the other document types
             ImpuestosNode := CreateCFDIElement('Impuestos');
-            ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatDecimal(TaxTotal, 6));
+            ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode := CreateCFDIElement('Traslados');
             TrasladoNode := CreateCFDIElement('Traslado');
-            TrasladoNode.SetAttribute('Base', FormatDecimal(CalculatedTaxBase, 6));
+            TrasladoNode.SetAttribute('Base', FormatAmount(CalculatedTaxBase, CurrencyCode));
             TrasladoNode.SetAttribute('Impuesto', GetTaxCode(SummaryVATPct, TaxTotal));
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
             TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SummaryVATPct / 100, 6), 8, '0'));
-            TrasladoNode.SetAttribute('Importe', FormatDecimal(TaxTotal, 6));
+            TrasladoNode.SetAttribute('Importe', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode.Add(TrasladoNode.AsXmlNode());
             ImpuestosNode.Add(TrasladosNode.AsXmlNode());
             RootNode.Add(ImpuestosNode.AsXmlNode());
@@ -891,6 +898,7 @@ codeunit 3354 "Export Interfactura MX"
         LineAmount: Decimal;
         LineDiscount: Decimal;
         TotalDiscount: Decimal;
+        ConceptsSubTotal: Decimal;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
     begin
@@ -949,7 +957,7 @@ codeunit 3354 "Export Interfactura MX"
         if ServiceCrMemoLine.FindSet() then
             repeat
                 ConceptoNode := CreateCFDIElement('Concepto');
-                LineAmount := ServiceCrMemoLine.Amount;
+                LineAmount := ServiceCrMemoLine.Quantity * ServiceCrMemoLine."Unit Price";
                 LineDiscount := ServiceCrMemoLine."Line Discount Amount";
                 ConceptoNode.SetAttribute('ClaveProdServ', SATUtilities.GetSATClassification(ServiceCrMemoLine.Type, ServiceCrMemoLine."No."));
                 ConceptoNode.SetAttribute('NoIdentificacion', ServiceCrMemoLine."No.");
@@ -960,7 +968,8 @@ codeunit 3354 "Export Interfactura MX"
                 ConceptoNode.SetAttribute('ValorUnitario', FormatDecimal(ServiceCrMemoLine."Unit Price", 6));
                 ConceptoNode.SetAttribute('Importe', FormatDecimal(LineAmount, 6));
                 ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
-                TotalDiscount += LineDiscount;
+                TotalDiscount += Round(LineDiscount, 0.000001);
+                ConceptsSubTotal += Round(LineAmount, 0.000001);
                 ConceptoNode.SetAttribute('ObjetoImp', '02');
 
                 if ServiceCrMemoLine."VAT %" <> 0 then begin
@@ -987,7 +996,7 @@ codeunit 3354 "Export Interfactura MX"
         RootNode.Add(ConceptosNode.AsXmlNode());
 
         TaxTotal := CalculatedTaxTotal;
-        RootNode.SetAttribute('Total', FormatAmount(SubTotal + TaxTotal, CurrencyCode));
+        SetDocumentTotals(RootNode, ConceptsSubTotal, TotalDiscount, TaxTotal, 0, CurrencyCode);
         if TaxTotal <> 0 then begin
             ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
@@ -2154,6 +2163,8 @@ codeunit 3354 "Export Interfactura MX"
         LineDiscount: Decimal;
         LineAmount: Decimal;
         CorrectedTotalTax: Decimal;
+        ConceptsSubTotal: Decimal;
+        ConceptsDiscount: Decimal;
     begin
         CompanyInfo.Get();
         GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
@@ -2221,12 +2232,14 @@ codeunit 3354 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatDecimal(LineAmount, 6));
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descuento', FormatDecimal(LineDiscount, 6));
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', GetSubjectToTaxCode(SalesInvoiceLine));
+                ConceptsSubTotal += Round(LineAmount, 0.000001);
+                ConceptsDiscount += Round(LineDiscount, 0.000001);
                 AddNodeImpuestoPerLine(ConceptoNode.AsXmlElement(), SalesInvoiceLine, SalesInvoiceRetentionLine);
                 AddNodeCuentaPredial(ConceptoNode, SalesInvoiceLine."No.");
             until SalesInvoiceLine.Next() = 0;
 
         AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine, CorrectedTotalTax);
-        RootNode.SetAttribute('Total', FormatAmount(SubTotal - TotalDiscount + CorrectedTotalTax - TotalRetention, SalesInvoiceHeader."Currency Code"));
+        SetDocumentTotals(RootNode, ConceptsSubTotal, ConceptsDiscount, CorrectedTotalTax, TotalRetention, SalesInvoiceHeader."Currency Code");
 
         if SalesInvoiceHeader."Foreign Trade" then begin
             CurrentNode := RootNode.AsXmlNode();
@@ -3379,8 +3392,16 @@ codeunit 3354 "Export Interfactura MX"
     end;
 
     local procedure IsWhiteSpace(Character: Text[1]): Boolean
+    var
+        Tab: Char;
+        LineFeed: Char;
+        CarriageReturn: Char;
     begin
-        exit((Character = ' ') or (Character = Format(9)) or (Character = Format(10)) or (Character = Format(13)));
+        // Format(9) would be the digit '9', not a tab; compare against the actual control characters
+        Tab := 9;
+        LineFeed := 10;
+        CarriageReturn := 13;
+        exit((Character = ' ') or (Character = Format(Tab)) or (Character = Format(LineFeed)) or (Character = Format(CarriageReturn)));
     end;
 
     local procedure SkipWhiteSpaces(XmlText: Text; var Position: Integer)
@@ -3605,13 +3626,32 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure FormatAmount(InAmount: Decimal; CurrencyCode: Code[10]): Text
     begin
-        exit(Format(Abs(InAmount), 0, '<Precision,' + Format(GetCurrencyDecimalPlaces(CurrencyCode)) + ':' +
-            Format(GetCurrencyDecimalPlaces(CurrencyCode)) + '><Standard Format,1>'));
+        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
+        exit(ConvertStr(Format(Abs(InAmount), 0, '<Precision,' + Format(GetCurrencyDecimalPlaces(CurrencyCode)) + ':' +
+            Format(GetCurrencyDecimalPlaces(CurrencyCode)) + '><Standard Format,1>'), ',', '.'));
     end;
 
     local procedure FormatDecimal(InAmount: Decimal; DecimalPlaces: Integer): Text
     begin
         exit(FormatDecimalRange(InAmount, DecimalPlaces, DecimalPlaces));
+    end;
+
+    local procedure RoundToCurrency(InAmount: Decimal; CurrencyCode: Code[10]): Decimal
+    begin
+        exit(Round(InAmount, 1 / Power(10, GetCurrencyDecimalPlaces(CurrencyCode))));
+    end;
+
+    local procedure SetDocumentTotals(var RootNode: XmlElement; ConceptsSubTotal: Decimal; ConceptsDiscount: Decimal; TaxTotal: Decimal; RetentionTotal: Decimal; CurrencyCode: Code[10])
+    begin
+        // Legacy parity: SubTotal and Descuento are derived from the concepts as written (CFDI40_0008), and
+        // Total = SubTotal - Descuento + traslados - retenciones (CFDI40_0016). The CFDI total can therefore
+        // differ by a cent from the posted document total, as in the legacy implementation.
+        ConceptsSubTotal := RoundToCurrency(ConceptsSubTotal, CurrencyCode);
+        ConceptsDiscount := RoundToCurrency(ConceptsDiscount, CurrencyCode);
+        RootNode.SetAttribute('SubTotal', FormatAmount(ConceptsSubTotal, CurrencyCode));
+        RootNode.SetAttribute('Descuento', FormatAmount(ConceptsDiscount, CurrencyCode));
+        RootNode.SetAttribute('Total', FormatAmount(
+            ConceptsSubTotal - ConceptsDiscount + RoundToCurrency(TaxTotal, CurrencyCode) - RoundToCurrency(RetentionTotal, CurrencyCode), CurrencyCode));
     end;
 
     local procedure FormatDateTime(InDateTime: DateTime): Text
@@ -3722,8 +3762,9 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure FormatDecimalRange(InAmount: Decimal; DecimalPlacesFrom: Integer; DecimalPlacesTo: Integer): Text
     begin
+        // Standard Format 1 has no thousands separator but uses the regional decimal separator; CFDI requires '.'
         exit(
-          Format(Abs(InAmount), 0, '<Precision,' + Format(DecimalPlacesFrom) + ':' + Format(DecimalPlacesTo) + '><Standard Format,1>'));
+          ConvertStr(Format(Abs(InAmount), 0, '<Precision,' + Format(DecimalPlacesFrom) + ':' + Format(DecimalPlacesTo) + '><Standard Format,1>'), ',', '.'));
     end;
 
     local procedure GetCurrencyDecimalPlaces(CurrencyCode: Code[10]): Integer
