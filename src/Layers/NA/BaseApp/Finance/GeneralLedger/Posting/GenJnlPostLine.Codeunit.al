@@ -4457,6 +4457,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     internal procedure CustUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; CurrencyFactor: Decimal; PostingDate: Date)
     var
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
         IsHandled: Boolean;
         ShouldConsiderVATPostingGrouping: Boolean;
         IsLCYTransaction: Boolean;
@@ -4485,6 +4486,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 then
                     ShouldConsiderVATPostingGrouping := true;
             end;
+
+        if ShouldConsiderVATPostingGrouping and
+           (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
+           (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice)
+        then begin
+            // General journal credit memos have no posted sales lines to allocate by VAT group.
+            SalesCrMemoLine.SetRange("Document No.", GenJnlLine."Document No.");
+            SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
+            ShouldConsiderVATPostingGrouping := not SalesCrMemoLine.IsEmpty();
+        end;
 
         if not ShouldConsiderVATPostingGrouping then
             CustUnrealizedVAT(false, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, CurrencyFactor, PostingDate)
@@ -4590,12 +4601,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     LastConnectionNo := VATEntry2."Sales Tax Connection No.";
                 end;
 
-                if ShouldConsiderVATPostingGrouping then begin
-                    InvoicePartAmountByVAT := CustLedgEntry2.GetInvoicePartAmountByVAT(CustLedgEntry2."Document Type", GenJnlLine, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup);
-                    SettledAmountByVAT :=
-                        CustLedgEntry2.GetCreditMemoPartAmountByVAT(
-                            CreditMemoDocumentNo, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount,
-                            CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
+                if ShouldConsiderVATPostingGrouping then
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
                         Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor()),
@@ -4603,8 +4609,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         InvoicePartAmountByVAT,
                         TotalUnrealVATAmountFirst,
                         TotalUnrealVATAmountLast,
-                        InvoicePartAmountByVAT);
-                end else
+                        InvoicePartAmountByVAT)
+                else
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
                             Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
@@ -6284,7 +6290,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
           RealizedVATAmount, RealizedVATBase, RealizedVATAmountAddCurr, RealizedVATBaseAddCurr, '', '');
     end;
 
-    local procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    local procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLRegisterEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
         VATEntry.LockTable();
@@ -6317,9 +6323,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry.TestField("G/L Register No.");
         OnBeforeInsertPostUnrealVATEntry(VATEntry, GenJnlLine, VATEntry2);
         VATEntry.Insert(true);
-        OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLEntryNo, NextVATEntryNo);
-        if GLEntryNo <> 0 then
-            TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
+        OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLRegisterEntryNo, NextVATEntryNo);
+        if GLRegisterEntryNo <> 0 then
+            TempGLEntryVATEntryLink.InsertLinkSelf(GLRegisterEntryNo + 1, NextVATEntryNo);
         NextVATEntryNo := NextVATEntryNo + 1;
 
         VATEntry2."Remaining Unrealized Amount" :=
@@ -6335,7 +6341,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry2."Add.-Curr. Realized Amount" -= RealizedVATAmountAddCurr;
         VATEntry2."Add.-Curr. Realized Base" -= RealizedVATBaseAddCurr;
         VATEntry2.Modify();
-        OnAfterPostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, GLEntryNo, NextEntryNo, NextVATEntryNo);
+        OnAfterPostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, GLRegisterEntryNo, NextEntryNo, NextVATEntryNo);
     end;
 
     /// <summary>
