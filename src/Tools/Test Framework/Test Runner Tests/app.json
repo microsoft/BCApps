@@ -9,6 +9,8 @@
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
+  "logo": "ExtensionLogo.png",
   "dependencies": [
     {
       "id": "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
