@@ -1056,14 +1056,24 @@ codeunit 134228 "ERM Close Income Statement"
     var
         GLAccount: Record "G/L Account";
         GLAccountCategory: Record "G/L Account Category";
+        GLAccountFilter: Text;
+        RetainedEarningsAccountNotFoundErr: Label 'A retained earnings G/L account could not be found.';
     begin
-        GLAccountCategory.SetRange("Account Category", GLAccountCategory."Account Category"::Equity);
-        GLAccountCategory.SetRange(
-            "Additional Report Definition", GLAccountCategory."Additional Report Definition"::"Retained Earnings");
-        GLAccountCategory.FindFirst();
-        GLAccount.SetRange("Account Subcategory Entry No.", GLAccountCategory."Entry No.");
-        GLAccount.FindFirst();
-        exit(GLAccount."No.");
+        GLAccountCategory.FindSet();
+        repeat
+            if (GLAccountCategory."Account Category" = GLAccountCategory."Account Category"::Equity) and
+               (GLAccountCategory."Additional Report Definition" = GLAccountCategory."Additional Report Definition"::"Retained Earnings")
+            then begin
+                GLAccountFilter := GLAccountCategory.GetTotaling();
+                if GLAccountFilter <> '' then begin
+                    GLAccount.SetFilter("No.", GLAccountFilter);
+                    GLAccount.FindFirst();
+                    exit(GLAccount."No.");
+                end;
+            end;
+        until GLAccountCategory.Next() = 0;
+
+        Error(RetainedEarningsAccountNotFoundErr);
     end;
 
     local procedure CreateBusinessUnitCode(): Code[10]
