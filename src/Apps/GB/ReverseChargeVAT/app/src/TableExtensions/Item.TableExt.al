@@ -10,10 +10,12 @@ tableextension 10553 "Item" extends "Item"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(10507; "Reverse Charge Applies GB"; Boolean)
         {
             Caption = 'Reverse Charge Applies';
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
     }
 }

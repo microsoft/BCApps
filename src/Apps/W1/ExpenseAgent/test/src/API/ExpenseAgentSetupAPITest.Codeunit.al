@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148333 "Expense Agent Setup API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -63,9 +64,6 @@ codeunit 148333 "Expense Agent Setup API Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Agent Setup API Test");
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Agent Setup API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();

@@ -308,8 +308,7 @@ table 20411 "Qlty. Inspection Result"
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
         QltyIResultConditConf.SetRange("Result Code", Rec.Code);
-        QltyIResultConditConf.ModifyAll(Priority, Rec."Evaluation Sequence", false);
-        QltyIResultConditConf.ModifyAll("Result Visibility", Rec."Result Visibility", false);
+        QltyIResultConditConf.ModifyAll(Priority, Rec."Evaluation Sequence", "Result Visibility", Rec."Result Visibility", false);
     end;
 
     /// <summary>
