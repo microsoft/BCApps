@@ -3548,6 +3548,125 @@ codeunit 139235 "PEPPOL30 Management Tests"
           'LineExtensionAmount must equal PriceAmount * Quantity per PEPPOL BIS 3.0');
     end;
 
+    [Test]
+    procedure ElectronicAddressSchemeMustBeEASCode()
+    var
+        PEPPOLElectronicAddress: Codeunit "PEPPOL Electronic Address";
+    begin
+        // [SCENARIO] Only codes of the Peppol Electronic Address Scheme (EAS) code list are valid endpoint schemes.
+
+        // [THEN] EAS codes are valid
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('0088'), 'The GLN scheme must be valid.');
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('0002'), 'The first code of the list must be valid.');
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('9959'), 'The last code of the list must be valid.');
+
+        // [THEN] Values that are not exactly an EAS code are invalid, also when they only look like one
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme(''), 'A blank scheme must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('MY-SCHEME'), 'A custom scheme must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('88'), 'A code without leading zeros must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('0089'), 'A four digit value outside the list must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme(' 0088'), 'A code with spaces must be invalid.');
+    end;
+
+    [Test]
+    procedure RemittanceAdviceXmlHasLineCountNoteOrderAndVendorInvoiceReference()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        Vendor: Record Microsoft.Purchases.Vendor.Vendor;
+        InvoiceVendLedgEntry: Record Microsoft.Purchases.Payables."Vendor Ledger Entry";
+        PaymentVendLedgEntry: Record Microsoft.Purchases.Payables."Vendor Ledger Entry";
+        PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header";
+        PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line";
+        Item: Record Item;
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        DocInStream: InStream;
+        ExpectedLineCount: Integer;
+        TemplateName: Code[10];
+        InvoiceNo: Code[20];
+        XmlDoc: XmlDocument;
+        XmlNsManager: XmlNamespaceManager;
+        XmlNode: XmlNode;
+        XmlNodes: XmlNodeList;
+    begin
+        // [SCENARIO 648724] The remittance advice XML carries the actual line count, emits the line Note right after the line ID
+        // and references the applied invoice by the vendor's invoice number.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        if Vendor."VAT Registration No." = '' then
+            Vendor."VAT Registration No." := '987654321';
+        if Vendor."Country/Region Code" = '' then begin
+            CompanyInformation.Get();
+            Vendor."Country/Region Code" := CompanyInformation."Country/Region Code";
+        end;
+        Vendor.Modify(true);
+        TemplateName := LibraryJournals.SelectGenJournalTemplate(Enum::"Gen. Journal Template Type"::Payments, Page::"Payment Journal");
+        LibraryJournals.SelectGenJournalBatch(GenJournalBatch, TemplateName);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+
+        // [GIVEN] A posted purchase invoice with a vendor invoice number, and a posted payment applied to it.
+        LibraryInvt.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        PurchaseLine.Modify(true);
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+        InvoiceVendLedgEntry.SetRange("Document Type", InvoiceVendLedgEntry."Document Type"::Invoice);
+        InvoiceVendLedgEntry.SetRange("Document No.", InvoiceNo);
+        InvoiceVendLedgEntry.SetRange("Vendor No.", Vendor."No.");
+        InvoiceVendLedgEntry.FindFirst();
+        InvoiceVendLedgEntry.CalcFields("Remaining Amount");
+        InvoiceVendLedgEntry."Amount to Apply" := InvoiceVendLedgEntry."Remaining Amount";
+        InvoiceVendLedgEntry.Modify();
+        Assert.AreNotEqual('', InvoiceVendLedgEntry."External Document No.", 'The posted invoice should have a vendor invoice number.');
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, Vendor."No.", GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -InvoiceVendLedgEntry."Remaining Amount");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceVendLedgEntry."Document No.");
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        PaymentVendLedgEntry.SetRange("Document Type", PaymentVendLedgEntry."Document Type"::Payment);
+        PaymentVendLedgEntry.SetRange("Vendor No.", Vendor."No.");
+        PaymentVendLedgEntry.FindFirst();
+
+        // [GIVEN] The remittance advice buffer built from the posted payment, with a payment discount on the line.
+        RemitAdviceBufferMgt.BuildFromPostedPayment(PaymentVendLedgEntry, TempRemitAdviceBuffer);
+        TempRemitAdviceBuffer.SetFilter("Line No.", '>%1', 0);
+        ExpectedLineCount := TempRemitAdviceBuffer.Count();
+        TempRemitAdviceBuffer.FindFirst();
+        TempRemitAdviceBuffer."Pmt. Discount Amount" := LibraryRandom.RandDec(10, 2);
+        TempRemitAdviceBuffer.Modify();
+
+        // [WHEN] The PEPPOL remittance advice XML is generated.
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
+
+        TempBlob.CreateInStream(DocInStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(DocInStream, XmlDoc);
+        XmlNsManager.NameTable(XmlDoc.NameTable());
+        XmlNsManager.AddNamespace('ra', 'urn:oasis:names:specification:ubl:schema:xsd:RemittanceAdvice-2');
+        XmlNsManager.AddNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        XmlNsManager.AddNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+
+        // [THEN] LineCountNumeric equals the number of RemittanceAdviceLine elements.
+        XmlDoc.SelectNodes('/ra:RemittanceAdvice/cac:RemittanceAdviceLine', XmlNsManager, XmlNodes);
+        Assert.AreEqual(ExpectedLineCount, XmlNodes.Count(), 'Each buffer line should be exported as a RemittanceAdviceLine.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cbc:LineCountNumeric', XmlNsManager, XmlNode), 'The remittance advice should contain LineCountNumeric.');
+        Assert.AreEqual(Format(ExpectedLineCount), XmlNode.AsXmlElement().InnerText(), 'LineCountNumeric should equal the number of RemittanceAdviceLine elements.');
+
+        // [THEN] The line Note immediately follows the line ID.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine[1]/cbc:ID/following-sibling::*[1]', XmlNsManager, XmlNode), 'The line ID should be followed by another element.');
+        Assert.AreEqual('Note', XmlNode.AsXmlElement().LocalName(), 'The line Note should immediately follow the line ID.');
+
+        // [THEN] The invoice document reference carries the vendor invoice number and InvoicingPartyReference is not used for it.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine[1]/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', XmlNsManager, XmlNode), 'The line should contain an InvoiceDocumentReference.');
+        Assert.AreEqual(InvoiceVendLedgEntry."External Document No.", XmlNode.AsXmlElement().InnerText(), 'The invoice document reference should contain the vendor invoice number.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine/cbc:InvoicingPartyReference', XmlNsManager, XmlNode), 'InvoicingPartyReference should not carry the vendor invoice number.');
+    end;
+
     var
     local procedure Initialize()
     var
@@ -4240,4 +4359,3 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Reply := false;
     end;
 }
-
