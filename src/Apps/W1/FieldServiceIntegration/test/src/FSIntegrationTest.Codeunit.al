@@ -2406,6 +2406,106 @@ codeunit 139204 "FS Integration Test"
         VerifySynchronizationSelection(FSWorkOrder.RecordId(), false, 0);
     end;
 
+    [Test]
+    procedure EmptyAuxiliaryImportWithoutMappingsDoesNotDelegate()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+    begin
+        // [FEATURE] [AI test 1.0] [FS Integration] [Mapping Filters]
+        // [SCENARIO] An empty work order imports without auxiliary mappings.
+        Initialize();
+
+        // [GIVEN] Coupled order "O" has no children and no auxiliary mappings.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        DeleteAuxiliaryMappings();
+
+        // [WHEN] "O" synchronizes its children to Business Central.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] No auxiliary records or empty record sets are delegated.
+        VerifySynchronizationSelection(FSWorkOrder.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure EmptyAuxiliaryExportWithoutMappingsDoesNotDelegate()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+    begin
+        // [FEATURE] [AI test 1.0] [FS Integration] [Mapping Filters]
+        // [SCENARIO] An empty service order exports without product or service mappings.
+        Initialize();
+
+        // [GIVEN] Coupled order "O" has no children and no auxiliary mappings.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        DeleteAuxiliaryMappings();
+
+        // [WHEN] "O" synchronizes its children to Field Service.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] No auxiliary records or empty record sets are delegated.
+        VerifySynchronizationSelection(ServiceHeader.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure NonemptyAuxiliaryImportWithoutMappingFails()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        FSWorkOrderIncident: Record "FS Work Order Incident";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 1.0] [FS Integration] [Mapping Filters]
+        // [SCENARIO] Importing an incident still requires its auxiliary mapping.
+        Initialize();
+
+        // [GIVEN] Coupled order "O" has incident "I" but no incident mapping.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateAuxiliaryIncident(FSWorkOrderIncident, FSWorkOrder, 'INCIDENT');
+        IntegrationTableMapping.Get('SRVORDERITEMLINE');
+        IntegrationTableMapping.Delete(true);
+
+        // [WHEN] "O" synchronizes its children to Business Central.
+        asserterror RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] The missing-mapping error is preserved for nonempty candidates.
+        Assert.ExpectedError('There is no integration table mapping for FS Work Order Incident.');
+        Assert.ExpectedErrorCode('Dialog');
+        UnbindSubscription(FSIntegrationTestLibrary);
+    end;
+
+    [Test]
+    procedure NonemptyAuxiliaryExportWithoutMappingFails()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ServiceLine: Record "Service Line";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 1.0] [FS Integration] [Mapping Filters]
+        // [SCENARIO] Exporting a product line still requires its auxiliary mapping.
+        Initialize();
+
+        // [GIVEN] Coupled order "O" has product line "L" but no product mapping.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateAuxiliaryServiceLine(ServiceLine, ServiceHeader, false, false, 'PRODUCT');
+        IntegrationTableMapping.Get('SRVORDERLINE-ITEM');
+        IntegrationTableMapping.Delete(true);
+
+        // [WHEN] "O" synchronizes its children to Field Service.
+        asserterror RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] The existing error is preserved for nonempty candidates without a mapping.
+        Assert.ExpectedError(SynchronizeEmptySetErr);
+        Assert.ExpectedErrorCode('Dialog');
+        UnbindSubscription(FSIntegrationTestLibrary);
+    end;
+
     local procedure Initialize()
     var
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
@@ -2558,6 +2658,15 @@ codeunit 139204 "FS Integration Test"
         FSBookingStatus.Insert();
         FSBookingStatus.SetRange(FieldServiceStatus, FSBookingStatus.FieldServiceStatus::Completed);
         Assert.AreEqual(1, FSBookingStatus.Count(), 'A completed booking status must exist in the active mock connection.');
+    end;
+
+    local procedure DeleteAuxiliaryMappings()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        IntegrationTableMapping.SetFilter(Name, '%1|%2|%3|%4',
+            'SRVORDERITEMLINE', 'SRVORDERLINE-ITEM', 'SRVORDERLINE-SERVICE', 'SRVORDERLINE-RESOURC');
+        IntegrationTableMapping.DeleteAll(true);
     end;
 
     local procedure CreateCoupledServiceOrder(var ServiceHeader: Record "Service Header"; var FSWorkOrder: Record "FS Work Order")

@@ -1287,8 +1287,11 @@ codeunit 6610 "FS Int. Table Subscriber"
         IntegrationTableMapping: Record "Integration Table Mapping";
         NoMappingErr: Label 'There is no integration table mapping for %1.', Comment = '%1 = table name';
     begin
-        if not IntegrationTableMapping.FindMapping(TableNo, IntegrationRecordRef.Number()) then
+        if not IntegrationTableMapping.FindMapping(TableNo, IntegrationRecordRef.Number()) then begin
+            if IntegrationRecordRef.IsEmpty() then
+                exit;
             Error(NoMappingErr, IntegrationRecordRef.Name());
+        end;
 
 #pragma warning disable AA0214
         ApplyMappingFilter(IntegrationRecordRef, IntegrationTableMapping.GetIntegrationTableFilter());
@@ -1425,8 +1428,12 @@ codeunit 6610 "FS Int. Table Subscriber"
         IntegrationTableMapping.SetRange("Table ID", RecordsToSynchRecordRef.Number);
         IntegrationTableMapping.SetRange("Integration Table ID", TargetTable);
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
-        if not IntegrationTableMapping.FindFirst() then
+        if not IntegrationTableMapping.FindFirst() then begin
+            if ApplyTableFilter then
+                if RecordsToSynchRecordRef.IsEmpty() then
+                    exit;
             Error(SynchronizeEmptySetErr);
+        end;
 
 #pragma warning disable AA0214
         if ApplyTableFilter then
