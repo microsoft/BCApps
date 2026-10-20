@@ -59,7 +59,8 @@
     },
     {
       "projects": [
-        "build/projects/Test Apps *"
+        "build/projects/Test Apps *",
+        "build\\projects\\Test Apps *"
       ],
       "buildModes": [
         "IntegrationTests"
@@ -79,7 +80,8 @@
     },
     {
       "projects": [
-        "build/projects/Test Apps *"
+        "build/projects/Test Apps *",
+        "build\\projects\\Test Apps *"
       ],
       "buildModes": [
         "UncategorizedTests"
@@ -99,7 +101,8 @@
     },
     {
       "projects": [
-        "build/projects/Test Apps *"
+        "build/projects/Test Apps *",
+        "build\\projects\\Test Apps *"
       ],
       "buildModes": [
         "LegacyTestsBucket1",

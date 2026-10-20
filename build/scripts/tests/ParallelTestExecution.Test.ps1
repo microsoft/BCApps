@@ -274,33 +274,86 @@ Describe "Separate RunTests action bucket configuration" {
             LegacyTestsBucket1 = $false
             LegacyTestsBucket2 = $false
         }
+        $script:expectedTestType = @{
+            IntegrationTests = 'IntegrationTest'
+            UncategorizedTests = 'Uncategorized'
+            LegacyTestsBucket1 = 'Legacy'
+            LegacyTestsBucket2 = 'Legacy'
+        }
     }
 
-    It "maps every existing test-project build mode to exactly one separate-action rule" {
+    It "maps both project path separator forms to the same separate-action rule" {
         $script:testProjects.Count | Should -BeGreaterThan 0
 
         foreach ($project in $script:testProjects) {
             $projectSettings = Get-Content (Join-Path $project.FullName '.AL-Go\settings.json') -Raw | ConvertFrom-Json
-            $projectPath = "build/projects/$($project.Name)"
 
             foreach ($buildMode in @($projectSettings.buildModes)) {
-                $rules = @($script:repoSettings.conditionalSettings | Where-Object {
-                    $_.PSObject.Properties.Name -contains 'projects' -and
-                    @($_.projects | Where-Object { $projectPath -like $_ }).Count -gt 0 -and
-                    @($_.buildModes) -contains $buildMode -and
-                    $_.settings.PSObject.Properties.Name -contains 'useSeparateTestAction'
-                })
-                $rules.Count | Should -Be 1
-
                 $bucketRule = @($projectSettings.ConditionalSettings | Where-Object {
                     @($_.buildModes) -contains $buildMode
                 })
                 $bucketRule.Count | Should -Be 1
 
-                $separateSettings = $rules[0].settings.useSeparateTestAction
-                $separateSettings.enabled | Should -BeTrue
-                $separateSettings.testType | Should -Be $bucketRule[0].settings.testType
-                $separateSettings.codeCoverageEnabled | Should -Be $script:expectedCoverage[$buildMode]
+                foreach ($projectPath in @(
+                    "build/projects/$($project.Name)",
+                    "build\projects\$($project.Name)"
+                )) {
+                    $rules = @($script:repoSettings.conditionalSettings | Where-Object {
+                        $_.PSObject.Properties.Name -contains 'projects' -and
+                        @($_.projects | Where-Object { $projectPath -like $_ }).Count -gt 0 -and
+                        @($_.buildModes) -contains $buildMode -and
+                        $_.settings.PSObject.Properties.Name -contains 'useSeparateTestAction'
+                    })
+                    $rules.Count | Should -Be 1
+
+                    $separateSettings = $rules[0].settings.useSeparateTestAction
+                    $separateSettings.enabled | Should -BeTrue
+                    $separateSettings.testType | Should -Be $bucketRule[0].settings.testType
+                    $separateSettings.codeCoverageEnabled | Should -Be $script:expectedCoverage[$buildMode]
+                }
+            }
+        }
+    }
+
+    It "resolves both separator forms through the coverage-branch ReadSettings module" {
+        $readSettingsModule = @(
+            if (-not [string]::IsNullOrWhiteSpace($env:BCAPPS_ALGO_COVERAGE_ROOT)) {
+                Join-Path $env:BCAPPS_ALGO_COVERAGE_ROOT 'Actions\.Modules\ReadSettings.psm1'
+            }
+        ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+        if ([string]::IsNullOrWhiteSpace($readSettingsModule)) {
+            Set-ItResult -Skipped -Because 'the AL-Go coverage branch checkout is unavailable'
+            return
+        }
+
+        Import-Module $readSettingsModule -Force
+        $readSettingsParameters = @{
+            baseFolder = $script:configurationRepoRoot
+            repoName = 'microsoft/BCApps'
+            workflowName = 'CI/CD'
+            branchName = 'spetersen/runTestsCC'
+            userName = 'spetersenms'
+            trigger = 'workflow_dispatch'
+            orgSettingsVariableValue = ''
+            repoSettingsVariableValue = ''
+            environmentSettingsVariableValue = ''
+            environmentName = ''
+        }
+
+        foreach ($project in $script:testProjects) {
+            $projectSettings = Get-Content (Join-Path $project.FullName '.AL-Go\settings.json') -Raw |
+                ConvertFrom-Json
+            foreach ($projectPath in @(
+                "build/projects/$($project.Name)",
+                "build\projects\$($project.Name)"
+            )) {
+                foreach ($buildMode in @($projectSettings.buildModes)) {
+                    $settings = ReadSettings @readSettingsParameters -project $projectPath -buildMode $buildMode
+                    $settings.useSeparateTestAction.enabled | Should -BeTrue
+                    $settings.useSeparateTestAction.testType | Should -Be $script:expectedTestType[$buildMode]
+                    $settings.useSeparateTestAction.codeCoverageEnabled |
+                        Should -Be $script:expectedCoverage[$buildMode]
+                }
             }
         }
     }
