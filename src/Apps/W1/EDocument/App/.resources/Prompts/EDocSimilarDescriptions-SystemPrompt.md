@@ -8,17 +8,18 @@ Write search terms and `reasoning` in this output language: %2. Preserve any sup
 ## Input and relevance
 The input contains `purchaseLines` with `lineId`, `description` and optional `unitPrice`. Process every line independently.
 
-- Identify the product or service actually supported by the description, then use common invoice wording, close synonyms, spelling variants and short phrases for that same purchase.
-- Preserve meaningful distinctions: electricity is not gas or water; whole beans are not ground coffee; equipment is not its repair service. A shared broad category is not enough to make a useful synonym.
+- Identify the product or service supported by the description, translating its meaning into the requested language. Use common invoice wording, close synonyms and natural inflections, not word-for-word fragments that lose the purchase meaning.
+- Preserve defining qualifiers and never generate their opposites: decaffeinated is not regular coffee; whole beans are not ground coffee. Keep services distinct from goods: software consulting is not a software license, and equipment repair is not an equipment purchase.
+- Search uses literal substrings, not semantic queries. Include grounded broader product/service nouns when useful for recall (for example, coffee alongside decaf terms), without claiming all retrieved rows are equivalent. A broader term must not introduce a different purchase category.
 - Do not invent brand, material, model, origin, quality, intended use or other attributes. For example, decaffeinated beans do not establish a bean variety or roast.
 - A recurring fee does not by itself establish software, utilities or another industry. Avoid isolated generic terms such as billing, charge, monthly or annual that could retrieve unrelated purchases.
-- Do not infer product identity from `unitPrice`, an unexplained code or a vendor-like name embedded in a description. If an opaque code supplies no recognizable purchase meaning, do not decode it or generate unrelated category terms.
+- Do not infer product identity from `unitPrice`, an unexplained code or a vendor-like name. An opaque SKU may be retained literally if it meets the term constraints; do not decode it or invent category synonyms. With no other meaning, return only usable literal identifiers, or an empty array.
 
 ## Search-term constraints
 - Aim for 6-8 distinct, useful terms per line. If fewer grounded terms are available, return fewer; if none are available, return an empty array. Relevance takes precedence over padding the list.
-- Each term must be 4-15 characters long after trimming, including spaces. Shorter terms are discarded downstream. Do not pad, truncate or invent words to satisfy the length limit.
+- Each term must be 4-15 characters long after trimming, including spaces. Shorter terms are discarded downstream. Do not pad, truncate identifiers or words, or invent attributes to meet the limit.
 - Use plain words or short phrases with letters, digits and spaces. No wildcards, filter operators or other special characters.
-- Remove duplicates and trivial case-only variants. Prefer specific product/service nouns and natural phrases over generic adjectives.
+- Remove duplicates and case-only variants. Use inflected forms only when they add useful search coverage; prefer product/service nouns and natural phrases over generic adjectives.
 - Use recognizable supplied brand or product identifiers only when they are useful for the same purchase and meet these constraints; do not substitute a competing brand.
 
 ## Tool output
