@@ -211,8 +211,20 @@ Describe 'Team batch discovery and immutable identity' {
 
         It 'resumes an open immutable batch even when all members are outside discovery' {
             Mock Get-BackportBatchRecords { @{ issue = @{ state = 'open' }; manifest = $script:fixture } }
-            $script:sourceData.Clear()
+            Mock Invoke-BackportApi { @() }
             $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 999)
+            $rows.Count | Should -Be 1
+            $rows[0].key | Should -Be $fixture.request.key
+        }
+
+        It 'does not poll a completed batch or replay its recorded conflict while its Task stays open' {
+            Mock Get-BackportBatchRecords { @{ issue = @{ state = 'open' }; manifest = $script:fixture } }
+            foreach ($number in 42, 43) { $script:sourceData[[string]$number].labels += @{ name = 'ext-backport-processed' } }
+            Mock Get-BackportTracking {
+                if ($SourcePr -eq 44) { @{ state = 'open'; body = 'Preparation result: **conflict**.' } }
+            }
+            @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 999).Count | Should -Be 0
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 44 -BatchId 999)
             $rows.Count | Should -Be 1
             $rows[0].key | Should -Be $fixture.request.key
         }
@@ -236,7 +248,7 @@ Describe 'Team batch discovery and immutable identity' {
     }
 }
 
-Describe 'Batch publication and reconciliation' {
+Describe 'Batch publication and duplicate prevention' {
     InModuleScope Backport {
         BeforeEach {
             $script:fixture = New-BatchFixture
@@ -263,12 +275,10 @@ Describe 'Batch publication and reconciliation' {
             Mock Get-BackportSource { $script:sourceData[[string]$Number] }
             Mock Get-BackportSourceIssues { @($script:fixture.members | Where-Object source_pr -eq $Number)[0].issues }
             Mock Ensure-BackportLabels {}
-            Mock Remove-BackportIntents {}
-            Mock Add-BackportStatus {
-                $script:sourceData[[string]$SourcePr].labels += @{ name = Get-BackportStatusLabel $Status $Target }
-                if ($Status -in @('created', 'merged', 'already-present', 'needs-attention')) {
-                    $script:sourceData[[string]$SourcePr].labels += @{ name = 'ext-backport-processed' }
-                }
+            $script:realProcessed = (Get-Command Set-BackportProcessed).ScriptBlock
+            Mock Set-BackportProcessed {
+                & $script:realProcessed -Repository $Repository -SourcePr $SourcePr
+                $script:sourceData[[string]$SourcePr].labels += @{ name = 'ext-backport-processed' }
             }
             Mock Assert-BackportPreparedBatch {}
             Mock Invoke-BackportGit {
@@ -332,16 +342,25 @@ Describe 'Batch publication and reconciliation' {
             }
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
                 $Path -eq 'repos/microsoft/BCApps/pulls' -and $Method -eq 'POST' -and $Body.draft -and
-                $Body.body.Contains('Fixes microsoft/BCApps#100') -and $Body.base -eq 'releases/29.x'
+                $Body.body.Contains('Backport tracking issue: https://github.com/microsoft/BCApps/issues/100') -and $Body.base -eq 'releases/29.x'
             }
             $body = $script:batchPull.body
             $body | Should -Match 'pull/42'
             $body | Should -Match 'pull/43'
             $body | Should -Match ('a' * 40)
             $body | Should -Match ('b' * 40)
-            [regex]::Matches($body, 'https://github.com/microsoft/BCApps/issues/10').Count | Should -Be 1
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 44 -and $Status -eq 'needs-attention' }
-            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $SourcePr -eq 44 -and $Status -in @('created', 'merged') }
+            [regex]::Matches($body, 'https://github.com/microsoft/BCApps/issues/10(?=\s|$)').Count | Should -Be 1
+            $body | Should -Not -Match '(?i)\b(fixes|closes|resolves)\s'
+            Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
+            Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 43 }
+            Should -Invoke Set-BackportProcessed -Times 0 -ParameterFilter { $SourcePr -eq 44 }
+            Should -Invoke Invoke-BackportApi -Times 2 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -match '^repos/microsoft/BCApps/issues/(42|43)/labels$' -and
+                $Body.labels.Count -eq 1 -and $Body.labels[0] -ceq 'ext-backport-processed'
+            }
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -ne 'GET' -and $Path -match '^repos/microsoft/BCApps/issues/(10|44)(?:/|$)'
+            }
             Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter {
                 $Arguments[0] -in @('cherry-pick', 'checkout', 'fetch')
             }
@@ -359,27 +378,24 @@ Describe 'Batch publication and reconciliation' {
             }
         }
 
-        It 'daily reconciliation repairs EVERY included source even when GitHub already closed the merged tracking issue' {
+        It 'repairs processed flags for any existing batch PR without Task lifecycle changes' -ForEach @(
+            @{ pullState = 'open'; merged = $null }, @{ pullState = 'closed'; merged = $null },
+            @{ pullState = 'closed'; merged = '2026-10-20T09:00:00Z' }
+        ) {
             Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
-            $script:batchPull.merged_at = '2026-10-20T09:00:00Z'
+            $script:batchPull.state = $pullState
+            $script:batchPull.merged_at = $merged
             $script:batchTracking.state = 'closed'
-            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'merged' }
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 43 -and $Status -eq 'merged' }
-            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $SourcePr -eq 44 -and $Status -eq 'merged' }
-            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
-        }
-
-        It 'marks every included source needs-attention when the batch PR closes unmerged' {
+            $script:sourceData['42'].labels = @(@{ name = 'event-request' })
             Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
-            $script:batchPull.state = 'closed'
-            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'needs-attention' }
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 43 -and $Status -eq 'needs-attention' }
+            Should -Invoke Set-BackportProcessed -Times 2 -ParameterFilter { $SourcePr -eq 42 }
+            Should -Invoke Set-BackportProcessed -Times 2 -ParameterFilter { $SourcePr -eq 43 }
+            Should -Invoke Set-BackportProcessed -Times 0 -ParameterFilter { $SourcePr -eq 44 }
+            Should -Invoke Assert-BackportPreparedBatch -Times 1
             Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
-                $Method -eq 'PATCH' -and $Path -eq 'repos/microsoft/BCApps/issues/100' -and
-                $Body.ContainsKey('state') -and $Body.state -eq 'closed'
+                $Method -eq 'PATCH' -and $Body.ContainsKey('state')
             }
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
         }
 
         It 'reconciles an existing batch without duplicating issue, PR or conflict outcomes' {
@@ -389,13 +405,56 @@ Describe 'Batch publication and reconciliation' {
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
         }
 
-        It 'does not blindly retry an uncertain team issue POST' {
+        It 'prepares an existing batch PR resume without local Git or lifecycle polling' {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $script:batchPull.state = 'closed'
+            $script:batchPull.merged_at = '2026-10-20T09:00:00Z'
+            $row = @{} + $fixture.request
+            $row.manifest = $fixture
+            $resumedPath = Join-Path $TestDrive 'resumed-batch.json'
+            Mock Initialize-BackportBatchGit { throw 'Existing PR must not prepare Git again.' }
+            New-ExtRequestBackportBatch microsoft/BCApps (ConvertTo-Json $row -Depth 60) $resumedPath
+            $resumed = Get-Content $resumedPath -Raw | ConvertFrom-Json -AsHashtable -Depth 60
+            (Get-BackportBatchMarker $resumed) | Should -Be (Get-BackportBatchMarker $fixture)
+            Publish-ExtRequestBackportBatch $resumedPath 'test-app[bot]'
+            Should -Invoke Initialize-BackportBatchGit -Times 0
+            Should -Invoke Assert-BackportPreparedBatch -Times 1
+            Should -Invoke Invoke-BackportGit -Times 1
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('state')
+            }
+        }
+
+        It 'attempts an uncertain team Task POST only once within an invocation and never labels sources' {
             Mock Invoke-BackportApi { throw 'Uncertain POST' } -ParameterFilter {
                 $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
             }
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Uncertain POST*'
-            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' }
+            Should -Invoke Set-BackportProcessed -Times 0
+        }
+
+        It 'recovers a tracking Task observed by the final REST membership recheck without another Task POST' {
+            $script:lookupCount = 0
+            $script:observed = @{
+                number = 100; body = Get-BackportBatchMarker $fixture; state = 'open'; labels = @()
+                user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/issues/100'
+            }
+            Mock Get-BackportBatchRecords {
+                $script:lookupCount++
+                if ($script:lookupCount -ge 2) {
+                    $script:batchTracking = $script:observed
+                    @{ issue = $script:observed; manifest = $script:fixture }
+                }
+            }
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' -and
+                $Body.body.Contains('bc-extrequest-backport:v2')
+            }
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+            }
         }
 
         It 'recovers a confirmed team issue after an interrupted response without repeating its POST' {
@@ -421,6 +480,36 @@ Describe 'Batch publication and reconciliation' {
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Uncertain PR POST*'
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*unconfirmed*'
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+            (Read-BackportPublicationIntent $script:batchTracking.body) | Should -Be $fixture.head
+            Should -Invoke Set-BackportProcessed -Times 0
+        }
+
+        It 'requires durable intent readback before attempting a batch PR POST' {
+            Mock Invoke-BackportApi {} -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('body') -and
+                $Body.body.Contains('bc-extrequest-backport:publication-intent:')
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*intent was not confirmed*'
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+            }
+            Should -Invoke Set-BackportProcessed -Times 0
+        }
+
+        It 'retains an accepted intent PATCH with a lost response and never guesses whether to POST a PR' {
+            Mock Invoke-BackportApi {
+                $script:batchTracking.body = $Body.body
+                throw 'Lost intent response'
+            } -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('body') -and
+                $Body.body.Contains('bc-extrequest-backport:publication-intent:')
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Lost intent response*'
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*unconfirmed*'
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+            }
+            Should -Invoke Set-BackportProcessed -Times 0
         }
 
         It 'reuses an accepted batch PR when its response was lost' {
@@ -436,7 +525,7 @@ Describe 'Batch publication and reconciliation' {
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Lost PR response*'
             Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'created' }
+            Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
         }
 
         It 'publishes the clean batch even when independent conflict issue publication fails' {
@@ -446,9 +535,8 @@ Describe 'Batch publication and reconciliation' {
             }
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Independent POST failed*'
             $script:batchPull | Should -Not -BeNullOrEmpty
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'created' }
-            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $SourcePr -eq 44 -and $Status -eq 'created' }
-            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
+            Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
+            Should -Invoke Set-BackportProcessed -Times 0 -ParameterFilter { $SourcePr -eq 44 }
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
                 $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' -and
                 $Body.body.Contains('bc-extrequest-backport:v1')
@@ -465,7 +553,7 @@ Describe 'Batch publication and reconciliation' {
                 ($Path -eq 'repos/microsoft/BCApps/issues' -and $Body.body.Contains('bc-extrequest-backport:v2')))
             }
             Should -Invoke Invoke-BackportGit -Times 0
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 43 -and $Status -eq 'already-present' }
+            Should -Invoke Set-BackportProcessed -Times 0
         }
 
         It 'fails closed on modified prepared provenance before any remote write' {
@@ -486,12 +574,36 @@ Describe 'Batch publication and reconciliation' {
             Should -Invoke Invoke-BackportApi -Times 0
         }
 
+        It 'reads legacy source publication intents fail-closed without writing or clearing legacy labels' {
+            $script:sourceData['42'].labels += @{ name = 'ext-backport-publishing:29.x' }
+            $script:batchTracking = @{
+                number = 100; body = Get-BackportBatchMarker $fixture; state = 'open'
+                user = @{ login = 'test-app[bot]' }
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Legacy batch PR publication is unconfirmed*'
+            Should -Invoke Invoke-BackportApi -Times 0
+            Should -Invoke Set-BackportProcessed -Times 0
+        }
+
         It 'refuses a batch object by another actor even if its manifest is intact' {
             $script:batchTracking = @{
                 number = 100; body = Get-BackportBatchMarker $fixture; state = 'open'; user = @{ login = 'human' }
             }
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*author*'
             Should -Invoke Invoke-BackportApi -Times 0
+        }
+
+        It 'does not mark sources for an existing PR with changed author or SHA' -ForEach @(
+            @{ kind = 'author' }, @{ kind = 'sha' }
+        ) {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            if ($kind -eq 'author') { $script:batchPull.user.login = 'human' }
+            else { $script:batchPull.head.sha = '0' * 40 }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw
+            Should -Invoke Set-BackportProcessed -Times 2
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+            }
         }
 
         It 'does not overwrite a batch branch with human changes' {
@@ -501,7 +613,7 @@ Describe 'Batch publication and reconciliation' {
             Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
         }
 
-        It 'defers already-present status until closure and recovers it through daily reconciliation' {
+        It 'reuses a no-op Task after initial closure failure without marking its source or duplicating the Task' {
             $script:fixture = New-BatchFixture -Outcomes @('already-present')
             $script:sourceData['42'].merged_at = $fixture.request.sources[0].merged_at
             $fixture | ConvertTo-Json -Depth 60 | Set-Content $statePath
@@ -509,19 +621,14 @@ Describe 'Batch publication and reconciliation' {
                 $Method -eq 'PATCH' -and $Body.ContainsKey('state') -and $Body.state -eq 'closed'
             }
             { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Close failed*'
-            { Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]' } | Should -Throw '*Close failed*'
-            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $Status -eq 'already-present' }
-            Should -Invoke Remove-BackportIntents -Times 0
+            Should -Invoke Set-BackportProcessed -Times 0
             Mock Invoke-BackportApi { $script:singleTracking['42'].state = 'closed' } -ParameterFilter {
                 $Method -eq 'PATCH' -and $Body.ContainsKey('state') -and $Body.state -eq 'closed'
             }
-            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter {
-                $SourcePr -eq 42 -and $Status -eq 'already-present'
-            }
-            Should -Invoke Remove-BackportIntents -Times 1 -ParameterFilter { $SourcePr -eq 42 }
-            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
-            Should -Invoke Invoke-BackportApi -Times 3 -ParameterFilter {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Set-BackportProcessed -Times 0
+            Should -Invoke Invoke-BackportApi -Times 2 -ParameterFilter {
                 $Method -eq 'PATCH' -and $Body.ContainsKey('state') -and $Body.state -eq 'closed'
             }
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
@@ -649,7 +756,7 @@ Describe 'Extensibility backport policy' {
             { Read-BackportMarker "$marker`n$marker" } | Should -Throw
         }
 
-        It 'includes the main PR, all main issues, and only closes the new backport issue' {
+        It 'includes main PR and all original issue links without automatic issue-closing keywords' {
             $state = @{
                 repository = 'microsoft/BCApps'; source_pr = 42; target = 'releases/29.x'; source_sha = 'a' * 40
                 issues = @(@{ url = 'https://github.com/microsoft/BCApps/issues/10' },
@@ -660,8 +767,8 @@ Describe 'Extensibility backport policy' {
             $body | Should -Match 'https://github.com/microsoft/BCApps/pull/42'
             $body | Should -Match 'https://github.com/microsoft/BCApps/issues/10'
             $body | Should -Match 'https://github.com/microsoft/BCApps/issues/11'
-            $body | Should -Match 'Fixes microsoft/BCApps#99'
-            $body | Should -Not -Match 'Fixes microsoft/BCApps#1[01]'
+            $body | Should -Match 'Backport tracking issue: https://github.com/microsoft/BCApps/issues/99'
+            $body | Should -Not -Match '(?i)\b(fixes|closes|resolves)\s'
         }
 
         It 'rejects non-source paths, symlinks, executable files and traversal' -ForEach @(
@@ -737,36 +844,29 @@ Describe 'Backport discovery and recovery' {
             $requests[0].source_pr | Should -Be 43
         }
 
-        It 'marks the original PR as processed only after a durable outcome' -ForEach @(
-            @{ status = 'created' }
-            @{ status = 'merged' }
-            @{ status = 'needs-attention' }
-            @{ status = 'already-present' }
-        ) {
+        It 'writes only the single processed label to the original main PR' {
             Mock Ensure-BackportLabels {}
             Mock Invoke-BackportApi {}
-            Add-BackportStatus microsoft/BCApps 42 $status 'releases/29.x'
+            Set-BackportProcessed microsoft/BCApps 42
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
                 $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and $Method -eq 'POST' -and
                 $Body.labels -contains 'ext-backport-processed' -and
-                $Body.labels -notcontains 'ext-backporting' -and $Body.labels.Count -eq 2
+                $Body.labels.Count -eq 1
             }
             Should -Invoke Ensure-BackportLabels -Times 1 -ParameterFilter {
                 @($Labels | Where-Object name -eq 'ext-backport-processed').Count -eq 1
             }
         }
 
-        It 'does not hide unfinished issue or PR creation from automatic recovery' -ForEach @(
-            @{ status = 'pending' }
-            @{ status = 'publishing' }
-        ) {
-            Mock Ensure-BackportLabels {}
-            Mock Invoke-BackportApi {}
-            Add-BackportStatus microsoft/BCApps 42 $status 'releases/29.x'
-            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
-                $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and
-                $Body.labels -notcontains 'ext-backport-processed' -and $Body.labels.Count -eq 1
-            }
+        It 'removes the obsolete lifecycle API and accepts only well-formed publication intents' {
+            (Get-Module Backport).ExportedFunctions.Keys | Should -Not -Contain 'Sync-ExtRequestBackport'
+            Get-Command Add-BackportStatus, Remove-BackportIntents, Get-BackportStatusLabel -ErrorAction SilentlyContinue |
+                Should -BeNullOrEmpty
+            Read-BackportPublicationIntent 'ordinary issue' | Should -BeNullOrEmpty
+            $marker = "<!-- bc-extrequest-backport:publication-intent:v1 sha=$('a' * 40) -->"
+            Read-BackportPublicationIntent $marker | Should -Be ('a' * 40)
+            { Read-BackportPublicationIntent "$marker`n$marker" } | Should -Throw
+            { Read-BackportPublicationIntent '<!-- bc-extrequest-backport:publication-intent:bad -->' } | Should -Throw
         }
 
         It 'refuses manually selected unmerged PRs too' {
@@ -793,21 +893,20 @@ Describe 'Backport discovery and recovery' {
             $tracking = @{ number = 100; body = $marker; user = @{ login = 'test-app[bot]' }; state = 'open'; html_url = 'issue-url' }
             $pull = @{
                 number = 101; body = $marker; user = @{ login = 'test-app[bot]' }; merged_at = $null
-                head = @{ ref = 'bc-extrequest-backport/pr-42/29.x'; repo = @{ full_name = 'microsoft/BCApps' } }
+                head = @{ sha = 'b' * 40; ref = 'bc-extrequest-backport/pr-42/29.x'; repo = @{ full_name = 'microsoft/BCApps' } }
                 base = @{ ref = 'releases/29.x'; repo = @{ full_name = 'microsoft/BCApps' } }
                 state = 'open'; html_url = 'pr-url'
             }
             Mock Ensure-BackportLabels {}
-            Mock Add-BackportStatus {}
-            Mock Remove-BackportIntents {}
+            Mock Set-BackportProcessed {}
             Mock Invoke-BackportApi {}
             Complete-BackportPull $state $tracking $pull 'test-app[bot]'
             Should -Invoke Invoke-BackportApi -Times 2 -ParameterFilter { $Path -like '*/labels' -and $Method -eq 'POST' }
             Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Path -match '/(issues|pulls)$' -and $Method -eq 'POST' }
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $Status -eq 'created' }
+            Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
         }
 
-        It 'closes the tracking issue and marks the original PR when a backport merges' {
+        It 'marks the original PR for a validated merged PR without closing its tracking Task' {
             $marker = Get-BackportMarker 42 'releases/29.x' ('a' * 40)
             $state = @{ repository = 'microsoft/BCApps'; source_pr = 42; target = 'releases/29.x'; source_sha = 'a' * 40 }
             $tracking = @{
@@ -816,17 +915,18 @@ Describe 'Backport discovery and recovery' {
             }
             $pull = @{
                 number = 101; body = $marker; user = @{ login = 'test-app[bot]' }; merged_at = '2026-10-19T00:00:00Z'
-                head = @{ ref = 'bc-extrequest-backport/pr-42/29.x'; repo = @{ full_name = 'microsoft/BCApps' } }
+                head = @{ sha = 'b' * 40; ref = 'bc-extrequest-backport/pr-42/29.x'; repo = @{ full_name = 'microsoft/BCApps' } }
                 base = @{ ref = 'releases/29.x'; repo = @{ full_name = 'microsoft/BCApps' } }
                 state = 'closed'; html_url = 'pr-url'
             }
             Mock Ensure-BackportLabels {}
-            Mock Add-BackportStatus {}
-            Mock Remove-BackportIntents {}
+            Mock Set-BackportProcessed {}
             Mock Invoke-BackportApi {}
             Complete-BackportPull $state $tracking $pull 'test-app[bot]'
-            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $Status -eq 'merged' }
-            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Body.state -eq 'closed' }
+            Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('state')
+            }
         }
     }
 }
@@ -929,8 +1029,11 @@ Describe 'Native Git backport integration' {
             $script:remoteHead = ''
             $script:actualGit = (Get-Command Invoke-BackportGit).ScriptBlock
             Mock Get-BackportBatchRecords {
-                if ($null -ne $script:durable) { @{ issue = @{ state = 'open' }; manifest = $script:durable } }
+                if ($null -ne $script:durable) {
+                    @{ issue = @{ state = 'open'; body = Get-BackportBatchMarker $script:durable }; manifest = $script:durable }
+                }
             }
+            Mock Get-BackportBatchPull { $null }
             Mock Get-BackportTracking { $null }
             Mock Get-BackportSource {
                 $proof = @($script:request.sources | Where-Object number -eq $Number)[0]
@@ -1048,9 +1151,10 @@ Describe 'Native Git backport integration' {
                 Mock Get-BackportSourceIssues { $script:issues }
                 Mock Get-BackportTracking { $script:tracking }
                 Mock Get-BackportPull { $script:pull }
+                Mock Get-BackportBatchRecords { @() }
                 Mock Ensure-BackportLabels {}
-                Mock Add-BackportStatus {}
-                Mock Remove-BackportIntents {}
+                $script:realProcessed = (Get-Command Set-BackportProcessed).ScriptBlock
+                Mock Set-BackportProcessed { & $script:realProcessed -Repository $Repository -SourcePr $SourcePr }
                 Mock Invoke-BackportGit {
                     switch ($Arguments -join ' ') {
                         'rev-parse HEAD' { return @{ text = 'b' * 40 } }
@@ -1083,8 +1187,12 @@ Describe 'Native Git backport integration' {
                     }
                     if ($Method -eq 'GET' -and $Path -eq 'repos/microsoft/BCApps/pulls/101') { return $script:pull }
                     if ($Path -like '*/compare/*' -and $Method -eq 'GET') { return @{ status = 'ahead' } }
-                    if ($Method -eq 'POST' -and $Path -match '/issues/(100|101)/labels$') { return }
-                    if ($Method -eq 'PATCH' -and $Path -eq 'repos/microsoft/BCApps/issues/100') { return }
+                    if ($Method -eq 'POST' -and $Path -match '/issues/(42|100|101)/labels$') { return }
+                    if ($Method -eq 'PATCH' -and $Path -eq 'repos/microsoft/BCApps/issues/100') {
+                        if ($Body.ContainsKey('body')) { $script:tracking.body = $Body.body }
+                        if ($Body.ContainsKey('state')) { $script:tracking.state = $Body.state }
+                        return
+                    }
                     throw "Unexpected API invocation: $Method $Path"
                 }
             }
@@ -1104,11 +1212,14 @@ Describe 'Native Git backport integration' {
                     $Body.head -eq 'bc-extrequest-backport/pr-42/29.x' -and
                     $Body.body.Contains('https://github.com/microsoft/BCApps/pull/42') -and
                     $Body.body.Contains('https://github.com/microsoft/BCApps/issues/10') -and
-                    $Body.body.Contains('Fixes microsoft/BCApps#100')
+                    $Body.body.Contains('Backport tracking issue: https://github.com/microsoft/BCApps/issues/100') -and
+                    -not $Body.body.Contains('Fixes ')
                 }
-                Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $Status -eq 'pending' }
-                Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $Status -eq 'publishing' }
-                Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $Status -eq 'created' }
+                Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
+                (Read-BackportPublicationIntent $script:tracking.body) | Should -Be ('b' * 40)
+                Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                    $Path -like 'repos/microsoft/BCApps/issues/10/*'
+                }
             }
 
             It 'creates the tracking issue on a conflict but publishes no branch or PR' {
@@ -1118,7 +1229,7 @@ Describe 'Native Git backport integration' {
                 Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' }
                 Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
                 Should -Invoke Invoke-BackportGit -Times 0
-                Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $Status -eq 'needs-attention' }
+                Should -Invoke Set-BackportProcessed -Times 0
             }
 
             It 'closes an already-present tracking issue without creating an empty PR' {
@@ -1127,9 +1238,97 @@ Describe 'Native Git backport integration' {
                 Publish-ExtRequestBackport $statePath 'test-app[bot]'
                 Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'PATCH' -and $Body.state -eq 'closed' }
                 Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+                Should -Invoke Set-BackportProcessed -Times 0
             }
 
-            It 'does not repeat an uncertain tracking-issue POST' {
+            It 'reuses recorded conflict and no-op results without Git re-preparation, source labels or duplicate Tasks' -ForEach @(
+                @{ outcome = 'conflict'; manual = $false },
+                @{ outcome = 'already-present'; manual = $false }, @{ outcome = 'already-present'; manual = $true }
+            ) {
+                $state.result.outcome = $outcome
+                $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
+                Publish-ExtRequestBackport $statePath 'test-app[bot]'
+                $reusedPath = Join-Path $TestDrive 'reused.json'
+                New-ExtRequestBackport microsoft/BCApps 42 releases/99.x $manual $reusedPath
+                $reused = Get-Content $reusedPath -Raw | ConvertFrom-Json -AsHashtable
+                $reused.target | Should -Be 'releases/29.x'
+                $reused.result.outcome | Should -Be $outcome
+                Publish-ExtRequestBackport $reusedPath 'test-app[bot]'
+                Should -Invoke Invoke-BackportGit -Times 0
+                Should -Invoke Set-BackportProcessed -Times 0
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
+                }
+                Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+                }
+            }
+
+            It 'allows explicit manual preparation to retry an open standalone conflict' {
+                $state.result.outcome = 'conflict'
+                Publish-ExtRequestBackport -BotLogin 'test-app[bot]' -PreparedState $state
+                Mock Invoke-BackportGit { throw 'Manual preparation attempted' } -ParameterFilter {
+                    $Arguments[0] -eq 'init'
+                }
+                { New-ExtRequestBackport microsoft/BCApps 42 releases/99.x $true (Join-Path $TestDrive 'retry.json') } |
+                    Should -Throw '*Manual preparation attempted*'
+                Should -Invoke Set-BackportProcessed -Times 0
+            }
+
+            It 'publishes a clean manual conflict retry using the same Task and refreshes its stale outcome' {
+                $state.result.outcome = 'conflict'
+                Publish-ExtRequestBackport -BotLogin 'test-app[bot]' -PreparedState $state
+                $state.result.outcome = 'applied'
+                Publish-ExtRequestBackport -StatePath $statePath -BotLogin 'test-app[bot]' -PreparedState $state
+                $script:tracking.body | Should -Not -Match 'Preparation result: \*\*conflict\*\*'
+                $script:tracking.body | Should -Match 'Preparation result: \*\*applied\*\*'
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
+                }
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+                }
+                Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
+            }
+
+            It 'uses only the processed payload after a confirmed standalone PR and never labels original issues' {
+                Mock Set-BackportProcessed {
+                    if ($null -eq $script:pull -or $script:pull.head.sha -cne $script:state.result.commit) {
+                        throw 'Attempted to mark a source without a confirmed PR.'
+                    }
+                    & $script:realProcessed -Repository $Repository -SourcePr $SourcePr
+                }
+                Mock Invoke-BackportApi {} -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues/42/labels'
+                }
+                $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
+                Publish-ExtRequestBackport $statePath 'test-app[bot]'
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues/42/labels' -and
+                    $Body.labels.Count -eq 1 -and $Body.labels[0] -ceq 'ext-backport-processed'
+                }
+                Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                    $Method -ne 'GET' -and $Path -match '^repos/microsoft/BCApps/issues/10(?:/|$)'
+                }
+            }
+
+            It 'requires confirmed intent before PR creation and leaves source labels untouched on PR POST failure' {
+                Mock Invoke-BackportApi {
+                    (Read-BackportPublicationIntent $script:tracking.body) | Should -Be ('b' * 40)
+                    throw 'Uncertain PR response'
+                } -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+                }
+                $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
+                { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*Uncertain PR response*'
+                { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*unconfirmed*'
+                Should -Invoke Set-BackportProcessed -Times 0
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+                }
+            }
+
+            It 'fails closed on legacy source state without a tracking record' {
                 $source.labels += @{ name = 'ext-backport-pending:29.x' }
                 $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
                 { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
@@ -1146,14 +1345,37 @@ Describe 'Native Git backport integration' {
             }
 
             It 'does not repeat an uncertain release-PR POST' {
-                $source.labels += @{ name = 'ext-backport-publishing:29.x' }
+                $marker = Get-BackportMarker 42 'releases/29.x' ('a' * 40)
                 $script:tracking = @{
-                    number = 100; body = Get-BackportMarker 42 'releases/29.x' ('a' * 40); state = 'open'
+                    number = 100; body = "$marker`n<!-- bc-extrequest-backport:publication-intent:v1 sha=$('b' * 40) -->"; state = 'open'
                     user = @{ login = 'test-app[bot]' }
                 }
                 $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
                 { Publish-ExtRequestBackport $statePath 'test-app[bot]' } | Should -Throw '*previous PR creation is unconfirmed*'
                 Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+                Should -Invoke Set-BackportProcessed -Times 0
+            }
+
+            It 'reuses open, closed and merged standalone PRs without changing Task lifecycle' -ForEach @(
+                @{ pullState = 'open'; merged = $null }, @{ pullState = 'closed'; merged = $null },
+                @{ pullState = 'closed'; merged = '2026-10-20T09:00:00Z' }
+            ) {
+                $state | ConvertTo-Json -Depth 20 | Set-Content $statePath
+                Publish-ExtRequestBackport $statePath 'test-app[bot]'
+                $script:pull.state = $pullState
+                $script:pull.merged_at = $merged
+                $script:tracking.state = 'closed'
+                Publish-ExtRequestBackport $statePath 'test-app[bot]'
+                Should -Invoke Set-BackportProcessed -Times 2
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
+                }
+                Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                    $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+                }
+                Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                    $Method -eq 'PATCH' -and $Body.ContainsKey('state')
+                }
             }
 
             It 'refuses changed automatic source categories before any writes' {

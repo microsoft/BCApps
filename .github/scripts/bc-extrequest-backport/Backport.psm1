@@ -410,8 +410,17 @@ function New-ExtRequestBackport {
     Assert-BackportTarget $target
     $pull = Get-BackportPull $Repository $SourcePr $target
     $result = @{ outcome = 'existing'; target_sha = $null; commit = $null; tree = $null; paths = @() }
+    if ($null -eq $pull -and $null -ne $tracking) {
+        foreach ($outcome in @('conflict', 'already-present')) {
+            if ($tracking.body.Contains("Preparation result: **$outcome**.") -and
+                -not ($outcome -eq 'conflict' -and $Manual -and $tracking.state -ne 'closed')) {
+                $result.outcome = $outcome
+            }
+        }
+    }
     $directory = Join-Path (Split-Path -Parent $StatePath) 'git'
-    if ($null -eq $pull) {
+    $publicationBlocked = $null -ne $tracking -and $null -ne (Read-BackportPublicationIntent $tracking.body)
+    if ($null -eq $pull -and $result.outcome -eq 'existing' -and -not $publicationBlocked) {
         if (Test-Path -LiteralPath $directory) { throw 'Backport work directory already exists.' }
         $null = New-Item -ItemType Directory -Path $directory -Force
         $null = Invoke-BackportGit $directory @('init', '--quiet')
@@ -453,11 +462,6 @@ function New-ExtRequestBackport {
     Write-BackportSummary "Main PR #$SourcePr (https://github.com/$Repository/pull/$SourcePr) -> $target`: **$($result.outcome)**. Main PR teams: $teamText. Source issues: $issueLinks"
 }
 
-function Get-BackportStatusLabel {
-    param([string] $Status, [string] $Target)
-    "ext-backport-$Status`:$(($Target -split '/')[1])"
-}
-
 function Ensure-BackportLabels {
     param([string] $Repository, [object[]] $Labels)
 
@@ -472,33 +476,56 @@ function Ensure-BackportLabels {
     }
 }
 
-function Add-BackportStatus {
-    param([string] $Repository, [long] $SourcePr, [string] $Status, [string] $Target)
-
-    $name = Get-BackportStatusLabel $Status $Target
-    $definitions = @(@{ name = $name; color = 'C5DEF5'; description = 'Extensibility backport status.' })
-    $names = @($name)
-    if ($Status -in @('created', 'merged', 'needs-attention', 'already-present')) {
-        $definitions += @{
-            name = 'ext-backport-processed'; color = 'C5DEF5'
-            description = 'Source PR handled by extensibility backport automation.'
-        }
-        $names += 'ext-backport-processed'
+function Set-BackportProcessed {
+    param([string] $Repository, [long] $SourcePr)
+    Ensure-BackportLabels $Repository @(@{
+        name = 'ext-backport-processed'; color = 'C5DEF5'
+        description = 'Source PR has a validated extensibility backport PR.'
+    })
+    $null = Invoke-BackportApi "repos/$Repository/issues/$SourcePr/labels" -Method POST -Body @{
+        labels = @('ext-backport-processed')
     }
-    Ensure-BackportLabels $Repository $definitions
-    $null = Invoke-BackportApi "repos/$Repository/issues/$SourcePr/labels" -Method POST -Body @{ labels = $names }
 }
 
-function Remove-BackportIntents {
-    param([string] $Repository, [long] $SourcePr, [string] $Target)
-
-    $source = Get-BackportSource $Repository $SourcePr
-    foreach ($status in @('pending', 'publishing', 'needs-attention')) {
-        $label = Get-BackportStatusLabel $status $Target
-        if ($label -in @($source.labels | ForEach-Object { $_.name })) {
-            $null = Invoke-BackportApi "repos/$Repository/issues/$SourcePr/labels/$([uri]::EscapeDataString($label))" -Method DELETE
-        }
+function New-BackportTrackingTask {
+    param([string] $Repository, [hashtable] $Body)
+    try {
+        $created = Invoke-BackportApi "repos/$Repository/issues" -Method POST -Body $Body
+        return Invoke-BackportApi "repos/$Repository/issues/$($created.number)"
     }
+    catch {
+        throw "Tracking Task creation is unconfirmed. No creation retry was attempted; inspect open/closed objects before another run. $($_.Exception.Message)"
+    }
+}
+
+function Read-BackportPublicationIntent {
+    param([string] $Body)
+    $matches = [regex]::Matches($Body, '(?m)^<!-- bc-extrequest-backport:publication-intent:v1 sha=([0-9a-f]{40}) -->\r?$')
+    if ($matches.Count -gt 1 -or ($matches.Count -eq 0 -and $Body.Contains('bc-extrequest-backport:publication-intent:'))) {
+        throw 'Malformed or ambiguous tracking issue publication intent.'
+    }
+    if ($matches.Count -eq 1) { return $matches[0].Groups[1].Value }
+    return $null
+}
+
+function Set-BackportPublicationIntent {
+    param([hashtable] $State, [hashtable] $Tracking, [string] $Sha, [string] $BotLogin)
+    $repository = $State.repository
+    $fresh = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)"
+    if ($State.schema -eq 2) { Assert-BackportBatchObject $fresh $State $BotLogin }
+    else { Assert-BackportObject $fresh $State $BotLogin }
+    if ($null -ne (Read-BackportPublicationIntent $fresh.body)) {
+        throw 'Previous PR creation is unconfirmed; reconcile the tracking issue publication intent before retrying.'
+    }
+    $marker = "<!-- bc-extrequest-backport:publication-intent:v1 sha=$Sha -->"
+    $null = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)" -Method PATCH -Body @{
+        body = "$($fresh.body)`n`n$marker"
+    }
+    $confirmed = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)"
+    if ($State.schema -eq 2) { Assert-BackportBatchObject $confirmed $State $BotLogin }
+    else { Assert-BackportObject $confirmed $State $BotLogin }
+    if ((Read-BackportPublicationIntent $confirmed.body) -cne $Sha) { throw 'Tracking issue publication intent was not confirmed.' }
+    return $confirmed
 }
 
 function Assert-BackportObject {
@@ -536,7 +563,6 @@ function Get-BackportBody {
     $lines += @('', '## Backport', '', "Preparation result: **$($State.result.outcome)**.")
     if ($TrackingNumber -gt 0) {
         $lines += @('', "Backport tracking issue: https://github.com/$repository/issues/$TrackingNumber", '',
-            "Fixes $repository#$TrackingNumber", '',
             'Review the complete change and run the normal release-branch CI before merging. No AI resolver was used.')
     }
     elseif ($State.result.outcome -eq 'conflict') {
@@ -551,6 +577,11 @@ function Complete-BackportPull {
 
     Assert-BackportObject $Tracking $State $BotLogin
     Assert-BackportObject $Pull $State $BotLogin
+    $expectedCommit = if ($State.ContainsKey('result')) { $State.result.commit } else { $null }
+    if (-not $Pull.ContainsKey('head') -or $Pull.head.sha -cnotmatch '^[0-9a-f]{40}$' -or
+        ($expectedCommit -and $Pull.head.sha -cne $expectedCommit)) {
+        throw 'Existing backport PR does not contain the expected prepared commit.'
+    }
     $repository = $State.repository
     $labels = if ($State.ContainsKey('labels')) { $State.labels } else { $Tracking.labels }
     Ensure-BackportLabels $repository $labels
@@ -564,13 +595,8 @@ function Complete-BackportPull {
     if (-not $body.Contains($link)) {
         $null = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)" -Method PATCH -Body @{ body = "$body`n`n$link" }
     }
-    $status = if ($null -ne $Pull.merged_at) { 'merged' } elseif ($Pull.state -eq 'closed') { 'needs-attention' } else { 'created' }
-    Add-BackportStatus $repository $State.source_pr $status $State.target
-    if ($status -ne 'needs-attention') { Remove-BackportIntents $repository $State.source_pr $State.target }
-    if ($status -eq 'merged' -and $Tracking.state -ne 'closed') {
-        $null = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)" -Method PATCH -Body @{ state = 'closed'; state_reason = 'completed' }
-    }
-    Write-BackportSummary "Main PR #$($State.source_pr): $($Pull.html_url) (**$status**); issue $($Tracking.html_url)."
+    Set-BackportProcessed $repository $State.source_pr
+    Write-BackportSummary "Main PR #$($State.source_pr): validated backport $($Pull.html_url); issue $($Tracking.html_url)."
 }
 
 function Publish-ExtRequestBackport {
@@ -615,41 +641,60 @@ function Publish-ExtRequestBackport {
         return
     }
     $labelsOnSource = @($source.labels | ForEach-Object { $_.name })
-    if ((Get-BackportStatusLabel publishing $state.target) -in $labelsOnSource) {
-        throw 'A previous PR creation is unconfirmed. Inspect closed/open PRs before clearing the publishing label.'
+    if ($null -ne $tracking -and $null -ne (Read-BackportPublicationIntent $tracking.body)) {
+        throw 'Previous PR creation is unconfirmed; reconcile the tracking issue publication intent before retrying.'
+    }
+    if (@($labelsOnSource | Where-Object { $_ -match '^ext-backport-publishing:' }).Count -gt 0) {
+        throw 'Legacy PR publication is unconfirmed; operator reconciliation is required before retrying.'
     }
     if ($null -eq $tracking -and @($labelsOnSource | Where-Object { $_ -like 'ext-backport-*' }).Count -gt 0) {
         throw 'Source has prior backport state but no tracking issue. Reconcile manually; do not create a duplicate.'
     }
-    if ($null -ne $tracking -and ($tracking.state -eq 'closed' -or
-        (-not $state.manual -and (Get-BackportStatusLabel needs-attention $state.target) -in $labelsOnSource))) {
-        Write-BackportSummary "Main PR #$($state.source_pr): retained tracking issue $($tracking.html_url); manual attention is required."
-        return
-    }
     if ($state.result.outcome -notin @('applied', 'conflict', 'already-present')) { throw 'No publishable preparation result.' }
     Ensure-BackportLabels $repository $state.labels
     if ($null -eq $tracking) {
-        # A durable intent makes an uncertain POST fail closed on later runs.
-        Add-BackportStatus $repository $state.source_pr pending $state.target
-        $title = "[Backport $(($state.target -split '/')[1])] #$($state.source_pr): $($state.source_title -replace '[\r\n]', ' ')"
-        if ($title.Length -gt 240) { $title = $title.Substring(0, 240) }
-        $tracking = Invoke-BackportApi "repos/$repository/issues" -Method POST -Body @{
-            title = $title; body = Get-BackportBody $state; type = 'Task'
-            labels = @($state.labels | ForEach-Object { $_.name })
+        $cohorts = @(Get-BackportBatchRecords $repository | Where-Object { $state.source_pr -in $_.manifest.request.source_prs })
+        if ($cohorts.Count -gt 0 -and (-not $batchException -or $cohorts[0].manifest.request.key -cne $state.batch_key)) {
+            throw 'Source acquired immutable batch membership; rediscover instead of creating a Task.'
         }
-        $tracking = Invoke-BackportApi "repos/$repository/issues/$($tracking.number)"
-        Assert-BackportObject $tracking $state $BotLogin
+        # No pre-Task journal exists. Recheck observed objects, issue exactly one POST,
+        # and leave an absent/unconfirmed Task after a failed POST to the operator.
+        $tracking = Get-BackportTracking $repository $state.source_pr
+        $pull = Get-BackportPull $repository $state.source_pr $state.target
+        if ($null -ne $tracking) {
+            Assert-BackportObject $tracking $state $BotLogin
+            if ($null -ne $pull) { Complete-BackportPull $state $tracking $pull $BotLogin; return }
+        }
+        elseif ($null -ne $pull) { throw 'Existing backport PR has no tracking issue; reconcile manually.' }
+        else {
+            $title = "[Backport $(($state.target -split '/')[1])] #$($state.source_pr): $($state.source_title -replace '[\r\n]', ' ')"
+            if ($title.Length -gt 240) { $title = $title.Substring(0, 240) }
+            $tracking = New-BackportTrackingTask $repository @{
+                title = $title; body = Get-BackportBody $state; type = 'Task'
+                labels = @($state.labels | ForEach-Object { $_.name })
+            }
+            Assert-BackportObject $tracking $state $BotLogin
+        }
     }
-    if ($state.result.outcome -eq 'conflict') {
-        Add-BackportStatus $repository $state.source_pr needs-attention $state.target
+    if ($null -ne (Read-BackportPublicationIntent $tracking.body)) {
+        throw 'Previous PR creation is unconfirmed; reconcile the tracking issue publication intent before retrying.'
+    }
+    $retryConflict = $state.manual -and -not $batchException -and $state.result.outcome -eq 'applied' -and
+        $tracking.body.Contains('Preparation result: **conflict**.')
+    if (($tracking.body.Contains('Preparation result: **conflict**.') -and -not $retryConflict) -or
+        $state.result.outcome -eq 'conflict') {
         Write-BackportSummary "Conflict for main PR #$($state.source_pr); manual backport tracked at $($tracking.html_url)."
         return
     }
-    if ($state.result.outcome -eq 'already-present') {
-        $null = Invoke-BackportApi "repos/$repository/issues/$($tracking.number)" -Method PATCH -Body @{ state = 'closed'; state_reason = 'completed' }
-        Add-BackportStatus $repository $state.source_pr already-present $state.target
-        Remove-BackportIntents $repository $state.source_pr $state.target
+    if ($tracking.body.Contains('Preparation result: **already-present**.') -or $state.result.outcome -eq 'already-present') {
+        if ($tracking.state -ne 'closed') {
+            $null = Invoke-BackportApi "repos/$repository/issues/$($tracking.number)" -Method PATCH -Body @{ state = 'closed'; state_reason = 'completed' }
+        }
         Write-BackportSummary "Main PR #$($state.source_pr) is already present; closed $($tracking.html_url) without an empty PR."
+        return
+    }
+    if ($tracking.state -eq 'closed') {
+        Write-BackportSummary "Main PR #$($state.source_pr): retained closed tracking issue $($tracking.html_url); manual attention is required."
         return
     }
     $directory = Join-Path (Split-Path -Parent $StatePath) 'git'
@@ -671,7 +716,16 @@ function Publish-ExtRequestBackport {
         $readback = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
         if (($readback -split '\s+')[0] -cne $head) { throw 'Backport branch publication was not independently confirmed.' }
     }
-    Add-BackportStatus $repository $state.source_pr publishing $state.target
+    $pull = Get-BackportPull $repository $state.source_pr $state.target
+    if ($null -ne $pull) { Complete-BackportPull $state $tracking $pull $BotLogin; return }
+    if ($retryConflict) {
+        $null = Invoke-BackportApi "repos/$repository/issues/$($tracking.number)" -Method PATCH -Body @{
+            body = Get-BackportBody $state
+        }
+        $tracking = Invoke-BackportApi "repos/$repository/issues/$($tracking.number)"
+        Assert-BackportObject $tracking $state $BotLogin
+    }
+    $tracking = Set-BackportPublicationIntent $state $tracking $head $BotLogin
     $title = "[Backport $(($state.target -split '/')[1])] #$($state.source_pr): $($state.source_title -replace '[\r\n]', ' ')"
     if ($title.Length -gt 240) { $title = $title.Substring(0, 240) }
     $pull = Invoke-BackportApi "repos/$repository/pulls" -Method POST -Body @{
@@ -852,10 +906,24 @@ function Find-ExtRequestBackportBatches {
         }
     }
     $candidates = @(Find-ExtRequestBackport $Repository -SourcePr $SourcePr -TargetOverride $TargetOverride -ReferenceTime ([DateTimeOffset]$clock))
-    # Open manifests are authoritative even when some members have aged out or are processed.
+    # A durable cohort survives the discovery window. Completed sources need no
+    # lifecycle polling; resume only missing processed flags or independent records.
     if (-not $SourcePr) {
         foreach ($record in $records) {
-            if ($record.issue.state -eq 'open') {
+            $unfinished = $false
+            foreach ($member in $record.manifest.members) {
+                if ($member.result.outcome -eq 'applied') {
+                    $original = Get-BackportSource $Repository $member.source_pr
+                    if ('ext-backport-processed' -notin @($original.labels | ForEach-Object { $_.name })) { $unfinished = $true }
+                }
+                else {
+                    $independent = Get-BackportTracking $Repository $member.source_pr
+                    if ($null -eq $independent -or ($member.result.outcome -eq 'already-present' -and $independent.state -ne 'closed')) {
+                        $unfinished = $true
+                    }
+                }
+            }
+            if ($unfinished) {
                 $row = @{} + $record.manifest.request
                 $row.manifest = $record.manifest
                 $requests[$row.key] = $row
@@ -984,6 +1052,12 @@ function New-ExtRequestBackportBatch {
         }
         return
     }
+    if ($resume -and ($null -ne (Get-BackportBatchPull $Repository $request.key) -or
+        $null -ne (Read-BackportPublicationIntent $overlap[0].issue.body))) {
+        $stored | ConvertTo-Json -Depth 60 | Set-Content -LiteralPath $StatePath -Encoding utf8NoBOM
+        Write-BackportBatchSummary $stored 'prepared'
+        return
+    }
     if (-not $resume) {
         foreach ($item in $metadata) {
             $tracking = Get-BackportTracking $Repository $item.source.number
@@ -1064,7 +1138,7 @@ function Get-BackportBatchBody {
     foreach ($member in $Manifest.members) {
         if ($member.result.outcome -ne 'applied') { $lines += "- Main PR #$($member.source_pr): $($member.result.outcome); tracked independently." }
     }
-    if ($TrackingNumber -gt 0) { $lines += @('', "Fixes $($Manifest.repository)#$TrackingNumber") }
+    if ($TrackingNumber -gt 0) { $lines += @('', "Backport tracking issue: https://github.com/$($Manifest.repository)/issues/$TrackingNumber") }
     $lines += @('', 'Review the cumulative change and run normal release CI. No AI resolver was used.')
     $body = $lines -join "`n"
     if ($body.Length -gt 65000) { throw 'Complete batch manifest exceeds GitHub body limits; reduce the cohort, never truncate membership.' }
@@ -1106,6 +1180,7 @@ function Complete-BackportBatchPull {
     param([hashtable] $Manifest, [hashtable] $Tracking, [hashtable] $Pull, [string] $BotLogin)
     Assert-BackportBatchObject $Tracking $Manifest $BotLogin
     Assert-BackportBatchObject $Pull $Manifest $BotLogin
+    if (-not $Pull.ContainsKey('head')) { throw 'The batch result is not a validated backport PR.' }
     # Reconciliation verifies every source identity, including already processed members.
     $null = @(Assert-BackportBatchSources $Manifest.request $Manifest.repository -Resume)
     $labels = @(Get-BackportBatchLabels $Manifest)
@@ -1119,16 +1194,11 @@ function Complete-BackportBatchPull {
     if (-not $Tracking.body.Contains($link)) {
         $null = Invoke-BackportApi "repos/$($Manifest.repository)/issues/$($Tracking.number)" -Method PATCH -Body @{ body = "$($Tracking.body)`n`n$link" }
     }
-    $status = if ($null -ne $Pull.merged_at) { 'merged' } elseif ($Pull.state -eq 'closed') { 'needs-attention' } else { 'created' }
     foreach ($member in $Manifest.members) {
         if ($member.result.outcome -ne 'applied') { continue }
-        Add-BackportStatus $Manifest.repository $member.source_pr $status $Manifest.request.target
-        if ($status -ne 'needs-attention') { Remove-BackportIntents $Manifest.repository $member.source_pr $Manifest.request.target }
+        Set-BackportProcessed $Manifest.repository $member.source_pr
     }
-    if ($status -eq 'merged' -and $Tracking.state -ne 'closed') {
-        $null = Invoke-BackportApi "repos/$($Manifest.repository)/issues/$($Tracking.number)" -Method PATCH -Body @{ state = 'closed'; state_reason = 'completed' }
-    }
-    Write-BackportBatchSummary $Manifest $status "$($Tracking.html_url) $($Pull.html_url)"
+    Write-BackportBatchSummary $Manifest 'validated PR' "$($Tracking.html_url) $($Pull.html_url)"
 }
 
 function Publish-BackportBatchExceptions {
@@ -1187,43 +1257,63 @@ function Publish-ExtRequestBackportBatch {
     if ($null -ne $tracking) { Assert-BackportBatchObject $tracking $manifest $BotLogin }
     $metadata = @(Assert-BackportBatchSources $request $repository -Resume:($null -ne $tracking))
     $directory = Join-Path (Split-Path -Parent $StatePath) 'git'
-    Assert-BackportPreparedBatch $manifest $directory
     $applied = @($manifest.members | Where-Object { $_.result.outcome -eq 'applied' })
     $exceptionFailures = @()
     $pull = Get-BackportBatchPull $repository $request.key
     if ($null -ne $pull -and $null -eq $tracking) { throw 'Batch PR has no tracking issue.' }
-    if ($null -eq $tracking) {
-        foreach ($item in $metadata) {
-            if ($null -ne (Get-BackportTracking $repository $item.source.number) -or
-                @($item.source.labels | Where-Object { $_.name -like 'ext-backport-*' }).Count -gt 0) {
-                throw 'Source has prior backport state; do not create a duplicate batch.'
-            }
-        }
+    if ($null -ne $pull) {
+        Assert-BackportBatchObject $pull $manifest $BotLogin
+        $exceptionFailures = @(Publish-BackportBatchExceptions $manifest $BotLogin -Durable -ContinueOnFailure)
+        Complete-BackportBatchPull $manifest $tracking $pull $BotLogin
+        if ($exceptionFailures.Count -gt 0) { throw ($exceptionFailures -join "`n") }
+        return
     }
+    if ($null -ne $tracking -and $null -ne (Read-BackportPublicationIntent $tracking.body)) {
+        throw 'Previous batch PR creation is unconfirmed; reconcile the tracking issue publication intent before retrying.'
+    }
+    if (@($metadata | ForEach-Object { $_.source.labels } | Where-Object {
+        $_.name -match '^ext-backport-publishing:'
+    }).Count -gt 0) { throw 'Legacy batch PR publication is unconfirmed; operator reconciliation is required before retrying.' }
+    Assert-BackportPreparedBatch $manifest $directory
     if ($applied.Count -gt 0) {
         $labels = @(Get-BackportBatchLabels $manifest)
         Ensure-BackportLabels $repository $labels
         if ($null -eq $tracking) {
-            # Reserve included members before the single uncertain POST. A failure here is
-            # deliberately fail-closed; only a persisted complete manifest permits recovery.
-            foreach ($member in $applied) { Add-BackportStatus $repository $member.source_pr pending $request.target }
-            $tracking = Invoke-BackportApi "repos/$repository/issues" -Method POST -Body @{
-                title = "[Backport $(($request.target -split '/')[1])] $($request.team) - $($request.key)"
-                body = Get-BackportBatchBody $manifest; type = 'Task'; labels = @($labels | ForEach-Object { $_.name })
+            $observed = @(Get-BackportBatchRecords $repository | Where-Object {
+                @($_.manifest.request.source_prs | Where-Object { $_ -in $request.source_prs }).Count -gt 0
+            })
+            if ($observed.Count -gt 1) { throw 'Multiple durable batch mappings.' }
+            if ($observed.Count -eq 1) {
+                $tracking = $observed[0].issue
+                Assert-BackportBatchObject $tracking $manifest $BotLogin
             }
-            $tracking = Invoke-BackportApi "repos/$repository/issues/$($tracking.number)"
-            Assert-BackportBatchObject $tracking $manifest $BotLogin
+            else {
+                foreach ($item in @(Assert-BackportBatchSources $request $repository)) {
+                    if ($null -ne (Get-BackportTracking $repository $item.source.number) -or
+                        @($item.source.labels | Where-Object { $_.name -like 'ext-backport-*' }).Count -gt 0) {
+                        throw 'Source has prior backport state; do not create a duplicate batch.'
+                    }
+                }
+                $pull = Get-BackportBatchPull $repository $request.key
+                if ($null -ne $pull) { throw 'Batch PR has no tracking issue.' }
+                # One creation attempt only. Without a pre-Task journal, an absent Task
+                # after a failed POST is uncertain and requires operator investigation.
+                $tracking = New-BackportTrackingTask $repository @{
+                    title = "[Backport $(($request.target -split '/')[1])] $($request.team) - $($request.key)"
+                    body = Get-BackportBatchBody $manifest; type = 'Task'; labels = @($labels | ForEach-Object { $_.name })
+                }
+                Assert-BackportBatchObject $tracking $manifest $BotLogin
+            }
         }
         $exceptionFailures = @(Publish-BackportBatchExceptions $manifest $BotLogin -Durable -ContinueOnFailure)
+        $pull = Get-BackportBatchPull $repository $request.key
         if ($null -ne $pull) { Complete-BackportBatchPull $manifest $tracking $pull $BotLogin }
         elseif ($tracking.state -eq 'closed') {
             throw 'Closed batch issue has no PR; manual reconciliation required.'
         }
         else {
-            foreach ($item in $metadata) {
-                if ((Get-BackportStatusLabel publishing $request.target) -in @($item.source.labels | ForEach-Object { $_.name })) {
-                    throw 'Previous batch PR creation is unconfirmed; do not repeat POST.'
-                }
+            if ($null -ne (Read-BackportPublicationIntent $tracking.body)) {
+                throw 'Previous batch PR creation is unconfirmed; reconcile the tracking issue publication intent before retrying.'
             }
             $branch = "bc-extrequest-backport/$($request.key)"
             $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
@@ -1235,7 +1325,7 @@ function Publish-ExtRequestBackportBatch {
                 $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
                 if (($remote -split '\s+')[0] -cne $manifest.head) { throw 'Batch branch publication not confirmed.' }
             }
-            foreach ($member in $applied) { Add-BackportStatus $repository $member.source_pr publishing $request.target }
+            $tracking = Set-BackportPublicationIntent $manifest $tracking $manifest.head $BotLogin
             $pull = Invoke-BackportApi "repos/$repository/pulls" -Method POST -Body @{
                 title = "[Backport $(($request.target -split '/')[1])] $($request.team) - $($request.key)"
                 body = Get-BackportBatchBody $manifest $tracking.number; head = $branch; base = $request.target; draft = $true
@@ -1250,48 +1340,5 @@ function Publish-ExtRequestBackportBatch {
     if ($exceptionFailures.Count -gt 0) { throw ($exceptionFailures -join "`n") }
 }
 
-function Sync-ExtRequestBackport {
-    [CmdletBinding()]
-    param([string] $Repository, [string] $BotLogin)
-
-    Assert-BackportRepository $Repository
-    $failures = @()
-    # GitHub may auto-close tracking issues when their PR merges, before this job runs.
-    foreach ($tracking in @(Get-BackportApiPages "repos/$Repository/issues?state=all&labels=ext-backporting")) {
-        try {
-            if ($tracking.ContainsKey('pull_request')) { continue }
-            $batch = Read-BackportBatchMarker $tracking.body
-            if ($null -ne $batch) {
-                Assert-BackportBatchObject $tracking $batch $BotLogin
-                $failures += @(Publish-BackportBatchExceptions $batch $BotLogin -Durable -ContinueOnFailure)
-                $pull = Get-BackportBatchPull $Repository $batch.request.key
-                if ($null -ne $pull) { Complete-BackportBatchPull $batch $tracking $pull $BotLogin }
-                continue
-            }
-            $marker = Read-BackportMarker $tracking.body
-            if ($null -eq $marker) { continue }
-            $state = @{ repository = $Repository; source_pr = $marker.source_pr; source_sha = $marker.sha; target = $marker.target }
-            Assert-BackportObject $tracking $state $BotLogin
-            $pull = Get-BackportPull $Repository $marker.source_pr $marker.target
-            if ($null -ne $pull) { Complete-BackportPull $state $tracking $pull $BotLogin }
-            elseif ($tracking.body.Contains('Preparation result: **already-present**.')) {
-                if ($tracking.state -ne 'closed') {
-                    $null = Invoke-BackportApi "repos/$Repository/issues/$($tracking.number)" -Method PATCH -Body @{
-                        state = 'closed'; state_reason = 'completed'
-                    }
-                }
-                Add-BackportStatus $Repository $marker.source_pr already-present $marker.target
-                Remove-BackportIntents $Repository $marker.source_pr $marker.target
-            }
-        }
-        catch {
-            $failure = "Tracking issue #$($tracking.number): $($_.Exception.Message)"
-            Write-Warning $failure
-            $failures += $failure
-        }
-    }
-    if ($failures.Count -gt 0) { throw ($failures -join "`n") }
-}
-
-Export-ModuleMember -Function Find-ExtRequestBackport, New-ExtRequestBackport, Publish-ExtRequestBackport, Sync-ExtRequestBackport,
+Export-ModuleMember -Function Find-ExtRequestBackport, New-ExtRequestBackport, Publish-ExtRequestBackport,
     Find-ExtRequestBackportBatches, New-ExtRequestBackportBatch, Publish-ExtRequestBackportBatch

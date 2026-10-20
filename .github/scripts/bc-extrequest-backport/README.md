@@ -60,7 +60,7 @@ Use the existing `extensibility-agent` environment and GitHub App:
 
 | Setting | Purpose |
 | --- | --- |
-| Repository variable `EXT_REQ_BACKPORT_ENABLED=true` | Explicitly enables Sunday publication and daily status reconciliation. Leave unset or false until deployment is approved. |
+| Repository variable `EXT_REQ_BACKPORT_ENABLED=true` | Explicitly enables Sunday publication. Leave unset or false until deployment is approved. |
 | Optional repository variable `EXT_REQ_BACKPORT_TARGET_BRANCH` | Overrides automatic selection, for example `releases/29.x`. Must name an existing `releases/<number>.x` branch. |
 | Environment variable `EXTENSIBILITY_CLIENT_ID` | Existing GitHub App client ID. |
 | Environment secret `EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY` | Existing App private key. |
@@ -73,7 +73,7 @@ No Copilot token, Azure login or model access is needed.
 
 Without an override, branches are paginated and the highest numerical
 `releases/<number>.x` is selected. Patch releases and preview names do not
-participate. Once an issue or source status exists, that request retains its
+participate. Once a tracking issue exists, that request retains its
 original target even when a newer release branch appears.
 
 ## Manual operation
@@ -81,21 +81,12 @@ original target even when a newer release branch appears.
 Run from `main` after the workflow has merged:
 
 ```powershell
-# Preview all eligible team batches, using the same rules as Sunday.
-gh workflow run bc-extrequest-backport.yml --repo microsoft/BCApps --ref main `
-  -f dry_run=true
-
 # Publish all eligible team batches and independent exceptions.
-gh workflow run bc-extrequest-backport.yml --repo microsoft/BCApps --ref main `
-  -f dry_run=false
+gh workflow run bc-extrequest-backport.yml --repo microsoft/BCApps --ref main
 
-# Preview one merged main PR independently.
+# Publish one merged main PR, or recover its existing backport.
 gh workflow run bc-extrequest-backport.yml --repo microsoft/BCApps --ref main `
-  -f source_pr=12345 -f dry_run=true
-
-# Publish or reconcile only that selected source's existing request.
-gh workflow run bc-extrequest-backport.yml --repo microsoft/BCApps --ref main `
-  -f source_pr=12345 -f dry_run=false
+  -f source_pr=12345
 ```
 
 Manual runs accept an **optional PR number, not an issue number**. Leave it
@@ -106,41 +97,15 @@ original target for an existing request, and duplicate prevention. A selected
 source already included in a team batch refers back to that batch; it must not
 create a second individual backport.
 
-Both manual modes default to preview and require no App publication token until
-`dry_run=false`. Publication still requires the existing protected environment
-and App permissions even when scheduled creation is disabled.
+**Every manual run publishes.** There is no preview input or dry-run workflow
+mode. Publication requires the existing protected environment and App permissions
+even when scheduled creation is disabled.
 
 Automatic failures older than 15 days need a manual single-PR run. Discovery uses
 paginated REST data rather than the eventually indexed search API. More than
 256 matrix requests causes an explicit failure, not a silently truncated batch.
 The job summary includes team, source PRs, original issues, target and individual
 outcomes. A PR is never split simply to reduce batch size.
-
-## Local read-only preview
-
-From a BCApps checkout containing this branch, use PowerShell 7.4+, Git and an
-authenticated `gh` CLI. No merge to `main` is needed for local preparation.
-
-```powershell
-Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
-
-# Omit -SourcePr to discover all eligible batches; supply it for one source.
-$requests = @(Find-ExtRequestBackportBatches -Repository microsoft/BCApps `
-  -SourcePr '11608' -BatchId ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString()))
-
-foreach ($request in $requests) {
-    $folder = Join-Path ([IO.Path]::GetTempPath()) ('backport-' + [guid]::NewGuid().ToString('N'))
-    New-ExtRequestBackportBatch -Repository microsoft/BCApps `
-      -RequestJson ($request | ConvertTo-Json -Depth 15 -Compress) `
-      -StatePath (Join-Path $folder 'state.json')
-}
-```
-
-This reads GitHub and creates temporary local results only. Do not call the
-publication function using a personal `gh` token: object authorship must match
-the expected GitHub App. The existing `Find-ExtRequestBackport` and
-`New-ExtRequestBackport` single-PR APIs remain available for earlier local
-commands.
 
 ## Publication and recovery
 
@@ -154,44 +119,43 @@ closed PRs are both checked; legacy independent requests are not replayed into
 new team batches.
 Branches are never force-pushed and human edits are never overwritten.
 
-Source PR status labels are created as needed:
+The only label this workflow adds to an original main PR is
+**`ext-backport-processed`**, after it confirms that source's backport PR exists.
+In a team batch, only sources actually included in that PR receive the label.
+It prevents future automatic selection; it does not mean the backport merged.
+No temporary, versioned, or merge-status labels are added to original PRs,
+and original issues are never relabeled.
 
-| Label | Meaning |
-| --- | --- |
-| `ext-backport-processed` | Added to the original main PR once a backport PR exists, a conflict is tracked, or the patch is proven already present. Excludes that main PR from future automatic discovery; does not imply the backport merged. |
-| `ext-backport-created:29.x` | The corresponding backport PR exists. |
-| `ext-backport-needs-attention:29.x` | The source conflicts or its backport PR was closed without merging. |
-| `ext-backport-merged:29.x` | The backport PR merged. |
-| `ext-backport-already-present:29.x` | The entire patch is already present; the issue closes without an empty PR. |
-| `ext-backport-pending:29.x` | Durable intent to create the tracking issue. |
-| `ext-backport-publishing:29.x` | Durable intent to create the backport PR. |
+There is no daily status job or merge-lifecycle automation. Merging or closing
+a backport PR does not trigger further source-label updates or closure of its
+tracking Task by this workflow. Tracking issues and backport PRs still inherit
+the original labels and receive `ext-backporting`.
 
-The version suffix follows the pinned release. `ext-backport-processed` is the
-automatic source filter; `ext-backporting` identifies the backport issue and PR.
-Versioned source labels give the detailed status. Labels
-are not the only duplicate check. A retry repairs missing issue/PR labels
-and reciprocal links rather than creating another pair.
+Existing tracking identities and open/closed PR lookup prevent normal duplicate
+creation. A repeated publishing run repairs missing links or the single processed
+label without adding lifecycle statuses. Conflict and already-present sources
+receive no processed label when no backport PR exists; their tracking records
+prevent duplicate Tasks and automatic conflict retries.
 
-A **daily 21:25 Europe/Copenhagen** reconciliation updates existing backports
-without creating new backport batches. It also runs after Sunday creation.
-When a team PR merges, it closes that batch's issue and updates every included
-main PR, even outside the 15-day discovery window. Conflicted/excluded sources
-are not marked merged with the clean batch. Independent requests are reconciled
-as before. Release-targeted PRs do not automatically close GitHub issues, so
-reconciliation explicitly closes the tracking Task.
+API writes are not automatically retried within a run. Before creating a PR,
+the workflow records a hidden publication-intent marker on its **backport
+tracking issue**, not on the original PR or issues. If that marker exists but
+no matching open/closed PR can be found, publication stops for operator review.
+Do not clear it until the actual outcome has been established.
 
-API writes are not automatically retried. If issue or PR creation has an
-uncertain outcome, its intent label remains. A later run first discovers the
-actual objects. If an intent exists but its object cannot be found, publication
-stops for operator reconciliation. Before removing an intent label, inspect
-all open/closed tracking objects and the deterministic branch and establish
-whether creation occurred. Never clear labels simply to bypass duplicate checks.
+If Task creation fails with an uncertain response, inspect the run and existing
+tracking issues before rerunning. Without temporary source labels there is no
+separate durable issue-creation reservation: object discovery recovers observed
+Tasks, but cannot prove the outcome of an unobserved create. Do not blindly rerun
+an ambiguous create.
 
 Conflicts create a linked independent tracking issue but no partial branch or
-PR, and are not retried automatically. Rerun that main PR manually if the target
-has changed. A separate human-created conflict-resolution PR is not adopted
-automatically; complete its tracking/status manually. Closed-unmerged PRs and
-closed tracking issues are not recreated automatically.
+PR, and are not retried automatically. An open standalone conflict can be
+retried by manually selecting its main PR if the target has changed; the
+existing Task is reused. Outcomes recorded in an immutable team cohort remain
+frozen and require manual resolution. A separate human-created resolution PR
+is not adopted automatically; complete its tracking manually. Closed-unmerged
+PRs and closed tracking issues are not recreated automatically.
 
 ## Content boundaries
 

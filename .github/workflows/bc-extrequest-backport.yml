@@ -3,16 +3,12 @@ name: 'Extensibility Request Backport'
 run-name: >-
   ${{ github.event_name == 'workflow_dispatch' &&
       (inputs.source_pr != '' &&
-       format('Backport main PR #{0} (preview = {1})', inputs.source_pr, inputs.dry_run) ||
-       format('Backport team batches (preview = {0})', inputs.dry_run)) ||
-      (github.event_name == 'schedule' && github.event.schedule == '25 21 * * *' &&
-       'Reconcile extensibility backports' || 'Backport weekly extensibility team batches') }}
+       format('Backport main PR #{0}', inputs.source_pr) || 'Backport team batches') ||
+      'Backport weekly extensibility team batches' }}
 
 on:
   schedule:
     - cron: '10 21 * * 0'
-      timezone: 'Europe/Copenhagen'
-    - cron: '25 21 * * *'
       timezone: 'Europe/Copenhagen'
   workflow_dispatch:
     inputs:
@@ -21,11 +17,6 @@ on:
         required: false
         default: ''
         type: string
-      dry_run:
-        description: Preview without creating or changing branches, issues, PRs or labels
-        required: true
-        default: true
-        type: boolean
   pull_request:
     paths:
       - '.github/workflows/bc-extrequest-backport.yml'
@@ -44,7 +35,6 @@ concurrency:
 
 jobs:
   tests:
-    if: github.event_name != 'schedule' || github.event.schedule == '10 21 * * 0'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -137,7 +127,6 @@ jobs:
           New-ExtRequestBackportBatch -Repository $env:GITHUB_REPOSITORY `
             -RequestJson $env:REQUEST_JSON -StatePath $statePath
       - name: Mint fresh GitHub App publication token
-        if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
@@ -148,8 +137,7 @@ jobs:
           permission-contents: write
           permission-issues: write
           permission-pull-requests: write
-      - name: Publish or reconcile backport
-        if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
+      - name: Publish backport
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BACKPORT_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
@@ -157,47 +145,3 @@ jobs:
           Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
           Publish-ExtRequestBackportBatch -StatePath (Join-Path $env:RUNNER_TEMP 'extrequest-backport/state.json') `
             -BotLogin $env:BACKPORT_BOT_LOGIN
-
-  reconcile:
-    needs: [tests, discover, backport]
-    if: >-
-      always() &&
-      github.repository == 'microsoft/BCApps' &&
-      github.ref == 'refs/heads/main' &&
-      github.event_name == 'schedule' &&
-      vars.EXT_REQ_BACKPORT_ENABLED == 'true' &&
-      needs.tests.result != 'failure' &&
-      needs.tests.result != 'cancelled' &&
-      (github.event.schedule == '25 21 * * *' || needs.discover.result == 'success')
-    runs-on: ubuntu-latest
-    environment: extensibility-agent
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
-    concurrency:
-      group: extrequest-backport-reconcile-${{ github.repository }}
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.workflow_sha }}
-          persist-credentials: false
-          sparse-checkout: .github/scripts/bc-extrequest-backport
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        id: app-token
-        with:
-          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
-          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: BCApps
-          permission-issues: write
-          permission-pull-requests: read
-      - name: Close completed tracking issues and mark source PRs
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          BACKPORT_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
-        run: |
-          Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
-          Sync-ExtRequestBackport -Repository $env:GITHUB_REPOSITORY -BotLogin $env:BACKPORT_BOT_LOGIN
