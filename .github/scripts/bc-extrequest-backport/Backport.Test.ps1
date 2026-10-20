@@ -1,5 +1,536 @@
 using module .\Backport.psm1
 
+BeforeAll {
+    & (Get-Module Backport) {
+    function script:New-BatchFixture {
+        param([string[]] $Outcomes = @('applied', 'applied', 'conflict'))
+        $request = @{
+            mode = 'team'; team = 'Team: Finance'; target = 'releases/29.x'; batch_id = '123'
+            reference_time = [DateTimeOffset]::UtcNow.ToString('o'); manual = $false
+            source_prs = @(); sources = @()
+            concurrency_key = 'team-finance-29'
+        }
+        $members = @()
+        $tip = 'f' * 40
+        for ($i = 0; $i -lt $Outcomes.Count; $i++) {
+            $number = 42 + $i
+            $sha = ([string][char](97 + $i)) * 40
+            $request.source_prs += $number
+            $request.sources += @{ number = $number; sha = $sha; merged_at = [DateTimeOffset]::UtcNow.AddDays(-10 + $i).ToString('o') }
+            $result = @{ outcome = $Outcomes[$i]; target_sha = $tip; commit = $null; tree = $null; paths = @("src/$number.al") }
+            if ($Outcomes[$i] -eq 'applied') {
+                $result.commit = ([string]($i + 1)) * 40
+                $result.tree = ([string]($i + 4)) * 40
+                $tip = $result.commit
+            }
+            $labels = @(
+                @{ name = 'event-request'; color = 'ffffff'; description = '' }
+                @{ name = 'Team: Finance'; color = 'ffffff'; description = '' }
+                @{ name = "issue-$i"; color = 'ffffff'; description = '' }
+                @{ name = 'ext-backporting'; color = '5319E7'; description = '' }
+            )
+            $members += @{
+                schema = 1; repository = 'microsoft/BCApps'; source_pr = $number; source_sha = $sha
+                target = $request.target; manual = $false; reference_time = $request.reference_time; source_title = "Source $number"
+                labels = $labels
+                issues = @(@{ number = 10; url = 'https://github.com/microsoft/BCApps/issues/10'
+                    repository = @{ nameWithOwner = 'microsoft/BCApps' }; labels = @{ nodes = $labels[0..2] } })
+                result = $result
+            }
+        }
+        $module = Get-Module Backport
+        $request.key = & $module {
+            param($Row)
+            'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $Row)).Substring(0, 32)
+        } $request
+        $tree = if (@($members | Where-Object { $_.result.outcome -eq 'applied' }).Count -gt 0) {
+            @($members | Where-Object { $_.result.outcome -eq 'applied' })[-1].result.tree
+        } else { 'e' * 40 }
+        @{ schema = 2; repository = 'microsoft/BCApps'; request = $request; members = $members; target_sha = 'f' * 40
+            head = $tip; tree = $tree }
+    }
+    }
+}
+
+Describe 'Team batch discovery and immutable identity' {
+    InModuleScope Backport {
+        BeforeEach {
+            $script:fixture = New-BatchFixture
+            $script:sourceData = @{}
+            $script:issueData = @{}
+            foreach ($member in $fixture.members) {
+                $script:sourceData[[string]$member.source_pr] = @{
+                    number = $member.source_pr; title = $member.source_title; merge_commit_sha = $member.source_sha
+                    merged_at = $fixture.request.sources[$member.source_pr - 42].merged_at
+                    updated_at = [DateTimeOffset]::UtcNow.ToString('o')
+                    base = @{ ref = 'main'; repo = @{ full_name = 'microsoft/BCApps' } }
+                    labels = @($member.labels | Where-Object { $_.name -ne 'ext-backporting' })
+                }
+                $script:issueData[[string]$member.source_pr] = $member.issues
+            }
+            Mock Get-BackportBatchRecords { @() }
+            Mock Get-BackportTracking { $null }
+            Mock Get-BackportSource { $script:sourceData[[string]$Number] }
+            Mock Get-BackportSourceIssues { $script:issueData[[string]$Number] }
+            Mock Get-BackportApiPages { @(@{ name = 'releases/29.x' }, @{ name = 'releases/9.x' }) }
+            Mock Invoke-BackportApi {
+                if ([string]::IsNullOrEmpty($Method)) { $Method = 'GET' }
+                if ($Method -ne 'GET') { throw 'Discovery must be read-only.' }
+                @($script:sourceData.Values)
+            }
+        }
+
+        It 'groups whole multi-issue sources by their main PR team in oldest-first order' {
+            $script:issueData['42'] += @{
+                number = 11; url = 'https://github.com/microsoft/BCApps/issues/11'
+                repository = @{ nameWithOwner = 'microsoft/BCApps' }
+                labels = @{ nodes = @(@{ name = 'event-request' }, @{ name = 'Team: Finance' }) }
+            }
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 123)
+            $rows.Count | Should -Be 1
+            $rows[0].mode | Should -Be 'team'
+            $rows[0].source_prs -join ',' | Should -Be '42,43,44'
+            $rows[0].team | Should -Be 'Team: Finance'
+            $rows[0].key | Should -Match '^team-[a-f0-9]{32}$'
+            Assert-BackportBatchRequest $rows[0]
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' }
+        }
+
+        It 'keeps missing, multiple or inconsistent teams independent without skipping sources' -ForEach @(
+            @{ kind = 'missing-pr' }, @{ kind = 'multiple-pr' }, @{ kind = 'missing-issue' },
+            @{ kind = 'multiple-issue' }, @{ kind = 'different-issue' }, @{ kind = 'external-issue' }
+        ) {
+            switch ($kind) {
+                'missing-pr' { $script:sourceData['42'].labels = @(@{ name = 'event-request' }) }
+                'multiple-pr' { $script:sourceData['42'].labels += @{ name = 'Team: Other' } }
+                'missing-issue' { $script:issueData['42'][0].labels.nodes = @(@{ name = 'event-request' }) }
+                'multiple-issue' { $script:issueData['42'][0].labels.nodes += @{ name = 'Team: Other' } }
+                'different-issue' {
+                    $script:issueData['42'][0].labels.nodes = @(@{ name = 'event-request' }, @{ name = 'Team: Other' })
+                }
+                'external-issue' { $script:issueData['42'][0].repository.nameWithOwner = 'other/repo' }
+            }
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 123)
+            $rows.Count | Should -Be 2
+            @($rows | Where-Object mode -eq 'single')[0].source_prs -join ',' | Should -Be '42'
+            @($rows | Where-Object mode -eq 'team')[0].source_prs -join ',' | Should -Be '43,44'
+        }
+
+        It 'uses the sole main PR team when no original issue exists' {
+            $script:issueData['42'] = @()
+            @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 123).Count | Should -Be 1
+        }
+
+        It 'retains category checks on each linked original issue' {
+            $script:issueData['42'][0].labels.nodes += @{ name = 'enum-request' }
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 123)
+            $rows[0].source_prs -join ',' | Should -Be '43,44'
+        }
+
+        It 'keeps legacy requests and interrupted source intents independent and pinned' {
+            $script:sourceData['42'].labels += @{ name = 'ext-backport-pending:28.x' }
+            Mock Get-BackportTracking {
+                if ($SourcePr -eq 43) {
+                    @{ body = Get-BackportMarker 43 'releases/27.x' ('b' * 40) }
+                }
+            }
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 123)
+            $rows.Count | Should -Be 3
+            ($rows | Where-Object key -eq 'single-42').target | Should -Be 'releases/28.x'
+            ($rows | Where-Object key -eq 'single-43').target | Should -Be 'releases/27.x'
+        }
+
+        It 'manual single bypasses dates, categories and processed filters and yields exactly one source' {
+            $script:sourceData['42'].merged_at = '2020-01-01T00:00:00Z'
+            $script:sourceData['42'].labels = @(@{ name = 'enum-request' }, @{ name = 'ext-backport-processed' })
+            $script:issueData['42'][0].labels.nodes = @(@{ name = 'enum-request' })
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 42 -BatchId 123)
+            $rows.Count | Should -Be 1
+            $rows[0].mode | Should -Be 'single'
+            $rows[0].manual | Should -BeTrue
+            $rows[0].source_prs -join ',' | Should -Be '42'
+        }
+
+        It 'manual full uses the same automatic filtering and fixed discovery clock' {
+            $script:sourceData['42'].labels += @{ name = 'ext-backport-processed' }
+            $script:sourceData['43'].merged_at = [DateTimeOffset]::UtcNow.AddDays(-16).ToString('o')
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr '' -BatchId 123)
+            $rows[0].source_prs -join ',' | Should -Be '44'
+            $rows[0].manual | Should -BeFalse
+            [DateTimeOffset]$rows[0].reference_time | Should -BeLessOrEqual ([DateTimeOffset]::UtcNow)
+        }
+
+        It 'validates queued workers against the fixed discovery clock rather than their current date' {
+            $clock = [DateTimeOffset]::UtcNow.AddDays(-30)
+            $fixture.request.reference_time = $clock.ToString('o')
+            foreach ($proof in $fixture.request.sources) {
+                $proof.merged_at = $clock.AddDays(-14).AddMinutes($proof.number).ToString('o')
+                $script:sourceData[[string]$proof.number].merged_at = $proof.merged_at
+            }
+            Test-BackportAutomaticSource $script:sourceData['42'] | Should -BeFalse
+            @(Assert-BackportBatchSources $fixture.request microsoft/BCApps).Count | Should -Be 3
+        }
+
+        It 'delegates manual independent preparation and preserves the schema-one publication API' {
+            $row = @(Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 42 -BatchId 123)[0]
+            $path = Join-Path $TestDrive 'single.json'
+            Mock New-ExtRequestBackport {
+                @{ schema = 1; source_sha = 'a' * 40 } | ConvertTo-Json | Set-Content $StatePath
+            }
+            New-ExtRequestBackportBatch microsoft/BCApps (ConvertTo-Json $row -Depth 60) $path
+            Should -Invoke New-ExtRequestBackport -Times 1 -ParameterFilter {
+                $Manual -and $SourcePr -eq 42 -and $Target -eq 'releases/29.x' -and
+                $ReferenceTime -eq [DateTimeOffset]$row.reference_time
+            }
+            Mock Publish-ExtRequestBackport {}
+            Publish-ExtRequestBackportBatch $path 'test-app[bot]'
+            Should -Invoke Publish-ExtRequestBackport -Times 1
+        }
+
+        It 'routes the old per-PR prepare API to its immutable existing batch' {
+            Mock Get-BackportBatchRecords { @{ issue = @{ state = 'open' }; manifest = $script:fixture } }
+            Mock New-ExtRequestBackportBatch {}
+            New-ExtRequestBackport microsoft/BCApps 42 releases/99.x $true (Join-Path $TestDrive 'legacy.json')
+            Should -Invoke New-ExtRequestBackportBatch -Times 1 -ParameterFilter {
+                ($RequestJson | ConvertFrom-Json).source_prs.Count -eq 3 -and
+                ($RequestJson | ConvertFrom-Json).target -eq 'releases/29.x'
+            }
+        }
+
+        It 'manual batch member returns exactly its frozen batch including already processed members' {
+            Mock Get-BackportBatchRecords { @{ issue = @{ state = 'open' }; manifest = $script:fixture } }
+            $script:sourceData['42'].labels += @{ name = 'ext-backport-processed' }
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 43 -TargetOverride releases/99.x -BatchId 999)
+            $rows.Count | Should -Be 1
+            $rows[0].key | Should -Be $fixture.request.key
+            $rows[0].source_prs -join ',' | Should -Be '42,43,44'
+            $rows[0].target | Should -Be 'releases/29.x'
+            $rows[0].batch_id | Should -Be '123'
+            Should -Invoke Invoke-BackportApi -Times 0
+        }
+
+        It 'resumes an open immutable batch even when all members are outside discovery' {
+            Mock Get-BackportBatchRecords { @{ issue = @{ state = 'open' }; manifest = $script:fixture } }
+            $script:sourceData.Clear()
+            $rows = @(Find-ExtRequestBackportBatches microsoft/BCApps -BatchId 999)
+            $rows.Count | Should -Be 1
+            $rows[0].key | Should -Be $fixture.request.key
+        }
+
+        It 'rejects changed frozen membership, targets, source proofs and malformed manifests' -ForEach @(
+            @{ kind = 'target' }, @{ kind = 'membership' }, @{ kind = 'sha' }, @{ kind = 'parent' }
+        ) {
+            Assert-BackportBatchManifest $fixture
+            $marker = Get-BackportBatchMarker $fixture
+            (Read-BackportBatchMarker $marker).request.key | Should -Be $fixture.request.key
+            { Read-BackportBatchMarker "$marker`n$marker" } | Should -Throw
+            { Read-BackportBatchMarker '<!-- bc-extrequest-backport:v2 bad -->' } | Should -Throw
+            switch ($kind) {
+                'target' { $fixture.request.target = 'releases/30.x' }
+                'membership' { $fixture.request.source_prs[0] = 999 }
+                'sha' { $fixture.request.sources[0].sha = 'e' * 40 }
+                'parent' { $fixture.members[1].result.target_sha = 'e' * 40 }
+            }
+            { Assert-BackportBatchManifest $fixture } | Should -Throw
+        }
+    }
+}
+
+Describe 'Batch publication and reconciliation' {
+    InModuleScope Backport {
+        BeforeEach {
+            $script:fixture = New-BatchFixture
+            $script:statePath = Join-Path $TestDrive 'batch-state.json'
+            $script:batchTracking = $null
+            $script:batchPull = $null
+            $script:singleTracking = @{}
+            $script:sourceData = @{}
+            foreach ($member in $fixture.members) {
+                $script:sourceData[[string]$member.source_pr] = @{
+                    number = $member.source_pr; title = $member.source_title; merge_commit_sha = $member.source_sha
+                    merged_at = $fixture.request.sources[$member.source_pr - 42].merged_at
+                    base = @{ ref = 'main'; repo = @{ full_name = 'microsoft/BCApps' } }
+                    labels = @($member.labels | Where-Object { $_.name -ne 'ext-backporting' })
+                }
+            }
+            $fixture | ConvertTo-Json -Depth 60 | Set-Content $statePath
+            Mock Get-BackportBatchRecords {
+                if ($null -ne $script:batchTracking) { @{ issue = $script:batchTracking; manifest = $script:fixture } }
+            }
+            Mock Get-BackportBatchPull { $script:batchPull }
+            Mock Get-BackportTracking { $script:singleTracking[[string]$SourcePr] }
+            Mock Get-BackportPull { $null }
+            Mock Get-BackportSource { $script:sourceData[[string]$Number] }
+            Mock Get-BackportSourceIssues { @($script:fixture.members | Where-Object source_pr -eq $Number)[0].issues }
+            Mock Ensure-BackportLabels {}
+            Mock Remove-BackportIntents {}
+            Mock Add-BackportStatus {
+                $script:sourceData[[string]$SourcePr].labels += @{ name = Get-BackportStatusLabel $Status $Target }
+                if ($Status -in @('created', 'merged', 'already-present', 'needs-attention')) {
+                    $script:sourceData[[string]$SourcePr].labels += @{ name = 'ext-backport-processed' }
+                }
+            }
+            Mock Assert-BackportPreparedBatch {}
+            Mock Invoke-BackportGit {
+                if ($Arguments[0] -eq 'ls-remote') { return @{ text = "$($script:fixture.head)`trefs/heads/bc-extrequest-backport/$($script:fixture.request.key)" } }
+                throw "Unexpected Git write: $($Arguments -join ' ')"
+            }
+            Mock Get-BackportApiPages {
+                if ($null -ne $script:batchTracking) { $script:batchTracking }
+                foreach ($item in $script:singleTracking.Values) { $item }
+            }
+            Mock Invoke-BackportApi {
+                if ([string]::IsNullOrEmpty($Method)) { $Method = 'GET' }
+                if ($Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues') {
+                    $object = @{
+                        number = 100; title = $Body.title; body = $Body.body; state = 'open'
+                        user = @{ login = 'test-app[bot]' }; labels = @()
+                        html_url = 'https://github.com/microsoft/BCApps/issues/100'
+                    }
+                    if ($Body.body.Contains('bc-extrequest-backport:v2')) { $script:batchTracking = $object }
+                    else {
+                        $marker = Read-BackportMarker $Body.body
+                        $object.number = 200 + $marker.source_pr
+                        $object.html_url = "https://github.com/microsoft/BCApps/issues/$($object.number)"
+                        $script:singleTracking[[string]$marker.source_pr] = $object
+                    }
+                    return $object
+                }
+                if ($Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls') {
+                    $script:batchPull = @{
+                        number = 101; body = $Body.body; draft = $Body.draft; state = 'open'; merged_at = $null
+                        user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/pull/101'
+                        head = @{ sha = $script:fixture.head; ref = $Body.head; repo = @{ full_name = 'microsoft/BCApps' } }
+                        base = @{ ref = $Body.base; repo = @{ full_name = 'microsoft/BCApps' } }
+                    }
+                    return $script:batchPull
+                }
+                if ($Method -eq 'GET' -and $Path -eq 'repos/microsoft/BCApps/pulls/101') { return $script:batchPull }
+                if ($Method -eq 'GET' -and $Path -eq 'repos/microsoft/BCApps/issues/100') { return $script:batchTracking }
+                foreach ($object in $script:singleTracking.Values) {
+                    if ($Method -eq 'GET' -and $Path -eq "repos/microsoft/BCApps/issues/$($object.number)") { return $object }
+                }
+                if ($Method -eq 'POST' -and $Path -match '/issues/\d+/labels$') { return }
+                if ($Method -eq 'PATCH' -and $Path -match '/issues/\d+$') {
+                    if ($Path -eq 'repos/microsoft/BCApps/issues/100') {
+                        if ($Body.ContainsKey('body')) { $script:batchTracking.body = $Body.body }
+                        if ($Body.ContainsKey('state')) { $script:batchTracking.state = $Body.state }
+                    }
+                    return
+                }
+                throw "Unexpected remote operation: $Method $Path"
+            }
+        }
+
+        It 'publishes one team Task and draft PR plus an independent conflict Task with deduplicated links and label union' {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Path -eq 'repos/microsoft/BCApps/issues' -and $Method -eq 'POST' -and
+                $Body.body.Contains('bc-extrequest-backport:v2') -and $Body.type -eq 'Task' -and
+                $Body.labels -contains 'issue-0' -and $Body.labels -contains 'issue-1' -and
+                $Body.labels -notcontains 'issue-2'
+            }
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Path -eq 'repos/microsoft/BCApps/pulls' -and $Method -eq 'POST' -and $Body.draft -and
+                $Body.body.Contains('Fixes microsoft/BCApps#100') -and $Body.base -eq 'releases/29.x'
+            }
+            $body = $script:batchPull.body
+            $body | Should -Match 'pull/42'
+            $body | Should -Match 'pull/43'
+            $body | Should -Match ('a' * 40)
+            $body | Should -Match ('b' * 40)
+            [regex]::Matches($body, 'https://github.com/microsoft/BCApps/issues/10').Count | Should -Be 1
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 44 -and $Status -eq 'needs-attention' }
+            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $SourcePr -eq 44 -and $Status -in @('created', 'merged') }
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter {
+                $Arguments[0] -in @('cherry-pick', 'checkout', 'fetch')
+            }
+        }
+
+        It 'reports actual team, source proofs, original issue links and each prepared outcome' {
+            Mock Write-BackportSummary {}
+            Write-BackportBatchSummary $fixture prepared
+            Should -Invoke Write-BackportSummary -Times 1 -ParameterFilter {
+                $Text.Contains('pull/42') -and $Text.Contains('Team: Finance') -and
+                $Text.Contains('issues/10') -and $Text.Contains('**applied**') -and $Text.Contains('a' * 40)
+            }
+            Should -Invoke Write-BackportSummary -Times 1 -ParameterFilter {
+                $Text.Contains('pull/44') -and $Text.Contains('issues/10') -and $Text.Contains('**conflict**')
+            }
+        }
+
+        It 'daily reconciliation repairs EVERY included source even when GitHub already closed the merged tracking issue' {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $script:batchPull.merged_at = '2026-10-20T09:00:00Z'
+            $script:batchTracking.state = 'closed'
+            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'merged' }
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 43 -and $Status -eq 'merged' }
+            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $SourcePr -eq 44 -and $Status -eq 'merged' }
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+        }
+
+        It 'marks every included source needs-attention when the batch PR closes unmerged' {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $script:batchPull.state = 'closed'
+            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'needs-attention' }
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 43 -and $Status -eq 'needs-attention' }
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'PATCH' -and $Path -eq 'repos/microsoft/BCApps/issues/100' -and
+                $Body.ContainsKey('state') -and $Body.state -eq 'closed'
+            }
+        }
+
+        It 'reconciles an existing batch without duplicating issue, PR or conflict outcomes' {
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 2 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' }
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+        }
+
+        It 'does not blindly retry an uncertain team issue POST' {
+            Mock Invoke-BackportApi { throw 'Uncertain POST' } -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Uncertain POST*'
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' }
+        }
+
+        It 'recovers a confirmed team issue after an interrupted response without repeating its POST' {
+            Mock Invoke-BackportApi {
+                $script:batchTracking = @{
+                    number = 100; body = $Body.body; state = 'open'; labels = @()
+                    user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/issues/100'
+                }
+                throw 'Lost response'
+            } -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' -and $Body.body.Contains('bc-extrequest-backport:v2') }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Lost response*'
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' -and $Body.body.Contains('bc-extrequest-backport:v2')
+            }
+            $script:batchPull | Should -Not -BeNullOrEmpty
+        }
+
+        It 'does not blindly repeat an unconfirmed batch PR POST' {
+            Mock Invoke-BackportApi { throw 'Uncertain PR POST' } -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Uncertain PR POST*'
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*unconfirmed*'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+        }
+
+        It 'reuses an accepted batch PR when its response was lost' {
+            Mock Invoke-BackportApi {
+                $script:batchPull = @{
+                    number = 101; body = $Body.body; draft = $true; state = 'open'; merged_at = $null
+                    user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/pull/101'
+                    head = @{ sha = $script:fixture.head; ref = $Body.head; repo = @{ full_name = 'microsoft/BCApps' } }
+                    base = @{ ref = $Body.base; repo = @{ full_name = 'microsoft/BCApps' } }
+                }
+                throw 'Lost PR response'
+            } -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Lost PR response*'
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'created' }
+        }
+
+        It 'publishes the clean batch even when independent conflict issue publication fails' {
+            Mock Invoke-BackportApi { throw 'Independent POST failed' } -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' -and
+                $Body.body.Contains('bc-extrequest-backport:v1')
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Independent POST failed*'
+            $script:batchPull | Should -Not -BeNullOrEmpty
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 42 -and $Status -eq 'created' }
+            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $SourcePr -eq 44 -and $Status -eq 'created' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*prior backport state*'
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues' -and
+                $Body.body.Contains('bc-extrequest-backport:v1')
+            }
+        }
+
+        It 'never publishes a branch or PR when every source is conflict or already present' {
+            $script:fixture = New-BatchFixture -Outcomes @('conflict', 'already-present')
+            foreach ($proof in $fixture.request.sources) { $script:sourceData[[string]$proof.number].merged_at = $proof.merged_at }
+            $fixture | ConvertTo-Json -Depth 60 | Set-Content $statePath
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter {
+                $Method -eq 'POST' -and ($Path -eq 'repos/microsoft/BCApps/pulls' -or
+                ($Path -eq 'repos/microsoft/BCApps/issues' -and $Body.body.Contains('bc-extrequest-backport:v2')))
+            }
+            Should -Invoke Invoke-BackportGit -Times 0
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter { $SourcePr -eq 43 -and $Status -eq 'already-present' }
+        }
+
+        It 'fails closed on modified prepared provenance before any remote write' {
+            Mock Assert-BackportPreparedBatch { throw 'Provenance changed' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Provenance changed*'
+            Should -Invoke Invoke-BackportApi -Times 0
+        }
+
+        It 'refuses changed source proofs before writes' {
+            $script:sourceData['43'].merge_commit_sha = '0' * 40
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*SHA changed*'
+            Should -Invoke Invoke-BackportApi -Times 0
+        }
+
+        It 'refuses a different per-source pinned release instead of silently moving a resumed request' {
+            $script:sourceData['43'].labels += @{ name = 'ext-backport-pending:28.x' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*different pinned target*'
+            Should -Invoke Invoke-BackportApi -Times 0
+        }
+
+        It 'refuses a batch object by another actor even if its manifest is intact' {
+            $script:batchTracking = @{
+                number = 100; body = Get-BackportBatchMarker $fixture; state = 'open'; user = @{ login = 'human' }
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*author*'
+            Should -Invoke Invoke-BackportApi -Times 0
+        }
+
+        It 'does not overwrite a batch branch with human changes' {
+            Mock Invoke-BackportGit { @{ text = "$('e' * 40)`trefs/heads/changed" } }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*never overwrite*'
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' }
+        }
+
+        It 'defers already-present status until closure and recovers it through daily reconciliation' {
+            $script:fixture = New-BatchFixture -Outcomes @('already-present')
+            $script:sourceData['42'].merged_at = $fixture.request.sources[0].merged_at
+            $fixture | ConvertTo-Json -Depth 60 | Set-Content $statePath
+            Mock Invoke-BackportApi { throw 'Close failed' } -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('state') -and $Body.state -eq 'closed'
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Close failed*'
+            { Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]' } | Should -Throw '*Close failed*'
+            Should -Invoke Add-BackportStatus -Times 0 -ParameterFilter { $Status -eq 'already-present' }
+            Should -Invoke Remove-BackportIntents -Times 0
+            Mock Invoke-BackportApi { $script:singleTracking['42'].state = 'closed' } -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('state') -and $Body.state -eq 'closed'
+            }
+            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
+            Should -Invoke Add-BackportStatus -Times 1 -ParameterFilter {
+                $SourcePr -eq 42 -and $Status -eq 'already-present'
+            }
+            Should -Invoke Remove-BackportIntents -Times 1 -ParameterFilter { $SourcePr -eq 42 }
+            Sync-ExtRequestBackport microsoft/BCApps 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -Times 3 -ParameterFilter {
+                $Method -eq 'PATCH' -and $Body.ContainsKey('state') -and $Body.state -eq 'closed'
+            }
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/issues'
+            }
+        }
+    }
+}
+
 Describe 'Extensibility backport policy' {
     InModuleScope Backport {
         BeforeAll {
@@ -34,10 +565,10 @@ Describe 'Extensibility backport policy' {
             Test-BackportCategory $labels | Should -BeFalse
         }
 
-        It 'uses a rolling seven-day inclusive cutoff and has no November cutoff' {
+        It 'uses a rolling fifteen-day inclusive cutoff and has no November cutoff' {
             $now = [DateTimeOffset]'2026-10-19T12:00:00Z'
-            Test-BackportAutomaticSource (New-TestSource -Merged '2026-10-12T12:00:00Z') $now | Should -BeTrue
-            Test-BackportAutomaticSource (New-TestSource -Merged '2026-10-12T11:59:59Z') $now | Should -BeFalse
+            Test-BackportAutomaticSource (New-TestSource -Merged '2026-10-04T12:00:00Z') $now | Should -BeTrue
+            Test-BackportAutomaticSource (New-TestSource -Merged '2026-10-04T11:59:59Z') $now | Should -BeFalse
             Test-BackportAutomaticSource (New-TestSource -Merged '2026-10-19T12:00:01Z') $now | Should -BeFalse
         }
 
@@ -186,7 +717,7 @@ Describe 'Backport discovery and recovery' {
             Should -Invoke Invoke-BackportApi -Times 2
         }
 
-        It 'does not rediscover a processed source PR in the seven-day window' {
+        It 'does not rediscover a processed source PR in the fifteen-day window' {
             Mock Invoke-BackportApi {
                 @(
                     @{
@@ -347,6 +878,133 @@ Describe 'Native Git backport integration' {
             $result.outcome | Should -Be 'conflict'
             (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim() | Should -Be $target
             (Invoke-BackportGit $directory @('show', 'HEAD:src/Foo.al')).text | Should -Be "release-only`n"
+        }
+
+        It 'preserves cumulative same-file changes with one provenance commit per oldest-first source' {
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "source`nsecond`n")
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'second')
+            $second = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+            $firstResult = Invoke-BackportApply $directory $source $base
+            $secondResult = Invoke-BackportApply $directory $second $firstResult.commit
+            $secondResult.outcome | Should -Be 'applied'
+            (Invoke-BackportGit $directory @('rev-parse', 'HEAD^^')).text.Trim() | Should -Be $base
+            (Invoke-BackportGit $directory @('show', 'HEAD:src/Foo.al')).text | Should -Be "source`nsecond`n"
+            (Invoke-BackportGit $directory @('log', '-2', '--format=%B')).text |
+                Should -Match "cherry picked from commit $source"
+            (Invoke-BackportGit $directory @('log', '-1', '--format=%B')).text |
+                Should -Match "cherry picked from commit $second"
+        }
+
+        It 'retains a cumulative-tip conflict even when the same source applies cleanly to the original release' {
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "base`n")
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'unselected main revert')
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "other`n")
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'later source')
+            $later = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+            $first = Invoke-BackportBatchApply $directory $source $base $base @()
+            $first.outcome | Should -Be 'applied'
+            $cumulative = Invoke-BackportBatchApply $directory $later $first.commit $base @()
+            $cumulative.outcome | Should -Be 'conflict'
+            $cumulative.commit | Should -BeNullOrEmpty
+            (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim() | Should -Be $first.commit
+            (Invoke-BackportGit $directory @('show', 'HEAD:src/Foo.al')).text | Should -Be "source`n"
+            $releaseOnly = Invoke-BackportApply $directory $later $base
+            $releaseOnly.outcome | Should -Be 'applied'
+            $cumulative.outcome | Should -Be 'conflict'
+        }
+
+        It 'prepares and validates a real cumulative batch and resumes its exact immutable release and membership' {
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "source`nsecond`n")
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'second')
+            $second = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+            $script:fixture = New-BatchFixture -Outcomes @('applied', 'applied')
+            $request = $fixture.request
+            $request.sources[0].sha = $source
+            $request.sources[1].sha = $second
+            [void]$request.Remove('key')
+            $request.key = 'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $request)).Substring(0, 32)
+            $script:request = $request
+            $script:release = $base
+            $script:durable = $null
+            $script:remoteHead = ''
+            $script:actualGit = (Get-Command Invoke-BackportGit).ScriptBlock
+            Mock Get-BackportBatchRecords {
+                if ($null -ne $script:durable) { @{ issue = @{ state = 'open' }; manifest = $script:durable } }
+            }
+            Mock Get-BackportTracking { $null }
+            Mock Get-BackportSource {
+                $proof = @($script:request.sources | Where-Object number -eq $Number)[0]
+                @{
+                    number = $Number; title = "Source $Number"; merge_commit_sha = $proof.sha; merged_at = $proof.merged_at
+                    base = @{ ref = 'main'; repo = @{ full_name = 'microsoft/BCApps' } }
+                    labels = @(@{ name = 'event-request' }, @{ name = 'Team: Finance' })
+                }
+            }
+            Mock Get-BackportSourceIssues { @($script:fixture.members | Where-Object source_pr -eq $Number)[0].issues }
+            Mock Initialize-BackportBatchGit {}
+            Mock Invoke-BackportApi {
+                if ([string]::IsNullOrEmpty($Method)) { $Method = 'GET' }
+                if ($Method -ne 'GET') { throw 'Preparation attempted a remote write.' }
+                if ($Path -like '*/git/ref/*') { return @{ object = @{ sha = $script:release } } }
+                if ($Path -like '*/compare/*') { return @{ status = 'ahead' } }
+                throw "Unexpected API read: $Path"
+            }
+            Mock Invoke-BackportGit {
+                if ($Arguments[0] -eq 'fetch') { return @{ text = ''; exit_code = 0 } }
+                if ($Arguments[0] -eq 'ls-remote') { return @{ text = $script:remoteHead; exit_code = 0 } }
+                & $script:actualGit -Directory $Directory -Arguments $Arguments -InputText $InputText `
+                    -AllowFailure:$AllowFailure -CommitDate $CommitDate
+            }
+            $root = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
+            $null = New-Item -ItemType Directory $root
+            $preparedDirectory = Join-Path $root 'git'
+            Move-Item -LiteralPath $directory -Destination $preparedDirectory
+            $statePath = Join-Path $root 'state.json'
+            New-ExtRequestBackportBatch microsoft/BCApps (ConvertTo-Json $request -Depth 60) $statePath
+            $script:durable = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable -Depth 60
+            $durable.members.Count | Should -Be 2
+            $durable.members[1].result.target_sha | Should -Be $durable.members[0].result.commit
+            (Invoke-BackportGit $preparedDirectory @('show', "$($durable.head):src/Foo.al")).text | Should -Be "source`nsecond`n"
+            Assert-BackportPreparedBatch $durable $preparedDirectory
+            $tampered = $durable | ConvertTo-Json -Depth 60 | ConvertFrom-Json -AsHashtable -Depth 60
+            $tampered.members[1].result.paths = @('src/Unexpected.al')
+            { Assert-BackportPreparedBatch $tampered $preparedDirectory } | Should -Throw '*provenance differs*'
+            $resumeRoot = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
+            $null = New-Item -ItemType Directory $resumeRoot
+            Copy-Item -LiteralPath $preparedDirectory -Destination (Join-Path $resumeRoot 'git') -Recurse
+            $script:release = '0' * 40
+            $script:remoteHead = "$($durable.head)`trefs/heads/bc-extrequest-backport/$($request.key)"
+            $row = @{} + $request
+            $row.manifest = $durable
+            $resumedPath = Join-Path $resumeRoot 'state.json'
+            New-ExtRequestBackportBatch microsoft/BCApps (ConvertTo-Json $row -Depth 60) $resumedPath
+            $resumed = Get-Content $resumedPath -Raw | ConvertFrom-Json -AsHashtable -Depth 60
+            (Get-BackportBatchMarker $resumed) | Should -Be (Get-BackportBatchMarker $durable)
+            Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter { $Path -like '*/git/ref/*' }
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'isolates conflicts, excludes dependent paths and retains a disjoint clean source' {
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Other.al'), "clean`n")
+            $null = Invoke-BackportGit $directory @('add', 'src/Other.al')
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-m', 'disjoint')
+            $clean = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "source`ndependent`n")
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'dependent')
+            $dependent = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+            $null = Invoke-BackportGit $directory @('checkout', '--detach', $base)
+            [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "release`n")
+            $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'release')
+            $release = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+            $failed = Invoke-BackportApply $directory $source $release
+            $failed.outcome | Should -Be 'conflict'
+            $good = Invoke-BackportApply $directory $clean $release -BlockedPaths $failed.paths
+            $good.outcome | Should -Be 'applied'
+            $blocked = Invoke-BackportApply $directory $dependent $good.commit -BlockedPaths $failed.paths
+            $blocked.outcome | Should -Be 'conflict'
+            (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim() | Should -Be $good.commit
+            (Invoke-BackportGit $directory @('show', 'HEAD:src/Foo.al')).text | Should -Be "release`n"
+            (Invoke-BackportGit $directory @('show', 'HEAD:src/Other.al')).text | Should -Be "clean`n"
         }
 
         It 'does not run repository hooks' {

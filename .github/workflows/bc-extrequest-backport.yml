@@ -2,18 +2,24 @@ name: 'Extensibility Request Backport'
 
 run-name: >-
   ${{ github.event_name == 'workflow_dispatch' &&
-      format('Backport main PR #{0} (preview = {1})', inputs.source_pr, inputs.dry_run) ||
-      'Backport recently merged extensibility requests' }}
+      (inputs.source_pr != '' &&
+       format('Backport main PR #{0} (preview = {1})', inputs.source_pr, inputs.dry_run) ||
+       format('Backport team batches (preview = {0})', inputs.dry_run)) ||
+      (github.event_name == 'schedule' && github.event.schedule == '25 21 * * *' &&
+       'Reconcile extensibility backports' || 'Backport weekly extensibility team batches') }}
 
 on:
   schedule:
-    - cron: '10 21 * * *'
+    - cron: '10 21 * * 0'
+      timezone: 'Europe/Copenhagen'
+    - cron: '25 21 * * *'
       timezone: 'Europe/Copenhagen'
   workflow_dispatch:
     inputs:
       source_pr:
-        description: Merged main PR number (bypasses date and request-category filters)
-        required: true
+        description: Optional merged main PR number; leave empty for all eligible team batches
+        required: false
+        default: ''
         type: string
       dry_run:
         description: Preview without creating or changing branches, issues, PRs or labels
@@ -38,6 +44,7 @@ concurrency:
 
 jobs:
   tests:
+    if: github.event_name != 'schedule' || github.event.schedule == '10 21 * * 0'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -62,9 +69,11 @@ jobs:
       github.repository == 'microsoft/BCApps' &&
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event_name == 'schedule' && vars.EXT_REQ_BACKPORT_ENABLED == 'true'))
+       (github.event_name == 'schedule' &&
+        github.event.schedule == '10 21 * * 0' &&
+        vars.EXT_REQ_BACKPORT_ENABLED == 'true'))
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: read
       issues: read
@@ -78,19 +87,20 @@ jobs:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
           sparse-checkout: .github/scripts/bc-extrequest-backport
-      - name: Discover merged main PRs
+      - name: Discover team batches and independent requests
         id: discover
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_PR: ${{ inputs.source_pr }}
           TARGET_OVERRIDE: ${{ vars.EXT_REQ_BACKPORT_TARGET_BRANCH }}
+          BATCH_ID: ${{ github.run_id }}
         run: |
           Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
-          $requests = @(Find-ExtRequestBackport -Repository $env:GITHUB_REPOSITORY `
-            -SourcePr $env:SOURCE_PR -TargetOverride $env:TARGET_OVERRIDE)
+          $requests = @(Find-ExtRequestBackportBatches -Repository $env:GITHUB_REPOSITORY `
+            -SourcePr $env:SOURCE_PR -TargetOverride $env:TARGET_OVERRIDE -BatchId $env:BATCH_ID)
           "has-work=$(($requests.Count -gt 0).ToString().ToLowerInvariant())" |
             Add-Content $env:GITHUB_OUTPUT
-          "matrix=$(@{ include = $requests } | ConvertTo-Json -Depth 5 -Compress)" |
+          "matrix=$(@{ include = $requests } | ConvertTo-Json -Depth 15 -Compress)" |
             Add-Content $env:GITHUB_OUTPUT
 
   backport:
@@ -98,7 +108,7 @@ jobs:
     if: needs.discover.outputs.has-work == 'true'
     runs-on: ubuntu-latest
     environment: extensibility-agent
-    timeout-minutes: 45
+    timeout-minutes: 120
     permissions:
       contents: read
       issues: read
@@ -108,7 +118,7 @@ jobs:
       max-parallel: 1
       matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
     concurrency:
-      group: extrequest-backport-${{ github.repository }}-${{ matrix.source_pr }}
+      group: extrequest-backport-${{ github.repository }}-${{ matrix.concurrency_key || matrix.key }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -120,15 +130,12 @@ jobs:
         id: prepare
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_PR: ${{ matrix.source_pr }}
-          TARGET_BRANCH: ${{ matrix.target }}
-          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+          REQUEST_JSON: ${{ toJSON(matrix) }}
         run: |
           Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
           $statePath = Join-Path $env:RUNNER_TEMP 'extrequest-backport/state.json'
-          New-ExtRequestBackport -Repository $env:GITHUB_REPOSITORY `
-            -SourcePr ([long]$env:SOURCE_PR) -Target $env:TARGET_BRANCH `
-            -Manual ($env:MANUAL -eq 'true') -StatePath $statePath
+          New-ExtRequestBackportBatch -Repository $env:GITHUB_REPOSITORY `
+            -RequestJson $env:REQUEST_JSON -StatePath $statePath
       - name: Mint fresh GitHub App publication token
         if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
         id: app-token
@@ -148,12 +155,20 @@ jobs:
           BACKPORT_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         run: |
           Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
-          Publish-ExtRequestBackport -StatePath (Join-Path $env:RUNNER_TEMP 'extrequest-backport/state.json') `
+          Publish-ExtRequestBackportBatch -StatePath (Join-Path $env:RUNNER_TEMP 'extrequest-backport/state.json') `
             -BotLogin $env:BACKPORT_BOT_LOGIN
 
   reconcile:
-    needs: [discover, backport]
-    if: always() && github.event_name == 'schedule' && needs.discover.result == 'success'
+    needs: [tests, discover, backport]
+    if: >-
+      always() &&
+      github.repository == 'microsoft/BCApps' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'schedule' &&
+      vars.EXT_REQ_BACKPORT_ENABLED == 'true' &&
+      needs.tests.result != 'failure' &&
+      needs.tests.result != 'cancelled' &&
+      (github.event.schedule == '25 21 * * *' || needs.discover.result == 'success')
     runs-on: ubuntu-latest
     environment: extensibility-agent
     timeout-minutes: 15
