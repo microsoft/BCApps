@@ -475,6 +475,59 @@ codeunit 144200 "FatturaPA Test"
         ComparePreviewAndPostedFatturaPA(SalesHeader);
     end;
 
+    [Test]
+    procedure PreviewCreditMemoIncludesKnownAppliedInvoice()
+    var
+        SalesHeader: Record "Sales Header";
+        AppliedInvoice: Record "Sales Invoice Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        PostedInvoiceNo: Code[20];
+    begin
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        Commit();
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        AppliedInvoice.Get(PostedInvoiceNo);
+
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            AppliedInvoice."Bill-to Customer No.", SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", PostedInvoiceNo);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaHeader.FindFirst();
+        Assert.AreEqual(PostedInvoiceNo, TempFatturaHeader."Applied Doc. No.",
+            'Preview omitted a known invoice application.');
+        Assert.AreEqual(AppliedInvoice."Posting Date", TempFatturaHeader."Applied Posting Date",
+            'Preview did not resolve the applied invoice posting date.');
+    end;
+
+    [Test]
+    procedure PreviewCreditMemoWithoutApplicationDoesNotInventInvoice()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::"Credit Memo");
+        Commit();
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaHeader.FindFirst();
+        Assert.AreEqual('', TempFatturaHeader."Applied Doc. No.",
+            'Preview invented an invoice application.');
+    end;
+
     local procedure ComparePreviewAndPostedFatturaPA(var SalesHeader: Record "Sales Header")
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
