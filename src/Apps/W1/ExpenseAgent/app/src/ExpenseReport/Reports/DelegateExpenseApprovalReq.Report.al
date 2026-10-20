@@ -19,9 +19,11 @@ report 6900 "Delegate Expense Approval Req"
             RequestFilterFields = "No.", "Expense User No.", "Final Approver No.", "Interim Approver No.", "Alternate Approver No.";
 
             trigger OnAfterGetRecord()
+            var
+                ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
             begin
                 Commit();
-                Codeunit.Run(Codeunit::"Assign Alternate Approver", ExpenseReportHeader);
+                ExpenseReportApprovalMgmt.AssignActiveAlternateApproverForExpenseReport(ExpenseReportHeader);
             end;
         }
     }
