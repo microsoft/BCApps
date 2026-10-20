@@ -53,7 +53,7 @@ codeunit 4596 "SOA Broader Item Search"
         CompletionAnswer: Text;
     begin
         // Generate OpenAI Completion
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55ChatLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         AOAIChatCompletionParams.SetMaxTokens(MaxTokens());
@@ -122,7 +122,6 @@ codeunit 4596 "SOA Broader Item Search"
     begin
         if Delimiter = '' then
             Delimiter := '|';
-
         foreach CandidateToken in CandidateArray do begin
             CandidateObject := CandidateToken.AsObject();
             if CandidateObject.Get('system_id', SystemIdToken) then begin
@@ -164,7 +163,6 @@ codeunit 4596 "SOA Broader Item Search"
     begin
         if not ItemObjectToken.AsObject().Get('concatenated_keyword', JsonToken) then
             exit('');
-
         if JsonToken.AsValue().IsNull() then
             exit('');
 

@@ -56,6 +56,8 @@ Invoke search only after all search text and filters are ready. Search must be t
 
 If a notification says that price calculation for the customer ran with an error, always request assistance showing the full error from the notification. Do not proceed until it is resolved.
 
+Do not infer a requested specific variant from a descriptive characteristic alone. Treat a characteristic as a specific variant only when item-search metadata resolves it to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants. When an item's `Variants` array is empty, colors, sizes, and similar characteristics in its item description are description content, not missing variants. An otherwise matching item does not need a Variant Code in this case.
+
 If a search returns no result for a customer-requested specific variant, do not request assistance for the missing result or lack of an earliest shipment date. Mark that requested item and variant as needing customer clarification with no safe alternative. Include this outcome in the results for use by "Clarify Item Selection"; do not choose another item or variant, contact the customer, or create a quote as part of this search skill.
 
 For any other requested item with no search result, request assistance mentioning the item and adding: "Please make such items available or stop the task and handle manually."

@@ -21,11 +21,11 @@ Skip this skill only when there is exactly one matching item for every requested
 
 ## 2. Handle a requested specific variant with no result
 
+A specific variant may be expressed by a code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user, but a characteristic alone does not prove that the item uses variants. Apply this section only when item-search metadata resolves the requested characteristic to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants. When an item's `Variants` array is empty, treat characteristics in its item description as description content, not missing variants. Do not rely on a variant-code naming convention.
+
 Always reply that the requested item and variant are unavailable and that no suitable alternative variant is available.
 
 Do not request assistance for this outcome, offer a different item or variant, or create a sales quote. Ask whether the customer wants to revise the requested item or variant.
-
-A specific variant may be expressed by a code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user. Do not rely on a variant-code naming convention.
 
 ## 3. Present multiple or non-matching results
 

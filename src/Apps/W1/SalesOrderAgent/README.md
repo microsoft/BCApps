@@ -31,3 +31,11 @@ workflow behavior must be reflected in both resources.
 Business IQ remains an extension dependency in both modes. Turning this option
 off does not uninstall Business IQ, remove shared business skills, or affect
 another agent's setting.
+
+## Item descriptions and variants
+
+Both modes use item-search variant metadata rather than descriptive words alone
+to decide whether a request is variant-specific. For an otherwise matching item
+with an empty `Variants` array, characteristics such as color or size remain part
+of the item description and do not require a Variant Code. Items with actual
+variants retain their existing matching and substitution-safety rules.

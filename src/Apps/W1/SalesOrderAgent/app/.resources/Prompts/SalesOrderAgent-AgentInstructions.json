@@ -83,6 +83,7 @@
 					"value": "\n## **Send Items Request to Customer**",
 					"steps_include_numbering": "true",
 					"steps": [
+						"A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user, but a characteristic alone does not prove that the item uses variants. Treat a characteristic as a specific variant only when item-search metadata resolves it to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants. When an item's Variants array is empty, treat characteristics in its item description as description content, not missing variants. Do not rely on any variant-code naming convention.",
 						"Skip this step only when there is exactly one matching item for every requested item. Otherwise, retrieve and follow the Clarify Item Selection skill, including when a customer-requested specific variant has no item result.",
 						"Do not proceed to quote creation while the customer's item selection is unresolved. Return to item search as needed when the customer revises the request."
 					]
