@@ -528,6 +528,63 @@ codeunit 144200 "FatturaPA Test"
             'Preview invented an invoice application.');
     end;
 
+    [Test]
+    procedure PreviewOmitsFullyInvoicedHistoricalShipment()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        OldShipmentNo: Code[20];
+        PendingShipmentNo: Code[20];
+    begin
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.FindFirst();
+        OldShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.SetFilter("Document No.", '<>%1', OldShipmentNo);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Fixture did not create the second shipment.');
+        PendingShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        TempFatturaLine.SetRange("Shipment No.", OldShipmentNo);
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview included an already invoiced DDT.');
+        TempFatturaLine.SetRange("Shipment No.", PendingShipmentNo);
+        Assert.IsFalse(TempFatturaLine.IsEmpty(), 'Preview omitted the DDT being invoiced.');
+    end;
+
     local procedure ComparePreviewAndPostedFatturaPA(var SalesHeader: Record "Sales Header")
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
