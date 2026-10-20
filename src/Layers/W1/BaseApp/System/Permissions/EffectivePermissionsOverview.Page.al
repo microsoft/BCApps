@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
+using System.Azure.Identity;
 using System.Environment;
 using System.Reflection;
 using System.Security.User;
@@ -288,7 +289,7 @@ page 9886 "Effective Permissions Overview"
         UserProperty: Record "User Property";
         EnvironmentInfo: Codeunit "Environment Information";
         UserSelection: Codeunit "User Selection";
-        // AzureADUserManagement: Codeunit "Azure AD User Management";
+        AzureADUserManagement: Codeunit "Azure AD User Management";
         IsSaaS: Boolean;
     begin
         IsSaaS := EnvironmentInfo.IsSaaS();
@@ -299,11 +300,10 @@ page 9886 "Effective Permissions Overview"
         User.SetLoadFields("User Security ID", "User Name");
         if User.FindSet() then
             repeat
-                // FIXME: TEMP DEV
-                // if IsSaaS then
-                //     if not AzureADUserManagement.IsUserDelegated(User."User Security ID") then
-                //         if (not UserProperty.Get(User."User Security ID")) or (UserProperty."Authentication Object ID" = '') then
-                //             continue;
+                if IsSaaS then
+                    if not AzureADUserManagement.IsUserDelegated(User."User Security ID") then
+                        if (not UserProperty.Get(User."User Security ID")) or (UserProperty."Authentication Object ID" = '') then
+                            continue;
                 TempUser."User Security ID" := User."User Security ID";
                 TempUser."User Name" := User."User Name";
                 TempUser.Insert();
