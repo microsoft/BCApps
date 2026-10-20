@@ -142,7 +142,7 @@
     "features/*"
   ],
   "enableCodeCop": true,
-  "enableAppSourceCop": false,
+  "enableAppSourceCop": true,
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
   "enableCodeAnalyzersOnTestApps": true,
