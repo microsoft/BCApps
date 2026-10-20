@@ -114,8 +114,7 @@ codeunit 250 "Gen. Jnl.-Post via Job Queue"
         GenJrnlLine.SetRange("Journal Template Name", GenJrnlLine."Journal Template Name");
         GenJrnlLine.SetRange("Journal Batch Name", GenJrnlLine."Journal Batch Name");
         GenJrnlLine.SetRange("Document No.", GenJrnlLine."Document No.");
-        GenJrnlLine.ModifyAll("Job Queue Status", GenJrnlLine."Job Queue Status"::"Scheduled for Posting");
-        GenJrnlLine.ModifyAll("Job Queue Entry ID", GenJrnlLine."Job Queue Entry ID");
+        GenJrnlLine.ModifyAll("Job Queue Status", GenJrnlLine."Job Queue Status"::"Scheduled for Posting", "Job Queue Entry ID", GenJrnlLine."Job Queue Entry ID");
 
         if GuiAllowed then
             if WithUI then
@@ -187,9 +186,7 @@ codeunit 250 "Gen. Jnl.-Post via Job Queue"
         GenJrnlLine.SetRange("Journal Template Name", GenJrnlLine."Journal Template Name");
         GenJrnlLine.SetRange("Journal Batch Name", GenJrnlLine."Journal Batch Name");
         GenJrnlLine.SetRange("Document No.", GenJrnlLine."Document No.");
-        GenJrnlLine.ModifyAll("Job Queue Status", GenJrnlLine."Job Queue Status"::" ");
-        GenJrnlLine.ModifyAll("Job Queue Entry ID", EmptyGuid);
-        GenJrnlLine.ModifyAll("Print Posted Documents", false);
+        GenJrnlLine.ModifyAll("Job Queue Status", GenJrnlLine."Job Queue Status"::" ", "Job Queue Entry ID", EmptyGuid, "Print Posted Documents", false);
     end;
 
     local procedure ExecuteRecurringGeneralJournalsLogic(GenJrnlLine: Record "Gen. Journal Line")

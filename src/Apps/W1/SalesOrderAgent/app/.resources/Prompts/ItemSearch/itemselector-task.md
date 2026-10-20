@@ -145,6 +145,13 @@ For broad queries (e.g., product families):
 
 ### VARIANT SELECTION
 
+The `Variants` array is the exclusive source of truth for whether a candidate supports item variants.
+
+- When `Variants` is empty, the candidate has no selectable variants. Treat every word in the candidate's item-level description fields, including colors, sizes, finishes, capacities, intended users, and similar characteristics, as part of the item description rather than as a variant signal.
+- For an otherwise matching candidate with an empty `Variants` array, omit `variant_code`, set `variant_match` to `not_requested`, and set `variant_substitution_safety` to `not_applicable`.
+- Only classify a characteristic as a requested variant when the candidate has entries in `Variants` and the requested value is being resolved against those entries.
+- These empty-`Variants` rules take precedence over every semantic variant inference rule below.
+
 When a selected item has available variants in the Variants column, include `variant_code` using these rules:
 
 #### Substitution safety gate
@@ -170,10 +177,10 @@ When a selected item has available variants in the Variants column, include `var
 - Treat presentation-only dimensions, such as color, finish, pattern, or decorative style, as interchangeable by default because they preserve form, fit, function, safety, and compatibility, unless the customer explicitly requires the exact value or rejects substitutions.
 - Treat dimensions that can affect suitability, such as physical fit, dimensions, capacity, compatibility, technical specification, safety classification, or intended user group, as non-interchangeable by default. Similarity, ordering, proximity, or availability of another value does not make it a valid substitute.
 - Availability does not make a variant interchangeable. Select the requested variant when it exists in the Variants data; downstream logic will evaluate its availability.
-- If the query explicitly or semantically requests a variant value, never return that item as `matching` without `variant_code`. An omitted variant would incorrectly imply that the requested item can be fulfilled without resolving the variant.
+- If the candidate has entries in `Variants` and the query explicitly or semantically requests a value that is being resolved against those entries, never return that item as `matching` without `variant_code`. An omitted variant would incorrectly imply that the requested item can be fulfilled without resolving the variant.
 - Set `variant_match` to `matching` when `variant_code` fulfills the explicit or semantic variant request.
 - Set `variant_match` to `alternative` when `variant_code` is a safe substitute for the requested variant.
-- Set `variant_match` to `not_requested` only when no variant was requested, and omit `variant_code`.
+- Set `variant_match` to `not_requested` when no variant was requested or when the candidate has an empty `Variants` array, and omit `variant_code`.
 - When `variant_match` is `alternative`, set overall `confidence` to `alternative` so the substitute requires customer confirmation even when the item itself is a direct match.
 - When you return a matching item with a specific `variant_code`, also return up to 3 genuinely interchangeable variants for the same item as additional `selected_items` entries with confidence `alternative` and `variant_match` `alternative`. Return no variant alternatives for fit, compatibility, or other non-interchangeable requirements.
 - If the requested variant is not present in the Variants data, return up to 3 valid variants for the same item with confidence `alternative` and `variant_match` `alternative` only when that variant dimension is interchangeable. Do not also return the item without `variant_code`.
@@ -236,7 +243,7 @@ Rules:
 - Sort by relevance within each group
 - Do not include duplicate item+variant pairs
 - Return empty array ONLY if no items qualify as "matching" or "alternative"
-- Set `variant_match` to `not_requested` only when no variant value was requested and omit `variant_code`; use `matching` when `variant_code` fulfills the request and `alternative` when it is a safe substitute
+- Set `variant_match` to `not_requested` when no variant value was requested or when the candidate has an empty `Variants` array, and omit `variant_code`; use `matching` when `variant_code` fulfills the request and `alternative` when it is a safe substitute
 - Include `reason` for every selected item with a concise explanation of both the item match and variant decision
 
 ---
@@ -324,3 +331,17 @@ Candidates:
 
 Output:
 selected_items: []
+
+---
+
+#### Example 6 — Color in the description of an item without variants
+
+Query: "AURORA swivel chair teal"
+
+Candidates:
+- { "No.": "CHAIR-100", "Description": "AURORA Swivel Chair, teal", "Variants": [] }
+
+Output:
+selected_items: [
+  { "item_no": "CHAIR-100", "confidence": "matching", "variant_match": "not_requested", "variant_substitution_safety": "not_applicable", "reason": "The full item description matches the request, and the empty Variants array means teal is part of the item description rather than an item variant." }
+]

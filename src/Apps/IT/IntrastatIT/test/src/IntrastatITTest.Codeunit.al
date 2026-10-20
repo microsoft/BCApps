@@ -1190,8 +1190,7 @@ codeunit 139511 "Intrastat IT Test"
         // [GIVEN] A Intrastat Report with empty Quantity and "Supplementary Units" = false
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo, Periodicity::Month, Type::Sales, false, IncStr(FileNo), false);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll(Quantity, 0);
-        IntrastatReportLine.ModifyAll("Supplementary Units", false);
+        IntrastatReportLine.ModifyAll(Quantity, 0, "Supplementary Units", false);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1238,8 +1237,7 @@ codeunit 139511 "Intrastat IT Test"
         // [GIVEN] A Intrastat Report with empty "Total Weight" and "Supplementary Units" = true
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo, Periodicity::Month, Type::Sales, false, IncStr(FileNo), false);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Total Weight", 0);
-        IntrastatReportLine.ModifyAll("Supplementary Units", true);
+        IntrastatReportLine.ModifyAll("Total Weight", 0, "Supplementary Units", true);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1286,8 +1284,7 @@ codeunit 139511 "Intrastat IT Test"
         // [GIVEN] A Intrastat Report with empty "Country/Region of Origin Code" and Type = Receipt
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo, Periodicity::Month, Type::Sales, false, IncStr(FileNo), false);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Country/Region of Origin Code", '');
-        IntrastatReportLine.ModifyAll(Type, IntrastatReportLine.Type::Receipt);
+        IntrastatReportLine.ModifyAll("Country/Region of Origin Code", '', Type, IntrastatReportLine.Type::Receipt);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1334,8 +1331,7 @@ codeunit 139511 "Intrastat IT Test"
         // [GIVEN] A Intrastat Report with empty "Partner VAT ID" and Type = Receipt
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo, Periodicity::Month, Type::Sales, false, IncStr(FileNo), false);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Partner VAT ID", '');
-        IntrastatReportLine.ModifyAll(Type, IntrastatReportLine.Type::Receipt);
+        IntrastatReportLine.ModifyAll("Partner VAT ID", '', Type, IntrastatReportLine.Type::Receipt);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
