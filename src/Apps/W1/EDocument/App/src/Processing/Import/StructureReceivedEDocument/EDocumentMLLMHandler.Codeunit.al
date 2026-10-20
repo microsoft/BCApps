@@ -281,12 +281,12 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         var IsCreditNote: Boolean)
     var
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         InStream: InStream;
         SourceJsonObject: JsonObject;
         LinesToken: JsonToken;
         LinesArray: JsonArray;
+        InvoiceReferences: List of [Text];
         BlobAsText: Text;
     begin
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
@@ -301,15 +301,16 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if SourceJsonObject.Get('invoice_line', LinesToken) then
             if LinesToken.IsArray() then begin
                 LinesArray := LinesToken.AsArray();
-                EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine, TempEDocPurchaseHeader."Currency Code", IsCreditNote);
+                EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine, TempEDocPurchaseHeader."Currency Code");
             end;
 
         if not IsCreditNote then
             exit;
-        EDocImpSessionTelemetry.SetBool('CreditNoteLineSignsChanged', EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempEDocPurchaseHeader, TempEDocPurchaseLine));
-        TempEDocPurchaseHeader."Vendor Invoice No." := CopyStr(
-            EDocPurchaseDraftUtility.JoinInvoiceReferences(EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJsonObject, TempEDocPurchaseHeader."Sales Invoice No.")),
-            1, MaxStrLen(TempEDocPurchaseHeader."Vendor Invoice No."));
+        InvoiceReferences := EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJsonObject, TempEDocPurchaseHeader."Sales Invoice No.");
+        if InvoiceReferences.Count() = 0 then
+            exit;
+        TempEDocPurchaseHeader."Vendor Invoice No." := CopyStr(InvoiceReferences.Get(1), 1, MaxStrLen(TempEDocPurchaseHeader."Vendor Invoice No."));
+        TempEDocPurchaseHeader."Several Invoices Referenced" := InvoiceReferences.Count() > 1;
     end;
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")

@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
@@ -52,174 +51,32 @@ codeunit 135649 "EDoc Credit Note Tests"
     procedure InvoiceReferencesExcludeOwnNumberAndDuplicates()
     var
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
         SourceJson: JsonObject;
-        Joined: Text;
+        InvoiceReferences: List of [Text];
     begin
         // [SCENARIO] Billing references are read, the credit note's own number and duplicates are dropped
         SourceJson.Add('billing_reference', BuildBillingReferences('INV-100', 'CN-7', 'INV-100'));
 
-        Joined := EDocPurchaseDraftUtility.JoinInvoiceReferences(EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJson, 'CN-7'));
+        InvoiceReferences := EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJson, 'CN-7');
 
-        Assert.AreEqual('INV-100', Joined, 'Only the referenced invoice must remain.');
-        Assert.IsFalse(EDocPurchaseDraftUtility.ReferencesSeveralInvoices(Joined), 'A single reference is not several invoices.');
+        Assert.AreEqual(1, InvoiceReferences.Count(), 'Only the referenced invoice must remain.');
+        Assert.AreEqual('INV-100', InvoiceReferences.Get(1), 'The referenced invoice must be kept.');
     end;
 
     [Test]
-    procedure SeveralInvoiceReferencesAreKeptTogether()
+    procedure SeveralInvoiceReferencesAreAllRead()
     var
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
         SourceJson: JsonObject;
-        Joined: Text;
+        InvoiceReferences: List of [Text];
     begin
-        // [SCENARIO] A credit note for several invoices keeps all of them, so it is never applied to only one
+        // [SCENARIO] A credit note for several invoices returns all of them, so the draft can use the first and warn about the others
         SourceJson.Add('billing_reference', BuildBillingReferences('INV-100', 'INV-101', ''));
 
-        Joined := EDocPurchaseDraftUtility.JoinInvoiceReferences(EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJson, 'CN-7'));
+        InvoiceReferences := EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJson, 'CN-7');
 
-        Assert.AreEqual('INV-100 | INV-101', Joined, 'All referenced invoices must be kept.');
-        Assert.IsTrue(EDocPurchaseDraftUtility.ReferencesSeveralInvoices(Joined), 'Several references must be detected.');
-    end;
-
-    [Test]
-    procedure SingleReferenceContainingPunctuationIsNotSeveralInvoices()
-    var
-        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
-        SourceJson: JsonObject;
-        Joined: Text;
-    begin
-        // [SCENARIO] One invoice number that happens to contain a comma is applied to, not treated as several invoices
-        // [GIVEN] A credit note that states a single invoice whose number contains a comma
-        SourceJson.Add('billing_reference', BuildBillingReferences('INV,2026,001', '', ''));
-
-        // [WHEN] The references are read and joined
-        Joined := EDocPurchaseDraftUtility.JoinInvoiceReferences(EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJson, 'CN-7'));
-
-        // [THEN] The number is kept whole and is not mistaken for a list
-        Assert.AreEqual('INV,2026,001', Joined, 'The invoice number must be kept exactly as stated.');
-        Assert.IsFalse(EDocPurchaseDraftUtility.ReferencesSeveralInvoices(Joined), 'Punctuation inside one invoice number must not mean several invoices.');
-    end;
-
-    #endregion
-
-    #region Signs
-
-    [Test]
-    procedure NegativeCreditNoteBecomesPositive()
-    var
-        TempHeader: Record "E-Document Purchase Header" temporary;
-        TempLine: Record "E-Document Purchase Line" temporary;
-        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-    begin
-        // [SCENARIO] A credit note printed with negative amounts gets positive amounts; a fee with the opposite sign reduces the credit
-        TempHeader."Sub Total" := -190;
-        TempHeader."Total VAT" := -47.5;
-        TempHeader.Total := -237.5;
-        TempHeader."Amount Due" := -237.5;
-        InsertLine(TempLine, 10000, -2, 100, -200);
-        InsertLine(TempLine, 20000, 1, 10, 10);
-
-        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempHeader, TempLine);
-
-        Assert.AreEqual(190, TempHeader."Sub Total", 'Sub Total');
-        Assert.AreEqual(47.5, TempHeader."Total VAT", 'Total VAT');
-        Assert.AreEqual(237.5, TempHeader.Total, 'Total');
-        TempLine.Get(0, 10000);
-        Assert.AreEqual(2, TempLine.Quantity, 'Credited line quantity must be positive.');
-        Assert.AreEqual(100, TempLine."Unit Price", 'Credited line unit price must be positive.');
-        TempLine.Get(0, 20000);
-        Assert.AreEqual(-1, TempLine.Quantity, 'A fee with the opposite sign must reduce the credit.');
-        Assert.AreEqual(10, TempLine."Unit Price", 'Unit price stays positive.');
-    end;
-
-    [Test]
-    procedure DiscountFollowsTheDirectionOfItsLine()
-    var
-        TempHeader: Record "E-Document Purchase Header" temporary;
-        TempLine: Record "E-Document Purchase Line" temporary;
-        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-    begin
-        // [SCENARIO] A discount keeps the direction of the line it is on, so a reversed fee is not overstated by its discount
-        // [GIVEN] A credit note that credits 200 and charges a restocking fee of 2 x 50 less a discount of 10
-        TempHeader.Total := -290;
-        InsertLine(TempLine, 10000, -2, 100, -200);
-        InsertLine(TempLine, 20000, 2, 50, 90, 10);
-
-        // [WHEN] The signs are normalized
-        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempHeader, TempLine);
-
-        // [THEN] The credited line is positive
-        TempLine.Get(0, 10000);
-        Assert.AreEqual(2, TempLine.Quantity, 'The credited line quantity must be positive.');
-
-        // [THEN] The fee and its discount both point the other way, so the fee is worth 90 and not 110
-        TempLine.Get(0, 20000);
-        Assert.AreEqual(-2, TempLine.Quantity, 'The fee must reduce the credit.');
-        Assert.AreEqual(-10, TempLine."Total Discount", 'The discount must follow the direction of its line.');
-        Assert.AreEqual(-90, TempLine.Quantity * TempLine."Unit Price" - TempLine."Total Discount", 'The fee must reduce the credit by 90, not by 110.');
-    end;
-
-    [Test]
-    procedure NegativeLinesUnderUnsignedTotalBecomePositive()
-    var
-        TempHeader: Record "E-Document Purchase Header" temporary;
-        TempLine: Record "E-Document Purchase Line" temporary;
-        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-    begin
-        // [SCENARIO] A credit note prints negative lines under a total without a minus sign; the lines still become positive
-        TempHeader."Sub Total" := 190;
-        TempHeader.Total := 237.5;
-        InsertLine(TempLine, 10000, -2, 100, -200);
-        InsertLine(TempLine, 20000, 1, 10, 10);
-
-        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempHeader, TempLine);
-
-        Assert.AreEqual(237.5, TempHeader.Total, 'Total');
-        TempLine.Get(0, 10000);
-        Assert.AreEqual(2, TempLine.Quantity, 'Credited line quantity must be positive.');
-        Assert.AreEqual(200, TempLine."Sub Total", 'Credited line amount must be positive.');
-        TempLine.Get(0, 20000);
-        Assert.AreEqual(-1, TempLine.Quantity, 'A fee with the opposite sign must reduce the credit.');
-    end;
-
-    [Test]
-    procedure PositiveCreditNoteIsUnchanged()
-    var
-        TempHeader: Record "E-Document Purchase Header" temporary;
-        TempLine: Record "E-Document Purchase Line" temporary;
-        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-    begin
-        // [SCENARIO] A credit note printed with positive amounts keeps them
-        TempHeader.Total := 125;
-        InsertLine(TempLine, 10000, 1, 100, 100);
-
-        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempHeader, TempLine);
-
-        Assert.AreEqual(125, TempHeader.Total, 'Total');
-        TempLine.Get(0, 10000);
-        Assert.AreEqual(1, TempLine.Quantity, 'Quantity');
-        Assert.AreEqual(100, TempLine."Unit Price", 'Unit Price');
-    end;
-
-    [Test]
-    procedure NegativeQuantityIsKeptOnlyForCreditNotes()
-    var
-        TempLine: Record "E-Document Purchase Line" temporary;
-        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
-        LinesArray: JsonArray;
-    begin
-        // [SCENARIO] Invoices still clamp negative quantities to zero; credit notes keep them for sign normalization
-        LinesArray.Add(BuildLine(-3, 50));
-
-        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
-        TempLine.FindFirst();
-        Assert.AreEqual(0, TempLine.Quantity, 'Invoices clamp negative quantities.');
-
-        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '', true);
-        TempLine.FindFirst();
-        Assert.AreEqual(-3, TempLine.Quantity, 'Credit notes keep negative quantities.');
+        Assert.AreEqual(2, InvoiceReferences.Count(), 'Both referenced invoices must be read.');
+        Assert.AreEqual('INV-100', InvoiceReferences.Get(1), 'The first referenced invoice is the one used.');
     end;
 
     #endregion
@@ -240,27 +97,6 @@ codeunit 135649 "EDoc Credit Note Tests"
 
         Assert.IsTrue(EDocPurchDocHelper.TryResolveOpenInvoice(VendorNo, '', 'PI-1001', PostedInvoiceNo, FailureReason), FailureReason);
         Assert.AreEqual('PI-1001', PostedInvoiceNo, 'Posted invoice no.');
-    end;
-
-    [Test]
-    procedure ReferenceContainingTheSeparatorIsAppliedWhenItIdentifiesOneInvoice()
-    var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
-        VendorNo: Code[20];
-        FailureReason: Text;
-    begin
-        // [SCENARIO] One invoice whose number contains the character that separates several references is still applied to
-        // [GIVEN] An open posted invoice whose vendor invoice number contains the reference separator
-        VendorNo := CreateVendor('');
-        CreateInvoiceEntry(VendorNo, 'PI-1009', 'INV | 900', '', true);
-        EDocumentPurchaseHeader."[BC] Vendor No." := VendorNo;
-        EDocumentPurchaseHeader."Vendor Invoice No." := 'INV | 900';
-
-        // [WHEN] The invoice to apply to is resolved
-        // [THEN] The ledger decides, so it is applied instead of being rejected as several invoices
-        Assert.IsTrue(EDocPurchDocHelper.ResolveInvoiceToApplyTo(EDocumentPurchaseHeader, FailureReason), FailureReason);
-        Assert.AreEqual('PI-1009', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The stated invoice must be applied to.');
     end;
 
     [Test]
@@ -367,16 +203,52 @@ codeunit 135649 "EDoc Credit Note Tests"
         Assert.IsTrue(EDocPurchDocHelper.TryResolveOpenInvoice(VendorNo, 'XYZ', 'INV-800', PostedInvoiceNo, FailureReason), FailureReason);
     end;
 
+    [Test]
+    procedure LookupOffersOnlyInvoicesMatchingAmbiguousReference()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO] When the invoice reference matches several open invoices, the lookup offers only those invoices
+        VendorNo := CreateVendor('');
+        CreateInvoiceEntry(VendorNo, 'PI-1009', 'INV-900', '', true);
+        CreateInvoiceEntry(VendorNo, 'PI-1010', 'INV-900', '', true);
+        CreateInvoiceEntry(VendorNo, 'PI-1011', 'INV-901', '', true);
+
+        EDocPurchDocHelper.FilterOpenInvoicesToApplyTo(VendorNo, 'INV-900', VendorLedgerEntry);
+        Assert.RecordCount(VendorLedgerEntry, 2);
+    end;
+
+    [Test]
+    procedure LookupOffersAllOpenInvoicesWhenReferenceIsNotAmbiguous()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO] When the invoice reference matches at most one open invoice, the lookup offers all open invoices of the vendor
+        VendorNo := CreateVendor('');
+        CreateInvoiceEntry(VendorNo, 'PI-1012', 'INV-1200', '', true);
+        CreateInvoiceEntry(VendorNo, 'PI-1013', 'INV-1300', '', true);
+        CreateInvoiceEntry(VendorNo, 'PI-1014', 'INV-1400', '', false);
+
+        EDocPurchDocHelper.FilterOpenInvoicesToApplyTo(VendorNo, 'INV-1200', VendorLedgerEntry);
+        Assert.RecordCount(VendorLedgerEntry, 2);
+    end;
+
     #endregion
 
     local procedure CreateVendor(PayToVendorNo: Code[20]): Code[20]
     var
         Vendor: Record Vendor;
-        LibraryUtility: Codeunit "Library - Utility";
+        LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        Vendor."No." := LibraryUtility.GenerateRandomCode20(Vendor.FieldNo("No."), Database::Vendor);
-        Vendor."Pay-to Vendor No." := PayToVendorNo;
-        Vendor.Insert();
+        LibraryPurchase.CreateVendor(Vendor);
+        if PayToVendorNo <> '' then begin
+            Vendor.Validate("Pay-to Vendor No.", PayToVendorNo);
+            Vendor.Modify(true);
+        end;
         exit(Vendor."No.");
     end;
 
@@ -402,23 +274,6 @@ codeunit 135649 "EDoc Credit Note Tests"
         VendorLedgerEntry.Insert();
     end;
 
-    local procedure InsertLine(var TempLine: Record "E-Document Purchase Line" temporary; LineNo: Integer; Quantity: Decimal; UnitPrice: Decimal; SubTotal: Decimal)
-    begin
-        TempLine.Init();
-        TempLine."Line No." := LineNo;
-        TempLine.Quantity := Quantity;
-        TempLine."Unit Price" := UnitPrice;
-        TempLine."Sub Total" := SubTotal;
-        TempLine.Insert();
-    end;
-
-    local procedure InsertLine(var TempLine: Record "E-Document Purchase Line" temporary; LineNo: Integer; Quantity: Decimal; UnitPrice: Decimal; SubTotal: Decimal; TotalDiscount: Decimal)
-    begin
-        InsertLine(TempLine, LineNo, Quantity, UnitPrice, SubTotal);
-        TempLine."Total Discount" := TotalDiscount;
-        TempLine.Modify();
-    end;
-
     local procedure BuildBillingReferences(Reference1: Text; Reference2: Text; Reference3: Text) References: JsonArray
     begin
         AddBillingReference(References, Reference1);
@@ -436,19 +291,5 @@ codeunit 135649 "EDoc Credit Note Tests"
         DocumentReference.Add('id', Reference);
         BillingReference.Add('invoice_document_reference', DocumentReference);
         References.Add(BillingReference);
-    end;
-
-    local procedure BuildLine(Quantity: Decimal; UnitPrice: Decimal) Line: JsonObject
-    var
-        QuantityObj: JsonObject;
-        PriceObj: JsonObject;
-        ItemObj: JsonObject;
-    begin
-        QuantityObj.Add('value', Quantity);
-        PriceObj.Add('price_amount', UnitPrice);
-        ItemObj.Add('name', 'Returned goods');
-        Line.Add('invoiced_quantity', QuantityObj);
-        Line.Add('price', PriceObj);
-        Line.Add('item', ItemObj);
     end;
 }

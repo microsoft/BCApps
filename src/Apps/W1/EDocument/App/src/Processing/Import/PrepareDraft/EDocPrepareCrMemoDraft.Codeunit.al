@@ -28,20 +28,68 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
     end;
 
     /// <summary>
-    /// Re-derives the invoice to apply to and its warnings after "Applies-to Vendor Inv. No." is changed on the draft, without preparing the rest of the draft again.
+    /// Re-derives Applies-to Doc. No. and its warnings after "Applies-to Vendor Inv. No." is changed on the draft, without preparing the rest of the draft again.
     /// </summary>
     internal procedure RefreshInvoiceToApplyTo(EDocument: Record "E-Document")
+    begin
+        ClearInvoiceWarnings(EDocument);
+        PrepareInvoiceToApplyTo(EDocument);
+    end;
+
+    /// <summary>
+    /// Fails when the invoice the user selected in Applies-to Doc. No. is not an open posted invoice of the draft's vendor.
+    /// </summary>
+    internal procedure ValidateInvoiceToApplyTo(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+    begin
+        if EDocumentPurchaseHeader."Applies-to Doc. No." = '' then
+            exit;
+        EDocPurchDocHelper.TestOpenInvoiceToApplyTo(
+            EDocumentPurchaseHeader."[BC] Vendor No.", EDocumentPurchaseHeader."Currency Code",
+            CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, 20));
+    end;
+
+    /// <summary>
+    /// Replaces the invoice warnings after the user selected the invoice in Applies-to Doc. No.
+    /// </summary>
+    internal procedure RefreshWarningsForSelectedInvoice(EDocument: Record "E-Document")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        ErrorMessage: Record "Error Message";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
     begin
+        ClearInvoiceWarnings(EDocument);
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
-        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
-        ErrorMessage.SetRange("Record ID", EDocumentPurchaseHeader.RecordId());
-        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Warning);
-        ErrorMessage.SetRange("Field Number", EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."));
-        ErrorMessage.DeleteAll();
-        PrepareInvoiceToApplyTo(EDocument);
+        if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
+            WarnIfInvoiceAlreadyCredited(EDocument, EDocumentPurchaseHeader)
+        else
+            if EDocumentPurchaseHeader."Several Invoices Referenced" then
+                EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."),
+                    EDocPurchDocHelper.GetSeveralInvoicesMatchWarning())
+            else
+                EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."),
+                    EDocPurchDocHelper.GetNotAppliedOutcome(EDocumentPurchaseHeader."[BC] Vendor No."));
+    end;
+
+    /// <summary>
+    /// Lets the user select an open posted invoice of the draft's vendor to apply the credit memo to.
+    /// When the invoice reference matches several invoices, only those are offered.
+    /// </summary>
+    internal procedure LookupInvoiceToApplyTo(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var Text: Text): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        VendorLedgerEntries: Page "Vendor Ledger Entries";
+    begin
+        EDocPurchDocHelper.FilterOpenInvoicesToApplyTo(EDocumentPurchaseHeader."[BC] Vendor No.", EDocumentPurchaseHeader."Vendor Invoice No.", VendorLedgerEntry);
+        VendorLedgerEntries.SetTableView(VendorLedgerEntry);
+        VendorLedgerEntries.LookupMode(true);
+        if VendorLedgerEntries.RunModal() <> Action::LookupOK then
+            exit(false);
+        VendorLedgerEntries.GetRecord(VendorLedgerEntry);
+        Text := VendorLedgerEntry."Document No.";
+        exit(true);
     end;
 
     local procedure PrepareInvoiceToApplyTo(EDocument: Record "E-Document")
@@ -49,8 +97,8 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         FailureReason: Text;
-        NoInvoiceStatedMsg: Label 'The credit note does not state the invoice it corrects.';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if EDocumentPurchaseHeader."E-Document Entry No." = 0 then
@@ -58,51 +106,62 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         if EDocumentPurchaseHeader."[BC] Vendor No." = '' then begin
             EDocumentPurchaseHeader."Applies-to Doc. No." := '';
             EDocumentPurchaseHeader.Modify();
-            SuggestVendorOfReferencedInvoice(EDocument, EDocumentPurchaseHeader);
+            WarnWithVendorOfReferencedInvoice(EDocument, EDocumentPurchaseHeader);
             exit;
         end;
 
-        if EDocPurchDocHelper.ResolveInvoiceToApplyTo(EDocumentPurchaseHeader, FailureReason) then
-            WarnIfInvoiceAlreadyCredited(EDocument, EDocumentPurchaseHeader)
-        else begin
-            if FailureReason = '' then
-                FailureReason := NoInvoiceStatedMsg;
+        // A credit note that states several invoices is not applied to any of them; the user selects the invoice.
+        if EDocumentPurchaseHeader."Several Invoices Referenced" then begin
+            EDocumentPurchaseHeader."Applies-to Doc. No." := '';
+            EDocImpSessionTelemetry.SetText('AppliesToResolution', 'SeveralReferenced');
             EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."),
-                FailureReason + ' ' + EDocPurchDocHelper.GetNotAppliedOutcome(EDocumentPurchaseHeader."[BC] Vendor No."));
-        end;
+                EDocPurchDocHelper.GetSeveralInvoicesMatchWarning());
+        end else
+            if EDocPurchDocHelper.ResolveInvoiceToApplyTo(EDocumentPurchaseHeader, FailureReason) then
+                WarnIfInvoiceAlreadyCredited(EDocument, EDocumentPurchaseHeader)
+            else begin
+                if FailureReason = '' then
+                    FailureReason := EDocPurchDocHelper.GetNotAppliedOutcome(EDocumentPurchaseHeader."[BC] Vendor No.");
+                EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."), FailureReason);
+            end;
         EDocumentPurchaseHeader.Modify();
     end;
 
     /// <summary>
-    /// One sentence for the draft page: whether the credit memo will be applied to an invoice when it is created, and the reason when it is not.
+    /// The warnings about the invoice to apply to, shown below Applies-to Doc. No. on the draft.
     /// </summary>
-    internal procedure GetApplicationStatus(EDocument: Record "E-Document"): Text
+    internal procedure GetInvoiceWarnings(EDocument: Record "E-Document") Warnings: List of [Text]
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         ErrorMessage: Record "Error Message";
-        Status: TextBuilder;
-        AppliedMsg: Label 'Will be applied to invoice %1.', Comment = '%1 = vendor invoice number';
-        NotAppliedMsg: Label 'Will not be applied to an invoice.';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if EDocumentPurchaseHeader."E-Document Entry No." = 0 then
-            exit('');
-        if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
-            Status.Append(StrSubstNo(AppliedMsg, EDocumentPurchaseHeader."Vendor Invoice No."))
-        else
-            Status.Append(NotAppliedMsg);
+            exit;
+        FilterInvoiceWarnings(EDocument, EDocumentPurchaseHeader, ErrorMessage);
+        ErrorMessage.SetLoadFields(Message);
+        if ErrorMessage.FindSet() then
+            repeat
+                Warnings.Add(ErrorMessage.Message);
+            until ErrorMessage.Next() = 0;
+    end;
 
+    local procedure ClearInvoiceWarnings(EDocument: Record "E-Document")
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        ErrorMessage: Record "Error Message";
+    begin
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        FilterInvoiceWarnings(EDocument, EDocumentPurchaseHeader, ErrorMessage);
+        ErrorMessage.DeleteAll();
+    end;
+
+    local procedure FilterInvoiceWarnings(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var ErrorMessage: Record "Error Message")
+    begin
         ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
         ErrorMessage.SetRange("Record ID", EDocumentPurchaseHeader.RecordId());
         ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Warning);
         ErrorMessage.SetRange("Field Number", EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."));
-        ErrorMessage.SetLoadFields(Message);
-        if ErrorMessage.FindSet() then
-            repeat
-                Status.Append(' ');
-                Status.Append(ErrorMessage.Message);
-            until ErrorMessage.Next() = 0;
-        exit(Status.ToText());
     end;
 
     local procedure WarnIfInvoiceAlreadyCredited(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
@@ -114,8 +173,8 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         PayToVendorNo: Code[20];
         CurrencyCode: Code[10];
-        RemainingLessThanCreditMsg: Label 'Invoice %1 (posted invoice %2) has a remaining amount of %3, which is less than this credit memo (%4). The invoice may already be credited or paid.', Comment = '%1 = vendor invoice number, %2 = posted invoice number, %3 = remaining amount, %4 = credit memo amount';
-        PendingCreditMemoMsg: Label 'Purchase credit memo %1, which is not posted yet, is already set to apply to invoice %2 (posted invoice %3).', Comment = '%1 = purchase credit memo number, %2 = vendor invoice number, %3 = posted invoice number';
+        RemainingLessThanCreditMsg: Label 'The credit memo amount exceeds the remaining amount on the selected invoice. The credit memo won''t be fully applied to this invoice. Review the application and adjust it if needed.';
+        PendingCreditMemoMsg: Label 'Unposted purchase credit memo %1 is already set to apply to this invoice. Check for duplicate credits.', Comment = '%1 = purchase credit memo number';
     begin
         PayToVendorNo := EDocPurchDocHelper.GetPayToVendorNo(EDocumentPurchaseHeader."[BC] Vendor No.");
 
@@ -126,12 +185,11 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
         VendorLedgerEntry.SetRange("Document No.", EDocumentPurchaseHeader."Applies-to Doc. No.");
         VendorLedgerEntry.SetRange(Open, true);
-        VendorLedgerEntry.SetLoadFields("Document No.", "Currency Code");
+        VendorLedgerEntry.SetLoadFields("Currency Code");
         VendorLedgerEntry.SetAutoCalcFields("Remaining Amount");
         if VendorLedgerEntry.FindFirst() then
             if (VendorLedgerEntry."Currency Code" = CurrencyCode) and (Abs(VendorLedgerEntry."Remaining Amount") < EDocumentPurchaseHeader.Total) then
-                EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."),
-                    StrSubstNo(RemainingLessThanCreditMsg, EDocumentPurchaseHeader."Vendor Invoice No.", VendorLedgerEntry."Document No.", Abs(VendorLedgerEntry."Remaining Amount"), EDocumentPurchaseHeader.Total));
+                EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."), RemainingLessThanCreditMsg);
 
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Credit Memo");
         PurchaseHeader.SetRange("Pay-to Vendor No.", PayToVendorNo);
@@ -140,21 +198,20 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
         PurchaseHeader.SetLoadFields("No.");
         if PurchaseHeader.FindFirst() then
             EDocumentErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("Vendor Invoice No."),
-                StrSubstNo(PendingCreditMemoMsg, PurchaseHeader."No.", EDocumentPurchaseHeader."Vendor Invoice No.", EDocumentPurchaseHeader."Applies-to Doc. No."));
+                StrSubstNo(PendingCreditMemoMsg, PurchaseHeader."No."));
     end;
 
-    local procedure SuggestVendorOfReferencedInvoice(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    local procedure WarnWithVendorOfReferencedInvoice(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         Reference: Text;
         VendorNo: Code[20];
-        VendorOfReferencedInvoiceMsg: Label 'The vendor could not be identified. Invoice %1, which this credit note refers to, was received from vendor %2 %3. Check whether this is the vendor of the credit note.', Comment = '%1 = invoice number, %2 = vendor number, %3 = vendor name';
+        VendorOfReferencedInvoiceMsg: Label 'Invoice %1 on the credit note was received from vendor %2 %3. Check whether the credit note is from the same vendor.', Comment = '%1 = invoice number, %2 = vendor number, %3 = vendor name';
     begin
         Reference := DelChr(EDocumentPurchaseHeader."Vendor Invoice No.", '<>', ' ');
-        if (Reference = '') or EDocPurchaseDraftUtility.ReferencesSeveralInvoices(Reference) then
+        if Reference = '' then
             exit;
         if StrLen(Reference) > MaxStrLen(VendorLedgerEntry."External Document No.") then
             exit;

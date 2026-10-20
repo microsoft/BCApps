@@ -164,7 +164,7 @@ page 6181 "E-Document Purchase Draft"
                     field("Applies-to Vendor Inv. No."; EDocumentPurchaseHeader."Vendor Invoice No.")
                     {
                         Caption = 'Applies-to Vendor Inv. No.';
-                        ToolTip = 'Specifies the vendor''s invoice number that this credit memo applies to, as stated on the credit note. The credit memo is applied to it when it is an open posted invoice of the vendor; otherwise a warning explains why not. You can also enter the posted invoice number.';
+                        ToolTip = 'Specifies the vendor''s invoice number that this credit memo corrects, as stated on the credit note. It is used to find the invoice in Applies-to Doc. No.';
                         Visible = IsCreditMemo;
                         Editable = PageEditable;
 
@@ -172,20 +172,49 @@ page 6181 "E-Document Purchase Draft"
                         var
                             EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
                         begin
+                            // The user entered the one invoice to apply to, so the credit note's other references no longer apply.
+                            EDocumentPurchaseHeader."Several Invoices Referenced" := false;
                             EDocumentPurchaseHeader.Modify();
                             EDocPrepareCrMemoDraft.RefreshInvoiceToApplyTo(Rec);
                             EDocumentPurchaseHeader.GetFromEDocument(Rec);
-                            UpdateAppliesToStatus();
+                            UpdateInvoiceWarnings();
                             CurrPage.Update();
                         end;
                     }
-                    field(AppliesToStatus; AppliesToStatusTxt)
+                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
                     {
-                        Caption = 'Application';
-                        ToolTip = 'Specifies whether the credit memo will be applied to the invoice stated on the credit note, and the reason when it will not.';
+                        Caption = 'Applies-to Doc. No.';
+                        ToolTip = 'Specifies the posted purchase invoice that the credit memo is applied to. It is suggested from Applies-to Vendor Inv. No.; you can select another open invoice of the vendor or clear it.';
                         Visible = IsCreditMemo;
+                        Editable = PageEditable;
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
+                        begin
+                            exit(EDocPrepareCrMemoDraft.LookupInvoiceToApplyTo(EDocumentPurchaseHeader, Text));
+                        end;
+
+                        trigger OnValidate()
+                        var
+                            EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
+                        begin
+                            EDocPrepareCrMemoDraft.ValidateInvoiceToApplyTo(EDocumentPurchaseHeader);
+                            EDocumentPurchaseHeader.Modify();
+                            EDocPrepareCrMemoDraft.RefreshWarningsForSelectedInvoice(Rec);
+                            UpdateInvoiceWarnings();
+                            CurrPage.Update();
+                        end;
+                    }
+                    field(InvoiceWarnings; InvoiceWarningsTxt)
+                    {
+                        ShowCaption = false;
+                        ToolTip = 'Specifies any warnings about the invoice that the credit memo will be applied to.';
+                        Visible = IsCreditMemo and (InvoiceWarningsTxt <> '');
                         Editable = false;
                         MultiLine = true;
+                        Style = Ambiguous;
+                        StyleExpr = InvoiceWarningsTxt <> '';
                     }
                 }
                 field("Status"; Rec.Status)
@@ -543,6 +572,8 @@ page 6181 "E-Document Purchase Draft"
         HasErrors := false;
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
+        // Field visibility is evaluated when the page opens, so the warnings must be known here.
+        UpdateInvoiceWarnings();
         GlobalEDocumentNotification.RefreshAndShowPendingDraftNotifications(Rec."Entry No");
         FeedbackActionVisible := IsUserInitiatedFeedbackEnabled();
         if PurchasesPayablesSetup.Get() then
@@ -580,16 +611,21 @@ page 6181 "E-Document Purchase Draft"
 
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
-        UpdateAppliesToStatus();
+        UpdateInvoiceWarnings();
     end;
 
-    local procedure UpdateAppliesToStatus()
+    local procedure UpdateInvoiceWarnings()
     var
         EDocPrepareCrMemoDraft: Codeunit "EDoc Prepare Cr. Memo Draft";
+        Warning: Text;
+        Warnings: TextBuilder;
     begin
-        Clear(AppliesToStatusTxt);
-        if IsCreditMemo then
-            AppliesToStatusTxt := EDocPrepareCrMemoDraft.GetApplicationStatus(Rec);
+        Clear(InvoiceWarningsTxt);
+        if not IsCreditMemo then
+            exit;
+        foreach Warning in EDocPrepareCrMemoDraft.GetInvoiceWarnings(Rec) do
+            Warnings.AppendLine(Warning);
+        InvoiceWarningsTxt := Warnings.ToText().TrimEnd();
     end;
 
     local procedure SetPageCaption()
@@ -599,6 +635,9 @@ page 6181 "E-Document Purchase Draft"
     begin
         if Rec."File Name" <> '' then
             CaptionBuilder.Append(Rec."File Name" + ' - ');
+
+        if Rec."Document Type" <> Rec."Document Type"::None then
+            CaptionBuilder.Append(Format(Rec."Document Type") + ' - ');
 
         EDocumentPurchaseHeader.GetFromEDocument(Rec);
         if Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
@@ -831,5 +870,5 @@ page 6181 "E-Document Purchase Draft"
         ApplyVATDiffEnabled: Boolean;
         FeedbackActionVisible: Boolean;
         AppliedVATAmountDiff: Decimal;
-        AppliesToStatusTxt: Text;
+        InvoiceWarningsTxt: Text;
 }
