@@ -1,6 +1,7 @@
 [
     ".layer\\excluded_view_files.json",
     ".layer\\layer_files.json",
+    "Tests\\Bank\\CheckAmountWordingTests.Codeunit.al",
     "BaseApp\\FinancialMgt\\GeneralLedger\\Budget.Report.al",
     "BaseApp\\FinancialMgt\\GeneralLedger\\ChartofAccounts.Report.al",
     "BaseApp\\FinancialMgt\\GeneralLedger\\ClosingTrialBalance.Report.al",

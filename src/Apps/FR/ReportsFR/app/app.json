@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "First-party app for France localization that centralizes reporting across finance, sales, purchasing, and banking",
   "description": "FR-localization specific reports, covering finance, sales, purchasing, and banking, including Customer, Vendor, GL, and Bank Account Trial Balance reports.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://learn.microsoft.com/en-us/dynamics365/business-central/finance-how-setup-use-service-declaration",
@@ -13,7 +13,7 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2204541",
   "dependencies": [],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 10821,
@@ -25,7 +25,14 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
+  "internalsVisibleTo": [
+    {
+      "id": "c189ffd4-396c-42f4-a828-b4d5974b6a29",
+      "name": "Reports FR Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "target": "OnPrem",
   "features": [
     "NoImplicitWith",
