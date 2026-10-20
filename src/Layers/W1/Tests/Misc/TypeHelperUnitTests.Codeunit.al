@@ -852,6 +852,31 @@ codeunit 132590 "Type Helper Unit Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure DateTimeToSameTimeZoneAfterDaylightSavingTransition()
+    var
+        TypeHelper: Codeunit "Type Helper";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        InputDateTime: DateTime;
+    begin
+        // [SCENARIO] Convert a client DateTime to the same time zone after the daylight-saving transition
+
+        TestClientTypeSubscriber.SetClientType(ClientType::Web);
+        BindSubscription(TestClientTypeSubscriber);
+        SetUserTimeZone('W. Europe Standard Time');
+
+        // [GIVEN] A valid client DateTime after the daylight-saving transition
+        InputDateTime := CreateDateTime(DMY2Date(29, 3, 2026), 033000T);
+
+        // [WHEN] The DateTime is converted to the same time zone
+        // [THEN] The DateTime remains unchanged
+        Assert.AreEqual(
+            InputDateTime,
+            TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, 'W. Europe Standard Time'),
+            'The DateTime changed although the client and destination time zones are the same.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure DateTimeFromInputTimeZoneWithSameClientAndInputTimeZone()
     var
         TypeHelper: Codeunit "Type Helper";
