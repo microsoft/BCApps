@@ -112,23 +112,23 @@ codeunit 148751 "CFDI Cancellation Tests"
     end;
 
     [Test]
-    procedure CancellationResponseWithRejectedResultSetsRejected()
+    procedure CancellationResponseWithRejectedResultSetsCancelError()
     var
         EDocument: Record "E-Document";
         ResultStatus: Enum "E-Document Service Status";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] A rejected cancellation response sets the rejected status
+        // [SCENARIO] A rejected cancellation leaves the document retryable with the Cancel Error status
         Initialize();
 
         // [GIVEN] A persisted E-Document
         EDocument.Insert(true);
 
         // [WHEN] A rejected response is processed
-        CFDICancellation.ProcessCancellationResponse('<Resultado IdRespuesta="0" Resultado="Rechazado"/>', EDocument, ResultStatus);
+        CFDICancellation.ProcessCancellationResponse('<Resultado IdRespuesta="0" Estatus="Rechazado" Resultado="Cancellation rejected by the receiver"/>', EDocument, ResultStatus);
 
-        // [THEN] The result status is Rejected
-        Assert.AreEqual(Enum::"E-Document Service Status"::Rejected, ResultStatus, 'The cancellation status is incorrect.');
+        // [THEN] The result status is Cancel Error, so the cancellation can be retried
+        Assert.AreEqual(Enum::"E-Document Service Status"::"Cancel Error", ResultStatus, 'The cancellation status is incorrect.');
     end;
 
     local procedure Initialize()

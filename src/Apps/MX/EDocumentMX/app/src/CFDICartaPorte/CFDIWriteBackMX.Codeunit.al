@@ -16,25 +16,81 @@ using System.Utilities;
 
 codeunit 3360 "CFDI Write-Back MX"
 {
+    Permissions = tabledata "Sales Invoice Header" = rm,
+                  tabledata "Sales Cr.Memo Header" = rm,
+                  tabledata "Service Invoice Header" = rm,
+                  tabledata "Service Cr.Memo Header" = rm,
+                  tabledata "Sales Shipment Header" = rm,
+                  tabledata "Transfer Shipment Header" = rm,
+                  tabledata "Cust. Ledger Entry" = rm;
+
     procedure GetUUIDForDocument(DocumentRecordId: RecordId): Text
     var
-        EDocument: Record "E-Document";
-        StampedXML: Text;
         UUID: Text;
         Dummy: Text;
     begin
-        EDocument.SetRange("Document Record ID", DocumentRecordId);
-        EDocument.SetFilter("Clearance Date", '<>%1', 0DT);
-        if not EDocument.FindFirst() then
-            exit('');
-
-        if not TryGetStampedXml(EDocument, StampedXML) then
-            exit('');
-
-        if not ExtractTimbreData(StampedXML, UUID, Dummy, Dummy, Dummy, Dummy) then
+        if not GetStampData(DocumentRecordId, UUID, Dummy, Dummy, Dummy, Dummy, Dummy) then
             exit('');
 
         exit(UUID);
+    end;
+
+    /// <summary>Reads the fiscal stamp (TimbreFiscalDigital) of a document from its stamped E-Document XML.</summary>
+    procedure GetStampData(DocumentRecordId: RecordId; var UUID: Text; var IssuerSeal: Text; var SATSeal: Text; var SATCertificateNo: Text; var DateTimeStamped: Text; var StampOriginalString: Text): Boolean
+    var
+        EDocument: Record "E-Document";
+        StampedXML: Text;
+        PACRFC: Text;
+        StampVersion: Text;
+        Legend: Text;
+    begin
+        UUID := '';
+        IssuerSeal := '';
+        SATSeal := '';
+        SATCertificateNo := '';
+        DateTimeStamped := '';
+        StampOriginalString := '';
+
+        EDocument.SetRange("Document Record ID", DocumentRecordId);
+        EDocument.SetFilter("Clearance Date", '<>%1', 0DT);
+        if not EDocument.FindFirst() then
+            exit(false);
+
+        if not TryGetStampedXml(EDocument, StampedXML) then
+            exit(false);
+
+        if not ExtractTimbreData(StampedXML, UUID, SATSeal, IssuerSeal, SATCertificateNo, DateTimeStamped, PACRFC, StampVersion, Legend) then
+            exit(false);
+
+        // Cadena original del complemento de certificación digital del SAT (TFD 1.1)
+        StampOriginalString := '||' + StampVersion + '|' + UUID + '|' + DateTimeStamped + '|' + PACRFC + '|';
+        if Legend <> '' then
+            StampOriginalString += Legend + '|';
+        StampOriginalString += IssuerSeal + '|' + SATCertificateNo + '||';
+        exit(true);
+    end;
+
+    procedure FindPrepaymentUUID(SalesInvoiceHeader: Record "Sales Invoice Header"): Text[50]
+    var
+        PrepaymentInvoiceHeader: Record "Sales Invoice Header";
+        PrepaymentUUID: Text;
+        UUID: Text;
+    begin
+        // The final invoice references its order in "Order No."; prepayment invoices keep it in "Prepayment Order No."
+        if SalesInvoiceHeader."Order No." = '' then
+            exit('');
+
+        PrepaymentInvoiceHeader.SetCurrentKey("Prepayment Order No.", "Prepayment Invoice");
+        PrepaymentInvoiceHeader.SetRange("Prepayment Order No.", SalesInvoiceHeader."Order No.");
+        PrepaymentInvoiceHeader.SetRange("Prepayment Invoice", true);
+        if PrepaymentInvoiceHeader.FindSet() then
+            repeat
+                UUID := GetUUIDForDocument(PrepaymentInvoiceHeader.RecordId());
+                if UUID <> '' then
+                    PrepaymentUUID := UUID;
+            until PrepaymentInvoiceHeader.Next() = 0;
+
+        exit(CopyStr(PrepaymentUUID, 1, 50));
     end;
 
     /// <summary>Returns true if the document has a cleared E-Document (i.e. it has been stamped).</summary>
@@ -62,7 +118,7 @@ codeunit 3360 "CFDI Write-Back MX"
         UUID: Text;
         Dummy: Text;
     begin
-        if not ExtractTimbreData(StampedXML, UUID, Dummy, Dummy, Dummy, Dummy) then
+        if not ExtractTimbreData(StampedXML, UUID, Dummy, Dummy, Dummy, Dummy, Dummy, Dummy, Dummy) then
             exit;
 
         if not CompanyInfo.Get() then
@@ -154,7 +210,10 @@ codeunit 3360 "CFDI Write-Back MX"
         var DigitalStampSAT: Text;
         var DigitalStampPAC: Text;
         var CertSerial: Text;
-        var DateTimeStampedTxt: Text): Boolean
+        var DateTimeStampedTxt: Text;
+        var PACRFC: Text;
+        var StampVersion: Text;
+        var Legend: Text): Boolean
     var
         XmlDoc: XmlDocument;
         XmlNamespaceManager: XmlNamespaceManager;
@@ -168,6 +227,9 @@ codeunit 3360 "CFDI Write-Back MX"
         DigitalStampPAC := '';
         CertSerial := '';
         DateTimeStampedTxt := '';
+        PACRFC := '';
+        StampVersion := '';
+        Legend := '';
 
         if StampedXML = '' then
             exit(false);
@@ -192,6 +254,9 @@ codeunit 3360 "CFDI Write-Back MX"
         DigitalStampPAC := GetXmlAttribute(TimbreNode, 'SelloCFD');
         CertSerial := GetXmlAttribute(TimbreNode, 'NoCertificadoSAT');
         DateTimeStampedTxt := GetXmlAttribute(TimbreNode, 'FechaTimbrado');
+        PACRFC := GetXmlAttribute(TimbreNode, 'RfcProvCertif');
+        StampVersion := GetXmlAttribute(TimbreNode, 'Version');
+        Legend := GetXmlAttribute(TimbreNode, 'Leyenda');
 
         exit(UUID <> '');
     end;

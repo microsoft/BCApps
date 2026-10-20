@@ -59,13 +59,13 @@ report 3367 "EDoc CFDI Carta Porte MX"
             column(TransferRFCNo; TransferRFCNoLbl)
             {
             }
-            column(FolioText; TempSalesShipmentHeader."Fiscal Invoice Number PAC")
+            column(FolioText; StampUUID)
             {
             }
-            column(CertificateSerialNo; TempSalesShipmentHeader."Certificate Serial No.")
+            column(CertificateSerialNo; StampCertificateNo)
             {
             }
-            column(DateTimeStamped; TempSalesShipmentHeader."Date/Time Stamped")
+            column(DateTimeStamped; StampDateTime)
             {
             }
             column(InsurerName; "Insurer Name")
@@ -292,55 +292,21 @@ report 3367 "EDoc CFDI Carta Porte MX"
                 TransferShipmentHeader: Record "Transfer Shipment Header";
                 Convert: DotNet Convert;
                 Encoding: DotNet Encoding;
-                InStreamStamp: InStream;
             begin
                 case "Document Table ID" of
                     DATABASE::"Sales Shipment Header":
                         begin
                             SalesShipmentHeader.Get("No.");
-                            SalesShipmentHeader.CalcFields("Original String", "Digital Stamp PAC", "Digital Stamp SAT", "QR Code");
-                            Clear(OriginalStringTextUnbounded);
-                            TempBlob.FromRecord(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Original String"));
-                            Clear(InStreamStamp);
-                            TempBlob.CreateInStream(InStreamStamp);
-                            InStreamStamp.Read(OriginalStringTextUnbounded);
-                            TempBlob.FromRecord(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Digital Stamp SAT"));
-                            Clear(DigitalSignatureTextUnbounded);
-                            Clear(InStreamStamp);
-                            TempBlob.CreateInStream(InStreamStamp);
-                            InStreamStamp.Read(DigitalSignatureTextUnbounded);
-                            TempBlob.FromRecord(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Digital Stamp PAC"));
-                            Clear(DigitalSignaturePACTextUnbounded);
-                            Clear(InStreamStamp);
-                            TempBlob.CreateInStream(InStreamStamp);
-                            InStreamStamp.Read(DigitalSignaturePACTextUnbounded);
-
+                            SalesShipmentHeader.CalcFields("QR Code");
                             TempSalesShipmentHeader := SalesShipmentHeader;
+                            GetStampData(SalesShipmentHeader.RecordId());
                         end;
                     DATABASE::"Transfer Shipment Header":
                         begin
                             TransferShipmentHeader.Get("No.");
-                            TransferShipmentHeader.CalcFields("Original String", "Digital Stamp PAC", "Digital Stamp SAT", "QR Code");
-                            Clear(OriginalStringTextUnbounded);
-                            TempBlob.FromRecord(TransferShipmentHeader, TransferShipmentHeader.FieldNo("Original String"));
-                            Clear(InStreamStamp);
-                            TempBlob.CreateInStream(InStreamStamp);
-                            InStreamStamp.Read(OriginalStringTextUnbounded);
-                            TempBlob.FromRecord(TransferShipmentHeader, TransferShipmentHeader.FieldNo("Digital Stamp SAT"));
-                            Clear(DigitalSignatureTextUnbounded);
-                            Clear(InStreamStamp);
-                            TempBlob.CreateInStream(InStreamStamp);
-                            InStreamStamp.Read(DigitalSignatureTextUnbounded);
-                            TempBlob.FromRecord(TransferShipmentHeader, TransferShipmentHeader.FieldNo("Digital Stamp PAC"));
-                            Clear(DigitalSignaturePACTextUnbounded);
-                            Clear(InStreamStamp);
-                            TempBlob.CreateInStream(InStreamStamp);
-                            InStreamStamp.Read(DigitalSignaturePACTextUnbounded);
-
+                            TransferShipmentHeader.CalcFields("QR Code");
                             TempSalesShipmentHeader."QR Code" := TransferShipmentHeader."QR Code";
-                            TempSalesShipmentHeader."Certificate Serial No." := TransferShipmentHeader."Certificate Serial No.";
-                            TempSalesShipmentHeader."Fiscal Invoice Number PAC" := TransferShipmentHeader."Fiscal Invoice Number PAC";
-                            TempSalesShipmentHeader."Date/Time Stamped" := TransferShipmentHeader."Date/Time Stamped";
+                            GetStampData(TransferShipmentHeader.RecordId());
                         end;
                 end;
 
@@ -424,8 +390,10 @@ report 3367 "EDoc CFDI Carta Porte MX"
         FixedAssetVehicle: Record "Fixed Asset";
         FixedAssetTrailer1: Record "Fixed Asset";
         FixedAssetTrailer2: Record "Fixed Asset";
-        TempBlob: Codeunit "Temp Blob";
         OriginalStringTextUnbounded: Text;
+        StampUUID: Text;
+        StampCertificateNo: Text;
+        StampDateTime: Text;
         DigitalSignatureTextUnbounded: Text;
         DigitalSignaturePACTextUnbounded: Text;
         PageCaptionLbl: Label 'Page:';
@@ -460,6 +428,13 @@ report 3367 "EDoc CFDI Carta Porte MX"
     local procedure FormatDateTime(DateTime: DateTime): Text[50]
     begin
         exit(Format(DateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
+    end;
+
+    local procedure GetStampData(DocumentRecordId: RecordId)
+    var
+        CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
+    begin
+        if CFDIWriteBackMX.GetStampData(DocumentRecordId, StampUUID, DigitalSignatureTextUnbounded, DigitalSignaturePACTextUnbounded, StampCertificateNo, StampDateTime, OriginalStringTextUnbounded) then;
     end;
 
 

@@ -80,7 +80,7 @@ codeunit 3357 "MX Payment Complement Mgt."
     begin
         if not TaskScheduler.CanCreateTask() then
             Error(BackgroundTasksUnavailableErr);
-        TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
+        TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0, true);
     end;
 
     local procedure MarkReversed(PaymentEntryNo: Integer)

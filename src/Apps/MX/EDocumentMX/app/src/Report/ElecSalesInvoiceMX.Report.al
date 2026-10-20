@@ -260,13 +260,13 @@ report 3365 "EDoc CFDI Sales Invoice MX"
                     column(CompanyInformation__RFC_No__; CompanyInformation."RFC Number")
                     {
                     }
-                    column(FolioText; "Sales Invoice Header"."Fiscal Invoice Number PAC")
+                    column(FolioText; StampUUID)
                     {
                     }
-                    column(Sales_Invoice_Header___Certificate_Serial_No__; "Sales Invoice Header"."Certificate Serial No.")
+                    column(Sales_Invoice_Header___Certificate_Serial_No__; StampCertificateNo)
                     {
                     }
-                    column(NoSeriesLine__Authorization_Code_; "Sales Invoice Header"."Date/Time Stamped")
+                    column(NoSeriesLine__Authorization_Code_; StampDateTime)
                     {
                     }
                     column(NoSeriesLine__Authorization_Year_; StrSubstNo(Text013, "Sales Invoice Header"."Bill-to City", "Sales Invoice Header"."Document Date"))
@@ -738,7 +738,7 @@ report 3365 "EDoc CFDI Sales Invoice MX"
             trigger OnAfterGetRecord()
             var
                 SATUtilities: Codeunit "SAT Utilities";
-                InStream: InStream;
+                CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
                 DummySalesInvoiceNumber: Code[20];
             begin
                 if "Source Code" = SourceCodeSetup."Deleted Document" then
@@ -796,19 +796,7 @@ report 3365 "EDoc CFDI Sales Invoice MX"
                               4, "No.", 0, 0, DATABASE::Customer, "Bill-to Customer No.", "Salesperson Code",
                               "Campaign No.", "Posting Description", '');
 
-                "Sales Invoice Header".CalcFields("Original String", "Digital Stamp SAT", "Digital Stamp PAC");
-
-                Clear(OriginalStringTextUnbounded);
-                "Original String".CreateInStream(InStream);
-                InStream.Read(OriginalStringTextUnbounded);
-
-                Clear(DigitalSignatureTextUnbounded);
-                "Digital Stamp SAT".CreateInStream(InStream);
-                InStream.Read(DigitalSignatureTextUnbounded);
-
-                Clear(DigitalSignaturePACTextUnbounded);
-                "Digital Stamp PAC".CreateInStream(InStream);
-                InStream.Read(DigitalSignaturePACTextUnbounded);
+                if CFDIWriteBackMX.GetStampData(RecordId(), StampUUID, DigitalSignatureTextUnbounded, DigitalSignaturePACTextUnbounded, StampCertificateNo, StampDateTime, OriginalStringTextUnbounded) then;
 
                 SATPaymentTerms := "Payment Terms Code";
                 SATPaymentMethod := "Payment Method Code";
@@ -968,6 +956,9 @@ report 3365 "EDoc CFDI Sales Invoice MX"
         DocumentText: Text[100];
         OriginalStringTextUnbounded: Text;
         DigitalSignatureTextUnbounded: Text;
+        StampUUID: Text;
+        StampCertificateNo: Text;
+        StampDateTime: Text;
         Text010: Label 'ELECTRONIC INVOICE';
         Text011: Label 'ELECTRONIC PREPAYMENT REQUEST';
         Text012: Label 'You can not sign or send or print a deleted document.';
@@ -1122,6 +1113,7 @@ report 3365 "EDoc CFDI Sales Invoice MX"
     local procedure GetUUIDFromOriginalPrepayment(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceNumber: Code[20]): Text[50]
     var
         PrepaymentInvoice: Record "Sales Invoice Header";
+        CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
     begin
         SalesInvoiceNumber := '';
         if SalesInvoiceHeader."Order No." = '' then
@@ -1129,7 +1121,7 @@ report 3365 "EDoc CFDI Sales Invoice MX"
         PrepaymentInvoice.SetFilter("Prepayment Order No.", '=%1', SalesInvoiceHeader."Order No.");
         if PrepaymentInvoice.FindFirst() then begin
             SalesInvoiceNumber := PrepaymentInvoice."No.";
-            exit(PrepaymentInvoice."Fiscal Invoice Number PAC");
+            exit(CopyStr(CFDIWriteBackMX.GetUUIDForDocument(PrepaymentInvoice.RecordId()), 1, 50));
         end;
         exit('');
     end;

@@ -236,13 +236,13 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
                     column(CompanyInformation__RFC_No__; CompanyInformation."RFC Number")
                     {
                     }
-                    column(Sales_Cr_Memo_Header___Certificate_Serial_No__; "Sales Cr.Memo Header"."Certificate Serial No.")
+                    column(Sales_Cr_Memo_Header___Certificate_Serial_No__; StampCertificateNo)
                     {
                     }
-                    column(FolioText; "Sales Cr.Memo Header"."Fiscal Invoice Number PAC")
+                    column(FolioText; StampUUID)
                     {
                     }
-                    column(NoSeriesLine__Authorization_Code_; "Sales Cr.Memo Header"."Date/Time Stamped")
+                    column(NoSeriesLine__Authorization_Code_; StampDateTime)
                     {
                     }
                     column(NoSeriesLine__Authorization_Year_; StrSubstNo(Text011, "Sales Cr.Memo Header"."Bill-to City", "Sales Cr.Memo Header"."Document Date"))
@@ -570,7 +570,7 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
             trigger OnAfterGetRecord()
             var
                 SATUtilities: Codeunit "SAT Utilities";
-                InStream: InStream;
+                CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
             begin
                 if "Source Code" = SourceCodeSetup."Deleted Document" then
                     Error(Text010);
@@ -608,19 +608,8 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
                         SegManagement.LogDocument(
                           6, "No.", 0, 0, DATABASE::Customer, "Sell-to Customer No.", "Salesperson Code",
                           "Campaign No.", "Posting Description", '');
-                "Sales Cr.Memo Header".CalcFields("Original String", "Digital Stamp SAT", "Digital Stamp PAC");
 
-                Clear(OriginalStringTextUnbounded);
-                "Original String".CreateInStream(InStream);
-                InStream.Read(OriginalStringTextUnbounded);
-
-                Clear(DigitalSignatureTextUnbounded);
-                "Digital Stamp SAT".CreateInStream(InStream);
-                InStream.Read(DigitalSignatureTextUnbounded);
-
-                Clear(DigitalSignaturePACTextUnbounded);
-                "Digital Stamp PAC".CreateInStream(InStream);
-                InStream.Read(DigitalSignaturePACTextUnbounded);
+                if CFDIWriteBackMX.GetStampData(RecordId(), StampUUID, DigitalSignatureTextUnbounded, DigitalSignaturePACTextUnbounded, StampCertificateNo, StampDateTime, OriginalStringTextUnbounded) then;
 
                 SATPaymentMethod := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code"); // MetodoPago
                 SATPaymentTerm := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code"); // FormaPago
@@ -753,6 +742,9 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
         DigitalSignatureText: Text[80];
         DigitalSignaturePACText: Text[80];
         OriginalStringTextUnbounded: Text;
+        StampUUID: Text;
+        StampCertificateNo: Text;
+        StampDateTime: Text;
         DigitalSignatureTextUnbounded: Text;
         Text010: Label 'You can not sign or send or print a deleted document.';
         DigitalSignaturePACTextUnbounded: Text;

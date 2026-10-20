@@ -491,7 +491,7 @@ codeunit 3354 "Export Interfactura MX"
         if Format(CFDIPeriod) = '' then
             exit;
 
-        InformacionGlobalNode := XmlElement.Create('InformacionGlobal');
+        InformacionGlobalNode := CreateCFDIElement('InformacionGlobal');
         InformacionGlobalNode.SetAttribute('Año', Format(Date2DMY(PostingDate, 3)));
         InformacionGlobalNode.SetAttribute('Meses', FormatMonth(Format(Date2DMY(PostingDate, 2))));
         InformacionGlobalNode.SetAttribute('Periodicidad', FormatPeriod(CFDIPeriod));
@@ -2470,6 +2470,7 @@ codeunit 3354 "Export Interfactura MX"
         LineAmount: Decimal;
         CorrectedTotalTax: Decimal;
         CalculatedTotalDiscount: Decimal;
+        ConceptsSubTotal: Decimal;
     begin
         CompanyInfo.Get();
         GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
@@ -2520,6 +2521,7 @@ codeunit 3354 "Export Interfactura MX"
         ConceptosNode := XMLNewChild;
         SalesInvoiceLine.SetRange("Retention Attached to Line No.", 0);
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange("Prepayment Line", false);
         if SalesInvoiceLine.FindSet() then
             repeat
                 CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', XMLNewChild);
@@ -2536,13 +2538,13 @@ codeunit 3354 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatDecimal(LineAmount, 6));
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descuento', FormatDecimal(LineDiscount, 6));
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', GetSubjectToTaxCode(SalesInvoiceLine));
-                CalculatedTotalDiscount += LineDiscount;
+                CalculatedTotalDiscount += Round(LineDiscount, 0.000001);
+                ConceptsSubTotal += Round(LineAmount, 0.000001);
                 AddNodeImpuestoPerLine(ConceptoNode.AsXmlElement(), SalesInvoiceLine, SalesInvoiceRetentionLine);
             until SalesInvoiceLine.Next() = 0;
 
-        RootNode.SetAttribute('Descuento', FormatAmount(CalculatedTotalDiscount, SalesInvoiceHeader."Currency Code"));
         AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine, CorrectedTotalTax);
-        RootNode.SetAttribute('Total', FormatAmount(SubTotal - TotalDiscount + CorrectedTotalTax - TotalRetention, SalesInvoiceHeader."Currency Code"));
+        SetDocumentTotals(RootNode, ConceptsSubTotal, CalculatedTotalDiscount, CorrectedTotalTax, TotalRetention, SalesInvoiceHeader."Currency Code");
 
         if SalesInvoiceHeader."Foreign Trade" then begin
             CurrentNode := RootNode.AsXmlNode();
@@ -2614,10 +2616,10 @@ codeunit 3354 "Export Interfactura MX"
         if (UUID = '') or (RelationType = '') then
             exit;
 
-        CfdiRelacionadosNode := XmlElement.Create('CfdiRelacionados');
+        CfdiRelacionadosNode := CreateCFDIElement('CfdiRelacionados');
         CfdiRelacionadosNode.SetAttribute('TipoRelacion', RelationType);
 
-        CfdiRelacionadoNode := XmlElement.Create('CfdiRelacionado');
+        CfdiRelacionadoNode := CreateCFDIElement('CfdiRelacionado');
         CfdiRelacionadoNode.SetAttribute('UUID', UUID);
         CfdiRelacionadosNode.Add(CfdiRelacionadoNode.AsXmlNode());
 
@@ -2634,19 +2636,9 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure FindPrepaymentUUID(SalesInvoiceHeader: Record "Sales Invoice Header"): Text[50]
     var
-        PrepaymentInvoiceHeader: Record "Sales Invoice Header";
+        CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
     begin
-        if SalesInvoiceHeader."Prepayment Order No." = '' then
-            exit('');
-
-        PrepaymentInvoiceHeader.SetCurrentKey("Prepayment Order No.", "Prepayment Invoice");
-        PrepaymentInvoiceHeader.SetRange("Prepayment Order No.", SalesInvoiceHeader."Prepayment Order No.");
-        PrepaymentInvoiceHeader.SetRange("Prepayment Invoice", true);
-        PrepaymentInvoiceHeader.SetFilter("Fiscal Invoice Number PAC", '<>%1', '');
-        if not PrepaymentInvoiceHeader.FindLast() then
-            exit('');
-
-        exit(CopyStr(PrepaymentInvoiceHeader."Fiscal Invoice Number PAC", 1, 50));
+        exit(CFDIWriteBackMX.FindPrepaymentUUID(SalesInvoiceHeader));
     end;
 
     local procedure GetAdvanceScenario(SalesInvoiceHeader: Record "Sales Invoice Header"): Integer
@@ -2656,7 +2648,7 @@ codeunit 3354 "Export Interfactura MX"
         if SalesInvoiceHeader."Prepayment Invoice" then
             exit(1);
 
-        if SalesInvoiceHeader."Prepayment Order No." = '' then
+        if SalesInvoiceHeader."Order No." = '' then
             exit(0);
 
         SalesInvoiceLineLoc.SetRange("Document No.", SalesInvoiceHeader."No.");

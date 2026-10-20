@@ -68,6 +68,7 @@ codeunit 3359 "CFDI Cancellation MX"
 
     procedure ProcessCancellationResponse(ResponseXML: Text; var EDocument: Record "E-Document"; var ResultStatus: Enum "E-Document Service Status")
     var
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
         ServiceStatus: Enum "E-Document Service Status";
         StatusToken: Text;
         ResultText: Text;
@@ -87,7 +88,7 @@ codeunit 3359 "CFDI Cancellation MX"
                 'cancelado':
                     ServiceStatus := Enum::"E-Document Service Status"::Canceled;
                 'rechazado':
-                    ServiceStatus := Enum::"E-Document Service Status"::Rejected;
+                    ServiceStatus := Enum::"E-Document Service Status"::"Cancel Error";
                 else
                     ServiceStatus := GetCancellationStatus(EDocument);
             end;
@@ -95,6 +96,8 @@ codeunit 3359 "CFDI Cancellation MX"
 
         ResultStatus := ServiceStatus;
         ApplyCancellationToEDocument(EDocument, ServiceStatus, ResultText, DateTimeCancelledTxt, CancellationId);
+        if (ServiceStatus = Enum::"E-Document Service Status"::"Cancel Error") and (ResultText <> '') then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, ResultText);
 
         OnAfterProcessCancellationResponse(EDocument, StatusToken, ResultText, DateTimeCancelledTxt, CancellationId);
     end;

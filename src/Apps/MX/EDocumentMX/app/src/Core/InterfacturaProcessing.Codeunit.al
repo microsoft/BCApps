@@ -167,7 +167,7 @@ codeunit 3355 "Interfactura Processing"
             exit(false);
         if SalesInvoiceHeader."Prepayment Invoice" then
             exit(false);
-        if SalesInvoiceHeader."Prepayment Order No." = '' then
+        if SalesInvoiceHeader."Order No." = '' then
             exit(false);
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
@@ -177,19 +177,9 @@ codeunit 3355 "Interfactura Processing"
 
     local procedure FindPrepaymentUUID(SalesInvoiceHeader: Record "Sales Invoice Header"): Text[50]
     var
-        PrepaymentInvoiceHeader: Record "Sales Invoice Header";
+        CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
     begin
-        if SalesInvoiceHeader."Prepayment Order No." = '' then
-            exit('');
-
-        PrepaymentInvoiceHeader.SetCurrentKey("Prepayment Order No.", "Prepayment Invoice");
-        PrepaymentInvoiceHeader.SetRange("Prepayment Order No.", SalesInvoiceHeader."Prepayment Order No.");
-        PrepaymentInvoiceHeader.SetRange("Prepayment Invoice", true);
-        PrepaymentInvoiceHeader.SetFilter("Fiscal Invoice Number PAC", '<>%1', '');
-        if not PrepaymentInvoiceHeader.FindLast() then
-            exit('');
-
-        exit(CopyStr(PrepaymentInvoiceHeader."Fiscal Invoice Number PAC", 1, 50));
+        exit(CFDIWriteBackMX.FindPrepaymentUUID(SalesInvoiceHeader));
     end;
 
     local procedure EnsureAdvanceReverseDocument(var CFDIDocuments: Record "CFDI Documents"; SalesInvoiceHeader: Record "Sales Invoice Header"; AdvanceUUID: Text[50]): Boolean
