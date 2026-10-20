@@ -892,11 +892,7 @@ page 256 "Payment Journal"
                     ApplicationArea = Basic, Suite;
                     Caption = 'P&review Check';
                     Image = ViewCheck;
-#if not CLEAN27
-                    RunObject = Page "Check Preview GB";
-#else
                     RunObject = Page "Check Preview";
-#endif
                     RunPageLink = "Journal Template Name" = field("Journal Template Name"),
                                   "Journal Batch Name" = field("Journal Batch Name"),
                                   "Line No." = field("Line No.");

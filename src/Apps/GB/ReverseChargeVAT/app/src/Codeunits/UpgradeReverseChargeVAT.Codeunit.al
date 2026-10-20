@@ -69,13 +69,11 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
         exit('MS-572379-ReverseChargeVATUpgradeTag-20250416');
     end;
 
-#if CLEAN27
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetReverseChargeVATUpgradeTag());
     end;
-#endif
 
     local procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer)
     var
