@@ -705,6 +705,11 @@
     "method": "TestFactBoxLoadFromPostedDocument"
   },
   {
+    "codeunitId": 134418,
+    "codeunitName": "Inc Doc Attachment Overview UT",
+    "method": "TestFieldDefinitionsMatch"
+  },
+  {
     "codeunitId": 134419,
     "codeunitName": "Imp. Inc.Doc. Attachment Tests",
     "method": "MainAttachmentDocumentTypeMustBeSalesInvoiceInSalesInvoice"
@@ -2383,6 +2388,11 @@
     "codeunitId": 139026,
     "codeunitName": "Test Job Queue",
     "method": "EnqueueSameCategory"
+  },
+  {
+    "codeunitId": 139026,
+    "codeunitName": "Test Job Queue",
+    "method": "InteractionLogEntryNotCreatedWhenRunJobQueueWithIntLogDisabled_FinanceChargeMemo"
   },
   {
     "codeunitId": 139026,
