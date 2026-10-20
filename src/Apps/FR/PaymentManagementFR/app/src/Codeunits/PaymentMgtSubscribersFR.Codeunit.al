@@ -12,9 +12,13 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
+using Microsoft.Utilities;
+using System.Privacy;
 
 codeunit 10838 "PaymentMgt Subscribers FR"
 {
@@ -22,7 +26,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     InherentPermissions = X;
 
     var
-        UnrealCVLedgEntryBuffer: Record "Unreal. CV Ledg. Entry Buffer";
+        UnrealCVLedgEntryBuffer: Record "Unreal. CV Ledg. Buffer FR";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
 
@@ -107,7 +111,8 @@ codeunit 10838 "PaymentMgt Subscribers FR"
         if IsHandled or not IsPaymentEnabled() then
             exit;
 
-        VATPart := VATEntry2.GetUnrealizedVATPart(
+        VATPart := GetPaymentUnrealizedVATPart(
+            VATEntry2,
             Round(SettledAmount / CustLedgerEntry.GetAdjustedCurrencyFactor()),
             PaidAmount, CustLedgerEntry."Amount (LCY)", TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast,
             GenJournalLine."Delayed Unreal. VAT", GenJournalLine."Realize Delayed VAT");
@@ -120,11 +125,43 @@ codeunit 10838 "PaymentMgt Subscribers FR"
         if IsHandled or not IsPaymentEnabled() then
             exit;
 
-        VATPart := VATEntry2.GetUnrealizedVATPart(
+        VATPart := GetPaymentUnrealizedVATPart(
+            VATEntry2,
             Round(SettledAmount / VendorLedgerEntry.GetAdjustedCurrencyFactor()),
             PaidAmount, VendorLedgerEntry."Amount (LCY)", TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast,
             GenJournalLine."Delayed Unreal. VAT", GenJournalLine."Realize Delayed VAT");
         IsHandled := true;
+    end;
+
+    internal procedure GetPaymentUnrealizedVATPart(VATEntry: Record "VAT Entry"; SettledAmount: Decimal; PaidAmount: Decimal; FullAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; DelayedUnrealizedVAT: Boolean; RealizeVAT: Boolean): Decimal
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+    begin
+        // Match the engine's eligibility checks before applying the payment-specific validation.
+        if DelayedUnrealizedVAT and RealizeVAT and
+           (VATEntry.Type <> VATEntry.Type::" ") and (VATEntry.Amount = 0) and (VATEntry.Base = 0) and
+           ((VATEntry."Remaining Unrealized Amount" <> 0) or (VATEntry."Remaining Unrealized Base" <> 0))
+        then
+            if VATEntry.GetUnrealizedVATType() <> 0 then
+                if VATEntry."VAT Calculation Type" = VATEntry."VAT Calculation Type"::"Sales Tax" then begin
+                    TaxJurisdiction.Get(VATEntry."Tax Jurisdiction Code");
+                    TaxJurisdiction.TestField("Unrealized VAT Type", TaxJurisdiction."Unrealized VAT Type"::Percentage);
+                end else begin
+                    VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+                    VATPostingSetup.TestField("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
+                end;
+
+        exit(VATEntry.GetUnrealizedVATPart(
+            SettledAmount, PaidAmount, FullAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
+    local procedure ClassifyPaymentVATBuffer()
+    var
+        DataClassificationMgt: Codeunit "Data Classification Mgt.";
+    begin
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Unreal. CV Ledg. Buffer FR");
     end;
 
     local procedure IsPaymentEnabled(): Boolean
@@ -142,7 +179,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
 
     local procedure BufferDelayedVATApplication(GenJournalLine: Record "Gen. Journal Line"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal; CustomerApplication: Boolean)
     var
-        ApplicationBuffer: Record "Unreal. CV Ledg. Entry Buffer";
+        ApplicationBuffer: Record "Unreal. CV Ledg. Buffer FR";
     begin
         ApplicationBuffer.Init();
         if CustomerApplication then
@@ -624,7 +661,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     local procedure UpdateUnrealCVLedgEntryBuffer(GenJnlLine: Record "Gen. Journal Line"; TransactionNo: Integer)
     var
         VATEntry2: Record "VAT Entry";
-        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Entry Buffer";
+        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Buffer FR";
         TotalUnrealVATAmount: Decimal;
     begin
         VATEntry2.Reset();
@@ -653,7 +690,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
 
     local procedure CalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; EntryNo: Integer): Decimal
     var
-        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Entry Buffer";
+        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Buffer FR";
         PaidAmount: Decimal;
     begin
         UnrealCVLedgEntryBuffer2.Reset();

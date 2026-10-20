@@ -30,6 +30,7 @@ codeunit 10840 "Upgrade Payment Management FR"
 
         UpgradePaymentStepObjectIDs();
         UpgradePaymentVATJournalFields(CurrentModuleInfo.AppVersion().Major() >= 31);
+        UpgradePaymentVATBuffer(CurrentModuleInfo.AppVersion().Major() >= 31);
         UpgradeDirectDebitSourceFields(CurrentModuleInfo.AppVersion().Major() >= 31);
     end;
 
@@ -76,6 +77,16 @@ codeunit 10840 "Upgrade Payment Management FR"
 
         // The original payment tag can already exist before these fields were moved to the app.
         PaymentDataMigrationFR.MigratePaymentVATJournalFields();
+    end;
+
+    internal procedure UpgradePaymentVATBuffer(ForceActivation: Boolean)
+    var
+        PaymentDataMigrationFR: Codeunit "Payment Data Migration FR";
+    begin
+        if not IsPaymentMigrationEnabled(ForceActivation) then
+            exit;
+
+        PaymentDataMigrationFR.MigratePaymentVATBuffer();
     end;
 
     internal procedure UpgradeDirectDebitSourceFields(ForceActivation: Boolean)

@@ -19,8 +19,8 @@ using System.Upgrade;
 /// (codeunit "Feature - PaymentMgt FR") and by the forced upgrade to version 31 (codeunit
 /// "Upgrade Payment Management FR"), so that both scenarios migrate exactly the same data.
 /// The legacy base application objects are referenced by ID because they are obsolete. The journal
-/// context and direct-debit source fields remain in SQL until CLEANSCHEMA33 and have separately tagged
-/// migrations for enabled companies.
+/// context fields, delayed-VAT buffer and direct-debit source fields remain in SQL until CLEANSCHEMA33
+/// and have separately tagged migrations for enabled companies.
 /// </summary>
 codeunit 10844 "Payment Data Migration FR"
 {
@@ -47,6 +47,7 @@ codeunit 10844 "Payment Data Migration FR"
         TransferBankAccountFields(Database::"Vendor Bank Account");
 
         MigratePaymentVATJournalFields();
+        MigratePaymentVATBuffer();
         MigrateDirectDebitSourceFields();
     end;
 
@@ -68,6 +69,25 @@ codeunit 10844 "Payment Data Migration FR"
 #endif
 
         UpgradeTag.SetUpgradeTag(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag());
+    end;
+
+    /// <summary>
+    /// Copies delayed-VAT applications into the app without overwriting app records on retry.
+    /// A separate tag also covers companies that already completed the original payment migration.
+    /// </summary>
+    internal procedure MigratePaymentVATBuffer()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag()) then
+            exit;
+
+#if not CLEANSCHEMA33
+        TransferRecords(10871, Database::"Unreal. CV Ledg. Buffer FR");
+#endif
+
+        UpgradeTag.SetUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag());
     end;
 
     /// <summary>
@@ -155,6 +175,9 @@ codeunit 10844 "Payment Data Migration FR"
         InsertDocumentEntry(TempDocumentEntry, Database::"Vendor Bank Account");
         InsertDocumentEntry(TempDocumentEntry, Database::"Gen. Journal Line");
         InsertDocumentEntry(TempDocumentEntry, Database::"Posted Gen. Journal Line");
+#if not CLEANSCHEMA33
+        InsertDocumentEntry(TempDocumentEntry, 10871); // Legacy Unreal. CV Ledg. Entry Buffer
+#endif
         InsertDocumentEntry(TempDocumentEntry, Database::"Direct Debit Collection");
         InsertDocumentEntry(TempDocumentEntry, Database::"Payment Jnl. Export Error Text");
     end;

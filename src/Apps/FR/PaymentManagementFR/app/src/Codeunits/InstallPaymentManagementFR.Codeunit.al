@@ -17,6 +17,7 @@ codeunit 10845 "Install Payment Management FR"
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
         InstallPaymentVATJournalFields(CurrentModuleInfo.AppVersion().Major() >= 31);
+        InstallPaymentVATBuffer(CurrentModuleInfo.AppVersion().Major() >= 31);
         InstallDirectDebitSourceFields(CurrentModuleInfo.AppVersion().Major() >= 31);
     end;
 
@@ -27,6 +28,13 @@ codeunit 10845 "Install Payment Management FR"
         // Installing into an existing company must use the same eligibility and journal tag as upgrades.
         // Do not run the unrelated payment-table migration or reset its tags during installation.
         PaymentUpgrade.UpgradePaymentVATJournalFields(ForceActivation);
+    end;
+
+    internal procedure InstallPaymentVATBuffer(ForceActivation: Boolean)
+    var
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+    begin
+        PaymentUpgrade.UpgradePaymentVATBuffer(ForceActivation);
     end;
 
     internal procedure InstallDirectDebitSourceFields(ForceActivation: Boolean)

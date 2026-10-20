@@ -7,15 +7,12 @@ namespace Microsoft.Bank.Payment;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-#if not CLEAN30
 using Microsoft.Finance.GeneralLedger.Posting;
-#endif
 using Microsoft.Finance.GeneralLedger.Setup;
-#if not CLEAN30
+using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
-#endif
 using Microsoft.Foundation.Navigate;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
@@ -96,9 +93,7 @@ codeunit 144040 "UT TAB Payment Management"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
         LibraryJournals: Codeunit "Library - Journals";
-#if not CLEAN30
         LibraryPurchase: Codeunit "Library - Purchase";
-#endif
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
 #if not CLEAN28
@@ -771,7 +766,6 @@ codeunit 144040 "UT TAB Payment Management"
         RestorePaymentFeatureStatus();
     end;
 
-#if not CLEAN30
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure EnabledCustomerPaymentDefersVATUsingAppFlag()
@@ -794,6 +788,7 @@ codeunit 144040 "UT TAB Payment Management"
 
         // [THEN] The invoice VAT remains unrealized.
         VerifyRemainingUnrealizedVAT(VATEntry, VATEntry."Unrealized Amount");
+        VerifyAppVATApplicationBuffer(GenJournalLine);
         RestorePaymentFeatureStatus();
     end;
 
@@ -819,9 +814,11 @@ codeunit 144040 "UT TAB Payment Management"
 
         // [THEN] The invoice VAT remains unrealized.
         VerifyRemainingUnrealizedVAT(VATEntry, VATEntry."Unrealized Amount");
+        VerifyAppVATApplicationBuffer(GenJournalLine);
         RestorePaymentFeatureStatus();
     end;
 
+#if not CLEANSCHEMA33
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure EnabledCustomerPaymentIgnoresLegacyDelayedVAT()
@@ -1296,6 +1293,7 @@ codeunit 144040 "UT TAB Payment Management"
 
         // [THEN] The journal tag is not pre-registered.
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag()), 'Disabled companies must migrate at activation.');
+        Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetPaymentVATBufferUpgradeTag()), 'Disabled companies must migrate VAT buffers at activation.');
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()), 'Disabled companies must migrate collection origins at activation.');
 
         // [GIVEN] An enabled company can also request tags for a different, disabled company.
@@ -1307,7 +1305,234 @@ codeunit 144040 "UT TAB Payment Management"
 
         // [THEN] It must not use the caller's feature status to pre-tag the other company.
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag()), 'Company initialization must evaluate the target company before setting the journal tag.');
+        Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetPaymentVATBufferUpgradeTag()), 'Company initialization must not pre-tag VAT buffers for another company.');
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()), 'Company initialization must not pre-tag collection origins for another company.');
+        RestorePaymentFeatureStatus();
+    end;
+#endif
+#endif
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DelayedVATReusesStandardPercentageCalculation()
+    var
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PaymentSubscribers: Codeunit "PaymentMgt Subscribers FR";
+    begin
+        // [SCENARIO 653673] App validation preserves the standard partial and full realization calculations.
+        Initialize();
+        CreatePaymentVATEntry(VATEntry, VATPostingSetup);
+
+        Assert.AreEqual(0.25, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 30, 30, 120, 0, 0, true, true),
+            'A quarter payment must realize a quarter of percentage-based VAT.');
+        Assert.AreEqual(1, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true),
+            'Full settlement must realize all remaining VAT.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DelayedVATRejectsNonPercentageBeforeFullRelease()
+    var
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PaymentSubscribers: Codeunit "PaymentMgt Subscribers FR";
+        VATPart: Decimal;
+    begin
+        // [SCENARIO 653673] The app rejects a non-percentage setup even when the standard engine would return full realization.
+        Initialize();
+        CreatePaymentVATEntry(VATEntry, VATPostingSetup);
+        VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::First;
+        VATPostingSetup.Modify();
+
+        asserterror VATPart := PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
+        Assert.ExpectedError(VATPostingSetup.FieldCaption("Unrealized VAT Type"));
+        Assert.ExpectedErrorCode(TestFieldErr);
+
+        Assert.AreEqual(1, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, false),
+            'A payment without delayed realization must retain standard non-percentage behavior.');
+        Assert.AreEqual(1, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, false, true),
+            'Realization without the delayed flag must retain standard behavior.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DelayedSalesTaxUsesJurisdictionValidation()
+    var
+        VATEntry: Record "VAT Entry";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        PaymentSubscribers: Codeunit "PaymentMgt Subscribers FR";
+        VATPart: Decimal;
+    begin
+        // [SCENARIO 653673] Sales tax validates the jurisdiction, not a VAT posting setup.
+        Initialize();
+        LibraryERM.CreateTaxJurisdiction(TaxJurisdiction);
+        TaxJurisdiction."Unrealized VAT Type" := TaxJurisdiction."Unrealized VAT Type"::Percentage;
+        TaxJurisdiction.Modify();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."VAT Calculation Type" := VATEntry."VAT Calculation Type"::"Sales Tax";
+        VATEntry."Tax Jurisdiction Code" := TaxJurisdiction.Code;
+        VATEntry."Remaining Unrealized Amount" := 20;
+        VATEntry."Remaining Unrealized Base" := 100;
+
+        Assert.AreEqual(0.25, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 30, 30, 120, 0, 0, true, true),
+            'Sales-tax percentage realization must use the standard calculation.');
+        TaxJurisdiction."Unrealized VAT Type" := TaxJurisdiction."Unrealized VAT Type"::First;
+        TaxJurisdiction.Modify();
+
+        asserterror VATPart := PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
+        Assert.ExpectedError(TaxJurisdiction.FieldCaption("Unrealized VAT Type"));
+        Assert.ExpectedErrorCode(TestFieldErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DelayedVATSkipsValidationForIneligibleEntries()
+    var
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PaymentSubscribers: Codeunit "PaymentMgt Subscribers FR";
+    begin
+        // [SCENARIO 653673] No new percentage error is introduced for entries the standard engine does not realize.
+        Initialize();
+        CreatePaymentVATEntry(VATEntry, VATPostingSetup);
+        VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::First;
+        VATPostingSetup.Modify();
+        VATEntry."Remaining Unrealized Amount" := 0;
+        VATEntry."Remaining Unrealized Base" := 0;
+
+        Assert.AreEqual(0, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true),
+            'Exhausted unrealized VAT must not be validated as a delayed release.');
+        VATEntry."Remaining Unrealized Amount" := 20;
+        VATEntry."Remaining Unrealized Base" := 100;
+        VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::" ";
+        VATPostingSetup.Modify();
+        Assert.AreEqual(0, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true),
+            'A blank unrealized-VAT type must keep the standard no-realization result.');
+    end;
+
+#if not CLEANSCHEMA33
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure VATBufferMigrationPreservesApplicationsAndState()
+    var
+        ExpectedBuffer: array[3] of Record "Unreal. CV Ledg. Buffer FR";
+        TempDocumentEntry: Record "Document Entry" temporary;
+        PaymentDataMigration: Codeunit "Payment Data Migration FR";
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+        BufferIndex: Integer;
+    begin
+        // [SCENARIO 653673] An already-enabled company preserves every buffer key, signed amount and realization state.
+        Initialize();
+        SetPaymentFeatureEnabled(true);
+        SetOriginalPaymentUpgradeTag();
+        ClearPaymentVATBufferUpgradeTag();
+        CreateLegacyPaymentVATBuffer(ExpectedBuffer[1]);
+        ExpectedBuffer[2] := ExpectedBuffer[1];
+        ExpectedBuffer[2]."Applies-to ID" := LibraryUtility.GenerateGUID();
+        ExpectedBuffer[2]."Applied Amount" := 0;
+        ExpectedBuffer[2].Realized := true;
+        WriteLegacyPaymentVATBuffer(ExpectedBuffer[2]);
+        ExpectedBuffer[3] := ExpectedBuffer[1];
+        ExpectedBuffer[3]."Account Type" := ExpectedBuffer[3]."Account Type"::Vendor;
+        ExpectedBuffer[3]."Applied Amount" := -25.5;
+        WriteLegacyPaymentVATBuffer(ExpectedBuffer[3]);
+
+        PaymentDataMigration.CountRecordsToMigrate(TempDocumentEntry);
+        VerifyJournalMigrationOverview(TempDocumentEntry, 10871);
+        PaymentUpgrade.UpgradePaymentVATBuffer(false);
+
+        for BufferIndex := 1 to ArrayLen(ExpectedBuffer) do
+            VerifyMigratedPaymentVATBuffer(ExpectedBuffer[BufferIndex]);
+        VerifyPaymentVATBufferUpgradeTag(true);
+        RestorePaymentFeatureStatus();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure VATBufferMigrationRetryKeepsAppEditsAndDeletes()
+    var
+        PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR";
+        PaymentDataMigration: Codeunit "Payment Data Migration FR";
+    begin
+        // [SCENARIO 653673] A migration retry neither overwrites app state nor revives deleted applications.
+        Initialize();
+        ClearPaymentVATBufferUpgradeTag();
+        CreateLegacyPaymentVATBuffer(PaymentBuffer);
+        PaymentDataMigration.MigratePaymentVATBuffer();
+        PaymentBuffer.Find();
+        PaymentBuffer."Applied Amount" := 99;
+        PaymentBuffer.Realized := true;
+        PaymentBuffer.Modify();
+
+        PaymentDataMigration.MigratePaymentVATBuffer();
+
+        VerifyMigratedPaymentVATBuffer(PaymentBuffer);
+        PaymentBuffer.Delete();
+        PaymentDataMigration.MigratePaymentVATBuffer();
+        Assert.IsFalse(PaymentBuffer.Find(), 'An app-deleted buffer must not be reimported from the legacy table.');
+    end;
+
+#if not CLEAN28
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DisabledVATBufferWaitsForFeatureActivation()
+    var
+        PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        PaymentInstall: Codeunit "Install Payment Management FR";
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+        PaymentFeature: Codeunit "Feature - PaymentMgt FR";
+    begin
+        // [SCENARIO 653673] Disabled installation and upgrade defer the buffer until activation copies its latest state.
+        Initialize();
+        SetPaymentFeatureEnabled(false);
+        SetOriginalPaymentUpgradeTag();
+        ClearPaymentVATBufferUpgradeTag();
+        CreateLegacyPaymentVATBuffer(PaymentBuffer);
+
+        PaymentInstall.InstallPaymentVATBuffer(false);
+        PaymentUpgrade.UpgradePaymentVATBuffer(false);
+
+        Assert.IsFalse(PaymentBuffer.Find(), 'A disabled company must not import the legacy buffer yet.');
+        VerifyPaymentVATBufferUpgradeTag(false);
+        PaymentBuffer."Applied Amount" := 64.2;
+        PaymentBuffer.Realized := true;
+        WriteLegacyPaymentVATBuffer(PaymentBuffer);
+        FeatureDataUpdateStatus.Get('Payment', CompanyName());
+        PaymentFeature.UpdateData(FeatureDataUpdateStatus);
+        PaymentFeature.AfterUpdate(FeatureDataUpdateStatus);
+
+        VerifyMigratedPaymentVATBuffer(PaymentBuffer);
+        VerifyPaymentVATBufferUpgradeTag(true);
+        RestorePaymentFeatureStatus();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ForcedVATBufferInstallAndUpgradeMigrateData()
+    var
+        PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR";
+        PaymentInstall: Codeunit "Install Payment Management FR";
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+    begin
+        // [SCENARIO 653673] Version-31 installation and upgrade independently migrate a disabled company's buffer.
+        Initialize();
+        SetPaymentFeatureEnabled(false);
+        SetOriginalPaymentUpgradeTag();
+        ClearPaymentVATBufferUpgradeTag();
+        CreateLegacyPaymentVATBuffer(PaymentBuffer);
+
+        PaymentInstall.InstallPaymentVATBuffer(true);
+
+        VerifyMigratedPaymentVATBuffer(PaymentBuffer);
+        VerifyPaymentVATBufferUpgradeTag(true);
+        PaymentBuffer.Find();
+        PaymentBuffer.Delete();
+        ClearPaymentVATBufferUpgradeTag();
+        PaymentUpgrade.UpgradePaymentVATBuffer(true);
+        VerifyMigratedPaymentVATBuffer(PaymentBuffer);
+        VerifyPaymentVATBufferUpgradeTag(true);
         RestorePaymentFeatureStatus();
     end;
 #endif
@@ -1587,7 +1812,108 @@ codeunit 144040 "UT TAB Payment Management"
             LibraryERM.CreateGLAccountNo(), 100);
     end;
 
-#if not CLEAN30
+    local procedure VerifyAppVATApplicationBuffer(GenJournalLine: Record "Gen. Journal Line")
+    var
+        PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR";
+    begin
+        if GenJournalLine."Account Type" = GenJournalLine."Account Type"::Customer then
+            PaymentBuffer.SetRange("Account Type", PaymentBuffer."Account Type"::Customer)
+        else
+            PaymentBuffer.SetRange("Account Type", PaymentBuffer."Account Type"::Vendor);
+        PaymentBuffer.SetRange("Account No.", GenJournalLine."Account No.");
+        PaymentBuffer.SetRange("Payment Slip No.", GenJournalLine."Document No.");
+        Assert.IsTrue(PaymentBuffer.FindFirst(), 'The application must be buffered in the app-owned table.');
+        Assert.AreEqual(120, Abs(PaymentBuffer."Applied Amount"), 'The buffer must retain the applied invoice amount.');
+        Assert.IsFalse(PaymentBuffer.Realized, 'The buffered application must remain unrealized.');
+    end;
+
+    local procedure CreatePaymentVATEntry(var VATEntry: Record "VAT Entry"; var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        LibrarySetupStorage.Save(Database::"General Ledger Setup");
+        LibraryERM.SetUnrealizedVAT(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::Percentage;
+        VATPostingSetup.Modify();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        VATEntry."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        VATEntry."Remaining Unrealized Amount" := 20;
+        VATEntry."Remaining Unrealized Base" := 100;
+    end;
+
+#if not CLEANSCHEMA33
+    local procedure CreateLegacyPaymentVATBuffer(var PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR")
+    begin
+        PaymentBuffer.Init();
+        PaymentBuffer."Account Type" := PaymentBuffer."Account Type"::Customer;
+        PaymentBuffer."Account No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PaymentBuffer."Account No."));
+        PaymentBuffer."Payment Slip No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PaymentBuffer."Payment Slip No."));
+        PaymentBuffer."Applies-to ID" := LibraryUtility.GenerateGUID();
+        PaymentBuffer."Entry No." := 1;
+        PaymentBuffer."Applied Amount" := 12.34;
+        WriteLegacyPaymentVATBuffer(PaymentBuffer);
+    end;
+
+    local procedure WriteLegacyPaymentVATBuffer(PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR")
+    var
+        LegacyBufferRef: RecordRef;
+        AppBufferRef: RecordRef;
+        LegacyField: FieldRef;
+        AppField: FieldRef;
+        FieldNo: Integer;
+        Existing: Boolean;
+    begin
+        LegacyBufferRef.Open(10871);
+        AppBufferRef.GetTable(PaymentBuffer);
+        for FieldNo := 1 to 5 do begin
+            LegacyField := LegacyBufferRef.Field(FieldNo);
+            AppField := AppBufferRef.Field(FieldNo);
+            LegacyField.SetRange(AppField.Value);
+        end;
+        Existing := LegacyBufferRef.FindFirst();
+        if not Existing then
+            LegacyBufferRef.Init();
+        for FieldNo := 1 to 7 do begin
+            LegacyField := LegacyBufferRef.Field(FieldNo);
+            AppField := AppBufferRef.Field(FieldNo);
+            LegacyField.Value := AppField.Value;
+        end;
+        if Existing then
+            LegacyBufferRef.Modify()
+        else
+            LegacyBufferRef.Insert();
+        LegacyBufferRef.Close();
+        AppBufferRef.Close();
+    end;
+
+    local procedure VerifyMigratedPaymentVATBuffer(ExpectedBuffer: Record "Unreal. CV Ledg. Buffer FR")
+    var
+        PaymentBuffer: Record "Unreal. CV Ledg. Buffer FR";
+    begin
+        PaymentBuffer.Get(ExpectedBuffer."Account Type", ExpectedBuffer."Account No.", ExpectedBuffer."Payment Slip No.",
+            ExpectedBuffer."Applies-to ID", ExpectedBuffer."Entry No.");
+        Assert.AreEqual(ExpectedBuffer."Applied Amount", PaymentBuffer."Applied Amount", 'The signed applied amount must be preserved.');
+        Assert.AreEqual(ExpectedBuffer.Realized, PaymentBuffer.Realized, 'The realization state must be preserved.');
+    end;
+
+    local procedure ClearPaymentVATBufferUpgradeTag()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+    end;
+
+    local procedure VerifyPaymentVATBufferUpgradeTag(Expected: Boolean)
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        Assert.AreEqual(Expected, UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag()), 'Incorrect VAT buffer migration tag.');
+    end;
+#endif
+
     local procedure CreateUnrealizedVATPayment(var PaymentGenJournalLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; AccountType: Enum "Gen. Journal Account Type")
     var
         InvoiceGenJournalLine: Record "Gen. Journal Line";
@@ -1648,8 +1974,6 @@ codeunit 144040 "UT TAB Payment Management"
         VATEntry.Get(VATEntry."Entry No.");
         Assert.AreEqual(ExpectedAmount, VATEntry."Remaining Unrealized Amount", 'The active payment feature must choose the delayed-VAT flag.');
     end;
-#endif
-
     local procedure SetPaymentFeatureEnabled(FeatureEnabled: Boolean)
 #if not CLEAN28
     var

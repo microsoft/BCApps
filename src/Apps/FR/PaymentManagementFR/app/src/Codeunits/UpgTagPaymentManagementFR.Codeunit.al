@@ -20,6 +20,7 @@ codeunit 10841 "Upg. Tag Payment Management FR"
         PerCompanyUpgradeTags.Add(GetPaymentStepObjectIDsUpgradeTag());
 #if CLEAN28
         PerCompanyUpgradeTags.Add(GetPaymentVATJournalFieldsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPaymentVATBufferUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDirectDebitSourceFieldsUpgradeTag());
 #endif
     end;
@@ -37,6 +38,7 @@ codeunit 10841 "Upg. Tag Payment Management FR"
         // Installation, upgrades and company initialization use the same version threshold.
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
         PaymentUpgrade.UpgradePaymentVATJournalFields(CurrentModuleInfo.AppVersion().Major() >= 31);
+        PaymentUpgrade.UpgradePaymentVATBuffer(CurrentModuleInfo.AppVersion().Major() >= 31);
         PaymentUpgrade.UpgradeDirectDebitSourceFields(CurrentModuleInfo.AppVersion().Major() >= 31);
     end;
 #endif
@@ -54,6 +56,11 @@ codeunit 10841 "Upg. Tag Payment Management FR"
     internal procedure GetPaymentVATJournalFieldsUpgradeTag(): Code[250]
     begin
         exit('MS-653673-PaymentVATJournalFieldsUpgradeTag-20261014');
+    end;
+
+    internal procedure GetPaymentVATBufferUpgradeTag(): Code[250]
+    begin
+        exit('MS-653673-PaymentVATBufferUpgradeTag-20261020');
     end;
 
     internal procedure GetDirectDebitSourceFieldsUpgradeTag(): Code[250]
