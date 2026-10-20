@@ -50,7 +50,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateGLJournalPeriodStartFieldBlankErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10800 (G/L Journal).
@@ -61,7 +60,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateGLJournalSpecifyPeriodStartErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10800 (G/L Journal).
@@ -72,7 +70,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateGLJournalPeriodStartFirstDayErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10800 (G/L Journal).
@@ -84,7 +81,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLAccGLTrialBalanceDateFilterErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItem GL Account trigger for Report 10803 (G/L Trial Balance).
@@ -95,7 +91,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLAccGLTrialBalanceStartDateErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItem GL Account trigger for Report 10803 (G/L Trial Balance).
@@ -106,7 +101,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLAccGLDetailTrialBalanceDateFilterErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItem GL Account trigger for Report 10804 (G/L Detail Trial Balance).
@@ -117,7 +111,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLAccGLDetailTrialBalanceStartDateErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItem GL Account trigger for Report 10804 (G/L Detail Trial Balance).
@@ -128,7 +121,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLAccGLDetailTrialBalanceWrongStartDateErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItem GL Account trigger for Report 10804 (G/L Detail Trial Balance).
@@ -141,7 +133,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLAccGLDetailTrialBalanceEndDateErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItem GL Account trigger for Report 10804 (G/L Detail Trial Balance).
@@ -154,7 +145,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('JournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateJournalsPeriodStartFieldBlankErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10801 (Journals).
@@ -165,7 +155,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('JournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateJournalsSpecifyPeriodStartErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10801 (Journals).
@@ -176,7 +165,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('JournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateJournalsPeriodStartDateErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10801 (Journals).
@@ -188,7 +176,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('WrongEndDateJournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateJournalsPeriodEndDateErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10801 (Journals).
@@ -200,7 +187,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('CentralizeJournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidatePostingDateJournalsDocumentNoErr()
     var
         SortingBy: Option "Posting Date","Document No.";
@@ -213,7 +199,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('CentralizeJournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidatePostingDateJournalsPostingDateErr()
     var
         SortingBy: Option "Posting Date","Document No.";
@@ -226,7 +211,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('NoFilterOnJournalsRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemDateJournalsPeriodTypeFieldBlankErr()
     begin
         // Purpose of the test is to verify error message on OnPreDataItemDate trigger for Report 10801 (Journals).
@@ -244,7 +228,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     [Test]
     [HandlerFunctions('GLJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure GLReportWithOneDateInPeriodStart()
     begin
         // [FEATURE] [G/L Journal Report] [UT]
@@ -254,7 +237,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
 
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceForGLAccountNoRequestPageHandler')]
-    [Scope('OnPrem')]
     procedure GLDetailTrialBalanceForMultipleGLAccounts()
     var
         GLAccount: array[2] of Record "G/L Account";
@@ -383,7 +365,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CentralizeJournalsRequestPageHandler(var Journals: TestRequestPage "Journals FR")
     var
         Date: Record Date;
@@ -399,7 +380,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLDetailTrialBalanceRequestPageHandler(var GLDetailTrialBalance: TestRequestPage "G/L Detail Trial Balance FR")
     var
         DateFilter: Variant;
@@ -410,7 +390,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLDetailTrialBalanceForGLAccountNoRequestPageHandler(var GLDetailTrialBalance: TestRequestPage "G/L Detail Trial Balance FR")
     var
         DateFilter: Variant;
@@ -422,7 +401,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLJournalRequestPageHandler(var GLJournal: TestRequestPage "G/L Journal FR")
     var
         PeriodStart: Variant;
@@ -433,7 +411,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLTrialBalanceRequestPageHandler(var GLTrialBalance: TestRequestPage "G/L Trial Balance FR")
     var
         DateFilter: Variant;
@@ -444,7 +421,6 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure JournalsRequestPageHandler(var Journals: TestRequestPage "Journals FR")
     var
         Date: Record Date;
@@ -457,14 +433,12 @@ codeunit 144052 "UT REP Fiscal Year FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure NoFilterOnJournalsRequestPageHandler(var Journals: TestRequestPage "Journals FR")
     begin
         Journals.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure WrongEndDateJournalsRequestPageHandler(var Journals: TestRequestPage "Journals FR")
     var
         Date: Record Date;

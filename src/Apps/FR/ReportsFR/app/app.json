@@ -11,13 +11,24 @@
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "logo": "ExtensionLogo.png",
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2204541",
-  "dependencies": [],
+  "dependencies": [
+    {
+      "id": "87990153-0e35-4e5d-ba61-2e93077d1699",
+      "name": "Review General Ledger Entries",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
   "screenshots": [],
   "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 10821,
-      "to": 10845
+      "to": 10846
+    },
+    {
+      "from": 10854,
+      "to": 10855
     }
   ],
   "resourceExposurePolicy": {
@@ -26,14 +37,14 @@
     "includeSourceInSymbolFile": true
   },
   "application": "30.0.0.0",
+  "target": "OnPrem",
   "internalsVisibleTo": [
     {
-      "id": "c189ffd4-396c-42f4-a828-b4d5974b6a29",
-      "name": "Reports FR Tests",
+      "id": "c1f311f2-7c93-43a0-af8a-213e383947f2",
+      "name": "Reports FR Test Library",
       "publisher": "Microsoft"
     }
   ],
-  "target": "OnPrem",
   "features": [
     "NoImplicitWith",
     "TranslationFile"

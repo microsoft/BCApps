@@ -3,7 +3,9 @@ namespace System.Security.AccessControl;
 #if not CLEAN28
 using Microsoft.Bank.Payment;
 #endif
+#if not CLEAN30
 using Microsoft.Finance.FinancialReports;
+#endif
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Document;
 
@@ -17,8 +19,12 @@ permissionset 1001 "LOCAL"
 #if not CLEAN28
                   tabledata "Bank Account Buffer" = RIMD,
 #endif
+#if not CLEAN30
+#pragma warning disable AS0105
                   tabledata "FR Acc. Schedule Line" = RIMD,
                   tabledata "FR Acc. Schedule Name" = RIMD,
+#pragma warning restore AS0105
+#endif
 #if not CLEAN28
                   tabledata "Payment Address" = RIMD,
                   tabledata "Payment Class" = RIMD,

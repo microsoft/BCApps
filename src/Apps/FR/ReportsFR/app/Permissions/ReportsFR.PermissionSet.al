@@ -5,6 +5,7 @@
 namespace Microsoft.Bank.Reports;
 
 using Microsoft.Bank.Check;
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Reports;
@@ -16,6 +17,7 @@ permissionset 10825 "Reports FR"
 {
     Access = Internal;
     Assignable = false;
+    IncludedPermissionSets = "Reports FR Fin. Read";
 
     Permissions = report "Bank Acc. Det. Trial Balance" = X,
                   report "Bank Acc. Trial Balance" = X,

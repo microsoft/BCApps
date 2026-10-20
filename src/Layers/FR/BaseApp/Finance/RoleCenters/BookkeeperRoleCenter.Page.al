@@ -104,22 +104,32 @@ page 9004 "Bookkeeper Role Center"
                 RunObject = Report "Account Schedule";
                 ToolTip = 'Analyze figures in general ledger accounts or compare general ledger entries with general ledger budget entries. For example, you can view the G/L entries as percentages of the budget entries. You use the Account Schedule window to set up account schedules.';
             }
+#if not CLEAN30
             action("FR Account Schedule")
             {
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                 ApplicationArea = Basic, Suite;
                 Caption = 'FR Account Schedule';
                 Image = "Report";
                 RunObject = Report "FR Account Schedule";
                 ToolTip = 'Analyze figures in general ledger accounts or compare general ledger entries with general ledger budget entries.';
             }
+#endif
+#if not CLEAN30
             action("G/L Account Statement")
             {
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                 ApplicationArea = Basic, Suite;
                 Caption = 'G/L Account Statement';
                 Image = "Report";
                 RunObject = Report "G/L Account Statement";
                 ToolTip = 'View a statement of posted entries for general ledger accounts.';
             }
+#endif
             group("&Trial Balance")
             {
                 Caption = '&Trial Balance';

@@ -1,4 +1,4 @@
-#if CLEAN28
+#if CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -6,6 +6,7 @@
 namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.Reports;
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Purchases.Reports;
 using Microsoft.Sales.Reports;
@@ -85,6 +86,33 @@ pageextension 10825 "Accounting Manager Role Center" extends "Accounting Manager
                 Image = "Report";
                 RunObject = Report "Bank Account Journal FR";
                 ToolTip = 'View transactions for all bank accounts with subtotals per period. Each period shows subtotals per source code.';
+            }
+        }
+        addlast(reporting)
+        {
+            action(FRFinancialScheduleNames)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Balance Sheet & Income Statement';
+                Image = Account;
+                RunObject = page "FR Financial Schedule Names";
+                ToolTip = 'Maintain French balance-sheet and income-statement definitions.';
+            }
+            action(FRFinancialScheduleReport)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'FR Account Schedule';
+                Image = Report;
+                RunObject = report "FR Financial Schedule";
+                ToolTip = 'Print French financial schedules with current and previous-period figures.';
+            }
+            action(FRGLAccountStatement)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'G/L Account Statement';
+                Image = Report;
+                RunObject = report "G/L Account Statement FR";
+                ToolTip = 'View general ledger transactions, application letters, review status, and account balances.';
             }
         }
     }

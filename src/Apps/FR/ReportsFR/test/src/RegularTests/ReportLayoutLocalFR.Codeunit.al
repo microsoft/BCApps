@@ -25,7 +25,6 @@ codeunit 144051 "Report Layout - Local FR"
 
     [Test]
     [HandlerFunctions('RHGLDetailTrialBalance')]
-    [Scope('OnPrem')]
     procedure TestGLDetailTrialBalance()
     begin
         Initialize();
@@ -34,7 +33,6 @@ codeunit 144051 "Report Layout - Local FR"
 
     [Test]
     [HandlerFunctions('RHGLJournal')]
-    [Scope('OnPrem')]
     procedure TestGLJournal()
     begin
         Initialize();
@@ -43,7 +41,6 @@ codeunit 144051 "Report Layout - Local FR"
 
     [Test]
     [HandlerFunctions('RHGLTrialBalance')]
-    [Scope('OnPrem')]
     procedure TestGLTrialBalance()
     begin
         Initialize();
@@ -52,7 +49,6 @@ codeunit 144051 "Report Layout - Local FR"
 
     [Test]
     [HandlerFunctions('RHVendorJournal')]
-    [Scope('OnPrem')]
     procedure TestVendorJournal()
     begin
         Initialize();
@@ -61,7 +57,6 @@ codeunit 144051 "Report Layout - Local FR"
 
     [Test]
     [HandlerFunctions('RHJournals')]
-    [Scope('OnPrem')]
     procedure TestJournals()
     begin
         Initialize();
@@ -70,7 +65,6 @@ codeunit 144051 "Report Layout - Local FR"
 
     [Test]
     [HandlerFunctions('RHCustomerJournal')]
-    [Scope('OnPrem')]
     procedure TestCustomerJournal()
     begin
         Initialize();
@@ -100,14 +94,12 @@ codeunit 144051 "Report Layout - Local FR"
         ReportFileName := DelChr(ReportCaption, '=', '/') + '.pdf'
     end;
 
-    [Scope('OnPrem')]
     procedure GetLastDayOftheMonth(LastDay: Date): Date
     begin
         exit(CalcDate('<-1D>', DMY2Date(1, Date2DMY(LastDay, 2) + 1, Date2DMY(LastDay, 3))))
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHGLDetailTrialBalance(var GLDetailTrialBalance: TestRequestPage "G/L Detail Trial Balance FR")
     var
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
@@ -119,7 +111,6 @@ codeunit 144051 "Report Layout - Local FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHGLJournal(var GLJournal: TestRequestPage "G/L Journal FR")
     var
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
@@ -130,7 +121,6 @@ codeunit 144051 "Report Layout - Local FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHGLTrialBalance(var GLTrialBalance: TestRequestPage "G/L Trial Balance FR")
     begin
         GLTrialBalance."G/L Account".SetFilter("Date Filter", Format(WorkDate()));
@@ -138,7 +128,6 @@ codeunit 144051 "Report Layout - Local FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHVendorJournal(var VendorJournal: TestRequestPage "Vendor Journal FR")
     var
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
@@ -150,7 +139,6 @@ codeunit 144051 "Report Layout - Local FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHJournals(var Journals: TestRequestPage "Journals FR")
     var
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
@@ -162,7 +150,6 @@ codeunit 144051 "Report Layout - Local FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHCustomerJournal(var CustomerJournal: TestRequestPage "Customer Journal FR")
     var
         PeriodType: Option Date,Week,Month,Quarter,Year;

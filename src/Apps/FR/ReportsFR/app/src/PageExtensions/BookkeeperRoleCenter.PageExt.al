@@ -1,4 +1,4 @@
-#if CLEAN28
+#if CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -6,11 +6,12 @@
 namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.Reports;
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Purchases.Reports;
 using Microsoft.Sales.Reports;
 
-pageextension 10845 "Bookkeeper Role Center" extends "Bookkeeper Role Center"
+pageextension 10823 "Bookkeeper Role Center" extends "Bookkeeper Role Center"
 {
     actions
     {
@@ -85,6 +86,25 @@ pageextension 10845 "Bookkeeper Role Center" extends "Bookkeeper Role Center"
                 Image = "Report";
                 RunObject = Report "Bank Acc. Det. Trial Balance";
                 ToolTip = 'View transactions for all bank accounts with subtotals per account. Each account shows the opening balance on the first line, the list of transactions for the account and a closing balance on the last line.';
+            }
+        }
+        addlast(reporting)
+        {
+            action(FRFinancialScheduleReport)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'FR Account Schedule';
+                Image = Report;
+                RunObject = report "FR Financial Schedule";
+                ToolTip = 'Print French financial schedules with current and previous-period figures.';
+            }
+            action(FRGLAccountStatement)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'G/L Account Statement';
+                Image = Report;
+                RunObject = report "G/L Account Statement FR";
+                ToolTip = 'View general ledger transactions, application letters, review status, and account balances.';
             }
         }
     }

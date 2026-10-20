@@ -7,11 +7,16 @@ namespace Microsoft.Bank.Reports;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Journal;
+#if not CLEAN30
 using Microsoft.Finance.GeneralLedger.Setup;
+#endif
 using Microsoft.Foundation.Reporting;
 using System.Automation;
+#if not CLEAN30
 using System.Environment;
+#endif
 using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Security.AccessControl;
@@ -39,15 +44,17 @@ codeunit 144044 "UT REP Number To Text"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        ReportLayoutsFR: Codeunit "Library - Reports FR";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
         PermissionsMock: Codeunit "Permissions Mock";
+#if not CLEAN30
+        FeatureState: Codeunit "Library - Reports FR";
+#endif
         UnexpectedAmountTextErr: Label 'Unexpected amount text for %1 in language %2.', Comment = '%1 = amount, %2 = language ID';
         UnexpectedLayoutErr: Label 'Unexpected check layout selection.';
         RestrictionDetailsTxt: Label 'Test-print journal line requires approval.';
         CheckInsertCount: Integer;
 #if not CLEAN30
-        FeatureEnabled: Boolean;
-        UseActualFeatureStatus: Boolean;
         FormattingAfterEventCount: Integer;
         FormattingAfterEventAmount: Decimal;
 #endif
@@ -377,8 +384,6 @@ codeunit 144044 "UT REP Number To Text"
 
     [Test]
     procedure FrenchCheckLayoutIsSelectedWithoutExistingSelection()
-    var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] A company using the implicit built-in layout gets the extension layout.
@@ -386,9 +391,10 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] No check layout selection exists.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
 
         // [WHEN] The default layout is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The company uses the extension layout.
         VerifyLayoutSelection(CompanyName(), 'CheckFR', ReportsAppId());
@@ -397,7 +403,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure LegacyBuiltInCheckLayoutIsMigrated()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         BaseApplicationId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -406,11 +411,12 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] The company explicitly uses the Base Application layout.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
         CreateLayoutSelection(CompanyName(), 'RDLCLayout', BaseApplicationId);
 
         // [WHEN] The default layout is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The company uses the extension layout.
         VerifyLayoutSelection(CompanyName(), 'CheckFR', ReportsAppId());
@@ -419,7 +425,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AllCompanyBuiltInCheckLayoutIsMigratedPerCompany()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         BaseApplicationId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -428,11 +433,12 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] All companies use the Base Application default.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
         CreateLayoutSelection('', 'RDLCLayout', BaseApplicationId);
 
         // [WHEN] The current company's default is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The company migrates without changing the global default.
         VerifyCompanyAndGlobalLayouts(BaseApplicationId);
@@ -441,7 +447,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure CustomCheckLayoutSelectionIsPreserved()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         EmptyGuid: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -450,10 +455,11 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] The company uses a tenant-defined layout.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         CreateLayoutSelection(CompanyName(), 'CUSTOM CHECK', EmptyGuid);
 
         // [WHEN] The default layout is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The tenant-defined selection is unchanged.
         VerifyLayoutSelection(CompanyName(), 'CUSTOM CHECK', EmptyGuid);
@@ -462,7 +468,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AllCompanyCustomCheckLayoutSelectionIsPreserved()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         EmptyGuid: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -471,10 +476,11 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] A global tenant-defined layout is selected.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         CreateLayoutSelection('', 'CUSTOM CHECK', EmptyGuid);
 
         // [WHEN] The company default is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The global selection survives without a company-specific override.
         VerifyGlobalCustomLayout(EmptyGuid);
@@ -483,7 +489,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure OtherExtensionCheckLayoutSelectionIsPreserved()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         OtherAppId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -492,11 +497,12 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] A third-party extension layout is selected.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         OtherAppId := CreateGuid();
         CreateLayoutSelection(CompanyName(), 'OTHER CHECK', OtherAppId);
 
         // [WHEN] The default layout is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The third-party selection is unchanged.
         VerifyLayoutSelection(CompanyName(), 'OTHER CHECK', OtherAppId);
@@ -505,7 +511,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure LegacyCustomCheckLayoutSelectionIsPreserved()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         CustomLayoutCode: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
@@ -514,10 +519,11 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] A legacy custom selection references an existing layout for the check report.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         CustomLayoutCode := CreateLegacyCustomLayoutSelection();
 
         // [WHEN] The default layout is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The legacy selection remains without a tenant override.
         VerifyLegacyCustomLayout(CustomLayoutCode);
@@ -525,8 +531,6 @@ codeunit 144044 "UT REP Number To Text"
 
     [Test]
     procedure FrenchCheckLayoutSelectionIsIdempotent()
-    var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] Check layout migration records completion and is idempotent.
@@ -537,8 +541,8 @@ codeunit 144044 "UT REP Number To Text"
         ClearCheckLayoutUpgradeTag();
 
         // [WHEN] The feature's layout migration runs twice.
-        ReportLayoutsFR.MigrateCheckLayout();
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The layout is selected once and the upgrade tag is persisted.
         VerifyTaggedLayout('CheckFR', ReportsAppId());
@@ -548,7 +552,6 @@ codeunit 144044 "UT REP Number To Text"
     procedure UserSpecificCheckLayoutSelectionIsPreserved()
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -557,6 +560,7 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] A user-specific selection exists.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         SelectedUserId := CreateGuid();
         TenantReportLayoutSelection.Init();
         TenantReportLayoutSelection."Report ID" := Report::Check;
@@ -567,7 +571,7 @@ codeunit 144044 "UT REP Number To Text"
         TenantReportLayoutSelection.Insert();
 
         // [WHEN] The company default is selected.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The company migrates but the user's selection is unchanged.
         VerifyUserSpecificLayout(SelectedUserId);
@@ -576,7 +580,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AllCompanyUserSpecificCheckLayoutSelectionIsPreserved()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
         EmptyGuid: Guid;
     begin
@@ -591,7 +594,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection('', 'USER CHECK', EmptyGuid, SelectedUserId);
 
         // [WHEN] Check layout migration initializes the current company.
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The user choice remains global and the default for other users is migrated and tagged.
         VerifyGlobalUserLayout(SelectedUserId, 'USER CHECK', EmptyGuid);
@@ -601,7 +604,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AllCompanyUserLayoutAllowsCompanyDefaultMigration()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
         OtherAppId: Guid;
         BaseApplicationId: Guid;
@@ -612,6 +614,7 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] A third-party user layout applies globally and the company has a built-in default.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         SelectedUserId := CreateGuid();
         OtherAppId := CreateGuid();
         BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
@@ -619,7 +622,7 @@ codeunit 144044 "UT REP Number To Text"
         CreateLayoutSelection(CompanyName(), 'RDLCLayout', BaseApplicationId);
 
         // [WHEN] The company default is initialized.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The company default migrates while the global user choice remains unchanged.
         VerifyLayoutSelection(CompanyName(), 'CheckFR', ReportsAppId());
@@ -629,7 +632,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure CompanyAndGlobalUserLayoutsSurviveDefaultMigration()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         GlobalUserId: Guid;
         CompanyUserId: Guid;
         EmptyGuid: Guid;
@@ -640,13 +642,14 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] User "U1" has a global choice and user "U2" has a company-specific choice.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         GlobalUserId := CreateGuid();
         CompanyUserId := CreateGuid();
         CreateLayoutSelection('', 'GLOBAL USER CHECK', EmptyGuid, GlobalUserId);
         CreateLayoutSelection(CompanyName(), 'COMPANY USER CHECK', EmptyGuid, CompanyUserId);
 
         // [WHEN] The company default is initialized.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] Both choices survive and users without a choice receive the French default.
         VerifyGlobalUserLayout(GlobalUserId, 'GLOBAL USER CHECK', EmptyGuid);
@@ -658,7 +661,6 @@ codeunit 144044 "UT REP Number To Text"
     procedure RepeatedMigrationPreservesLaterGlobalUserChoice()
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
         EmptyGuid: Guid;
     begin
@@ -671,7 +673,7 @@ codeunit 144044 "UT REP Number To Text"
         ClearCheckLayoutUpgradeTag();
         SelectedUserId := CreateGuid();
         CreateLayoutSelection('', 'USER CHECK', EmptyGuid, SelectedUserId);
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [GIVEN] The user changes their global choice after migration.
         TenantReportLayoutSelection.Get(Report::Check, '', SelectedUserId);
@@ -679,7 +681,7 @@ codeunit 144044 "UT REP Number To Text"
         TenantReportLayoutSelection.Modify();
 
         // [WHEN] Migration runs again.
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The later choice remains global and the French company default remains selected.
         VerifyGlobalUserLayout(SelectedUserId, 'LATER USER CHECK', EmptyGuid);
@@ -689,7 +691,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure GlobalUserLayoutDoesNotHideMissingCompanyLayout()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
         EmptyGuid: Guid;
     begin
@@ -714,7 +715,7 @@ codeunit 144044 "UT REP Number To Text"
         VerifyGlobalUserLayout(SelectedUserId, 'USER CHECK', EmptyGuid);
 
         // [WHEN] The correct package is available on retry.
-        ReportLayoutsFR.InitializeCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] Other users receive the French default while the global user choice survives.
         VerifyTaggedLayout('CheckFR', ReportsAppId());
@@ -725,7 +726,6 @@ codeunit 144044 "UT REP Number To Text"
     procedure OtherCompanyUserLayoutDoesNotPreventCheckMigration()
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedCompany: Text[30];
         SelectedUserId: Guid;
         EmptyGuid: Guid;
@@ -735,12 +735,13 @@ codeunit 144044 "UT REP Number To Text"
 
         // [GIVEN] A user layout is selected only in another company.
         ClearLayoutSelections();
+        ClearCheckLayoutUpgradeTag();
         SelectedCompany := CopyStr(CreateGuid(), 1, MaxStrLen(SelectedCompany));
         SelectedUserId := CreateGuid();
         CreateLayoutSelection(SelectedCompany, 'USER CHECK', EmptyGuid, SelectedUserId);
 
         // [WHEN] The current company's default is initialized.
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The current company migrates and the other company's user choice remains untouched.
         VerifyLayoutSelection(CompanyName(), 'CheckFR', ReportsAppId());
@@ -752,7 +753,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure CompletedLayoutMigrationDoesNotOverrideLaterSelection()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         BaseApplicationId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
@@ -762,14 +762,14 @@ codeunit 144044 "UT REP Number To Text"
         // [GIVEN] Layout migration has completed and tagged the company.
         ClearLayoutSelections();
         ClearCheckLayoutUpgradeTag();
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [GIVEN] The user subsequently selects the Base Application layout explicitly.
         BaseApplicationId := '437dbf0e-84ff-417a-965d-ed2bb9650972';
         ChangeCompanyLayoutSelection('RDLCLayout', BaseApplicationId);
 
         // [WHEN] The same tagged migration is invoked again.
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The explicit built-in choice and original tag survive.
         VerifyTaggedLayout('RDLCLayout', BaseApplicationId);
@@ -777,8 +777,6 @@ codeunit 144044 "UT REP Number To Text"
 
     [Test]
     procedure CheckLayoutSetupWithOnlyReportsFRPermissions()
-    var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] Layout initialization does not depend on SUPER or unrestricted table writes.
@@ -803,7 +801,6 @@ codeunit 144044 "UT REP Number To Text"
     var
         BankAccount: Record "Bank Account";
         GenJournalLine: Record "Gen. Journal Line";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         PdfSignature: Text;
     begin
         // [FEATURE] [AI test 1.0]
@@ -813,7 +810,8 @@ codeunit 144044 "UT REP Number To Text"
         // [GIVEN] A test-print journal line and the extension's selected RDLC layout.
         CreateTestPrintJournalLine(BankAccount, GenJournalLine);
         ClearLayoutSelections();
-        ReportLayoutsFR.SetDefaultCheckLayout();
+        ClearCheckLayoutUpgradeTag();
+        ReportLayoutsFR.MigrateCompanyData();
         Commit();
 
         // [WHEN] Standard Check renders a PDF rather than merely exporting its dataset.
@@ -827,7 +825,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure AlreadyHandledWordingIsPreserved()
     var
-        CheckAmountWordingFR: Codeunit "Check Amount Wording FR";
+        CheckAmountWordingFR: Codeunit "Library - Reports FR";
         NoText: array[2] of Text[80];
         IsHandled: Boolean;
     begin
@@ -851,7 +849,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure MissingLayoutFailsWithoutCompletionAndCanRetry()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         // [FEATURE] [AI test 1.0]
@@ -872,7 +869,7 @@ codeunit 144044 "UT REP Number To Text"
         VerifyNoCompanyLayoutSelection();
 
         // [WHEN] The correct package is available on retry.
-        ReportLayoutsFR.InitializeCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The same migration completes successfully.
         VerifyTaggedLayout('CheckFR', ReportsAppId());
@@ -881,7 +878,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure NewCompanyInitializationDoesNotTrustSeededTag()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         // [FEATURE] [AI test 1.0]
@@ -904,7 +900,6 @@ codeunit 144044 "UT REP Number To Text"
     procedure CompletionTagIsNotAutomaticallySeeded()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         PerCompanyUpgradeTags: List of [Code[250]];
     begin
         // [FEATURE] [AI test 1.0]
@@ -923,7 +918,6 @@ codeunit 144044 "UT REP Number To Text"
     procedure GlobalLegacyCustomLayoutIsPreserved()
     var
         ReportLayoutSelection: Record "Report Layout Selection";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         CustomLayoutCode: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
@@ -938,7 +932,7 @@ codeunit 144044 "UT REP Number To Text"
         ReportLayoutSelection.Rename(Report::Check, '');
 
         // [WHEN] The current company activates Check.
-        ReportLayoutsFR.MigrateCheckLayout();
+        ReportLayoutsFR.MigrateCompanyData();
 
         // [THEN] The global legacy selection remains authoritative.
         ReportLayoutSelection.Get(Report::Check, '');
@@ -1015,7 +1009,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure DisabledSubscriberDoesNotHandleWording()
     var
-        CheckAmountWordingFR: Codeunit "Check Amount Wording FR";
+        CheckAmountWordingFR: Codeunit "Library - Reports FR";
         FeatureSubscriber: Codeunit "UT REP Number To Text";
         NoText: array[2] of Text[80];
         IsHandled: Boolean;
@@ -1062,7 +1056,6 @@ codeunit 144044 "UT REP Number To Text"
     procedure DisabledCompanyInitializationDoesNotMigrate()
     var
         FeatureKey: Record "Feature Key";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         UpgradeTag: Codeunit "Upgrade Tag";
         OriginalEnabled: Option;
     begin
@@ -1091,7 +1084,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure ImplicitDefaultRequiresFeatureDataUpdate()
     var
-        FeatureReportsFR: Codeunit "Feature - Reports FR";
+        FeatureReportsFR: Codeunit "Library - Reports FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] No explicit record is still work for feature activation.
@@ -1109,19 +1102,19 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure FeatureUpdateRejectsAnotherCompany()
     var
-        FeatureDataUpdateStatus: Record "Feature Data Update Status" temporary;
-        FeatureReportsFR: Codeunit "Feature - Reports FR";
+        TempFeatureDataUpdateStatus: Record "Feature Data Update Status" temporary;
+        FeatureReportsFR: Codeunit "Library - Reports FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] An update cannot accidentally complete another company's migration.
         Initialize();
 
         // [GIVEN] A status parameter that does not belong to the current company.
-        FeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
-        FeatureDataUpdateStatus."Company Name" := CopyStr(CreateGuid(), 1, 30);
+        TempFeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
+        TempFeatureDataUpdateStatus."Company Name" := CopyStr(CreateGuid(), 1, 30);
 
         // [WHEN] It is passed to the company-specific migration.
-        asserterror FeatureReportsFR.UpdateData(FeatureDataUpdateStatus);
+        asserterror FeatureReportsFR.UpdateData(TempFeatureDataUpdateStatus);
 
         // [THEN] Validation rejects the foreign company before any migration.
         Assert.ExpectedError('Company Name');
@@ -1131,7 +1124,7 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure FeatureFrameworkResolvesReportsFR()
     var
-        FeatureDataUpdateStatus: Record "Feature Data Update Status" temporary;
+        TempFeatureDataUpdateStatus: Record "Feature Data Update Status" temporary;
         FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
         // [FEATURE] [AI test 1.0]
@@ -1139,11 +1132,11 @@ codeunit 144044 "UT REP Number To Text"
         Initialize();
 
         // [GIVEN] The exact platform feature token.
-        FeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
+        TempFeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
 
         // [WHEN] The framework resolves its implementation.
         // [THEN] The enum name and implementation are wired correctly.
-        Assert.IsTrue(FeatureManagementFacade.GetImplementation(FeatureDataUpdateStatus), 'ReportsFR must resolve through Feature To Update.');
+        Assert.IsTrue(FeatureManagementFacade.GetImplementation(TempFeatureDataUpdateStatus), 'ReportsFR must resolve through Feature To Update.');
     end;
 
     [Test]
@@ -1171,7 +1164,6 @@ codeunit 144044 "UT REP Number To Text"
         OtherFeatureDataUpdateStatus: Record "Feature Data Update Status";
         FeatureKey: Record "Feature Key";
         FeatureManagementFacade: Codeunit "Feature Management Facade";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 653674] Real feature activation migrates the current company before framework completion.
@@ -1203,7 +1195,6 @@ codeunit 144044 "UT REP Number To Text"
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
         FeatureKey: Record "Feature Key";
         FeatureManagementFacade: Codeunit "Feature Management Facade";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         UpgradeTag: Codeunit "Upgrade Tag";
         OriginalEnabled: Option;
     begin
@@ -1239,7 +1230,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure MandatoryFirstInstallIgnoresSeededTag()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         // [SCENARIO 653674] First installation initializes the layout even if a completion tag was seeded.
@@ -1256,7 +1246,6 @@ codeunit 144044 "UT REP Number To Text"
     [Test]
     procedure MandatoryInitializationPreservesGlobalUserLayout()
     var
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedUserId: Guid;
         EmptyGuid: Guid;
     begin
@@ -1300,10 +1289,10 @@ codeunit 144044 "UT REP Number To Text"
 #if not CLEAN30
     local procedure VerifyCompanyStatusAdoptsDataUpdateRequirement(FeatureStatus: Enum "Feature Status")
     var
-        FeatureKey: Record "Feature Key" temporary;
+        TempFeatureKey: Record "Feature Key" temporary;
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
         OriginalFeatureDataUpdateStatus: Record "Feature Data Update Status";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
+        UpdatedFeatureDataUpdateStatus: Record "Feature Data Update Status";
         UpgradeTag: Codeunit "Upgrade Tag";
         StatusExisted: Boolean;
     begin
@@ -1326,17 +1315,19 @@ codeunit 144044 "UT REP Number To Text"
             FeatureDataUpdateStatus.Insert();
 
         // Model the new registration without modifying the platform-owned feature metadata.
-        FeatureKey.ID := 'ReportsFR';
-        FeatureKey."Data Update Required" := true;
-        ReportLayoutsFR.PrepareCompanyFeatureStatus(FeatureKey, FeatureDataUpdateStatus);
+        TempFeatureKey.ID := 'ReportsFR';
+        TempFeatureKey."Data Update Required" := true;
+        ReportLayoutsFR.PrepareCompanyFeatureStatus(TempFeatureKey, FeatureDataUpdateStatus);
         FeatureDataUpdateStatus.Get('ReportsFR', CompanyName());
-        if StatusExisted then
-            OriginalFeatureDataUpdateStatus.Modify()
-        else
+        UpdatedFeatureDataUpdateStatus := FeatureDataUpdateStatus;
+        if StatusExisted then begin
+            FeatureDataUpdateStatus := OriginalFeatureDataUpdateStatus;
+            FeatureDataUpdateStatus.Modify();
+        end else
             FeatureDataUpdateStatus.Delete();
 
-        Assert.IsTrue(FeatureDataUpdateStatus."Data Update Required", 'Cached company metadata must require the feature update.');
-        Assert.AreEqual(FeatureStatus, FeatureDataUpdateStatus."Feature Status", 'Metadata refresh must not change activation status.');
+        Assert.IsTrue(UpdatedFeatureDataUpdateStatus."Data Update Required", 'Cached company metadata must require the feature update.');
+        Assert.AreEqual(FeatureStatus, UpdatedFeatureDataUpdateStatus."Feature Status", 'Metadata refresh must not change activation status.');
         Assert.IsFalse(UpgradeTag.HasUpgradeTag(ReportLayoutsFR.GetCheckLayoutUpgradeTag()), 'Metadata refresh must not complete Check migration.');
         VerifyNoCompanyLayoutSelection();
     end;
@@ -1467,8 +1458,8 @@ codeunit 144044 "UT REP Number To Text"
     [TryFunction]
     local procedure TryFormatFeatureRoutingAmount(var NoText: array[2] of Text[80]; var ExtensionHandled: Boolean)
     var
-        CheckAmountWordingFR: Codeunit "Check Amount Wording FR";
         Check: Report Check;
+        CheckAmountWordingFR: Codeunit "Library - Reports FR";
     begin
         CheckAmountWordingFR.OnBeforeFormatNoText(NoText, 21.25, '', ExtensionHandled);
         Clear(NoText);
@@ -1478,8 +1469,11 @@ codeunit 144044 "UT REP Number To Text"
 
     procedure ObserveFeatureRouting(ActualFeatureStatus: Boolean)
     begin
-        UseActualFeatureStatus := ActualFeatureStatus;
-        FeatureEnabled := false;
+        Clear(FeatureState);
+        if not ActualFeatureStatus then begin
+            FeatureState.SetFeatureEnabled(false);
+            BindSubscription(FeatureState);
+        end;
         FormattingAfterEventCount := 0;
         FormattingAfterEventAmount := 0;
     end;
@@ -1496,7 +1490,9 @@ codeunit 144044 "UT REP Number To Text"
 
     procedure SetFeatureEnabled(Enabled: Boolean)
     begin
-        FeatureEnabled := Enabled;
+        Clear(FeatureState);
+        FeatureState.SetFeatureEnabled(Enabled);
+        BindSubscription(FeatureState);
     end;
 #endif
 
@@ -1648,7 +1644,6 @@ codeunit 144044 "UT REP Number To Text"
     local procedure VerifyUncompletedLayoutMigration()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         Assert.IsFalse(UpgradeTag.HasUpgradeTag(ReportLayoutsFR.GetCheckLayoutUpgradeTag()), 'Failed migration must not be tagged.');
         VerifyNoCompanyLayoutSelection();
@@ -1779,7 +1774,6 @@ codeunit 144044 "UT REP Number To Text"
     local procedure ClearCheckLayoutUpgradeTag()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
         SelectedCompany: Code[30];
     begin
         SelectedCompany := CopyStr(CompanyName(), 1, MaxStrLen(SelectedCompany));
@@ -1801,7 +1795,6 @@ codeunit 144044 "UT REP Number To Text"
     local procedure VerifyTaggedLayout(LayoutName: Text[250]; AppId: Guid)
     var
         UpgradeTag: Codeunit "Upgrade Tag";
-        ReportLayoutsFR: Codeunit "Report Layouts FR";
     begin
         VerifyLayoutSelection(CompanyName(), LayoutName, AppId);
         Assert.IsTrue(UpgradeTag.HasUpgradeTag(ReportLayoutsFR.GetCheckLayoutUpgradeTag()), 'Successful Check layout migration must set its completion tag.');
@@ -1891,15 +1884,6 @@ codeunit 144044 "UT REP Number To Text"
     end;
 
 #if not CLEAN30
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reports FR", 'OnAfterCheckFeatureEnabled', '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
-    begin
-        if not UseActualFeatureStatus then
-            IsEnabled := FeatureEnabled;
-    end;
-#pragma warning restore AL0432
-
     [EventSubscriber(ObjectType::Report, Report::Check, 'OnAfterFormatNoText', '', false, false)]
     local procedure OnAfterFormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     begin

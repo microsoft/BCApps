@@ -1,29 +1,47 @@
-#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reports;
 
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Foundation.Reporting;
+#if not CLEAN30
 using Microsoft.Purchases.Reports;
 using Microsoft.Sales.Reports;
+#endif
 
 codeunit 10836 "Substitute Report FR"
 {
-    ObsoleteReason = 'Feature Reports FR will be enabled by default in version 31.0.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '28.0';
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReportManagement, 'OnAfterSubstituteReport', '', false, false)]
     local procedure OnSubstituteReport(ReportId: Integer; var NewReportId: Integer)
     var
+        FinancialScheduleMgt: Codeunit "FR Financial Schedule Mgt.";
+#if not CLEAN30
+#pragma warning disable AL0432
         FRTrialBalanceReports: Codeunit "Reports FR";
+#pragma warning restore AL0432
+#endif
     begin
+        if FinancialScheduleMgt.IsEnabled() then
+            case ReportId of
+                10811:
+                    begin
+                        NewReportId := Report::"FR Financial Schedule";
+                        exit;
+                    end;
+                10842:
+                    begin
+                        NewReportId := Report::"G/L Account Statement FR";
+                        exit;
+                    end;
+            end;
+#if not CLEAN30
         if not FRTrialBalanceReports.IsEnabled() then
             exit;
 
+#pragma warning disable AL0432
         case ReportId of
             Report::"Customer Detail Trial Balance":
                 NewReportId := Report::"Cust. Detail Trial Balance";
@@ -52,6 +70,7 @@ codeunit 10836 "Substitute Report FR"
             Report::"Bank Acc. Detail Trial Balance":
                 NewReportId := Report::"Bank Acc. Det. Trial Balance";
         end;
+#pragma warning restore AL0432
+#endif
     end;
 }
-#endif

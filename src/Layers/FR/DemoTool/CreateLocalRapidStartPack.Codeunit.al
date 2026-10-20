@@ -9,12 +9,13 @@ codeunit 101931 "Create Local RapidStart Pack"
 
     var
         CreateConfigPackageHelper: Codeunit "Create Config. Package Helper";
+        ScheduleNameCreator: Codeunit "Create Acc. Schedule Name";
         XLocalSettingsTxt: Label 'Local Settings', Locked = true;
 
     procedure CreateTables()
     begin
-        CreateTable(DATABASE::"FR Acc. Schedule Name");
-        CreateTable(DATABASE::"FR Acc. Schedule Line");
+        CreateTable(ScheduleNameCreator.GetFinancialScheduleNameTableID());
+        CreateTable(ScheduleNameCreator.GetFinancialScheduleLineTableID());
 #if not CLEAN28
         CreateTable(DATABASE::"Payment Class");
         CreateTable(DATABASE::"Payment Status");
@@ -35,8 +36,8 @@ codeunit 101931 "Create Local RapidStart Pack"
         CreateConfigWorksheet: Codeunit "Create Config. Worksheet";
     begin
         CreateConfigWorksheet.CreateConfigGroup(XLocalSettingsTxt);
-        CreateConfigWorksheet.CreateConfigLine(DATABASE::"FR Acc. Schedule Name");
-        CreateConfigWorksheet.CreateConfigLine(DATABASE::"FR Acc. Schedule Line");
+        CreateConfigWorksheet.CreateConfigLine(ScheduleNameCreator.GetFinancialScheduleNameTableID());
+        CreateConfigWorksheet.CreateConfigLine(ScheduleNameCreator.GetFinancialScheduleLineTableID());
 #if not CLEAN28
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"Payment Class");
         CreateConfigWorksheet.CreateConfigLine(DATABASE::"Payment Status");
@@ -58,4 +59,3 @@ codeunit 101931 "Create Local RapidStart Pack"
         end;
     end;
 }
-

@@ -7068,6 +7068,16 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
+    "Reports FR Test Library": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\ReportsFR\\Test Library",
+      "dvdFolder": "Applications\\ReportsFR\\Test Library",
+      "supportedCountries": "FR",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
     "Reports FR Tests": {
       "projectPath": "$env:INETROOT\\App\\Apps\\FR\\ReportsFR\\test",
       "dvdFolder": "Applications\\ReportsFR\\Test",

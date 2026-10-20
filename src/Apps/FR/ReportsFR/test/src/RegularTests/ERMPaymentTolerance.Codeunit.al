@@ -47,7 +47,6 @@ codeunit 144050 "ERM Payment Tolerance"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,PaymentToleranceWarningPageHandler,VendorBalanceRequestPageHandler')]
-    [Scope('OnPrem')]
     procedure VendorDetaiTriallBalanceOnPmtTolerance()
     var
         Vendor: Record Vendor;
@@ -98,7 +97,6 @@ codeunit 144050 "ERM Payment Tolerance"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,PaymentToleranceWarningPageHandler,CustomerBalanceRequestPageHandler')]
-    [Scope('OnPrem')]
     procedure CustomerDetaiTriallBalanceOnPmtTolerance()
     var
         Customer: Record Customer;
@@ -284,14 +282,12 @@ codeunit 144050 "ERM Payment Tolerance"
     end;
 
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := not (Question = ConfirmMessageForPaymentQst);
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure PaymentToleranceWarningPageHandler(var PaymentToleranceWarning: Page "Payment Tolerance Warning"; var Response: Action)
     begin
         // Modal Page Handler for Payment Tolerance Warning.
@@ -301,7 +297,6 @@ codeunit 144050 "ERM Payment Tolerance"
 
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CustomerBalanceRequestPageHandler(var CustomerDetailTrialBalance: TestRequestPage "Cust. Detail Trial Balance")
     begin
         CustomerDetailTrialBalance.Customer.SetFilter("No.", LibraryVariableStorage.DequeueText());
@@ -311,7 +306,6 @@ codeunit 144050 "ERM Payment Tolerance"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure VendorBalanceRequestPageHandler(var VendorDetailTrialBalance: TestRequestPage "Vendor Detail Trial Balance")
     begin
         VendorDetailTrialBalance.Vendor.SetFilter("No.", LibraryVariableStorage.DequeueText());

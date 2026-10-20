@@ -70,7 +70,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordBankAccountTrialBalance()
     var
         BankAccount: Record "Bank Account";
@@ -95,7 +94,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordBankAccountTrialBalanceWithDimension()
     var
         BankAccount: Record "Bank Account";
@@ -123,7 +121,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordBankAccountTrialBankWithoutBalance()
     var
         BankAccount: Record "Bank Account";
@@ -146,7 +143,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordCustomerDetailTrialBalanceWithDimension()
     var
         Customer: Record Customer;
@@ -175,7 +171,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordCustomerDetailTrialBalanceExcludeBalance()
     var
         Customer: Record Customer;
@@ -199,7 +194,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordCustomerDetailTrialBalance()
     var
         Customer: Record Customer;
@@ -224,7 +218,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordCustomerTrialBalance()
     begin
         // Purpose of the test is to validate Customer - OnAfterGetRecord of the Report, ID: 10805, Customer Trial Balance.
@@ -234,7 +227,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordCustomerTrialBalanceWithoutBlalance()
     begin
         // Purpose of the test is to validate Customer - OnAfterGetRecord of the Report, ID: 10805, Customer Trial Balance without Balance.
@@ -262,7 +254,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordCustomerTrialBalanceWithDimension()
     var
         Customer: Record Customer;
@@ -287,7 +278,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerTrialBalanceDateFilterRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure CustomerTrialBalanceShowsCustomersWithStartingBalance()
     var
         Index: Integer;
@@ -314,7 +304,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLDetailTrialBalanceSummarizedByDate()
     var
         SummarizedBy: Option Date,Week,Month,Quarter,Year;
@@ -326,7 +315,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLDetailTrialBalanceSummarizedByWeek()
     var
         SummarizedBy: Option Date,Week,Month,Quarter,Year;
@@ -339,7 +327,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLDetailTrialBalanceSummarizedByMonth()
     var
         SummarizedBy: Option Date,Week,Month,Quarter,Year;
@@ -352,7 +339,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLDetailTrialBalanceSummarizedByQuarter()
     var
         SummarizedBy: Option Date,Week,Month,Quarter,Year;
@@ -365,7 +351,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLDetailTrialBalanceSummarizedByYear()
     var
         SummarizedBy: Option Date,Week,Month,Quarter,Year;
@@ -398,7 +383,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordVendorDetailTrialExcludeBalance()
     var
         Vendor: Record Vendor;
@@ -422,7 +406,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordVendorDetailTrialBalance()
     var
         Vendor: Record Vendor;
@@ -447,7 +430,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordVendorDetailTrialBalanceWithDimension()
     var
         Vendor: Record Vendor;
@@ -475,7 +457,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordVendorTrialBalanceWithDimension()
     var
         Vendor: Record Vendor;
@@ -501,7 +482,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordVendorTrialBalanceVendorWithoutBalance()
     var
         Vendor: Record Vendor;
@@ -523,7 +503,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorTrialBalanceDateFilterRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure VendorTrialBalanceShowsVendorsWithStartingBalance()
     var
         Index: Integer;
@@ -550,7 +529,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLDetailTrialBalanceWithDimension()
     var
         GLAccount: Record "G/L Account";
@@ -581,7 +559,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordBankAccountDetailTrialBalanceWithDimension()
     var
         BankAccount: Record "Bank Account";
@@ -604,7 +581,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordBankAccountDetailTrialBalanceWithoutDimension()
     var
         BankAccount: Record "Bank Account";
@@ -623,7 +599,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure BankAccountDetailTrialBalanceStartBalance()
     var
         BankAccount: Record "Bank Account";
@@ -672,7 +647,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLTrialBalance()
     var
         GLAccount: Record "G/L Account";
@@ -697,7 +671,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLTrialBalanceWithoutBalance()
     var
         GLAccount: Record "G/L Account";
@@ -720,7 +693,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLTrialBalanceNegativeDebitAmt()
     var
         GLAccount: Record "G/L Account";
@@ -748,7 +720,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLTrialBalanceNegativeCreditAmt()
     var
         GLAccount: Record "G/L Account";
@@ -776,7 +747,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemBankAccountDetailTrialBalanceDateFilterError()
     var
         BankAccount: Record "Bank Account";
@@ -797,7 +767,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemBankAccountTrialBalanceDateFilterError()
     var
         BankAccount: Record "Bank Account";
@@ -818,7 +787,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemCustomerDetailTrialBalanceDateFilterError()
     begin
         // Purpose of the test is to validate Customer - OnPreDataItem of the Report, ID: 10806, Customer Detail Trial Balance.
@@ -828,7 +796,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemCustomerTrialBalanceDateFilterError()
     begin
         // Purpose of the test is to validate Customer - OnPreDataItem of the Report, ID: 10805, Customer Trial Balance.
@@ -854,7 +821,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLDetailTrialBalanceDateFilterError()
     var
         GLAccount: Record "G/L Account";
@@ -876,7 +842,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemGLTrialBalanceDateFilterError()
     var
         GLAccount: Record "G/L Account";
@@ -897,7 +862,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemVendorDetailTrialBalanceDateFilterError()
     begin
         // Purpose of the test is to validate Vendor - OnPreDataItem of the Report ID: 10808, Vendor Detail Trial Balance.
@@ -907,7 +871,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreDataItemVendorTrialBalanceDateFilterError()
     begin
         // Purpose of the test is to validate Vendor - OnPreDataItem of the Report, ID: 10807, Vendor Trial Balance.
@@ -933,7 +896,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordGLJournal()
     var
         GLAccount: Record "G/L Account";
@@ -960,7 +922,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('JournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordDateJournal()
     var
         Date: Record Date;
@@ -973,7 +934,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('JournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordMonthJournal()
     var
         Date: Record Date;
@@ -986,7 +946,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('JournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordYearJournal()
     var
         Date: Record Date;
@@ -999,7 +958,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('JournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordWeekJournal()
     var
         Date: Record Date;
@@ -1012,7 +970,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('JournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordQuarterJournal()
     var
         Date: Record Date;
@@ -1045,7 +1002,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordDateCustomerJournal()
     var
         Date: Record Date;
@@ -1058,7 +1014,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordMonthCustomerJournal()
     var
         Date: Record Date;
@@ -1071,7 +1026,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordYearCustomerJournal()
     var
         Date: Record Date;
@@ -1084,7 +1038,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordWeekCustomerJournal()
     var
         Date: Record Date;
@@ -1097,7 +1050,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordQuarterCustomerJournal()
     var
         Date: Record Date;
@@ -1130,7 +1082,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordDateVendorJournal()
     var
         Date: Record Date;
@@ -1143,7 +1094,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordMonthVendorJournal()
     var
         Date: Record Date;
@@ -1156,7 +1106,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordYearVendorJournal()
     var
         Date: Record Date;
@@ -1169,7 +1118,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordWeekVendorJournal()
     var
         Date: Record Date;
@@ -1182,7 +1130,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordQuarterVendorJournal()
     var
         Date: Record Date;
@@ -1215,7 +1162,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordDateBankAccountJournal()
     var
         Date: Record Date;
@@ -1228,7 +1174,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordMonthBankAccountJournal()
     var
         Date: Record Date;
@@ -1241,7 +1186,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordYearBankAccountJournal()
     var
         Date: Record Date;
@@ -1254,7 +1198,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordWeekBankAccountJournal()
     var
         Date: Record Date;
@@ -1267,7 +1210,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountJournalRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordQuarterBankAccountJournal()
     var
         Date: Record Date;
@@ -1301,7 +1243,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure CustomerDetailTrialBalanceEntryTypeCorrection()
     var
         Customer: Record Customer;
@@ -1337,7 +1278,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('VendorDetailTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure VendorDetailTrialBalanceEntryTypeCorrection()
     var
         Vendor: Record Vendor;
@@ -1372,7 +1312,6 @@ codeunit 144053 "UT REP Legal Report FR"
 
     [Test]
     [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
-    [Scope('OnPrem')]
     procedure CustomerDetailTrialBalanceCanHandleDateInMiddleOfMonth()
     var
         Customer: Record Customer;
@@ -1409,7 +1348,6 @@ codeunit 144053 "UT REP Legal Report FR"
 
     [Test]
     [HandlerFunctions('VendorDetailTrialBalanceRequestPageHandler')]
-    [Scope('OnPrem')]
     procedure VendorDetailTrialBalanceCanHandleDateInMiddleOfMonth()
     var
         Vendor: Record Vendor;
@@ -1447,7 +1385,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountTrialBalanceSaveAsPDFRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PrintBankAccountTrialBalance()
     var
         BankAccount: Record "Bank Account";
@@ -1466,7 +1403,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('BankAccountTrialBalanceExcelRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure BankAccountTrialBalanceExcel()
     var
         BankAccount: Record "Bank Account";
@@ -1500,7 +1436,6 @@ codeunit 144053 "UT REP Legal Report FR"
     [Test]
     [HandlerFunctions('GLTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure GLTrialBalRepShowsCorrectBeginningBalanceOfIncomeStatementGLAcc()
     var
         GLAccount: Record "G/L Account";
@@ -1810,7 +1745,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure BankAccountDetailTrialBalanceRequestPageHandler(var BankAccDetailTrialBalance: TestRequestPage "Bank Acc. Det. Trial Balance")
     var
         No: Variant;
@@ -1827,7 +1761,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure BankAccountJournalRequestPageHandler(var BankAccountJournal: TestRequestPage "Bank Account Journal FR")
     var
         PeriodType: Variant;
@@ -1844,7 +1777,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure BankAccountTrialBalanceRequestPageHandler(var BankAccountTrialBalance: TestRequestPage "Bank Acc. Trial Balance")
     var
         No: Variant;
@@ -1864,7 +1796,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure BankAccountTrialBalanceSaveAsPDFRequestPageHandler(var BankAccountTrialBalance: TestRequestPage "Bank Acc. Trial Balance")
     var
         No: Variant;
@@ -1884,7 +1815,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure BankAccountTrialBalanceExcelRequestPageHandler(var BankAccountTrialBalance: TestRequestPage "Bank Acc. Trial Balance")
     var
         No: Variant;
@@ -1904,7 +1834,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CustomerDetailTrialBalanceRequestPageHandler(var CustomerDetailTrialBalance: TestRequestPage "Cust. Detail Trial Balance")
     var
         No: Variant;
@@ -1924,7 +1853,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CustomerJournalRequestPageHandler(var CustomerJournal: TestRequestPage "Customer Journal FR")
     var
         PeriodType: Variant;
@@ -1941,7 +1869,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CustomerTrialBalanceRequestPageHandler(var CustomerTrialBalance: TestRequestPage "Customer Trial Balance")
     var
         No: Variant;
@@ -1961,7 +1888,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CustomerTrialBalanceDateFilterRequestPageHandler(var CustomerTrialBalance: TestRequestPage "Customer Trial Balance")
     begin
         CustomerTrialBalance.Customer.SetFilter("Date Filter", Format(WorkDate()));
@@ -1969,7 +1895,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLDetailTrialBalanceRequestPageHandler(var GLDetailTrialBalance: TestRequestPage "G/L Detail Trial Balance FR")
     var
         No: Variant;
@@ -1989,7 +1914,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLJournalRequestPageHandler(var GLJournals: TestRequestPage "G/L Journal FR")
     begin
         GLJournals.Date.SetFilter(
@@ -1998,7 +1922,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure GLTrialBalanceRequestPageHandler(var GLTrialBalance: TestRequestPage "G/L Trial Balance FR")
     var
         No: Variant;
@@ -2015,7 +1938,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure JournalRequestPageHandler(var Journals: TestRequestPage "Journals FR")
     var
         PeriodType: Variant;
@@ -2032,7 +1954,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure VendorDetailTrialBalanceRequestPageHandler(var VendorDetailTrialBalance: TestRequestPage "Vendor Detail Trial Balance")
     var
         No: Variant;
@@ -2052,7 +1973,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure VendorJournalRequestPageHandler(var VendorJournal: TestRequestPage "Vendor Journal FR")
     var
         PeriodType: Variant;
@@ -2069,7 +1989,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure VendorTrialBalanceRequestPageHandler(var VendorTrialBalance: TestRequestPage "Vendor Trial Balance")
     var
         No: Variant;
@@ -2089,7 +2008,6 @@ codeunit 144053 "UT REP Legal Report FR"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure VendorTrialBalanceDateFilterRequestPageHandler(var VendorTrialBalance: TestRequestPage "Vendor Trial Balance")
     begin
         VendorTrialBalance.Vendor.SetFilter("Date Filter", Format(WorkDate()));

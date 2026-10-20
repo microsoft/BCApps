@@ -1,3 +1,4 @@
+#if not CLEAN30
 codeunit 144001 "Report Layout - Local"
 {
     Subtype = Test;
@@ -236,3 +237,4 @@ codeunit 144001 "Report Layout - Local"
     end;
 #endif
 }
+#endif

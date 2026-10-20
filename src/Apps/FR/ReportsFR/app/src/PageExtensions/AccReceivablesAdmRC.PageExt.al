@@ -1,4 +1,4 @@
-#if CLEAN28
+#if CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -6,7 +6,7 @@
 namespace Microsoft.Finance.RoleCenters;
 using Microsoft.Sales.Reports;
 
-pageextension 10844 "Acc. Receivables Adm. RC" extends "Acc. Receivables Adm. RC"
+pageextension 10822 "Acc. Receivables Adm. RC" extends "Acc. Receivables Adm. RC"
 {
     actions
     {

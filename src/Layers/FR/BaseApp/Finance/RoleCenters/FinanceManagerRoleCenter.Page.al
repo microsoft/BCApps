@@ -143,12 +143,17 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Analysis View List";
                     Tooltip = 'Open the Analysis by Dimensions page.';
                 }
+#if not CLEAN30
                 action("Balance Sheet & Income Stateme")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance Sheet & Income Statement';
                     RunObject = page "FR Account Schedule Names";
                 }
+#endif
                 action("Fiscal Year Closing Steps")
                 {
                     ApplicationArea = Basic, Suite;
@@ -469,12 +474,17 @@ page 8901 "Finance Manager Role Center"
                             Caption = 'Financial Report';
                             RunObject = report "Account Schedule";
                         }
+#if not CLEAN30
                         action("FR Account Schedule")
                         {
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '30.0';
+                            ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                             ApplicationArea = Basic, Suite;
                             Caption = 'FR Account Schedule';
                             RunObject = report "FR Account Schedule";
                         }
+#endif
 #if not CLEAN28
                         action("Trial Balance")
                         {
@@ -743,6 +753,7 @@ page 8901 "Finance Manager Role Center"
                             ObsoleteReason = 'Moved to the Payment Management FR first-party app';
                             ObsoleteTag = '28.0';
                         }
+#if not CLEAN30
                         action("G/L Account Statement")
                         {
                             ApplicationArea = Basic, Suite;
@@ -752,6 +763,7 @@ page 8901 "Finance Manager Role Center"
                             ObsoleteReason = 'This action is obsolete and should not be used.';
                             ObsoleteTag = '30.0';
                         }
+#endif
                     }
 #endif
                 }

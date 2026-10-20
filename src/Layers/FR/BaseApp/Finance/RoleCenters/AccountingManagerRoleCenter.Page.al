@@ -184,22 +184,32 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "Account Schedule";
                 ToolTip = 'Open an account schedule to analyze figures in general ledger accounts or to compare general ledger entries with general ledger budget entries.';
             }
+#if not CLEAN30
             action("FR Account Schedule")
             {
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                 ApplicationArea = Basic, Suite;
                 Caption = 'FR Account Schedule';
                 Image = "Report";
                 RunObject = Report "FR Account Schedule";
                 ToolTip = 'Analyze figures in general ledger accounts or compare general ledger entries with general ledger budget entries.';
             }
+#endif
+#if not CLEAN30
             action("Report G/L Account Statement")
             {
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                 ApplicationArea = Basic, Suite;
                 Caption = 'Report G/L Account Statement';
                 Image = "Report";
                 RunObject = Report "G/L Account Statement";
                 ToolTip = 'View transactions for all general ledger accounts with subtotals per account. You can choose to print only open transactions, closed transactions, or all transactions depending on the general ledger application status.';
             }
+#endif
             action("Bu&dget")
             {
                 ApplicationArea = Suite;
@@ -954,13 +964,18 @@ page 9001 "Accounting Manager Role Center"
                     RunObject = Page "Financial Reports";
                     ToolTip = 'Get insight into the financial data stored in your chart of accounts. Financial reports analyze figures in G/L accounts, and compare general ledger entries with general ledger budget entries. For example, you can view the general ledger entries as percentages of the budget entries. Financial reports provide the data for core financial statements and views, such as the Cash Flow chart.';
                 }
+#if not CLEAN30
                 action("FR Account Schedules")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                     ApplicationArea = Basic, Suite;
                     Caption = 'FR Account Schedules';
                     RunObject = Page "FR Account Schedule Names";
                     ToolTip = 'Analyze figures in general ledger accounts or compare general ledger entries with general ledger budget entries.';
                 }
+#endif
                 action(Dimensions)
                 {
                     ApplicationArea = Dimensions;
