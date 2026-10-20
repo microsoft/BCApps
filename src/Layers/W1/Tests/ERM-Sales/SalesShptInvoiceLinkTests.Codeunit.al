@@ -2,6 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Sales.History;
+
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using System.TestLibraries.Utilities;
+
 codeunit 134860 "Sales Shpt.-Invoice Link Tests"
 {
     Subtype = Test;
