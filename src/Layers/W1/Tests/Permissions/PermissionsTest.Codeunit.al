@@ -716,6 +716,96 @@ codeunit 139400 "Permissions Test"
     end;
 
     [Test]
+    [HandlerFunctions('SelectCustomerInAllObjectsLookupHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure EffectivePermissionsOverviewObjIdAssistEdit()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[2] of Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        EffectivePermOverview: TestPage "Effective Permissions Overview";
+        CustomerObjectID: Integer;
+    begin
+        // [SCENARIO] Object ID AssistEdit filters the effective permissions overview
+        // [GIVEN] The current user has permissions for the Customer and Vendor tables
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+        CustomerObjectID := Database::Customer;
+        TenantPermission[1].Init();
+        TenantPermission[1]."App ID" := NullGuid;
+        TenantPermission[1]."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission[1]."Object Type" := TenantPermission[1]."Object Type"::"Table Data";
+        TenantPermission[1]."Object ID" := Database::Customer;
+        TenantPermission[1]."Execute Permission" := TenantPermission[1]."Execute Permission"::Yes;
+        TenantPermission[1].Insert();
+        TenantPermission[2].Init();
+        TenantPermission[2]."App ID" := NullGuid;
+        TenantPermission[2]."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission[2]."Object Type" := TenantPermission[2]."Object Type"::"Table Data";
+        TenantPermission[2]."Object ID" := Database::Vendor;
+        TenantPermission[2]."Execute Permission" := TenantPermission[2]."Execute Permission"::Yes;
+        TenantPermission[2].Insert();
+
+        AccessControl.Init();
+        AccessControl."App ID" := NullGuid;
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl.Insert(true);
+
+        // [WHEN] Customer is selected through AssistEdit
+        EffectivePermOverview.OpenEdit();
+        EffectivePermOverview.UserFilter.SetValue(UserId());
+        EffectivePermOverview.Apply.Invoke();
+        EffectivePermOverview.ObjIDFilter.AssistEdit();
+        // Handled in SelectCustomerInAllObjectsLookupHandler
+
+        // [THEN] The selected object ID is applied and all displayed rows match it
+        Assert.AreEqual(Format(CustomerObjectID), EffectivePermOverview.ObjIDFilter.Value, 'Object ID filter was not applied.');
+        Assert.IsTrue(EffectivePermOverview.First(), 'A permission for the selected object should be displayed.');
+        repeat
+            EffectivePermOverview.UserName.AssertEquals(UserId());
+            Assert.AreEqual(Format(CustomerObjectID), EffectivePermOverview.ObjectID.Value, 'Effective permissions overview contains an unexpected object ID.');
+        until not EffectivePermOverview.Next();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectCustomerInAllObjectsLookupHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewObjIdAssistEdit()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        PermissionsOverview: TestPage "Permissions Overview";
+        CustomerObjectId: Integer;
+    begin
+        // [SCENARIO] Object ID assist edit selects an object and filters the permissions overview
+        // [GIVEN] A permission set with a permission for the customer table
+        CreatePermSetData(TenantPermissionSet, NullGuid);
+        CustomerObjectId := Database::Customer;
+
+        // [WHEN] The customer table object is selected through AssistEdit
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.ObjIDFilter.AssistEdit();
+        // Handled in SelectCustomerInAllObjectsLookupHandler
+
+        // [THEN] The selected object ID is applied
+        Assert.AreEqual(Format(CustomerObjectId), PermissionsOverview.ObjIDFilter.Value, 'Object ID filter was not applied.');
+        Assert.IsTrue(PermissionsOverview.First(), 'A permission for the selected object should be displayed.');
+        repeat
+            Assert.AreEqual(Format(CustomerObjectId), PermissionsOverview.ObjectID.Value, 'Permissions overview contains an unexpected object ID.');
+        until not PermissionsOverview.Next();
+    end;
+
+    [ModalPageHandler]
+    procedure SelectCustomerInAllObjectsLookupHandler(var AllObjectsWithCaption: TestPage "All Objects with Caption")
+    var
+        AllObjWithCaption: Record AllObjWithCaption;
+    begin
+        AllObjectsWithCaption.GoToKey(AllObjWithCaption."Object Type"::TableData, Database::Customer);
+        AllObjectsWithCaption.OK().Invoke();
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PermOverviewObjTypeFilter()
     var
