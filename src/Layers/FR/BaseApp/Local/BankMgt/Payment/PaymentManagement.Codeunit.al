@@ -1046,7 +1046,9 @@ codeunit 10860 "Payment Management"
     begin
         PaymentHeader.TestField("Account Type", PaymentHeader."Account Type"::"Bank Account");
         DirectDebitCollection.CreateRecord(PaymentHeader."No.", PaymentHeader."Account No.", PaymentHeader."Partner Type");
+#pragma warning disable AL0432
         DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header";
+#pragma warning restore AL0432
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         Commit();

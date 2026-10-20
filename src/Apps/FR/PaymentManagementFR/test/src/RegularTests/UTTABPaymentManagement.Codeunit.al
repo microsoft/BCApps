@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using Microsoft.Bank.DirectDebit;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 #if not CLEAN30
@@ -1295,6 +1296,7 @@ codeunit 144040 "UT TAB Payment Management"
 
         // [THEN] The journal tag is not pre-registered.
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag()), 'Disabled companies must migrate at activation.');
+        Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()), 'Disabled companies must migrate collection origins at activation.');
 
         // [GIVEN] An enabled company can also request tags for a different, disabled company.
         SetPaymentFeatureEnabled(true);
@@ -1305,9 +1307,270 @@ codeunit 144040 "UT TAB Payment Management"
 
         // [THEN] It must not use the caller's feature status to pre-tag the other company.
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag()), 'Company initialization must evaluate the target company before setting the journal tag.');
+        Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()), 'Company initialization must not pre-tag collection origins for another company.');
         RestorePaymentFeatureStatus();
     end;
 #endif
+#endif
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DirectDebitErrorsKeepPaymentOriginAndEntryLine()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry" temporary;
+        OtherEntry: Record "Direct Debit Collection Entry" temporary;
+        PaymentError: Record "Payment Jnl. Export Error Text";
+    begin
+        // [SCENARIO 653676] Temporary collection lines report errors on the payment slip and retain line isolation.
+        Initialize();
+        SetPaymentFeatureEnabled(true);
+        CreateDirectDebitTestCollection(DirectDebitCollection, Database::"Payment Header FR");
+        DirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
+        DirectDebitCollectionEntry."Entry No." := 10000;
+        OtherEntry := DirectDebitCollectionEntry;
+        OtherEntry."Entry No." := 20000;
+
+        DirectDebitCollectionEntry.InsertPaymentFileErrorWithDetails('First line error', 'First line details');
+        OtherEntry.InsertPaymentFileError('Second line error');
+
+        PaymentError.Get('', Format(Database::"Payment Header FR"), DirectDebitCollection.Identifier, 10000, 1);
+        PaymentError.TestField("Additional Information", 'First line details');
+        Assert.IsTrue(DirectDebitCollection.HasPaymentFileErrors(), 'The slip must find its collection errors.');
+        DirectDebitCollectionEntry.DeletePaymentFileErrors();
+        Assert.IsFalse(DirectDebitCollectionEntry.HasPaymentFileErrors(), 'Only the first line errors must be removed.');
+        Assert.IsTrue(OtherEntry.HasPaymentFileErrors(), 'The second line error must remain.');
+        Assert.IsTrue(DirectDebitCollection.HasPaymentFileErrors(), 'The slip must still find the second line error.');
+        OtherEntry.DeletePaymentFileErrors();
+        Assert.IsFalse(DirectDebitCollection.HasPaymentFileErrors(), 'No errors must remain for the slip.');
+        RestorePaymentFeatureStatus();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure StandardDirectDebitDoesNotRequirePaymentSlip()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry";
+        TempCollectionEntry: Record "Direct Debit Collection Entry" temporary;
+        PaymentError: Record "Payment Jnl. Export Error Text";
+        SEPADDPrepareSource: Codeunit "SEPA DD-Prepare Source";
+    begin
+        // [SCENARIO 653676] An ordinary collection does not enter payment-slip orchestration.
+        Initialize();
+        SetPaymentFeatureEnabled(true);
+        CreateDirectDebitTestCollection(DirectDebitCollection, 0);
+        TempCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
+
+        SEPADDPrepareSource.Run(TempCollectionEntry);
+
+        Assert.IsTrue(TempCollectionEntry.IsEmpty(), 'The app must not invent payment-slip lines for an ordinary collection.');
+        DirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
+        DirectDebitCollectionEntry."Entry No." := 10000;
+        DirectDebitCollectionEntry.InsertPaymentFileError('Standard collection error');
+        PaymentError.Get('', '', CopyStr(Format(DirectDebitCollection."No.", 0, 9), 1, 20), 10000, 1);
+        Assert.IsTrue(DirectDebitCollection.HasPaymentFileErrors(), 'Ordinary collection-number error linkage must remain.');
+        RestorePaymentFeatureStatus();
+    end;
+
+#if not CLEANSCHEMA33
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DirectDebitMigrationPreservesErrorsAndAppEdits()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        StandardCollection: Record "Direct Debit Collection";
+        OtherSourceCollection: Record "Direct Debit Collection";
+        GenJnlLine: Record "Gen. Journal Line";
+        PaymentError: Record "Payment Jnl. Export Error Text";
+        TempDocumentEntry: Record "Document Entry" temporary;
+        PaymentDataMigration: Codeunit "Payment Data Migration FR";
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+    begin
+        // [SCENARIO 653676] Already-enabled companies migrate origins and errors once, without overwriting app data on retry.
+        Initialize();
+        SetPaymentFeatureEnabled(true);
+        SetOriginalPaymentUpgradeTag();
+        ClearDirectDebitSourceUpgradeTag();
+        CreateDirectDebitTestCollection(DirectDebitCollection, 0);
+        SetLegacyDirectDebitSource(DirectDebitCollection, 10865);
+        CreateDirectDebitTestCollection(StandardCollection, Database::"Payment Header FR");
+        SetLegacyDirectDebitSource(StandardCollection, 0);
+        CreateDirectDebitTestCollection(OtherSourceCollection, 0);
+        SetLegacyDirectDebitSource(OtherSourceCollection, Database::Customer);
+        GenJnlLine."Journal Batch Name" := '10865';
+        GenJnlLine."Document No." := DirectDebitCollection.Identifier;
+        GenJnlLine."Line No." := 10000;
+        GenJnlLine.InsertPaymentFileErrorWithDetails('Legacy error', 'Legacy details', 'https://example.com/help');
+        GenJnlLine."Journal Batch Name" := Format(Database::"Payment Header FR");
+        GenJnlLine.InsertPaymentFileError('Existing app error');
+        GenJnlLine."Journal Batch Name" := '10865';
+        GenJnlLine."Document No." := 'DELETED-COLLECTION';
+        GenJnlLine.InsertPaymentFileError('Orphaned collection error');
+
+        PaymentDataMigration.CountRecordsToMigrate(TempDocumentEntry);
+        VerifyJournalMigrationOverview(TempDocumentEntry, Database::"Direct Debit Collection");
+        PaymentUpgrade.UpgradeDirectDebitSourceFields(false);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField("Source Table ID FR", Database::"Payment Header FR");
+        StandardCollection.Find();
+        StandardCollection.TestField("Source Table ID FR", 0);
+        OtherSourceCollection.Find();
+        OtherSourceCollection.TestField("Source Table ID FR", Database::Customer);
+        PaymentError.Get('', Format(Database::"Payment Header FR"), DirectDebitCollection.Identifier, 10000, 1);
+        PaymentError.TestField("Error Text", 'Existing app error');
+        PaymentError.Get('', Format(Database::"Payment Header FR"), DirectDebitCollection.Identifier, 10000, 2);
+        PaymentError.TestField("Error Text", 'Legacy error');
+        PaymentError.TestField("Additional Information", 'Legacy details');
+        PaymentError.TestField("Support URL", 'https://example.com/help');
+        PaymentError.Get('', Format(Database::"Payment Header FR"), 'DELETED-COLLECTION', 10000, 1);
+        VerifyDirectDebitSourceUpgradeTag(true);
+
+        DirectDebitCollection."Source Table ID FR" := Database::Customer;
+        DirectDebitCollection.Modify();
+        PaymentUpgrade.UpgradeDirectDebitSourceFields(false);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField("Source Table ID FR", Database::Customer);
+        PaymentError.SetRange("Journal Batch Name", '10865');
+        PaymentError.SetRange("Document No.", DirectDebitCollection.Identifier);
+        Assert.IsTrue(PaymentError.IsEmpty(), 'The old error link must be removed after migration.');
+        RestorePaymentFeatureStatus();
+    end;
+
+#if not CLEAN28
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DisabledDirectDebitMigrationWaitsForActivation()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        PaymentInstall: Codeunit "Install Payment Management FR";
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+        PaymentFeature: Codeunit "Feature - PaymentMgt FR";
+    begin
+        // [SCENARIO 653676] Disabled companies keep their latest legacy source until the real feature data update runs.
+        Initialize();
+        SetPaymentFeatureEnabled(false);
+        SetOriginalPaymentUpgradeTag();
+        ClearDirectDebitSourceUpgradeTag();
+        CreateDirectDebitTestCollection(DirectDebitCollection, 0);
+        SetLegacyDirectDebitSource(DirectDebitCollection, 10865);
+
+        PaymentInstall.InstallDirectDebitSourceFields(false);
+        PaymentUpgrade.UpgradeDirectDebitSourceFields(false);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField("Source Table ID FR", 0);
+        VerifyDirectDebitSourceUpgradeTag(false);
+        SetLegacyDirectDebitSource(DirectDebitCollection, Database::Customer);
+        FeatureDataUpdateStatus.Get('Payment', CompanyName());
+        PaymentFeature.UpdateData(FeatureDataUpdateStatus);
+        PaymentFeature.AfterUpdate(FeatureDataUpdateStatus);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField("Source Table ID FR", Database::Customer);
+        VerifyDirectDebitSourceUpgradeTag(true);
+        RestorePaymentFeatureStatus();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ForcedDirectDebitInstallMigratesDisabledCompany()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        PaymentInstall: Codeunit "Install Payment Management FR";
+        PaymentUpgrade: Codeunit "Upgrade Payment Management FR";
+    begin
+        // [SCENARIO 653676] Version-31 installation and upgrade force migration despite disabled Payment and the old tag.
+        Initialize();
+        SetPaymentFeatureEnabled(false);
+        SetOriginalPaymentUpgradeTag();
+        ClearDirectDebitSourceUpgradeTag();
+        CreateDirectDebitTestCollection(DirectDebitCollection, 0);
+        SetLegacyDirectDebitSource(DirectDebitCollection, 10865);
+
+        PaymentInstall.InstallDirectDebitSourceFields(true);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField("Source Table ID FR", Database::"Payment Header FR");
+        VerifyDirectDebitSourceUpgradeTag(true);
+        ClearDirectDebitSourceUpgradeTag();
+        SetLegacyDirectDebitSource(DirectDebitCollection, Database::Customer);
+        PaymentUpgrade.UpgradeDirectDebitSourceFields(true);
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField("Source Table ID FR", Database::Customer);
+        VerifyDirectDebitSourceUpgradeTag(true);
+        RestorePaymentFeatureStatus();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DisabledDirectDebitUsesOnlyLegacyErrorLink()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry";
+        PaymentError: Record "Payment Jnl. Export Error Text";
+    begin
+        // [SCENARIO 653676] The disabled feature uses the legacy origin, not a conflicting app source.
+        Initialize();
+        SetPaymentFeatureEnabled(false);
+        CreateDirectDebitTestCollection(DirectDebitCollection, Database::Customer);
+        SetLegacyDirectDebitSource(DirectDebitCollection, 10865);
+        DirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
+        DirectDebitCollectionEntry."Entry No." := 10000;
+
+        DirectDebitCollectionEntry.InsertPaymentFileError('Legacy source error');
+
+        PaymentError.Get('', '10865', DirectDebitCollection.Identifier, 10000, 1);
+        Assert.IsTrue(DirectDebitCollection.HasPaymentFileErrors(), 'The legacy collection must find its errors.');
+        PaymentError.SetRange("Journal Batch Name", Format(Database::Customer));
+        PaymentError.SetRange("Document No.", DirectDebitCollection.Identifier);
+        Assert.IsTrue(PaymentError.IsEmpty(), 'The app must not create a second error link while disabled.');
+        RestorePaymentFeatureStatus();
+    end;
+#endif
+#endif
+
+    local procedure CreateDirectDebitTestCollection(var DirectDebitCollection: Record "Direct Debit Collection"; SourceTableId: Integer)
+    begin
+        DirectDebitCollection.CreateRecord(
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(DirectDebitCollection.Identifier)),
+            '', DirectDebitCollection."Partner Type"::Company);
+        DirectDebitCollection."Source Table ID FR" := SourceTableId;
+        DirectDebitCollection.Modify();
+    end;
+
+#if not CLEANSCHEMA33
+    local procedure SetLegacyDirectDebitSource(var DirectDebitCollection: Record "Direct Debit Collection"; SourceTableId: Integer)
+    var
+        CollectionRef: RecordRef;
+        SourceField: FieldRef;
+    begin
+        CollectionRef.GetTable(DirectDebitCollection);
+        SourceField := CollectionRef.Field(10800);
+        SourceField.Value := SourceTableId;
+        CollectionRef.SetTable(DirectDebitCollection);
+        DirectDebitCollection.Modify();
+    end;
+
+    local procedure ClearDirectDebitSourceUpgradeTag()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+    end;
+
+    local procedure VerifyDirectDebitSourceUpgradeTag(Expected: Boolean)
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        Assert.AreEqual(Expected, UpgradeTag.HasUpgradeTag(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()), 'Incorrect direct-debit migration tag.');
+    end;
 #endif
 
     local procedure Initialize()

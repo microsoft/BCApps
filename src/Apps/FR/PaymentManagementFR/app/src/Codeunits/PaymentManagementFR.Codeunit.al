@@ -1033,7 +1033,7 @@ codeunit 10837 "Payment Management FR"
     begin
         PaymentHeaderFR.TestField("Account Type", PaymentHeaderFR."Account Type"::"Bank Account");
         DirectDebitCollection.CreateRecord(PaymentHeaderFR."No.", PaymentHeaderFR."Account No.", PaymentHeaderFR."Partner Type");
-        DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header FR";
+        DirectDebitCollection."Source Table ID FR" := DATABASE::"Payment Header FR";
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         Commit();

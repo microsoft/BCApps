@@ -215,27 +215,56 @@ codeunit 10838 "PaymentMgt Subscribers FR"
             until PaymentLine.Next() = 0;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Direct Debit Collection", 'OnBeforeHasPaymentFileErrors', '', false, false)]
+    local procedure CheckCollectionPaymentFileErrors(DirectDebitCollection: Record "Direct Debit Collection"; var DirectDebit: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        if IsHandled or not IsPaymentEnabled() or (DirectDebitCollection."Source Table ID FR" = 0) then
+            exit;
+
+        DirectDebitCollection.SetPaymentErrorLink(DirectDebit);
+        Result := DirectDebit.HasPaymentFileErrorsInBatch();
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Direct Debit Collection Entry", 'OnBeforeTransferPKToGenJnlLine', '', false, false)]
+    local procedure SetCollectionEntryPaymentErrorLink(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+    begin
+        if IsHandled or not IsPaymentEnabled() then
+            exit;
+        if not DirectDebitCollection.Get(DirectDebitCollectionEntry."Direct Debit Collection No.") then
+            exit;
+        if DirectDebitCollection."Source Table ID FR" = 0 then
+            exit;
+
+        DirectDebitCollection.SetPaymentErrorLink(GenJnlLine);
+        GenJnlLine."Line No." := DirectDebitCollectionEntry."Entry No.";
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA DD-Prepare Source", 'OnBeforeCreateTempCollectionEntries', '', false, false)]
     local procedure OnBeforeCreateTempCollectionEntries(var FromDirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var ToDirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var isHandled: Boolean)
     var
         DirectDebitCollection: Record "Direct Debit Collection";
         PaymentHeader: Record "Payment Header FR";
         PaymentLine: Record "Payment Line FR";
-#if not CLEAN28
-        Payment: Codeunit "Payment Management Feature FR";
-#endif
         SEPADDCheckLine: Codeunit "SEPA DD-Check Line";
         AppliesToEntryNo: Integer;
         HasErrorsErr: Label 'The file export has one or more errors. For each of the lines to be exported, resolve any errors that are displayed in the File Export Errors FactBox.';
     begin
-#if not CLEAN28
-        if not Payment.IsEnabled() then
+        if IsHandled or not IsPaymentEnabled() then
             exit;
-#endif
+        if FromDirectDebitCollectionEntry.GetFilter("Direct Debit Collection No.") = '' then
+            exit;
+
+        DirectDebitCollection.Get(FromDirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
+        if DirectDebitCollection."Source Table ID FR" <> Database::"Payment Header FR" then
+            exit;
+
         IsHandled := true;
 
         ToDirectDebitCollectionEntry.Reset();
-        DirectDebitCollection.Get(FromDirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
         PaymentHeader.Get(DirectDebitCollection.Identifier);
         PaymentLine.SetRange("No.", PaymentHeader."No.");
         if PaymentLine.FindSet() then

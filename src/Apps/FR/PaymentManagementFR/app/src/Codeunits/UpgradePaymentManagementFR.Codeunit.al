@@ -30,6 +30,7 @@ codeunit 10840 "Upgrade Payment Management FR"
 
         UpgradePaymentStepObjectIDs();
         UpgradePaymentVATJournalFields(CurrentModuleInfo.AppVersion().Major() >= 31);
+        UpgradeDirectDebitSourceFields(CurrentModuleInfo.AppVersion().Major() >= 31);
     end;
 
     local procedure UpgradePayment()
@@ -69,19 +70,38 @@ codeunit 10840 "Upgrade Payment Management FR"
     internal procedure UpgradePaymentVATJournalFields(ForceActivation: Boolean)
     var
         PaymentDataMigrationFR: Codeunit "Payment Data Migration FR";
+    begin
+        if not IsPaymentMigrationEnabled(ForceActivation) then
+            exit;
+
+        // The original payment tag can already exist before these fields were moved to the app.
+        PaymentDataMigrationFR.MigratePaymentVATJournalFields();
+    end;
+
+    internal procedure UpgradeDirectDebitSourceFields(ForceActivation: Boolean)
+    var
+        PaymentDataMigrationFR: Codeunit "Payment Data Migration FR";
+    begin
+        if not IsPaymentMigrationEnabled(ForceActivation) then
+            exit;
+
+        PaymentDataMigrationFR.MigrateDirectDebitSourceFields();
+    end;
+
+    local procedure IsPaymentMigrationEnabled(ForceActivation: Boolean): Boolean
 #if not CLEAN28
+    var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
     begin
 #if not CLEAN28
         // Installation, upgrades and company initialization share this eligibility check.
-        // A disabled company must migrate its latest legacy journal values only when it activates.
+        // A disabled company must migrate its latest legacy values only when it activates.
         // Version 31 forces activation even if the Feature Management status has not changed yet.
         if not ForceActivation then
             if not FeatureManagementFacade.IsEnabled('Payment') then
-                exit;
+                exit(false);
 #endif
-        // The original payment tag can already exist before these fields were moved to the app.
-        PaymentDataMigrationFR.MigratePaymentVATJournalFields();
+        exit(true);
     end;
 }
