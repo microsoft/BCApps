@@ -353,6 +353,8 @@ report 130 "EC Sales List"
 #endif
     }
 
+
+
     rendering
     {
 #if not CLEAN27
@@ -716,4 +718,3 @@ report 130 "EC Sales List"
     end;
 #endif
 }
-
