@@ -103,7 +103,7 @@ codeunit 139666 "Test Transformation W1"
             Field.SetRange(TableName, TableMappings."From Table Name");
             Field.SetRange(ObsoleteState, Field.ObsoleteState::No);
             if IsFrenchScheduleSourceMapping(TableMappings) then begin
-#if not CLEAN33
+#if not CLEANSCHEMA33
                 // These retained Pending tables are deliberately readable during the first-release copy window.
                 Field.SetFilter(ObsoleteState, '%1|%2', Field.ObsoleteState::No, Field.ObsoleteState::Pending);
                 if Field.IsEmpty() then
