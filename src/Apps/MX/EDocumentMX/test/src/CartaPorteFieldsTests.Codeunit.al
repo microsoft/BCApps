@@ -42,7 +42,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         SalesShipmentHeader: Record "Sales Shipment Header";
         CartaPorteElement: XmlElement;
     begin
-        // [FEATURE] Carta Porte ISTMO
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] When SAT ISTMO is enabled on the shipment, the exporter writes RegistroISTMO, UbicacionPoloOrigen and UbicacionPoloDestino
         Initialize();
 
@@ -69,7 +69,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         CartaPorteElement: XmlElement;
         Attribute: XmlAttribute;
     begin
-        // [FEATURE] Carta Porte ISTMO
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] When SAT ISTMO is disabled on the shipment, the exporter does not write any ISTMO attribute
         Initialize();
 
@@ -91,7 +91,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         SalesShipmentHeader: Record "Sales Shipment Header";
         CartaPorteElement: XmlElement;
     begin
-        // [FEATURE] Carta Porte Transport Type
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] For an international shipment, the exporter writes ViaEntradaSalida with the configured SAT Transport Type
         Initialize();
 
@@ -111,7 +111,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         SalesShipmentHeader: Record "Sales Shipment Header";
         CartaPorteElement: XmlElement;
     begin
-        // [FEATURE] Carta Porte Transport Type
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] For an international shipment with a blank SAT Transport Type, the exporter defaults ViaEntradaSalida to 01 (Autotransporte Federal)
         Initialize();
 
@@ -134,7 +134,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         CartaPorteXmlNode: XmlNode;
         XmlText: Text;
     begin
-        // [FEATURE] Carta Porte ISTMO
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] The RegistroISTMO value 'Sí' (with accented í) is preserved correctly in the XML output
         Initialize();
 

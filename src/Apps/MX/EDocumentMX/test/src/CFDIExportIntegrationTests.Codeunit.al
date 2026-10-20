@@ -9,6 +9,8 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Address;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -35,8 +37,10 @@ codeunit 148754 "CFDI Export Integration Tests"
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         ExportInterfactura: Codeunit "Export Interfactura MX";
 
     [Test]
@@ -100,6 +104,93 @@ codeunit 148754 "CFDI Export Integration Tests"
         Assert.AreEqual('E', GetAttribute(TempBlob, 'TipoDeComprobante'), 'The CFDI document type is incorrect.');
         Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Emisor'), 'The issuer node is missing.');
         Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Receptor'), 'The receiver node is missing.');
+    end;
+
+    [Test]
+    procedure SalesShipmentCreatesCFDIIngresoXML()
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentNo: Code[20];
+        SourceHeader: RecordRef;
+        SourceLines: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A posted sales shipment is exported as a CFDI traslado document
+        Initialize();
+
+        // [GIVEN] A posted sales shipment with Mexican customer data
+        DocumentNo := CreateAndPostSalesShipment();
+        SalesShipmentHeader.Get(DocumentNo);
+        SetMexicanShipmentData(SalesShipmentHeader);
+        EDocument := CreateEDocument(SalesShipmentHeader.RecordId(), "E-Document Type"::"Sales Shipment");
+        SourceHeader.GetTable(SalesShipmentHeader);
+        SalesShipmentLine.SetRange("Document No.", DocumentNo);
+        SourceLines.GetTable(SalesShipmentLine);
+
+        // [WHEN] The shipment is exported
+        ExportInterfactura.Export(SourceHeader, SourceLines, EDocument, TempBlob, false);
+
+        // [THEN] The XML identifies a traslado document and includes the mandatory parties
+        Assert.AreEqual('T', GetAttribute(TempBlob, 'TipoDeComprobante'), 'The CFDI document type for shipments is incorrect.');
+        Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Emisor'), 'The issuer node is missing.');
+        Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Receptor'), 'The receiver node is missing.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ErrorMessagesPageHandler')]
+    procedure SalesInvoiceValidationRejectsMissingPaymentMethodCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Validation: Codeunit "EDoc CFDI Validation MX";
+        DocumentNo: Code[20];
+        SourceHeader: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Invoice validation rejects a document that is missing a payment method code
+        Initialize();
+
+        // [GIVEN] A posted sales invoice without a payment method code
+        DocumentNo := CreateAndPostSalesInvoice();
+        SalesInvoiceHeader.Get(DocumentNo);
+        SalesInvoiceHeader."Payment Method Code" := '';
+        SalesInvoiceHeader.Modify();
+        SourceHeader.GetTable(SalesInvoiceHeader);
+
+        // [WHEN] The invoice is validated
+        asserterror Validation.CheckSalesDocument(SourceHeader);
+
+        // [THEN] The validation error points to the missing payment method code
+        Assert.ExpectedError('');
+    end;
+
+    [Test]
+    [HandlerFunctions('ErrorMessagesPageHandler')]
+    procedure SalesInvoiceValidationRejectsMissingPaymentTermsCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Validation: Codeunit "EDoc CFDI Validation MX";
+        DocumentNo: Code[20];
+        SourceHeader: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Invoice validation rejects a document with a missing payment terms code
+        Initialize();
+
+        // [GIVEN] A posted sales invoice without a payment terms code
+        DocumentNo := CreateAndPostSalesInvoice();
+        SalesInvoiceHeader.Get(DocumentNo);
+        SalesInvoiceHeader."Payment Terms Code" := '';
+        SalesInvoiceHeader.Modify();
+        SourceHeader.GetTable(SalesInvoiceHeader);
+
+        // [WHEN] The invoice is validated
+        asserterror Validation.CheckSalesDocument(SourceHeader);
+
+        // [THEN] The validation error points to the missing payment terms code
+        Assert.ExpectedError('');
     end;
 
     local procedure Initialize()
@@ -171,6 +262,46 @@ codeunit 148754 "CFDI Export Integration Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesShipment(): Code[20]
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Order Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Shipment Nos."));
+        LibrarySales.CreateCustomer(Customer);
+        SetMexicanCustomerData(Customer);
+        Customer.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Description := 'Shipment item';
+        Item.Modify();
+
+        LibraryWarehouse.CreateLocation(Location);
+        Location."SAT Address ID" := CreateSATAddress();
+        Location.Modify();
+        CreateInventorySetup(Item, Location.Code);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Location Code", Location.Code);
+        SalesHeader."SAT Address ID" := Location."SAT Address ID";
+        SalesHeader."Ship-to Address" := 'Calle Destino 200';
+        SalesHeader."Transit-from Date/Time" := CreateDateTime(WorkDate(), 080000T);
+        SalesHeader."Transit Hours" := 2;
+        SalesHeader."Transit Distance" := 100;
+        SalesHeader."SAT Transport Type" := '01';
+        SetPostingPaymentData(SalesHeader);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+    end;
+
     local procedure SetMexicanInvoiceData(var SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         Customer: Record Customer;
@@ -204,6 +335,74 @@ codeunit 148754 "CFDI Export Integration Tests"
         Customer.Validate(Address, 'Avenida Reforma 100');
         Customer.Validate(City, 'Ciudad de Mexico');
         Customer.Validate("Post Code", '06600');
+    end;
+
+    local procedure SetMexicanShipmentData(var SalesShipmentHeader: Record "Sales Shipment Header")
+    var
+        Customer: Record Customer;
+        Location: Record Location;
+    begin
+        Customer.Get(SalesShipmentHeader."Sell-to Customer No.");
+        SetMexicanCustomerData(Customer);
+        Customer.Modify();
+
+        if SalesShipmentHeader."SAT Address ID" = 0 then
+            SalesShipmentHeader."SAT Address ID" := CreateSATAddress();
+        SalesShipmentHeader."Ship-to Address" := 'Calle Destino 200';
+        if SalesShipmentHeader."Transit-from Date/Time" = 0DT then
+            SalesShipmentHeader."Transit-from Date/Time" := CreateDateTime(WorkDate(), 080000T);
+        if SalesShipmentHeader."Transit Hours" = 0 then
+            SalesShipmentHeader."Transit Hours" := 2;
+        if SalesShipmentHeader."Transit Distance" = 0 then
+            SalesShipmentHeader."Transit Distance" := 100;
+        if SalesShipmentHeader."SAT Transport Type" = '' then
+            SalesShipmentHeader."SAT Transport Type" := '01';
+        SalesShipmentHeader.Modify();
+
+        if Location.Get(SalesShipmentHeader."Location Code") then begin
+            if Location."SAT Address ID" = 0 then begin
+                Location."SAT Address ID" := SalesShipmentHeader."SAT Address ID";
+                Location.Modify();
+            end;
+        end;
+    end;
+
+    local procedure CreateSATAddress(): Integer
+    var
+        SATAddress: Record "SAT Address";
+        SATSuburb: Record "SAT Suburb";
+        SuburbId: Integer;
+    begin
+        if SATSuburb.FindLast() then
+            SuburbId := SATSuburb.ID;
+
+        SATSuburb.Init();
+        SATSuburb.ID := SuburbId + 1;
+        SATSuburb."Suburb Code" := '0001';
+        SATSuburb."Postal Code" := '06600';
+        SATSuburb.Insert();
+
+        SATAddress.Init();
+        SATAddress."Country/Region Code" := 'MX';
+        SATAddress."SAT State Code" := 'CMX';
+        SATAddress."SAT Suburb ID" := SATSuburb.ID;
+        SATAddress.Insert();
+        exit(SATAddress.Id);
+    end;
+
+    local procedure CreateInventorySetup(var Item: Record Item; LocationCode: Code[10])
+    var
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        if not InventoryPostingSetup.Get(LocationCode, Item."Inventory Posting Group") then begin
+            InventoryPostingSetup.Init();
+            InventoryPostingSetup.Validate("Location Code", LocationCode);
+            InventoryPostingSetup.Validate("Invt. Posting Group Code", Item."Inventory Posting Group");
+            InventoryPostingSetup.Validate("Inventory Account", GLAccount."No.");
+            InventoryPostingSetup.Insert(true);
+        end;
     end;
 
     local procedure SetPostingPaymentData(var SalesHeader: Record "Sales Header")
@@ -278,6 +477,12 @@ codeunit 148754 "CFDI Export Integration Tests"
         NamespaceManager.NameTable(Document.NameTable());
         NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
         exit(Document.SelectSingleNode('//' + XPath, NamespaceManager, FoundNode));
+    end;
+
+    [PageHandler]
+    procedure ErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    begin
+        ErrorMessages.Close();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Digital Sign MX", 'OnBeforeCreateDigitalSignature', '', false, false)]
