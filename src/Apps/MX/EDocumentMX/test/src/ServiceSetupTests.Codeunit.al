@@ -50,6 +50,12 @@ codeunit 148755 "E-Document Service Setup Tests"
 
         // [THEN] Transfer Shipment is supported
         VerifySupportedType(SupportedType, EDocumentService.Code, "E-Document Type"::"Transfer Shipment");
+
+        // [THEN] Purchase Invoice and Purchase Credit Memo are supported for incoming documents
+        VerifySupportedType(SupportedType, EDocumentService.Code, "E-Document Type"::"Purchase Invoice");
+        Assert.AreEqual(SupportedType.Direction::Incoming, SupportedType.Direction, 'Purchase Invoice must be supported for incoming documents only.');
+        VerifySupportedType(SupportedType, EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo");
+        Assert.AreEqual(SupportedType.Direction::Incoming, SupportedType.Direction, 'Purchase Credit Memo must be supported for incoming documents only.');
     end;
 
     local procedure Initialize()
@@ -68,5 +74,6 @@ codeunit 148755 "E-Document Service Setup Tests"
         SupportedType.SetRange("E-Document Service Code", ServiceCode);
         SupportedType.SetRange("Source Document Type", DocumentType);
         Assert.RecordCount(SupportedType, 1);
+        SupportedType.FindFirst();
     end;
 }

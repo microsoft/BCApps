@@ -79,6 +79,8 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
                                 EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code");
                             end;
                         else begin
+                            EDocumentService.SetFilter(Code, GetLinkedServiceFilter(EDocumentServiceStatus));
+                            EDocumentServices.SetTableView(EDocumentService);
                             EDocumentServices.LookupMode := true;
                             if EDocumentServices.RunModal() <> Action::LookupOK then
                                 exit;
@@ -110,6 +112,16 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
             FiscalInvoiceNumberPAC := CopyStr(CFDIWriteBackMX.GetUUIDForDocument(Rec."Document Record ID"), 1, MaxStrLen(FiscalInvoiceNumberPAC))
         else
             FiscalInvoiceNumberPAC := CopyStr(Rec."Source Details", 1, MaxStrLen(FiscalInvoiceNumberPAC));
+    end;
+
+    local procedure GetLinkedServiceFilter(var EDocumentServiceStatus: Record "E-Document Service Status") ServiceFilter: Text
+    begin
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                if ServiceFilter <> '' then
+                    ServiceFilter += '|';
+                ServiceFilter += '''' + EDocumentServiceStatus."E-Document Service Code" + '''';
+            until EDocumentServiceStatus.Next() = 0;
     end;
 
     var

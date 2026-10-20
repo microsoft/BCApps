@@ -25,6 +25,21 @@ table 3352 "MX Connection Setup"
             OptionMembers = Test,Production;
             OptionCaption = 'Test,Production';
             DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                MXPACWebServiceDetail: Record "MX PAC Web Service Detail";
+            begin
+                if "Send Mode" = xRec."Send Mode" then
+                    exit;
+
+                MXPACWebServiceDetail.SetRange("Setup Id", Id);
+                if MXPACWebServiceDetail.FindSet(true) then
+                    repeat
+                        MXPACWebServiceDetail.SetDefaultAddress("Send Mode");
+                        MXPACWebServiceDetail.Modify(true);
+                    until MXPACWebServiceDetail.Next() = 0;
+            end;
         }
         field(25; Enabled; Boolean)
         {

@@ -46,13 +46,10 @@ codeunit 3357 "MX Payment Complement Mgt."
         Complement.SetRange("Payment Entry No.", Payment."Entry No.");
         Complement.SetRange(Reversed, false);
         if Complement.FindFirst() then begin
-            // Idempotency: the occurrence may be retried after a failed task spawn.
-            // Re-queue the message if it never left Created state.
             if (Complement."E-Document Message Entry No." <> 0) and
-               (MessageAPI.GetMessageStatus(Complement."E-Document Message Entry No.") = Enum::"E-Doc. Message Status"::Created) and
-               TaskScheduler.CanCreateTask()
+               (MessageAPI.GetMessageStatus(Complement."E-Document Message Entry No.") = Enum::"E-Doc. Message Status"::Created)
             then
-                TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
+                ScheduleDispatcher();
             exit;
         end;
         if not Parent.Get(EDocPaymentOccurrence."E-Document Entry No.") then
@@ -76,8 +73,14 @@ codeunit 3357 "MX Payment Complement Mgt."
         Builder.Build(Payment, Payload);
         Complement."E-Document Message Entry No." := MessageAPI.CreateMessage(Parent, "E-Document Message Type"::"MX CFDI Payment Complement", "E-Doc. Response Type"::None, Payload);
         Complement.Modify();
-        if TaskScheduler.CanCreateTask() then
-            TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
+        ScheduleDispatcher();
+    end;
+
+    local procedure ScheduleDispatcher()
+    begin
+        if not TaskScheduler.CanCreateTask() then
+            Error(BackgroundTasksUnavailableErr);
+        TaskScheduler.CreateTask(Codeunit::"MX Payment Compl. Dispatcher", 0);
     end;
 
     local procedure MarkReversed(PaymentEntryNo: Integer)
@@ -137,5 +140,6 @@ codeunit 3357 "MX Payment Complement Mgt."
     end;
 
     var
+        BackgroundTasksUnavailableErr: Label 'The payment complement cannot be sent because background tasks are not available. It will be retried automatically.';
         InvoiceNotStampedErr: Label 'The payment complement cannot be created yet because invoice %1 is not stamped. It will be retried automatically.', Comment = '%1 = invoice document number';
 }

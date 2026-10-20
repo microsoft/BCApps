@@ -47,7 +47,7 @@ page 3352 "Interfactura Connection Setup"
                 field("Send PDF Report"; Rec."Send PDF Report")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies if you want to include a PDF when you email electronic invoices to customers or vendors. Electronic invoices are always sent as an XML file, this option allows you to include a PDF with the XML file.';
+                    ToolTip = 'Specifies if stamped electronic documents are automatically emailed to the customer, with the XML file and the PDF report attached.';
                 }
                 field("Disable CFDI Payment Details"; Rec."Disable CFDI Payment Details")
                 {

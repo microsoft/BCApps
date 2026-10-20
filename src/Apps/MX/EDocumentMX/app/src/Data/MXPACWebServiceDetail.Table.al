@@ -56,6 +56,16 @@ table 3353 "MX PAC Web Service Detail"
         ApplyDefaultsFromSetup();
     end;
 
+    procedure SetDefaultAddress(SendMode: Option Test,Production)
+    begin
+        case SendMode of
+            SendMode::Test:
+                Address := InterfacturaServiceUrlLbl;
+            SendMode::Production:
+                Address := '';
+        end;
+    end;
+
     local procedure ApplyDefaultsFromSetup()
     var
         MXConnectionSetup: Record "MX Connection Setup";
@@ -66,12 +76,7 @@ table 3353 "MX PAC Web Service Detail"
         if not MXConnectionSetup.Get("Setup Id") then
             exit;
 
-        case MXConnectionSetup."Send Mode" of
-            MXConnectionSetup."Send Mode"::Test:
-                Address := InterfacturaServiceUrlLbl;
-            MXConnectionSetup."Send Mode"::Production:
-                Address := '';
-        end;
+        SetDefaultAddress(MXConnectionSetup."Send Mode");
 
         case Type of
             Type::"Request Stamp":

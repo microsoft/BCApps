@@ -144,9 +144,16 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Service Credit Memo");
         EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Sales Shipment");
         EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Transfer Shipment");
+        EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Incoming);
+        EnsureSupportedType(EDocumentServiceCode, Enum::"E-Document Type"::"Purchase Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Incoming);
     end;
 
     local procedure EnsureSupportedType(EDocumentServiceCode: Code[20]; SourceDocumentType: Enum "E-Document Type")
+    begin
+        EnsureSupportedType(EDocumentServiceCode, SourceDocumentType, Enum::"E-Doc. Supp. Type Direction"::Both);
+    end;
+
+    local procedure EnsureSupportedType(EDocumentServiceCode: Code[20]; SourceDocumentType: Enum "E-Document Type"; Direction: Enum "E-Doc. Supp. Type Direction")
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
@@ -158,6 +165,7 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EDocServiceSupportedType.Init();
         EDocServiceSupportedType."E-Document Service Code" := EDocumentServiceCode;
         EDocServiceSupportedType."Source Document Type" := SourceDocumentType;
+        EDocServiceSupportedType.Direction := Direction;
         EDocServiceSupportedType.Insert();
     end;
 
