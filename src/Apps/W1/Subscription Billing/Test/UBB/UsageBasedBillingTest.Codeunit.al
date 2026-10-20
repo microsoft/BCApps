@@ -22,6 +22,7 @@ codeunit 148153 "Usage Based Billing Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         BillingLine: Record "Billing Line";
@@ -77,6 +78,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageBasedDocTypeConverter: Codeunit "Usage Based Doc. Type Conv.";
         RRef: RecordRef;
         IsInitialized: Boolean;
+        LimitUsageBasedBillingPeriodToFirstMonth: Boolean;
         PostDocument: Boolean;
         CorrectedDocumentNo: Code[20];
         i: Integer;
@@ -2762,6 +2764,40 @@ codeunit 148153 "Usage Based Billing Test"
 
     [Test]
     [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure UsageBasedBillingPeriodCanBeLimitedBySubscriber()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        PeriodStartDate: Date;
+        SecondPeriodStartDate: Date;
+        SupplierSubscriptionID: Text;
+    begin
+        // [SCENARIO] A subscriber can change the billing period derived from the open usage data of a usage-based Subscription Line
+
+        // [GIVEN] Two usage entries, each covering one monthly rhythm period
+        Initialize();
+        SetupUsageBasedCustomerContractForMonthlyRhythm(PeriodStartDate, SupplierSubscriptionID);
+        SecondPeriodStartDate := CalcDate('<1M>', PeriodStartDate);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate, CalcDate('<CM>', PeriodStartDate));
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, SecondPeriodStartDate, CalcDate('<CM>', SecondPeriodStartDate));
+
+        // [GIVEN] A subscriber that limits the billing period to the month of its start
+        LimitUsageBasedBillingPeriodToFirstMonth := true;
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        BindSubscription(this);
+        ProcessUsageDataAndCreateCustomerInvoice();
+        UnbindSubscription(this);
+
+        // [THEN] Only one billing line is created, covering the first month
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        Assert.RecordCount(CustomerBillingLine, 1);
+        CustomerBillingLine.FindFirst();
+        Assert.AreEqual(PeriodStartDate, CustomerBillingLine."Billing from", FirstBillingLineStartDateLbl);
+        Assert.AreEqual(CalcDate('<CM>', PeriodStartDate), CustomerBillingLine."Billing to", FirstBillingLineEndDateLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
     procedure NoOverlappingBillingLineCreatedAfterStretchedBillingPeriod()
     var
         CustomerBillingLine: Record "Billing Line";
@@ -3612,5 +3648,18 @@ codeunit 148153 "Usage Based Billing Test"
     end;
 
     #endregion Handlers
+
+    #region Subscribers
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Billing Proposal", OnAfterCalculateBillingPeriodForUsageBasedSubscriptionLine, '', false, false)]
+    local procedure LimitBillingPeriodOnAfterCalculateBillingPeriodForUsageBasedSubscriptionLine(var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
+    begin
+        if not LimitUsageBasedBillingPeriodToFirstMonth then
+            exit;
+        if CalcDate('<CM>', BillingPeriodStart) < BillingPeriodEnd then
+            BillingPeriodEnd := CalcDate('<CM>', BillingPeriodStart);
+    end;
+
+    #endregion Subscribers
 }
 #pragma warning restore AA0210
