@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/20620d1a3676cecfa2d0bbba3ced4a89f0e08217/Actions/.Modules/settings.schema.json",
   "projectName": "Apps FR",
   "country": "FR",
   "appFolders": [
@@ -13,6 +13,7 @@
     "../../../src/Apps/FR/Onprem Permissions FR/app",
     "../../../src/Apps/FR/PaymentManagementFR/app",
     "../../../src/Apps/FR/ReportsFR/app",
+    "../../../src/Apps/FR/SalesFR/app",
     "../../../src/Apps/FR/ServiceDeclarationFR/app",
     "../../../src/Apps/W1/AgentDesignExperience/app",
     "../../../src/Apps/W1/AgentSamples/app",
@@ -141,6 +142,7 @@
     "../../../src/Apps/FR/PaymentManagementFR/test",
     "../../../src/Apps/FR/ReportsFR/test",
     "../../../src/Apps/FR/ReportsFR/Test Library",
+    "../../../src/Apps/FR/SalesFR/test",
     "../../../src/Apps/FR/ServiceDeclarationFR/test",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
     "../../../src/Apps/W1/APIV1/test",
