@@ -5548,6 +5548,33 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "XML Audit File FR": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\XMLAuditFile\\app",
+      "dvdFolder": "Applications\\XMLAuditFile\\Source",
+      "hasTranslations": true,
+      "supportedCountries": [
+        "FR"
+      ],
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "installOnEnvironmentUpdate": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "XML Audit File FR Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\XMLAuditFile\\test",
+      "dvdFolder": "Applications\\XMLAuditFile\\Test",
+      "supportedCountries": [
+        "FR"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "EU 3-Party Trade Purchase": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\EU3PartyTradePurchase\\app",
       "dvdFolder": "Applications\\EU3PartyTradePurchase\\Source",
