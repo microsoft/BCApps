@@ -682,12 +682,11 @@ codeunit 139400 "Permissions Test"
         TenantPermission[1]."Object ID" := AllObj."Object ID";
         TenantPermission[1]."Execute Permission" := TenantPermission[1]."Execute Permission"::Yes;
         TenantPermission[1].Insert();
-        AllObj.Get(AllObj."Object Type"::Page, Page::"Vendor Card");
         TenantPermission[2].Init();
         TenantPermission[2]."App ID" := NullGuid;
         TenantPermission[2]."Role ID" := TenantPermissionSet."Role ID";
-        TenantPermission[2]."Object Type" := AllObj."Object Type";
-        TenantPermission[2]."Object ID" := AllObj."Object ID";
+        TenantPermission[2]."Object Type" := TenantPermission[2]."Object Type"::Page;
+        TenantPermission[2]."Object ID" := Page::"Vendor Card";
         TenantPermission[2]."Execute Permission" := TenantPermission[2]."Execute Permission"::Yes;
         TenantPermission[2].Insert();
 
@@ -723,18 +722,18 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet: Record "Tenant Permission Set";
         TenantPermission: array[2] of Record "Tenant Permission";
         AccessControl: Record "Access Control";
+        AllObj: Record AllObj;
         EffectivePermOverview: TestPage "Effective Permissions Overview";
-        CustomerObjectID: Integer;
     begin
         // [SCENARIO] Object ID AssistEdit filters the effective permissions overview
         // [GIVEN] The current user has permissions for the Customer and Vendor tables
         LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
-        CustomerObjectID := Database::Customer;
+        AllObj.Get(AllObj."Object Type"::TableData, Database::Customer);
         TenantPermission[1].Init();
         TenantPermission[1]."App ID" := NullGuid;
         TenantPermission[1]."Role ID" := TenantPermissionSet."Role ID";
-        TenantPermission[1]."Object Type" := TenantPermission[1]."Object Type"::"Table Data";
-        TenantPermission[1]."Object ID" := Database::Customer;
+        TenantPermission[1]."Object Type" := AllObj."Object Type";
+        TenantPermission[1]."Object ID" := AllObj."Object ID";
         TenantPermission[1]."Execute Permission" := TenantPermission[1]."Execute Permission"::Yes;
         TenantPermission[1].Insert();
         TenantPermission[2].Init();
@@ -761,11 +760,11 @@ codeunit 139400 "Permissions Test"
         // Handled in SelectCustomerInAllObjectsLookupHandler
 
         // [THEN] The selected object ID is applied and all displayed rows match it
-        Assert.AreEqual(Format(CustomerObjectID), EffectivePermOverview.ObjIDFilter.Value, 'Object ID filter was not applied.');
+        Assert.AreEqual(AllObj."Object ID", EffectivePermOverview.ObjIDFilter.Value, 'Object ID filter was not applied.');
         Assert.IsTrue(EffectivePermOverview.First(), 'A permission for the selected object should be displayed.');
         repeat
             EffectivePermOverview.UserName.AssertEquals(UserId());
-            Assert.AreEqual(Format(CustomerObjectID), EffectivePermOverview.ObjectID.Value, 'Effective permissions overview contains an unexpected object ID.');
+            Assert.AreEqual(AllObj."Object Name", EffectivePermOverview.ObjectName.Value, 'Effective permissions overview contains an unexpected object ID.');
         until not EffectivePermOverview.Next();
     end;
 
