@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50112 "Report Filename Context"
+codeunit 43002 "Report Filename Context"
 {
     // Holds what one event knows and a later one needs, for the length of the call, because an app
     // cannot change Base Application's signatures. Each slot is set where its operation starts and

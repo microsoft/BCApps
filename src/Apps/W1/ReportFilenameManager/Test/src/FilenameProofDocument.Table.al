@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-table 50151 "Filename Proof Document"
+table 149501 "Filename Proof Document"
 {
     // A stand-in document for proving language invariance: the W1 Base Application carries no .xlf
     // translations of its captions, but this table's captions are translated by the test app's .xlf

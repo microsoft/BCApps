@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-reportextension 50111 "Report Filename Exp. Excel" extends "Export Acc. Sched. to Excel"
+reportextension 43001 "Report Filename Exp. Excel" extends "Export Acc. Sched. to Excel"
 {
     // Limits the Excel naming recorded by Report Filename Fin. Rep. Ov. to this run of report 29,
     // so a later workbook in the session is not named after it.

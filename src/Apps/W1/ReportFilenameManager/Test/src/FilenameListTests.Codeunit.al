@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50151 "Filename List Tests"
+codeunit 149501 "Filename List Tests"
 {
     // The pattern list: Priority, Show Overlapping Patterns, Copy/Enable/Disable, and the setup's
     // count of enabled patterns. Priority is checked against which pattern Test Pattern says named

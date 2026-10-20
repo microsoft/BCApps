@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50123 "Report Filename Fin. Rep. Sub."
+codeunit 43013 "Report Filename Fin. Rep. Sub."
 {
     // Every financial report PDF renders through report 25 Account Schedule, and which one is running
     // is held in a report variable that the naming payload never carries. The print actions'

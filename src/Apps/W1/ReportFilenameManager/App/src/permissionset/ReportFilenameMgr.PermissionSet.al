@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-permissionset 50110 "Report Filename Mgr."
+permissionset 43000 "Report Filename Mgr."
 {
     // For administrators who manage patterns and setup. Other users do not need it: naming reads
     // patterns and setup under inherent permissions (Report Filename Mgt.TryResolve).

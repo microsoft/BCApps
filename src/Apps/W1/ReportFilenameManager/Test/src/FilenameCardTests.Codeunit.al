@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50166 "Filename Card Tests"
+codeunit 149516 "Filename Card Tests"
 {
     // The pattern card and Test Pattern, driven as an administrator drives them. Assertions are made
     // on the open card, not on rows read back afterwards, which would test how TestPage persists records.

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-page 50120 "Report Filename Routes"
+page 43010 "Report Filename Routes"
 {
     // Chooses the routes a pattern applies to. Modelled on Dimension Selection-Multiple: read back
     // when RunModal returns OK, as it does when the page is closed with Close. None ticked means

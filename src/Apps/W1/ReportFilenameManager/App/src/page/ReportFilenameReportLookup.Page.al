@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-page 50114 "Report Filename Report Lookup"
+page 43004 "Report Filename Report Lookup"
 {
     // Picks a report by caption. Processing-only reports are left out, so of the two reports
     // captioned Customer Statement only 1316 is listed; 153 is processing-only and runs the

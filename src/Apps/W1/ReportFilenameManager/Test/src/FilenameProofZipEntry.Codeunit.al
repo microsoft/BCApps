@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50176 "Filename Proof Zip Entry"
+codeunit 149526 "Filename Proof Zip Entry"
 {
     // The PDF inside a "PDF & Electronic Document" zip (SendToZipForCust / SendToZipForVend). Names
     // are read back out of the archive itself and compared with the entry Business Central

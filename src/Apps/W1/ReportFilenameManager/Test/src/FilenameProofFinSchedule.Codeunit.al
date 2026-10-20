@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50169 "Filename Proof Fin Schedule"
+codeunit 149519 "Filename Proof Fin Schedule"
 {
     // Drives a real Financial Report Schedule end to end; Base Application's own job does the export.
     // The export writes one file and then one Report Inbox row per recipient, so the recorded

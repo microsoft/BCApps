@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50165 "Filename Proof Tests"
+codeunit 149515 "Filename Proof Tests"
 {
     // Runs each proof as a test and fails unless every verdict that proof wrote to the log is a pass.
 

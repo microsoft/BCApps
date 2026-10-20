@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50161 "Filename Proof Guard"
+codeunit 149511 "Filename Proof Guard"
 {
     // The proofs delete every Report Filename Pattern (a customer's setup, never restored), so on
     // the service the suite refuses to run outside a sandbox.

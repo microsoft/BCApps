@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50112 "Report Filename Plh. Source"
+enum 43002 "Report Filename Plh. Source"
 {
     // Where a placeholder gets its value.
 

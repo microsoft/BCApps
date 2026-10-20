@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-permissionset 50150 "Rep. Filename Test"
+permissionset 149500 "Rep. Filename Test"
 {
     Assignable = true;
 

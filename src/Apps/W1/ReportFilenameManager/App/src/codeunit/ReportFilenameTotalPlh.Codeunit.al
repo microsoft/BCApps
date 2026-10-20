@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50120 "Report Filename Total Plh." implements "Report Filename Placeholder"
+codeunit 43010 "Report Filename Total Plh." implements "Report Filename Placeholder"
 {
     Access = Internal;
 

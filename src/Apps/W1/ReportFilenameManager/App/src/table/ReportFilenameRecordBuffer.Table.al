@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-table 50114 "Report Filename Record Buffer"
+table 43004 "Report Filename Record Buffer"
 {
     // Records to test a pattern against, for tables with no lookup page (Table Metadata's
     // LookupPageID is 0). Each record is held by its RecordId.

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-table 50113 "Report Filename Plh. Buffer"
+table 43003 "Report Filename Plh. Buffer"
 {
     // The placeholders available for one pattern. Which ones are listed depends on metadata only,
     // not on the records in the database.

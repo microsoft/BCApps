@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-table 50110 "Report Filename Pattern"
+table 43000 "Report Filename Pattern"
 {
     // Empty on install; with no rows every report keeps Business Central's own file name.
 

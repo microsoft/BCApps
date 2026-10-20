@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50186 "Filename Expected Texts"
+codeunit 149536 "Filename Expected Texts"
 {
     // Word-for-word English copies of the app's labels, kept here so the app carries no procedure that
     // only tests call. A wording change in the app must be made here too.

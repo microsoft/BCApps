@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-page 50116 "Report Filename Field Lookup"
+page 43006 "Report Filename Field Lookup"
 {
     // Picks the document's language field by caption. The pattern stores the field number, which
     // survives renames and translations. Only fields related to the Language table are listed.

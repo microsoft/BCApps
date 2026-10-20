@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50190 "Filename Batch Measure"
+codeunit 149540 "Filename Batch Measure"
 {
     // Records (not pass/fail) what happens when one action produces several files with the same
     // name, in the Base Application workflows below that can be driven from AL; log lines begin "B".

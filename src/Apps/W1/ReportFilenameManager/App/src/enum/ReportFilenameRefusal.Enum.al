@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50116 "Report Filename Refusal"
+enum 43006 "Report Filename Refusal"
 {
     // Why a fully resolved name is still not used as a file name, so Test Pattern can say so
     // instead of blaming a placeholder. None means the name is used.

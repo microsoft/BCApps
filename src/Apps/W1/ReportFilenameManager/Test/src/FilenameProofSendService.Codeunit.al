@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50195 "Filename Proof Send Service"
+codeunit 149545 "Filename Proof Send Service"
 {
     // Sends an invoice through the electronic document service, isolated: with no service set up the
     // send fails, after SendElectronically has built and named the file.

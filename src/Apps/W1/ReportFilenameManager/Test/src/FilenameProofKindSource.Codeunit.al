@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50168 "Filename Proof Kind Source"
+codeunit 149518 "Filename Proof Kind Source"
 {
     // Makes the proof document a kind of document Business Central can name, through the events
     // Report Distribution Management raises for an unknown table. It reaches the kind-of-document

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50160 "Filename Proof Demo Setup"
+codeunit 149510 "Filename Proof Demo Setup"
 {
     // Seeds a representative set of patterns and data for manual testing in a client.
     // Rows are created through Validate so each gets its binding built as if typed on the card

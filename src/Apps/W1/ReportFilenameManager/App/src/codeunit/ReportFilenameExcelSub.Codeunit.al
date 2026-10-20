@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50127 "Report Filename Excel Sub."
+codeunit 43017 "Report Filename Excel Sub."
 {
     // Temporary stand-in until Base Application raises a file name event for the financial report
     // workbook that Export Acc. Sched. to Excel downloads (ask 4); then this codeunit is removed.

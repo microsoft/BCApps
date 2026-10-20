@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50110 "Report Filename Output Route"
+enum 43000 "Report Filename Output Route"
 {
     // Values 1-4 map the report payload's 'intent' (PRINT, PREVIEW, SAVE, DOWNLOAD); any other
     // intent maps to Any. Values 5-10 are not read from the intent: this app's subscribers set them

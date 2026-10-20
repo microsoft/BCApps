@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50192 "Filename Reminder Tests"
+codeunit 149542 "Filename Reminder Tests"
 {
     // Names on a reminder automation email with its overdue invoices attached, sent and through the
     // download fallback (no email account), with and without patterns. The reminder is constructed

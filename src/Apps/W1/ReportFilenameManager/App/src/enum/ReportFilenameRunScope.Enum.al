@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50114 "Report Filename Run Scope"
+enum 43004 "Report Filename Run Scope"
 {
     // How much of the table a Test Pattern run covers.
 

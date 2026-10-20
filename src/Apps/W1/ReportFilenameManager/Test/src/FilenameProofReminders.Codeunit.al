@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50153 "Filename Proof Reminders"
+codeunit 149503 "Filename Proof Reminders"
 {
     // Proves the Table Filter (applied in filter group 10, so it narrows the document's own
     // filter): a level 3 pattern wins for a level 3 reminder, loses for level 1, and is never

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50114 "Report Filename Plh. Mgt."
+codeunit 43004 "Report Filename Plh. Mgt."
 {
     // Which placeholders and tables are offered is derived from compiled metadata (Report
     // Metadata, Report Data Items, Table Metadata, Field), not from the company's records.

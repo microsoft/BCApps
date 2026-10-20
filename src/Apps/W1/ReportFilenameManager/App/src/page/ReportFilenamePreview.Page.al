@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-page 50112 "Report Filename Preview"
+page 43002 "Report Filename Preview"
 {
     Caption = 'Example File Name';
     PageType = CardPart;

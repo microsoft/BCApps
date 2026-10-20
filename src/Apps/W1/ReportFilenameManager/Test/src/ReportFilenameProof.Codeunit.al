@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50150 "Report Filename Proof"
+codeunit 149500 "Report Filename Proof"
 {
     // Proves one pattern produces the same file name on three routes:
     //   Preview   - TryResolve with filter views and an unopened record reference

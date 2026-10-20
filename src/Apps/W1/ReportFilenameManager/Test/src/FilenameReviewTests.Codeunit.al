@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50184 "Filename Review Tests"
+codeunit 149534 "Filename Review Tests"
 {
     // Regression tests. Expected names come from Base Application's own output where it has one;
     // the rebuilt default that OnlyBusinessCentralsDefaultIsRecognised uses is itself checked

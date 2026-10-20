@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-page 50110 "Report Filename Patterns"
+page 43000 "Report Filename Patterns"
 {
     Caption = 'Report Filename Patterns';
     PageType = List;

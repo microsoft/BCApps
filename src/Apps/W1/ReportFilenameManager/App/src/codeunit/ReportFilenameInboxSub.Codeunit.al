@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50122 "Report Filename Inbox Sub."
+codeunit 43012 "Report Filename Inbox Sub."
 {
     // The scheduled route: names Report Inbox rows as they are inserted, and downloads them under
     // that name until Base Application raises a file name event (see OnBeforeShowReport).

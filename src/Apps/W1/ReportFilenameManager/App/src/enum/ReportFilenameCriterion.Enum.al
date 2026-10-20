@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50115 "Report Filename Criterion"
+enum 43005 "Report Filename Criterion"
 {
     // The first pattern criterion a document fails, in the order naming checks them, so Test
     // Pattern can say why a pattern does not apply. None means the pattern applies.

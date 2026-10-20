@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50173 "Filename Proof Seed Rmdr"
+codeunit 149523 "Filename Proof Seed Rmdr"
 {
     // Makes sure the company has a level 1 issued reminder for the reminder proofs to start from.
     // It is constructed rather than issued: issuing needs overdue entries and posting setup the

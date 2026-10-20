@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50125 "Report Filename Guided Exp."
+codeunit 43015 "Report Filename Guided Exp."
 {
     // Lists Report Filename Setup under Manual Setup, in the System category, where Base
     // Application also lists Report Layout Selection.

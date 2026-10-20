@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50111 "Report Filename Date Format"
+enum 43001 "Report Filename Date Format"
 {
     // Fixed formats rather than the user's regional format, so a date in a file name is unambiguous
     // and has no characters that are illegal in a file name. The default, year first, sorts by date.

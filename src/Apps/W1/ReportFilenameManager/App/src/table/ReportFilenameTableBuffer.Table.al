@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-table 50112 "Report Filename Table Buffer"
+table 43002 "Report Filename Table Buffer"
 {
     // Tables that some non-processing report is about (Report Filename Mgt.SubjectTableNo), each
     // with its number of reports, which a filter on Table Metadata could not carry.

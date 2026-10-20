@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50121 "Report Filename Inbox Mgt."
+codeunit 43011 "Report Filename Inbox Mgt."
 {
     // The scheduled route. Job Queue Start Report renders with REPORT.SaveAs into the Report Inbox
     // row's stream, and Report Inbox names the download itself; the name is decided when the row

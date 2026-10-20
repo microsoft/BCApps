@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 50110 "Report Filename Mgt."
+codeunit 43000 "Report Filename Mgt."
 {
     // Decides a report's output file name from the configured patterns; the delivery routes apply it.
     // The document is found the same way on every route (see FindDocument); a pattern's Output

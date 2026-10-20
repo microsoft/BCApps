@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-table 50115 "Report Filename Setup"
+table 43005 "Report Filename Setup"
 {
     // No row means the defaults (disabled, 100 characters), so nothing is created at install.
 

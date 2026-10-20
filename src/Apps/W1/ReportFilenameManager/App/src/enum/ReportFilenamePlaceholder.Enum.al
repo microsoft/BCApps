@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-enum 50113 "Report Filename Placeholder" implements "Report Filename Placeholder"
+enum 43003 "Report Filename Placeholder" implements "Report Filename Placeholder"
 {
     // The computed values a pattern can use. Extension point: a partner adds a value by
     // extending this enum and shipping one codeunit implementing the interface.
