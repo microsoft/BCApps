@@ -241,7 +241,10 @@ codeunit 12285 "FatturaPA Preview Mgt."
                             SalesShipmentHeader."Fattura Tender Code",
                             SalesShipmentHeader."Customer Purchase Order No.", false);
                         HasShipmentReference := true;
-                        QuantityToMatch -= Min(QuantityToMatch, UninvoicedShipmentQty);
+                        if QuantityToMatch <= UninvoicedShipmentQty then
+                            QuantityToMatch := 0
+                        else
+                            QuantityToMatch -= UninvoicedShipmentQty;
                     end;
             until (SalesShipmentLine.Next() = 0) or (QuantityToMatch <= 0);
     end;

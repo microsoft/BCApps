@@ -483,6 +483,10 @@ codeunit 144200 "FatturaPA Test"
         TempFatturaHeader: Record "Fattura Header" temporary;
         TempFatturaLine: Record "Fattura Line" temporary;
         FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
+        TempBlob: Codeunit "Temp Blob";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ClientFileName: Text[250];
         PostedInvoiceNo: Code[20];
     begin
         Initialize();
@@ -498,6 +502,10 @@ codeunit 144200 "FatturaPA Test"
             AppliedInvoice."Bill-to Customer No.", SalesHeader."Document Type"::"Credit Memo");
         SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
         SalesHeader.Validate("Applies-to Doc. No.", PostedInvoiceNo);
+        // The Italian posting logic requires an installment selection for direct
+        // application. Library - Sales normally defaults this to occurrence 1
+        // when posting, but posting preview uses the source Sales Header as-is.
+        SalesHeader.Validate("Applies-to Occurrence No.", 1);
         SalesHeader.Modify(true);
         Commit();
 
@@ -507,6 +515,13 @@ codeunit 144200 "FatturaPA Test"
             'Preview omitted a known invoice application.');
         Assert.AreEqual(AppliedInvoice."Posting Date", TempFatturaHeader."Applied Posting Date",
             'Preview did not resolve the applied invoice posting date.');
+
+        ExportFatturaPADocument.GenerateXMLFile(TempBlob, TempFatturaLine, TempFatturaHeader, ClientFileName);
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiGenerali/DatiFattureCollegate/IdDocumento',
+            PostedInvoiceNo);
     end;
 
     [Test]
