@@ -11,7 +11,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
 
-pageextension 7000164 "CRT Bookkeeper Role Center" extends "Bookkeeper Role Center"
+pageextension 7000029 "CRT Bookkeeper Role Center" extends "Bookkeeper Role Center"
 {
     actions
     {

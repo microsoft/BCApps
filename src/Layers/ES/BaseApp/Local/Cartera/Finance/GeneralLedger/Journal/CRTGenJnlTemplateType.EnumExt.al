@@ -7,7 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 /// <summary>
 /// Extension that adds the Cartera template type for Spanish legal requirements.
 /// </summary>
-enumextension 7000100 "CRT Gen. Jnl. Template Type" extends "Gen. Journal Template Type"
+enumextension 7000000 "CRT Gen. Jnl. Template Type" extends "Gen. Journal Template Type"
 {
     /// <summary>
     /// Cartera template type for Spanish bill collections and cash management.

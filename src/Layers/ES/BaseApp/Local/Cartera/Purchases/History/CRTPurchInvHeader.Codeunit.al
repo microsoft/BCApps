@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.Purchases.Payables;
 
-codeunit 7000106 "CRT Purch. Inv. Header"
+codeunit 7000015 "CRT Purch. Inv. Header"
 {
     Access = Internal;
 

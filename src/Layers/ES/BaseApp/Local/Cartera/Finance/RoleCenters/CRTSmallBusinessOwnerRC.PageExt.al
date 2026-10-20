@@ -13,7 +13,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
 
-pageextension 7000187 "CRT Small Business Owner RC" extends "Small Business Owner RC"
+pageextension 7000070 "CRT Small Business Owner RC" extends "Small Business Owner RC"
 {
     actions
     {

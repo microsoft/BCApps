@@ -8,7 +8,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-pageextension 10705 "CRT Acc. Receivable Activities" extends "Acc. Receivable Activities"
+pageextension 7000014 "CRT Acc. Receivable Activities" extends "Acc. Receivable Activities"
 {
     layout
     {

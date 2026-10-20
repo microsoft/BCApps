@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Navigate;
 
-pageextension 7000116 "CRTNavigate" extends Navigate
+pageextension 7000017 "CRTNavigate" extends Navigate
 {
     layout
     {

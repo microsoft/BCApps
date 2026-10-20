@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
-pageextension 7000158 "CRT General Ledger Entries" extends "General Ledger Entries"
+pageextension 7000024 "CRT General Ledger Entries" extends "General Ledger Entries"
 {
     layout
     {

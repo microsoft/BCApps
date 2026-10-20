@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-permissionsetextension 7000104 "CRT GL Journals - Edit" extends "General Ledger Journals - Edit"
+permissionsetextension 7000005 "CRT GL Journals - Edit" extends "General Ledger Journals - Edit"
 {
     Permissions = tabledata "Bill Group" = R,
                   tabledata "Cartera Doc." = R,

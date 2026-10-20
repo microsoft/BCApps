@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-pageextension 7000186 "CRT Small Business Owner Act." extends "Small Business Owner Act."
+pageextension 7000069 "CRT Small Business Owner Act." extends "Small Business Owner Act."
 {
     layout
     {

@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Receivables;
 
-pageextension 7000179 "CRT Customer List" extends "Customer List"
+pageextension 7000062 "CRT Customer List" extends "Customer List"
 {
     layout
     {

@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-permissionsetextension 7000100 "CRT LOCAL" extends "LOCAL"
+permissionsetextension 7000000 "CRT LOCAL" extends "LOCAL"
 {
     Permissions = tabledata "BG/PO Comment Line" = RIMD,
                   tabledata "BG/PO Post. Buffer" = RIMD,

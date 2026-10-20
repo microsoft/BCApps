@@ -6,7 +6,7 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.Sales.Receivables;
 
-codeunit 7000105 "CRT Sales Shipment Header"
+codeunit 7000014 "CRT Sales Shipment Header"
 {
     Access = Internal;
 

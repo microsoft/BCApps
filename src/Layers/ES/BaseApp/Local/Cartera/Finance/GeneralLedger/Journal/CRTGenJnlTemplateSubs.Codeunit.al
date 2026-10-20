@@ -10,7 +10,7 @@ using Microsoft.Foundation.AuditCodes;
 /// <summary>
 /// Codeunit that handles Cartera-specific configuration for Gen. Journal Template.
 /// </summary>
-codeunit 7000195 "CRT Gen. Jnl. Template Subs"
+codeunit 7000024 "CRT Gen. Jnl. Template Subs"
 {
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Template", 'OnAfterValidateType', '', true, false)]
     local procedure OnAfterValidateType(var GenJournalTemplate: Record "Gen. Journal Template"; SourceCodeSetup: Record "Source Code Setup")

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.BankAccount;
 
-pageextension 7000156 "CRT Payment Methods" extends "Payment Methods"
+pageextension 7000022 "CRT Payment Methods" extends "Payment Methods"
 {
     layout
     {

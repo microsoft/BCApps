@@ -14,7 +14,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
 
-pageextension 7000171 "CRT Finance Manager RC" extends "Finance Manager Role Center"
+pageextension 7000054 "CRT Finance Manager RC" extends "Finance Manager Role Center"
 {
     actions
     {

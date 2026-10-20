@@ -6,7 +6,7 @@ namespace Microsoft.Bank.BankAccount;
 
 using Microsoft.Foundation.Period;
 
-pageextension 7000155 "CRT Bank Account Statistics" extends "Bank Account Statistics"
+pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statistics"
 {
     layout
     {

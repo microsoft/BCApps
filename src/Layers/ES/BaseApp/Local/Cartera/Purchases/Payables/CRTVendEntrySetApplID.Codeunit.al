@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-codeunit 7000107 "CRTVendEntrySetApplID"
+codeunit 7000016 "CRTVendEntrySetApplID"
 {
     var
         CannotBeAppliedErr: Label '%1 cannot be applied, since it is included in a bill group.', Comment = '%1 = Description';

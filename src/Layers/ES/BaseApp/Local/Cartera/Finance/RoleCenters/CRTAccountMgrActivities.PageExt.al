@@ -7,7 +7,7 @@ namespace Microsoft.Finance.RoleCenters;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
-pageextension 7000162 "CRT Account Mgr. Activities" extends "Account Manager Activities"
+pageextension 7000026 "CRT Account Mgr. Activities" extends "Account Manager Activities"
 {
     layout
     {

@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-codeunit 7000114 "CRT DataClass EvalData Country"
+codeunit 7000021 "CRT DataClass EvalData Country"
 {
     var
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";

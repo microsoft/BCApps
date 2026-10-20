@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 
-codeunit 7000110 "CRT Gen. Jnl.-Post Line"
+codeunit 7000017 "CRT Gen. Jnl.-Post Line"
 {
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnInsertVATOnAfterAssignVATEntryFields', '', true, false)]

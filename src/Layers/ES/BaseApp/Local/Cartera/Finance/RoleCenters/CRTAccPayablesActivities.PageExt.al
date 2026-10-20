@@ -8,7 +8,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 
-pageextension 7000003 "CRT Acc. Payables Activities" extends "Acc. Payables Activities"
+pageextension 7000075 "CRT Acc. Payables Activities" extends "Acc. Payables Activities"
 {
     layout
     {

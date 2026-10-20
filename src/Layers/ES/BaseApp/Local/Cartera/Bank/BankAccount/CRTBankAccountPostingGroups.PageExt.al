@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.BankAccount;
 
-pageextension 7000154 "CRT BankAccountPostingGroups" extends "Bank Account Posting Groups"
+pageextension 7000020 "CRT BankAccountPostingGroups" extends "Bank Account Posting Groups"
 {
     layout
     {

@@ -6,7 +6,7 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-pageextension 7000161 "CRT Accounting Mgr. Role Ctr." extends "Accounting Manager Role Center"
+pageextension 7000025 "CRT Accounting Mgr. Role Ctr." extends "Accounting Manager Role Center"
 {
     actions
     {

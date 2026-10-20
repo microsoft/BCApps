@@ -6,7 +6,7 @@ namespace System.Security.AccessControl;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-permissionsetextension 7000102 "CRT GLOBAL DIM MGT" extends "D365 GLOBAL DIM MGT"
+permissionsetextension 7000003 "CRT GLOBAL DIM MGT" extends "D365 GLOBAL DIM MGT"
 {
     Permissions = tabledata "Cartera Doc." = RM,
                   tabledata "Closed Cartera Doc." = RM,

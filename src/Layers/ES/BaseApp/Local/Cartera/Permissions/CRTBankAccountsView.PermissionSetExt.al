@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-permissionsetextension 7000103 "CRT Bank Accounts - View" extends "Bank Accounts - View"
+permissionsetextension 7000004 "CRT Bank Accounts - View" extends "Bank Accounts - View"
 {
     Permissions = tabledata "Bill Group" = R,
                   tabledata "Cartera Doc." = R,

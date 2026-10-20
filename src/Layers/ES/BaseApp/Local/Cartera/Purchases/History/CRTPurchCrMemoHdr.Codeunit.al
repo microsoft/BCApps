@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.Purchases.Payables;
 
-codeunit 7000101 "CRT Purch. Cr. Memo Hdr."
+codeunit 7000002 "CRT Purch. Cr. Memo Hdr."
 {
     Access = Internal;
 

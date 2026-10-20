@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Receivables;
 
-pageextension 7000170 "CRT Sales Credit Memo" extends "Sales Credit Memo"
+pageextension 7000053 "CRT Sales Credit Memo" extends "Sales Credit Memo"
 {
     layout
     {

@@ -13,7 +13,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
 
-codeunit 7000111 "CRT Copy Document Mgt."
+codeunit 7000018 "CRT Copy Document Mgt."
 {
     var
         SettlementErr: Label 'At least one document of %1 No. %2 is closed or in a Bill Group. This will avoid the document to be settled. The posting process of %3 No. %4 wont settle any document', Comment = '%1 - Document Type, %2 - Document No., %3 - Document Type, %4 - Document No.';

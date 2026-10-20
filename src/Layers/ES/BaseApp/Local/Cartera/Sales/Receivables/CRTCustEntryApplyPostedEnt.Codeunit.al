@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.ReceivablesPayables;
 
-codeunit 7000112 "CRTCustEntryApplyPostedEnt"
+codeunit 7000019 "CRTCustEntryApplyPostedEnt"
 {
     var
         ApplicationEntryDescriptionLbl: Label 'Application of %1 %2', Comment = '%1 = Document Type, %2 = Document No.';
