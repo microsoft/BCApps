@@ -755,12 +755,13 @@ codeunit 139400 "Permissions Test"
         // [WHEN] Customer is selected through AssistEdit
         EffectivePermOverview.OpenEdit();
         EffectivePermOverview.UserFilter.SetValue(UserId());
-        EffectivePermOverview.Apply.Invoke();
+        EffectivePermOverview.ObjTypeFilter.SetValue(TenantPermission[1]."Object Type" + 1);
         EffectivePermOverview.ObjIDFilter.AssistEdit();
         // Handled in SelectCustomerInAllObjectsLookupHandler
+        EffectivePermOverview.Apply.Invoke();
 
         // [THEN] The selected object ID is applied and all displayed rows match it
-        Assert.AreEqual(AllObj."Object ID", EffectivePermOverview.ObjIDFilter.Value, 'Object ID filter was not applied.');
+        Assert.AreEqual(Format(AllObj."Object ID"), EffectivePermOverview.ObjIDFilter.Value, 'Object ID filter was not applied.');
         Assert.IsTrue(EffectivePermOverview.First(), 'A permission for the selected object should be displayed.');
         repeat
             EffectivePermOverview.UserName.AssertEquals(UserId());
