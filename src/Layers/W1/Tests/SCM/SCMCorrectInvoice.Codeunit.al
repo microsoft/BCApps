@@ -1556,6 +1556,11 @@ codeunit 137019 "SCM Correct Invoice"
 
         if PartiallyInvoice then begin
             // [THEN] The remaining quantity consumes the full released prepayment.
+            // Posting resets pending quantities on the other line, which must remain unposted.
+            RemainingSalesLine.Find();
+            RemainingSalesLine.Validate("Qty. to Ship", 0);
+            RemainingSalesLine.Validate("Qty. to Invoice", 0);
+            RemainingSalesLine.Modify(true);
             SalesHeader.Find();
             SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
             SalesInvoiceHeader.CalcFields(Amount);
@@ -1568,6 +1573,9 @@ codeunit 137019 "SCM Correct Invoice"
             PrepaidSalesLine.TestField("Qty. to Invoice", 0);
             PrepaidSalesLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct);
             PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 0);
+            RemainingSalesLine.Find();
+            RemainingSalesLine.TestField("Quantity Shipped", 0);
+            RemainingSalesLine.TestField("Quantity Invoiced", 0);
             exit;
         end;
 

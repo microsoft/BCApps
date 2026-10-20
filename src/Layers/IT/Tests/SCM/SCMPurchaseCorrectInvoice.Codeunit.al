@@ -1367,6 +1367,11 @@ codeunit 137025 "SCM Purchase Correct Invoice"
 
         if PartiallyInvoice then begin
             // [THEN] The remaining quantity consumes the full released prepayment.
+            // Posting resets pending quantities on the other line, which must remain unposted.
+            RemainingPurchaseLine.Find();
+            RemainingPurchaseLine.Validate("Qty. to Receive", 0);
+            RemainingPurchaseLine.Validate("Qty. to Invoice", 0);
+            RemainingPurchaseLine.Modify(true);
             PurchaseHeader.Find();
             PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
             PurchaseHeader.Validate(Receive, true);
@@ -1384,6 +1389,9 @@ codeunit 137025 "SCM Purchase Correct Invoice"
             PrepaidPurchaseLine.TestField("Qty. to Invoice", 0);
             PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct);
             PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 0);
+            RemainingPurchaseLine.Find();
+            RemainingPurchaseLine.TestField("Quantity Received", 0);
+            RemainingPurchaseLine.TestField("Quantity Invoiced", 0);
             exit;
         end;
 
