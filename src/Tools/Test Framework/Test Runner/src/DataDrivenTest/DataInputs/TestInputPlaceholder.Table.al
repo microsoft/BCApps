@@ -19,11 +19,6 @@ table 130455 "Test Input Placeholder"
             Caption = 'Name';
             ToolTip = 'Specifies the placeholder name.';
         }
-        field(2; Tag; Code[100])
-        {
-            Caption = 'Tag';
-            ToolTip = 'Specifies the tag that separates this placeholder from other placeholders with the same name.';
-        }
         field(3; Company; Text[30])
         {
             Caption = 'Company';
@@ -38,12 +33,9 @@ table 130455 "Test Input Placeholder"
 
     keys
     {
-        key(PK; Name, Tag, Company)
+        key(PK; Name, Company)
         {
             Clustered = true;
-        }
-        key(TagCompany; Tag, Company)
-        {
         }
     }
 

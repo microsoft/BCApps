@@ -17,20 +17,21 @@ codeunit 130482 "Test Input Placeholder Tests"
         DataTools: Codeunit "Test Input Data Tools";
         Assert: Codeunit "Library Assert";
         TestName: Text;
-        TestTag: Text;
 
     [Test]
     procedure SetGetsAndOverwritesCaseInsensitiveName()
     var
+        Name: Text;
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder('Customer1No', '00123-Abc');
-        Assert.IsTrue(DataTools.GetPlaceholder('customer1no', Value), 'The name must be case-insensitive.');
+        Name := TestName + '-Customer1No';
+        DataTools.SetPlaceholder(Name, '00123-Abc');
+        Assert.IsTrue(DataTools.GetPlaceholder(LowerCase(Name), Value), 'The name must be case-insensitive.');
         Assert.AreEqual('00123-Abc', Value, 'Values must retain their case and leading zeros.');
 
-        DataTools.SetPlaceholder('CUSTOMER1NO', 'Updated');
-        Assert.IsTrue(DataTools.GetPlaceholder('Customer1No', Value), 'The overwritten entry must exist.');
+        DataTools.SetPlaceholder(UpperCase(Name), 'Updated');
+        Assert.IsTrue(DataTools.GetPlaceholder(Name, Value), 'The overwritten entry must exist.');
         Assert.AreEqual('Updated', Value, 'Setting an existing key must overwrite it.');
     end;
 
@@ -46,44 +47,55 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    procedure ExplicitTagDoesNotChangeActiveTag()
+    procedure ExplicitCompanyDoesNotChangeDefaultLookup()
     var
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'active');
-        DataTools.SetPlaceholder(TestName, 'other', TestTag + '-other');
-        DataTools.SetPlaceholder(TestName, 'blank', '');
+        DataTools.SetPlaceholder(TestName, 'local');
+        DataTools.SetPlaceholderForCompany(TestName, 'other', 'Another company');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
 
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'The active tag must still be selected.');
-        Assert.AreEqual('active', Value, 'Explicit overloads must not change the active tag.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, ''), 'Explicit blank tag must be supported.');
-        Assert.AreEqual('blank', Value, 'Explicit blank tag is not the active tag.');
-        Assert.AreEqual('active', DataTools.ResolveText(Token(TestName)), 'Reads must continue using the active tag.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Default lookup must still use the current company.');
+        Assert.AreEqual('local', Value, 'Explicit operations must not change the default company.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, 'Another company'), 'Explicit company lookup must succeed.');
+        Assert.AreEqual('other', Value, 'Explicit company lookup must select its exact row.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, ''), 'Explicit shared lookup must succeed.');
+        Assert.AreEqual('shared', Value, 'Explicit blank company must select the shared row.');
+        Assert.AreEqual('local', DataTools.ResolveText(Token(TestName)), 'Text reads must continue using the current company.');
     end;
 
     [Test]
-    procedure BlankTagIsNotWildcard()
+    procedure UnqualifiedNameDoesNotMatchAffixedNames()
     var
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'tagged', TestTag, '');
-        DataTools.SetTag('');
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value), 'Blank tag must not search other tags.');
-        Assert.AreEqual(Token(TestName), DataTools.ResolveText(Token(TestName)), 'A different tag must remain unresolved.');
+        DataTools.SetPlaceholderForCompany('PREFIX-' + TestName, 'prefixed', '');
+        DataTools.SetPlaceholder(TestName + '-SUFFIX', 'suffixed');
+        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value), 'Lookup must not add or remove name affixes.');
+        Assert.AreEqual(Token(TestName), DataTools.ResolveText(Token(TestName)), 'The unregistered base name must remain unresolved.');
+        Assert.AreEqual(
+            'prefixed / suffixed', DataTools.ResolveText(Token('PREFIX-' + TestName) + ' / ' + Token(TestName + '-SUFFIX')),
+            'Full prefixed and suffixed names must resolve independently.');
     end;
 
     [Test]
-    procedure TagsAreCaseInsensitive()
+    procedure AffixedNamesAreCaseInsensitive()
     var
+        PrefixedName: Text;
+        SuffixedName: Text;
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'value', LowerCase(TestTag));
-        DataTools.SetTag(UpperCase(TestTag));
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Tags must use Code normalization.');
-        Assert.AreEqual('value', Value, 'The same normalized tag must be selected.');
+        PrefixedName := 'Scope-' + TestName;
+        SuffixedName := TestName + '-Scope';
+        DataTools.SetPlaceholder(LowerCase(PrefixedName), 'prefixed');
+        DataTools.SetPlaceholder(LowerCase(SuffixedName), 'suffixed');
+        Assert.IsTrue(DataTools.GetPlaceholder(UpperCase(PrefixedName), Value), 'A prefix is part of the case-insensitive name.');
+        Assert.AreEqual('prefixed', Value, 'The prefixed name must identify its own value.');
+        Assert.IsTrue(DataTools.GetPlaceholder(UpperCase(SuffixedName), Value), 'A suffix is part of the case-insensitive name.');
+        Assert.AreEqual('suffixed', Value, 'The suffixed name must identify its own value.');
     end;
 
     [Test]
@@ -92,22 +104,22 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
         DataTools.SetPlaceholder(TestName, 'local');
         Assert.AreEqual('local', DataTools.ResolveText(Token(TestName)), 'Current-company values take precedence.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag, 'Another company'), 'Other companies use shared fallback.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, 'Another company'), 'Other companies use shared fallback.');
         Assert.AreEqual('shared', Value, 'Fallback must select the shared row.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag, ''), 'Explicit shared lookup must succeed.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, ''), 'Explicit shared lookup must succeed.');
         Assert.AreEqual('shared', Value, 'Explicit shared lookup must bypass the local row.');
     end;
 
     [Test]
-    procedure CompanyFallbackDoesNotCrossTags()
+    procedure CompanyFallbackDoesNotCrossNames()
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'selected-shared', TestTag, '');
-        DataTools.SetPlaceholder(TestName, 'other-local', TestTag + '-other');
-        Assert.AreEqual('selected-shared', DataTools.ResolveText(Token(TestName)), 'Company precedence applies only within the selected tag.');
+        DataTools.SetPlaceholderForCompany(TestName, 'selected-shared', '');
+        DataTools.SetPlaceholder(TestName + '-other', 'other-local');
+        Assert.AreEqual('selected-shared', DataTools.ResolveText(Token(TestName)), 'Company fallback must use the exact full name.');
     end;
 
     [Test]
@@ -116,7 +128,7 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
         DataTools.SetPlaceholder(TestName, '');
         Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'An empty registered value is a match.');
         Assert.AreEqual('', Value, 'An empty local row must not fall back.');
@@ -155,16 +167,14 @@ codeunit 130482 "Test Input Placeholder Tests"
     procedure MaximumKeyLengthsAreAccepted()
     var
         Name: Text;
-        Tag: Text;
         Company: Text;
         Value: Text;
     begin
         Initialize();
         Name := PadStr(TestName, 100, 'N');
-        Tag := PadStr(TestTag, 100, 'T');
         Company := PadStr('Company', 30, 'C');
-        DataTools.SetPlaceholder(Name, 'value', Tag, Company);
-        Assert.IsTrue(DataTools.GetPlaceholder(Name, Value, Tag, Company), 'Maximum-length keys must be accepted.');
+        DataTools.SetPlaceholderForCompany(Name, 'value', Company);
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(Name, Value, Company), 'Maximum-length keys must be accepted.');
         Assert.AreEqual('value', Value, 'Maximum-length keys must round-trip without truncation.');
     end;
 
@@ -179,6 +189,9 @@ codeunit 130482 "Test Input Placeholder Tests"
         Names.Add('bad name');
         Names.Add('bad$name');
         Names.Add('bad.name');
+        Names.Add('bad*name');
+        Names.Add('bad|name');
+        Names.Add('bad?name');
         Names.Add(' name ');
         Names.Add(PadStr('N', 101, 'N'));
         foreach Name in Names do begin
@@ -188,16 +201,16 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    procedure OverlongTagAndCompanyAreRejected()
+    procedure OverlongFullNameAndCompanyAreRejected()
     var
         Value: Text;
     begin
         Initialize();
-        asserterror DataTools.SetTag(PadStr('T', 101, 'T'));
-        Assert.ExpectedError('must not exceed 100 characters');
-        asserterror DataTools.SetPlaceholder(TestName, 'value', PadStr('T', 101, 'T'));
-        Assert.ExpectedError('must not exceed 100 characters');
-        asserterror DataTools.SetPlaceholder(TestName, 'value', TestTag, PadStr('C', 31, 'C'));
+        asserterror DataTools.SetPlaceholder('P-' + PadStr(TestName, 99, 'N'), 'value');
+        Assert.ExpectedError('The placeholder name must contain between 1 and 100 characters');
+        asserterror DataTools.SetPlaceholder(PadStr(TestName, 99, 'N') + '-S', 'value');
+        Assert.ExpectedError('The placeholder name must contain between 1 and 100 characters');
+        asserterror DataTools.SetPlaceholderForCompany(TestName, 'value', PadStr('C', 31, 'C'));
         Assert.ExpectedError('must not exceed 30 characters');
         Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value), 'Validation must not insert a partial row.');
     end;
@@ -231,8 +244,8 @@ codeunit 130482 "Test Input Placeholder Tests"
 
         asserterror DataTools.SetPlaceholder(TestName, '$Placeholder-Unknown$');
         Assert.ExpectedError('must not contain placeholder tokens');
-        Found := DataTools.GetPlaceholder(TestName, Value, TestTag);
-        DataTools.DeletePlaceholder(TestName, TestTag);
+        Found := DataTools.GetPlaceholder(TestName, Value);
+        DataTools.DeletePlaceholder(TestName);
         Commit();
 
         Assert.IsTrue(Found, 'Rejected overwrites must retain the original row.');
@@ -252,25 +265,33 @@ codeunit 130482 "Test Input Placeholder Tests"
 
     [Test]
     procedure ResolvesWholeEmbeddedRepeatedAndAdjacentTokens()
+    var
+        CustomerName: Text;
+        ItemName: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder('Customer1No', 'C1001');
-        DataTools.SetPlaceholder('BlockedItem1', 'I2001');
-        Assert.AreEqual('C1001', DataTools.ResolveText('$Placeholder-customer1no$'), 'Whole-value names are case-insensitive.');
+        CustomerName := TestName + '-Customer1No';
+        ItemName := TestName + '-BlockedItem1';
+        DataTools.SetPlaceholder(CustomerName, 'C1001');
+        DataTools.SetPlaceholder(ItemName, 'I2001');
+        Assert.AreEqual('C1001', DataTools.ResolveText(Token(LowerCase(CustomerName))), 'Whole-value names are case-insensitive.');
         Assert.AreEqual(
             'Use C1001/I2001C1001.',
-            DataTools.ResolveText('Use $Placeholder-Customer1No$/$Placeholder-BlockedItem1$$Placeholder-Customer1No$.'),
+            DataTools.ResolveText('Use ' + Token(CustomerName) + '/' + Token(ItemName) + Token(CustomerName) + '.'),
             'All original occurrences must be resolved.');
     end;
 
     [Test]
     procedure UnknownTokensDoNotBlockLaterTokens()
+    var
+        MissingToken: Text;
     begin
         Initialize();
+        MissingToken := Token(TestName + '-Missing');
         DataTools.SetPlaceholder(TestName, 'known');
         Assert.AreEqual(
-            '$Placeholder-Missing$ known $Placeholder-Missing$',
-            DataTools.ResolveText('$Placeholder-Missing$ ' + Token(TestName) + ' $Placeholder-Missing$'),
+            MissingToken + ' known ' + MissingToken,
+            DataTools.ResolveText(MissingToken + ' ' + Token(TestName) + ' ' + MissingToken),
             'Unknown names must remain literal without blocking later matches.');
     end;
 
@@ -303,20 +324,23 @@ codeunit 130482 "Test Input Placeholder Tests"
     procedure ReplacementOutputIsNotScannedAgain()
     begin
         Initialize();
-        DataTools.SetPlaceholder('Left', '$Place');
-        DataTools.SetPlaceholder('Right', 'holder-Other$');
-        DataTools.SetPlaceholder('Other', 'must-not-expand');
+        DataTools.SetPlaceholder(TestName + '-Left', '$Place');
+        DataTools.SetPlaceholder(TestName + '-Right', 'holder-' + TestName + '-Other$');
+        DataTools.SetPlaceholder(TestName + '-Other', 'must-not-expand');
         Assert.AreEqual(
-            '$Placeholder-Other$', DataTools.ResolveText('$Placeholder-Left$$Placeholder-Right$'),
+            Token(TestName + '-Other'), DataTools.ResolveText(Token(TestName + '-Left') + Token(TestName + '-Right')),
             'Adjacent replacement values must not trigger a second resolution pass.');
     end;
 
     [Test]
     procedure PrefixSpellingRemainsCaseSensitive()
+    var
+        Template: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder('Customer', 'value');
-        Assert.AreEqual('$placeholder-Customer$', DataTools.ResolveText('$placeholder-Customer$'), 'Only the name, not the fixed prefix, is case-insensitive.');
+        DataTools.SetPlaceholder(TestName, 'value');
+        Template := '$placeholder-' + TestName + '$';
+        Assert.AreEqual(Template, DataTools.ResolveText(Template), 'Only the name, not the fixed prefix, is case-insensitive.');
     end;
 
     [Test]
@@ -380,18 +404,19 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    procedure SuccessiveTurnReadsKeepActiveTag()
+    procedure SuccessiveTurnReadsUseFullName()
     var
         Input: Codeunit "Test Input Json";
         Turns: Codeunit "Test Input Json";
+        TurnsTemplateTok: Label '{"turns":[{"message":"%1"},{"message":"%1"}]}', Locked = true;
     begin
         Initialize();
-        Input.Initialize('{"turns":[{"message":"$Placeholder-Customer$"},{"message":"$Placeholder-Customer$"}]}');
-        DataTools.SetPlaceholder('Customer', 'first');
+        Input.Initialize(StrSubstNo(TurnsTemplateTok, Token(TestName)));
+        DataTools.SetPlaceholder(TestName, 'first');
         Turns := Input.Element('turns');
-        Assert.AreEqual('first', Turns.ElementAt(0).Element('message').ValueAsText(), 'First-turn reads use the active tag.');
-        DataTools.SetPlaceholder('Customer', 'second');
-        Assert.AreEqual('second', Turns.ElementAt(1).Element('message').ValueAsText(), 'Moving through input must not clear the tag.');
+        Assert.AreEqual('first', Turns.ElementAt(0).Element('message').ValueAsText(), 'First-turn reads must resolve the full name.');
+        DataTools.SetPlaceholder(TestName, 'second');
+        Assert.AreEqual('second', Turns.ElementAt(1).Element('message').ValueAsText(), 'Later turns must read the current value of the same full name.');
     end;
 
     [Test]
@@ -446,33 +471,36 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputText := Token(TestName) + ' $DateFormula-<CD>$ $DateTimeFormula-<CD>$';
         DataTools.SetTextReplacementsEnabled(false);
         Assert.AreEqual(InputText, DataTools.ResolveText(InputText), 'Disabled text resolution must bypass every token type.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag), 'Explicit get remains available while disabled.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Explicit get remains available while disabled.');
         Assert.AreEqual('value', Value, 'Disabling must not delete registrations.');
-        DataTools.SetPlaceholder(TestName, 'updated', TestTag);
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag), 'Explicit set remains available while disabled.');
+        DataTools.SetPlaceholder(TestName, 'updated');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Explicit set remains available while disabled.');
         Assert.AreEqual('updated', Value, 'Disabled state must not suppress writes.');
-        Assert.IsTrue(DataTools.DeletePlaceholder(TestName, TestTag), 'Explicit deletion remains available while disabled.');
+        Assert.IsTrue(DataTools.DeletePlaceholder(TestName), 'Explicit deletion remains available while disabled.');
     end;
 
     [Test]
-    procedure RepeatedEnableAndDisableBothClearTag()
+    procedure RepeatedEnableAndDisablePreserveValues()
     var
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'tagged');
-        DataTools.SetPlaceholder(TestName, 'blank', '');
+        DataTools.SetPlaceholder(TestName, 'local');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
         DataTools.SetTextReplacementsEnabled(true);
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Enable must reset the active tag even when already enabled.');
-        Assert.AreEqual('blank', Value, 'Enable must select the blank-tag namespace.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Repeated enable must retain the registration.');
+        Assert.AreEqual('local', Value, 'Enable must not change the selected value.');
+        Assert.AreEqual('local', DataTools.ResolveText(Token(TestName)), 'Repeated enable must keep text replacement enabled.');
 
         DataTools.SetTextReplacementsEnabled(false);
-        DataTools.SetTag(TestTag);
         DataTools.SetTextReplacementsEnabled(false);
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Repeated disable must reset the active tag.');
-        Assert.AreEqual('blank', Value, 'Disable must clear the tag without deleting values.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag), 'The tagged row must survive both switch operations.');
-        Assert.AreEqual('tagged', Value, 'Switch operations must not clean up table rows.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Repeated disable must retain the registration.');
+        Assert.AreEqual('local', Value, 'Disable must not change the selected value.');
+        Assert.AreEqual(Token(TestName), DataTools.ResolveText(Token(TestName)), 'Repeated disable must keep text replacement disabled.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, ''), 'The shared row must survive both switch operations.');
+        Assert.AreEqual('shared', Value, 'Switch operations must not clean up table rows.');
+        DataTools.SetTextReplacementsEnabled(true);
+        Assert.AreEqual('local', DataTools.ResolveText(Token(TestName)), 'Re-enabling must immediately resolve the retained local value.');
     end;
 
     [Test]
@@ -489,20 +517,20 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    procedure DeleteLocalDoesNotDeleteSharedOrOtherTag()
+    procedure DeleteLocalDoesNotDeleteSharedOrOtherName()
     var
         Value: Text;
     begin
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
-        DataTools.SetPlaceholder(TestName, 'other', TestTag + '-other');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
+        DataTools.SetPlaceholder(TestName + '-other', 'other');
         Assert.IsTrue(DataTools.DeletePlaceholder(TestName), 'The local row must be deleted.');
         Assert.IsFalse(DataTools.DeletePlaceholder(TestName), 'Single deletion must not follow shared fallback.');
         Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'The shared row must remain.');
         Assert.AreEqual('shared', Value, 'Deleting a local row exposes, but does not delete, its fallback.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag + '-other'), 'Other tags must be unaffected.');
-        Assert.AreEqual('other', Value, 'Other-tag data must remain unchanged.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName + '-other', Value), 'Other full names must be unaffected.');
+        Assert.AreEqual('other', Value, 'Other-name data must remain unchanged.');
     end;
 
     [Test]
@@ -512,79 +540,83 @@ codeunit 130482 "Test Input Placeholder Tests"
     begin
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
-        Assert.IsTrue(DataTools.DeletePlaceholder(TestName, TestTag, ''), 'Explicit blank company must delete the shared row.');
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value, TestTag, ''), 'The shared row must be absent.');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, ''), 'Explicit blank company must delete the shared row.');
+        Assert.IsFalse(DataTools.GetPlaceholderForCompany(TestName, Value, ''), 'The shared row must be absent.');
         Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'The local row must survive shared deletion.');
         Assert.AreEqual('local', Value, 'Explicit shared deletion must not broaden company scope.');
     end;
 
     [Test]
-    procedure TagCleanupIsCompanyScoped()
+    procedure DeletionIsCompanyScoped()
     var
         Value: Text;
     begin
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
-        DataTools.SetPlaceholder(TestName, 'other-company', TestTag, 'Another company');
-        DataTools.SetPlaceholder(TestName, 'other-tag', TestTag + '-other');
-        DataTools.DeletePlaceholdersByTag(TestTag);
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
+        DataTools.SetPlaceholderForCompany(TestName, 'other-company', 'Another company');
+        DataTools.SetPlaceholder(TestName + '-other', 'other-name');
+        Assert.IsTrue(DataTools.DeletePlaceholder(TestName), 'The exact current-company row must be deleted.');
         Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Shared fallback must survive current-company cleanup.');
         Assert.AreEqual('shared', Value, 'Only current-company rows are removed.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag, 'Another company'), 'Other companies must survive.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, 'Another company'), 'Other companies must survive.');
         Assert.AreEqual('other-company', Value, 'Another company must retain its exact value.');
 
-        DataTools.DeletePlaceholdersByTag(TestTag, '');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, ''), 'The exact shared row must be deleted.');
         Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value), 'Explicit shared cleanup removes only the shared row.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag + '-other'), 'Other tags must survive both cleanups.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName + '-other', Value), 'Other full names must survive both cleanups.');
     end;
 
     [Test]
-    procedure TagCleanupTreatsFilterCharactersLiterally()
+    procedure CompanyDeletionTreatsFilterCharactersLiterally()
     var
-        LiteralTag: Text;
+        LiteralCompany: Text;
         Value: Text;
     begin
         Initialize();
-        LiteralTag := TestTag + '*|?';
-        DataTools.SetPlaceholder(TestName, 'literal', LiteralTag);
-        DataTools.SetPlaceholder(TestName, 'other', TestTag + 'suffix');
-        DataTools.DeletePlaceholdersByTag(LiteralTag);
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value, LiteralTag), 'The exact literal tag must be deleted.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag + 'suffix'), 'Tag cleanup must not interpret filters.');
-        Assert.AreEqual('other', Value, 'Wildcard-like tag characters must not broaden deletion.');
+        LiteralCompany := 'Company*|?';
+        DataTools.SetPlaceholderForCompany(TestName, 'literal', LiteralCompany);
+        DataTools.SetPlaceholderForCompany(TestName, 'other', 'CompanySuffix');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, LiteralCompany), 'The exact literal company row must be deleted.');
+        Assert.IsFalse(DataTools.GetPlaceholderForCompany(TestName, Value, LiteralCompany), 'The exact literal company row must be absent.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, 'CompanySuffix'), 'Company deletion must not interpret filters.');
+        Assert.AreEqual('other', Value, 'Wildcard-like company characters must not broaden deletion.');
     end;
 
     [Test]
-    procedure AcrossCompanyTagCleanupKeepsOtherTags()
-    var
-        Value: Text;
-    begin
-        Initialize();
-        DataTools.SetPlaceholder(TestName, 'local');
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
-        DataTools.SetPlaceholder(TestName, 'other-company', TestTag, 'Another company');
-        DataTools.SetPlaceholder(TestName, 'other-tag', TestTag + '-other', '');
-        DataTools.DeletePlaceholdersByTagAcrossCompanies(TestTag);
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value), 'Current-company and shared entries must be removed.');
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value, TestTag, 'Another company'), 'All companies for the exact tag must be removed.');
-        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value, TestTag + '-other', ''), 'Other tags must remain.');
-    end;
-
-    [Test]
-    procedure DeleteAllClearsAllScopesWithoutCommit()
+    procedure OtherCompanyDeletionPreservesRemainingRows()
     var
         Value: Text;
     begin
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
-        DataTools.SetPlaceholder(TestName, 'shared', '', '');
-        DataTools.SetPlaceholder(TestName, 'other', TestTag + '-other', 'Another company');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
+        DataTools.SetPlaceholderForCompany(TestName, 'other-company', 'Another company');
+        DataTools.SetPlaceholderForCompany(TestName + '-other', 'other-name', '');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, 'Another company'), 'The exact other-company row must be deleted.');
+        Assert.IsFalse(DataTools.DeletePlaceholderForCompany(TestName, 'Another company'), 'Repeated deletion must not follow shared fallback.');
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'The current-company row must remain.');
+        Assert.AreEqual('local', Value, 'Explicit company deletion must preserve the current-company value.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, 'Another company'), 'The other company must now use shared fallback.');
+        Assert.AreEqual('shared', Value, 'The shared row must survive exact company deletion.');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName + '-other', Value, ''), 'Other full names must remain.');
+        Assert.AreEqual('other-name', Value, 'Other-name data must survive company deletion.');
+    end;
+
+    [Test]
+    procedure DeleteAllClearsAllNamesAndCompaniesWithoutCommit()
+    var
+        Value: Text;
+    begin
+        Initialize();
+        DataTools.SetPlaceholder(TestName, 'local');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
+        DataTools.SetPlaceholderForCompany(TestName + '-other', 'other', 'Another company');
         DataTools.DeleteAllPlaceholders();
         Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value), 'Delete-all must remove local entries.');
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value, '', ''), 'Delete-all must remove shared blank-tag entries.');
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value, TestTag + '-other', 'Another company'), 'Delete-all must remove other scopes.');
+        Assert.IsFalse(DataTools.GetPlaceholderForCompany(TestName, Value, ''), 'Delete-all must remove shared entries.');
+        Assert.IsFalse(DataTools.GetPlaceholderForCompany(TestName + '-other', Value, 'Another company'), 'Delete-all must remove other names and companies.');
         DataTools.DeleteAllPlaceholders();
     end;
 
@@ -592,6 +624,7 @@ codeunit 130482 "Test Input Placeholder Tests"
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure RolledBackWritesAreNotCached()
     var
+        RollbackProbe: Codeunit "Test Input Rollback Probe";
         ExistingValue: Text;
         InsertedValue: Text;
         DeletedValue: Text;
@@ -600,16 +633,19 @@ codeunit 130482 "Test Input Placeholder Tests"
         DeletedFound: Boolean;
     begin
         Initialize();
-        DataTools.SetPlaceholder('RollbackExisting', 'original');
-        DataTools.SetPlaceholder('RollbackDeleted', 'retained');
+        DataTools.SetPlaceholder(TestName + '-Existing', 'original');
+        DataTools.SetPlaceholder(TestName + '-Deleted', 'retained');
         Commit();
 
-        Assert.IsFalse(Codeunit.Run(Codeunit::"Test Input Rollback Probe"), 'The probe must roll back its transaction.');
+        RollbackProbe.Configure(TestName + '-Existing', TestName + '-Inserted', TestName + '-Deleted');
+        Assert.IsFalse(RollbackProbe.Run(), 'The probe must roll back its transaction.');
         Assert.ExpectedError('Rolling back placeholder probe writes.');
-        ExistingFound := DataTools.GetPlaceholder('RollbackExisting', ExistingValue, TestTag);
-        InsertedFound := DataTools.GetPlaceholder('RollbackInserted', InsertedValue, TestTag);
-        DeletedFound := DataTools.GetPlaceholder('RollbackDeleted', DeletedValue, TestTag);
-        DataTools.DeletePlaceholdersByTag(TestTag);
+        ExistingFound := DataTools.GetPlaceholder(TestName + '-Existing', ExistingValue);
+        InsertedFound := DataTools.GetPlaceholder(TestName + '-Inserted', InsertedValue);
+        DeletedFound := DataTools.GetPlaceholder(TestName + '-Deleted', DeletedValue);
+        DataTools.DeletePlaceholder(TestName + '-Existing');
+        DataTools.DeletePlaceholder(TestName + '-Inserted');
+        DataTools.DeletePlaceholder(TestName + '-Deleted');
         Commit();
 
         Assert.IsTrue(ExistingFound, 'Rollback must retain the original row.');
@@ -624,9 +660,9 @@ codeunit 130482 "Test Input Placeholder Tests"
     procedure AllowedNameCharactersResolve()
     begin
         Initialize();
-        DataTools.SetPlaceholder('1_Customer-No', 'C-001');
+        DataTools.SetPlaceholder('1_' + TestName + '-CustomerNo', 'C-001');
         Assert.AreEqual(
-            'C-001', DataTools.ResolveText('$Placeholder-1_customer-no$'),
+            'C-001', DataTools.ResolveText(Token(LowerCase('1_' + TestName + '-CustomerNo'))),
             'Names must support digits, underscores, hyphens, and case-insensitive lookup.');
     end;
 
@@ -644,24 +680,27 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    procedure ExistingWrapperUsesCurrentTag()
+    procedure ExistingWrappersKeepTheirFullNames()
     var
         Input: Codeunit "Test Input Json";
-        Element: Codeunit "Test Input Json";
+        PrefixedElement: Codeunit "Test Input Json";
+        SuffixedElement: Codeunit "Test Input Json";
         InputObject: JsonObject;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'first');
-        DataTools.SetPlaceholder(TestName, 'second', TestTag + '-other');
-        InputObject.Add('value', Token(TestName));
+        DataTools.SetPlaceholder('PREFIX-' + TestName, 'first');
+        DataTools.SetPlaceholder(TestName + '-SUFFIX', 'second');
+        InputObject.Add('prefixed', Token('PREFIX-' + TestName));
+        InputObject.Add('suffixed', Token(TestName + '-SUFFIX'));
         Input.Initialize(InputObject.AsToken());
-        Element := Input.Element('value');
+        PrefixedElement := Input.Element('prefixed');
+        SuffixedElement := Input.Element('suffixed');
 
-        Assert.AreEqual('first', Element.ValueAsText(), 'The initial tag must be selected.');
-        DataTools.SetTag(TestTag + '-other');
-        Assert.AreEqual('second', Element.ValueAsText(), 'An existing wrapper must use the currently selected tag.');
-        DataTools.SetTag(TestTag);
-        Assert.AreEqual('first', Element.ValueAsText(), 'Changing back must not reuse another tag''s value.');
+        Assert.AreEqual('first', PrefixedElement.ValueAsText(), 'The prefixed full name must select its own value.');
+        Assert.AreEqual('second', SuffixedElement.ValueAsText(), 'The suffixed full name must select its own value.');
+        DataTools.SetPlaceholder('PREFIX-' + TestName, 'updated');
+        Assert.AreEqual('updated', PrefixedElement.ValueAsText(), 'An existing wrapper must observe updates to its full name.');
+        Assert.AreEqual('second', SuffixedElement.ValueAsText(), 'Updating a different full name must not affect the wrapper.');
     end;
 
     [Test]
@@ -672,7 +711,7 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputObject: JsonObject;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'shared', TestTag, '');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
         DataTools.SetPlaceholder(TestName, 'local');
         InputObject.Add('value', Token(TestName));
         Input.Initialize(InputObject.AsToken());
@@ -681,7 +720,7 @@ codeunit 130482 "Test Input Placeholder Tests"
         Assert.AreEqual('local', Element.ValueAsText(), 'The exact company value must win initially.');
         Assert.IsTrue(DataTools.DeletePlaceholder(TestName), 'The local row must be deleted.');
         Assert.AreEqual('shared', Element.ValueAsText(), 'The wrapper must immediately observe shared fallback.');
-        Assert.IsTrue(DataTools.DeletePlaceholder(TestName, TestTag, ''), 'The shared row must be deleted.');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, ''), 'The shared row must be deleted.');
         Assert.AreEqual(Token(TestName), Element.ValueAsText(), 'Deleting both rows must restore the literal token.');
     end;
 
@@ -689,12 +728,12 @@ codeunit 130482 "Test Input Placeholder Tests"
     procedure ReplacementOutputDoesNotExpandDateTokens()
     begin
         Initialize();
-        DataTools.SetPlaceholder('Left', '$Date');
-        DataTools.SetPlaceholder('DateRight', 'Formula-<CD>$');
-        DataTools.SetPlaceholder('DateTimeRight', 'TimeFormula-<CD>-12:30:11$');
+        DataTools.SetPlaceholder(TestName + '-Left', '$Date');
+        DataTools.SetPlaceholder(TestName + '-DateRight', 'Formula-<CD>$');
+        DataTools.SetPlaceholder(TestName + '-DateTimeRight', 'TimeFormula-<CD>-12:30:11$');
         Assert.AreEqual(
             '$DateFormula-<CD>$ / $DateTimeFormula-<CD>-12:30:11$',
-            DataTools.ResolveText('$Placeholder-Left$$Placeholder-DateRight$ / $Placeholder-Left$$Placeholder-DateTimeRight$'),
+            DataTools.ResolveText(Token(TestName + '-Left') + Token(TestName + '-DateRight') + ' / ' + Token(TestName + '-Left') + Token(TestName + '-DateTimeRight')),
             'Named replacement output must not be rescanned as date or DateTime tokens.');
     end;
 
@@ -717,25 +756,23 @@ codeunit 130482 "Test Input Placeholder Tests"
         Assert.AreEqual(Template, Element.ValueAsText(), 'An existing wrapper must bypass all text replacements when disabled.');
         DataTools.SetTextReplacementsEnabled(true);
         Assert.AreEqual(
-            Token(TestName) + ' / ' + Format(WorkDate()), Element.ValueAsText(),
-            'Re-enabling must resolve dates but clear the active tag.');
-        DataTools.SetTag(TestTag);
-        Assert.AreEqual('customer / ' + Format(WorkDate()), Element.ValueAsText(), 'Selecting the tag must resolve the named value again.');
+            'customer / ' + Format(WorkDate()), Element.ValueAsText(),
+            'Re-enabling must resolve both retained named values and dates.');
         DataTools.SetTextReplacementsEnabled(false);
         Assert.AreEqual(Template, Element.ValueAsText(), 'Disabling again must return the original template.');
     end;
 
     [Test]
-    procedure ExplicitTagDeletionKeepsActiveTag()
+    procedure ExplicitCompanyDeletionKeepsDefaultLookup()
     var
         Value: Text;
     begin
         Initialize();
-        DataTools.SetPlaceholder(TestName, 'active');
-        DataTools.SetPlaceholder(TestName, 'other', TestTag + '-other');
-        Assert.IsTrue(DataTools.DeletePlaceholder(TestName, TestTag + '-other'), 'Explicit deletion must target the specified tag.');
-        Assert.IsFalse(DataTools.GetPlaceholder(TestName, Value, TestTag + '-other'), 'The explicitly selected row must be absent.');
-        Assert.AreEqual('active', DataTools.ResolveText(Token(TestName)), 'Explicit deletion must not change the active tag.');
+        DataTools.SetPlaceholder(TestName, 'local');
+        DataTools.SetPlaceholderForCompany(TestName, 'other', 'Another company');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, 'Another company'), 'Explicit deletion must target the specified company.');
+        Assert.IsFalse(DataTools.GetPlaceholderForCompany(TestName, Value, 'Another company'), 'The explicitly selected row must be absent.');
+        Assert.AreEqual('local', DataTools.ResolveText(Token(TestName)), 'Explicit deletion must not change the default company.');
     end;
 
     [Test]
@@ -748,16 +785,14 @@ codeunit 130482 "Test Input Placeholder Tests"
         Assert.ExpectedError('The placeholder name must contain between 1 and 100 characters');
         asserterror DataTools.DeletePlaceholder('');
         Assert.ExpectedError('The placeholder name must contain between 1 and 100 characters');
-        asserterror DataTools.GetPlaceholder(TestName, Value, PadStr('T', 101, 'T'));
-        Assert.ExpectedError('must not exceed 100 characters');
-        asserterror DataTools.DeletePlaceholder(TestName, TestTag, PadStr('C', 31, 'C'));
+        asserterror DataTools.GetPlaceholderForCompany(TestName, Value, PadStr('C', 31, 'C'));
         Assert.ExpectedError('must not exceed 30 characters');
-        asserterror DataTools.DeletePlaceholdersByTag(PadStr('T', 101, 'T'));
-        Assert.ExpectedError('must not exceed 100 characters');
-        asserterror DataTools.DeletePlaceholdersByTag(TestTag, PadStr('C', 31, 'C'));
+        asserterror DataTools.DeletePlaceholderForCompany(TestName, PadStr('C', 31, 'C'));
         Assert.ExpectedError('must not exceed 30 characters');
-        asserterror DataTools.DeletePlaceholdersByTagAcrossCompanies(PadStr('T', 101, 'T'));
-        Assert.ExpectedError('must not exceed 100 characters');
+        asserterror DataTools.GetPlaceholderForCompany(PadStr('N', 101, 'N'), Value, '');
+        Assert.ExpectedError('The placeholder name must contain between 1 and 100 characters');
+        asserterror DataTools.DeletePlaceholderForCompany('bad*name', '');
+        Assert.ExpectedError('The placeholder name must contain between 1 and 100 characters');
     end;
 
     [Test]
@@ -777,15 +812,17 @@ codeunit 130482 "Test Input Placeholder Tests"
         DataTools.SetPlaceholder(TestName, 'updated');
         Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'Indirect permissions must allow updates.');
         Assert.AreEqual('updated', Value, 'The updated value must be visible.');
+        DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
+        Assert.IsTrue(DataTools.GetPlaceholderForCompany(TestName, Value, ''), 'Indirect permissions must allow explicit company operations.');
+        Assert.AreEqual('shared', Value, 'The shared value must be visible through the company API.');
+        Assert.IsTrue(DataTools.DeletePlaceholderForCompany(TestName, ''), 'Indirect permissions must allow shared deletion.');
         Assert.IsTrue(DataTools.DeletePlaceholder(TestName), 'Indirect permissions must allow deletion through the API.');
     end;
 
     local procedure Initialize()
     begin
-        TestTag := DelChr(Format(CreateGuid()), '=', '{}-');
-        TestName := 'P' + TestTag;
+        TestName := 'P' + DelChr(Format(CreateGuid()), '=', '{}-');
         DataTools.SetTextReplacementsEnabled(true);
-        DataTools.SetTag(TestTag);
     end;
 
     local procedure Token(Name: Text): Text

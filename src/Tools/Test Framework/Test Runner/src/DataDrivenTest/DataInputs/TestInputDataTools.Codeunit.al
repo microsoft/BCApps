@@ -8,7 +8,7 @@ namespace System.TestTools.TestRunner;
 /// <summary>
 /// Resolves data tool placeholders embedded in test input values.
 /// Supports named placeholders, date formulas, and datetime formulas.
-/// Registrations are transactional; the active tag and text-replacement switch are session-local.
+/// Registrations are transactional; the text-replacement switch is session-local.
 /// </summary>
 codeunit 130465 "Test Input Data Tools"
 {
@@ -24,22 +24,12 @@ codeunit 130465 "Test Input Data Tools"
     end;
 
     /// <summary>
-    /// Enables or disables all text substitutions. Every call clears the active tag, but not registered values.
+    /// Enables or disables all text substitutions without changing registered values.
     /// Typed date and datetime formula conversions are unaffected.
     /// </summary>
     procedure SetTextReplacementsEnabled(Enabled: Boolean)
     begin
         TextReplacementsEnabled := Enabled;
-        Clear(ActiveTag);
-    end;
-
-    /// <summary>
-    /// Sets the tag used by text resolution and operations that omit a tag.
-    /// A blank tag is an exact namespace, not a wildcard.
-    /// </summary>
-    procedure SetTag(Tag: Text)
-    begin
-        ActiveTag := NormalizeTag(Tag);
     end;
 
     #endregion
@@ -47,44 +37,33 @@ codeunit 130465 "Test Input Data Tools"
     #region Placeholder Values
 
     /// <summary>
-    /// Inserts or replaces a value using the active tag and current company.
+    /// Inserts or replaces a value using its full name and the current company.
     /// </summary>
     procedure SetPlaceholder(Name: Text; Value: Text)
     begin
-        SetPlaceholder(Name, Value, ActiveTag);
+        SetPlaceholderForCompany(Name, Value, CompanyName());
     end;
 
     /// <summary>
-    /// Inserts or replaces a value using the specified tag and current company.
-    /// </summary>
-    procedure SetPlaceholder(Name: Text; Value: Text; Tag: Text)
-    begin
-        SetPlaceholder(Name, Value, Tag, CompanyName());
-    end;
-
-    /// <summary>
-    /// Inserts or replaces the exact name, tag, and company key without committing.
+    /// Inserts or replaces the exact full name and company key without committing.
     /// A blank company registers a shared fallback. Values must not contain supported placeholder tokens.
     /// </summary>
-    procedure SetPlaceholder(Name: Text; Value: Text; Tag: Text; Company: Text)
+    procedure SetPlaceholderForCompany(Name: Text; Value: Text; Company: Text)
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
         NormalizedName: Code[100];
-        NormalizedTag: Code[100];
         NormalizedCompany: Text[30];
         EntryExists: Boolean;
     begin
         NormalizedName := NormalizeName(Name);
-        NormalizedTag := NormalizeTag(Tag);
         NormalizedCompany := NormalizeCompany(Company);
         ValidatePlaceholderValue(Name, Value);
 
         TestInputPlaceholder.ReadIsolation := IsolationLevel::UpdLock;
-        EntryExists := TestInputPlaceholder.Get(NormalizedName, NormalizedTag, NormalizedCompany);
+        EntryExists := TestInputPlaceholder.Get(NormalizedName, NormalizedCompany);
         if not EntryExists then begin
             TestInputPlaceholder.Init();
             TestInputPlaceholder.Name := NormalizedName;
-            TestInputPlaceholder.Tag := NormalizedTag;
             TestInputPlaceholder.Company := NormalizedCompany;
         end;
 
@@ -96,42 +75,33 @@ codeunit 130465 "Test Input Data Tools"
     end;
 
     /// <summary>
-    /// Gets a value using the active tag and current company, then the shared-company fallback.
+    /// Gets a value using its full name and the current company, then the shared-company fallback.
     /// Returns false and clears Value when no registration exists.
     /// </summary>
     procedure GetPlaceholder(Name: Text; var Value: Text): Boolean
     begin
-        exit(GetPlaceholder(Name, Value, ActiveTag));
+        exit(GetPlaceholderForCompany(Name, Value, CompanyName()));
     end;
 
     /// <summary>
-    /// Gets a value using the specified tag and current company, then the shared-company fallback.
-    /// </summary>
-    procedure GetPlaceholder(Name: Text; var Value: Text; Tag: Text): Boolean
-    begin
-        exit(GetPlaceholder(Name, Value, Tag, CompanyName()));
-    end;
-
-    /// <summary>
-    /// Gets the exact company value before its shared fallback, within the specified tag only.
+    /// Gets the exact company value before its shared fallback, using the same full name.
     /// An explicitly blank company reads only the shared row. An empty registered value is a match.
+    /// Returns false and clears Value when no registration exists.
     /// </summary>
-    procedure GetPlaceholder(Name: Text; var Value: Text; Tag: Text; Company: Text): Boolean
+    procedure GetPlaceholderForCompany(Name: Text; var Value: Text; Company: Text): Boolean
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
         NormalizedName: Code[100];
-        NormalizedTag: Code[100];
         NormalizedCompany: Text[30];
     begin
         Clear(Value);
         NormalizedName := NormalizeName(Name);
-        NormalizedTag := NormalizeTag(Tag);
         NormalizedCompany := NormalizeCompany(Company);
 
-        if not TestInputPlaceholder.Get(NormalizedName, NormalizedTag, NormalizedCompany) then begin
+        if not TestInputPlaceholder.Get(NormalizedName, NormalizedCompany) then begin
             if NormalizedCompany = '' then
                 exit(false);
-            if not TestInputPlaceholder.Get(NormalizedName, NormalizedTag, '') then
+            if not TestInputPlaceholder.Get(NormalizedName, '') then
                 exit(false);
         end;
 
@@ -140,30 +110,22 @@ codeunit 130465 "Test Input Data Tools"
     end;
 
     /// <summary>
-    /// Deletes the exact active-tag/current-company registration, without following shared fallback.
+    /// Deletes the exact full-name/current-company registration, without following shared fallback.
     /// </summary>
     procedure DeletePlaceholder(Name: Text): Boolean
     begin
-        exit(DeletePlaceholder(Name, ActiveTag));
-    end;
-
-    /// <summary>
-    /// Deletes the exact specified-tag/current-company registration, without following shared fallback.
-    /// </summary>
-    procedure DeletePlaceholder(Name: Text; Tag: Text): Boolean
-    begin
-        exit(DeletePlaceholder(Name, Tag, CompanyName()));
+        exit(DeletePlaceholderForCompany(Name, CompanyName()));
     end;
 
     /// <summary>
     /// Deletes only the exact key. Blank company targets the shared row, not all companies.
     /// Returns false if that key does not exist.
     /// </summary>
-    procedure DeletePlaceholder(Name: Text; Tag: Text; Company: Text): Boolean
+    procedure DeletePlaceholderForCompany(Name: Text; Company: Text): Boolean
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
     begin
-        if not TestInputPlaceholder.Get(NormalizeName(Name), NormalizeTag(Tag), NormalizeCompany(Company)) then
+        if not TestInputPlaceholder.Get(NormalizeName(Name), NormalizeCompany(Company)) then
             exit(false);
 
         TestInputPlaceholder.Delete(true);
@@ -171,38 +133,7 @@ codeunit 130465 "Test Input Data Tools"
     end;
 
     /// <summary>
-    /// Deletes registrations with the exact tag in the current company.
-    /// </summary>
-    procedure DeletePlaceholdersByTag(Tag: Text)
-    begin
-        DeletePlaceholdersByTag(Tag, CompanyName());
-    end;
-
-    /// <summary>
-    /// Deletes registrations with the exact tag and company. Blank company targets shared rows only.
-    /// </summary>
-    procedure DeletePlaceholdersByTag(Tag: Text; Company: Text)
-    var
-        TestInputPlaceholder: Record "Test Input Placeholder";
-    begin
-        TestInputPlaceholder.SetRange(Tag, NormalizeTag(Tag));
-        TestInputPlaceholder.SetRange(Company, NormalizeCompany(Company));
-        TestInputPlaceholder.DeleteAll(true);
-    end;
-
-    /// <summary>
-    /// Deletes registrations with the exact tag across all companies, including shared rows.
-    /// </summary>
-    procedure DeletePlaceholdersByTagAcrossCompanies(Tag: Text)
-    var
-        TestInputPlaceholder: Record "Test Input Placeholder";
-    begin
-        TestInputPlaceholder.SetRange(Tag, NormalizeTag(Tag));
-        TestInputPlaceholder.DeleteAll(true);
-    end;
-
-    /// <summary>
-    /// Deletes every placeholder registration across all tags and companies without committing.
+    /// Deletes every placeholder registration across all names and companies without committing.
     /// </summary>
     procedure DeleteAllPlaceholders()
     var
@@ -217,7 +148,7 @@ codeunit 130465 "Test Input Data Tools"
 
     /// <summary>
     /// Resolves named, date, and datetime tokens when text replacement is enabled.
-    /// Named tokens use the active tag and current company. Unknown names remain unchanged.
+    /// Named tokens use their full name and the current company. Unknown names remain unchanged.
     /// Only the original input is scanned; replacement text is never scanned again.
     /// </summary>
     /// <param name="InputText">The raw text value from the test input.</param>
@@ -412,19 +343,6 @@ codeunit 130465 "Test Input Data Tools"
             (DelChr(Name, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-') = ''));
     end;
 
-    local procedure NormalizeTag(Tag: Text): Code[100]
-    var
-        TestInputPlaceholder: Record "Test Input Placeholder";
-        NormalizedTag: Code[100];
-    begin
-        Tag := UpperCase(Tag);
-        if StrLen(Tag) > MaxStrLen(NormalizedTag) then
-            Error(KeyTooLongErr, TestInputPlaceholder.FieldCaption(Tag), MaxStrLen(NormalizedTag));
-
-        NormalizedTag := CopyStr(Tag, 1, MaxStrLen(NormalizedTag));
-        exit(NormalizedTag);
-    end;
-
     local procedure NormalizeCompany(Company: Text): Text[30]
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
@@ -451,7 +369,6 @@ codeunit 130465 "Test Input Data Tools"
     #endregion
 
     var
-        ActiveTag: Code[100];
         TextReplacementsEnabled: Boolean;
 
         PlaceholderPrefixTok: Label '$Placeholder-', Locked = true;

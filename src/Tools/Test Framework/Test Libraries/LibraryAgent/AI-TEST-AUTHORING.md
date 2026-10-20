@@ -273,19 +273,18 @@ Use named tokens directly in YAML; no declaration block or import-time substitut
 
 ```yaml
 query:
-  title: "Order for $Placeholder-Customer1No$"
-  message: "Use item $Placeholder-BlockedItem1$."
+  title: "Order for $Placeholder-MY-SCENARIO-Customer1No$"
+  message: "Use item $Placeholder-MY-SCENARIO-BlockedItem1$."
 expected_data:
-  customer_no: "$Placeholder-Customer1No$"
+  customer_no: "$Placeholder-MY-SCENARIO-Customer1No$"
 ```
 
 After creating or finding the records in AL setup, register their actual values:
 
 ```al
-DataTools.SetTag('MY-SCENARIO'); // Optional; call after text replacement is enabled.
-DataTools.SetPlaceholder('Customer1No', Customer."No.");
-DataTools.SetPlaceholder('BlockedItem1', BlockedItem."No.");
-Found := DataTools.GetPlaceholder('Customer1No', CustomerNo);
+DataTools.SetPlaceholder('MY-SCENARIO-Customer1No', Customer."No.");
+DataTools.SetPlaceholder('MY-SCENARIO-BlockedItem1', BlockedItem."No.");
+Found := DataTools.GetPlaceholder('MY-SCENARIO-Customer1No', CustomerNo);
 MessageText := AITTestContext.GetQuery().Element('message').ValueAsText();
 ```
 
@@ -297,29 +296,28 @@ Values are stored as UTF-8 text in a BLOB and preserve multiline text, Unicode, 
 
 Registration rejects values containing complete supported named/date/datetime tokens, even if the referenced name is unknown. Replacement is non-recursive, and there is no escape syntax.
 
-### 9.2 Tags and company fallback
+### 9.2 Full names and company fallback
 
-The storage key is `(Name, Tag, Company)`. The optional active tag separates scenarios that use the same names; it applies to parameterless text reads and to set/get/single-delete overloads that omit a tag.
+The storage key is `(Name, Company)`. Use full names such as `MY-SCENARIO-Customer1No` (prefix) or `Customer1No-MY-SCENARIO` (suffix) to distinguish scenarios. Prefixes and suffixes are literal parts of the name, not separate settings or implicit lookup context. The 100-character limit applies to the complete name.
+
+Test authors own naming uniqueness. Concurrent executions using the same full name in the same company address the same registration. If a run identifier is needed, include it in both the input token and the AL registration; changing only the registration name will not resolve the original token.
 
 | API | Scope |
 |---|---|
-| `SetPlaceholder(Name, Value)` / `GetPlaceholder(Name, var Value)` | Active tag, current company. |
-| `SetPlaceholder(Name, Value, Tag)` / `GetPlaceholder(Name, var Value, Tag)` | Explicit tag, current company. |
-| `SetPlaceholder(Name, Value, Tag, Company)` / `GetPlaceholder(Name, var Value, Tag, Company)` | Explicit tag and company. |
+| `SetPlaceholder(Name, Value)` / `GetPlaceholder(Name, var Value)` | Full name, current company. |
+| `SetPlaceholderForCompany(Name, Value, Company)` / `GetPlaceholderForCompany(Name, var Value, Company)` | Full name, explicit company. |
 
-An explicit tag overrides the active tag for that call only. Blank tag is an exact namespace, **not a wildcard**. Tags use case-insensitive `Code[100]` values.
+Default operations use `CompanyName()`. Passing `''` to a company-specific API stores or reads a shared-company row. For a nonblank company, lookup first reads the exact company and then the shared row with the **same full name**. An existing local row containing empty text suppresses fallback. Explicit company operations do not change the company used by subsequent default operations or text reads.
 
-Omitted company means `CompanyName()`. Explicitly passing `''` stores or reads a shared-company row. For a nonblank company, lookup first reads the exact company and then the shared row with the **same name and tag**. Other tags never compete, and an existing local row containing empty text suppresses fallback.
-
-For example, `SetPlaceholder('Customer1No', 'SHARED-CUST', 'SALES', '')` provides a shared fallback. A current-company `SALES` registration for the same name takes precedence, without changing the shared row.
+For example, `SetPlaceholderForCompany('MY-SCENARIO-Customer1No', 'SHARED-CUST', '')` provides a shared fallback. A current-company registration for the same full name takes precedence, without changing the shared row.
 
 ### 9.3 Lifecycle, raw reads, and manual cleanup
 
 The runner enables text replacement before an accepted test method and disables it afterwards, including failure and skip cleanup. Outside tests, resolving text readers return the template unless explicitly enabled with `SetTextReplacementsEnabled(true)`.
 
-**Every enable or disable call clears the active tag**, including repeated calls with the same state. Select the tag after enablement on every test invocation, even when previously completed suite setup is skipped. It remains selected across the method's turns until explicitly changed or the switch is called again. The switch controls named, date, and datetime substitutions in text, but never disables explicit set/get/delete operations. Typed date/datetime getters retain their direct formula conversion behavior.
+Enabling or disabling text replacement never changes registrations, including repeated calls with the same state. Re-enabling immediately resolves the same full names again. The switch controls named, date, and datetime substitutions in text, but never disables explicit set/get/delete operations. Typed date/datetime getters retain their direct formula conversion behavior.
 
-The switch and active tag are session/company-local; registrations are ordinary database rows shared through the explicit company key. No helper commits or automatically deletes registrations. Test isolation and transaction rollback govern persistence, so committed suite-setup registrations can be reused when setup is skipped.
+The switch is session/company-local; registrations are ordinary database rows shared through the explicit company key. No helper commits or automatically deletes registrations. Test isolation and transaction rollback govern persistence, so committed suite-setup registrations can be reused when setup is skipped.
 
 `Element()` / `ElementAt()` only navigate. `ElementValue()`, `ValueAsJsonObject()`, `AsJsonToken()`, and `ToText()` remain raw; neither the input JSON nor its property names are rewritten. Numeric/Boolean accessors are unchanged. Only the text being read is scanned, so separately loaded suite setup and directly initialized input wrappers work too.
 
@@ -327,12 +325,11 @@ Cleanup is explicit:
 
 | API | Deletes |
 |---|---|
-| `DeletePlaceholder(Name)` / `DeletePlaceholder(Name, Tag)` / `DeletePlaceholder(Name, Tag, Company)` | The exact key, using active tag/current company when omitted. Returns `false` if absent; never follows shared fallback. |
-| `DeletePlaceholdersByTag(Tag)` / `DeletePlaceholdersByTag(Tag, Company)` | That exact tag/company. Explicit blank company removes shared rows only. |
-| `DeletePlaceholdersByTagAcrossCompanies(Tag)` | That exact tag in every company, including shared rows. |
-| `DeleteAllPlaceholders()` | **All registrations across all tags and companies.** Use only when that full scope is intended. |
+| `DeletePlaceholder(Name)` | The exact full name in the current company. Returns `false` if absent; never follows shared fallback. |
+| `DeletePlaceholderForCompany(Name, Company)` | The exact full name and company. Explicit blank company deletes only the shared row. Returns `false` if absent; never follows shared fallback. |
+| `DeleteAllPlaceholders()` | **All registrations across all names and companies.** Use only when that full scope is intended. |
 
-Cleanup uses equality matching, not wildcard filters, and follows the caller's transaction/test isolation.
+Cleanup uses exact matching, not prefix/suffix or wildcard matching, and follows the caller's transaction/test isolation. To clean up a scenario, retain its full names and delete those exact registrations.
 
 ---
 
@@ -450,15 +447,12 @@ The recommended high-level driver is `RunTurnAndWait` + `FinalizeTurn`, which ar
 
 ### `Test Input Data Tools`
 
-See [Placeholders](#9-placeholders) for overloads and exact tag/company rules.
+See [Placeholders](#9-placeholders) for full-name and company-scope rules.
 
 | Procedure | Use |
 |---|---|
-| `SetTag(Tag)` | Select the active namespace for subsequent reads and omitted-tag operations. |
-| `SetTextReplacementsEnabled(Enabled)` | Control all text substitution and clear the active tag; leave registrations intact. |
-| `SetPlaceholder(...)` | Register or overwrite the exact key with literal text. |
-| `GetPlaceholder(...)` | Read literal text, returning whether the registration exists. |
-| `DeletePlaceholder(...)` | Delete the exact key without following shared fallback. |
-| `DeletePlaceholdersByTag(...)` | Delete one exact tag/company scope. |
-| `DeletePlaceholdersByTagAcrossCompanies(Tag)` | Delete that tag across every company. |
+| `SetTextReplacementsEnabled(Enabled)` | Control all text substitution; leave registrations intact. |
+| `SetPlaceholder(Name, Value)` / `SetPlaceholderForCompany(Name, Value, Company)` | Register or overwrite the exact key with literal text. |
+| `GetPlaceholder(Name, var Value)` / `GetPlaceholderForCompany(Name, var Value, Company)` | Read literal text, returning whether the registration exists. |
+| `DeletePlaceholder(Name)` / `DeletePlaceholderForCompany(Name, Company)` | Delete the exact key without following shared fallback. |
 | `DeleteAllPlaceholders()` | Delete all registrations. |

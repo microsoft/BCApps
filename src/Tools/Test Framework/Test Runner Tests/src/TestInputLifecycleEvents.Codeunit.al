@@ -12,16 +12,14 @@ codeunit 130484 "Test Input Lifecycle Events"
     var
         SuiteName: Code[10];
         PlaceholderName: Text;
-        SetupTag: Text;
         SkipMethod: Boolean;
         BeforeValue: Text;
         AfterValue: Text;
 
-    procedure Configure(NewSuiteName: Code[10]; Name: Text; Tag: Text; Skip: Boolean)
+    procedure Configure(NewSuiteName: Code[10]; Name: Text; Skip: Boolean)
     begin
         SuiteName := NewSuiteName;
         PlaceholderName := Name;
-        SetupTag := Tag;
         SkipMethod := Skip;
         Clear(BeforeValue);
         Clear(AfterValue);
@@ -46,7 +44,7 @@ codeunit 130484 "Test Input Lifecycle Events"
             exit;
 
         BeforeValue := DataTools.ResolveText('$Placeholder-' + PlaceholderName + '$');
-        DataTools.SetTag(SetupTag);
+        DataTools.SetPlaceholder(PlaceholderName, 'setup');
         Skip := SkipMethod;
     end;
 

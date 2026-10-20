@@ -80,7 +80,7 @@ codeunit 130464 "Test Input Json"
     /// <summary>
     /// Returns the value as Text, resolving data tool placeholders when text replacement is enabled.
     /// Supported: $Placeholder-...$, $DateFormula-...$, $DateTimeFormula-...$.
-    /// Named values use the active tag and current company, then the shared-company fallback.
+    /// Named values use their full name and the current company, then the shared-company fallback.
     /// The underlying JSON is not changed.
     /// </summary>
     procedure ValueAsText(): Text
