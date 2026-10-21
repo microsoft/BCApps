@@ -1,87 +1,64 @@
 # Find Requested Items
 
-Find and evaluate every item requested in a Business Central sales inquiry, sales quote request, or sales order request before proceeding to item selection or quote creation.
+Find every item requested in a Business Central sales inquiry, quote request, or order request and resolve item choices with the customer.
 
-## Required context and scope
+## Workflow policy
 
-- Use the message body, every attachment, and relevant conversation history. An item identifier can be an item number, SKU, product code, vendor item number, catalog number, or another identifying code.
-- Required context includes the current company, the designated customer/contact and location filters, and explicit enabled/disabled settings for item availability checking and capable-to-promise. Resolve these from authorized task context or available BC configuration. Apply capable-to-promise only when both settings enable it; never infer enablement from the presence of an earliest shipment date.
-- This skill searches and evaluates items. It does not authorize selecting an unconfirmed alternative, creating a quote, or replying outside the agent's communication rules.
+Follow the default SOA workflow: search requested items without checking inventory availability or using capable-to-promise. Ignore inventory levels, low-stock notifications, and earliest shipment dates; do not block or request assistance solely because of stock or quantity. Do not select an alternative item or variant without the customer's choice.
 
-## Missing context and resume
+Use the message body, every attachment, and relevant conversation history. Preserve the designated customer, contact, and location context used for pricing and availability.
 
-If required configuration or pricing context cannot be determined, request assistance before searching. Do not interpret an unknown setting as disabled or replace a designated customer, contact, or location to obtain a result.
-
-Reuse confirmed search results only while the requested item, quantity, unit, date, and pricing/location context are unchanged. Search changed items again; do not duplicate results already retained by the runtime.
+Reuse completed results only while the item, quantity, unit, delivery date, and pricing/location context are unchanged. Search changed items again. Retain results, customer selections, pending messages, and delivery-date disclosures for the quote skill.
 
 ## 1. Identify every requested item
 
-Search for every item in the message body and every attachment. Never skip a requested item.
+Search every item in the message body and every attachment. An identifier can be an item number, SKU, product code, vendor item number, catalog number, or another identifying code.
 
-If neither the message body nor any attachment identifies an item, product, or service, request assistance stating that the customer has not specified any item, product, or service, and add: "Please make such items available or stop the task and handle manually." Do this instead of replying to the customer. Do not ask the customer to resend or re-attach a document, and do not state that an attachment was missing or could not be read: an attachment may have been received and set aside as not relevant before it reached you.
+If no item, product, or service is identified, request assistance stating that the customer has not specified one. Do not reply asking the customer to resend an attachment or claim that an attachment was missing or unreadable: an attachment may have been set aside before it reached you.
 
-## 2. Open item availability and prepare the search text
+## 2. Search item availability
 
-Use the "Item Availability" action to open the item availability page (page 4410). Perform the following search preparation on that page for each requested item.
+Use the "Item Availability" action to open page 4410.
 
-Build the search text from all available identification and descriptive information:
+For each requested item:
 
-- Always include any item identifier exactly as provided, together with the item name, features, variants, attributes, and other relevant keywords. For item "BK-2048" described as "Red Kids Mountain Bicycles", search for "BK-2048 red kid mountain bicycle". Never search by description alone when an identifier is available.
-- Preserve letters, numbers, hyphens, and other punctuation in identifiers. Do not correct their spelling or rewrite them.
-- Use singular forms for descriptive keywords, such as "bicycle" rather than "bicycles".
-- Correct spelling errors only in descriptive keywords, such as "tennsi" to "tennis".
-- Do not include quantity, date, or unit of measure in the search text. Use their dedicated filters.
+1. Build the search text from its identifier, name, features, variants, attributes, and other descriptive keywords. Include identifiers exactly as supplied, preserving spelling, letters, numbers, hyphens, and punctuation. Never search by description alone when an identifier is available.
+2. Use singular forms and correct spelling errors only in descriptive keywords. For "BK-2048" described as "Red Kids Mountain Bicycles", search for "BK-2048 red kid mountain bicycle".
+3. Set "Quantity Filter" to the requested amount in the requested unit without conversion. Use 1 only when no quantity was specified.
+4. Explicitly set "Date Filter" to the period through the customer's requested delivery date, including dates before today. Do not use document, order, issue, or creation dates as delivery dates. Ignore past requested delivery dates. If several delivery dates are requested, use the furthest date in the future. If none remains, explicitly set the filter to blank. Use standard date filters without single quotes.
+5. Explicitly set "UOM Filter" to the requested unit or packaging/grouping method code, or blank if none was specified.
+6. Preserve "Customer No." and "Contact No." when supplied. Preserve "Location Filter" when supplied, including two single quotes (`''`). Do not change these values to obtain results.
+7. Invoke search only after all request filters have been set for this item. Do not put quantity, date, or unit in the search text.
 
-## 3. Set every filter before searching
+Do not proceed without searching. If price calculation fails, request assistance with the full notification error and wait for resolution.
 
-For the current item, explicitly set all three request filters before invoking search:
+## 3. Evaluate matches
 
-- **Quantity filter:** use the requested amount in the requested unit of measure, without converting or modifying it. If no quantity was specified, set it to 1.
-- **Date Filter:** use only a date on or by which the customer explicitly requests delivery of this item. Include the entire period before that date, including dates before today. Do not infer delivery from a document, order, issue, creation, or other unrelated date. If several delivery dates are requested, use the furthest date in the future. Ignore past dates; if no delivery date remains, explicitly set the filter to blank. Use the standard date filter without single quotes.
-- **UOM filter:** set the requested unit of measurement or packaging/grouping method code. If none was requested, explicitly set the filter to blank.
+Use item-search metadata to identify variants. A characteristic such as color, size, fit, capacity, compatibility, or safety classification is a specific variant only when metadata resolves it to a Variant Code or identifies an unresolved variant for an item that has variants. When `Variants` is empty, an otherwise matching item's descriptive characteristics do not require a Variant Code. Never infer variants from a code naming convention.
 
-Preserve the designated pricing and availability context:
+For a requested specific variant with no result, follow the customer-clarification step below instead of requesting assistance.
 
-- If "Customer No." is not empty, always use it in the search. Never modify it.
-- If "Contact No." is not empty, always use it in the search. Never modify it.
-- If "Location filter" is not empty, including when it is two single quotes (`''`), always use it in the search. Never modify it.
+For any other requested item with no result, request assistance mentioning the item and adding: "Please make such items available or stop the task and handle manually." Do not proceed until resolved.
 
-## 4. Invoke search last
+## 4. Clarify item choices or answer an inquiry
 
-Confirm that Quantity filter, Date Filter, and UOM filter have all been explicitly set for the current item. Do not reuse an untouched filter from another item. Use 1 for an unspecified quantity and blank for an unspecified date or unit.
+For a quote or order request, continue without clarification only when exactly one matching item is resolved for every requested item. Never silently choose among multiple matches or substitute a non-matching item.
 
-Invoke search only after all search text and filters are ready. Search must be the final preparation action for the current item. Do not proceed without performing it.
+When a requested specific variant has no result, reply that the requested item and variant are unavailable and no suitable alternative variant is available. Ask whether the customer wants to revise the requested item or variant. Do not offer another item or variant, request assistance for this outcome, or create a quote.
 
-## 5. Handle errors and missing results
+When results contain multiple matches or non-matching alternatives, provide all returned options for each item in tables showing descriptions, prices including discounts, and units of measure. Separate matching items and alternatives. Do not make stock or shipment-date claims.
 
-If a notification says that price calculation for the customer ran with an error, always request assistance showing the full error from the notification. Do not proceed until it is resolved.
+- For the same product with a different Variant Code, explain that the product was found but the requested variant is unavailable or could not be determined. Offer the result as an available variant, not as a missing product.
+- For a different product, explain that the queried item was not found and alternative items are available.
 
-Do not infer a requested specific variant from a descriptive characteristic alone. Treat a characteristic as a specific variant only when item-search metadata resolves it to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants. When an item's `Variants` array is empty, colors, sizes, and similar characteristics in its item description are description content, not missing variants. An otherwise matching item does not need a Variant Code in this case.
+For an inquiry only, reply with the requested item and price information without creating a sales document.
 
-If a search returns no result for a customer-requested specific variant, do not request assistance for the missing result or lack of an earliest shipment date. Mark that requested item and variant as needing customer clarification with no safe alternative. Include this outcome in the results for use by "Clarify Item Selection"; do not choose another item or variant, contact the customer, or create a quote as part of this search skill.
+Format replies as formal, simple HTML. Use left-aligned tables with adequate column width, padding, spacing before and after, and minimal styling. Apply the agent's signature guidance. Include the delivery-date disclosures below.
 
-For any other requested item with no search result, request assistance mentioning the item and adding: "Please make such items available or stop the task and handle manually."
+Use `send_message`. Set `requestsInformation` to true when asking the customer to choose or revise an item; otherwise set it to false for a completed inquiry. Retain the message result and wait for a requested customer response rather than sending duplicates. A revised request or a changed item selection needs a new search before quote preparation.
 
-Do not proceed past an unresolved assistance request.
+## 5. Carry results forward
 
-## 6. Evaluate quantity availability using the active settings
+Retain every requested item's selected identifier, description, Variant Code, quantity, unit, price including discounts, and effective filters. Keep unresolved choices separate from confirmed selections. Return whether this was a completed inquiry, an awaiting-customer clarification, or a resolved quote/order request.
 
-If item availability checking is disabled, ignore requested quantity availability, availability levels, earliest shipment dates, and inventory notifications. Never treat a returned item as unavailable or request assistance because of stock or quantity. This does not resolve missing item results or change the variant-specific no-result routing in step 5.
-
-If item availability checking is enabled:
-
-- When capable-to-promise is enabled and an unavailable item has an earliest shipment date, treat it as available and proceed without requesting assistance for its current availability.
-- When capable-to-promise is enabled and an unavailable item has no earliest shipment date, always request assistance mentioning the item and adding: "Please check the requested unit of measure and order promising setup." Do not proceed until resolved. The specific-variant no-result exception in step 5 still applies.
-- Otherwise, if a requested item is unavailable in the requested quantity, request assistance mentioning the item and adding: "Please make such items available or stop the task and handle manually."
-
-## 7. Carry the results and delivery-date decisions forward
-
-Return the results for every requested item, including matching status, identifiers, descriptions, Variant Codes, quantities, units of measure, prices including discounts, and any applicable availability and earliest shipment dates. Preserve which items need customer clarification and which need assistance.
-
-Ignore past requested delivery dates and continue as if they had not been requested. Do not stop, call the request unsupported, or ask for a revised date because of a past date. For multiple requested delivery dates, including dates split between the message and attachments, use the furthest date in the future; do not ask which date to use. If all are in the past, proceed as if no delivery date was requested.
-
-Whenever the agent next replies to the customer, it must explain that a past requested delivery date was ignored or, when several dates were found, which date was used. Do not withhold a reply or stop processing for this reason.
-
-## Completion
-
-Complete with the results for every requested item, the effective filters/settings, and required delivery-date disclosures. Distinguish resolved matches, items needing customer clarification, and items blocked on assistance. An unresolved result is not authorization to substitute an item or create a document.
+Whenever next replying to the customer, explain any ignored past requested delivery date and, when several dates were found, which dates were found and which furthest future date was used. If all were in the past, state that none was applied. Do not stop or ask for a replacement date solely because a date was in the past.

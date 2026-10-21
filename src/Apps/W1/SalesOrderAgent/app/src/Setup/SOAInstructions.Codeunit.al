@@ -33,6 +33,37 @@ codeunit 4598 "SOA Instructions"
             Error(MissingBusinessSkillsErr);
         foreach ResourceName in SkillResources do
             UpdateBusinessSkill(ResourceName);
+        DeactivateRetiredBusinessSkills();
+    end;
+
+    local procedure DeactivateRetiredBusinessSkills()
+    var
+        ClarifyItemsTitleTok: Label 'Clarify Item Selection', Locked = true;
+        ClarifyItemsDescriptionTok: Label 'Clarify requested items with the customer when search results are ambiguous, include non-matching alternatives, or contain no result for a requested specific variant.', Locked = true;
+        ConfirmQuoteTitleTok: Label 'Confirm Sales Quote', Locked = true;
+        ConfirmQuoteDescriptionTok: Label 'Prepare and send an authorized Business Central sales quote confirmation using current document data and the applicable review and communication settings.', Locked = true;
+        FormatEmailsTitleTok: Label 'Format Customer Emails', Locked = true;
+        FormatEmailsDescriptionTok: Label 'Format supplied customer-facing message content as a formal HTML email, including item clarifications, sales quote confirmations, sales order confirmations, and other customer replies.', Locked = true;
+        InventoryWarningsTitleTok: Label 'Handle Quote Inventory Warnings', Locked = true;
+        InventoryWarningsDescriptionTok: Label 'Handle low-inventory notifications on a specified Business Central sales quote using the applicable availability and capable-to-promise policies.', Locked = true;
+        ResolveBuyerTitleTok: Label 'Resolve Contact or Customer', Locked = true;
+        ResolveBuyerDescriptionTok: Label 'Resolve supplied buyer information to an eligible Business Central contact or customer in the current company.', Locked = true;
+    begin
+        DeactivateRetiredBusinessSkill(ClarifyItemsTitleTok, ClarifyItemsDescriptionTok);
+        DeactivateRetiredBusinessSkill(ConfirmQuoteTitleTok, ConfirmQuoteDescriptionTok);
+        DeactivateRetiredBusinessSkill(FormatEmailsTitleTok, FormatEmailsDescriptionTok);
+        DeactivateRetiredBusinessSkill(InventoryWarningsTitleTok, InventoryWarningsDescriptionTok);
+        DeactivateRetiredBusinessSkill(ResolveBuyerTitleTok, ResolveBuyerDescriptionTok);
+    end;
+
+    local procedure DeactivateRetiredBusinessSkill(SkillTitle: Text; PackagedDescription: Text)
+    var
+        BusinessSkill: Record "Business Skill";
+    begin
+        BusinessSkill.SetRange(Title, SkillTitle);
+        BusinessSkill.SetRange(Description, PackagedDescription);
+        BusinessSkill.SetRange(Status, BusinessSkill.Status::Active);
+        BusinessSkill.ModifyAll(Status, BusinessSkill.Status::Inactive, true);
     end;
 
     local procedure UpdateBusinessSkill(ResourceName: Text)

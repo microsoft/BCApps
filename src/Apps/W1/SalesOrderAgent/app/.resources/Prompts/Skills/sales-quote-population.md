@@ -1,78 +1,67 @@
 # Create and Populate Sales Quote
 
-Create and populate a Business Central sales quote from an authorized request, an eligible contact or customer, and resolved item selections.
+Create or update a Business Central sales quote for the current conversation, resolve its buyer and requested items, and send the populated quote to the customer for acceptance.
 
-## Required context and scope
+## Workflow policy
 
-- Required inputs are the authorized quote-creation request, the current company, an eligible selected contact or customer, resolved item selections, and the applicable capable-to-promise setting. Use request details from the message body, subject, attachments, conversation, or supplied task context.
-- Item selection and any required customer clarification or assistance must be resolved before creating the quote. The selected contact or customer is authoritative even if its name or email address differs from the conversation history.
-- Resolve the capable-to-promise setting from authorized task context or available BC configuration. Apply its shipment-date rule only when enabled. Do not infer enablement from the presence of a date in the search results.
-- Follow the numbered steps one by one. After creating the quote, perform the field and line steps on the Sales Quote page (page 41) and its lines (page 301), opening the required lookups from there.
-- This skill covers quote creation and population only. It does not authorize sending the quote, converting it to an order, or bypassing applicable review, inventory, safety, or communication requirements.
+Follow the default SOA workflow: send the populated sales quote as a PDF and ask the customer to accept it before converting it to an order, including when the original request asks for a sales order. This skill does not request an additional document review.
 
-## Missing context and resume
+The default workflow does not check inventory availability or use capable-to-promise. The detailed search and clarification procedure is in "Find Requested Items"; retrieve it through Business IQ when results are missing or the requested items have changed. Wait for unresolved item clarification or assistance before preparing the quote. If a required skill cannot be retrieved, request assistance instead of inventing its procedure.
 
-If item selections are missing, retrieve the complete "Find Requested Items" skill through BusinessIQ. If a contact or customer has not been resolved, retrieve "Resolve Contact or Customer". Retain this skill's progress while resolving these dependencies. Do not create the quote while their results require clarification or assistance. If required guidance, authorization, or configuration is unavailable, request assistance rather than guessing or treating a missing setting as disabled.
+Retain the quote identifier and completed work. Resume an existing quote rather than creating another one. Item-line changes are supported only for quotes created in this conversation. For an accepted quote, use "Convert Quote to Sales Order" instead. Do not modify an existing sales order.
 
-When resuming this skill after an interruption or history summary, use the recorded quote and continue from the first unfinished step. Do not create another quote if creation already succeeded. Check the current page when the outcome of an earlier action is uncertain.
+## 1. Resolve the buyer and create or open the quote
 
-## 1. Create the sales quote
+For a quote already created in this conversation, open it and continue with the requested changes. Do not create another document or repeat buyer selection.
 
-If a contact was selected, navigate to the contact card and use the "Create Sales Quote" action.
+For a new quote, use the customer's or contact's email address, name, company, phone number, and other details from the request and conversation. If none is available, request assistance.
 
-If asked to select a customer template, select "Yes" and proceed with template selection. If there is more than one template, cancel the selection, do not select the default template, and request assistance to select the appropriate template. Do not proceed until this is resolved.
+1. Open the Contact List (page 5052). If one record is displayed, select it directly. If multiple records are displayed, search using the available details one at a time, starting with email address, sender name, company name, and phone number. Do not select from multiple records without searching.
+2. If no contact is found, open the Customer List (page 22) and follow the same selection and search rules.
+3. If neither a contact nor a customer is found, request assistance.
+4. Treat the selected record as authoritative even if its name or email differs from the conversation: incoming mail may be mapped to another contact for routing. Do not request assistance solely for that mismatch.
+5. From the contact card, use "Create Sales Quote". If asked for a customer template, choose "Yes". If more than one template is offered, cancel selection and request assistance; do not choose the default template.
+6. From a selected customer card, use "Sales Quote" instead.
 
-If a customer was selected, navigate to the customer card and use the "Sales Quote" action.
+Retain the created quote identifier. Continue on the Sales Quote page (41) and its lines (301).
 
-## 2. Populate the requested delivery date
+## 2. Populate the header
 
-If the request specifies a "Requested Delivery Date", populate that field accordingly. Use only an explicitly requested delivery date, not a document, order, issue, or creation date.
+Use only explicitly requested delivery dates, not document, order, issue, or creation dates. If several delivery dates are requested, use the furthest date in the future. Ignore past dates; if none remains, leave "Requested Delivery Date" empty and continue. Do not stop or ask for a replacement date.
 
-If several requested delivery dates are specified, use the furthest date in the future. Ignore dates in the past. If the requested delivery date is in the past, or every requested delivery date is in the past, leave the field empty and continue populating the rest of the quote. Do not stop or ask the customer for a revised date.
+Populate "External Document No." whenever the subject, message, or attachments contain a unique identifier such as a document or reference number.
 
-## 3. Populate the external document number
+For a requested shipping address:
 
-Populate "External Document No." whenever a unique identifier is available. Examples include document numbers, reference numbers, or identifiers in the message body, subject, or attachments.
+- Leave it unchanged when it matches the current "Ship-to" address, or when no "Ship-to" address is present and it matches the "Sell-to" address.
+- Otherwise, first set "Ship-to" to "Alternate Shipping Addresses" and inspect the registered addresses. Do this even when "Custom Address" already makes address fields editable. Never type an address before checking the registered list.
+- A partial address, such as a city, region, site, or street ("our warehouse in Austin, TX"), can match a more specific registered address. Prefer the closest matching registered address.
+- A complete street plus city or postal code that conflicts with every registered address is not a match. A shared country or region alone does not justify selecting a conflicting address.
+- If none matches, select the row indicating that none applies or cancel the list. Then choose "Custom Address" and populate the requested street, city, state, postal code, and country.
 
-## 4. Populate the shipping address
+For an update, preserve existing header values unless the customer requested a change.
 
-If the request does not mention a specific shipping address, leave the address unchanged.
+## 3. Populate or update the lines
 
-If the requested address exactly matches the current "Ship-to" address on the page, do not make changes. If there is no "Ship-to" address on the page and the requested shipping address matches the "Sell-to" address, do not make changes.
+Add a line for every requested item using its confirmed item-search result. If an item appears multiple times with different quantities, create separate lines; do not merge them.
 
-In all other cases, first set "Ship-to" to "Alternate Shipping Addresses" and inspect the list. This is mandatory even when "Ship-to" already shows "Custom Address" and the address fields are directly editable. **Never** type the requested address into the "Shipping and Billing" address fields before completing this check.
+Use each quantity exactly as requested, without conversion; default to 1 only if unspecified. After choosing the item number, populate its Variant Code from the selected result, or leave the field blank if none was returned.
 
-Check the registered addresses using these rules:
+Use the field lookup to select the requested unit or packaging code. Otherwise let the system default the unit. Always apply the corresponding unit to each line.
 
-- If the request is less specific than a registered address, for example it names only a city, region, site, or street such as "our warehouse in Austin, TX", treat this as a match and select the closest registered address even when only part of the address is given. Prefer a matching registered address to creating a new one.
-- If the customer provided a complete address, meaning a street together with a postal code or a city, and it conflicts with every registered address, do not select a registered address. A different street, city, or postal code is a conflict. A shared country or region alone is not a match.
+Ignore low-inventory notifications and do not recalculate or set shipment dates based on inventory or capable-to-promise results. Do not request assistance solely because of stock or quantity.
 
-If no registered address matches, after opening and searching the list, select the row indicating that none of the other rows apply or cancel the list. Then set "Ship-to" to "Custom Address" and populate the customer's requested street, city, state, postal code, and country. Use a custom address for a complete unregistered address rather than shipping to a conflicting registered address.
+For a modification, update or remove only the requested lines, preserve unrelated lines, and add new requested lines once. Reuse the current quote, but search again for any changed item, quantity, unit, or delivery date before applying the change.
 
-## 5. Add the sales quote lines
+## 4. Send the quote for acceptance
 
-Add a sales quote line for each requested item using the selected item from the availability results.
+Read the current quote data after population and updates. Current page data takes precedence over the initial request and history, including added or changed lines.
 
-If an item appears more than once with different quantities, create a separate line for each quantity entry. Do not merge or combine items under a single line, even if they are identical items.
+1. Use "Download as PDF" and retain the actual returned file identifier. If downloading fails, request assistance rather than inventing an attachment.
+2. Summarize every current line with item No., description, quantity, unit, and price. Include Variant Code only for lines where it is not blank.
+3. Ask the customer to review the quote and confirm whether they want it converted into a sales order.
+4. Explain any ignored past requested delivery date and invite a new date if needed, without withholding the quote. If multiple requested dates were found, state which dates were found and which furthest future date was used. If all were in the past, state that none was applied.
+5. Format the reply as formal, simple HTML. Use left-aligned tables with adequate column width, padding, spacing before and after, and minimal styling. Apply the agent's signature guidance.
+6. Use `send_message` with the downloaded quote's actual file identifier in `filesToAttach` and `requestsInformation` set to true.
 
-Use the requested quantity for each line without converting or modifying it. If no quantity was specified, use 1.
-
-After selecting the item number, populate "Variant Code" with the selected item's Variant Code from the availability result. If the result has no Variant Code, leave the field blank.
-
-## 6. Apply capable-to-promise shipment dates when enabled
-
-Skip this step when the resolved capable-to-promise setting is disabled.
-
-For each selected item, carefully check whether the search results provide an earliest shipment date. If they do, always populate that line's "Shipment Date" with the earliest shipment date or the requested delivery date, whichever is later. Use the requested delivery date resolved in step 2. If it is blank or in the past, use the earliest shipment date.
-
-## 7. Populate the units of measure
-
-For each requested item, use the field lookup to select the most relevant unit of measure based on the request.
-
-If the request explicitly specifies a unit, search and populate the unit of measure code accordingly. Otherwise, let the system default it. Always use the corresponding unit of measure for each line.
-
-## Completion
-
-Confirm that the requested header information and all requested lines are present on the current quote. Retain its identifier and the completed population step in the task's progress before returning control.
-
-Complete with the quote identifier, the applied item/quantity/unit and delivery/address decisions, and any assumptions, notifications, or unresolved issues. The result is a populated draft, not a sent or converted document. Report Needs clarification with unresolved items when a prerequisite needs the customer's choice, or Needs assistance when blocked on assistance. Leave review, sending, and conversion to separately authorized operations.
+Retain the quote and message identifiers and wait for the customer's response. Do not resend a quote already sent for the same document state. If a tool reports a pending message review, wait for its outcome; this is not customer acceptance. When the customer requests line changes, update and send the same quote again. Convert only after the customer accepts the current quote and asks to proceed.
