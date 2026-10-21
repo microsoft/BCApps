@@ -386,7 +386,7 @@ codeunit 8060 "Create Billing Documents"
         if SalesLine."Document Type" = SalesLine."Document Type"::"Credit Memo" then
             LineAmount := -LineAmount;
         if SalesLine.Quantity <> 0 then begin
-            if (LineAmount < 0) <> (SalesLine.Quantity < 0) then
+            if (LineAmount <> 0) and ((LineAmount < 0) <> (SalesLine.Quantity < 0)) then
                 SalesLine.Validate(Quantity, -SalesLine.Quantity);
             UnitPrice := LineAmount / SalesLine.Quantity;
         end else
@@ -511,7 +511,7 @@ codeunit 8060 "Create Billing Documents"
         if PurchLine."Document Type" = PurchLine."Document Type"::"Credit Memo" then
             LineAmount := -LineAmount;
         if PurchLine.Quantity <> 0 then begin
-            if (LineAmount < 0) <> (PurchLine.Quantity < 0) then
+            if (LineAmount <> 0) and ((LineAmount < 0) <> (PurchLine.Quantity < 0)) then
                 PurchLine.Validate(Quantity, -PurchLine.Quantity);
             DirectUnitCost := LineAmount / PurchLine.Quantity;
         end else

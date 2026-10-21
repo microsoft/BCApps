@@ -99,6 +99,7 @@ codeunit 148153 "Usage Based Billing Test"
         SecondBillingLineEndDateLbl: Label 'Second Billing Line should end at the second rhythm period end.', Locked = true;
         SecondBillingLineStartDateLbl: Label 'Second Billing Line should start at the second rhythm period start.', Locked = true;
         VendorNotCreditedLbl: Label 'The vendor ledger entry of the credit memo must reduce the amount owed to the vendor.', Locked = true;
+        ZeroUsageAmountQuantitySignLbl: Label 'A zero usage amount must not change the sign of the document line quantity.', Locked = true;
 
     #region Tests
 
@@ -946,6 +947,64 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(FilteredUsageDataBilling, 1);
         FilteredUsageDataBilling.FindFirst();
         FilteredUsageDataBilling.TestField("Usage Base Pricing", Enum::"Usage Based Pricing"::"Test Above Unit Cost Surcharge");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
+    procedure NegativeQuantityIsKeptOnSalesLineWhenUsageAmountIsZero()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        ReversalQuantity: Decimal;
+    begin
+        // [SCENARIO] Customer usage that is reversed within the period sums up to a zero amount; the invoice line keeps the negative quantity of the last usage entry
+
+        // [GIVEN] Customer and vendor usage with usage quantity pricing, reversed by a negative usage entry so that quantity and amounts sum up to zero
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandIntInRange(1, 10));
+        ReversalQuantity := ReverseUsageDataBilling("Service Partner"::Customer);
+        ReverseUsageDataBilling("Service Partner"::Vendor);
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+
+        // [WHEN] The customer contract billing document is created
+        PostDocument := false;
+        UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
+
+        // [THEN] The sales line keeps the negative quantity of the reversing usage entry and has a zero amount
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::Invoice);
+        UsageDataBilling.FindFirst();
+        SalesLine.Get(SalesLine."Document Type"::Invoice, UsageDataBilling."Document No.", UsageDataBilling."Document Line No.");
+        Assert.AreEqual(ReversalQuantity, SalesLine.Quantity, ZeroUsageAmountQuantitySignLbl);
+        SalesLine.TestField("Line Amount", 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
+    procedure NegativeQuantityIsKeptOnPurchaseLineWhenUsageCostAmountIsZero()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        ReversalQuantity: Decimal;
+    begin
+        // [SCENARIO] Vendor usage that is reversed within the period sums up to a zero cost amount; the invoice line keeps the negative quantity of the last usage entry
+
+        // [GIVEN] Customer and vendor usage with usage quantity pricing, reversed by a negative usage entry so that quantity and amounts sum up to zero
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandIntInRange(1, 10));
+        ReverseUsageDataBilling("Service Partner"::Customer);
+        ReversalQuantity := ReverseUsageDataBilling("Service Partner"::Vendor);
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+
+        // [WHEN] The vendor contract billing document is created
+        PostDocument := false;
+        UsageDataImport.CollectVendorContractsAndCreateInvoices(UsageDataImport);
+
+        // [THEN] The purchase line keeps the negative quantity of the reversing usage entry and has a zero amount
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Vendor, UsageDataBilling."Document Type"::Invoice);
+        UsageDataBilling.FindFirst();
+        PurchaseLine.Get(PurchaseLine."Document Type"::Invoice, UsageDataBilling."Document No.", UsageDataBilling."Document Line No.");
+        Assert.AreEqual(ReversalQuantity, PurchaseLine.Quantity, ZeroUsageAmountQuantitySignLbl);
+        PurchaseLine.TestField("Line Amount", 0);
     end;
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
@@ -3404,6 +3463,24 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.SetRecFilter();
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+    end;
+
+    local procedure ReverseUsageDataBilling(ServicePartner: Enum "Service Partner"): Decimal
+    var
+        ReversingUsageDataBilling: Record "Usage Data Billing";
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", ServicePartner);
+        UsageDataBilling.FindLast();
+        ReversingUsageDataBilling := UsageDataBilling;
+        UsageDataBilling.CalcSums(Quantity, Amount, "Cost Amount");
+        UsageDataBilling.TestField(Quantity);
+        ReversingUsageDataBilling."Entry No." := 0;
+        ReversingUsageDataBilling.Quantity := -UsageDataBilling.Quantity;
+        ReversingUsageDataBilling.Amount := -UsageDataBilling.Amount;
+        ReversingUsageDataBilling."Cost Amount" := -UsageDataBilling."Cost Amount";
+        ReversingUsageDataBilling.Insert(false);
+        exit(ReversingUsageDataBilling.Quantity);
     end;
 
     local procedure SetupUsageBasedCustomerContractForMonthlyRhythm(var PeriodStartDate: Date; var SupplierSubscriptionID: Text)
