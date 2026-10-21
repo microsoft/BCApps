@@ -17,7 +17,7 @@ codeunit 139988 "Subc. Setup Library"
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
 
     /// <summary>
-    /// Ensures that the specified general posting setup is unblocked and has a direct cost applied account.
+    /// Ensures that the specified general posting setup is unblocked and has the purchase accounts needed by subcontracting tests.
     /// </summary>
     /// <param name="GenBusPostingGroup">The general business posting group.</param>
     /// <param name="GenProdPostingGroup">The general product posting group.</param>
@@ -40,6 +40,14 @@ codeunit 139988 "Subc. Setup Library"
 
         if GeneralPostingSetup."Direct Cost Applied Account" = '' then begin
             GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+            GeneralPostingSetup.Modify();
+        end;
+        if GeneralPostingSetup."Purch. Account" = '' then begin
+            GeneralPostingSetup."Purch. Account" := LibraryERM.CreateGLAccountNo();
+            GeneralPostingSetup.Modify();
+        end;
+        if GeneralPostingSetup."Purch. Credit Memo Account" = '' then begin
+            GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
             GeneralPostingSetup.Modify();
         end;
     end;

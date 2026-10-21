@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
+
 table 6902 "Expense Itemization"
 {
     Access = Internal;
@@ -22,6 +24,12 @@ table 6902 "Expense Itemization"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+        }
+        field(3; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            TableRelation = "Currency";
+            Editable = false;
         }
         field(4; "Expense Category Code"; Code[20])
         {
@@ -78,8 +86,8 @@ table 6902 "Expense Itemization"
         }
         field(8; Quantity; Decimal)
         {
-            AutoFormatType = 0;
             Caption = 'Quantity';
+            AutoFormatType = 0;
             InitValue = 1;
             MinValue = 0;
 
@@ -92,8 +100,9 @@ table 6902 "Expense Itemization"
         }
         field(9; "Daily Rate"; Decimal)
         {
-            AutoFormatType = 0;
             Caption = 'Daily Rate';
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
 
             trigger OnValidate()
             var
@@ -106,18 +115,21 @@ table 6902 "Expense Itemization"
                     if not Expense.IsEnforcedItemizationRequired() then
                         Rec.TestField("Expense Subcategory Code");
                 end;
+                Rec."Daily Rate" := RoundAmount(Rec."Daily Rate");
 
                 Rec.Validate("Amount", Quantity * "Daily Rate");
             end;
         }
         field(10; "Amount"; Decimal)
         {
-            AutoFormatType = 0;
             Caption = 'Amount';
             Editable = false;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
 
             trigger OnValidate()
             begin
+                Rec.Amount := RoundAmount(Rec.Amount);
                 if Rec.Amount <> xRec.Amount then
                     UpdateItemizationInformationOnExpense(false);
             end;
@@ -148,6 +160,7 @@ table 6902 "Expense Itemization"
         if not Expense.IsEnforcedItemizationRequired() then
             Rec.TestField("Expense Subcategory Code");
 
+        "Currency Code" := Expense."Currency Code";
         "Expense Category Code" := Expense."Expense Category";
         if Description = '' then
             Description := Expense.Description;
@@ -169,7 +182,14 @@ table 6902 "Expense Itemization"
 
     var
         Expense: Record Expense;
+        Currency: Record Currency;
         CannotAddItemizationErr: Label 'Cannot add Itemizations to Expense No. %1 as there is no applicable Expense Rule that requires itemizations.', Comment = '%1 - Expense No.';
+
+    local procedure RoundAmount(CurrAmount: Decimal): Decimal
+    begin
+        Currency.Initialize(Rec."Currency Code");
+        exit(Round(CurrAmount, Currency."Amount Rounding Precision"));
+    end;
 
     local procedure UpdateItemizationInformationOnExpense(CalledFromDelete: Boolean)
     var
