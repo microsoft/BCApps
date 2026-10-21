@@ -185,27 +185,20 @@ codeunit 11755 "Registration Log Mgt. CZL"
         RegistrationNoKeyTok: Label 'ico', Locked = true;
     begin
         // GetValue accepts only a scalar value, so an object or array cannot stand in for the identifier.
-        if not GetValue(ResponseObject, RegistrationNoKeyTok, ResponseRegistrationNo) or (NormalizeRegistrationNo(ResponseRegistrationNo) = '') then begin
+        if not GetValue(ResponseObject, RegistrationNoKeyTok, ResponseRegistrationNo) or (ResponseRegistrationNo.Trim() = '') then begin
             // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
             AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifierTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000W6X', ResponseMissingIdentifierTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
             Error(ResponseMissingIdentifierErr);
         end;
 
-        if NormalizeRegistrationNo(ResponseRegistrationNo) <> NormalizeRegistrationNo(RegistrationLogCZL."Registration No.") then begin
+        // ARES only answers successfully for an exact 8-digit IČO (anything else is rejected with HTTP 400) and echoes
+        // it unchanged, so a legitimate response always matches the requested registration number exactly.
+        if ResponseRegistrationNo.Trim() <> RegistrationLogCZL."Registration No.".Trim() then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000W6Y', ResponseIntegrityTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
             Error(ResponseIntegrityErr);
         end;
-    end;
-
-    local procedure NormalizeRegistrationNo(RegistrationNo: Text): Text
-    begin
-        // ARES echoes the IČO as an 8-character string padded with leading zeros, while the requested number may be
-        // entered without padding or with separators, so compare only the significant alphanumeric characters.
-        RegistrationNo := UpperCase(RegistrationNo);
-        RegistrationNo := DelChr(RegistrationNo, '=', DelChr(RegistrationNo, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'));
-        exit(DelChr(RegistrationNo, '<', '0'));
     end;
 
     local procedure FormatPostCode(PostCode: Text): Code[20]

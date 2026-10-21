@@ -142,13 +142,13 @@ codeunit 148051 "Update from ARES CZL"
         RegistrationLogCZL: Record "Registration Log CZL";
         RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
     begin
-        // [SCENARIO] An ARES response that echoes the requested IČO is accepted, even when ARES pads it with leading zeros
+        // [SCENARIO] An ARES response that echoes the requested IČO is accepted
         Initialize();
 
-        // [GIVEN] A registration log entry for IČO 6947 (entered without leading zeros)
-        InitRegistrationLogForResponse(RegistrationLogCZL, '6947');
+        // [GIVEN] A registration log entry for the 8-digit IČO 00006947 (the only form ARES accepts)
+        InitRegistrationLogForResponse(RegistrationLogCZL, '00006947');
 
-        // [WHEN] ARES responds with the zero-padded IČO 00006947
+        // [WHEN] ARES responds with the same IČO
         RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"00006947","obchodniJmeno":"Test"}'));
 
         // [THEN] The response is trusted and logged as valid
@@ -170,6 +170,26 @@ codeunit 148051 "Update from ARES CZL"
 
         // [WHEN] ARES responds with the data of another IČO
         asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"87654321","obchodniJmeno":"Other"}'));
+
+        // [THEN] The response is rejected and nothing is logged as valid
+        Assert.ExpectedError('did not match the requested registration number');
+        VerifyNoValidLogEntry();
+    end;
+
+    [Test]
+    procedure LogVerificationRejectsResponseWithoutLeadingZeros()
+    var
+        RegistrationLogCZL: Record "Registration Log CZL";
+        RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
+    begin
+        // [SCENARIO] The IČO comparison is exact, so leading zeros are significant
+        Initialize();
+
+        // [GIVEN] A registration log entry for IČO 00006947
+        InitRegistrationLogForResponse(RegistrationLogCZL, '00006947');
+
+        // [WHEN] The response echoes the IČO without its leading zeros
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"6947","obchodniJmeno":"Test"}'));
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not match the requested registration number');
