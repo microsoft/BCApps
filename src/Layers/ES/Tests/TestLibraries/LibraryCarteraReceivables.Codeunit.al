@@ -333,11 +333,7 @@ codeunit 143020 "Library - Cartera Receivables"
         // -----------------------------------------------------------------------------
         GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
-        GenJournalLine.ModifyAll("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::" ");
-        GenJournalLine.ModifyAll("Gen. Bus. Posting Group", '');
-        GenJournalLine.ModifyAll("Gen. Prod. Posting Group", '');
-        GenJournalLine.ModifyAll("VAT Bus. Posting Group", '');
-        GenJournalLine.ModifyAll("VAT Prod. Posting Group", '');
+        GenJournalLine.ModifyAll("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::" ", "Gen. Bus. Posting Group", '', "Gen. Prod. Posting Group", '', "VAT Bus. Posting Group", '', "VAT Prod. Posting Group", '');
     end;
 
     procedure PostCarteraJournalLines(GenJournalBatchName: Code[10])
