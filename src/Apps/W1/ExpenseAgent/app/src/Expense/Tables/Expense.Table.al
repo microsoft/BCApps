@@ -1277,12 +1277,12 @@ table 6900 Expense
         if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then
             exit;
         ExpenseAgentSetup.GetRecordOnce();
-        if ExpenseAgentSetup."Receipt No. Mandatory"
-        ExpenseCategory.Get(Rec."Expense Category");
-        if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then
-            Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed"
-        else
-            Rec."No Receipt Type" := Rec."No Receipt Type"::" ";
+        if ExpenseAgentSetup."Allow No Receipt" then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then
+                    Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed"
+                else
+                    Rec."No Receipt Type" := Rec."No Receipt Type"::" ";
     end;
 
     local procedure UpdateCurrencyFactor()
