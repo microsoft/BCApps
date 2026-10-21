@@ -27,6 +27,9 @@ codeunit 265 "Feature Key Management"
         ReportsFRAppIdTok: Label '6f93dbc5-c674-430e-b5f4-232449d55c20', Locked = true;
         ReportsFRAppNotInstalledErr: Label 'The Reports FR feature requires the Reports FR app. Install the app on the Extension Management page before enabling or using the feature.';
 #endif
+#if not CLEAN27
+        VATReverseChargeTok: Label 'VATReverseCharge', Locked = true;
+#endif
         DocumentReportExperienceTxt: Label 'DocumentReportExperience', Locked = true;
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
         ConcurrentInventoryPosting: Boolean;
@@ -48,6 +51,13 @@ codeunit 265 "Feature Key Management"
     begin
         exit(FeatureManagementFacade.IsEnabled(GetSIEAuditFileExportFeatureKeyId()));
     end;
+
+#if not CLEAN27
+    procedure IsVATReverseChargeEnabled(): Boolean
+    begin
+        exit(FeatureManagementFacade.IsEnabled(VATReverseChargeTok));
+    end;
+#endif
 
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin
