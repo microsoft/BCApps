@@ -54,6 +54,10 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Acc."; Rec."Derogatory Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
 #if not CLEAN30
 #pragma warning disable AL0432
                 field("Depr. Difference Acc."; Rec."Depr. Difference Acc.")
@@ -98,6 +102,10 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Account (Decrease)"; Rec."Derogatory Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                }
             }
             group("Balancing Account")
             {
@@ -136,6 +144,10 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Expense Acc."; Rec."Derogatory Expense Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
 #if not CLEAN30
 #pragma warning disable AL0432
                 field("Depr. Difference Bal. Acc."; Rec."Depr. Difference Bal. Acc.")
@@ -161,6 +173,10 @@ page 5612 "FA Posting Group Card"
                     ApplicationArea = FixedAssets;
                 }
                 field("Custom 2 Bal. Acc. on Disposal"; Rec."Custom 2 Bal. Acc. on Disposal")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derog. Bal. Account (Decrease)"; Rec."Derog. Bal. Account (Decrease)")
                 {
                     ApplicationArea = FixedAssets;
                 }
@@ -275,6 +291,13 @@ page 5612 "FA Posting Group Card"
                     Caption = 'Book Value (Loss)';
                     ToolTip = 'Specifies the sum that applies to book value gains.';
                 }
+                field("Allocated Derogatory Pct."; Rec."Allocated Derogatory Pct.")
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    ApplicationArea = FixedAssets;
+                    Caption = 'Derogatory';
+                }
             }
         }
         area(factboxes)
@@ -383,6 +406,16 @@ page 5612 "FA Posting Group Card"
                         RunPageLink = Code = field(Code),
                                       "Allocation Type" = const(Loss);
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
+                    }
+                    action(FA_Derogatory_Allocations)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'De&rogatory';
+                        Image = Delegate;
+                        RunObject = Page "FA Allocations";
+                        RunPageLink = Code = field(Code),
+                                      "Allocation Type" = const(Derogatory);
+                        ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
                     }
                 }
             }

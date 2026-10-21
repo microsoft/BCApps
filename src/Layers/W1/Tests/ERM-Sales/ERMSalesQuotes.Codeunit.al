@@ -23,7 +23,14 @@ codeunit 134379 "ERM Sales Quotes"
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTemplates: Codeunit "Library - Templates";
+        ActiveQuoteNo: Code[20];
+        FirstReservedItemNo: Code[20];
         isInitialized: Boolean;
+        ManualReservationConfirmationShown: Boolean;
+        ReservationPageOpened: Boolean;
+        ReservationOrderFoundAtPage: Boolean;
+        ReservationOrderLineCountAtPage: Integer;
+        ReservationInterruptionErr: Label 'Simulated interruption while Reservation page is open.';
         AmountErrorMessage: Label '%1 must be %2 in %3.';
         FieldError: Label '%1 not updated correctly.';
         QuoteToOrderMessage: Label 'Do you want to convert the quote to an order?';
@@ -1913,6 +1920,90 @@ codeunit 134379 "ERM Sales Quotes"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ManualReservationConfirmHandler,ReservationInterruptionHandler')]
+    [Scope('OnPrem')]
+    procedure SalesQuoteToOrderInterruptedDuringReservation()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesOrderHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OldSkipManualReservation: Boolean;
+        LastErrorText: Text;
+    begin
+        // [FEATURE] [Quote] [Sales] [Reservation]
+        // [SCENARIO 654078] Interrupting manual reservation leaves a complete order and deletes the source quote.
+        Initialize();
+
+        // [GIVEN] A released two-line quote whose first item has Reserve = Always and no inventory.
+        CreateQuoteForManualReservation(SalesHeader, OldSkipManualReservation);
+
+        // [WHEN] Conversion is interrupted while the Reservation page is open.
+        asserterror Codeunit.Run(CODEUNIT::"Sales-Quote to Order", SalesHeader);
+        LastErrorText := GetLastErrorText();
+
+        RestoreSkipManualReservation(OldSkipManualReservation);
+
+        Assert.AreEqual(ReservationInterruptionErr, LastErrorText, 'Unexpected error interrupted conversion.');
+        Assert.IsTrue(ManualReservationConfirmationShown, 'Manual reservation confirmation was not shown.');
+        Assert.IsTrue(ReservationPageOpened, 'Reservation page was not opened.');
+        Assert.IsTrue(ReservationOrderFoundAtPage, 'Converted order was not found when the Reservation page opened.');
+        Assert.AreEqual(2, ReservationOrderLineCountAtPage, LineError);
+
+        // [THEN] The order contains both lines, the source quote is deleted, and the first line remains unreserved.
+        FindConvertedOrder(SalesOrderHeader, ActiveQuoteNo);
+        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+        SalesLine.SetRange("Document No.", SalesOrderHeader."No.");
+        Assert.AreEqual(2, SalesLine.Count, LineError);
+
+        Assert.IsFalse(
+            SalesHeader.Get(SalesHeader."Document Type"::Quote, ActiveQuoteNo),
+            'The source quote should have been deleted.');
+
+        SalesLine.SetRange("No.", FirstReservedItemNo);
+        SalesLine.FindFirst();
+        SalesLine.CalcFields("Reserved Qty. (Base)");
+        Assert.AreEqual(0, SalesLine."Reserved Qty. (Base)", 'The first line should remain unreserved.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ManualReservationConfirmHandler,ReservationCloseHandler')]
+    [Scope('OnPrem')]
+    procedure SalesQuoteToOrderCompletesWithManualReservationPrompt()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesOrderHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OldSkipManualReservation: Boolean;
+    begin
+        // [FEATURE] [Quote] [Sales] [Reservation]
+        // [SCENARIO 654078] Manual reservation is offered after all quote lines are converted.
+        Initialize();
+
+        // [GIVEN] A released two-line quote whose first item has Reserve = Always and no inventory.
+        CreateQuoteForManualReservation(SalesHeader, OldSkipManualReservation);
+
+        // [WHEN] Quote-to-order conversion runs and the Reservation page is closed normally.
+        Codeunit.Run(CODEUNIT::"Sales-Quote to Order", SalesHeader);
+
+        RestoreSkipManualReservation(OldSkipManualReservation);
+
+        // [THEN] The Reservation page opens after both order lines exist, and the source quote is deleted.
+        Assert.IsTrue(ManualReservationConfirmationShown, 'Manual reservation confirmation was not shown.');
+        Assert.IsTrue(ReservationPageOpened, 'Reservation page was not opened.');
+        Assert.IsTrue(ReservationOrderFoundAtPage, 'Converted order was not found when the Reservation page opened.');
+        Assert.AreEqual(2, ReservationOrderLineCountAtPage, LineError);
+
+        FindConvertedOrder(SalesOrderHeader, ActiveQuoteNo);
+        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+        SalesLine.SetRange("Document No.", SalesOrderHeader."No.");
+        Assert.AreEqual(2, SalesLine.Count, LineError);
+
+        Assert.IsFalse(
+            SalesHeader.Get(SalesHeader."Document Type"::Quote, ActiveQuoteNo),
+            'The source quote should have been deleted.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1934,6 +2025,64 @@ codeunit 134379 "ERM Sales Quotes"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Quotes");
+    end;
+
+    local procedure CreateQuoteForManualReservation(
+    var SalesHeader: Record "Sales Header";
+    var OldSkipManualReservation: Boolean)
+    var
+        SalesLine: Record "Sales Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        ManualReservationConfirmationShown := false;
+        ReservationPageOpened := false;
+        ReservationOrderFoundAtPage := false;
+        ReservationOrderLineCountAtPage := 0;
+        ActiveQuoteNo := '';
+
+        CreateSalesQuote(SalesHeader, SalesLine, CreateCustomer(), 2);
+        ActiveQuoteNo := SalesHeader."No.";
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", ActiveQuoteNo);
+        SalesLine.FindFirst();
+
+        FirstReservedItemNo := SalesLine."No.";
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Validate(Reserve, SalesLine.Reserve::Always);
+        SalesLine.Modify(true);
+
+        ItemLedgerEntry.SetRange("Item No.", FirstReservedItemNo);
+        Assert.IsTrue(ItemLedgerEntry.IsEmpty(), 'The first item must have no inventory.');
+
+        SalesLine.Next();
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Modify(true);
+
+        SalesReceivablesSetup.Get();
+        OldSkipManualReservation := SalesReceivablesSetup."Skip Manual Reservation";
+        SalesReceivablesSetup.Validate("Skip Manual Reservation", false);
+        SalesReceivablesSetup.Modify(true);
+
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
+    local procedure RestoreSkipManualReservation(OldSkipManualReservation: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Skip Manual Reservation", OldSkipManualReservation);
+        SalesReceivablesSetup.Modify(true);
+        Commit();
+    end;
+
+    local procedure FindConvertedOrder(var SalesOrderHeader: Record "Sales Header"; QuoteNo: Code[20])
+    begin
+        SalesOrderHeader.SetRange("Document Type", SalesOrderHeader."Document Type"::Order);
+        SalesOrderHeader.SetRange("Quote No.", QuoteNo);
+        SalesOrderHeader.FindFirst();
     end;
 
     local procedure CreateSimpleVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup")
@@ -2136,8 +2285,48 @@ codeunit 134379 "ERM Sales Quotes"
             VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
             VATPostingSetup.Validate("Tax Category", 'S');
             VATPostingSetup.Insert(true);
-
         end;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ManualReservationConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        ManualReservationConfirmationShown := true;
+        Reply := true;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ReservationCloseHandler(var Reservation: TestPage Reservation)
+    begin
+        CaptureConvertedOrderStateAtReservationPage();
+        Reservation.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ReservationInterruptionHandler(var Reservation: TestPage Reservation)
+    begin
+        CaptureConvertedOrderStateAtReservationPage();
+        Error(ReservationInterruptionErr);
+    end;
+
+    local procedure CaptureConvertedOrderStateAtReservationPage()
+    var
+        SalesOrderHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        ReservationPageOpened := true;
+        FindConvertedOrder(SalesOrderHeader, ActiveQuoteNo);
+
+        ReservationOrderFoundAtPage := SalesOrderHeader.FindFirst();
+        if not ReservationOrderFoundAtPage then
+            exit;
+
+        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+        SalesLine.SetRange("Document No.", SalesOrderHeader."No.");
+        ReservationOrderLineCountAtPage := SalesLine.Count;
     end;
 
     [ConfirmHandler]

@@ -642,7 +642,8 @@ page 6613 "FS Connection Setup Wizard"
                     if not Rec.PromptForCredentials(AdminEmail, AdminPassword) then
                         exit(false);
             end;
-            FSIntegrationMgt.ImportFSSolution(Rec."Server Address", Rec."User Name", AdminEmail, AdminPassword, AccessToken, AdminADDomain, Rec."Proxy Version", true, ImportSolutionFailed);
+            if not FSIntegrationMgt.ImportFSSolution(Rec."Server Address", Rec."User Name", AdminEmail, AdminPassword, AccessToken, AdminADDomain, Rec."Proxy Version", true, ImportSolutionFailed) then
+                Error(GetLastErrorText());
         end;
         if PasswordSet then
             FSConnectionSetup.UpdateFromWizard(Rec, Password)

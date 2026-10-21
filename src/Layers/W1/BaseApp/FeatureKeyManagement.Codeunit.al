@@ -19,6 +19,9 @@ codeunit 265 "Feature Key Management"
 #if not CLEAN30
         DepreciationDifferencesFITok: Label 'DepreciationDifferencesFI', Locked = true, MaxLength = 50;
 #endif
+#if not CLEAN27
+        VATReverseChargeTok: Label 'VATReverseCharge', Locked = true;
+#endif
         DocumentReportExperienceTxt: Label 'DocumentReportExperience', Locked = true;
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
         ConcurrentInventoryPosting: Boolean;
@@ -40,6 +43,13 @@ codeunit 265 "Feature Key Management"
     begin
         exit(FeatureManagementFacade.IsEnabled(GetSIEAuditFileExportFeatureKeyId()));
     end;
+
+#if not CLEAN27
+    procedure IsVATReverseChargeEnabled(): Boolean
+    begin
+        exit(FeatureManagementFacade.IsEnabled(VATReverseChargeTok));
+    end;
+#endif
 
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin

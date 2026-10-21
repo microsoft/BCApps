@@ -36,11 +36,17 @@ codeunit 13445 "Create FA Posting Grp. FI"
     end;
 
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
+    var
+        CreateGLAccount: Codeunit "Create G/L Account";
     begin
 #pragma warning disable AL0432
         FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
         FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
 #pragma warning restore AL0432
+        FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount.DerogExpenseAccForCredit());
+        FAPostingGroup.Validate("Derogatory Expense Acc.", CreateGLAccount.DerogExpenseAccForDebit());
     end;
 }
 #endif
