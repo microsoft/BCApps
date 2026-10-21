@@ -87,7 +87,6 @@ codeunit 3316 "PA Events"
         AgentTaskID: BigInteger;
         ReadyForDraftIndex: Integer;
     begin
-        // The document type is only known once the document is read into the draft, so the title is set only in the run that read it.
         ReadyForDraftIndex := ImportEDocumentProcess.StatusStepIndex("Import E-Doc. Proc. Status"::"Ready for draft");
         if (ImportEDocumentProcess.StatusStepIndex(StartState) >= ReadyForDraftIndex) or (ImportEDocumentProcess.StatusStepIndex(DesiredEndState) < ReadyForDraftIndex) then
             exit;
