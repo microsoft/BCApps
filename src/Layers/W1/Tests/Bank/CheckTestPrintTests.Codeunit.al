@@ -130,13 +130,12 @@ codeunit 134292 "Check Test Print Tests"
     var
         Check: Report Check;
         TempBlob: Codeunit "Temp Blob";
-        JournalRecordRef: RecordRef;
         OutputStream: OutStream;
     begin
-        JournalRecordRef.GetTable(GenJournalLine);
         Check.InitializeRequest(BankAccount."No.", BankAccount."Last Check No.", false, false, true, false);
+        Check.SetTableView(GenJournalLine);
         TempBlob.CreateOutStream(OutputStream);
-        Check.SaveAs('', ReportFormat::Xml, OutputStream, JournalRecordRef);
+        Check.SaveAs('', ReportFormat::Xml, OutputStream);
     end;
 
     local procedure VerifyTestPrint(BankAccount: Record "Bank Account"; ExpectedJournalSystemId: Guid)

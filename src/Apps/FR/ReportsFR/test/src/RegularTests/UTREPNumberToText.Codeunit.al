@@ -1521,13 +1521,12 @@ codeunit 144044 "UT REP Number To Text"
     var
         Check: Report Check;
         TempBlob: Codeunit "Temp Blob";
-        JournalRecordRef: RecordRef;
         OutputStream: OutStream;
     begin
-        JournalRecordRef.GetTable(GenJournalLine);
         Check.InitializeRequest(BankAccount."No.", BankAccount."Last Check No.", false, false, true, false);
+        Check.SetTableView(GenJournalLine);
         TempBlob.CreateOutStream(OutputStream);
-        Check.SaveAs('', ReportFormat::Xml, OutputStream, JournalRecordRef);
+        Check.SaveAs('', ReportFormat::Xml, OutputStream);
     end;
 
     local procedure GetJournalRestrictionError(GenJournalLine: Record "Gen. Journal Line"): Text
