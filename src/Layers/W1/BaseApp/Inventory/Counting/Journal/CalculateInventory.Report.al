@@ -1027,8 +1027,6 @@ report 790 "Calculate Inventory"
     end;
 
     local procedure CreateDimFromDefault() DimEntryNo: BigInteger
-    var
-        DefaultDimension: Record "Default Dimension";
     begin
         InsertDefaultDimensions(DATABASE::Item, TempQuantityOnHandBuffer."Item No.");
         InsertDefaultDimensions(DATABASE::Location, TempQuantityOnHandBuffer."Location Code");
