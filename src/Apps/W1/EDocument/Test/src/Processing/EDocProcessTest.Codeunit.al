@@ -1626,6 +1626,7 @@ codeunit 139883 "E-Doc Process Test"
     local procedure PrepareCreditMemoForPosting(var PurchaseHeader: Record "Purchase Header")
     var
         ReasonCode: Record "Reason Code";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         // Posting checks the document totals against the lines, and the fixture prints a VAT rate the test company does not use.
         // Some localizations, such as AU with GST adjustments mandatory, also require a reason code on credit memos.
