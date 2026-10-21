@@ -178,6 +178,11 @@ page 6928 "Expense Reports API"
                     Caption = 'Final Approver Name';
                     Editable = false;
                 }
+                field(primaryFinalApproverNo; Rec."Primary Final Approver No.")
+                {
+                    Caption = 'Primary Final Approver No.';
+                    Editable = false;
+                }
                 field(alternateApproverNo; Rec."Alternate Approver No.")
                 {
                     Caption = 'Alternate Approver No.';
@@ -196,6 +201,11 @@ page 6928 "Expense Reports API"
                 field(interimApproverName; Rec."Interim Approver Name")
                 {
                     Caption = 'Interim Approver Name';
+                    Editable = false;
+                }
+                field(primaryInterimApproverNo; Rec."Primary Interim Approver No.")
+                {
+                    Caption = 'Primary Interim Approver No.';
                     Editable = false;
                 }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
