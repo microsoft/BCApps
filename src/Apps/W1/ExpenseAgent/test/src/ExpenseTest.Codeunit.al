@@ -3739,7 +3739,7 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0.0, Expense.Amount - 0));  // to force same type of formatting
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -4902,7 +4902,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Expense.Amount - 0)); // to force same type of formatting
 
         // [GIVEN] Update Non-Refundable Amount in Expense which is mismatch with total reduction in Itemization.
         Expense."Non-Refundable Amount" := AmountReduction;
@@ -4917,7 +4917,7 @@ codeunit 148305 "Expense Test"
         // [THEN] Verify that the Itemization Total Mismatch error in rule violation.
         ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Expense.Amount));
         ExpensePage.RuleViolations.Next();
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalReductionMismatchErr, AmountReduction - 1, Expense."Non-Refundable Amount"));
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalReductionMismatchErr, AmountReduction - 1, Expense."Non-Refundable Amount" - 0)); // to force same type of formatting
 
         // [THEN] Verify that the Non-Refundable Amount field is non-editable in Expense Page.
         Assert.AreEqual(
