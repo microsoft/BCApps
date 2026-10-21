@@ -20,7 +20,9 @@ on:
   pull_request:
     paths:
       - '.github/workflows/bc-extrequest-backport.yml'
+      - '.github/workflows/ownership-classification.yml'
       - '.github/scripts/bc-extrequest-backport/**'
+      - 'build/scripts/tests/OwnershipClassification.Test.ps1'
 
 permissions:
   contents: read
@@ -41,14 +43,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          sparse-checkout: .github/scripts/bc-extrequest-backport
+          sparse-checkout: |
+            .github/scripts/bc-extrequest-backport
+            .github/workflows
+            build/scripts/tests
       - name: Run offline PowerShell tests
         run: |
           if (-not (Get-Module -ListAvailable Pester | Where-Object Version -eq '5.7.1')) {
             Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
           }
           Import-Module Pester -RequiredVersion 5.7.1
-          $result = Invoke-Pester ./.github/scripts/bc-extrequest-backport/Backport.Test.ps1 -PassThru
+          $result = Invoke-Pester -Path @(
+            './.github/scripts/bc-extrequest-backport/Backport.Test.ps1'
+            './build/scripts/tests/OwnershipClassification.Test.ps1'
+          ) -PassThru
           if ($result.Result -ne 'Passed' -or $result.PassedCount -eq 0) {
             throw 'Backport tests failed or no tests ran.'
           }
@@ -90,7 +98,7 @@ jobs:
             -SourcePr $env:SOURCE_PR -TargetOverride $env:TARGET_OVERRIDE -BatchId $env:BATCH_ID)
           "has-work=$(($requests.Count -gt 0).ToString().ToLowerInvariant())" |
             Add-Content $env:GITHUB_OUTPUT
-          "matrix=$(@{ include = $requests } | ConvertTo-Json -Depth 15 -Compress)" |
+          "matrix=$(@{ include = $requests } | ConvertTo-Json -Depth 60 -Compress)" |
             Add-Content $env:GITHUB_OUTPUT
 
   backport:
