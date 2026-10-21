@@ -61,6 +61,8 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ComponentOrderDateAssertMsg: Label 'Order Date must be calculated from the component lead time.';
         WorkDateOrderDateAssertMsg: Label 'Order Date must not be overwritten with Work Date.';
         ServiceLineExpectedReceiptDateAssertMsg: Label 'The service line must retain the routing operation ending date.';
+        VendorSuppliedComponentAssertMsg: Label 'Expected to find a vendor-supplied production order component.';
+        ComponentPurchaseLineAssertMsg: Label 'Expected to find the purchase line linked to the production order.';
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
@@ -1205,6 +1207,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         WorkCenter: array[2] of Record "Work Center";
         MachineCenter: array[2] of Record "Machine Center";
         ComponentDueDate: Date;
+        FoundRecord: Boolean;
     begin
         // [SCENARIO 650504] Vendor-supplied component purchase lines use component requirement dates and standard purchase scheduling.
         Initialize();
@@ -1215,8 +1218,10 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
             "Component Supply Method"::"Vendor-Supplied", LibraryRandom.RandIntInRange(1, 10));
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-        ProdOrderComponent.FindFirst();
+        FoundRecord := ProdOrderComponent.FindSet();
+        while FoundRecord and (ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Vendor-Supplied") do
+            FoundRecord := ProdOrderComponent.Next() <> 0;
+        Assert.IsTrue(FoundRecord, VendorSuppliedComponentAssertMsg);
         ComponentItem.Get(ProdOrderComponent."Item No.");
         Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
         ComponentItem.Modify(true);
@@ -1232,8 +1237,10 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
-        PurchaseLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-        PurchaseLine.FindFirst();
+        FoundRecord := PurchaseLine.FindSet();
+        while FoundRecord and (PurchaseLine."Subc. Prod. Order No." <> ProductionOrder."No.") do
+            FoundRecord := PurchaseLine.Next() <> 0;
+        Assert.IsTrue(FoundRecord, ComponentPurchaseLineAssertMsg);
         Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);
         Assert.IsTrue(PurchaseLine."Planned Receipt Date" <= PurchaseLine."Expected Receipt Date", PlannedReceiptDateAssertMsg);
         Assert.IsTrue(PurchaseLine."Order Date" < PurchaseLine."Planned Receipt Date", ComponentOrderDateAssertMsg);
