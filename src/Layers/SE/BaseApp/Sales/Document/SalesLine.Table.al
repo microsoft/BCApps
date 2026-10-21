@@ -312,7 +312,7 @@ table 37 "Sales Line"
                 IsHandled := false;
                 OnValidateNoOnBeforeUpdateDates(Rec, xRec, SalesHeader, CurrFieldNo, IsHandled, TempSalesLine);
                 if not IsHandled then
-                    UpdateDates();
+                    UpdateDatesFromNo();
 
                 OnAfterAssignHeaderValues(Rec, SalesHeader);
 
@@ -507,7 +507,7 @@ table 37 "Sales Line"
 
                 TestStatusOpen();
                 SalesWarehouseMgt.SalesLineVerifyChange(Rec, xRec);
-                DoCheckReceiptOrderStatus := CurrFieldNo <> 0;
+                DoCheckReceiptOrderStatus := (CurrFieldNo <> 0) and not ReceiptOrderStatusCheckSuspended;
                 OnValidateShipmentDateOnAfterSalesLineVerifyChange(Rec, CurrFieldNo, DoCheckReceiptOrderStatus, HasBeenShown);
                 if DoCheckReceiptOrderStatus then
                     CheckReceiptOrderStatus();
@@ -4382,6 +4382,7 @@ table 37 "Sales Line"
         FieldCausedPriceCalculation: Integer;
         FullAutoReservation: Boolean;
         HasBeenShown: Boolean;
+        ReceiptOrderStatusCheckSuspended: Boolean;
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
         SuppressSalesHeaderExistsVerification: Boolean;
@@ -9643,13 +9644,27 @@ table 37 "Sales Line"
     local procedure ValidateUnitOfMeasureCodeFromNo()
     var
         IsHandled: Boolean;
+        OldStatusCheckSuspended: Boolean;
     begin
         IsHandled := false;
         OnBeforeValidateUnitOfMeasureCodeFromNo(Rec, xRec, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
 
+        OldStatusCheckSuspended := StatusCheckSuspended;
+        StatusCheckSuspended := true;
         Validate("Unit of Measure Code");
+        StatusCheckSuspended := OldStatusCheckSuspended;
+    end;
+
+    local procedure UpdateDatesFromNo()
+    var
+        OldReceiptOrderStatusCheckSuspended: Boolean;
+    begin
+        OldReceiptOrderStatusCheckSuspended := ReceiptOrderStatusCheckSuspended;
+        ReceiptOrderStatusCheckSuspended := true;
+        UpdateDates();
+        ReceiptOrderStatusCheckSuspended := OldReceiptOrderStatusCheckSuspended;
     end;
 
     local procedure NotifyOnMissingSetup(FieldNumber: Integer)
