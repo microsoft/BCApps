@@ -358,6 +358,44 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo,AddExpensesToExpenseReportModalPageHandler')]
+    procedure CreateExpenseReportUsesLocalCurrencyForForeignCurrencyExpense()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 647169] Verify that a report created from a foreign currency expense uses local currency for reimbursement.
+        Initialize();
+
+        // [GIVEN] Create a released expense in a foreign currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, CurrencyCode, 100);
+        Expense.PerformManualRelease();
+
+        // [GIVEN] Select a new expense report.
+        LibraryVariableStorage.Enqueue(false);
+
+        // [WHEN] Create the expense report from the expense.
+        Expense.SetRange("No.", Expense."No.");
+        CreateExpenseReport.AddExpensesToReport(Expense);
+
+        // [THEN] The report uses local currency for reimbursement and retains the foreign currency on the line.
+        Expense.Get(Expense."No.");
+        ExpenseReportHeader.Get(Expense."Expense Report No.");
+        ExpenseReportHeader.TestField("Reimbursement Currency Code", '');
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLine.TestField("Expense Currency Code", CurrencyCode);
+    end;
+
+    [Test]
     procedure ReimbursementTypeMustBeUpdatedFromPaymentMethodCodeInExpense()
     var
         ExpensePaymentMethod: Record "Expense Payment Method";
@@ -2534,6 +2572,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenNameIsEmpty()
     var
         ExpenseUser: Record "Expense User";
@@ -2563,6 +2602,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenEmailIsEmpty()
     var
         ExpenseUser: Record "Expense User";

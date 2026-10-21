@@ -9459,11 +9459,27 @@ codeunit 80 "Sales-Post"
     var
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeUpdateSalesOrderLineIfExist(DocumentNo, IsHandled);
+        if IsHandled then
+            exit;
+
         SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
         SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
         if SalesCreditMemoHeader.FindFirst() then
             CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+    end;
+
+    /// <summary>
+    /// Raised before updating a sales order line from a posted sales return order.
+    /// </summary>
+    /// <param name="DocumentNo">The number of the sales return order.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales order line update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSalesOrderLineIfExist(DocumentNo: Code[20]; var IsHandled: Boolean)
+    begin
     end;
 
     /// <summary>
@@ -12525,8 +12541,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-        ReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]

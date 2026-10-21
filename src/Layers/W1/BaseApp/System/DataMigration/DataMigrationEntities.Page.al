@@ -108,8 +108,7 @@ page 1810 "Data Migration Entities"
         TempDataMigrationEntity: Record "Data Migration Entity" temporary;
     begin
         TempDataMigrationEntity.Copy(Rec, true);
-        TempDataMigrationEntity.ModifyAll(Post, PostJournals);
-        TempDataMigrationEntity.ModifyAll("Posting Date", PostingDate);
+        TempDataMigrationEntity.ModifyAll(Post, PostJournals, "Posting Date", PostingDate);
     end;
 
     procedure SetHideSelected(HideCheckBoxes: Boolean)

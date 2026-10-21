@@ -1112,8 +1112,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         IncomingDocument.Modify(true);
 
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
-        IncomingDocumentAttachment.ModifyAll("Document No.", '');
-        IncomingDocumentAttachment.ModifyAll("Posting Date", 0D);
+        IncomingDocumentAttachment.ModifyAll("Document No.", '', "Posting Date", 0D);
     end;
 
     local procedure UpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo: Code[20])
@@ -1212,6 +1211,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Currency: Record Currency;
+        IsHandled: Boolean;
     begin
         if not SalesLine.Get(
             SalesLine."Document Type"::Order,
@@ -1225,6 +1225,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
 
         SalesHeader.Get(SalesLine."Document Type"::Order, SalesLine."Document No.");
         Currency.Initialize(SalesHeader."Currency Code", true);
+
+        IsHandled := false;
+        OnUpdateSalesOrderLinePrepmtAmountOnBeforeUpdatePrepmtAmounts(SalesInvoiceLine, SalesLine, SalesHeader, Currency, IsHandled);
+        if IsHandled then
+            exit;
 
         if SalesHeader."Currency Code" <> '' then
             SalesLine.Validate(
@@ -1478,6 +1483,19 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="IsHandled">Set to true to skip default quantity update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesOrderLineInvoicedQuantity(var SalesLine: Record "Sales Line"; CancelledQuantity: Decimal; CancelledQtyBase: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before updating prepayment amounts on a sales order line during correction.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being processed.</param>
+    /// <param name="SalesLine">The sales order line that would be updated.</param>
+    /// <param name="SalesHeader">The related sales order header.</param>
+    /// <param name="Currency">The initialized currency for the sales order.</param>
+    /// <param name="IsHandled">Set to true to skip the default prepayment amount update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSalesOrderLinePrepmtAmountOnBeforeUpdatePrepmtAmounts(SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency; var IsHandled: Boolean)
     begin
     end;
 

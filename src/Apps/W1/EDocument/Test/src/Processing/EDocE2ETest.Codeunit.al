@@ -2087,6 +2087,7 @@ codeunit 139624 "E-Doc E2E Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure PurchaseOrderReReleaseUpdatesSameEDocumentSuccess()
     var
         EDocument: Record "E-Document";
@@ -2139,6 +2140,7 @@ codeunit 139624 "E-Doc E2E Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure PurchaseOrderEditReflectedInPEPPOLXmlSuccess()
     var
         EDocument: Record "E-Document";

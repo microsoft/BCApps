@@ -38,13 +38,16 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 148015,
       "to": 148017
     }
+  ],
+  "resourceFolders": [
+    ".resources"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

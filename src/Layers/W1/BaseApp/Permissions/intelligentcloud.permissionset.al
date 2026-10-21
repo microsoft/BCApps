@@ -750,9 +750,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Exchange Folder" = R,
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
-#if not CLEAN28
                   tabledata "Exchange Sync" = R,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = R,
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,

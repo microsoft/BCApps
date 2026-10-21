@@ -6,9 +6,11 @@
 namespace Microsoft.ExpenseAgent;
 
 using System;
+using System.Apps;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Security.AccessControl;
 using System.Security.Authentication;
 using System.Telemetry;
 
@@ -51,6 +53,7 @@ codeunit 6941 "EA Http Client"
         CanaryAllowlistEndpointTok: Label '/api/v1.0/canary/allowlist', Locked = true;
         ProdBaseUrlSecretNameTok: Label 'EABaseUrl', Locked = true;
         CanaryBaseUrlSecretNameTok: Label 'EABaseUrlCanary', Locked = true;
+        ExpenseAgentSetupMissingTxt: Label 'Expense Agent setup is missing. The service request was not sent.', Locked = true;
 
     [NonDebuggable]
     procedure SubmitExpenseWithAttachments(ConversationId: Text; Context: Text; OnBehalfUser: Text; var TempAttachment: Record "EA Email Attachment" temporary): Boolean
@@ -423,6 +426,16 @@ codeunit 6941 "EA Http Client"
     end;
 
     [TryFunction]
+    internal procedure TryEnableHttpRequestForExpenseAgentApp()
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CallerModuleInfo);
+        ExtensionManagement.ConfigureExtensionHttpClientRequestsAllowance(CallerModuleInfo.PackageId(), true);
+    end;
+
+    [TryFunction]
     local procedure TryGetJsonBoolean(JsonValue: JsonValue; var Value: Boolean)
     begin
         Value := JsonValue.AsBoolean();
@@ -431,14 +444,24 @@ codeunit 6941 "EA Http Client"
     local procedure GetExpenseAgentBaseUrl(var BaseUrl: SecretText): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        SecretName: Text;
     begin
-        SecretName := ProdBaseUrlSecretNameTok;
-        if ExpenseAgentSetup.Get() then
-            if ExpenseAgentSetup."Use Canary Endpoint" then
-                SecretName := CanaryBaseUrlSecretNameTok;
-        exit(AzureKeyVault.GetAzureKeyVaultSecret(SecretName, BaseUrl));
+        Clear(BaseUrl);
+        if not ExpenseAgentSetup.Get() then begin
+            FeatureTelemetry.LogError('0000VGO', ExpenseAgentSetup.GetFeatureName(), 'Resolve service endpoint', ExpenseAgentSetupMissingTxt);
+            exit(false);
+        end;
+
+        exit(GetExpenseAgentBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrl));
+    end;
+
+    local procedure GetExpenseAgentBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText): Boolean
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+    begin
+        if UseCanaryEndpoint then
+            exit(AzureKeyVault.GetAzureKeyVaultSecret(CanaryBaseUrlSecretNameTok, BaseUrl));
+
+        exit(GetProductionBaseUrl(BaseUrl));
     end;
 
     local procedure GetProductionBaseUrl(var BaseUrl: SecretText): Boolean
@@ -449,19 +472,19 @@ codeunit 6941 "EA Http Client"
     end;
 
     [NonDebuggable]
-    procedure RegisterErpConfiguration(): Boolean
+    procedure RegisterErpConfiguration(UseCanaryEndpoint: Boolean): Boolean
     begin
-        exit(SendErpConfigRequest('POST', ErpRegistrationFailedErr));
+        exit(SendErpConfigRequest('POST', ErpRegistrationFailedErr, UseCanaryEndpoint));
     end;
 
     [NonDebuggable]
-    procedure UnregisterErpConfiguration(): Boolean
+    procedure UnregisterErpConfiguration(UseCanaryEndpoint: Boolean): Boolean
     begin
-        exit(SendErpConfigRequest('DELETE', ErpUnregistrationFailedErr));
+        exit(SendErpConfigRequest('DELETE', ErpUnregistrationFailedErr, UseCanaryEndpoint));
     end;
 
     [NonDebuggable]
-    local procedure SendErpConfigRequest(HttpMethod: Text; FailureError: Text): Boolean
+    local procedure SendErpConfigRequest(HttpMethod: Text; FailureError: Text; UseCanaryEndpoint: Boolean): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         Client: HttpClient;
@@ -473,7 +496,7 @@ codeunit 6941 "EA Http Client"
         Url: Text;
         BaseUrl: SecretText;
     begin
-        if not GetExpenseAgentBaseUrl(BaseUrl) then begin
+        if not GetExpenseAgentBaseUrl(UseCanaryEndpoint, BaseUrl) then begin
             Message(FailureError);
             exit(false);
         end;
@@ -577,6 +600,46 @@ codeunit 6941 "EA Http Client"
         Headers.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
     end;
 
+    [NonDebuggable]
+    internal procedure IsCurrentUserGuestUser(): Boolean
+    var
+        User: Record User;
+        EnvironmentInformation: Codeunit "Environment Information";
+        TenantInformation: Codeunit "Tenant Information";
+        OAuth2: Codeunit OAuth2;
+        ObjectClaims: JsonObject;
+        SingleClaim: JsonToken;
+        AccessToken: SecretText;
+        CurrentTenant: Guid;
+    begin
+        if not EnvironmentInformation.IsSaaS() then
+            exit(false);
+
+        // External users are stored in M365 with an authentication email that
+        // looks like username_hometenant.onmicrosoft.com#EXT#@guesttenant.onmicrosoft.com;
+        // the official recommendation is to check whether whe user is marked as usertype = Guest
+        // instead, but to avoid a call to Graph, we limit the check to the email here.
+        if User.ReadPermission() then
+            if User.Get(UserSecurityId()) then
+                if User."Authentication Email".Split('#EXT#@').Count > 1 then
+                    exit(true);
+
+        // We can also fall back to checking whether the current tenant is the
+        // identity provider for the user tokens
+        if Evaluate(CurrentTenant, TenantInformation.GetTenantId()) and not IsNullGuid(CurrentTenant) then
+            if TryGetAccessToken(AccessToken) and not AccessToken.IsEmpty() then begin
+                ObjectClaims := OAuth2.GetClaims(AccessToken);
+                if ObjectClaims.Get('idp', SingleClaim) and SingleClaim.IsValue() then
+                    if not SingleClaim.AsValue().IsNull() and not SingleClaim.AsValue().IsUndefined() then
+                        if not LowerCase(SingleClaim.AsValue().AsText()).Contains(LowerCase(Format(CurrentTenant, 4))) then
+                            // There is a idp claim and it does not match the current tenant,
+                            // which is also indication of an external user
+                            exit(true);
+            end;
+
+        exit(false);
+    end;
+
     [TryFunction]
     local procedure TryAddAuthHeaders(var Headers: HttpHeaders)
     begin
@@ -589,13 +652,13 @@ codeunit 6941 "EA Http Client"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         AzureADMgt: Codeunit "Azure AD Mgt.";
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         OAuthScope: Text;
         OAuthScopePatternLbl: Label 'api://%1/', Locked = true;
     begin
-        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentAPIValidation.GetAadAppId());
+        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentEntraApp.GetAadAppId());
         Scopes.Add(OAuthScope + 'Expenses.ReadWrite.All');
         AccessToken := AzureADMgt.GetAccessTokenAsSecretText(OAuthScope, '', false);
         if AccessToken.IsEmpty() then begin

@@ -49,7 +49,7 @@ codeunit 133954 "Library Mock Agent"
         AgentRecord: Record Agent;
         MockAgentSetup: Record "Mock Agent Setup";
     begin
-        AgentRecord.SetRange("Agent Metadata Provider", AgentRecord."Agent Metadata Provider"::"SDK Mock Agent");
+        AgentRecord.SetFilter("Agent Metadata Provider", '%1|%2', AgentRecord."Agent Metadata Provider"::"SDK Mock Agent", AgentRecord."Agent Metadata Provider"::"SDK Mock Agent No Archiving");
         if AgentRecord.FindSet() then
             repeat
                 if MockAgentSetup.Get(AgentRecord."User Security ID") then

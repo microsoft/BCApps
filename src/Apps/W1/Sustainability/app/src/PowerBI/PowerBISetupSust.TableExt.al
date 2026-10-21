@@ -1,4 +1,3 @@
-#if CLEAN27
 namespace Microsoft.Sustainability.PowerBIReports;
 
 using Microsoft.PowerBIReports;
@@ -7,6 +6,7 @@ tableextension 6262 "Power BI Setup - Sust." extends "PowerBI Reports Setup"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve moved field IDs for compatibility with the source schema.
         field(37099; "Sustainability Load Date Type"; Option)
         {
             Caption = 'Sustainability Report Load Date Type';
@@ -45,6 +45,6 @@ tableextension 6262 "Power BI Setup - Sust." extends "PowerBI Reports Setup"
             DataClassification = CustomerContent;
             MovedFrom = 'e4e86220-cac0-4ec3-b853-7c2fa610399d';
         }
+#pragma warning restore AS0099
     }
 }
-#endif

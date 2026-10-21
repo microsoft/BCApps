@@ -31,6 +31,7 @@ jobs:
   implement:
     if: >
       github.event_name == 'issues' &&
+      (vars.EXT_REQ_IMPLEMENTATION_MODE == '' || vars.EXT_REQ_IMPLEMENTATION_MODE == 'per-issue') &&
       github.event.label.name == 'ext-ready-to-implement' &&
       github.event.issue.state == 'open' &&
       github.event.issue.type.name == 'Task'
@@ -40,7 +41,7 @@ jobs:
       pull-requests: write
       id-token: write
       copilot-requests: write
-    environment: triage
+    environment: extensibility-agent
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -70,7 +71,7 @@ jobs:
         id: azure-login
         if: steps.telemetry-config.outputs.enabled == 'true'
         continue-on-error: true
-        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
@@ -81,31 +82,52 @@ jobs:
         run: Write-Warning 'Azure login failed. The implementation will continue without telemetry.'
 
       - name: Checkout repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate skill
         run: |
-          if (-not (Test-Path '.github/skills/bc-extrequest-implement/SKILL.md')) {
-            throw 'Skill .github/skills/bc-extrequest-implement/SKILL.md was not found.'
+          $requiredFiles = @(
+            '.github/skills/bc-extrequest-implement/SKILL.md'
+          )
+          $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path $_) })
+          if ($missingFiles.Count -gt 0) {
+            throw "Required skill files were not found: $($missingFiles -join ', ')."
           }
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
       - name: Install Copilot CLI
         run: npm install --global @github/copilot
 
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
+          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
+
+      - name: Configure GitHub App authentication
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh auth setup-git
+
       - name: Implement extensibility request
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
         run: |
           ./.github/scripts/bc-extrequest-implement/invoke-implementation.ps1 `
             -IssueNumber ([long]$env:ISSUE_NUMBER) `
@@ -115,7 +137,11 @@ jobs:
             -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')
 
   record-pr-outcome:
-    if: github.event_name == 'pull_request_target' && startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-')
+    if: >
+      github.event_name == 'pull_request_target' &&
+      (startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-') ||
+       startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/team-'))
+    environment: extensibility-agent
     runs-on: ubuntu-latest
 
     steps:
@@ -144,7 +170,7 @@ jobs:
         id: azure-login
         if: steps.telemetry-config.outputs.enabled == 'true'
         continue-on-error: true
-        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
@@ -156,7 +182,7 @@ jobs:
 
       - name: Checkout trusted workflow code
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Record pull request outcome
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
@@ -164,6 +190,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
         run: |
           ./.github/scripts/bc-extrequest-implement/send-pr-outcome-telemetry.ps1 `
             -PullRequestNumber ([long]$env:PULL_REQUEST_NUMBER) `

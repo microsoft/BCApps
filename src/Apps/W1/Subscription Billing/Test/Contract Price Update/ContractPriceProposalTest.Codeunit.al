@@ -44,6 +44,7 @@ codeunit 139690 "Contract Price Proposal Test"
         Assert: Codeunit Assert;
         ContractTestLibrary: Codeunit "Contract Test Library";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -409,6 +410,93 @@ codeunit 139690 "Contract Price Proposal Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure TestSubscriptionLineFilterOnNextPriceUpdateIsNotOverwrittenByDefaultFiltering()
+    var
+        NextPriceUpdateFilterText: Text;
+        OtherNextPriceUpdate: Date;
+        TargetNextPriceUpdate: Date;
+    begin
+        // [SCENARIO] A Subscription Line Filter on a field that the proposal's mandatory default filtering also uses
+        // [SCENARIO] must be honoured instead of being replaced by the default filter.
+        Initialize();
+        ContractTestLibrary.DeleteAllContractRecords();
+
+        // [GIVEN] Four Subscription Lines, two of them with Next Price Update = TargetNextPriceUpdate, the other two with a different date
+        TargetNextPriceUpdate := CalcDate('<1M>', WorkDate());
+        OtherNextPriceUpdate := CalcDate('<2M>', WorkDate());
+        CreateCustomerContractLinesWithNextPriceUpdate(4, TargetNextPriceUpdate, OtherNextPriceUpdate);
+
+        // [GIVEN] A Price Update Template whose Subscription Line Filter restricts Next Price Update to TargetNextPriceUpdate
+        NextPriceUpdateFilterText := ComposeNextPriceUpdateFilter(TargetNextPriceUpdate);
+
+        // [WHEN] The proposal is created with Include Contract Lines up to Date after both dates
+        // [THEN] Only the two Subscription Lines matching the template filter end up in the proposal
+        CreatePriceUpdateTemplateWithFilterAndUpdateCreateProposal('', NextPriceUpdateFilterText, '', 2);
+        VerifyProposalContainsOnlySubscriptionLinesWithNextPriceUpdate(TargetNextPriceUpdate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure TestSubscriptionLineFilterCannotWidenDefaultFilteringOnNextPriceUpdate()
+    var
+        NextPriceUpdateFilterText: Text;
+        NextPriceUpdateAfterInclusionDate: Date;
+        NextPriceUpdateWithinInclusionDate: Date;
+    begin
+        // [SCENARIO] A Subscription Line Filter must not be able to pull in lines that the mandatory default filtering excludes.
+        Initialize();
+        ContractTestLibrary.DeleteAllContractRecords();
+
+        // [GIVEN] Four customer Subscription Lines, two within the Include Contract Lines up to Date of <12M> and two beyond it
+        NextPriceUpdateWithinInclusionDate := CalcDate('<1M>', WorkDate());
+        NextPriceUpdateAfterInclusionDate := CalcDate('<24M>', WorkDate());
+        CreateCustomerContractLinesWithNextPriceUpdate(4, NextPriceUpdateWithinInclusionDate, NextPriceUpdateAfterInclusionDate);
+
+        // [GIVEN] A vendor Subscription Line that satisfies every mandatory default except the Partner of the template
+        CreateVendorContractLineWithNextPriceUpdate(NextPriceUpdateWithinInclusionDate);
+
+        // [WHEN] The proposal is created from a customer template without a Subscription Line Filter
+        // [THEN] Only the two customer lines within the Include Contract Lines up to Date are proposed
+        CreatePriceUpdateTemplateWithFilterAndUpdateCreateProposal('', '', '', 2);
+        VerifyProposalContainsOnlySubscriptionLinesWithNextPriceUpdate(NextPriceUpdateWithinInclusionDate);
+        VerifyProposalContainsOnlySubscriptionLinesOfTemplatePartner();
+
+        // [WHEN] The proposal is created with a Subscription Line Filter asking for the lines beyond that date
+        NextPriceUpdateFilterText := ComposeNextPriceUpdateFilter(NextPriceUpdateAfterInclusionDate);
+
+        // [THEN] The intersection is empty - the template filter cannot widen the mandatory default
+        CreatePriceUpdateTemplateWithFilterAndUpdateCreateProposal('', NextPriceUpdateFilterText, '', 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure TestSubscriptionLineFilterCannotWidenDefaultFilteringOnExcludeFromPriceUpdate()
+    var
+        DummyServiceCommitment: Record "Subscription Line";
+        ExcludeFromPriceUpdateFilterText: Text;
+    begin
+        // [SCENARIO] Excluded Subscription Lines stay out of the proposal even if the Subscription Line Filter asks for them.
+        Initialize();
+        ContractTestLibrary.DeleteAllContractRecords();
+
+        // [GIVEN] Four Subscription Lines, two of them flagged as Exclude from Price Update
+        CreateCustomerContractLinesWithExcludeFromPriceUpdate(4);
+
+        // [WHEN] The proposal is created without a Subscription Line Filter
+        // [THEN] Only the two lines that are not excluded are proposed
+        CreatePriceUpdateTemplateWithFilterAndUpdateCreateProposal('', '', '', 2);
+        VerifyProposalContainsOnlyNotExcludedSubscriptionLines();
+
+        // [WHEN] The proposal is created with a Subscription Line Filter asking for the excluded lines
+        DummyServiceCommitment.SetRange("Exclude from Price Update", true);
+        ExcludeFromPriceUpdateFilterText := DummyServiceCommitment.GetView(false);
+
+        // [THEN] The intersection is empty - the template filter cannot widen the mandatory default
+        CreatePriceUpdateTemplateWithFilterAndUpdateCreateProposal('', ExcludeFromPriceUpdateFilterText, '', 0);
+    end;
+
+    [Test]
     procedure TestIfContractPriceUpdateLinesAreDeletedAfterPerformPriceUpdate()
     begin
         Initialize();
@@ -705,6 +793,54 @@ codeunit 139690 "Contract Price Proposal Test"
         Assert.AreEqual(PriceListLine."Direct Unit Cost", ContractPriceUpdateLine."New Calculation Base", 'New Calculation Base must equal the purchase price of the G/L Account');
     end;
 
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    procedure CreateCustomerPriceUpdateProposalUsesPriceOfSubscriptionUnitOfMeasure()
+    var
+        CustomerContract: Record "Customer Subscription Contract";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLineForBaseUnitOfMeasure: Record "Price List Line";
+        PriceListLineForSubscriptionUnitOfMeasure: Record "Price List Line";
+    begin
+        // [SCENARIO 648553] The price update proposal must use the price of the Subscription unit of measure instead of the lowest price of all units of measure.
+        Initialize();
+
+        // [GIVEN] A customer contract with a Subscription that uses a unit of measure other than the base unit of measure
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', false);
+        Item.Get(ServiceObject."Source No.");
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 1);
+        ServiceObject.Validate("Unit of Measure", ItemUnitOfMeasure.Code);
+        ServiceObject.Modify(true);
+
+        // [GIVEN] An active sales price list with a lower price for the base unit of measure and a higher price for the Subscription unit of measure
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreateSalesPriceLine(PriceListLineForBaseUnitOfMeasure, PriceListHeader.Code, "Price Source Type"::"All Customers", '', "Price Asset Type"::Item, Item."No.");
+        PriceListLineForBaseUnitOfMeasure.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+        PriceListLineForBaseUnitOfMeasure.Validate("Unit Price", 10);
+        PriceListLineForBaseUnitOfMeasure.Modify(true);
+
+        LibraryPriceCalculation.CreateSalesPriceLine(PriceListLineForSubscriptionUnitOfMeasure, PriceListHeader.Code, "Price Source Type"::"All Customers", '', "Price Asset Type"::Item, Item."No.");
+        PriceListLineForSubscriptionUnitOfMeasure.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        PriceListLineForSubscriptionUnitOfMeasure.Validate("Unit Price", 100);
+        PriceListLineForSubscriptionUnitOfMeasure.Modify(true);
+
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        PriceListHeader.Modify(true);
+
+        // [WHEN] Create a price update proposal with the Recent Item Prices method
+        ContractTestLibrary.CreatePriceUpdateTemplate(PriceUpdateTemplateCustomer, "Service Partner"::Customer, "Price Update Method"::"Recent Item Prices", 0, '<12M>', '<12M>', '<12M>');
+        PriceUpdateManagement.CreatePriceUpdateProposal(PriceUpdateTemplateCustomer.Code, CalcDate(PriceUpdateTemplateCustomer.InclContrLinesUpToDateFormula, WorkDate()), WorkDate());
+
+        // [THEN] The new calculation base is taken from the price list line of the Subscription unit of measure
+        ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateCustomer.Code);
+        Assert.RecordIsNotEmpty(ContractPriceUpdateLine);
+        ContractPriceUpdateLine.FindSet();
+        repeat
+            Assert.AreEqual(PriceListLineForSubscriptionUnitOfMeasure."Unit Price", ContractPriceUpdateLine."New Calculation Base", 'New Calculation Base must equal the sales price of the Subscription unit of measure');
+        until ContractPriceUpdateLine.Next() = 0;
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -812,6 +948,111 @@ codeunit 139690 "Contract Price Proposal Test"
         // Check
         ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateCustomer.Code);
         Assert.AreEqual(ExpectedValue, ContractPriceUpdateLine.Count(), 'Filtering failed.');
+    end;
+
+    local procedure CreateCustomerContractLinesWithNextPriceUpdate(NoOfContracts: Integer; NextPriceUpdateForEvenContract: Date; NextPriceUpdateForOddContract: Date)
+    var
+        CurrentServiceCommitment: Record "Subscription Line";
+        i: Integer;
+    begin
+        for i := 1 to NoOfContracts do begin
+            CreateCustomerContractWithOneSubscriptionLine(CurrentServiceCommitment);
+            if i mod 2 = 0 then
+                CurrentServiceCommitment."Next Price Update" := NextPriceUpdateForEvenContract
+            else
+                CurrentServiceCommitment."Next Price Update" := NextPriceUpdateForOddContract;
+            CurrentServiceCommitment.Modify(false);
+        end;
+    end;
+
+    local procedure CreateCustomerContractLinesWithExcludeFromPriceUpdate(NoOfContracts: Integer)
+    var
+        CurrentServiceCommitment: Record "Subscription Line";
+        i: Integer;
+    begin
+        for i := 1 to NoOfContracts do begin
+            CreateCustomerContractWithOneSubscriptionLine(CurrentServiceCommitment);
+            CurrentServiceCommitment."Exclude from Price Update" := (i mod 2 = 0);
+            CurrentServiceCommitment.Modify(false);
+        end;
+    end;
+
+    local procedure CreateVendorContractLineWithNextPriceUpdate(NextPriceUpdate: Date)
+    var
+        VendorContract: Record "Vendor Subscription Contract";
+        CurrentServiceCommitment: Record "Subscription Line";
+    begin
+        Clear(ServiceObject);
+        Clear(Vendor);
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+        CurrentServiceCommitment.Reset();
+        CurrentServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        Assert.AreEqual(1, CurrentServiceCommitment.Count(), 'Expected exactly one vendor Subscription Line per Subscription Contract in this setup.');
+        CurrentServiceCommitment.FindFirst();
+        CurrentServiceCommitment.TestField(Partner, "Service Partner"::Vendor);
+        CurrentServiceCommitment."Next Price Update" := NextPriceUpdate;
+        CurrentServiceCommitment.Modify(false);
+    end;
+
+    local procedure CreateCustomerContractWithOneSubscriptionLine(var CurrentServiceCommitment: Record "Subscription Line")
+    var
+        CustomerContract: Record "Customer Subscription Contract";
+    begin
+        Clear(ServiceObject);
+        Clear(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        CurrentServiceCommitment.Reset();
+        CurrentServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        Assert.AreEqual(1, CurrentServiceCommitment.Count(), 'Expected exactly one Subscription Line per Subscription Contract in this setup.');
+        CurrentServiceCommitment.FindFirst();
+    end;
+
+    local procedure ComposeNextPriceUpdateFilter(NextPriceUpdate: Date): Text
+    var
+        DummyServiceCommitment: Record "Subscription Line";
+    begin
+        DummyServiceCommitment.SetRange("Next Price Update", NextPriceUpdate);
+        exit(DummyServiceCommitment.GetView(false));
+    end;
+
+    local procedure VerifyProposalContainsOnlySubscriptionLinesWithNextPriceUpdate(ExpectedNextPriceUpdate: Date)
+    var
+        CurrentServiceCommitment: Record "Subscription Line";
+    begin
+        ContractPriceUpdateLine.Reset();
+        ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateCustomer.Code);
+        ContractPriceUpdateLine.FindSet();
+        repeat
+            CurrentServiceCommitment.Get(ContractPriceUpdateLine."Subscription Line Entry No.");
+            Assert.AreEqual(ExpectedNextPriceUpdate, CurrentServiceCommitment."Next Price Update", 'A Subscription Line outside the Subscription Line Filter was proposed.');
+        until ContractPriceUpdateLine.Next() = 0;
+    end;
+
+    local procedure VerifyProposalContainsOnlySubscriptionLinesOfTemplatePartner()
+    var
+        CurrentServiceCommitment: Record "Subscription Line";
+    begin
+        ContractPriceUpdateLine.Reset();
+        ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateCustomer.Code);
+        ContractPriceUpdateLine.FindSet();
+        repeat
+            CurrentServiceCommitment.Get(ContractPriceUpdateLine."Subscription Line Entry No.");
+            Assert.AreEqual(PriceUpdateTemplateCustomer.Partner, CurrentServiceCommitment.Partner, 'A Subscription Line of a different Partner than the Price Update Template was proposed.');
+        until ContractPriceUpdateLine.Next() = 0;
+    end;
+
+    local procedure VerifyProposalContainsOnlyNotExcludedSubscriptionLines()
+    var
+        CurrentServiceCommitment: Record "Subscription Line";
+    begin
+        ContractPriceUpdateLine.Reset();
+        ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateCustomer.Code);
+        ContractPriceUpdateLine.FindSet();
+        repeat
+            CurrentServiceCommitment.Get(ContractPriceUpdateLine."Subscription Line Entry No.");
+            Assert.AreEqual(false, CurrentServiceCommitment."Exclude from Price Update", 'A Subscription Line excluded from Price Update was proposed.');
+        until ContractPriceUpdateLine.Next() = 0;
     end;
 
     local procedure ComposePriceUpdateTemplateFilters(var ServiceCommitmentFilterText: Text; var ServiceObjectFilterText: Text; var BadServiceObjectFilterText: Text; var ContractFilterText: Text; SerialNo: Guid; ContractTypeCode: Code[10])

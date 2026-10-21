@@ -9,9 +9,6 @@ using System.Reflection;
 
 codeunit 10039 "IRS Forms Data"
 {
-    var
-        StatementLineFilterExpressionTxt: Label 'Form Box No.: %1', Comment = '%1 = Form Box No.';
-
     procedure AddReportingPeriodsWithForms(ReportingYear: Integer)
     var
         PeriodNo: Code[20];
@@ -292,7 +289,7 @@ codeunit 10039 "IRS Forms Data"
         IRS1099FormStatementLine.Validate("Print Value Type", Type);
         IRS1099FormStatementLine.Validate("Row No.", FormBoxNo);
         IRS1099FormStatementLine.Validate("Description", Description);
-        IRS1099FormStatementLine.Validate("Filter Expression", StrSubstNo(StatementLineFilterExpressionTxt, FormBoxNo));
+        IRS1099FormStatementLine.SetFormBoxFilter(FormBoxNo);
         IRS1099FormStatementLine.Insert(true);
     end;
 

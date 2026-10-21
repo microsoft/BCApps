@@ -26,6 +26,7 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         EDocPEPPOLBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
         EDocImportXRechnung: Codeunit "Import XRechnung Document";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
 
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
@@ -34,8 +35,10 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
     begin
         OnBeforeCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
         CheckCompanyInfoMandatory(CompanyInformation);
+        EDocumentDEHelper.CheckSellerContactMandatory(SourceDocumentHeader);
         CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
         EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
+        DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
         DEContext.Start();
         DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
@@ -77,12 +80,19 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         TempRecordExportBuffer."Electronic Document Format" := Format(EDocumentService."Document Format");
         TempRecordExportBuffer.Insert();
 
+        ExportXRechnungDocument.SetEDocumentService(EDocumentService);
         ExportXRechnungDocument.Run(TempRecordExportBuffer);
         if not TempRecordExportBuffer."File Content".HasValue() then
             exit;
         TempBlob.FromRecord(TempRecordExportBuffer, TempRecordExportBuffer.FieldNo("File Content"));
     end;
 
+    /// <summary>
+    /// Checks the Company Information data that the electronic document requires.
+    /// The E-Mail supplies the seller electronic address (BT-34), which XRechnung requires
+    /// (PEPPOL-EN16931-R020). BT-34 is a party level routing address and is always taken from Company
+    /// Information, never from the salesperson, so it is independent of the seller contact (BG-6).
+    /// </summary>
     local procedure CheckCompanyInfoMandatory(var CompanyInformation: Record "Company Information")
     begin
         CompanyInformation.Get();
