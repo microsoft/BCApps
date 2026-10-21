@@ -14,6 +14,13 @@ codeunit 132973 "SharePoint Test Library"
 
     var
         LastContextInfoRequestUri: Text;
+        LastRawRequestUri: Text;
+        LastRequestUri: Text;
+        ReturnFolderMissing: Boolean;
+        ResourcePathFileName: Text;
+        LastDownloadRequestUri: Text;
+        LastFileAddRequestUri: Text;
+        LastDeleteRequestUri: Text;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
     local procedure RunOnBeforeSendRequest(HttpRequestMessage: HttpRequestMessage; var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; var IsHandled: Boolean; Method: Text)
@@ -23,6 +30,13 @@ codeunit 132973 "SharePoint Test Library"
         BaseUrl, ParentUrl : Text;
     begin
         Uri := HttpRequestMessage.GetRequestUri();
+        LastRawRequestUri := Uri;
+        if Uri.Contains('/GetFileByServerRelativePath(') and (Method = 'GET') then
+            LastDownloadRequestUri := Uri;
+        if Uri.Contains('/Files/AddUsingPath(') and (Method = 'POST') then
+            LastFileAddRequestUri := Uri;
+        if Method = 'DELETE' then
+            LastDeleteRequestUri := Uri;
         if Uri.IndexOf('/_api/Web') > 0 then
             BaseUrl := CopyStr(Uri, 1, Uri.IndexOf('/_api/Web'))
         else
@@ -34,10 +48,44 @@ codeunit 132973 "SharePoint Test Library"
         IsHandled := true;
 
         Uri := LocalUri.UnescapeDataString(Uri);
+        LastRequestUri := Uri;
 
         if Uri.EndsWith('/_api/contextinfo/') then begin
             LastContextInfoRequestUri := Uri;
             GetContextDigestTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+            exit;
+        end;
+
+        if Uri.Contains('/_api/Web/GetFileByServerRelativePath(decodedurl=') then begin
+            GetFileByServerRelativePathTestResponse(SharePointOperationResponse);
+            exit;
+        end;
+
+        if Uri.Contains('/_api/Web/GetFolderByServerRelativePath(decodedurl=') then begin
+            if Uri.Contains('/Files/AddUsingPath(decodedurl=') and (Method = 'POST') then begin
+                AddFileToFolderTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
+            if Uri.EndsWith('/Files/') and (Method = 'GET') then begin
+                GetFolderFilesByServerRelativeUrlTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
+            if Uri.EndsWith('/Folders/') and (Method = 'GET') then begin
+                GetFolderBySeverRelativeUrlTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
+            if Uri.EndsWith('/Exists/') and (Method = 'GET') then begin
+                GetFolderExistsTestResponse(SharePointOperationResponse);
+                exit;
+            end;
+            if Method = 'DELETE' then begin
+                GetEmptySuccessTestResponse(SharePointOperationResponse);
+                exit;
+            end;
+        end;
+
+        if Uri.Contains('/_api/Web/Folders/AddUsingPath(decodedurl=') and (Method = 'POST') then begin
+            CreateFolderTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
             exit;
         end;
 
@@ -120,6 +168,68 @@ codeunit 132973 "SharePoint Test Library"
     procedure GetLastContextInfoRequestUri(): Text
     begin
         exit(LastContextInfoRequestUri);
+    end;
+
+    procedure GetLastRequestUri(): Text
+    begin
+        exit(LastRequestUri);
+    end;
+
+    procedure GetLastRawRequestUri(): Text
+    begin
+        exit(LastRawRequestUri);
+    end;
+
+    procedure SetResourcePathFileName(FileName: Text)
+    begin
+        ResourcePathFileName := FileName;
+        Clear(LastDownloadRequestUri);
+        Clear(LastFileAddRequestUri);
+        Clear(LastDeleteRequestUri);
+    end;
+
+    procedure GetLastDownloadRequestUri(): Text
+    begin
+        exit(LastDownloadRequestUri);
+    end;
+
+    procedure GetLastFileAddRequestUri(): Text
+    begin
+        exit(LastFileAddRequestUri);
+    end;
+
+    procedure GetLastDeleteRequestUri(): Text
+    begin
+        exit(LastDeleteRequestUri);
+    end;
+
+    local procedure GetFileByServerRelativePathTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        SharePointOperationResponse.SetHttpResponse('Dummy file content', HttpHeaders, 200, true, 'OK');
+    end;
+
+    local procedure GetFolderExistsTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        if ReturnFolderMissing then
+            SharePointOperationResponse.SetHttpResponse('{"value":false}', HttpHeaders, 200, true, 'OK')
+        else
+            SharePointOperationResponse.SetHttpResponse('{"value":true}', HttpHeaders, 200, true, 'OK');
+    end;
+
+    procedure SetFolderExistsResponse(FolderExists: Boolean)
+    begin
+        ReturnFolderMissing := not FolderExists;
+    end;
+
+    local procedure GetEmptySuccessTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        SharePointOperationResponse.SetHttpResponse('', HttpHeaders, 200, true, 'OK');
     end;
 
     local procedure GetContextDigestTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; BaseUrl: Text; ParentUrl: Text)
@@ -775,7 +885,22 @@ codeunit 132973 "SharePoint Test Library"
     var
         HttpHeaders: HttpHeaders;
         ResponseContent: TextBuilder;
+        FileItem: JsonObject;
+        Files: JsonArray;
+        Result: JsonObject;
+        ResponseText: Text;
     begin
+        if ResourcePathFileName <> '' then begin
+            FileItem.Add('UniqueId', '44444444-4444-4444-4444-444444444444');
+            FileItem.Add('Name', ResourcePathFileName);
+            FileItem.Add('Length', '100');
+            Files.Add(FileItem);
+            Result.Add('value', Files);
+            Result.WriteTo(ResponseText);
+            SharePointOperationResponse.SetHttpResponse(ResponseText, HttpHeaders, 200, true, 'OK');
+            exit;
+        end;
+
         ResponseContent.Append('{');
         ResponseContent.Append('"odata.metadata":"{baseUrl}/_api/$metadata#SP.ApiData.Files12",');
         ResponseContent.Append('"value":[');
