@@ -17,6 +17,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryERM: Codeunit "Library - ERM";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryJob: Codeunit "Library - Job";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
@@ -36,6 +37,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
         QuantityMustBeRevertedErr: Label 'Quantity Received and Invoiced must be reverted to 0';
         QuantityMustBeRestoredErr: Label 'Qty. to Receive and Invoice must be restored to original values';
+        ItemChargeMustBeReversedErr: Label 'The item charge must be fully reversed on the original posted document.';
 
     [Test]
     [Scope('OnPrem')]
@@ -54,7 +56,6 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         LibraryPurch: Codeunit "Library - Purchase";
     begin
         Initialize();
-
         if GLEntry.FindLast() then;
 
         CreateAndPostPurchaseInvForNewItemAndVendor(Item, Vendor, 1, 1, PurchInvHeader);
@@ -1188,6 +1189,55 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Assert.AreEqual(Quantity, PurchaseLine."Qty. to Invoice", QuantityMustBeRestoredErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithItemChargeAssignedToSalesShipment()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseOrder: Record "Purchase Header";
+        PurchaseInvoice: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemCharge: Record "Item Charge";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        ValueEntry: Record "Value Entry";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        Initialize();
+
+        CreateItemWithCost(Item, 1);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreatePurchaseOrderForItem(Vendor, Item, 1, PurchaseOrder, PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseOrder, true, true);
+        LibrarySales.PostSalesOrder(SalesHeader, Item, '', '', 1, WorkDate(), 1, true, false);
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Shipment");
+        ItemLedgerEntry.FindLast();
+        SalesShipmentLine.Get(ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.");
+
+        LibraryPurchase.CreatePurchHeader(PurchaseInvoice, PurchaseInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseInvoice, 1, 10);
+        LibraryInventory.CreateItemChargeAssignPurchase(
+            ItemChargeAssignmentPurch, PurchaseLine, ItemChargeAssignmentPurch."Applies-to Doc. Type"::"Sales Shipment",
+            SalesShipmentLine."Document No.", SalesShipmentLine."Line No.", SalesShipmentLine."No.");
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseInvoice, true, true));
+
+        ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
+        ValueEntry.CalcSums("Cost Amount (Non-Invtbl.)");
+        Assert.IsTrue(ValueEntry."Cost Amount (Non-Invtbl.)" <> 0, ItemChargeMustBeReversedErr);
+
+        CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        ValueEntry.CalcSums("Cost Amount (Non-Invtbl.)");
+        Assert.AreEqual(0, ValueEntry."Cost Amount (Non-Invtbl.)", ItemChargeMustBeReversedErr);
+    end;
+
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1596,4 +1646,3 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ItemTrackingSummary.OK().Invoke();
     end;
 }
-
