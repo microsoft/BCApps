@@ -217,17 +217,17 @@ function Get-BackportMarker {
 
 function Read-BackportMarker {
     param([string] $Body)
-    $matches = [regex]::Matches($Body,
+    $markerMatches = [regex]::Matches($Body,
         '(?m)^<!-- bc-extrequest-backport:v1 source=([1-9][0-9]*) target=(releases/[1-9][0-9]*\.x) sha=([0-9a-f]{40}) -->\r?$')
-    if ($matches.Count -gt 1) { throw 'Multiple backport identities on one object.' }
-    if ($matches.Count -eq 0) { return $null }
-    return @{ source_pr = [long]$matches[0].Groups[1].Value; target = $matches[0].Groups[2].Value; sha = $matches[0].Groups[3].Value }
+    if ($markerMatches.Count -gt 1) { throw 'Multiple backport identities on one object.' }
+    if ($markerMatches.Count -eq 0) { return $null }
+    return @{ source_pr = [long]$markerMatches[0].Groups[1].Value; target = $markerMatches[0].Groups[2].Value; sha = $markerMatches[0].Groups[3].Value }
 }
 
 function Get-BackportTracking {
     param([string] $Repository, [long] $SourcePr)
 
-    $matches = @(Get-BackportApiPages "repos/$Repository/issues?state=all&labels=ext-backporting" |
+    $trackingIssues = @(Get-BackportApiPages "repos/$Repository/issues?state=all&labels=ext-backporting" |
         Where-Object {
             if ($_.ContainsKey('pull_request')) { return $false }
             $batch = Read-BackportBatchMarker $_.body
@@ -237,8 +237,8 @@ function Get-BackportTracking {
             $marker = Read-BackportMarker $_.body
             return $null -ne $marker -and $marker.source_pr -eq $SourcePr
         })
-    if ($matches.Count -gt 1) { throw "Multiple tracking issues for source PR #$SourcePr; reconcile manually." }
-    if ($matches.Count -eq 1) { return $matches[0] }
+    if ($trackingIssues.Count -gt 1) { throw "Multiple tracking issues for source PR #$SourcePr; reconcile manually." }
+    if ($trackingIssues.Count -eq 1) { return $trackingIssues[0] }
     return $null
 }
 
@@ -500,11 +500,11 @@ function New-BackportTrackingTask {
 
 function Read-BackportPublicationIntent {
     param([string] $Body)
-    $matches = [regex]::Matches($Body, '(?m)^<!-- bc-extrequest-backport:publication-intent:v1 sha=([0-9a-f]{40}) -->\r?$')
-    if ($matches.Count -gt 1 -or ($matches.Count -eq 0 -and $Body.Contains('bc-extrequest-backport:publication-intent:'))) {
+    $intentMatches = [regex]::Matches($Body, '(?m)^<!-- bc-extrequest-backport:publication-intent:v1 sha=([0-9a-f]{40}) -->\r?$')
+    if ($intentMatches.Count -gt 1 -or ($intentMatches.Count -eq 0 -and $Body.Contains('bc-extrequest-backport:publication-intent:'))) {
         throw 'Malformed or ambiguous tracking issue publication intent.'
     }
-    if ($matches.Count -eq 1) { return $matches[0].Groups[1].Value }
+    if ($intentMatches.Count -eq 1) { return $intentMatches[0].Groups[1].Value }
     return $null
 }
 
