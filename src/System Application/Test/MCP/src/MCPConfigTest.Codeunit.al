@@ -1159,7 +1159,9 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.GetBySystemId(ConfigId);
         ExpectedConfigurationName := MCPConfiguration.Name;
         MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+#pragma warning disable AA0210
         TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Empty Configuration");
+#pragma warning restore AA0210
         TempMCPConfigWarning.FindFirst();
 
         MCPConfig.ApplyRecommendedAction(TempMCPConfigWarning);
@@ -2121,7 +2123,9 @@ codeunit 130130 "MCP Config Test"
         TempMCPConfigWarning: Record "MCP Config Warning";
     begin
         MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+#pragma warning disable AA0210
         TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Empty Configuration");
+#pragma warning restore AA0210
         TempMCPConfigWarning.SetRange("Config Id", ConfigId);
         Assert.RecordCount(TempMCPConfigWarning, ExpectedCount);
     end;
