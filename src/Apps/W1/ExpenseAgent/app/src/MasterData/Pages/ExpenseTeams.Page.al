@@ -11,6 +11,7 @@ page 6990 "Expense Teams"
     ApplicationArea = Basic, Suite;
     UsageCategory = Lists;
     SourceTable = "Expense Team";
+    CardPageID = "Expense Team Card";
     AdditionalSearchTerms = 'Teams, Expense Units, Approval Groups';
 
     layout
