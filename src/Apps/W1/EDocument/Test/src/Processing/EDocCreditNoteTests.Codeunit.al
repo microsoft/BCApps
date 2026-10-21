@@ -242,13 +242,13 @@ codeunit 135649 "EDoc Credit Note Tests"
     local procedure CreateVendor(PayToVendorNo: Code[20]): Code[20]
     var
         Vendor: Record Vendor;
-        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
-        LibraryPurchase.CreateVendor(Vendor);
-        if PayToVendorNo <> '' then begin
-            Vendor.Validate("Pay-to Vendor No.", PayToVendorNo);
-            Vendor.Modify(true);
-        end;
+        // Synthetic on purpose, like CreateInvoiceEntry: these tests read only the vendor number and pay-to vendor, and nothing is posted.
+        // Library - Purchase.CreateVendor needs number series and VAT setup that some localized test companies do not have.
+        Vendor."No." := LibraryUtility.GenerateRandomCode20(Vendor.FieldNo("No."), Database::Vendor);
+        Vendor."Pay-to Vendor No." := PayToVendorNo;
+        Vendor.Insert();
         exit(Vendor."No.");
     end;
 
