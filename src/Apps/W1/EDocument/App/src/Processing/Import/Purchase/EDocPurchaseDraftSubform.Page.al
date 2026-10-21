@@ -198,6 +198,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 group("Order Matching")
                 {
                     Caption = 'Order matching';
+                    Visible = not IsCreditMemo;
                     action(MatchToOrderLine)
                     {
                         ApplicationArea = All;
@@ -443,6 +444,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr, MatchedEntityName : Text;
         LineAmount: Decimal;
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
+        IsCreditMemo: Boolean;
         AgentDrivenLineMatchingEnabled: Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
         EDocumentPurchaseHeaderNotFoundErr: Label 'The purchase header for this e-document could not be found.';
@@ -587,7 +589,14 @@ page 6183 "E-Doc. Purchase Draft Subform"
     end;
 
     local procedure UpdatePOMatching()
+    var
+        EDocument: Record "E-Document";
     begin
+        IsCreditMemo := false;
+        EDocument.SetLoadFields("Document Type", "Process Draft Impl.");
+        if EDocument.Get(EDocumentPurchaseHeader."E-Document Entry No.") then
+            IsCreditMemo := (EDocument."Document Type" = EDocument."Document Type"::"Purchase Credit Memo") or
+                (EDocument."Process Draft Impl." = EDocument."Process Draft Impl."::"Purchase Credit Memo");
         IsEDocumentMatchedToAnyPOLine := EDocPOMatching.IsEDocumentMatchedToAnyPOLine(EDocumentPurchaseHeader);
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempEDocumentPOMatchWarnings);
         HasEDocumentOrderMatchWarnings := not TempEDocumentPOMatchWarnings.IsEmpty();

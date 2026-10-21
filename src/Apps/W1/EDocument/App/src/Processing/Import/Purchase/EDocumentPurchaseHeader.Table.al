@@ -230,10 +230,20 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Applies-to Doc. No.';
             DataClassification = CustomerContent;
         }
+#pragma warning disable AS0125
+#pragma warning disable AS0005
         field(40; "Vendor Invoice No."; Text[100])
         {
-            Caption = 'Vendor Invoice No.';
+            Caption = 'Applies-to Vendor Inv. No.';
             DataClassification = CustomerContent;
+        }
+#pragma warning restore AS0005
+#pragma warning restore AS0125
+        field(41; "Several Invoices Referenced"; Boolean)
+        {
+            Caption = 'Several Invoices Referenced';
+            ToolTip = 'Specifies whether the credit note states more than one invoice. Only the first one is kept in Applies-to Vendor Inv. No.';
+            DataClassification = SystemMetadata;
         }
         #endregion Purchase fields
 
