@@ -18,6 +18,12 @@ pageextension 31308 "Posted Purch. Inv. Subform CZ" extends "Posted Purch. Invoi
                 ToolTip = 'Specifies the statistic indication code.';
                 Visible = false;
             }
+            field("Country/Reg. of Orig. Code CZ"; Rec."Country/Reg. of Orig. Code CZ")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
+                Visible = false;
+            }
         }
     }
 }

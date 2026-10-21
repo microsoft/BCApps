@@ -1619,8 +1619,7 @@ report 20 "Calc. and Post VAT Settlement"
         if IsHandled then
             exit;
 
-        VATEntry.ModifyAll("Closed by Entry No.", NextVATEntryNo);
-        VATEntry.ModifyAll(Closed, true);
+        VATEntry.ModifyAll("Closed by Entry No.", NextVATEntryNo, Closed, true);
 
         VATEntry.SetRange(Closed, true);
         VATEntry.ModifyAll("VAT Period", VATPeriod);
