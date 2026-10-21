@@ -1001,6 +1001,11 @@ table 32 "Item Ledger Entry"
     end;
 
     procedure CheckTrackingDoesNotExist(RecId: RecordId; FldCaption: Text)
+    begin
+        CheckTrackingDoesNotExist(RecId, FldCaption, '', 0, false);
+    end;
+
+    internal procedure CheckTrackingDoesNotExist(RecId: RecordId; FldCaption: Text; SourceItemNo: Code[20]; ApplicationEntryNo: Integer; IsCreditDocument: Boolean)
     var
         ItemTrackingLines: Page "Item Tracking Lines";
         IsHandled: Boolean;
@@ -1010,14 +1015,21 @@ table 32 "Item Ledger Entry"
         if IsHandled then
             exit;
 
-        if IsCrossPeriodReturnApplication(RecId, FldCaption) then
+        if IsCrossPeriodReturnApplication(
+             RecId, FldCaption, SourceItemNo, ApplicationEntryNo, IsCreditDocument)
+        then
             exit;
 
         if TrackingExists() then
             Error(UseItemTrackingLinesPageErr, ItemTrackingLines.Caption, FldCaption);
     end;
 
-    local procedure IsCrossPeriodReturnApplication(RecId: RecordId; FldCaption: Text): Boolean
+    local procedure IsCrossPeriodReturnApplication(
+        RecId: RecordId;
+        FldCaption: Text;
+        SourceItemNo: Code[20];
+        ApplicationEntryNo: Integer;
+        IsCreditDocument: Boolean): Boolean
     var
         PurchaseLine: Record "Purchase Line";
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
@@ -1025,70 +1037,32 @@ table 32 "Item Ledger Entry"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
     begin
+        if ApplicationEntryNo <> "Entry No." then
+            exit(false);
+
         case RecId.TableNo of
             Database::"Purchase Line":
-                begin
-                    if not PurchaseLine.Get(RecId) then
-                        exit(false);
-                    if PurchaseLine.Type <> PurchaseLine.Type::Item then
-                        exit(false);
-                    if not PurchaseLine.IsCreditDocType() then
-                        exit(false);
-                    if FldCaption <> PurchaseLine.FieldCaption("Appl.-to Item Entry") then
-                        exit(false);
-                    if PurchaseLine."Appl.-to Item Entry" <> "Entry No." then
-                        exit(false);
-
-                    exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-                        PurchaseLine."No.", "Entry No."));
-                end;
+                if (FldCaption <> PurchaseLine.FieldCaption("Appl.-to Item Entry")) or
+                   not IsCreditDocument
+                then
+                    exit(false);
             Database::"Purch. Cr. Memo Line":
-                begin
-                    if not PurchCrMemoLine.Get(RecId) then
-                        exit(false);
-                    if PurchCrMemoLine.Type <> PurchCrMemoLine.Type::Item then
-                        exit(false);
-                    if FldCaption <> PurchCrMemoLine.FieldCaption("Appl.-to Item Entry") then
-                        exit(false);
-                    if PurchCrMemoLine."Appl.-to Item Entry" <> "Entry No." then
-                        exit(false);
-
-                    exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-                        PurchCrMemoLine."No.", "Entry No."));
-                end;
+                if FldCaption <> PurchCrMemoLine.FieldCaption("Appl.-to Item Entry") then
+                    exit(false);
             Database::"Sales Line":
-                begin
-                    if not SalesLine.Get(RecId) then
-                        exit(false);
-                    if SalesLine.Type <> SalesLine.Type::Item then
-                        exit(false);
-                    if not SalesLine.IsCreditDocType() then
-                        exit(false);
-                    if FldCaption <> SalesLine.FieldCaption("Appl.-from Item Entry") then
-                        exit(false);
-                    if SalesLine."Appl.-from Item Entry" <> "Entry No." then
-                        exit(false);
-
-                    exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-                        SalesLine."No.", "Entry No."));
-                end;
+                if (FldCaption <> SalesLine.FieldCaption("Appl.-from Item Entry")) or
+                   not IsCreditDocument
+                then
+                    exit(false);
             Database::"Sales Cr.Memo Line":
-                begin
-                    if not SalesCrMemoLine.Get(RecId) then
-                        exit(false);
-                    if SalesCrMemoLine.Type <> SalesCrMemoLine.Type::Item then
-                        exit(false);
-                    if FldCaption <> SalesCrMemoLine.FieldCaption("Appl.-from Item Entry") then
-                        exit(false);
-                    if SalesCrMemoLine."Appl.-from Item Entry" <> "Entry No." then
-                        exit(false);
-
-                    exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-                        SalesCrMemoLine."No.", "Entry No."));
-                end;
+                if FldCaption <> SalesCrMemoLine.FieldCaption("Appl.-from Item Entry") then
+                    exit(false);
+            else
+                exit(false);
         end;
 
-        exit(false);
+        exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            SourceItemNo, ApplicationEntryNo));
     end;
 
     procedure CopyTrackingFromItemJnlLine(ItemJnlLine: Record "Item Journal Line")

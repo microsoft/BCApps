@@ -8014,7 +8014,9 @@ table 39 "Purchase Line"
                 FieldError(Quantity, Text030);
         ItemLedgEntry.Get("Appl.-to Item Entry");
         ItemLedgEntry.TestField(Positive, true);
-        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-to Item Entry"));
+        ItemLedgEntry.CheckTrackingDoesNotExist(
+            RecordId, FieldCaption("Appl.-to Item Entry"), "No.",
+            "Appl.-to Item Entry", IsCreditDocType());
 
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");

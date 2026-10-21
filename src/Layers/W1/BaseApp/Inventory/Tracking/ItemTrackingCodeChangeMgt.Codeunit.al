@@ -25,7 +25,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
 using System.Utilities;
 
-codeunit 6534 "Item Tracking Code Change Mgt."
+codeunit 6535 "Item Tracking Code Change Mgt."
 {
     #region Item Tracking Code Change Checks
 

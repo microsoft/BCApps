@@ -8500,7 +8500,9 @@ table 37 "Sales Line"
         ItemLedgEntry.TestField(Positive, false);
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");
-        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
+        ItemLedgEntry.CheckTrackingDoesNotExist(
+            RecordId, FieldCaption("Appl.-from Item Entry"), "No.",
+            "Appl.-from Item Entry", IsCreditDocType());
 
         if Abs("Quantity (Base)") > -ItemLedgEntry.Quantity then
             Error(
