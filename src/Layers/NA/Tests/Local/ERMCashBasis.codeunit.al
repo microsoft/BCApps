@@ -978,7 +978,7 @@
         // [GIVEN] A general journal credit memo for 1160 applied to the invoice
         // [WHEN] The journal credit memo is posted
         // [THEN] Invoice unrealized VAT and base are zero, and VAT realization entries are posted to VAT and G/L
-        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(1, false);
+        RunGeneralJournalCrMemoVATScenario(1, false);
     end;
 
     [Test]
@@ -989,7 +989,7 @@
         // [GIVEN] A general journal credit memo for 580 applied to the invoice
         // [WHEN] The journal credit memo is posted
         // [THEN] Half the invoice VAT and base remain unrealized, and proportional realization entries are posted to VAT and G/L
-        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(0.5, false);
+        RunGeneralJournalCrMemoVATScenario(0.5, false);
     end;
 
     [Test]
@@ -1000,7 +1000,7 @@
         // [GIVEN] A posted general journal credit memo for 1160 fully applied to the invoice
         // [WHEN] The journal credit memo application is reversed
         // [THEN] Invoice unrealized VAT and base are restored, and VAT and G/L realization entries net to zero
-        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(1, true);
+        RunGeneralJournalCrMemoVATScenario(1, true);
     end;
 
     [Test]
@@ -1011,7 +1011,33 @@
         // [GIVEN] A posted general journal credit memo for 580 partially applied to the invoice
         // [WHEN] The journal credit memo application is reversed
         // [THEN] Invoice unrealized VAT and base are restored, and VAT and G/L realization entries net to zero
-        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(0.5, true);
+        RunGeneralJournalCrMemoVATScenario(0.5, true);
+    end;
+
+    [Test]
+    procedure FullGeneralJournalCrMemoRealizesMultipleInvoiceVATGroups()
+    begin
+        // [SCENARIO 648925] A general journal credit memo fully realizes each invoice Cash Basis VAT group
+        // [GIVEN] A posted sales invoice with two different Cash Basis VAT groups
+        // [GIVEN] A general journal credit memo for the full invoice amount applied to the invoice
+        // [WHEN] The journal credit memo is posted
+        // [THEN] Each invoice VAT group's remaining unrealized amount and base are zero
+        // [THEN] One VAT realization entry per group and the corresponding VAT G/L transfers are posted
+        Initialize();
+        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(1);
+    end;
+
+    [Test]
+    procedure PartialGeneralJournalCrMemoRealizesMultipleInvoiceVATGroups()
+    begin
+        // [SCENARIO 648925] A partial general journal credit memo realizes each invoice Cash Basis VAT group proportionally
+        // [GIVEN] A posted sales invoice with two different Cash Basis VAT groups
+        // [GIVEN] A general journal credit memo for half the invoice amount applied to the invoice
+        // [WHEN] The journal credit memo is posted
+        // [THEN] Half of each invoice VAT group's amount and base remain unrealized
+        // [THEN] One proportional VAT realization entry per group and the corresponding VAT G/L transfers are posted
+        Initialize();
+        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(0.5);
     end;
 
     [Test]

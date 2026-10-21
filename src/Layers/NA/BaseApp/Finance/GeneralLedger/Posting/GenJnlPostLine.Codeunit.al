@@ -38,6 +38,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
