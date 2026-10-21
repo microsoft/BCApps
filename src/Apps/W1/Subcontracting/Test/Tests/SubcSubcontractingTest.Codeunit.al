@@ -3964,14 +3964,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         Clear(SubcontractorPrice);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", '', '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, Vendor."Currency Code");
         SubcontractorPrice."Direct Unit Cost" := PriceWithoutStdTask;
         SubcontractorPrice.Modify();
 
         Clear(SubcontractorPrice);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", StandardTask.Code, '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, Vendor."Currency Code");
         SubcontractorPrice."Direct Unit Cost" := PriceWithStdTask;
         SubcontractorPrice.Modify();
 
