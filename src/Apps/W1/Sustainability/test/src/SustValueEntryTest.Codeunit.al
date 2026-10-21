@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -3759,6 +3760,9 @@ codeunit 148190 "Sust. Value Entry Test"
         Item.Validate("CO2e per Unit", ExpectedTotalCO2e);
         Item.Modify();
 
+        // [GIVEN] Ensure the inventory purchase can post without relying on country-specific account setup.
+        EnsureGeneralPostingSetupForItem(Item);
+
         // [GIVEN] Post Inventory for Item.
         PostInventoryForItem(Item."No.");
 
@@ -5084,6 +5088,29 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseLine.Modify();
 
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure PostInventoryForItem(ItemNo: Code[20])
