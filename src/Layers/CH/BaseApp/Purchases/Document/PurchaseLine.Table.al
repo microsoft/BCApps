@@ -7982,8 +7982,6 @@ table 39 "Purchase Line"
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ApplyRec: Record "Item Application Entry";
-        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
-        CrossPeriodPurchaseReturn: Boolean;
         ReturnedQty: Decimal;
         RemainingtobeReturnedQty: Decimal;
         IsHandled: Boolean;
@@ -8011,11 +8009,7 @@ table 39 "Purchase Line"
                 FieldError(Quantity, Text030);
         ItemLedgEntry.Get("Appl.-to Item Entry");
         ItemLedgEntry.TestField(Positive, true);
-        if IsCreditDocType() then
-            CrossPeriodPurchaseReturn :=
-                ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", ItemLedgEntry."Entry No.");
-        if not CrossPeriodPurchaseReturn then
-            ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-to Item Entry"));
+        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-to Item Entry"));
 
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");

@@ -8476,10 +8476,8 @@ table 37 "Sales Line"
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry")
     var
-        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         QtyNotReturned: Decimal;
         QtyReturned: Decimal;
-        CrossPeriodSalesReturn: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -8502,11 +8500,7 @@ table 37 "Sales Line"
         ItemLedgEntry.TestField(Positive, false);
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");
-        if IsCreditDocType() then
-            CrossPeriodSalesReturn :=
-                ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", ItemLedgEntry."Entry No.");
-        if not CrossPeriodSalesReturn then
-            ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
+        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
 
         if Abs("Quantity (Base)") > -ItemLedgEntry.Quantity then
             Error(

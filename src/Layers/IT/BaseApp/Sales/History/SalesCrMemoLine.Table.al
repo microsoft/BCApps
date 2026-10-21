@@ -1272,8 +1272,6 @@ table 115 "Sales Cr.Memo Line"
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
-    var
-        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
     begin
         if "Appl.-from Item Entry" = 0 then
             exit;
@@ -1284,10 +1282,7 @@ table 115 "Sales Cr.Memo Line"
         ItemLedgerEntry.TestField(Positive, false);
         ItemLedgerEntry.TestField("Item No.", "No.");
         ItemLedgerEntry.TestField("Variant Code", "Variant Code");
-        if not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-            "No.", ItemLedgerEntry."Entry No.")
-        then
-            ItemLedgerEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
+        ItemLedgerEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
     end;
 
     /// <summary>

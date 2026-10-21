@@ -36,6 +36,8 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ReservationEntry: Record "Reservation Entry";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        PurchInvLine: Record "Purch. Inv. Line";
         PurchaseReturnHeader: Record "Purchase Header";
         PurchaseReturnLine: Record "Purchase Line";
         OriginalPurchaseEntryNo: Integer;
@@ -91,6 +93,13 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ItemLedgerEntry.FindLast();
         ItemLedgerEntry.TestField("Lot No.", LotNo);
         ItemLedgerEntry.TestField("Applies-to Entry", OriginalPurchaseEntryNo);
+
+        // [THEN] The posted purchase credit memo resolves its historical invoice without a tracking error.
+        PurchCrMemoLine.SetRange(Type, PurchCrMemoLine.Type::Item);
+        PurchCrMemoLine.SetRange("No.", Item."No.");
+        PurchCrMemoLine.FindLast();
+        PurchCrMemoLine.GetPurchaseInvoiceLine(PurchInvLine);
+        Assert.AreEqual(Item."No.", PurchInvLine."No.", 'The original purchase invoice line must be found.');
     end;
 
     [Test]

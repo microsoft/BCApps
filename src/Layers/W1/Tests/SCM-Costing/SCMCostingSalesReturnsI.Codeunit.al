@@ -168,6 +168,112 @@ codeunit 137012 "SCM Costing Sales Returns I"
     end;
 
     [Test]
+    procedure CopiedSalesReturnWithCurrentBlankTrackingPostsWithoutTrackingError()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        PostedInvoiceNo: Code[20];
+        OriginalSalesEntryNos: array[2] of Integer;
+        LotNos: array[2] of Code[50];
+        LinesNotCopied: Integer;
+        MissingExCostRevLink: Boolean;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A copied two-lot sales return posts without a tracking error after tracking is disabled.
+        Initialize();
+
+        // [GIVEN] Lot-tracked inventory is sold from two different lots.
+        LibraryInventory.CreateItem(Item);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+        for i := 1 to ArrayLen(LotNos) do
+            LotNos[i] := ItemTrackingCode.Code + Format(i);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, Item."No.", '', '', ArrayLen(LotNos));
+        for i := 1 to ArrayLen(LotNos) do
+            LibraryItemTracking.CreateItemJournalLineItemTracking(
+                ReservationEntry, ItemJournalLine, '', LotNos[i], 1);
+        LibraryInventory.PostItemJournalLine(
+            ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(
+            SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), WorkDate(), 0);
+        for i := 1 to ArrayLen(LotNos) do
+            LibraryItemTracking.CreateSalesOrderItemTracking(
+                ReservationEntry, SalesLine, '', LotNos[i], 1);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindSet();
+        for i := 1 to ArrayLen(OriginalSalesEntryNos) do begin
+            OriginalSalesEntryNos[i] := ItemLedgerEntry."Entry No.";
+            ItemLedgerEntry.Next();
+        end;
+        Item.CalcFields(Inventory);
+        Assert.AreEqual(0, Item.Inventory, 'The item inventory must be zero after the sale.');
+
+        // [GIVEN] Costs are finalized and item tracking is disabled on the following day.
+        WorkDate(WorkDate() + 1);
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        Item.Validate("Item Tracking Code", '');
+        Item.Modify(true);
+
+        // [GIVEN] The posted invoice line is copied to a return order and split by historical lot entry.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        SalesInvoiceLine.SetRange("Document No.", PostedInvoiceNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.SetRange("No.", Item."No.");
+        SalesInvoiceLine.FindFirst();
+        CopyDocumentMgt.SetProperties(false, false, false, false, true, true, true);
+        CopyDocumentMgt.CopySalesInvLinesToDoc(
+            SalesReturnHeader, SalesInvoiceLine, LinesNotCopied, MissingExCostRevLink);
+        SalesReturnLine.SetRange("Document Type", SalesReturnHeader."Document Type");
+        SalesReturnLine.SetRange("Document No.", SalesReturnHeader."No.");
+        SalesReturnLine.SetRange(Type, SalesReturnLine.Type::Item);
+        SalesReturnLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(SalesReturnLine, ArrayLen(OriginalSalesEntryNos));
+        for i := 1 to ArrayLen(OriginalSalesEntryNos) do begin
+            SalesReturnLine.SetRange("Appl.-from Item Entry", OriginalSalesEntryNos[i]);
+            Assert.RecordCount(SalesReturnLine, 1);
+        end;
+
+        // [WHEN] The untracked sales return is posted.
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] Each return entry is open, untracked, and cost-applied to one of the historical lot entries.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, ArrayLen(OriginalSalesEntryNos));
+        ItemLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual('', ItemLedgerEntry."Lot No.", 'The return entry must use current blank tracking.');
+            Assert.AreEqual(
+                ItemLedgerEntry.Quantity, ItemLedgerEntry."Remaining Quantity",
+                'The returned quantity must remain available in inventory.');
+            ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+            ItemApplicationEntry.SetFilter(
+                "Outbound Item Entry No.", '%1|%2', OriginalSalesEntryNos[1], OriginalSalesEntryNos[2]);
+            ItemApplicationEntry.SetRange("Cost Application", true);
+            Assert.RecordCount(ItemApplicationEntry, 1);
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
+    [Test]
     procedure SalesReturnSplitsHistoricalLotIntoCurrentSerialNumbers()
     var
         HistoricalTrackingCode: Record "Item Tracking Code";
