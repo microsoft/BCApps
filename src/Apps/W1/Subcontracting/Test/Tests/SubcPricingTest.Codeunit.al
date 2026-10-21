@@ -956,11 +956,11 @@ codeunit 139982 "Subc. Pricing Test"
         SubcPriceManagement: Codeunit "Subc. Price Management";
         ExpectedDirectUnitCost: Decimal;
     begin
-        // [GIVEN] Two production lines of 10 base units share a time-based operation with Run Time 1 and price 100
+        // [GIVEN] Two production lines of 10 base units share a time-based operation with Run Time 1 and price 100 valid on any order date
         CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, '', 1);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
-            WorkDate(), Item."Base Unit of Measure", 0, '');
+            0D, Item."Base Unit of Measure", 0, '');
         SubcontractorPrice.Validate("Direct Unit Cost", 100);
         SubcontractorPrice.Modify(true);
         LibraryManufacturing.CreateProductionOrder(
@@ -1010,7 +1010,7 @@ codeunit 139982 "Subc. Pricing Test"
     procedure TimeBasedSubcontractorPriceConvertsProductionUOMAndCurrency()
     begin
         Initialize();
-        VerifyTimeBasedPriceForProductionUOM(false, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1));
+        VerifyTimeBasedPriceForProductionUOM(false, LibraryERM.CreateCurrencyWithExchangeRate(0D, 1, 1));
     end;
 
     local procedure VerifyTimeBasedPriceForProductionUOM(PriceMatchesProductionUOM: Boolean; DocumentCurrencyCode: Code[10])
@@ -1030,7 +1030,7 @@ codeunit 139982 "Subc. Pricing Test"
         PriceUOMCode: Code[10];
     begin
         // [GIVEN] One production UOM contains 10 base units, with Run Time 2 and an LCY price of 100
-        // [GIVEN] The subcontractor and its documents use DocumentCurrencyCode (blank for LCY, 1:1 otherwise)
+        // [GIVEN] The subcontractor and its documents use DocumentCurrencyCode, and the price is valid on any order date (blank for LCY, 1:1 otherwise)
         CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, DocumentCurrencyCode, 2);
         AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
         LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, 10);
@@ -1038,7 +1038,7 @@ codeunit 139982 "Subc. Pricing Test"
             PriceUOMCode := AltUOMCode;
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
-            WorkDate(), PriceUOMCode, 0, '');
+            0D, PriceUOMCode, 0, '');
         SubcontractorPrice.Validate("Direct Unit Cost", 100);
         SubcontractorPrice.Modify(true);
         CreateReleasedProdOrderAndFindRoutingLine(ProductionOrder, ProdOrderRoutingLine, Item, WorkCenter."No.");
