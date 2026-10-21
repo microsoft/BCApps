@@ -747,6 +747,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         if RequisitionLine."Ref. Order No." <> '' then
             RequisitionLine.GetDimFromRefOrderLine(true);
 
+        RequisitionLine.UpdateSubcontractorPrice();
         RequisitionLine.Insert();
     end;
 
