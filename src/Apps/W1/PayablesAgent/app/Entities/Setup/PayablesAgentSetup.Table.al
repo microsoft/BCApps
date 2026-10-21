@@ -148,11 +148,6 @@ table 3303 "Payables Agent Setup"
         if GetSetup(true) then;
     end;
 
-    /// <summary>
-    /// Gets the setup and optionally creates it if missing
-    /// </summary>
-    /// <param name="InsertIfMissing">Whether to insert the setup record if it is missing</param>
-    /// <returns>True if the setup record exists or was created, false otherwise</returns>
     internal procedure GetSetup(InsertIfMissing: Boolean): Boolean
     begin
         if Rec.FindFirst() then

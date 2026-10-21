@@ -5,23 +5,12 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-/// <summary>
-/// Single hardcoded source of truth for whether Payables Agent v2 is active.
-/// Only these codeunits may reference it (keep in sync with architecture.md, "Where the v1/v2 switch may be used"):
-/// - "PA Setup"           (Entities/Setup/PASetup.Codeunit.al)
-/// - "PA Task"            (Entities/Task/PATask.Codeunit.al)
-/// - "PA Task Collection" (Entities/Task/PATaskCollection.Codeunit.al)
-/// Everyone else calls those codeunits, which branch on it.
-/// </summary>
 codeunit 3339 "PA V1V2 Flag"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    /// <summary>
-    /// While this returns false, every facade stays on the v1 (e-document based) behavior.
-    /// </summary>
     internal procedure IsV2Active(): Boolean
     var
         PAV1V2: Record DEVPAV1V2;

@@ -38,9 +38,9 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
     var
-        PATask: Codeunit "PA Task";
+        Presentation: Codeunit "PA Task Presentation";
     begin
-        PageId := PATask.GetMessagePageId(MessageId);
+        PageId := Presentation.GetMessagePageId(MessageId);
     end;
 
     procedure GetAgentAnnotations(AgentUserId: Guid; var Annotations: Record "Agent Annotation")
@@ -65,9 +65,9 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
 
     procedure ShowCanCreateAgent(): Boolean
     var
-        PayableAgentSetup: Codeunit "Payables Agent Setup";
+        PAAgentAccess: Codeunit "PA Agent Access";
     begin
-        exit(PayableAgentSetup.AllowCreateNewAgent());
+        exit(PAAgentAccess.AllowCreateNewAgent());
     end;
 
     procedure GetCopilotCapability(): Enum "Copilot Capability"
@@ -76,13 +76,29 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     end;
 
     procedure GetDefaultProfile(var TempAllProfile: Record "All Profile" temporary)
+    var
+        PASetup: Codeunit "PA Setup";
+        Agent: Codeunit Agent;
+        ModuleInfo: ModuleInfo;
     begin
-        PayablesAgentSetup.GetAgentProfile(TempAllProfile);
+        PASetup.GetSetup();
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        Agent.PopulateDefaultProfile(PASetup.GetAgentProfile(), ModuleInfo.Id, TempAllProfile);
     end;
 
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        PASetup: Codeunit "PA Setup";
+        ModuleInfo: ModuleInfo;
     begin
-        PayablesAgentSetup.GetAgentAccessControls(TempAccessControlBuffer);
+        PASetup.GetSetup();
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        TempAccessControlBuffer.Init();
+        TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
+        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
+        TempAccessControlBuffer."App ID" := ModuleInfo.Id;
+        TempAccessControlBuffer."Role ID" := PASetup.GetAgentPermissionSet();
+        TempAccessControlBuffer.Insert();
     end;
     #endregion
     #region IAgentArchiving
@@ -141,10 +157,6 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
         exit(PATelemetry.GetCustomDimensions());
     end;
 
-    /// <summary>
-    /// Checks whether a Payables Agent exists in any company in the current environment.
-    /// </summary>
-    /// <returns>True if at least one Payables Agent is registered; otherwise, false.</returns>
     internal procedure PayablesAgentExistsAcrossAllCompanies(): Boolean
     var
         User: Record User;
@@ -176,7 +188,6 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     end;
 
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
 
 }

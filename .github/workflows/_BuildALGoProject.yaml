@@ -103,6 +103,11 @@ jobs:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
+      # Also covers push/manual builds; do not let cached or skipped compilation bypass the policy.
+      - name: Validate Payables Agent dependency rules
+        if: inputs.projectName == 'Apps W1'
+        run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
+
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@20620d1a3676cecfa2d0bbba3ced4a89f0e08217
         with:

@@ -1,0 +1,83 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AL app dependency rules, version 1",
+    "description": "Each rule denies matching source-to-target references except its documented exceptions. Selector fields are ANDed; values in each field are ORed. Matching is case-insensitive; only * and ? are wildcards, and * spans path separators. App paths use forward slashes and are relative to AppRoot; target paths are relative to their catalog. All preprocessor branches are analyzed. This is a static reference check, not AL semantic or control-flow analysis.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["version", "catalogs", "rules"],
+    "properties": {
+        "$schema": { "type": "string" },
+        "version": { "const": 1 },
+        "catalogs": {
+            "description": "Additional source trees whose AL definitions resolve names and numeric IDs. 'app' is reserved for AppRoot; 'external' identifies symbols outside these trees. Missing/empty catalogs fail validation.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "path"],
+                "properties": {
+                    "id": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9-]*$", "not": { "enum": ["app", "external"] } },
+                    "path": { "type": "string", "minLength": 1, "pattern": "^(?![/\\\\]|[A-Za-z]:).+" }
+                }
+            }
+        },
+        "rules": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/rule" } }
+    },
+    "definitions": {
+        "strings": {
+            "type": "array", "minItems": 1,
+            "items": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        },
+        "referenceKinds": {
+            "type": "array", "minItems": 1,
+            "items": { "enum": ["type", "object", "sourceTable", "tableRelation", "permission", "extends", "implements", "pagePart", "dataItem", "calcFormula", "property"] }
+        },
+        "selector": {
+            "description": "Fields are ANDed; values are ORed. Paths/names/namespaces accept case-insensitive * and ? globs. Object kinds and catalog IDs are explicit values. Catalog IDs must exist in this configuration or be app/external. Paths are relative to the selected catalog (app for sources), with forward slashes.",
+            "type": "object", "minProperties": 1, "additionalProperties": false,
+            "properties": {
+                "paths": {
+                    "type": "array", "minItems": 1,
+                    "items": { "type": "string", "minLength": 1, "pattern": "^(?!/|[A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).*\\S.*$" }
+                },
+                "kinds": {
+                    "type": "array", "minItems": 1,
+                    "items": { "enum": ["table", "tableextension", "page", "pageextension", "pagecustomization", "codeunit", "enum", "enumextension", "interface", "report", "reportextension", "query", "xmlport", "permissionset", "permissionsetextension", "profile", "controladdin", "entitlement"] }
+                },
+                "names": { "$ref": "#/definitions/strings" },
+                "namespaces": { "$ref": "#/definitions/strings" },
+                "catalogs": { "$ref": "#/definitions/strings" }
+            }
+        },
+        "exception": {
+            "type": "object", "additionalProperties": false,
+            "required": ["from", "reason"],
+            "properties": {
+                "from": { "$ref": "#/definitions/selector" },
+                "to": { "$ref": "#/definitions/selector" },
+                "referenceKinds": { "$ref": "#/definitions/referenceKinds" },
+                "reason": { "type": "string", "minLength": 1, "pattern": "\\S" }
+            }
+        },
+        "rule": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "description", "severity", "from", "to"],
+            "properties": {
+                "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]*$" },
+                "description": { "type": "string", "minLength": 1, "pattern": "\\S" },
+                "severity": { "enum": ["error", "warning"] },
+                "from": { "$ref": "#/definitions/selector" },
+                "to": { "$ref": "#/definitions/selector" },
+                "referenceKinds": { "$ref": "#/definitions/referenceKinds" },
+                "includeTemporary": {
+                    "description": "Defaults to true. False excludes explicit temporary record types, intrinsically temporary tables, and temporary SourceTable bindings. It does not prove the absence of indirect writes.",
+                    "type": "boolean", "default": true
+                },
+                "exceptions": {
+                    "description": "Exceptions must match a reference otherwise denied by this rule. Unused exceptions fail the check, even on warning rules.",
+                    "type": "array", "items": { "$ref": "#/definitions/exception" }
+                }
+            }
+        }
+    }
+}

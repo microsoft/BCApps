@@ -8,9 +8,6 @@ namespace Microsoft.Agent.PayablesAgent;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 
-/// <summary>
-/// Wrapper of Payables Agent Task that includes other related information when loaded.
-/// </summary>
 table 3332 "PA Detailed Task"
 {
     Caption = 'Payables Agent Task';
@@ -28,17 +25,11 @@ table 3332 "PA Detailed Task"
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
-        field(2; "Source Data No."; BigInteger)
+        // Opaque logical identity; Entry No. is only a local row ordinal in this projection.
+        field(2; "Task Id"; Guid)
         {
-            Caption = 'Source Data No.';
+            Caption = 'Task Id';
             DataClassification = SystemMetadata;
-            TableRelation = "Payables Agent Task Source"."Entry No.";
-        }
-        field(3; "Task Data No."; BigInteger)
-        {
-            Caption = 'Task Data No.';
-            DataClassification = SystemMetadata;
-            TableRelation = "Payables Agent Task Data"."Entry No.";
         }
         field(4; "Agent Task ID"; BigInteger)
         {
@@ -100,14 +91,44 @@ table 3332 "PA Detailed Task"
             Caption = 'Has PDF';
             DataClassification = SystemMetadata;
         }
-        field(25; "Email Inbox Id"; BigInteger)
+        field(27; "Sender Name"; Text[250])
         {
-            Caption = 'Email Inbox Id';
+            Caption = 'Sender Name';
+            DataClassification = CustomerContent;
+        }
+        field(29; "Email External Id"; Text[2048])
+        {
+            Caption = 'Email External Id';
+            DataClassification = CustomerContent;
+        }
+        field(30; Name; Text[250])
+        {
+            Caption = 'Name';
+            DataClassification = CustomerContent;
+        }
+        field(31; "Source Description"; Text[1024])
+        {
+            Caption = 'Source';
+            DataClassification = CustomerContent;
+        }
+        field(32; "Result Description"; Text[1024])
+        {
+            Caption = 'Result';
+            DataClassification = CustomerContent;
+        }
+        field(33; "Has Agent Task"; Boolean)
+        {
+            Caption = 'Has Agent Task';
             DataClassification = SystemMetadata;
         }
-        field(26; "Source Record Id"; RecordId)
+        field(34; State; Enum "PA Task State")
         {
-            Caption = 'Source Record Id';
+            Caption = 'State';
+            DataClassification = SystemMetadata;
+        }
+        field(35; "Can Extract Text"; Boolean)
+        {
+            Caption = 'Can Extract Text';
             DataClassification = SystemMetadata;
         }
     }
@@ -118,127 +139,20 @@ table 3332 "PA Detailed Task"
         {
             Clustered = true;
         }
+        key(ByName; Name, "Entry No.")
+        {
+        }
+        key(BySource; "Source Description", "Entry No.")
+        {
+        }
+        key(ByResult; "Result Description", "Entry No.")
+        {
+        }
+        key(ByVendor; "Vendor No.", "Entry No.")
+        {
+        }
+        key(ByStatus; "Agent Task Status", "Entry No.")
+        {
+        }
     }
-
-    /// <summary>
-    /// Body of the source email, read live from the Email module via "Email Inbox Id". Blank when the task did
-    /// not come from an email or the email is no longer available.
-    /// </summary>
-    procedure GetSourceEmailBody(): Text
-    begin
-        PATask.LoadFromRecord(Rec);
-        exit(PATask.GetSourceEmailBody());
-    end;
-
-    /// <summary>
-    /// Outlook on the web link of the source email. Blank when there is no email or no external message id.
-    /// </summary>
-    procedure GetSourceEmailWebLink(): Text
-    begin
-        PATask.LoadFromRecord(Rec);
-        exit(PATask.GetSourceEmailWebLink());
-    end;
-
-    /// <summary>
-    /// Describes what the task came from.
-    /// </summary>
-    procedure DescribeSource(): Text
-    begin
-        PATask.LoadFromRecord(Rec);
-        exit(PATask.DescribeSource());
-    end;
-
-    /// <summary>
-    /// Describes the record registered as the task outcome.
-    /// </summary>
-    procedure DescribeOutcome(): Text
-    begin
-        PATask.LoadFromRecord(Rec);
-        exit(PATask.DescribeOutcome());
-    end;
-
-    /// <summary>
-    /// Opens what the task came from.
-    /// </summary>
-    procedure OpenSource()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.OpenSource();
-    end;
-
-    /// <summary>
-    /// Opens the email the task came from.
-    /// </summary>
-    procedure OpenSourceEmail()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.OpenSourceEmail();
-    end;
-
-    /// <summary>
-    /// Opens the source PDF in a page.
-    /// </summary>
-    procedure OpenSourcePdf()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.OpenSourcePdf();
-    end;
-
-    /// <summary>
-    /// Opens the source PDF in the client file viewer, from where it is persisted.
-    /// </summary>
-    procedure ViewSourcePdf()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.ViewSourcePdf();
-    end;
-
-    /// <summary>
-    /// Downloads the source PDF from where it is persisted.
-    /// </summary>
-    procedure DownloadSourcePdf()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.DownloadSourcePdf();
-    end;
-
-    /// <summary>
-    /// Registers the record the task produced as its outcome, and refreshes this record.
-    /// </summary>
-    procedure RegisterOutcome(OutcomeRecordId: RecordId)
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.RegisterOutcome(OutcomeRecordId);
-        PATask.GetRecord(Rec);
-    end;
-
-    /// <summary>
-    /// Opens the record registered as the task outcome.
-    /// </summary>
-    procedure OpenOutcome()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.OpenOutcome();
-    end;
-
-    /// <summary>
-    /// Re-reads this task from where it is persisted.
-    /// </summary>
-    procedure Refresh()
-    begin
-        PATask.LoadFromRecord(Rec);
-        PATask.Refresh();
-        PATask.GetRecord(Rec);
-    end;
-
-    /// <summary>
-    /// Loads this task into a "PA Task" facade instance.
-    /// </summary>
-    procedure GetTask(var PATaskToLoad: Codeunit "PA Task")
-    begin
-        PATaskToLoad.LoadFromRecord(Rec);
-    end;
-
-    var
-        PATask: Codeunit "PA Task";
 }

@@ -5,10 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-/// <summary>
-/// Payables Agent owned processing state of a task, used to count and drill into tasks regardless of whether
-/// they are backed by an e-document (v1) or a Payables Agent task (v2). See "PA Task Collection".
-/// </summary>
 enum 3345 "PA Task State"
 {
     Access = Internal;

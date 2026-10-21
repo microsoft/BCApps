@@ -12,21 +12,12 @@ using System.Agents;
 using System.Email;
 using System.TestLibraries.Utilities;
 
-/// <summary>
-/// The only place of the Payables Agent unit tests that references E-Document Core or the E-Document Microsoft 365
-/// connector (E-Documents, E-Document Services, Outlook Setup). Every other test object goes through the procedures
-/// of this codeunit, which are named after what the test needs, not after how the e-document based Payables Agent
-/// implements it.
-/// </summary>
 codeunit 133723 "PA EDoc Unit Test Glue"
 {
     Access = Internal;
 
     #region Setup
 
-    /// <summary>
-    /// Sets the email account the agent monitors, directly on the stored setup.
-    /// </summary>
     internal procedure SetMonitoredEmailAccount(AccountId: Guid; Connector: Enum "Email Connector")
     var
         OutlookSetup: Record "Outlook Setup";
@@ -40,9 +31,6 @@ codeunit 133723 "PA EDoc Unit Test Glue"
         OutlookSetup.Modify();
     end;
 
-    /// <summary>
-    /// Sets the email account the agent monitors on a setup configuration that is about to be applied.
-    /// </summary>
     internal procedure SetMonitoredEmailAccount(var PASetupConfiguration: Codeunit "PA Setup Configuration"; AccountId: Guid)
     var
         TempDummyOutlookSetup: Record "Outlook Setup" temporary;
@@ -51,9 +39,6 @@ codeunit 133723 "PA EDoc Unit Test Glue"
         PASetupConfiguration.SetOutlookSetup(TempDummyOutlookSetup);
     end;
 
-    /// <summary>
-    /// Asserts that the intake the agent receives invoices through is configured to monitor the mailbox.
-    /// </summary>
     internal procedure AssertAgentIntakeMonitorsMailbox(PASetup: Record "Payables Agent Setup")
     var
         EDocumentService: Record "E-Document Service";
@@ -68,9 +53,6 @@ codeunit 133723 "PA EDoc Unit Test Glue"
         Assert.AreEqual("E-Doc. Automatic Processing"::No, EDocumentService."Automatic Import Processing", 'The E-Document Service should not auto process');
     end;
 
-    /// <summary>
-    /// Deletes the stored email monitoring setup.
-    /// </summary>
     internal procedure DeleteEmailMonitoringSetup()
     var
         OutlookSetup: Record "Outlook Setup";
@@ -78,9 +60,6 @@ codeunit 133723 "PA EDoc Unit Test Glue"
         OutlookSetup.DeleteAll();
     end;
 
-    /// <summary>
-    /// Deletes the intake the agent receives invoices through, including the email monitoring setup.
-    /// </summary>
     internal procedure DeleteAgentIntake()
     var
         EDocumentService: Record "E-Document Service";
@@ -95,10 +74,6 @@ codeunit 133723 "PA EDoc Unit Test Glue"
 
     #region Task intake
 
-    /// <summary>
-    /// Creates a task for an invoice and hands it to the agent through the intake path that requests review.
-    /// </summary>
-    /// <returns>The external id the agent task message is expected to carry.</returns>
     internal procedure CreateAgentTaskForInvoice(PASetup: Record "Payables Agent Setup"; Agent: Record Agent) ExpectedExternalId: Text
     var
         EDocument: Record "E-Document";
@@ -111,9 +86,6 @@ codeunit 133723 "PA EDoc Unit Test Glue"
         exit(Format(EDocument."Entry No"));
     end;
 
-    /// <summary>
-    /// Runs the agent-side known-sender recording path for a task whose sender is the given email.
-    /// </summary>
     internal procedure RecordKnownSender(SenderEmail: Text)
     var
         PAKnownSender: Record "PA Known Sender";

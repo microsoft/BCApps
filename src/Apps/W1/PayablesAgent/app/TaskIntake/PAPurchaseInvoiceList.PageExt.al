@@ -57,21 +57,21 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
     }
     trigger OnOpenPage()
     begin
-        IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
+        IsAgentActionVisible := PAAgentAccess.CanShowAgentActions();
     end;
 
     local procedure UploadInvoiceWithAgent()
     var
         PayablesAgent: Codeunit "Payables Agent Metadata";
         PASetupUpdate: Codeunit "PA Setup Update";
-        PATask: Codeunit "PA Task";
+        PATaskIntake: Codeunit "PA Task Intake";
         PATrialGuide: Page "PA Trial Guide";
         FileName: Text;
         InStream: InStream;
         AlreadyActivated: Boolean;
         AgentExistInEnvironment: Boolean;
     begin
-        IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
+        IsAgentActionVisible := PAAgentAccess.CanShowAgentActions();
         if not IsAgentActionVisible then
             exit;
         if not UploadIntoStream(SelectFileLbl, '', PdfFileFilterLbl, FileName, InStream) then
@@ -79,7 +79,7 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
 
         AgentExistInEnvironment := PayablesAgent.PayablesAgentExistsAcrossAllCompanies();
         PASetupUpdate.EnsureActivated(AlreadyActivated);
-        PATask.CreateFromUpload(FileName, InStream);
+        PATaskIntake.CreateTask(FileName, InStream);
         Session.LogMessage('0000SEJ', NewWithAgentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
         if AgentExistInEnvironment then
             exit;
@@ -93,7 +93,7 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
         Agent: Record Agent;
         TaskPane: Codeunit "Task Pane";
     begin
-        if not PayablesAgentSetup.GetAgent(Agent) then
+        if not PAAgentConfiguration.GetAgent(Agent) then
             exit;
 
         // An archived agent is not resolvable in the task pane, so the agent card is opened instead,
@@ -108,7 +108,8 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
     end;
 
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PAAgentAccess: Codeunit "PA Agent Access";
         IsAgentActionVisible: Boolean;
         SelectFileLbl: Label 'Select file';
         PdfFileFilterLbl: Label 'PDF Files (*.pdf)|*.pdf';

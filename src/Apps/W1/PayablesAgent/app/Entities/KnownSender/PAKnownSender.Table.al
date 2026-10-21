@@ -56,14 +56,9 @@ table 3308 "PA Known Sender"
             LogSenderApproved();
     end;
 
-    /// <summary>
-    /// Adds the sender of a task's source email to the known-senders list if it is not there yet. Tasks with no
-    /// email source are ignored.
-    /// </summary>
-    internal procedure InsertIfNew(PATask: Codeunit "PA Task")
+    internal procedure InsertIfNew(PATask: Codeunit "Payables Agent Task")
     var
         Existing: Record "PA Known Sender";
-        TempPADetailedSetup: Record "PA Detailed Setup";
         PASetup: Codeunit "PA Setup";
         SenderEmail: Text[250];
     begin
@@ -75,19 +70,15 @@ table 3308 "PA Known Sender"
             exit;
         Rec.Init();
         Rec.Email := SenderEmail;
-        PASetup.GetSetup(TempPADetailedSetup);
-        if TempPADetailedSetup."Email Review Policy" = "PA Email Review Policy"::OnlyIfUntrusted then
+        PASetup.GetSetup();
+        if PASetup.GetEmailReviewPolicy() = "PA Email Review Policy"::OnlyIfUntrusted then
             Rec."Sender Policy" := "PA Sender Policy"::Approve
         else
             Rec."Sender Policy" := "PA Sender Policy"::Ask;
         Rec.Insert(true);
     end;
 
-    /// <summary>
-    /// Finds the known-sender record matching the sender of a task's source email, if any.
-    /// Returns false when the task has no email source, the sender is empty, or it is not in the list.
-    /// </summary>
-    internal procedure GetForTask(PATask: Codeunit "PA Task"; var KnownSender: Record "PA Known Sender"): Boolean
+    internal procedure GetForTask(PATask: Codeunit "Payables Agent Task"; var KnownSender: Record "PA Known Sender"): Boolean
     var
         SenderEmail: Text[250];
     begin

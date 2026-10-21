@@ -216,6 +216,10 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+
+      # Run independently of AL-Go change detection/cache decisions, including on merge queues.
+      - name: Validate Payables Agent dependency rules
+        run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
   
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
   

@@ -42,7 +42,6 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
     }
 
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         PADraftBasedSetup: Codeunit "PA Draft Based Setup";
 
     local procedure CreatePATask(Files: List of [FileUpload])

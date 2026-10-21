@@ -6,10 +6,9 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
+using System.Email;
+using System.Utilities;
 
-/// <summary>
-/// Anchor record for one unit of Payables Agent v2 work. It can exist before any Agent-framework task is created.
-/// </summary>
 table 3327 "Payables Agent Task"
 {
     Caption = 'Payables Agent Task';
@@ -27,18 +26,6 @@ table 3327 "Payables Agent Task"
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
             AutoIncrement = true;
-        }
-        field(2; "Source Data No."; BigInteger)
-        {
-            Caption = 'Source Data No.';
-            DataClassification = SystemMetadata;
-            TableRelation = "Payables Agent Task Source"."Entry No.";
-        }
-        field(3; "Task Data No."; BigInteger)
-        {
-            Caption = 'Task Data No.';
-            DataClassification = SystemMetadata;
-            TableRelation = "Payables Agent Task Data"."Entry No.";
         }
         field(4; "Agent Task ID"; BigInteger)
         {
@@ -61,6 +48,27 @@ table 3327 "Payables Agent Task"
             Caption = 'Completed At';
             DataClassification = SystemMetadata;
         }
+        field(23; "File Name"; Text[250])
+        {
+            Caption = 'File Name';
+            DataClassification = CustomerContent;
+        }
+        field(25; "Email Inbox Id"; BigInteger)
+        {
+            Caption = 'Email Inbox Id';
+            DataClassification = SystemMetadata;
+            TableRelation = "Email Inbox".Id;
+        }
+        field(40; "File Content"; Media)
+        {
+            Caption = 'File Content';
+            DataClassification = CustomerContent;
+        }
+        field(41; "File Content As Text"; Blob)
+        {
+            Caption = 'File Content As Text';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
@@ -72,5 +80,46 @@ table 3327 "Payables Agent Task"
         key(AgentTaskID; "Agent Task ID")
         {
         }
+        key(ByOutcome; Outcome)
+        {
+        }
     }
+
+    procedure GetFileContent(var TempBlob: Codeunit "Temp Blob")
+    var
+        FileOutStream: OutStream;
+    begin
+        if not Rec."File Content".HasValue() then
+            Error(NoFileContentErr);
+        TempBlob.CreateOutStream(FileOutStream);
+        Rec."File Content".ExportStream(FileOutStream);
+    end;
+
+    procedure HasFileContentAsText(): Boolean
+    begin
+        Rec.CalcFields("File Content As Text");
+        exit(Rec."File Content As Text".HasValue());
+    end;
+
+    procedure GetFileContentAsText() FileContentAsText: Text
+    var
+        TextInStream: InStream;
+    begin
+        if not HasFileContentAsText() then
+            exit('');
+        Rec."File Content As Text".CreateInStream(TextInStream, TextEncoding::UTF8);
+        TextInStream.Read(FileContentAsText);
+    end;
+
+    procedure SetFileContentAsText(NewFileContentAsText: Text)
+    var
+        TextOutStream: OutStream;
+    begin
+        Clear(Rec."File Content As Text");
+        Rec."File Content As Text".CreateOutStream(TextOutStream, TextEncoding::UTF8);
+        TextOutStream.WriteText(NewFileContentAsText);
+    end;
+
+    var
+        NoFileContentErr: Label 'There is no file to show.';
 }
