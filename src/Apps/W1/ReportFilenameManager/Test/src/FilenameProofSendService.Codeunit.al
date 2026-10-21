@@ -5,6 +5,7 @@
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
 using Microsoft.Foundation.Reporting;
+using Microsoft.Sales.History;
 
 codeunit 149545 "Filename Proof Send Service"
 {

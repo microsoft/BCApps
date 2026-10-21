@@ -5,6 +5,7 @@
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
 using Microsoft.Foundation.Reporting;
+using Microsoft.Sales.History;
 
 codeunit 149527 "Filename Proof Send Disk Many"
 {

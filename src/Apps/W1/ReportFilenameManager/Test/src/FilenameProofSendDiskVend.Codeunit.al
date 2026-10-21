@@ -5,6 +5,7 @@
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
 using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.History;
 
 codeunit 149524 "Filename Proof Send Disk Vend"
 {

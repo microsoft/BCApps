@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
+using System.IO;
+
 codeunit 149546 "Filename Proof Export"
 {
     // Export for the proof's own electronic document format: a fixed XML, so the name proof does not

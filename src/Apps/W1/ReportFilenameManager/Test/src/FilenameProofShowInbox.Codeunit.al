@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
+using Microsoft.EServices.EDocument;
+
 codeunit 149507 "Filename Proof Show Inbox"
 {
     // Calls the download as the Report Inbox pages do (ShowReport), isolated so a failing download
