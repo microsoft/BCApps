@@ -1,5 +1,8 @@
 # Extensibility request backports
 
+For a short explanation of everyday use and common scenarios, see the
+[user guide](USER-GUIDE.md). This document covers configuration and technical recovery.
+
 `bc-extrequest-backport.yml` creates backports on **Sunday at 21:10
 Europe/Copenhagen**. It scans the rolling last **15 days** for PRs merged into
 `main`, with no fixed start date. The overlapping window allows a later weekly
