@@ -5834,6 +5834,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <returns>True if created split item journal line needs to be posted, otherwise false.</returns>
     procedure SetupTempSplitItemJnlLine(ItemJnlLine2: Record "Item Journal Line"; SignFactor: Integer; var NonDistrQuantity: Decimal; var NonDistrAmount: Decimal; var NonDistrAmountACY: Decimal; var NonDistrDiscountAmount: Decimal; Invoice: Boolean): Boolean
     var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         FloatingFactor: Decimal;
         PostItemJnlLine: Boolean;
         IsHandled: Boolean;
