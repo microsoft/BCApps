@@ -84,16 +84,16 @@ codeunit 20445 "Qlty. Inventory Availability"
             BinContent.SetRange("Serial No. Filter", QltyInspectionHeader."Source Serial No.");
         if QltyInspectionHeader."Source Package No." <> '' then
             BinContent.SetRange("Package No. Filter", QltyInspectionHeader."Source Package No.");
+        BinContent.SetFilter("Quantity (Base)", '>%1', 0);
         BinContent.SetAutoCalcFields("Quantity (Base)");
         if BinContent.FindSet() then
             repeat
-                if BinContent."Quantity (Base)" > 0 then
-                    if not TempBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
-                        TempBinContent.Init();
-                        TempBinContent := BinContent;
-                        TempBinContent."Min. Qty." := BinContent."Quantity (Base)";
-                        TempBinContent.Insert();
-                    end;
+                if not TempBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
+                    TempBinContent.Init();
+                    TempBinContent := BinContent;
+                    TempBinContent."Min. Qty." := BinContent."Quantity (Base)";
+                    TempBinContent.Insert();
+                end;
             until BinContent.Next() = 0;
     end;
 

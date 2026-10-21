@@ -30,6 +30,7 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         UnrealizedVATType: Option " ",Percentage,First,Last,"First (Fully Paid)","Last (Fully Paid)";
         IncorrectVATEntryCountErr: Label 'Incorrect count of VAT Entries.';
         ExchangeRateAdjmtTxt: Label 'Exchange Rate Adjmt. of %1 %2';
+        SourceVATAmountMismatchErr: Label 'Source Currency VAT Amount does not match VAT Amount.';
 
     [Test]
     [Scope('OnPrem')]
@@ -487,6 +488,27 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         VATEntry.SetRange(Closed, true);
         VATEntry.SetRange("Additional-Currency Amount", OriginalAmtClosedIn);
         Assert.RecordIsNotEmpty(VATEntry);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CalcAndPostVATSettlementPopulatesSourceCurrencyAmounts()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+    begin
+        // [SCENARIO 648151] VAT settlement entries contain source currency amounts when no additional reporting currency is set.
+        Initialize();
+        CreateAndPostGenJournalLine(GenJournalLine);
+        GLAccount.Get(GenJournalLine."Bal. Account No.");
+        GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"LCY Only");
+        GLAccount.Modify(true);
+
+        // [WHEN] Calculate and Post VAT Settlement is run.
+        RunCalcAndPostVATSettlement(GenJournalLine);
+
+        // [THEN] Source Currency Amounts equal the entry amounts and a VAT entry contains a matching Source Currency VAT Amount.
+        VerifyVATSettlementSourceCurrencyAmounts(GenJournalLine."Document No.");
     end;
 
     local procedure Initialize()
@@ -1026,6 +1048,21 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         CurrencyExchangeRate.Modify(true);
     end;
 
+    local procedure VerifyVATSettlementSourceCurrencyAmounts(DocumentNo: Code[20])
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetLoadFields("Document No.", "Gen. Posting Type", "Source Currency VAT Amount", Amount);
+        GLEntry.SetRange("Document No.", DocumentNo);
+        if GLEntry.FindSet() then
+            repeat
+                if GLEntry."Gen. Posting Type" = GLEntry."Gen. Posting Type"::Settlement then 
+                    if GLEntry."Source Currency VAT Amount" <> 0 then
+                        Assert.AreEqual(GLEntry."Source Currency VAT Amount", GLEntry.Amount, SourceVATAmountMismatchErr);            
+            until GLEntry.Next() = 0;
+    end;
+
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure CalcAndPostVATSettlementReqPageHandler(var CalcandPostVATSettlement: TestRequestPage "Calc. and Post VAT Settlement")
@@ -1033,3 +1070,4 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         CalcandPostVATSettlement.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
+

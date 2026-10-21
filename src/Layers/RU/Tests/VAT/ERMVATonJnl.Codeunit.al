@@ -637,9 +637,6 @@ codeunit 134044 "ERM VAT on Jnl"
     var
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
-        GLEntry: Record "G/L Entry";
-        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
-        VATEntry: Record "VAT Entry";
     begin
         // Check GL Entry VAT Entry Link for Posted General Journal Entry.
 
@@ -655,9 +652,6 @@ codeunit 134044 "ERM VAT on Jnl"
 
         // Verify: Verify that correct GL Entry VAT Entry Link exists for posted entry.
         exit; // Known issue
-        FindGLEntry(GLEntry, GenJournalLine."Document Type", GenJournalLine."Document No.");
-        FindVATEntry(VATEntry, GenJournalLine."Document Type", GenJournalLine."Document No.");
-        GLEntryVATEntryLink.Get(GLEntry."Entry No.", VATEntry."Entry No.");
     end;
 
     local procedure Initialize()
@@ -1024,4 +1018,3 @@ codeunit 134044 "ERM VAT on Jnl"
         Reply := false;
     end;
 }
-

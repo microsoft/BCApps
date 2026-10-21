@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.\d "postcode"Postcode Configuration Page"
@@ -14,6 +15,9 @@ page 10503 "Postcode Configuration Page GB"
     PageType = StandardDialog;
     SourceTable = "Postcode Service Config";
     UsageCategory = None;
+    ObsoleteReason = 'GetAddress.io UK Postcodes extension is discontinued';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -106,3 +110,4 @@ page 10503 "Postcode Configuration Page GB"
         DisabledTok: Label 'Disabled';
         ServiceKeyText: Text;
 }
+#endif

@@ -40,6 +40,9 @@ table 6938 Traveler
             begin
                 TestStatusOpenOfSpendRequest();
 
+                if (xRec."Expense User No." <> '') and (xRec."Expense User No." <> Rec."Expense User No.") then
+                    CheckNoLinkedExpenseReports(xRec."Expense User No.");
+
                 if Rec."Expense User No." <> '' then begin
                     CheckDuplicateTraveler();
 
@@ -57,6 +60,13 @@ table 6938 Traveler
             begin
                 TestStatusOpenOfSpendRequest();
             end;
+        }
+        field(6; "Employee No."; Code[20])
+        {
+            Caption = 'Employee No.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User"."Employee No." where("No." = field("Expense User No.")));
+            ToolTip = 'Specifies the employee number linked to the expense user who is traveling.';
         }
     }
 
@@ -83,10 +93,86 @@ table 6938 Traveler
     trigger OnDelete()
     begin
         TestStatusOpenOfSpendRequest();
+        CheckNoLinkedExpenseReports(Rec."Expense User No.");
     end;
 
     var
         DuplicateTravelerErr: Label 'Traveler %1 is already on this travel request. Each traveler can be added only once. Choose a different traveler or remove the existing line.', Comment = '%1 = Traveler No.';
+        ExpenseUserNotFoundErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
+        TravelerHasExpenseReportsErr: Label 'You cannot remove traveler %1 from travel request %2 because an expense report is linked to the traveler.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
+
+    /// <summary>
+    /// Checks whether the travel request has more than one traveler.
+    /// </summary>
+    /// <param name="SpendRequestNo">The travel request number.</param>
+    /// <returns>True if the travel request has more than one traveler.</returns>
+    internal procedure HasMultipleTravelers(SpendRequestNo: Code[20]): Boolean
+    var
+        Traveler: Record Traveler;
+    begin
+        if SpendRequestNo = '' then
+            exit(false);
+
+        Traveler.SetRange("Spend Request No.", SpendRequestNo);
+        exit(Traveler.Count() > 1);
+    end;
+
+    /// <summary>
+    /// Checks whether an expense report, open or posted, is linked to the travel request for the traveler.
+    /// </summary>
+    /// <param name="SpendRequestNo">The travel request number.</param>
+    /// <param name="TravelerExpenseUserNo">The expense user of the traveler.</param>
+    /// <returns>True if the traveler has a linked expense report.</returns>
+    internal procedure HasLinkedExpenseReports(SpendRequestNo: Code[20]; TravelerExpenseUserNo: Code[20]): Boolean
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        if (SpendRequestNo = '') or (TravelerExpenseUserNo = '') then
+            exit(false);
+
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequestNo);
+        ExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
+        if not ExpenseReportHeader.IsEmpty() then
+            exit(true);
+
+        ExpenseReportLine.SetRange("Spend Request No.", SpendRequestNo);
+        ExpenseReportLine.SetRange("Expense User No.", TravelerExpenseUserNo);
+        if not ExpenseReportLine.IsEmpty() then
+            exit(true);
+
+        PostedExpenseReportHeader.SetRange("Spend Request No.", SpendRequestNo);
+        PostedExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
+        if not PostedExpenseReportHeader.IsEmpty() then
+            exit(true);
+
+        PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequestNo);
+        PostedExpenseReportLine.SetRange("Expense User No.", TravelerExpenseUserNo);
+        exit(not PostedExpenseReportLine.IsEmpty());
+    end;
+
+    local procedure CheckNoLinkedExpenseReports(TravelerExpenseUserNo: Code[20])
+    begin
+        if HasLinkedExpenseReports(Rec."Spend Request No.", TravelerExpenseUserNo) then
+            Error(TravelerHasExpenseReportsErr, TravelerExpenseUserNo, Rec."Spend Request No.");
+    end;
+
+    internal procedure ValidateEmployeeNo(EmployeeNo: Code[20])
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        if EmployeeNo = '' then
+            Error(ExpenseUserNotFoundErr, EmployeeNo);
+
+        ExpenseUser.SetLoadFields("No.");
+        ExpenseUser.SetRange("Employee No.", EmployeeNo);
+        if not ExpenseUser.FindFirst() then
+            Error(ExpenseUserNotFoundErr, EmployeeNo);
+
+        Rec.Validate("Expense User No.", ExpenseUser."No.");
+    end;
 
     local procedure TestStatusOpenOfSpendRequest()
     var

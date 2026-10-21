@@ -30,6 +30,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
         SpecifyMethodOfCalcAdvancedAmountErr: Label 'You must select a calculation method for advanced amounts.';
         ModuleNumberBlankErr: Label 'You must enter a module number.';
         WrongCaptionErr: Label 'Wrong caption.';
+        BCAppsRelativePathTxt: Label '\App\BCApps\src', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -251,9 +252,9 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
         VATPaymentCommunication.Run();
 
         // [THEN] XML generated conforms to the XSD
-        SignatureSchemaPath := GetInetRoot() + '\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd';
+        SignatureSchemaPath := ResolveTestAssetPath('\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd');
         LibraryVerifyXMLSchema.SetAdditionalSchemaPath(SignatureSchemaPath);
-        SchemaPath := GetInetRoot() + '\GDL\IT\App\Test\XMLSchemas\fornituraIvp_2018_v1.xsd';
+        SchemaPath := ResolveTestAssetPath('\GDL\IT\App\Test\XMLSchemas\fornituraIvp_2018_v1.xsd');
         Assert.IsTrue(LibraryVerifyXMLSchema.VerifyXMLAgainstSchema(DestinationPath, SchemaPath, Message), Message);
         UnbindSubscription(PeriodicVATPmtCommTests);
     end;
@@ -1200,6 +1201,11 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     local procedure GetInetRoot(): Text
     begin
         exit(ApplicationPath + '\..\..\..\');
+    end;
+
+    local procedure ResolveTestAssetPath(RelativePath: Text): Text
+    begin
+        exit(GetInetRoot() + BCAppsRelativePathTxt + RelativePath);
     end;
 
     local procedure PopulateVATEntryTable(StartDate: Date; var TotalSales: Decimal; var TotalPurchases: Decimal; var TotalSalesTax: Decimal; var TotalPurchaseTax: Decimal)

@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
 
 codeunit 7128 "Create Expense Rule Headers"
 {
@@ -282,6 +283,8 @@ codeunit 7128 "Create Expense Rule Headers"
     local procedure InsertExpenseRuleHeader(var ExpenseRuleHeader: Record "Expense Rule Header"; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; EffectiveDate: Date; JustificationRequired: Enum "Expense Justification"; RequiredSpecificMerchant: Boolean; SpecificMerchantName: Text[100]; CurrencyCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         ExistingCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
+        Currency: Record Currency;
         IsHandled: Boolean;
     begin
         // prevent inserting invalid data
@@ -293,6 +296,12 @@ codeunit 7128 "Create Expense Rule Headers"
         CreateExpenseCategories.OnBeforeAddRuleSeed(ExpenseRuleHeader, ExpenseCategoryCode, ExpenseLocationCode, CurrencyCode, JustificationRequired, IsHandled);
         if IsHandled then
             exit;
+        if ExpenseLocationCode <> '' then
+            if not ExpenseLocation.Get(ExpenseLocationCode) then
+                exit;
+        if CurrencyCode <> '' then
+            if not Currency.Get(CurrencyCode) then
+                exit;
         if ExpenseRuleHeader.Get(ExpenseCategoryCode, ExpenseLocationCode, EffectiveDate) then
             exit;
         ExpenseRuleHeader."Expense Category Code" := ExpenseCategoryCode;

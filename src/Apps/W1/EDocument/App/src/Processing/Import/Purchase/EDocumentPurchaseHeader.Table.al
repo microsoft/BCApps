@@ -234,11 +234,17 @@ table 6100 "E-Document Purchase Header"
 #pragma warning disable AS0005
         field(40; "Vendor Invoice No."; Text[100])
         {
-            Caption = 'Applies-to Ext. Invoice No.';
+            Caption = 'Applies-to Vendor Inv. No.';
             DataClassification = CustomerContent;
         }
 #pragma warning restore AS0005
 #pragma warning restore AS0125
+        field(41; "Several Invoices Referenced"; Boolean)
+        {
+            Caption = 'Several Invoices Referenced';
+            ToolTip = 'Specifies whether the credit note states more than one invoice. Only the first one is kept in Applies-to Vendor Inv. No.';
+            DataClassification = SystemMetadata;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
@@ -337,6 +343,17 @@ table 6100 "E-Document Purchase Header"
     internal procedure FeatureName(): Text
     begin
         exit('E-Document Matching Assistance');
+    end;
+
+    internal procedure IsFinalized(): Boolean
+    var
+        EDocument: Record "E-Document";
+    begin
+        if Rec."E-Document Entry No." = 0 then
+            exit(false);
+        if not EDocument.Get(Rec."E-Document Entry No.") then
+            exit(false);
+        exit(EDocument.Status = EDocument.Status::Processed);
     end;
 
     var

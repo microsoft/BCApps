@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Reflection;
 using System.Utilities;
 
-codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Handling"
+codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Handling", "Audit File Export Page Visibility"
 {
     Access = Public;
 
@@ -16,6 +16,11 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
         MasterDataTxt: label 'Master Data';
         GLEntriesTxt: label 'General Ledger Entries from %1 to %2', Comment = '%1, %2 - starting and ending date';
         SourceDocumentsTxt: label 'Source Documents';
+
+    procedure GetUIVisibility(var FieldVisibility: Dictionary of [Text, Boolean]; var ActionVisibility: Dictionary of [Text, Boolean])
+    begin
+        FieldVisibility.Set('Contact', false);
+    end;
 
     procedure LoadStandardAccounts(StandardAccountType: Enum "Standard Account Type") Result: Boolean
     var
@@ -28,7 +33,7 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
         exit(CreateStandardDataSAFT.LoadStandardAccounts(StandardAccountType));
     end;
 
-    internal procedure CreateAuditFileExportLines(var AuditFileExportHeader: Record "Audit File Export Header")
+    procedure CreateAuditFileExportLines(var AuditFileExportHeader: Record "Audit File Export Header")
     var
         AuditFileExportLine: Record "Audit File Export Line";
         AuditFileExportMgt: Codeunit "Audit File Export Mgt.";
@@ -54,14 +59,14 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
                 SourceDocumentsTxt, AuditFileExportHeader."Starting Date", AuditFileExportHeader."Ending Date");
     end;
 
-    internal procedure GenerateFileContentForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
+    procedure GenerateFileContentForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
     var
         GenerateXMLFileSAFT: Codeunit "Generate File SAF-T";
     begin
         GenerateXMLFileSAFT.GenerateFileContent(AuditFileExportLine, TempBlob);
     end;
 
-    internal procedure GetFileNameForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line") FileName: Text[1024]
+    procedure GetFileNameForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line") FileName: Text[1024]
     var
         AuditExportLineCopy: Record "Audit File Export Line";
         SAFTDataMgt: Codeunit "SAF-T Data Mgt.";
@@ -76,7 +81,7 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
         FileName := SAFTDataMgt.GetXmlFileName(CreatedDateTime, AuditFileExportLine."Line No.", TotalNumberOfFiles);
     end;
 
-    internal procedure InitAuditExportDataTypeSetup()
+    procedure InitAuditExportDataTypeSetup()
     var
         AuditFileExportSetup: Record "Audit File Export Setup";
         LoadStandardDataSAFT: Interface CreateStandardDataSAFT;

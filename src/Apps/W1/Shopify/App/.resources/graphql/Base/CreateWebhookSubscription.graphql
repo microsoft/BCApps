@@ -1,2 +1,2 @@
 # cost: 10
-{"query":"mutation { webhookSubscriptionCreate( topic: {{WebhookTopic}} webhookSubscription: {callbackUrl: \"{{NotificationUrl}}\", format: JSON} ) { userErrors { field message } webhookSubscription { id } } }"}
+{"query":"mutation { webhookSubscriptionCreate( topic: {{WebhookTopic}} webhookSubscription: {callbackUrl: \"{{NotificationUrl}}\", format: JSON, includeFields: {{IncludeFields}}} ) { userErrors { field message } webhookSubscription { id } } }"}

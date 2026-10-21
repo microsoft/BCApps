@@ -17,6 +17,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using System.Automation;
 using System.Utilities;
 
 #pragma warning disable AL0432
@@ -79,6 +80,7 @@ codeunit 11729 "Cash Document-Post CZP"
         OnBeforePostedCashDocHeaderInsert(PostedCashDocumentHdrCZP, CashDocumentHeaderCZP);
         PostedCashDocumentHdrCZP.Insert();
         OnAfterPostedCashDocHeaderInsert(PostedCashDocumentHdrCZP, CashDocumentHeaderCZP);
+        ApprovalsMgmt.PostApprovalEntries(CashDocumentHeaderCZP.RecordId, PostedCashDocumentHdrCZP.RecordId, PostedCashDocumentHdrCZP."No.");
         RecordLinkManagement.CopyLinks(CashDocumentHeaderCZP, PostedCashDocumentHdrCZP);
 
         PostHeader();
@@ -98,6 +100,7 @@ codeunit 11729 "Cash Document-Post CZP"
         CashDeskManagementCZP: Codeunit "Cash Desk Management CZP";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         DimensionManagement: Codeunit DimensionManagement;
         CashDocumentReleaseCZP: Codeunit "Cash Document-Release CZP";
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
@@ -340,6 +343,7 @@ codeunit 11729 "Cash Document-Post CZP"
         OnBeforeDeleteAfterPosting(CashDocumentHeaderCZP, PostedCashDocumentHdrCZP);
         if CashDocumentHeaderCZP.HasLinks then
             CashDocumentHeaderCZP.DeleteLinks();
+        ApprovalsMgmt.DeleteApprovalEntries(CashDocumentHeaderCZP.RecordId);
         CashDocumentHeaderCZP.Delete();
 
         CashDocumentLineCZP.Reset();

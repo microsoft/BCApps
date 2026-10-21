@@ -206,9 +206,12 @@ codeunit 139556 "Shpfy Product Collection Test"
 
     local procedure Initialize()
     var
+        ProductCollection: Record "Shpfy Product Collection";
         AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
+        // Collection Ids are generated from a reset seed, so remove leftovers from previous tests to avoid duplicate keys.
+        ProductCollection.DeleteAll(false);
         if IsInitialized then
             exit;
         Shop := InitializeTest.CreateShop();
