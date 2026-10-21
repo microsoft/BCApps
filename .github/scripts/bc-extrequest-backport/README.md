@@ -27,6 +27,18 @@ issues' labels, excluding `ext-ready-to-implement`, and add `ext-backporting`.
 When there are no original issue references, labels come from the source PR,
 excluding its source-only `ext-backport-processed` marker.
 
+The issue and PR share a title. Team batches use
+`[Backport 29.x] [Extensibility Requests] [Team: SCM] till 2026-10-21`,
+with the actual release, team and discovery date in Europe/Copenhagen. The date
+is fixed for retries of the same batch.
+
+Descriptions begin with "Backporting of extensibility requests", including
+the team for a batch, followed by `Issues:` and `PRs:` lists of the original
+sources. Source hashes and recovery metadata remain hidden. A backport PR then
+contains `Fixes #<new-backport-task-number>` and the Important AI-generated
+disclaimer. It never uses `Fixes` for the original issues. The Task omits that
+reference and disclaimer and ends with italic "Auto-generated content".
+
 A source is processed independently when its team is missing, ambiguous, or
 inconsistent with a linked original issue's team. For example, a main PR labeled
 `Team: SCM` whose original issue has `Team: Finance` does not enter either team's

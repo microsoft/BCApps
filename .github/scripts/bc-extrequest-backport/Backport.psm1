@@ -519,7 +519,7 @@ function Set-BackportPublicationIntent {
     }
     $marker = "<!-- bc-extrequest-backport:publication-intent:v1 sha=$Sha -->"
     $null = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)" -Method PATCH -Body @{
-        body = "$($fresh.body)`n`n$marker"
+        body = "$marker`n`n$($fresh.body)"
     }
     $confirmed = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)"
     if ($State.schema -eq 2) { Assert-BackportBatchObject $confirmed $State $BotLogin }
@@ -545,31 +545,65 @@ function Assert-BackportObject {
     }
 }
 
+function Get-BackportDescription {
+    param(
+        [string] $Repository, [string] $Target, [object[]] $Issues, [long[]] $SourcePrs,
+        [string] $Team = '', [long] $TrackingNumber = 0, [string] $Outcome = ''
+    )
+
+    $teamText = if ($Team) { " for $Team" } else { '' }
+    $lines = @("Backporting of extensibility requests$teamText to ``$Target``.", '', 'Issues:')
+    $issueUrls = @($Issues | ForEach-Object { $_.url } | Sort-Object -Unique)
+    if ($issueUrls.Count -eq 0) { $lines += 'No linked issues.' }
+    foreach ($url in $issueUrls) { $lines += "- $url" }
+    $lines += @('', 'PRs:')
+    foreach ($number in @($SourcePrs | Select-Object -Unique)) {
+        $lines += "- https://github.com/$Repository/pull/$number"
+    }
+    if ($TrackingNumber -gt 0) {
+        $lines += @('', "Fixes #$TrackingNumber", '', '> [!IMPORTANT]',
+            '> AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.')
+    }
+    else {
+        if ($Outcome -eq 'conflict') {
+            $lines += @('', 'The complete source PR could not be cherry-picked cleanly. No partial branch or PR was published.',
+                'A developer must resolve the backport manually; automatic runs do not retry this conflict.')
+        }
+        elseif ($Outcome -eq 'already-present') {
+            $lines += @('', 'The changes are already present on the release branch. No empty backport PR was created.')
+        }
+        $lines += @('', '*Auto-generated content*')
+    }
+    return $lines -join "`n"
+}
+
+function Get-BackportTitle {
+    param([hashtable] $State)
+    if ($State.schema -eq 2) {
+        $version = ($State.request.target -split '/')[1]
+        $team = $State.request.team -replace '[\r\n]', ' '
+        $zone = [TimeZoneInfo]::FindSystemTimeZoneById('Europe/Copenhagen')
+        $localTime = [TimeZoneInfo]::ConvertTime([DateTimeOffset]$State.request.reference_time, $zone)
+        $date = $localTime.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+        $title = "[Backport $version] [Extensibility Requests] [$team] till $date"
+    }
+    else {
+        $title = "[Backport $(($State.target -split '/')[1])] #$($State.source_pr): $($State.source_title -replace '[\r\n]', ' ')"
+    }
+    if ($title.Length -gt 240) { $title = $title.Substring(0, 240) }
+    return $title
+}
+
 function Get-BackportBody {
     param([hashtable] $State, [AllowNull()][long] $TrackingNumber = 0)
 
-    $repository = $State.repository
-    $lines = @(
+    @(
         (Get-BackportMarker $State.source_pr $State.target $State.source_sha)
+        "<!-- Preparation result: **$($State.result.outcome)**. -->"
         ''
-        "Backport of https://github.com/$repository/pull/$($State.source_pr) to ``$($State.target)``."
-        ''
-        "Source merge: ``$($State.source_sha)``"
-        ''
-        '## Original main issues'
-    )
-    if ($State.issues.Count -eq 0) { $lines += 'No closing issue references were found on the main PR; labels are inherited from that PR.' }
-    foreach ($issue in $State.issues) { $lines += "- $($issue.url)" }
-    $lines += @('', '## Backport', '', "Preparation result: **$($State.result.outcome)**.")
-    if ($TrackingNumber -gt 0) {
-        $lines += @('', "Backport tracking issue: https://github.com/$repository/issues/$TrackingNumber", '',
-            'Review the complete change and run the normal release-branch CI before merging. No AI resolver was used.')
-    }
-    elseif ($State.result.outcome -eq 'conflict') {
-        $lines += @('', 'The complete source PR could not be cherry-picked cleanly. No partial branch or PR was published.',
-            'A developer must resolve the backport manually; automatic runs do not retry this conflict.')
-    }
-    return $lines -join "`n"
+        (Get-BackportDescription -Repository $State.repository -Target $State.target -Issues $State.issues `
+            -SourcePrs @($State.source_pr) -TrackingNumber $TrackingNumber -Outcome $State.result.outcome)
+    ) -join "`n"
 }
 
 function Complete-BackportPull {
@@ -593,7 +627,7 @@ function Complete-BackportPull {
     $body = $Tracking.body
     $link = "Backport PR: $($Pull.html_url)"
     if (-not $body.Contains($link)) {
-        $null = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)" -Method PATCH -Body @{ body = "$body`n`n$link" }
+        $null = Invoke-BackportApi "repos/$repository/issues/$($Tracking.number)" -Method PATCH -Body @{ body = "<!-- $link -->`n`n$body" }
     }
     Set-BackportProcessed $repository $State.source_pr
     Write-BackportSummary "Main PR #$($State.source_pr): validated backport $($Pull.html_url); issue $($Tracking.html_url)."
@@ -667,10 +701,8 @@ function Publish-ExtRequestBackport {
         }
         elseif ($null -ne $pull) { throw 'Existing backport PR has no tracking issue; reconcile manually.' }
         else {
-            $title = "[Backport $(($state.target -split '/')[1])] #$($state.source_pr): $($state.source_title -replace '[\r\n]', ' ')"
-            if ($title.Length -gt 240) { $title = $title.Substring(0, 240) }
             $tracking = New-BackportTrackingTask $repository @{
-                title = $title; body = Get-BackportBody $state; type = 'Task'
+                title = Get-BackportTitle -State $state; body = Get-BackportBody $state; type = 'Task'
                 labels = @($state.labels | ForEach-Object { $_.name })
             }
             Assert-BackportObject $tracking $state $BotLogin
@@ -726,10 +758,8 @@ function Publish-ExtRequestBackport {
         Assert-BackportObject $tracking $state $BotLogin
     }
     $tracking = Set-BackportPublicationIntent $state $tracking $head $BotLogin
-    $title = "[Backport $(($state.target -split '/')[1])] #$($state.source_pr): $($state.source_title -replace '[\r\n]', ' ')"
-    if ($title.Length -gt 240) { $title = $title.Substring(0, 240) }
     $pull = Invoke-BackportApi "repos/$repository/pulls" -Method POST -Body @{
-        title = $title; body = Get-BackportBody $state $tracking.number
+        title = $tracking.title; body = Get-BackportBody $state $tracking.number
         head = $branch; base = $state.target; draft = $true
     }
     $pull = Invoke-BackportApi "repos/$repository/pulls/$($pull.number)"
@@ -1124,23 +1154,14 @@ function Get-BackportBatchLabels {
 
 function Get-BackportBatchBody {
     param([hashtable] $Manifest, [long] $TrackingNumber = 0)
-    $lines = @((Get-BackportBatchMarker $Manifest), '',
-        "Team: $($Manifest.request.team). Target: ``$($Manifest.request.target)``.", '', '## Included main PRs')
-    $issues = @{}
-    foreach ($member in $Manifest.members) {
-        if ($member.result.outcome -ne 'applied') { continue }
-        $lines += "- https://github.com/$($Manifest.repository)/pull/$($member.source_pr) - source ``$($member.source_sha)``"
-        foreach ($issue in $member.issues) { $issues[$issue.url] = $issue }
-    }
-    $lines += @('', '## Original main issues')
-    foreach ($url in @($issues.Keys | Sort-Object)) { $lines += "- $url" }
-    $lines += @('', '## Independent outcomes')
-    foreach ($member in $Manifest.members) {
-        if ($member.result.outcome -ne 'applied') { $lines += "- Main PR #$($member.source_pr): $($member.result.outcome); tracked independently." }
-    }
-    if ($TrackingNumber -gt 0) { $lines += @('', "Backport tracking issue: https://github.com/$($Manifest.repository)/issues/$TrackingNumber") }
-    $lines += @('', 'Review the cumulative change and run normal release CI. No AI resolver was used.')
-    $body = $lines -join "`n"
+    $included = @($Manifest.members | Where-Object { $_.result.outcome -eq 'applied' })
+    $body = @(
+        (Get-BackportBatchMarker $Manifest)
+        ''
+        (Get-BackportDescription -Repository $Manifest.repository -Target $Manifest.request.target `
+            -Issues @($included | ForEach-Object { $_.issues }) -SourcePrs @($included | ForEach-Object { $_.source_pr }) `
+            -Team $Manifest.request.team -TrackingNumber $TrackingNumber)
+    ) -join "`n"
     if ($body.Length -gt 65000) { throw 'Complete batch manifest exceeds GitHub body limits; reduce the cohort, never truncate membership.' }
     return $body
 }
@@ -1192,7 +1213,7 @@ function Complete-BackportBatchPull {
     }
     $link = "Backport PR: $($Pull.html_url)"
     if (-not $Tracking.body.Contains($link)) {
-        $null = Invoke-BackportApi "repos/$($Manifest.repository)/issues/$($Tracking.number)" -Method PATCH -Body @{ body = "$($Tracking.body)`n`n$link" }
+        $null = Invoke-BackportApi "repos/$($Manifest.repository)/issues/$($Tracking.number)" -Method PATCH -Body @{ body = "<!-- $link -->`n`n$($Tracking.body)" }
     }
     foreach ($member in $Manifest.members) {
         if ($member.result.outcome -ne 'applied') { continue }
@@ -1299,7 +1320,7 @@ function Publish-ExtRequestBackportBatch {
                 # One creation attempt only. Without a pre-Task journal, an absent Task
                 # after a failed POST is uncertain and requires operator investigation.
                 $tracking = New-BackportTrackingTask $repository @{
-                    title = "[Backport $(($request.target -split '/')[1])] $($request.team) - $($request.key)"
+                    title = Get-BackportTitle -State $manifest
                     body = Get-BackportBatchBody $manifest; type = 'Task'; labels = @($labels | ForEach-Object { $_.name })
                 }
                 Assert-BackportBatchObject $tracking $manifest $BotLogin
@@ -1327,7 +1348,7 @@ function Publish-ExtRequestBackportBatch {
             }
             $tracking = Set-BackportPublicationIntent $manifest $tracking $manifest.head $BotLogin
             $pull = Invoke-BackportApi "repos/$repository/pulls" -Method POST -Body @{
-                title = "[Backport $(($request.target -split '/')[1])] $($request.team) - $($request.key)"
+                title = $tracking.title
                 body = Get-BackportBatchBody $manifest $tracking.number; head = $branch; base = $request.target; draft = $true
             }
             $pull = Invoke-BackportApi "repos/$repository/pulls/$($pull.number)"

@@ -342,15 +342,19 @@ Describe 'Batch publication and duplicate prevention' {
             }
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
                 $Path -eq 'repos/microsoft/BCApps/pulls' -and $Method -eq 'POST' -and $Body.draft -and
-                $Body.body.Contains('Backport tracking issue: https://github.com/microsoft/BCApps/issues/100') -and $Body.base -eq 'releases/29.x'
+                $Body.body.Contains('Fixes #100') -and $Body.base -eq 'releases/29.x' -and
+                $Body.title -ceq $script:batchTracking.title
             }
             $body = $script:batchPull.body
             $body | Should -Match 'pull/42'
             $body | Should -Match 'pull/43'
-            $body | Should -Match ('a' * 40)
-            $body | Should -Match ('b' * 40)
+            $identity = Read-BackportBatchMarker $body
+            $identity.members[0].source_sha | Should -Be ('a' * 40)
+            $identity.members[1].source_sha | Should -Be ('b' * 40)
             [regex]::Matches($body, 'https://github.com/microsoft/BCApps/issues/10(?=\s|$)').Count | Should -Be 1
-            $body | Should -Not -Match '(?i)\b(fixes|closes|resolves)\s'
+            $body | Should -Match '(?m)^Fixes #100$'
+            $body | Should -Not -Match '(?m)^Fixes #10$'
+            $script:batchTracking.body.TrimEnd() | Should -Match '\*Auto-generated content\*$'
             Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
             Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 43 }
             Should -Invoke Set-BackportProcessed -Times 0 -ParameterFilter { $SourcePr -eq 44 }
@@ -438,6 +442,7 @@ Describe 'Batch publication and duplicate prevention' {
             $script:lookupCount = 0
             $script:observed = @{
                 number = 100; body = Get-BackportBatchMarker $fixture; state = 'open'; labels = @()
+                title = 'Recovered backport Task title'
                 user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/issues/100'
             }
             Mock Get-BackportBatchRecords {
@@ -453,7 +458,8 @@ Describe 'Batch publication and duplicate prevention' {
                 $Body.body.Contains('bc-extrequest-backport:v2')
             }
             Should -Invoke Invoke-BackportApi -Times 1 -ParameterFilter {
-                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls'
+                $Method -eq 'POST' -and $Path -eq 'repos/microsoft/BCApps/pulls' -and
+                $Body.title -ceq $script:observed.title
             }
         }
 
@@ -461,6 +467,7 @@ Describe 'Batch publication and duplicate prevention' {
             Mock Invoke-BackportApi {
                 $script:batchTracking = @{
                     number = 100; body = $Body.body; state = 'open'; labels = @()
+                    title = $Body.title
                     user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/issues/100'
                 }
                 throw 'Lost response'
@@ -638,6 +645,94 @@ Describe 'Batch publication and duplicate prevention' {
     }
 }
 
+Describe 'Backport descriptions and titles' {
+    InModuleScope Backport {
+        BeforeEach {
+            $script:presentationState = @{
+                schema = 1; repository = 'microsoft/BCApps'; source_pr = 42; target = 'releases/29.x'
+                source_sha = 'a' * 40; source_title = 'Expose an event'; result = @{ outcome = 'applied' }
+                issues = @(@{ url = 'https://github.com/microsoft/BCApps/issues/10' },
+                    @{ url = 'https://github.com/microsoft/BCApps/issues/11' },
+                    @{ url = 'https://github.com/microsoft/BCApps/issues/10' })
+            }
+            $script:expectedCore = @(
+                'Backporting of extensibility requests to `releases/29.x`.'
+                ''
+                'Issues:'
+                '- https://github.com/microsoft/BCApps/issues/10'
+                '- https://github.com/microsoft/BCApps/issues/11'
+                ''
+                'PRs:'
+                '- https://github.com/microsoft/BCApps/pull/42'
+            ) -join "`n"
+        }
+
+        It 'renders the exact PR layout with a new-Task Fixes reference and Important AI disclaimer' {
+            $body = Get-BackportBody $presentationState 99
+            $visible = [regex]::Replace($body, '(?s)<!--.*?-->\s*', '').Trim()
+            $expected = @($expectedCore, '', 'Fixes #99', '', '> [!IMPORTANT]',
+                '> AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.') -join "`n"
+            $visible | Should -BeExactly $expected
+            $visible | Should -Not -Match 'Source merge:|Original main issues|Preparation result:'
+            $visible | Should -Not -Match ('a' * 40)
+            (Read-BackportMarker $body).sha | Should -Be ('a' * 40)
+        }
+
+        It 'renders the same issue content without Fixes or Important and ends with the italic generation note' {
+            $body = Get-BackportBody $presentationState
+            $visible = [regex]::Replace($body, '(?s)<!--.*?-->\s*', '').Trim()
+            $visible | Should -BeExactly (@($expectedCore, '', '*Auto-generated content*') -join "`n")
+            $visible | Should -Not -Match '(?i)\bfixes\s|\[!IMPORTANT\]'
+            $body | Should -Match '<!-- Preparation result: \*\*applied\*\*\. -->'
+        }
+
+        It 'uses the same team layout and includes only applied sources with deduplicated original issues' {
+            $manifest = New-BatchFixture
+            $body = Get-BackportBatchBody $manifest 99
+            $visible = [regex]::Replace($body, '(?s)<!--.*?-->\s*', '').Trim()
+            $expected = @(
+                'Backporting of extensibility requests for Team: Finance to `releases/29.x`.'
+                ''
+                'Issues:'
+                '- https://github.com/microsoft/BCApps/issues/10'
+                ''
+                'PRs:'
+                '- https://github.com/microsoft/BCApps/pull/42'
+                '- https://github.com/microsoft/BCApps/pull/43'
+                ''
+                'Fixes #99'
+                ''
+                '> [!IMPORTANT]'
+                '> AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.'
+            ) -join "`n"
+            $visible | Should -BeExactly $expected
+            $visible | Should -Not -Match 'pull/44|Independent outcomes|Source merge:'
+            $issue = Get-BackportBatchBody $manifest
+            $issue.TrimEnd() | Should -Match '\*Auto-generated content\*$'
+            $issue | Should -Not -Match '(?m)^Fixes '
+            (Read-BackportBatchMarker $body).members.Count | Should -Be 3
+        }
+
+        It 'uses the Copenhagen discovery date for a stable team title' -ForEach @(
+            @{ reference = '2026-10-20T22:30:00Z'; expectedDate = '2026-10-21' },
+            @{ reference = '2026-12-20T23:30:00Z'; expectedDate = '2026-12-21' }
+        ) {
+            $state = @{ schema = 2; request = @{
+                target = 'releases/29.x'; team = 'Team: SCM'; reference_time = $reference
+            } }
+            Get-BackportTitle $state | Should -BeExactly "[Backport 29.x] [Extensibility Requests] [Team: SCM] till $expectedDate"
+        }
+
+        It 'keeps individual titles bounded and single-line' {
+            Get-BackportTitle $presentationState | Should -BeExactly '[Backport 29.x] #42: Expose an event'
+            $presentationState.source_title = "Line one`n" + ('x' * 300)
+            $title = Get-BackportTitle $presentationState
+            $title.Length | Should -Be 240
+            $title | Should -Not -Match '[\r\n]'
+        }
+    }
+}
+
 Describe 'Extensibility backport policy' {
     InModuleScope Backport {
         BeforeAll {
@@ -756,7 +851,7 @@ Describe 'Extensibility backport policy' {
             { Read-BackportMarker "$marker`n$marker" } | Should -Throw
         }
 
-        It 'includes main PR and all original issue links without automatic issue-closing keywords' {
+        It 'includes original links and references only the new tracking Task with Fixes' {
             $state = @{
                 repository = 'microsoft/BCApps'; source_pr = 42; target = 'releases/29.x'; source_sha = 'a' * 40
                 issues = @(@{ url = 'https://github.com/microsoft/BCApps/issues/10' },
@@ -767,8 +862,8 @@ Describe 'Extensibility backport policy' {
             $body | Should -Match 'https://github.com/microsoft/BCApps/pull/42'
             $body | Should -Match 'https://github.com/microsoft/BCApps/issues/10'
             $body | Should -Match 'https://github.com/microsoft/BCApps/issues/11'
-            $body | Should -Match 'Backport tracking issue: https://github.com/microsoft/BCApps/issues/99'
-            $body | Should -Not -Match '(?i)\b(fixes|closes|resolves)\s'
+            $body | Should -Match '(?m)^Fixes #99$'
+            $body | Should -Not -Match '(?m)^Fixes #(10|11)$'
         }
 
         It 'rejects non-source paths, symlinks, executable files and traversal' -ForEach @(
@@ -1212,8 +1307,8 @@ Describe 'Native Git backport integration' {
                     $Body.head -eq 'bc-extrequest-backport/pr-42/29.x' -and
                     $Body.body.Contains('https://github.com/microsoft/BCApps/pull/42') -and
                     $Body.body.Contains('https://github.com/microsoft/BCApps/issues/10') -and
-                    $Body.body.Contains('Backport tracking issue: https://github.com/microsoft/BCApps/issues/100') -and
-                    -not $Body.body.Contains('Fixes ')
+                    $Body.body.Contains('Fixes #100') -and
+                    $Body.title -ceq $script:tracking.title
                 }
                 Should -Invoke Set-BackportProcessed -Times 1 -ParameterFilter { $SourcePr -eq 42 }
                 (Read-BackportPublicationIntent $script:tracking.body) | Should -Be ('b' * 40)
