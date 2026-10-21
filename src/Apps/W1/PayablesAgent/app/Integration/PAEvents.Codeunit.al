@@ -78,19 +78,22 @@ codeunit 3316 "PA Events"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
-    local procedure UpdateAgentTaskTitleOnDocumentRead(EDocument: Record "E-Document")
+    local procedure UpdateAgentTaskTitleOnDocumentRead(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PayablesAgent: Codeunit "Payables Agent";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         ImportEDocumentProcess: Codeunit "Import E-Document Process";
         AgentTaskID: BigInteger;
+        ReadyForDraftIndex: Integer;
     begin
+        // The document type is only known once the document is read into the draft, so the title is set only in the run that read it.
+        ReadyForDraftIndex := ImportEDocumentProcess.StatusStepIndex("Import E-Doc. Proc. Status"::"Ready for draft");
+        if (ImportEDocumentProcess.StatusStepIndex(StartState) >= ReadyForDraftIndex) or (ImportEDocumentProcess.StatusStepIndex(DesiredEndState) < ReadyForDraftIndex) then
+            exit;
         if not EDocument.Get(EDocument."Entry No") then
             exit;
         if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
-            exit;
-        if not ImportEDocumentProcess.IsEDocumentInStateGE(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft") then
             exit;
         if not EDocumentPurchaseHeader.Get(EDocument."Entry No") then
             exit;
