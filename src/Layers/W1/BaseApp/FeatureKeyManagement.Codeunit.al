@@ -16,6 +16,9 @@ codeunit 265 "Feature Key Management"
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
+#if not CLEAN30
+        DepreciationDifferencesFITok: Label 'DepreciationDifferencesFI', Locked = true, MaxLength = 50;
+#endif
         DocumentReportExperienceTxt: Label 'DocumentReportExperience', Locked = true;
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
         ConcurrentInventoryPosting: Boolean;
@@ -42,6 +45,13 @@ codeunit 265 "Feature Key Management"
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
     end;
+
+#if not CLEAN30
+    procedure IsDepreciationDifferencesFIEnabled(): Boolean
+    begin
+        exit(FeatureManagementFacade.IsEnabled(DepreciationDifferencesFITok, false));
+    end;
+#endif
 
 #if not CLEAN27
     [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]

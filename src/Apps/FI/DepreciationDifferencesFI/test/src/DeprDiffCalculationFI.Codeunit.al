@@ -5,6 +5,9 @@ using Microsoft.DemoData.FixedAsset;
 using Microsoft.DemoTool;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+#if not CLEAN30
+using Microsoft.Finance.GeneralLedger.Ledger;
+#endif
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -77,6 +80,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         CompletionStatsTok: Label 'The depreciation has been calculated.';
 #if not CLEAN30
         FeatureNotEnabledErr: Label 'The Depreciation Differences FI feature must be enabled before you can run this report.';
+        LegacyReportFeatureEnabledErr: Label 'The Depreciation Differences FI feature is enabled. Run the Calculate and Post Depreciation Difference report from the Depreciation Differences FI app instead.';
 #endif
 
 #if not CLEAN30
@@ -170,6 +174,34 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         // [THEN] The legacy report opens and the pending status is preserved.
         VerifyReportFeatureStatus(13402, Enum::"Feature Status"::Pending, RequestPageParameters);
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure LegacyReportInstancesCannotRunWhenFeatureEnabled()
+    begin
+        // [SCENARIO] Instance calls cannot bypass feature isolation when the replacement is enabled.
+        VerifyLegacyReportInstanceFeatureStatus(Enum::"Feature Status"::Enabled, LegacyReportFeatureEnabledErr);
+    end;
+
+    [Test]
+    procedure LegacyReportInstancesCannotRunWhenMigrationComplete()
+    begin
+        // [SCENARIO] Completed migration prevents legacy instance calls from posting the same entries again.
+        VerifyLegacyReportInstanceFeatureStatus(Enum::"Feature Status"::Complete, LegacyReportFeatureEnabledErr);
+    end;
+
+    [Test]
+    procedure LegacyReportInstancesRetainValidationWhenFeatureDisabled()
+    begin
+        // [SCENARIO] Disabled feature state preserves legacy report validation.
+        VerifyLegacyReportInstanceFeatureStatus(Enum::"Feature Status"::Disabled, PleaseEnterBook1AndBook2Txt);
+    end;
+
+    [Test]
+    procedure LegacyReportInstancesRetainValidationWhileMigrationPending()
+    begin
+        // [SCENARIO] Pending migration preserves legacy report validation.
+        VerifyLegacyReportInstanceFeatureStatus(Enum::"Feature Status"::Pending, PleaseEnterBook1AndBook2Txt);
     end;
 #endif
 
@@ -1455,6 +1487,51 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
 
 #if not CLEAN30
+    local procedure VerifyLegacyReportInstanceFeatureStatus(FeatureStatus: Enum "Feature Status"; ExpectedError: Text)
+    var
+        GLEntry: Record "G/L Entry";
+        FALedgerEntry: Record "FA Ledger Entry";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+#pragma warning disable AL0432
+        LegacyDeprDiffReport: Report "Calc. and Post Depr. Diff.";
+#pragma warning restore AL0432
+        GLEntryCount: Integer;
+        LegacyPostedEntryCount: Integer;
+        PostedEntryCount: Integer;
+    begin
+        Initialize();
+        PrepareReportFeatureStatus(FeatureStatus);
+        GLEntryCount := GLEntry.Count();
+#pragma warning disable AL0432
+        FALedgerEntry.SetRange("Depr. Difference Posted", true);
+#pragma warning restore AL0432
+        LegacyPostedEntryCount := FALedgerEntry.Count();
+        FALedgerEntry.Reset();
+        FALedgerEntry.SetRange("Depreciation Difference Posted", true);
+        PostedEntryCount := FALedgerEntry.Count();
+        Commit();
+
+        LegacyDeprDiffReport.UseRequestPage(false);
+        asserterror LegacyDeprDiffReport.Run();
+        Assert.ExpectedError(ExpectedError);
+
+        Clear(LegacyDeprDiffReport);
+        LegacyDeprDiffReport.UseRequestPage(false);
+        asserterror LegacyDeprDiffReport.RunModal();
+        Assert.ExpectedError(ExpectedError);
+
+        Assert.RecordCount(GLEntry, GLEntryCount);
+        Assert.RecordCount(FALedgerEntry, PostedEntryCount);
+        FALedgerEntry.Reset();
+#pragma warning disable AL0432
+        FALedgerEntry.SetRange("Depr. Difference Posted", true);
+#pragma warning restore AL0432
+        Assert.RecordCount(FALedgerEntry, LegacyPostedEntryCount);
+        FeatureDataUpdateStatus.Get(DepreciationDifferencesFIFeature.GetFeatureKeyId(), CompanyName());
+        FeatureDataUpdateStatus.TestField("Feature Status", FeatureStatus);
+    end;
+
     local procedure ClearFeatureDataUpdateStatus()
     var
         FeatureKey: Record "Feature Key";
