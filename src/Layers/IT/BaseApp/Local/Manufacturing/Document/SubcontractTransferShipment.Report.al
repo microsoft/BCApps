@@ -548,19 +548,19 @@ report 12154 "Subcontract. Transfer Shipment"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(NoOfCopiesField; NoOfCopiesToPrint)
+                    field(NoOfCopies; NoOfCopiesToPrint)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'No. of Copies';
                         ToolTip = 'Specifies the number of copies.';
                     }
-                    field(ShowInternalInfoField; ShowInternalInformation)
+                    field(ShowInternalInfo; ShowInternalInformation)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show Internal Information';
                         ToolTip = 'Specifies if you want to see internal information.';
                     }
-                    field(ShowDescr2Field; ShowDescription2)
+                    field(ShowDescr2; ShowDescription2)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Print Description 2';
