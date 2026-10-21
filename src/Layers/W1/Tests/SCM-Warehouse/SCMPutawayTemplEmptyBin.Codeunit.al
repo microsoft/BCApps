@@ -5,11 +5,9 @@ codeunit 137006 "SCM Put-away Templ. Empty Bin"
 
     trigger OnRun()
     begin
-        // [FEATURE] [Warehouse] [Pick] [SCM]
+        // [FEATURE] Put-away template - find empty bin
         isInitialized := false;
     end;
-
-    // [FEATURE] Put-away template - find empty bin
 
     [Test]
     procedure T01_FindEmptyBinDoesNotSuggestFirstBin()
@@ -19,7 +17,7 @@ codeunit 137006 "SCM Put-away Templ. Empty Bin"
     begin
         // [SCENARIO #01] A put-away template with "Find Empty Bin" must suggest an empty bin
         // [GIVEN] A basic warehouse location (Bin Mandatory, Require Receive, no Directed Put-away and Pick)
-        // [GIVEN] Bins A1 (stocked), B1 (empty), RECEIPT (receipt bin) and SHIP (shipment bin)
+        // [GIVEN] Bins A1 (stocked), B1 (empty), C1 (stocked), RECEIPT (receipt bin) and SHIP (shipment bin)
         // [GIVEN] Put-away Bin Policy = Put-away Template with Find Floating Bin and Find Empty Bin
         Initialize();
 
