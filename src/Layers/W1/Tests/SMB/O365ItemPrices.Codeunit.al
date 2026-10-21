@@ -748,8 +748,7 @@ codeunit 138019 "O365 Item Prices"
         Item.Modify();
 
         CreateSalesPrices(Item."No.");
-        SalesPrice.ModifyAll("Price Includes VAT", OldPriceIncludesVAT);
-        SalesPrice.ModifyAll("VAT Bus. Posting Gr. (Price)", GetRealisticVATBusPostingGrPrice(Item."VAT Prod. Posting Group"));
+        SalesPrice.ModifyAll("Price Includes VAT", OldPriceIncludesVAT, "VAT Bus. Posting Gr. (Price)", GetRealisticVATBusPostingGrPrice(Item."VAT Prod. Posting Group"));
 
         TempSalesPriceAndLineDiscBuff.LoadDataForItem(Item);
         PlaceFilterOn_TempSalesPriceAndLineDiscBuff_ForPriceInclVat(TempSalesPriceAndLineDiscBuff, OldPriceIncludesVAT);
@@ -799,8 +798,7 @@ codeunit 138019 "O365 Item Prices"
         Item.Modify();
 
         CreateSalesPrices(Item."No.");
-        SalesPrice.ModifyAll("Price Includes VAT", OldPriceIncludesVAT);
-        SalesPrice.ModifyAll("VAT Bus. Posting Gr. (Price)", GetRealisticVATBusPostingGrPrice(Item."VAT Prod. Posting Group"));
+        SalesPrice.ModifyAll("Price Includes VAT", OldPriceIncludesVAT, "VAT Bus. Posting Gr. (Price)", GetRealisticVATBusPostingGrPrice(Item."VAT Prod. Posting Group"));
 
         TempSalesPriceAndLineDiscBuff.LoadDataForItem(Item);
         PlaceFilterOn_TempSalesPriceAndLineDiscBuff_ForPriceInclVat(TempSalesPriceAndLineDiscBuff, OldPriceIncludesVAT);

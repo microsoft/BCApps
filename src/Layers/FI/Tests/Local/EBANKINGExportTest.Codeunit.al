@@ -156,9 +156,7 @@ codeunit 144009 "E-BANKING Export Test"
         SuggestBankPayments.RunModal();
 
         RefPaymentExported.SetRange("Vendor No.", Vendor."No.");
-        RefPaymentExported.ModifyAll("Payment Account", ForeignBankAccount."No.");
-        RefPaymentExported.ModifyAll("Foreign Payment Method", ForeignBankRefFileSetup."Default Payment Method");
-        RefPaymentExported.ModifyAll("Foreign Banks Service Fee", ForeignBankRefFileSetup."Default Service Fee Code");
+        RefPaymentExported.ModifyAll("Payment Account", ForeignBankAccount."No.", "Foreign Payment Method", ForeignBankRefFileSetup."Default Payment Method", "Foreign Banks Service Fee", ForeignBankRefFileSetup."Default Service Fee Code");
 
         ForeignBankAccount.SetRecFilter();
         ExportRefPaymentLUM.InitializeRequest(true);

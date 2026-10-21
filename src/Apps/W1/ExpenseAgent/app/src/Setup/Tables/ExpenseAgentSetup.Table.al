@@ -62,8 +62,9 @@ table 6930 "Expense Agent Setup"
 
             trigger OnValidate()
             begin
-                if not "Enable Agent" then
+                if not Rec."Enable Agent" then
                     RemoveAllScheduledTasks();
+
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
 

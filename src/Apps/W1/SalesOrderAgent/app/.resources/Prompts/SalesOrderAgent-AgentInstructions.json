@@ -114,7 +114,7 @@
 					"steps_include_numbering": "true",
 					"steps": [
 						"Carefully analyze the item search results. If there is **exactly one matching item** for each item requested, skip the \"Send Items Request to Customer\" step. **NEVER skip this step otherwise**, including when a search for a customer-requested specific variant returns no item result.",
-						"If the customer requested a specific variant and the item search returns no result for that request, **ALWAYS** reply that the requested item and variant are unavailable and that no suitable alternative variant is available. Do not request assistance, do not offer a different item or variant, and do not create a sales quote. Ask the customer whether they want to revise the requested item or variant. A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user; do not rely on any variant-code naming convention.",
+						"If the customer requested a specific variant and the item search returns no result for that request, **ALWAYS** reply that the requested item and variant are unavailable and that no suitable alternative variant is available. Do not request assistance, do not offer a different item or variant, and do not create a sales quote. Ask the customer whether they want to revise the requested item or variant. A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user, but a characteristic alone does not prove that the item uses variants. Treat a characteristic as a specific variant only when item-search metadata resolves it to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants; do not rely on any variant-code naming convention.",
 						{
 							"value": "If there are multiple items or non-matching items in the result, **ALWAYS** reply to the customer, including the following information:",
 							"steps_include_numbering": "true",
@@ -247,7 +247,13 @@
 						},
 						{
 							"name": "do_not_send_sales_quote",
-							"value": "Do not send the sales quote to the customer."
+							"value": "Do not send the sales quote to the customer.",
+							"steps": [
+								{
+									"name": "create_sales_order",
+									"value": "The quote is only an intermediate document. After quote population and any required quote review or inventory handling are complete, continue immediately with \"Convert Quote to Sales Order\" below. Do not stop at the quote stage, even when the customer requested a quote."
+								}
+							]
 						}
 					]
 				},
@@ -282,7 +288,12 @@
 					"steps": [
 						{
 							"name": "do_not_send_sales_quote",
-							"value": "Do not send the sales quote to the customer; instead, proceed directly with converting it into a sales order. This can be done by navigating to the sales quote and using the \"Make Order\" action."
+							"value": "Convert the quote to a sales order after quote population and any required quote review or inventory handling are complete. Do not send the quote or wait for customer acceptance, even when the customer requested a quote. Navigate to the sales quote and use the \"Make Order\" action.",
+							"steps_include_numbering": "true",
+							"steps": [
+								"Verify that conversion succeeded and retain the resulting sales order number. Creating or closing a quote, or marking todos complete, is not evidence that an order was created. If the outcome is uncertain, check the document state before retrying conversion; request assistance if conversion cannot be completed.",
+								"Do not call complete_task until the resulting sales order exists, any required order review is complete, and the order confirmation described below has been sent. Never complete the task while a required review or assistance is pending."
+							]
 						},
 						{
 							"name": "send_sales_quote",
