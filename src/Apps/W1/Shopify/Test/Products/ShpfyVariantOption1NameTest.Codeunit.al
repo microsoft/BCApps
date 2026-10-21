@@ -352,12 +352,7 @@ codeunit 139558 "Shpfy Variant Option1Name Test"
         ProductInitTest: Codeunit "Shpfy Product Init Test";
     begin
         Item := ProductInitTest.CreateItem();
-
-        ItemVariant.Init();
-        ItemVariant.Validate("Item No.", Item."No.");
-        ItemVariant.Code := CopyStr(Item."No." + 'V1', 1, MaxStrLen(ItemVariant.Code));
-        ItemVariant.Description := 'Test Variant';
-        ItemVariant.Insert(true);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
     end;
 
     local procedure CreateShopifyProduct(var ShopifyProduct: Record "Shpfy Product"; ItemSystemId: Guid)
