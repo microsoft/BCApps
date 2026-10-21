@@ -10,10 +10,6 @@ using System.Reflection;
 
 codeunit 149501 "Filename List Tests"
 {
-    // The pattern list: Priority, Show Overlapping Patterns, Copy/Enable/Disable, and the setup's
-    // count of enabled patterns. Priority is checked against which pattern Test Pattern says named
-    // the file, not against a number worked out here.
-
     Subtype = Test;
     TestPermissions = Disabled;
 
@@ -37,7 +33,6 @@ codeunit 149501 "Filename List Tests"
         if Specific.Priority() >= General.Priority() then
             Error(PriorityOrderErr, Specific.Priority(), General.Priority());
 
-        // The one Priority ranks first must be the one that names the file.
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Specific, InvoiceRecordId(InvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
         if not FromThisPattern then
@@ -68,8 +63,6 @@ codeunit 149501 "Filename List Tests"
         OtherReport.Init();
         OtherReport.Validate("Report ID", Report::"Standard Sales - Credit Memo");
 
-        // A pattern for every route competes with any filter; two filters compete when they share
-        // a route and never when they share none; and two reports never meet.
         if not AnyRoute.CanCompeteWith(EmailRoute) then
             Error(ShouldCompeteErr, AnyRoute.OutputRouteFilterText(), EmailRoute.OutputRouteFilterText());
         if EmailRoute.CanCompeteWith(PrintRoute) then

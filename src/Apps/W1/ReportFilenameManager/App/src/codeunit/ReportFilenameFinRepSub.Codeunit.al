@@ -52,10 +52,6 @@ codeunit 43013 "Report Filename Fin. Rep. Sub."
         ReportFilenameContext.NoteTransferValues(StartDate, EndDate, DateFilterHidden);
     end;
 
-    /// <summary>
-    /// From here on the period is read from the report's own date filter; a blank one (both dates
-    /// cleared) gets UpdateFilters' defaults.
-    /// </summary>
     internal procedure NotePeriodDatesValidated()
     var
         ReportFilenameContext: Codeunit "Report Filename Context";

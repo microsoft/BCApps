@@ -15,14 +15,11 @@ codeunit 43001 "Report Filename Subscribers"
 {
     Access = Internal;
 
-    // No single hook covers every delivery route, so each route is named on its own Base Application
-    // event and Channel. Every subscriber that names a file asks Report Filename Mgt.IsActive first.
-    // Subscriber order is unspecified, so the naming subscribers decline when the event shows the
-    // file already named (Success, IsHandled, a name already set, or one not Business Central's default);
-    // Document Attachment's save event shows no such signal.
+    // Subscriber order is unspecified: preserve names already supplied by another extension.
+    // Document Attachment's save event has no handled signal.
 
     /// <summary>
-    /// Print, Preview, Save and Download. Runs only when nothing else has named the file.
+    /// Handles Print, Preview, Save and Download.
     /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReportManagement, 'OnGetFilename', '', false, false)]
     local procedure OnGetFilename(ReportID: Integer; Caption: Text[250]; ObjectPayload: JsonObject; FileExtension: Text[30]; ReportRecordRef: RecordRef; var Filename: Text; var Success: Boolean)
@@ -31,8 +28,7 @@ codeunit 43001 "Report Filename Subscribers"
     end;
 
     /// <summary>
-    /// Callable on its own so a test can pass Success already set: subscriber order is unspecified,
-    /// so raising the real event cannot prove the guard stands down.
+    /// Separate entry point so tests can verify the Success guard without relying on subscriber order.
     /// </summary>
     /// <param name="FileExtension">The extension, with its dot.</param>
     internal procedure NameFromPlatformEvent(ReportID: Integer; ObjectPayload: JsonObject; FileExtension: Text[30]; ReportRecordRef: RecordRef; var Filename: Text; var Success: Boolean)

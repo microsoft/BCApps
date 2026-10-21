@@ -6,13 +6,10 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 page 43009 "Report Filename Setup"
 {
-    // Captions and tooltips come from the table.
-
     Caption = 'Report Filename Setup';
     PageType = Card;
     SourceTable = "Report Filename Setup";
     UsageCategory = Administration;
-    // Tell Me matches the letters and words typed; see the same property on Report Filename Patterns.
     AdditionalSearchTerms = 'file name, file names, file name setup, document name, PDF name, attachment name, report naming';
     ApplicationArea = All;
     InsertAllowed = false;

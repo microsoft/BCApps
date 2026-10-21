@@ -28,10 +28,8 @@ page 43002 "Report Filename Preview"
                 ApplicationArea = All;
                 MultiLine = true;
             }
-            // A run over many records produces a different name than a single-record run.
             group(OverManyRecords)
             {
-                // Caption on the group; the field shows none.
                 Caption = 'Multiple Records';
                 Visible = HasManyRecordsExample;
 
@@ -51,7 +49,6 @@ page 43002 "Report Filename Preview"
 
                 field(Explanation; Explanation)
                 {
-                    // Not shown; the caption still names the control.
                     ShowCaption = false;
                     Caption = 'Notes';
                     ToolTip = 'Explains why the pattern cannot produce a name, when it cannot.';
@@ -71,8 +68,6 @@ page 43002 "Report Filename Preview"
         Explanation := '';
         OverManyRecordsName := '';
 
-        // Shaped without a document, so no record's values are shown. Test Pattern is the action
-        // that uses real records.
         if not ReportFilenamePreviewMgt.TryPreviewShape(Rec, ResultingFileName, Explanation) then
             ResultingFileName := KeepsExistingMsg;
 
@@ -80,10 +75,6 @@ page 43002 "Report Filename Preview"
         HasExplanation := Explanation <> '';
     end;
 
-    /// <summary>
-    /// A few records are listed individually; beyond the pattern's limit they collapse to a
-    /// first-to-last range. Both forms share one field.
-    /// </summary>
     local procedure BuildMultipleRecordsExample()
     var
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";

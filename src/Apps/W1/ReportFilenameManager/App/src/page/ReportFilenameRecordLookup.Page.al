@@ -53,7 +53,6 @@ page 43008 "Report Filename Record Lookup"
 
     trigger OnAfterGetCurrRecord()
     begin
-        // Tell the user once that the list is truncated, not on every record change.
         if MoreThanListed and not MoreThanListedSaid then begin
             MoreThanListedSaid := true;
             Message(MoreThanListedMsg, Rec.Count());

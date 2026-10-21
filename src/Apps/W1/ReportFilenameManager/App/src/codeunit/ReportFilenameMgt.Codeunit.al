@@ -16,10 +16,6 @@ using System.Reflection;
 
 codeunit 43000 "Report Filename Mgt."
 {
-    // Decides a report's output file name from the configured patterns; the delivery routes apply it.
-    // The document is found the same way on every route (see FindDocument); a pattern's Output
-    // Route Filter can still limit it to some routes.
-
     Access = Public;
 
     // Needed alongside the InherentPermissions attributes on TryResolve: an indirect read ('r')

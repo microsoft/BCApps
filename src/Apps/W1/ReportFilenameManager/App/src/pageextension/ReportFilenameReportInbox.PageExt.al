@@ -8,8 +8,6 @@ using Microsoft.EServices.EDocument;
 
 pageextension 43000 "Report Filename Report Inbox" extends "Report Inbox"
 {
-    // Shows the name a scheduled report's output will download under.
-
     layout
     {
         addlast(Group)

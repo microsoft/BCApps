@@ -10,7 +10,6 @@ page 43001 "Report Filename Pattern Card"
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "Report Filename Pattern";
-    // A title from what the pattern applies to, such as "Sales - Invoice · Email", not the entry number.
     DataCaptionExpression = Rec.DisplayCaption();
 
     layout
@@ -21,7 +20,6 @@ page 43001 "Report Filename Pattern Card"
             {
                 Caption = 'General';
 
-                // Both store an object number and show a name.
                 field(ReportName; Rec."Report Name")
                 {
                     ApplicationArea = All;
@@ -30,8 +28,7 @@ page 43001 "Report Filename Pattern Card"
 
                     trigger OnAssistEdit()
                     begin
-                        // Saved and committed before the lookup, so its RunModal does not run
-                        // inside a write transaction. Every assist-edit on this card does the same.
+                        // Assist-edits must commit before opening a modal lookup.
                         CurrPage.SaveRecord();
                         Commit();
                         Rec.LookupReport();
@@ -93,7 +90,6 @@ page 43001 "Report Filename Pattern Card"
 
                     trigger OnAssistEdit()
                     begin
-                        // Written with Modify, as the Table Filter is, so the row has to exist.
                         CurrPage.SaveRecord();
                         Commit();
                         Rec.LookupOutputRouteFilter();
@@ -106,8 +102,7 @@ page 43001 "Report Filename Pattern Card"
                 }
                 field(LanguageCodeField; LanguageFieldName)
                 {
-                    // Shows the name of the stored field number. Caption and tooltip match the
-                    // table field's; change them together.
+                    // Keep the caption and tooltip in sync with the table field.
                     Caption = 'Language Code Field';
                     ToolTip = 'Specifies which field on the table holds the language of the record: a field that relates to the Language table. Where a run covers several records, they must all have the same language, or the run has none. Suggested when the table has one such field.';
                     ApplicationArea = All;
@@ -154,8 +149,6 @@ page 43001 "Report Filename Pattern Card"
             }
             group(SeveralDocuments)
             {
-                // A group of its own rather than Importance = Additional, so the group's
-                // InstructionalText can say when these settings apply.
                 Caption = 'Multiple Records';
                 InstructionalText = 'A file name normally identifies one record. These settings apply only when one file covers several records - for example, when you run the report for a range of invoices or for several customers. They decide how many different values each placeholder lists, what goes between them, and the word that joins the first and the last value when there are too many to name. A report run for a single record never uses them.';
 
@@ -201,7 +194,6 @@ page 43001 "Report Filename Pattern Card"
                     TempChosenPlaceholder: Record "Report Filename Plh. Buffer" temporary;
                     ReportFilenamePlaceholders: Page "Report Filename Placeholders";
                 begin
-                    // Commit before RunModal, as in the assist-edits above.
                     CurrPage.SaveRecord();
                     Commit();
 
@@ -240,9 +232,8 @@ page 43001 "Report Filename Pattern Card"
                 var
                     TestPatternPage: Page "Report Filename Test";
                 begin
-                    // Saved so the test page finds this pattern in the table when it works out
-                    // which pattern wins; committed so RunModal does not run inside a write
-                    // transaction.
+                    // Persist this pattern so the test page includes it when selecting a winner.
+                    // Commit before RunModal to leave the write transaction.
                     CurrPage.SaveRecord();
                     Commit();
 

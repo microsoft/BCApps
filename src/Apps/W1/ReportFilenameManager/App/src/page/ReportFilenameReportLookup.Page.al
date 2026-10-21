@@ -50,9 +50,6 @@ page 43004 "Report Filename Report Lookup"
         end;
     end;
 
-    /// <summary>
-    /// Limits the list to reports whose records come from this table.
-    /// </summary>
     internal procedure SetReportsAbout(TableNo: Integer)
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";

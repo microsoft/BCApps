@@ -11,11 +11,8 @@ using System.Utilities;
 
 codeunit 43002 "Report Filename Context"
 {
-    // Holds what one event knows and a later one needs, for the length of the call, because an app
-    // cannot change Base Application's signatures. Each slot is set where its operation starts and
-    // taken or cleared where it is used or ends; where used, a slot is checked against the document
-    // or report it was recorded for, so state left by an operation that failed half way cannot name
-    // another document's file.
+    // Bridges delivery events that cannot pass context directly. Consume or clear each slot and
+    // check its document/report identity before use, since failed operations can leave state behind.
 
     Access = Internal;
     SingleInstance = true;

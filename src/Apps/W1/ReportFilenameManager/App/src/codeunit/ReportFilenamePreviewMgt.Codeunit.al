@@ -11,9 +11,6 @@ codeunit 43003 "Report Filename Preview Mgt."
 {
     Access = Internal;
 
-    // Test Pattern: resolves a pattern against real records at setup time, and explains which
-    // pattern (or Business Central itself) would name the file, and why.
-
     internal procedure ChooseRecordToTest(var Pattern: Record "Report Filename Pattern"; var ChosenRecordId: RecordId; var ChosenRecordText: Text): Boolean
     var
         ChosenRecRef: RecordRef;
@@ -27,7 +24,6 @@ codeunit 43003 "Report Filename Preview Mgt."
         if not TryChooseRecord(Pattern."Report ID", Pattern."Table No.", ChosenRecordId) then
             exit(false);
 
-        // The text is for display only; the RecordId identifies the record.
         if not TryGetByRecordId(ChosenRecordId, ChosenRecRef) then
             exit(false);
 
@@ -126,9 +122,6 @@ codeunit 43003 "Report Filename Preview Mgt."
         Records := CountRecRef.Count();
     end;
 
-    /// <summary>
-    /// Shared by the one-record and filtered-run entry points so they cannot disagree.
-    /// </summary>
     local procedure ExplainNameForSelection(var Pattern: Record "Report Filename Pattern"; Route: Enum "Report Filename Output Route"; var SelectionRecRef: RecordRef; var Filename: Text; var NameComesFrom: Text; var WhyNotThisPattern: Text; var FromThisPattern: Boolean)
     var
         Winner: Record "Report Filename Pattern";
@@ -139,11 +132,9 @@ codeunit 43003 "Report Filename Preview Mgt."
     begin
         ChosenRecRef := SelectionRecRef;
 
-        // This pattern's own result, ignoring other patterns.
         if ReportFilenameMgt.TryResolveWithPattern(Pattern, Pattern."Report ID", ChosenRecRef, OwnName) then
             OwnName += ExtensionFor(Route);
 
-        // Feature switched off: Business Central names the file; the reason says what the pattern would do.
         if not FeatureIsOn() then begin
             Filename := FallbackFilename(Pattern, Route, ChosenRecRef);
             NameComesFrom := BusinessCentralMsg;
@@ -160,7 +151,6 @@ codeunit 43003 "Report Filename Preview Mgt."
             exit;
         end;
 
-        // The real result, with every pattern competing.
         if ReportFilenameMgt.TryResolveNaming(Pattern."Report ID", Route, ChosenRecRef, Winner, WinningName) then begin
             Filename := WinningName + ExtensionFor(Route);
             if Winner."Entry No." = Pattern."Entry No." then begin
@@ -178,7 +168,6 @@ codeunit 43003 "Report Filename Preview Mgt."
             exit;
         end;
 
-        // No pattern named it, so Business Central does.
         Filename := FallbackFilename(Pattern, Route, ChosenRecRef);
         NameComesFrom := BusinessCentralMsg;
         if Pattern."File Name Pattern" = '' then
@@ -214,9 +203,8 @@ codeunit 43003 "Report Filename Preview Mgt."
     end;
 
     /// <summary>
-    /// Why an enabled pattern lost to another: an unmet criterion (route, Table Filter, language)
-    /// means it never competed; otherwise it was out-ranked or tied. Report and table cannot be
-    /// unmet here, since both come from the pattern itself.
+    /// An unmet criterion means the pattern never competed. Report and table cannot be unmet
+    /// here because both come from the pattern itself.
     /// </summary>
     /// <param name="OwnName">The name the pattern makes on its own, or blank.</param>
     local procedure WhyAnotherPatternWon(var Pattern: Record "Report Filename Pattern"; Route: Enum "Report Filename Output Route"; var SelectionRecRef: RecordRef; var Winner: Record "Report Filename Pattern"; OwnName: Text) Reason: Text
@@ -249,8 +237,7 @@ codeunit 43003 "Report Filename Preview Mgt."
     end;
 
     /// <summary>
-    /// What the pattern would do if the switch stopping it were turned on. OwnName ignores the
-    /// criteria, so an unmet criterion is reported first rather than quoting a name never given.
+    /// OwnName ignores criteria, so report an unmet criterion before quoting a hypothetical name.
     /// </summary>
     /// <param name="OwnName">The name the pattern makes on its own, or blank.</param>
     /// <param name="WouldNameMsg">The sentence that carries the name, for the switch in question.</param>
@@ -280,9 +267,6 @@ codeunit 43003 "Report Filename Preview Mgt."
         exit(StrSubstNo(WouldNotNameMsg, WhyNoValue(Pattern, SelectionRecRef)));
     end;
 
-    /// <summary>
-    /// The same test Report Filename Mgt.TryResolve makes.
-    /// </summary>
     local procedure FeatureIsOn(): Boolean
     var
         ReportFilenameSetup: Record "Report Filename Setup";
@@ -316,9 +300,6 @@ codeunit 43003 "Report Filename Preview Mgt."
             FirstRecRef, ElectronicDocumentFormat.GetDocumentNo(FirstRecRef), ElectronicDocumentFormat.GetDocumentType(FirstRecRef), XmlCodeTok);
     end;
 
-    /// <summary>
-    /// The name Business Central gives the file when no pattern does.
-    /// </summary>
     local procedure FallbackFilename(var Pattern: Record "Report Filename Pattern"; Route: Enum "Report Filename Output Route"; var SelectionRecRef: RecordRef) Filename: Text
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
