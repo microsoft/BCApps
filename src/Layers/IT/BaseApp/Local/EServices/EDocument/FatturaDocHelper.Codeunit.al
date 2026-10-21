@@ -938,7 +938,6 @@ codeunit 12184 "Fattura Doc. Helper"
     local procedure CollectShipmentInfo(var TempShptFatturaLine: Record "Fattura Line" temporary; var LineRecRef: RecordRef; TempFatturaHeader: Record "Fattura Header" temporary)
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesShipmentLine: Record "Sales Shipment Line";
         TempLineNumberBuffer: Record "Line Number Buffer" temporary;
         SalesLine: Record "Sales Line";
         ShptNo: Code[20];
@@ -947,6 +946,7 @@ codeunit 12184 "Fattura Doc. Helper"
         Type: Text[20];
         CustomerPurchOrderNo: Text[35];
         ShipmentDate: Date;
+        PostedLineNo: Integer;
         i: Integer;
     begin
         if TempFatturaHeader."Document Type" <> TempFatturaHeader."Document Type"::Invoice then
@@ -960,29 +960,39 @@ codeunit 12184 "Fattura Doc. Helper"
                 CustomerPurchOrderNo := '';
                 Type := CopyStr(Format(LineRecRef.Field(LineTypeFieldNo).Value), 1, MaxStrLen(Type));
                 ShptNo := Format(LineRecRef.Field(ShipmentNoFieldNo).Value);
-                if (Type = GetOptionCaptionValue(SalesLine.Type::Item.AsInteger())) and
-                   (ShptNo <> '')
-                then begin
-                    case TempFatturaHeader."Entry Type" of
-                        TempFatturaHeader."Entry Type"::Sales:
-                            begin
-                                SalesShipmentHeader.Get(ShptNo);
-                                ShipmentDate := SalesShipmentHeader."Shipment Date";
-                                FatturaProjectCode := SalesShipmentHeader."Fattura Project Code";
-                                FatturaTenderCode := SalesShipmentHeader."Fattura Tender Code";
-                                CustomerPurchOrderNo := SalesShipmentHeader."Customer Purchase Order No.";
+                if Type = GetOptionCaptionValue(SalesLine.Type::Item.AsInteger()) then begin
+                    // Posted sales-order invoices must use only shipments actually
+                    // invoiced by this document. Reading the entire order includes
+                    // shipments already invoiced on earlier FatturaPA documents.
+                    Evaluate(PostedLineNo, Format(LineRecRef.Field(LineNoFieldNo).Value));
+                    if (TempFatturaHeader."Entry Type" = TempFatturaHeader."Entry Type"::Sales) and
+                       (TempFatturaHeader."Order No." <> '')
+                    then
+                        CollectPostedSalesInvoiceShipments(
+                            TempShptFatturaLine, TempFatturaHeader."Document No.", PostedLineNo, i, Type)
+                    else
+                        if ShptNo <> '' then begin
+                            case TempFatturaHeader."Entry Type" of
+                                TempFatturaHeader."Entry Type"::Sales:
+                                    begin
+                                        SalesShipmentHeader.Get(ShptNo);
+                                        ShipmentDate := SalesShipmentHeader."Shipment Date";
+                                        FatturaProjectCode := SalesShipmentHeader."Fattura Project Code";
+                                        FatturaTenderCode := SalesShipmentHeader."Fattura Tender Code";
+                                        CustomerPurchOrderNo := SalesShipmentHeader."Customer Purchase Order No.";
+                                    end;
+                                else
+                                    OnCollectShipmentInfo(
+                                        TempFatturaHeader, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo);
                             end;
-                        else
-                            OnCollectShipmentInfo(
-                                TempFatturaHeader, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo);
-                    end;
-                    InsertShipmentBuffer(
-                      TempShptFatturaLine, Type, i, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode,
-                      CustomerPurchOrderNo, IsSplitPaymentLine(LineRecRef));
+                            InsertShipmentBuffer(
+                                TempShptFatturaLine, Type, i, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode,
+                                CustomerPurchOrderNo, IsSplitPaymentLine(LineRecRef));
+                        end;
                 end;
                 if Type = GetOptionCaptionValue(SalesLine.Type::"G/L Account".AsInteger()) then
                     InsertShipmentBuffer(
-                      TempShptFatturaLine, Type, i, '', TempFatturaHeader."Posting Date", '', '', '', IsSplitPaymentLine(LineRecRef));
+                        TempShptFatturaLine, Type, i, '', TempFatturaHeader."Posting Date", '', '', '', IsSplitPaymentLine(LineRecRef));
                 if TempFatturaHeader."Order No." <> '' then begin
                     TempLineNumberBuffer.Init();
                     Evaluate(TempLineNumberBuffer."Old Line Number", Format(LineRecRef.Field(LineNoFieldNo).Value));
@@ -990,24 +1000,47 @@ codeunit 12184 "Fattura Doc. Helper"
                     TempLineNumberBuffer.Insert();
                 end;
             until LineRecRef.Next() = 0;
-        if TempFatturaHeader."Order No." <> '' then
-            case TempFatturaHeader."Entry Type" of
-                TempFatturaHeader."Entry Type"::Sales:
-                    begin
-                        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
-                        SalesShipmentLine.SetRange("Order No.", TempFatturaHeader."Order No.");
-                        if SalesShipmentLine.FindSet() then
-                            repeat
-                                i += 1;
-                                TempLineNumberBuffer.Get(SalesShipmentLine."Order Line No.");
-                                InsertShipmentBuffer(
-                                    TempShptFatturaLine, Type, TempLineNumberBuffer."New Line Number", SalesShipmentLine."Document No.",
-                                    SalesShipmentLine."Shipment Date", FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo, false);
-                            until SalesShipmentLine.Next() = 0;
-                    end;
-                else
-                    OnCollectShipmentInfoFromLines(TempFatturaHeader, TempShptFatturaLine, TempLineNumberBuffer, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo, Type);
-            end;
+        // Other localizations retain their existing event extension point.
+        // Sales invoice shipment references were collected per invoice line above.
+        if (TempFatturaHeader."Order No." <> '') and
+           (TempFatturaHeader."Entry Type" <> TempFatturaHeader."Entry Type"::Sales)
+        then
+            OnCollectShipmentInfoFromLines(
+                TempFatturaHeader, TempShptFatturaLine, TempLineNumberBuffer,
+                FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo, Type);
+    end;
+
+    local procedure CollectPostedSalesInvoiceShipments(
+        var TempShptFatturaLine: Record "Fattura Line" temporary;
+        SalesInvoiceNo: Code[20];
+        SalesInvoiceLineNo: Integer;
+        FatturaLineNo: Integer;
+        Type: Text[20])
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        TempSalesShipmentBuffer: Record "Sales Shipment Buffer" temporary;
+    begin
+        if not SalesInvoiceHeader.Get(SalesInvoiceNo) then
+            exit;
+        if not SalesInvoiceLine.Get(SalesInvoiceNo, SalesInvoiceLineNo) then
+            exit;
+
+        // W1 resolves actual posted invoice/ledger quantities to their source
+        // shipments. These links are stable after posting, unlike the remaining
+        // uninvoiced quantities that the unposted preview must inspect.
+        TempSalesShipmentBuffer.GetLinesForSalesInvoiceLine(SalesInvoiceLine, SalesInvoiceHeader);
+        if TempSalesShipmentBuffer.FindSet() then
+            repeat
+                if SalesShipmentHeader.Get(TempSalesShipmentBuffer."Document No.") then begin
+                    InsertShipmentBuffer(
+                        TempShptFatturaLine, Type, FatturaLineNo,
+                        SalesShipmentHeader."No.", SalesShipmentHeader."Shipment Date",
+                        SalesShipmentHeader."Fattura Project Code", SalesShipmentHeader."Fattura Tender Code",
+                        SalesShipmentHeader."Customer Purchase Order No.", false);
+                end;
+            until TempSalesShipmentBuffer.Next() = 0;
     end;
 
     local procedure CollectVATOnLines(

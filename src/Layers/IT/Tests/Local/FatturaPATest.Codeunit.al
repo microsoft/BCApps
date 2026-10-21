@@ -598,6 +598,14 @@ codeunit 144200 "FatturaPA Test"
         Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview included an already invoiced DDT.');
         TempFatturaLine.SetRange("Document No.", PendingShipmentNo);
         Assert.IsFalse(TempFatturaLine.IsEmpty(), 'Preview omitted the DDT being invoiced.');
+
+        // S4: the posted XML must also exclude the earlier, already-invoiced
+        // shipment; buffer-only checks do not establish preview/posting parity.
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
     end;
 
     local procedure ComparePreviewAndPostedFatturaPA(var SalesHeader: Record "Sales Header")
