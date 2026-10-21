@@ -5,11 +5,23 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
 {
     layout
     {
+        addafter("Incoming E-Document No.")
+        {
+            field(IncomingFiscalInvoiceNumberPAC; FiscalInvoiceNumberPAC)
+            {
+                ApplicationArea = All;
+                Caption = 'Fiscal Invoice Number PAC';
+                Editable = false;
+                Visible = Rec.Direction = Rec.Direction::Incoming;
+                ToolTip = 'Specifies the UUID of the received CFDI document, as stamped by SAT for the vendor.';
+            }
+        }
         addlast(ClearanceInfo)
         {
             field(FiscalInvoiceNumberPAC; FiscalInvoiceNumberPAC)
@@ -106,12 +118,16 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
 
     trigger OnAfterGetRecord()
     var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
     begin
         if Rec.Direction = Rec.Direction::Outgoing then
             FiscalInvoiceNumberPAC := CopyStr(CFDIWriteBackMX.GetUUIDForDocument(Rec."Document Record ID"), 1, MaxStrLen(FiscalInvoiceNumberPAC))
         else
-            FiscalInvoiceNumberPAC := CopyStr(Rec."Source Details", 1, MaxStrLen(FiscalInvoiceNumberPAC));
+            if EDocumentPurchaseHeader.Get(Rec."Entry No") and (EDocumentPurchaseHeader."Fiscal Invoice Number PAC" <> '') then
+                FiscalInvoiceNumberPAC := EDocumentPurchaseHeader."Fiscal Invoice Number PAC"
+            else
+                FiscalInvoiceNumberPAC := CopyStr(Rec."Source Details", 1, MaxStrLen(FiscalInvoiceNumberPAC));
     end;
 
     local procedure GetLinkedServiceFilter(var EDocumentServiceStatus: Record "E-Document Service Status") ServiceFilter: Text

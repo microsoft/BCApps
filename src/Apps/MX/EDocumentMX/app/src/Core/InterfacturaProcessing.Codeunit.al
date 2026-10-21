@@ -15,6 +15,7 @@ using System.Utilities;
 codeunit 3355 "Interfactura Processing"
 {
     Access = Internal;
+    Permissions = tabledata "MX Payment Complement" = r;
 
     var
         InterfacturaSetup: Record "MX Connection Setup";
@@ -26,6 +27,7 @@ codeunit 3355 "Interfactura Processing"
         BatchSoapRequestSuccMsg: Label 'Batch soap request of type %1 successfully executed', Locked = true;
         FeatureNameTxt: Label 'Interfactura Document Registration';
         EmptyRequestLbl: Label 'The request is empty.';
+        PaymentComplementReversedErr: Label 'The payment complement was not sent because the payment has been unapplied.';
         ParseErr: Label 'Failed to parse document from Interfactura API';
         MissingPACWebServiceDetailErr: Label 'PAC Web Service Detail for %1 is missing or incomplete.';
         MissingStampedDataErr: Label 'No stamped CFDI data was found for this document. Cancellation requires a stamped UUID.';
@@ -66,6 +68,15 @@ codeunit 3355 "Interfactura Processing"
         EDocCFDIEmailMX.ScheduleStampEmail(EDocument);
     end;
 
+    local procedure IsPaymentComplementReversed(MessageEntryNo: Integer): Boolean
+    var
+        MXPaymentComplement: Record "MX Payment Complement";
+    begin
+        MXPaymentComplement.SetRange("E-Document Message Entry No.", MessageEntryNo);
+        MXPaymentComplement.SetRange(Reversed, true);
+        exit(not MXPaymentComplement.IsEmpty());
+    end;
+
     internal procedure SendPaymentComplement(var TempBlob: Codeunit "Temp Blob"; MessageContext: Codeunit "E-Doc. Message Context")
     var
         MXPaymentResponseMgt: Codeunit "MX Payment Response Mgt.";
@@ -76,6 +87,8 @@ codeunit 3355 "Interfactura Processing"
         ErrorText: Text;
         RequestType: Option "Request Stamp",Cancel,CancelRequest;
     begin
+        if IsPaymentComplementReversed(MessageContext.GetMessageEntryNo()) then
+            Error(PaymentComplementReversedErr);
         MXPaymentResponseMgt.ClearResponse(MessageContext.GetMessageEntryNo());
         RequestTxt := GetRequestText(TempBlob);
         if RequestTxt = '' then
