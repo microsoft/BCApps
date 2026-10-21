@@ -44,9 +44,9 @@ Original issues remain unchanged. The only label added to a main PR is `ext-back
 
 ## 4. Usage / Scenarios
 
-**Weekly use:** merge eligible work into `main`, then review generated drafts through normal release procedures.
+**Automatic weekly processing:** every Sunday, the workflow finds eligible extensibility-request PRs already merged into `main` during the last 15 days and excludes those labeled `ext-backport-processed`. It prepares their backports and updates the shared tracker. No manual start or extra label is needed; people only review and merge the resulting backport PRs through normal release procedures.
 
-**Manual use:** after deployment, open **BCApps > Actions > Extensibility Request Backport > Run workflow**, selecting `main`.
+**Manual use:** after deployment, open **BCApps > Actions > Extensibility Request Backport > Run workflow**. Select `main` in **Use workflow from** to run the deployed workflow definition. This does not select the backport destination; the target remains the release branch.
 
 - Leave `source_pr` blank for normal 15-day selection and team batching.
 - Enter a merged main **PR number**, not an issue number, for a specific request. This bypasses date, category and processed-label selection, but not safety or duplicate checks.
