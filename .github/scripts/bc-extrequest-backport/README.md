@@ -20,9 +20,9 @@ considered, including every original issue already combined in a main-branch
 team PR.
 
 A nonempty successful team batch creates **one Task tracking issue and one
-draft release PR**, not a pair per source. Both descriptions link every included
-main PR and every original issue in its `closingIssuesReferences`, without
-duplicates. Both new objects inherit the deduplicated union of the original
+draft release PR**, not a pair per source. The Task lists original issues with
+short summaries; the PR links every included main PR and its original issues
+from `closingIssuesReferences`, without duplicates. Both new objects inherit the deduplicated union of the original
 issues' labels, excluding `ext-ready-to-implement`, and add `ext-backporting`.
 When there are no original issue references, labels come from the source PR,
 excluding its source-only `ext-backport-processed` marker.
@@ -33,11 +33,13 @@ with the actual release, team and discovery date in Europe/Copenhagen. The date
 is fixed for retries of the same batch.
 
 Descriptions begin with "Backporting of extensibility requests", including
-the team for a batch, followed by `Issues:` and `PRs:` lists of the original
-sources. Source hashes and recovery metadata remain hidden. A backport PR then
-contains `Fixes #<new-backport-task-number>` and the Important AI-generated
-disclaimer. It never uses `Fixes` for the original issues. The Task omits that
-reference and disclaimer and ends with italic "Auto-generated content".
+the team for a batch. Tracking Tasks list only the original issues under
+`Issues:`, each with a concise summary derived from its original title. They
+do not display a PR list and end with italic "Auto-generated content".
+Backport PRs retain the `Issues:` and `PRs:` link lists, followed by
+`Fixes #<new-backport-task-number>` and the Important AI-generated disclaimer.
+They never use `Fixes` for the original issues. Source hashes and recovery
+metadata remain hidden. Summaries do not require AI or model credentials.
 
 A source is processed independently when its team is missing, ambiguous, or
 inconsistent with a linked original issue's team. For example, a main PR labeled

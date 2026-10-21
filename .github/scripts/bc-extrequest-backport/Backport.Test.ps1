@@ -34,6 +34,7 @@ BeforeAll {
                 target = $request.target; manual = $false; reference_time = $request.reference_time; source_title = "Source $number"
                 labels = $labels
                 issues = @(@{ number = 10; url = 'https://github.com/microsoft/BCApps/issues/10'
+                    title = 'Expose the requested event'
                     repository = @{ nameWithOwner = 'microsoft/BCApps' }; labels = @{ nodes = $labels[0..2] } })
                 result = $result
             }
@@ -651,9 +652,9 @@ Describe 'Backport descriptions and titles' {
             $script:presentationState = @{
                 schema = 1; repository = 'microsoft/BCApps'; source_pr = 42; target = 'releases/29.x'
                 source_sha = 'a' * 40; source_title = 'Expose an event'; result = @{ outcome = 'applied' }
-                issues = @(@{ url = 'https://github.com/microsoft/BCApps/issues/10' },
-                    @{ url = 'https://github.com/microsoft/BCApps/issues/11' },
-                    @{ url = 'https://github.com/microsoft/BCApps/issues/10' })
+                issues = @(@{ url = 'https://github.com/microsoft/BCApps/issues/10'; title = 'Expose a new event' },
+                    @{ url = 'https://github.com/microsoft/BCApps/issues/11'; title = 'Make the helper public' },
+                    @{ url = 'https://github.com/microsoft/BCApps/issues/10'; title = 'Expose a new event' })
             }
             $script:expectedCore = @(
                 'Backporting of extensibility requests to `releases/29.x`.'
@@ -678,12 +679,33 @@ Describe 'Backport descriptions and titles' {
             (Read-BackportMarker $body).sha | Should -Be ('a' * 40)
         }
 
-        It 'renders the same issue content without Fixes or Important and ends with the italic generation note' {
+        It 'lists original issues with summaries but no PR list, Fixes or Important in a tracking Task' {
             $body = Get-BackportBody $presentationState
             $visible = [regex]::Replace($body, '(?s)<!--.*?-->\s*', '').Trim()
-            $visible | Should -BeExactly (@($expectedCore, '', '*Auto-generated content*') -join "`n")
-            $visible | Should -Not -Match '(?i)\bfixes\s|\[!IMPORTANT\]'
+            $expected = @(
+                'Backporting of extensibility requests to `releases/29.x`.'
+                ''
+                'Issues:'
+                '- https://github.com/microsoft/BCApps/issues/10 - Expose a new event.'
+                '- https://github.com/microsoft/BCApps/issues/11 - Make the helper public.'
+                ''
+                '*Auto-generated content*'
+            ) -join "`n"
+            $visible | Should -BeExactly $expected
+            $visible | Should -Not -Match '(?i)\bfixes\s|\[!IMPORTANT\]|PRs:|/pull/'
             $body | Should -Match '<!-- Preparation result: \*\*applied\*\*\. -->'
+        }
+
+        It 'uses original issue titles as concise summaries without breaking AL names' -ForEach @(
+            @{ title = "  Make RunModalWith public`r`n on page 20441  "; summary = 'Make RunModalWith public on page 20441.' },
+            @{ title = 'Expose the Qlty. Edit Large Text helper!'; summary = 'Expose the Qlty. Edit Large Text helper!' }
+        ) {
+            Get-BackportIssueSummary @{ title = $title; url = 'issue-url' } | Should -BeExactly $summary
+        }
+
+        It 'fails explicitly if an original issue has no title for its summary' {
+            { Get-BackportIssueSummary @{ url = 'issue-url' } } | Should -Throw '*no title to summarize*'
+            { Get-BackportIssueSummary @{ url = 'issue-url'; title = ' ' } } | Should -Throw '*no title to summarize*'
         }
 
         It 'uses the same team layout and includes only applied sources with deduplicated original issues' {
@@ -708,6 +730,17 @@ Describe 'Backport descriptions and titles' {
             $visible | Should -BeExactly $expected
             $visible | Should -Not -Match 'pull/44|Independent outcomes|Source merge:'
             $issue = Get-BackportBatchBody $manifest
+            $visibleIssue = [regex]::Replace($issue, '(?s)<!--.*?-->\s*', '').Trim()
+            $expectedIssue = @(
+                'Backporting of extensibility requests for Team: Finance to `releases/29.x`.'
+                ''
+                'Issues:'
+                '- https://github.com/microsoft/BCApps/issues/10 - Expose the requested event.'
+                ''
+                '*Auto-generated content*'
+            ) -join "`n"
+            $visibleIssue | Should -BeExactly $expectedIssue
+            $visibleIssue | Should -Not -Match 'PRs:|/pull/'
             $issue.TrimEnd() | Should -Match '\*Auto-generated content\*$'
             $issue | Should -Not -Match '(?m)^Fixes '
             (Read-BackportBatchMarker $body).members.Count | Should -Be 3
@@ -1236,6 +1269,7 @@ Describe 'Native Git backport integration' {
                 $script:pull = $null
                 $script:issues = @(@{
                     number = 10; url = 'https://github.com/microsoft/BCApps/issues/10'
+                    title = 'Allow extensions to use the requested helper'
                     labels = @{ nodes = @(
                         @{ name = 'enum-request'; color = 'ffffff'; description = '' }
                         @{ name = 'Team: SCM'; color = 'ffffff'; description = '' }

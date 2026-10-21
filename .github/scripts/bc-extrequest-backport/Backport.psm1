@@ -545,6 +545,16 @@ function Assert-BackportObject {
     }
 }
 
+function Get-BackportIssueSummary {
+    param([hashtable] $Issue)
+    if (-not $Issue.ContainsKey('title') -or [string]::IsNullOrWhiteSpace($Issue.title)) {
+        throw "Original issue $($Issue.url) has no title to summarize."
+    }
+    $summary = [regex]::Replace($Issue.title, '\s+', ' ').Trim()
+    if ($summary -notmatch '[.!?]$') { $summary += '.' }
+    return $summary
+}
+
 function Get-BackportDescription {
     param(
         [string] $Repository, [string] $Target, [object[]] $Issues, [long[]] $SourcePrs,
@@ -553,14 +563,18 @@ function Get-BackportDescription {
 
     $teamText = if ($Team) { " for $Team" } else { '' }
     $lines = @("Backporting of extensibility requests$teamText to ``$Target``.", '', 'Issues:')
-    $issueUrls = @($Issues | ForEach-Object { $_.url } | Sort-Object -Unique)
-    if ($issueUrls.Count -eq 0) { $lines += 'No linked issues.' }
-    foreach ($url in $issueUrls) { $lines += "- $url" }
-    $lines += @('', 'PRs:')
-    foreach ($number in @($SourcePrs | Select-Object -Unique)) {
-        $lines += "- https://github.com/$Repository/pull/$number"
+    $originalIssues = @($Issues | Sort-Object url -Unique)
+    if ($originalIssues.Count -eq 0) { $lines += 'No linked issues.' }
+    foreach ($issue in $originalIssues) {
+        $entry = "- $($issue.url)"
+        if ($TrackingNumber -eq 0) { $entry += " - $(Get-BackportIssueSummary -Issue $issue)" }
+        $lines += $entry
     }
     if ($TrackingNumber -gt 0) {
+        $lines += @('', 'PRs:')
+        foreach ($number in @($SourcePrs | Select-Object -Unique)) {
+            $lines += "- https://github.com/$Repository/pull/$number"
+        }
         $lines += @('', "Fixes #$TrackingNumber", '', '> [!IMPORTANT]',
             '> AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.')
     }
