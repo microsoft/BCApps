@@ -236,6 +236,14 @@ table 6923 "Expense User"
                 end;
             end;
         }
+        field(62; "Spending Limit Per User"; Boolean)
+        {
+            Caption = 'Spending Limit Per User';
+            ToolTip = 'Specifies whether an expense spend limit is configured for this Expense User.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Expense Spend Limit" where("Spend Limit Type" = const(User), "Limit For" = field("No.")));
+        }
     }
 
     keys

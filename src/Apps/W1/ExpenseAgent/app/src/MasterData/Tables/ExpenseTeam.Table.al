@@ -30,6 +30,14 @@ table 6931 "Expense Team"
             FieldClass = FlowField;
             CalcFormula = count("Expense User" where("Expense Team Code" = field("Code")));
         }
+        field(4; "Spending Limit Per Team"; Boolean)
+        {
+            Caption = 'Spending Limit Per Team';
+            ToolTip = 'Specifies whether an expense spend limit is configured for this Expense Team.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Expense Spend Limit" where("Spend Limit Type" = const(Team), "Limit For" = field("Code")));
+        }
     }
     keys
     {
