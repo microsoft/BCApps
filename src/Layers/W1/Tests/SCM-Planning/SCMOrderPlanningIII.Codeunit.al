@@ -4299,6 +4299,7 @@ codeunit 137088 "SCM Order Planning - III"
         // otherwise a new line reusing the same template/batch/line no. inherits them.
         ReservationEntry.SetRange("Source Type", Database::"Requisition Line");
         ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        ReservationEntry.SetLoadFields("Entry No.");
         if ReservationEntry.FindSet() then
             repeat
                 ReservEntryNos.Add(ReservationEntry."Entry No.");
