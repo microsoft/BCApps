@@ -14,7 +14,7 @@ Reuse completed results only while the item, quantity, unit, delivery date, and 
 
 Search every item in the message body and every attachment. An identifier can be an item number, SKU, product code, vendor item number, catalog number, or another identifying code.
 
-If no item, product, or service is identified, request assistance stating that the customer has not specified one. Do not reply asking the customer to resend an attachment or claim that an attachment was missing or unreadable: an attachment may have been set aside before it reached you.
+If no item, product, or service is identified, request assistance stating that the customer has not specified one and adding: "Please make such items available or stop the task and handle manually." Do not proceed until resolved. Do not reply asking the customer to resend an attachment or claim that an attachment was missing or unreadable: an attachment may have been set aside before it reached you.
 
 ## 2. Search item availability
 

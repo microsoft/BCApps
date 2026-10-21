@@ -565,15 +565,12 @@ codeunit 4400 "SOA Setup"
     end;
 
     internal procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
-    var
-        ModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCurrentModuleInfo(ModuleInfo);
         TempAccessControlBuffer.Init();
         TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
         TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
-        TempAccessControlBuffer."App ID" := ModuleInfo.Id;
-        TempAccessControlBuffer."Role ID" := SOAEditTok;
+        Clear(TempAccessControlBuffer."App ID");
+        TempAccessControlBuffer."Role ID" := SuperTok;
         TempAccessControlBuffer.Insert();
     end;
 
@@ -1202,7 +1199,7 @@ codeunit 4400 "SOA Setup"
         SalesOrderAgentNameLbl: Label 'SALES ORDER AGENT', Locked = true, MaxLength = 17;
         SalesOrderAgentDisplayNameLbl: Label 'Sales Order Agent', MaxLength = 80;
         SalesOrderAgentTypeLbl: Label 'By Microsoft';
-        SOAEditTok: Label 'SOA - EDIT', Locked = true, MaxLength = 20;
+        SuperTok: Label 'SUPER', Locked = true, MaxLength = 20;
         SalesOrderAgentTok: Label 'Sales Order Agent', Locked = true;
         SalesOrderAgentInitialLbl: Label 'SO', MaxLength = 4;
         SOASummaryLbl: Label 'Monitors incoming emails for sales inquiries, matches senders to customers, checks inventory, and creates quotes. When processing replies, the agent converts accepted quotes into orders.';

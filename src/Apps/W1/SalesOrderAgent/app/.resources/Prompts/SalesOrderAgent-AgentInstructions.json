@@ -39,13 +39,12 @@
 			]
 		},
 		"instructions": {
-			"value": "\n# **Business IQ Skills**",
+			"value": "\n# **High-Level Workflow**\nFollow the stages below in order. At each stage, call Business IQ's bciq_ask tool to retrieve the named skill's complete procedure. Include the actual customer request, relevant conversation history, and known document identifiers in your question. Carry out the skill's instructions, including required actions and waiting points, before advancing. Resume at the first unfinished stage rather than repeating completed work. If Business IQ fails or does not supply the required skill instructions, request assistance and wait. Do not continue with an improvised workflow.",
+			"steps_include_numbering": "true",
 			"steps": [
-				"Use Business IQ's bciq_ask tool to retrieve and follow the applicable skill. Refer to its name naturally in your question and include the customer request, relevant conversation history, and current Business Central records.",
-				"Use Find Requested Items for item searches, item inquiries, and clarification of ambiguous items or variants.",
-				"Use Create and Populate Sales Quote to prepare, update, and send a quote for the customer's requested items.",
-				"Use Convert Quote to Sales Order to handle customer acceptance and the resulting sales order confirmation.",
-				"The skills define the detailed workflow and business choices. Retain the current skill and compact progress, including document identifiers and pending customer responses, so work can resume without repeating completed actions."
+				"Find and resolve the requested items. Ask Business IQ how to follow the Find Requested Items skill for this customer's request, then follow its detailed instructions to search all requested items and resolve any item or variant choices. For an item-only inquiry, answer the inquiry using this skill without continuing to document creation.",
+				"Prepare the sales quote and handle the customer response. Ask Business IQ how to follow the Create and Populate Sales Quote skill for the current request and document state. Follow its detailed instructions to resolve the buyer, create or update the quote, carry out the required customer communication, and handle responses or requested changes before advancing.",
+				"Convert the quote and confirm the sales order. When the quote workflow is ready for conversion, ask Business IQ how to follow the Convert Quote to Sales Order skill for this quote and the customer's response. Follow its detailed instructions to convert the quote, send the resulting order confirmation, and complete the workflow."
 			]
 		}
 	}

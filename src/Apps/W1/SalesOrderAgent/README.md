@@ -11,8 +11,9 @@ to apply a change.
   disables the runtime's Business IQ tools for this agent.
 - **On** uses the skill-based instructions, creates or refreshes the packaged
   business skills, and enables Business IQ tools for this agent. The main
-  instructions contain the agent's role, communication guidelines, and skill
-  routing. Detailed procedures and workflow choices live in three skills:
+  instructions contain the agent's role, communication guidelines, and an
+  ordered high-level workflow. Each stage asks Business IQ for detailed
+  instructions from its corresponding skill, in this order:
   **Find Requested Items**, **Create and Populate Sales Quote**, and
   **Convert Quote to Sales Order**.
   Organization-wide Azure OpenAI privacy approval is required when enabling this
@@ -23,6 +24,12 @@ availability checks or capable-to-promise, send the quote for customer
 acceptance, then convert the accepted quote and send the order confirmation.
 They do not request additional quote/order document reviews. Change workflow
 instructions in the skills rather than adding setup-dependent prompt branches.
+
+Required skill lookups must succeed before the agent performs the business
+operation. A failed Business IQ lookup requires assistance, not a guessed
+workflow. Quote and order skills each require a successful **Download as PDF**
+action and the returned file ID in the outgoing message attachments. After a
+document changes, its PDF must be downloaded again before sending.
 
 SOA setup fields remain visible in both modes. Native item-search filtering,
 availability information, and capable-to-promise calculations continue to use
@@ -50,6 +57,19 @@ history, and company/domain links are retained; unrelated skills are not removed
 Business IQ remains an extension dependency in both modes. Turning this option
 off does not uninstall Business IQ, remove shared business skills, or affect
 another agent's setting.
+
+## Default permissions
+
+New Sales Order Agent instances default to the built-in **SUPER** permission set
+in the company where they are created, in both instruction modes. This grants
+administrator-level access in that company rather than restricting new skill
+procedures to **SOA - Edit**. Existing agents keep their assigned permission sets;
+this default does not update them or grant access to other companies.
+
+Task execution still uses permissions shared by the agent and the task
+creator/approver. Licensing and runtime/tool restrictions still apply. SUPER
+does not make unsupported actions available or resolve Business IQ service
+connection errors.
 
 ## Item descriptions and variants
 

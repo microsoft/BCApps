@@ -1,6 +1,6 @@
 # Create and Populate Sales Quote
 
-Create or update a Business Central sales quote for the current conversation, resolve its buyer and requested items, and send the populated quote to the customer for acceptance.
+Create or update a Business Central sales quote, download its current PDF, and send it as an attachment with a line summary and a request for customer acceptance.
 
 ## Workflow policy
 
@@ -9,6 +9,8 @@ Follow the default SOA workflow: send the populated sales quote as a PDF and ask
 The default workflow does not check inventory availability or use capable-to-promise. The detailed search and clarification procedure is in "Find Requested Items"; retrieve it through Business IQ when results are missing or the requested items have changed. Wait for unresolved item clarification or assistance before preparing the quote. If a required skill cannot be retrieved, request assistance instead of inventing its procedure.
 
 Retain the quote identifier and completed work. Resume an existing quote rather than creating another one. Item-line changes are supported only for quotes created in this conversation. For an accepted quote, use "Convert Quote to Sales Order" instead. Do not modify an existing sales order.
+
+Carry out all five sections in order. Creating or updating the quote is an intermediate result, not completion of this skill. The PDF download and the customer message with that PDF attached are mandatory, including after modifications to an existing quote.
 
 ## 1. Resolve the buyer and create or open the quote
 
@@ -53,15 +55,29 @@ Ignore low-inventory notifications and do not recalculate or set shipment dates 
 
 For a modification, update or remove only the requested lines, preserve unrelated lines, and add new requested lines once. Reuse the current quote, but search again for any changed item, quantity, unit, or delivery date before applying the change.
 
-## 4. Send the quote for acceptance
+## 4. Download the current sales quote as PDF
+
+After populating or updating the quote, navigate to its Sales Quote card (page 41). Do not remain on an item-search page or treat a populated quote as a completed customer response.
+
+Invoke the "Download as PDF" action on that quote using `bcui_invoke_action`. Retain the actual numeric file ID returned by the download. An incoming attachment, a guessed filename, a document number, or a promise to send the PDF is not a downloaded quote.
+
+If the action is unavailable, fails, or produces no file ID, request assistance and wait. Do not send a quote confirmation without the PDF.
+
+Reuse a downloaded PDF only when it belongs to this quote and the quote has not changed since that download. After any header or line change, download a new PDF and use the new file ID.
+
+## 5. Send the quote for acceptance
 
 Read the current quote data after population and updates. Current page data takes precedence over the initial request and history, including added or changed lines.
 
-1. Use "Download as PDF" and retain the actual returned file identifier. If downloading fails, request assistance rather than inventing an attachment.
+1. Use the quote PDF file ID retained in section 4. Do not proceed without it.
 2. Summarize every current line with item No., description, quantity, unit, and price. Include Variant Code only for lines where it is not blank.
 3. Ask the customer to review the quote and confirm whether they want it converted into a sales order.
 4. Explain any ignored past requested delivery date and invite a new date if needed, without withholding the quote. If multiple requested dates were found, state which dates were found and which furthest future date was used. If all were in the past, state that none was applied.
 5. Format the reply as formal, simple HTML. Use left-aligned tables with adequate column width, padding, spacing before and after, and minimal styling. Apply the agent's signature guidance.
-6. Use `send_message` with the downloaded quote's actual file identifier in `filesToAttach` and `requestsInformation` set to true.
+6. Use `send_message` with `filesToAttach` containing the actual quote PDF file ID and `requestsInformation` set to true. Do not omit `filesToAttach` or send an empty attachment list.
 
 Retain the quote and message identifiers and wait for the customer's response. Do not resend a quote already sent for the same document state. If a tool reports a pending message review, wait for its outcome; this is not customer acceptance. When the customer requests line changes, update and send the same quote again. Convert only after the customer accepts the current quote and asks to proceed.
+
+## Completion
+
+Retain the quote number, downloaded PDF file ID, outgoing message ID, and awaiting-customer state. Do not call `complete_task` instead of downloading and sending the quote. A populated quote, a prepared email, or completed todos do not mean the quote confirmation was sent. If sending is awaiting message review, retain that pending state rather than reporting the message as sent.
