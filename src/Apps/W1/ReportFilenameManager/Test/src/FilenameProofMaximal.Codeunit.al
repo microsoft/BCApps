@@ -7,6 +7,7 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.Sales.History;
 using System.EMail;

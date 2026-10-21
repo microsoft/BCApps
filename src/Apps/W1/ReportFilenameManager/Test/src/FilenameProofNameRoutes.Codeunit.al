@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
+using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.Sales.History;
 using System.EMail;
