@@ -41,6 +41,8 @@ page 6988 "Expense"
                 field("Expense Category"; Rec."Expense Category")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the category assigned to this expense.';
+                    Importance = Promoted;
 
                     trigger OnValidate()
                     begin
@@ -96,10 +98,18 @@ page 6988 "Expense"
                     Importance = Additional;
                     Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                 }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the Currency of the Amount.';
+                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Importance = Promoted;
+                }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Importance = Promoted;
 
                     trigger OnValidate()
                     begin
@@ -320,6 +330,11 @@ page 6988 "Expense"
                 field("Reimbursable Amount"; Rec."Reimbursable Amount")
                 {
                     ApplicationArea = Basic, Suite;
+<<<<<<< HEAD
+=======
+                    ToolTip = 'Specifies the amount eligible for reimbursement based on policy.';
+                    Importance = Promoted;
+>>>>>>> 1a1f9b0fe342c7127ceb8d7e06ecd0ad989d5a6a
                 }
                 field("Reimbursable Amount (LCY)"; Rec."Reimbursable Amount (LCY)")
                 {
@@ -369,18 +384,28 @@ page 6988 "Expense"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
+<<<<<<< HEAD
                     trigger OnValidate()
                     begin
                         ShortcutDimension1CodeOnAfterV();
                     end;
+=======
+                    ToolTip = 'Specifies Shortcut Dimension 1 for this expense.';
+                    Importance = Promoted;
+>>>>>>> 1a1f9b0fe342c7127ceb8d7e06ecd0ad989d5a6a
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
+<<<<<<< HEAD
                     trigger OnValidate()
                     begin
                         ShortcutDimension1CodeOnAfterV();
                     end;
+=======
+                    ToolTip = 'Specifies Shortcut Dimension 2 for this expense.';
+                    Importance = Promoted;
+>>>>>>> 1a1f9b0fe342c7127ceb8d7e06ecd0ad989d5a6a
                 }
             }
 
@@ -639,7 +664,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Release';
-                    Enabled = Rec.Status <> Rec.Status::Released;
+                    Enabled = Rec.Status = Rec.Status::Open;
                     Image = ReleaseDoc;
                     ShortCutKey = 'Ctrl+F9';
                     ToolTip = 'Release the expense and lock editing. Reopen to edit.';
@@ -781,11 +806,6 @@ page 6988 "Expense"
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         AllowNoReceipt := ExpenseAgentSetup."Allow No Receipt";
-    end;
-
-    local procedure ShortcutDimension1CodeOnAfterV()
-    begin
-        CurrPage.Update();
     end;
 
     local procedure CalculateTotalMileage()

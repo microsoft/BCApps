@@ -190,7 +190,7 @@ table 6900 Expense
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
-            ToolTip = 'Specifies the value of the Currency Code field.';
+            ToolTip = 'Specifies the currency code of the amount.';
             TableRelation = "Currency";
             trigger OnValidate()
             begin
@@ -1212,7 +1212,10 @@ table 6900 Expense
     end;
 
     procedure UpdateAmount()
+    var
+        ExpenseCurrency: Record Currency;
     begin
+        ExpenseCurrency.Initialize(Rec."Currency Code");
         GeneralLedgerSetup.GetRecordOnce();
         UpdateCurrencyFactor();
         if Rec."Non-Refundable Amount" <> 0 then

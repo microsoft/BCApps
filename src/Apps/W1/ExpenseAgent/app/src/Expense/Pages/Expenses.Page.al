@@ -48,7 +48,13 @@ page 6989 Expenses
                 field("Merchant Name"; Rec."Merchant Name")
                 {
                 }
-                field(Amount; Rec."Amount (LCY)")
+                field(CurrencyCode; Rec."Currency Code")
+                {
+                }
+                field(Amount; Rec.Amount)
+                {
+                }
+                field(AmountLCY; Rec."Amount (LCY)")
                 {
                 }
                 field("No Receipt Type"; Rec."No Receipt Type")
