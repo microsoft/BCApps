@@ -1,6 +1,5 @@
 [
     ".layer\\layer_files.json",
-    "Tests\\Bank\\CheckAmountWordingTests.Codeunit.al",
     "AlCosting\\app.json",
     "AlCosting\\BWBinContentRef.Table.al",
     "AlCosting\\BWBinContentRefMgmt.Codeunit.al",
