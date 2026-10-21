@@ -257,6 +257,62 @@ Describe "Separate RunTests action override contract" {
             $parameters.tenant | Should -Be "tenant2"
         }
     }
+
+    It "uses only the original optional coverage-aware override contract" {
+        $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+        $projectOverrides = @(
+            Get-ChildItem (Join-Path $repositoryRoot "build\projects") `
+                -Filter "RunTestsInBcContainer.ps1" -Recurse -File
+        )
+
+        $projectOverrides.Count | Should -BeGreaterThan 0
+        foreach ($override in $projectOverrides) {
+            $tokens = $null
+            $errors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+                $override.FullName,
+                [ref]$tokens,
+                [ref]$errors
+            )
+            @($errors).Count | Should -Be 0
+            @($ast.ParamBlock.Parameters.Name.VariablePath.UserPath) |
+                Should -Be @("parameters", "codeCoverageContext")
+        }
+        @(
+            Get-ChildItem (Join-Path $repositoryRoot "build\projects") `
+                -Filter "RunTestsInBcContainerV2.ps1" -Recurse -File
+        ).Count | Should -Be 0
+    }
+
+    It "routes an optional context directly to the per-app coverage adapter" {
+        InModuleScope ParallelTestExecution {
+            $suppliedContract = @{ contractVersion = 1; enabled = $true }
+
+            Mock Invoke-BcAppsCoverageAwareTestRun {
+                $Parameters.containerName | Should -Be "test"
+                $CodeCoverageContext | Should -Be $suppliedContract
+                [System.IO.Path]::GetFileName($FallbackScriptPath) |
+                    Should -Be "RunTestsInBcContainer.ps1"
+                $true
+            }
+            Mock Get-CachedTestRunResult {
+                throw "Coverage-aware per-app calls must bypass the scheduler cache."
+            }
+            Mock Get-InstalledTestAppNames {
+                throw "Coverage-aware per-app calls must bypass bucket discovery."
+            }
+
+            Invoke-PerProjectTestRun -parameters @{
+                containerName = "test"
+                tenant = "default"
+                appName = "Tests"
+            } -codeCoverageContext $suppliedContract | Should -BeTrue
+
+            Should -Invoke Invoke-BcAppsCoverageAwareTestRun -Times 1 -Exactly
+            Should -Invoke Get-CachedTestRunResult -Times 0
+            Should -Invoke Get-InstalledTestAppNames -Times 0
+        }
+    }
 }
 
 Describe "RunTestsInBcContainer BCH parameter forwarding" {
@@ -284,9 +340,6 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
 
     BeforeEach {
         Mock Get-BcAppsDisabledTestsForApp { @() }
-        Mock Invoke-BcAppsAlToolCoverageLeaf {
-            [PSCustomObject]@{ Handled = $false; Passed = $false }
-        }
         Mock Run-TestsInBcContainer { $true }
         Mock Start-Transcript { }
         Mock Stop-Transcript { }
@@ -328,6 +381,38 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
             $testType -eq $Lane
         }
         $parameters.testType | Should -Be $Lane
+    }
+
+    It "uses action-supplied disabled tests for the unsupported coverage fallback" {
+        $suppliedDisabledTests = @(
+            [PSCustomObject]@{
+                codeunitName = "Configured Codeunit"
+                method = @("Configured Method")
+            }
+        )
+        $parameters = @{
+            appName = "Integration Tests"
+            tenant = "default"
+            testType = "IntegrationTest"
+            disabledTests = $suppliedDisabledTests
+        }
+        Mock Get-BcAppsDisabledTestsForApp {
+            throw "The unsupported coverage fallback must not replace supplied exclusions."
+        }
+
+        & $script:runTestsScript `
+            -parameters $parameters `
+            -TestType IntegrationTest `
+            -UseSuppliedDisabledTests `
+            -SkipAutomaticDisabledPass `
+            -SkipTestTolerance |
+            Should -BeTrue
+
+        Should -Invoke Get-BcAppsDisabledTestsForApp -Times 0
+        Should -Invoke Run-TestsInBcContainer -Times 1 -Exactly -ParameterFilter {
+            $disabledTests.Count -eq 1 -and
+            $disabledTests[0].codeunitName -eq "Configured Codeunit"
+        }
     }
 
     It "persists final parent tolerance for subsequent AL-Go app callbacks" {
@@ -584,13 +669,19 @@ Describe "Separate RunTests action bucket configuration" {
                     $expectedDemoData = @($script:expectedDemoData[$buildMode])
                     $demoDataOverride = @($projectSettings.ConditionalSettings | Where-Object {
                         @($_.buildModes) -contains $buildMode -and
+                        $_.settings.PSObject.Properties.Name -contains 'overwriteSettings' -and
                         @($_.settings.overwriteSettings) -contains 'additionalDemoDataTypes'
                     }) | Select-Object -Last 1
                     if ($demoDataOverride) {
                         $expectedDemoData = @($demoDataOverride.settings.additionalDemoDataTypes)
                     }
-                    @($settings.additionalDemoDataTypes) |
-                        Should -Be $expectedDemoData
+                    $actualDemoData = if ($settings.Contains('additionalDemoDataTypes')) {
+                        @($settings.additionalDemoDataTypes)
+                    }
+                    else {
+                        @()
+                    }
+                    $actualDemoData | Should -Be $expectedDemoData
                 }
             }
         }
@@ -927,126 +1018,6 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 if (Test-Path $stateFile) {
                     Remove-Item $stateFile -Force
                 }
-            }
-        }
-    }
-
-    It "coordinates multi-tenant Integration coverage through a transient retry and cached final failure" {
-        InModuleScope ParallelTestExecution {
-            $previousRunnerTemp = $env:RUNNER_TEMP
-            $previousEventName = $env:GITHUB_EVENT_NAME
-            $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
-            $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
-            $resultFile = Join-Path $TestDrive 'aggregate-results.xml'
-            $script:jobId = 0
-            $script:waitCount = 0
-            $script:dispatches = [System.Collections.Generic.List[object]]::new()
-            $script:finalizedContext = $null
-            $coverageContext = @{
-                Enabled = $true
-                Reason = 'available'
-                ExpectedShards = @()
-            }
-
-            Mock Get-AvailableBcTenantInfo {
-                @(
-                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
-                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
-                )
-            }
-            Mock Get-BcContainerAppInfo {
-                @('Big Tests', 'Small Tests') | ForEach-Object {
-                    [PSCustomObject]@{
-                        IsInstalled = $true
-                        Name = $_
-                        AppId = "id-$($_ -replace ' ', '-')"
-                    }
-                }
-            }
-            Mock New-BcAppsAlToolCoverageContext { $coverageContext }
-            Mock Get-ALGoSetting { $false } -ParameterFilter {
-                $Key -eq 'enableCleanTestCodeunitExecution'
-            }
-            Mock Get-RequiredDisabledWorkItems { @() }
-            Mock Get-AppRerunBudget { 0 }
-            Mock Start-Sleep {}
-            Mock Wait-ForSpecificTenant { 'default' }
-            Mock Wait-ForFreeTenant { 'tenant2' }
-            Mock Start-TestJob {
-                $script:jobId++
-                $script:dispatches.Add([PSCustomObject]@{
-                    AppName = "$($parameters.appName)"
-                    Tenant = $tenant
-                    TestType = $testType
-                    Attempt = [int]$parameters['_bcAppsAlToolCoverageAttempt']
-                })
-                [PSCustomObject]@{ Id = $script:jobId }
-            }
-            Mock Wait-ForAllTestJobs {
-                $script:waitCount++
-                if ($script:waitCount -eq 1) {
-                    $State.transient = @([PSCustomObject]@{
-                        Key = 'Big Tests'
-                        Tenant = 'default'
-                    })
-                }
-                else {
-                    $State.hasFailures = $true
-                }
-                $State.jobs = @()
-                return (-not $State.hasFailures)
-            }
-            Mock Merge-TenantTestResults {
-                '<testsuites />' | Set-Content -LiteralPath $resultFile -Encoding utf8
-            }
-            Mock Complete-BcAppsAlToolCoverage {
-                $script:finalizedContext = $Context
-                return @{
-                    runs = @(
-                        @{ state = 'failed' }
-                        @{ state = 'complete' }
-                    )
-                }
-            }
-            Mock Get-InstalledTestAppNames {
-                throw 'The second AL-Go callback must return the cached aggregate failure.'
-            }
-
-            try {
-                $env:RUNNER_TEMP = $TestDrive
-                $env:GITHUB_EVENT_NAME = 'push'
-                $params = @{
-                    containerName = $containerName
-                    tenant = 'default'
-                    JUnitResultFileName = $resultFile
-                }
-                Invoke-ParallelTestExecution -parameters $params `
-                    -scriptPath 'unused.ps1' -testType 'IntegrationTest' `
-                    -appNamesToTest @('Big Tests', 'Small Tests') |
-                    Should -BeFalse
-
-                @($script:dispatches | ForEach-Object {
-                    "$($_.AppName):$($_.Tenant):$($_.TestType):$($_.Attempt)"
-                }) | Should -Be @(
-                    'Big Tests:default:IntegrationTest:1'
-                    'Big Tests:default:IntegrationTest:2'
-                    'Small Tests:tenant2:IntegrationTest:1'
-                )
-                @($script:finalizedContext.ExpectedShards).Count | Should -Be 2
-                @($script:finalizedContext.ExpectedShards.logicalShard | Select-Object -Unique) |
-                    Should -Be @('normal')
-                $params['_bcAppsTestInfrastructureBlocksTolerance'] | Should -BeTrue
-
-                Invoke-PerProjectTestRun -parameters @{
-                    containerName = $containerName
-                    appName = 'Second AL-Go App'
-                } | Should -BeFalse
-                Should -Invoke Get-InstalledTestAppNames -Times 0
-            }
-            finally {
-                $env:RUNNER_TEMP = $previousRunnerTemp
-                $env:GITHUB_EVENT_NAME = $previousEventName
-                Remove-Item -LiteralPath $stateFile -Force -ErrorAction SilentlyContinue
             }
         }
     }

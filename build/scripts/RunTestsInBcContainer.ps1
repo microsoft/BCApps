@@ -6,13 +6,13 @@ Param(
     # override on the parent invocation. Empty when called from inside a background job, which
     # forces the sequential single-app path further down.
     [string[]] $AppNamesToTest = @(),
+    [switch] $UseSuppliedDisabledTests,
     [switch] $SkipAutomaticDisabledPass,
     [switch] $SkipTestTolerance
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\ParallelTestExecution.psm1
-Import-Module $PSScriptRoot\AlToolCoverageAdapter.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
 
 <#
@@ -108,7 +108,13 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-BcAppsDisabledTestsForApp -AppName $parameters["appName"])
+if (-not $UseSuppliedDisabledTests) {
+    $parameters["disabledTests"] = @(
+        Get-BcAppsDisabledTestsForApp -AppName $parameters["appName"]
+    )
+} elseif (-not $parameters.ContainsKey("disabledTests")) {
+    throw "UseSuppliedDisabledTests requires the test parameters to contain disabledTests."
+}
 $parameters["renewClientContextBetweenTests"] = $true
 
 # When invoked from the per-project override on the parent process, $AppNamesToTest contains
@@ -125,22 +131,15 @@ else {
     # A failing app is retried once by the parallel dispatcher, on a different tenant (see
     # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
     # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
-    $alToolResult = Invoke-BcAppsAlToolCoverageLeaf -Parameters $parameters -TestType $TestType
-    if ($alToolResult.Handled) {
-        $result = [bool]$alToolResult.Passed
+    $containerParameters = $parameters.Clone()
+    if ($TestType -eq "Legacy") {
+        $containerParameters.Remove("testType") | Out-Null
     }
-    else {
-        $containerParameters = $parameters.Clone()
-        Remove-BcAppsAlToolCoverageParameters -Parameters $containerParameters
-        if ($TestType -eq "Legacy") {
-            $containerParameters.Remove("testType") | Out-Null
-        }
-        $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
-    }
+    $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
 
     # Preserve the old sequential fallback. Parallel project execution defers this pass to the
     # clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
-    if (-not $alToolResult.Handled -and $TestType -eq "UnitTest" -and
+    if ($TestType -eq "UnitTest" -and
         -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
         Write-Host "Running DisableTestIsolation pass for UnitTest"
         $containerParameters["requiredTestIsolation"] = "Disabled"

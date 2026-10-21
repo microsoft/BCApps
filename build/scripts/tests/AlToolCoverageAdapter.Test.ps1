@@ -1,396 +1,324 @@
-$errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
-
 BeforeAll {
-    Import-Module (Join-Path $PSScriptRoot '../AlToolCoverageAdapter.psm1') -Force
+    $modulePath = Join-Path $PSScriptRoot "../AlToolCoverageAdapter.psm1"
+    Import-Module $modulePath -Force
 
-    function New-TestCoverageContext {
-        param(
-            [Parameter(Mandatory = $true)]
-            [string]$Root
-        )
+    function Out-TestAlToolModule {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
 
-        $coverageRoot = Join-Path (Join-Path $Root ".buildartifacts") "CodeCoverage"
-        return @{
-            Enabled = $true
-            Project = "build/projects/Test Apps W1"
-            ProjectName = "Unit Tests"
-            BuildMode = "IntegrationTests"
-            Mode = "line"
-            Formats = @("bc-json")
-            RepositoryRoot = $Root
-            ProjectPath = $Root
-            CoverageRoot = $coverageRoot
-            StatusPath = Join-Path $coverageRoot "coverage-status.json"
-            SidecarRoot = Join-Path $coverageRoot ".bcapps-runs"
-            RunnerModulePath = ""
-            SourceRoots = @(Join-Path $Root "src\App")
-            SourceRootDetails = @(
-                @{
-                    path = "src/App"
-                    kind = "app"
-                    appId = "regular-app"
-                    appName = "Regular App"
-                }
-            )
-            ExpectedShards = @()
-        }
-    }
-
-    function Write-TestCoverageSidecar {
-        param(
-            [Parameter(Mandatory = $true)]
-            [hashtable]$Context,
-            [Parameter(Mandatory = $true)]
-            [string]$LogicalShard,
-            [Parameter(Mandatory = $true)]
-            [int]$Attempt,
-            [Parameter(Mandatory = $true)]
-            [string]$State,
-            [bool]$Tracked = $true
-        )
-
-        $output = Get-BcAppsAlToolCoverageOutput -Context $Context -AppId "test-app" `
-            -LogicalShard $LogicalShard -Attempt $Attempt
-        New-Item -Path $Context.SidecarRoot -ItemType Directory -Force | Out-Null
-        @{
-            key = "test-app::$LogicalShard"
-            appId = "test-app"
-            appName = "Test App"
-            logicalShard = $LogicalShard
-            attempt = $Attempt
-            outputDirectory = $output.RelativePath
-            state = $State
-            testsPassed = $State -ne "failed"
-            tracked = $Tracked
-            error = ""
-        } | ConvertTo-Json -Depth 10 |
-            Set-Content -LiteralPath (Join-Path $Context.SidecarRoot "$LogicalShard-$Attempt-$([guid]::NewGuid().ToString('N')).json") -Encoding UTF8
-        return $output
-    }
-}
-
-Describe "AlTool coverage shard selection" {
-    It "derives normal and clean exclusion complements without double-running codeunits" {
-        $catalog = @{
-            "Test App" = @(
-                [pscustomobject]@{ Id = 100; Name = "Normal One"; Tests = @("A", "B") }
-                [pscustomobject]@{ Id = 200; Name = "Clean One"; Tests = @("C") }
-                [pscustomobject]@{ Id = 300; Name = "Clean Two"; Tests = @("D", "E") }
-            )
-        }
-        $required = @(
-            [pscustomobject]@{
-                Key = "Test App::200"
-                AppName = "Test App"
-                AppId = "test-app"
-                CodeunitId = "200"
-                CodeunitName = "Clean One"
-                TestCount = 1
-            }
-            [pscustomobject]@{
-                Key = "Test App::300"
-                AppName = "Test App"
-                AppId = "test-app"
-                CodeunitId = "300"
-                CodeunitName = "Clean Two"
-                TestCount = 2
-            }
-        )
-
-        $plan = New-BcAppsAlToolShardPlan -CodeunitsByApp $catalog `
-            -RequiredDisabledWorkItems $required
-
-        $plan.NormalTestCountByApp["Test App"] | Should -Be 2
-        @($plan.NormalDisabledByApp["Test App"] | ForEach-Object { $_.codeunitName }) |
-            Should -Be @("Clean One", "Clean Two")
-        $plan.CleanWorkItems.Count | Should -Be 2
-
-        $cleanOne = @($plan.CleanWorkItems | Where-Object { $_.CodeunitId -eq "200" })[0]
-        @($cleanOne.CoverageDisabledTests | ForEach-Object { $_.codeunitName }) |
-            Should -Be @("Normal One", "Clean Two")
-        $cleanTwo = @($plan.CleanWorkItems | Where-Object { $_.CodeunitId -eq "300" })[0]
-        @($cleanTwo.CoverageDisabledTests | ForEach-Object { $_.codeunitName }) |
-            Should -Be @("Normal One", "Clean One")
-    }
-
-    It "fails when a required clean codeunit is absent from the AlTool catalog" {
-        {
-            New-BcAppsAlToolShardPlan -CodeunitsByApp @{
-                "Test App" = @([pscustomobject]@{ Id = 100; Name = "Normal"; Tests = @("A") })
-            } -RequiredDisabledWorkItems @([pscustomobject]@{
-                    Key = "Test App::200"
-                    AppName = "Test App"
-                    AppId = "test-app"
-                    CodeunitId = "200"
-                    CodeunitName = "Missing"
-                    TestCount = 1
-                })
-        } | Should -Throw "*Could not resolve clean codeunit*"
-    }
-}
-
-Describe "AlTool coverage attempt paths" {
-    BeforeEach {
-        $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("coverage-paths-" + [guid]::NewGuid().ToString("N"))
-        New-Item -Path $script:tempRoot -ItemType Directory -Force | Out-Null
-        $script:context = New-TestCoverageContext -Root $script:tempRoot
-    }
-
-    AfterEach {
-        Remove-Item -LiteralPath $script:tempRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
-
-    It "allocates unique output directories for every shard attempt" {
-        $first = Get-BcAppsAlToolCoverageOutput -Context $script:context `
-            -AppId "test app" -LogicalShard "normal" -Attempt 1
-        $retry = Get-BcAppsAlToolCoverageOutput -Context $script:context `
-            -AppId "test app" -LogicalShard "normal" -Attempt 2
-        $clean = Get-BcAppsAlToolCoverageOutput -Context $script:context `
-            -AppId "test app" -LogicalShard "clean-50000" -Attempt 1
-
-        $first.FullPath | Should -Not -Be $retry.FullPath
-        $first.FullPath | Should -Not -Be $clean.FullPath
-        $retry.RelativePath | Should -Be "CodeCoverage/test-app/normal/2"
-        $clean.RelativePath | Should -Be "CodeCoverage/test-app/clean-50000/1"
-    }
-}
-
-Describe "AlTool coverage worker execution" {
-    BeforeEach {
-        $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("coverage-worker-" + [guid]::NewGuid().ToString("N"))
-        $actionPath = Join-Path $script:tempRoot "action"
-        New-Item -Path $actionPath -ItemType Directory -Force | Out-Null
-        $runnerPath = Join-Path $actionPath "AlToolTestRunner.psm1"
-        @'
+    @'
 function Invoke-AlToolTestRun {
     param(
         [string]$ContainerName,
-        [System.Management.Automation.PSCredential]$Credential,
+        [pscredential]$Credential,
         [string]$ExtensionId,
         [string]$AppName,
-        [string]$CompanyName,
         [string]$Tenant,
+        [string]$CompanyName,
+        [string]$JUnitResultFileName,
         [string]$TestType,
         [hashtable[]]$DisabledTests,
-        [string]$JUnitResultFileName,
+        [string]$AlToolPath,
         [string]$CoverageMode,
-        [string]$CoverageOutputPath,
         [string[]]$CoverageFormats,
         [string[]]$CoverageSourceRoots,
+        [string]$CoverageOutputPath,
         [ref]$CoverageIsComplete
     )
-    $null = $ContainerName, $Credential, $CompanyName, $Tenant, $TestType, $JUnitResultFileName
+
+    [System.IO.Directory]::CreateDirectory($CoverageOutputPath) | Out-Null
+    '{"schemaVersion":1,"mode":"line","files":[]}' |
+        Set-Content -LiteralPath (Join-Path $CoverageOutputPath "coverage.bc.json")
+    '<testsuites />' | Set-Content -LiteralPath $JUnitResultFileName
     @{
-        ExtensionId = $ExtensionId
-        AppName = $AppName
-        DisabledTests = @($DisabledTests)
-        CoverageMode = $CoverageMode
-        CoverageOutputPath = $CoverageOutputPath
-        CoverageFormats = @($CoverageFormats)
-        CoverageSourceRoots = @($CoverageSourceRoots)
-    } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $env:BCAPPS_COVERAGE_CAPTURE_PATH -Encoding UTF8
-    $CoverageIsComplete.Value = $true
-    return $true
+        containerName = $ContainerName
+        appId = $ExtensionId
+        appName = $AppName
+        tenant = $Tenant
+        companyName = $CompanyName
+        junitResultFileName = $JUnitResultFileName
+        testType = $TestType
+        disabledTests = @($DisabledTests)
+        alToolPath = $AlToolPath
+        mode = $CoverageMode
+        formats = @($CoverageFormats)
+        sourceRoots = @($CoverageSourceRoots)
+        outputPath = $CoverageOutputPath
+    } | ConvertTo-Json -Depth 20 |
+        Set-Content -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE
+    $CoverageIsComplete.Value = $env:BCAPPS_ALTOOL_COMPLETE -ne "false"
+    return ($env:BCAPPS_ALTOOL_RESULT -ne "false")
 }
+
 Export-ModuleMember -Function Invoke-AlToolTestRun
-'@ | Set-Content -LiteralPath $runnerPath -Encoding UTF8
-
-        $script:context = New-TestCoverageContext -Root $script:tempRoot
-        $script:context.RunnerModulePath = $runnerPath
-        $script:password = New-Object System.Security.SecureString
-        foreach ($character in "password".ToCharArray()) {
-            $script:password.AppendChar($character)
-        }
-        $script:credential = New-Object System.Management.Automation.PSCredential("admin", $script:password)
-        $env:BCAPPS_COVERAGE_CAPTURE_PATH = Join-Path $script:tempRoot "capture.json"
+'@ | Set-Content -LiteralPath $Path
     }
 
-    AfterEach {
-        Remove-Item Env:\BCAPPS_COVERAGE_CAPTURE_PATH -ErrorAction SilentlyContinue
-        Remove-Item -LiteralPath $script:tempRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
+    function Get-TestCoverageContext {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+        [bool]$Supported = $true,
+        [string]$TestType = "IntegrationTest"
+    )
 
-    It "imports the running action module and writes only unique worker sidecar metadata" {
-        $parameters = @{
-            containerName = "test"
-            credential = $script:credential
-            companyName = "My Company"
-            tenant = "tenant2"
-            appName = "Test App"
-            extensionId = "test-app"
-            disabledTests = @(@{ codeunitName = "Configured"; method = @("Skip") })
-            JUnitResultFileName = Join-Path $script:tempRoot "results.xml"
-            _bcAppsAlToolCoverageContext = $script:context
-            _bcAppsAlToolCoverageAppId = "test-app"
-            _bcAppsAlToolCoverageAppName = "Test App"
-            _bcAppsAlToolCoverageLogicalShard = "normal"
-            _bcAppsAlToolCoverageAttempt = 1
-            _bcAppsAlToolCoverageTrack = $true
-            _bcAppsAlToolCoverageDisabledTests = @(
-                @{ codeunitName = "Clean"; method = @("*") }
+    $modulePath = Join-Path $Root "AlToolTestRunner.psm1"
+    $alToolPath = Join-Path $Root "altool.exe"
+    $sourceRoot = Join-Path $Root "app"
+    $outputDirectory = Join-Path $Root "coverage"
+    New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
+    New-Item -ItemType File -Path $alToolPath -Force | Out-Null
+    Out-TestAlToolModule -Path $modulePath
+
+    return @{
+        contractVersion = 1
+        enabled = $true
+        supported = $Supported
+        reason = if ($Supported) { "" } else { "Platform version is below the minimum." }
+        project = "build/projects/Test Apps W1"
+        projectName = "Test Apps W1"
+        buildMode = "Clean"
+        testType = $TestType
+        app = @{
+            path = "src/Tests"
+            id = "11111111-1111-1111-1111-111111111111"
+            name = "Tests"
+            disabledTests = @(
+                @{
+                    codeunitName = "Disabled Codeunit"
+                    method = @("Disabled Method")
+                }
             )
         }
-
-        $result = Invoke-BcAppsAlToolCoverageLeaf -Parameters $parameters `
-            -TestType "IntegrationTest"
-        $capturedRun = Get-Content -LiteralPath $env:BCAPPS_COVERAGE_CAPTURE_PATH -Raw | ConvertFrom-Json
-
-        $result.Handled | Should -BeTrue
-        $result.Passed | Should -BeTrue
-        $capturedRun.ExtensionId | Should -Be "test-app"
-        @($capturedRun.DisabledTests | ForEach-Object { $_.codeunitName }) |
-            Should -Be @("Configured", "Clean")
-        $capturedRun.CoverageMode | Should -Be "line"
-        @(Get-ChildItem -LiteralPath $script:context.SidecarRoot -Filter "*.json" -File).Count |
-            Should -Be 1
-        Test-Path -LiteralPath $script:context.StatusPath | Should -BeFalse
+        mode = "line"
+        formats = @("bc-json", "cobertura")
+        sourceRoots = @($sourceRoot)
+        sourceRootDetails = @(
+            @{
+                path = "src/App"
+                kind = "app"
+                appId = "22222222-2222-2222-2222-222222222222"
+                appName = "Application"
+            }
+        )
+        coverageOutputPath = $outputDirectory
+        outputDirectory = "CodeCoverage/Tests"
+        alToolModulePath = $modulePath
+        alToolPath = $alToolPath
+        result = @{
+            coverageIsComplete = $null
+        }
+    }
     }
 
-    It "survives background-job serialization used by the tenant scheduler" {
-        $parameters = @{
-            containerName = "test"
-            credential = $script:credential
-            companyName = "My Company"
-            tenant = "tenant2"
-            appName = "Test App"
-            extensionId = "test-app"
-            disabledTests = @()
-            JUnitResultFileName = Join-Path $script:tempRoot "results.xml"
-            _bcAppsAlToolCoverageContext = $script:context
-            _bcAppsAlToolCoverageAppId = "test-app"
-            _bcAppsAlToolCoverageAppName = "Test App"
-            _bcAppsAlToolCoverageLogicalShard = "normal"
-            _bcAppsAlToolCoverageAttempt = 1
-            _bcAppsAlToolCoverageTrack = $true
-            _bcAppsAlToolCoverageDisabledTests = @()
-        }
-        $adapterPath = (Resolve-Path (Join-Path $PSScriptRoot "../AlToolCoverageAdapter.psm1")).Path
-        $job = Start-Job -ScriptBlock {
-            Import-Module $using:adapterPath -Force
-            Invoke-BcAppsAlToolCoverageLeaf -Parameters $using:parameters -TestType "IntegrationTest"
-        }
+    function Get-TestParameterSet {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root
+    )
 
-        Wait-Job -Job $job | Out-Null
-        $result = Receive-Job -Job $job
-        Remove-Job -Job $job -Force
-
-        $result.Handled | Should -BeTrue
-        $result.Passed | Should -BeTrue
-        @(Get-ChildItem -LiteralPath $script:context.SidecarRoot -Filter "*.json" -File).Count |
-            Should -Be 1
-        Test-Path -LiteralPath $script:context.StatusPath | Should -BeFalse
+    $securePassword = New-Object System.Security.SecureString
+    return @{
+        containerName = "bcapps"
+        credential = [pscredential]::new("admin", $securePassword)
+        extensionId = "11111111-1111-1111-1111-111111111111"
+        appName = "Tests"
+        tenant = "tenant2"
+        companyName = "CRONUS"
+        JUnitResultFileName = Join-Path $Root "results.xml"
+        testType = "IntegrationTest"
+    }
     }
 }
 
-Describe "AlTool coverage status coordination" {
+Describe "BCApps per-app AL-Go coverage adapter" {
     BeforeEach {
-        $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("coverage-status-" + [guid]::NewGuid().ToString("N"))
-        New-Item -Path (Join-Path $script:tempRoot "src\App") -ItemType Directory -Force | Out-Null
-        $script:context = New-TestCoverageContext -Root $script:tempRoot
-        Register-BcAppsAlToolCoverageShard -Context $script:context -AppId "test-app" `
-            -AppName "Test App" -LogicalShard "normal"
+        $env:BCAPPS_ALTOOL_CAPTURE = Join-Path $TestDrive "altool-capture.json"
+        Remove-Item -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE -Force -ErrorAction SilentlyContinue
+        $env:BCAPPS_ALTOOL_RESULT = "true"
+        $env:BCAPPS_ALTOOL_COMPLETE = "true"
     }
 
     AfterEach {
-        Remove-Item -LiteralPath $script:tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item Env:\BCAPPS_ALTOOL_CAPTURE -ErrorAction SilentlyContinue
+        Remove-Item Env:\BCAPPS_ALTOOL_RESULT -ErrorAction SilentlyContinue
+        Remove-Item Env:\BCAPPS_ALTOOL_COMPLETE -ErrorAction SilentlyContinue
+        Remove-Module AlToolTestRunner -Force -ErrorAction SilentlyContinue
     }
 
-    It "keeps only the final attempt for each logical shard" {
-        $null = Write-TestCoverageSidecar -Context $script:context -LogicalShard "normal" `
-            -Attempt 1 -State "failed"
-        $finalOutput = Write-TestCoverageSidecar -Context $script:context -LogicalShard "normal" `
-            -Attempt 2 -State "complete"
+    It "runs the supplied app once through the action-owned AlTool runner" {
+        $root = Join-Path $TestDrive "supported"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root
+        $parameters = Get-TestParameterSet -Root $root
+        $fallback = Join-Path $root "fallback.ps1"
+        'throw "The BCH fallback must not run."' | Set-Content -LiteralPath $fallback
 
-        $completedStatus = Complete-BcAppsAlToolCoverage -Context $script:context
+        Invoke-BcAppsCoverageAwareTestRun `
+            -Parameters $parameters `
+            -CodeCoverageContext $context `
+            -FallbackScriptPath $fallback |
+            Should -BeTrue
 
-        $status = Get-Content -LiteralPath $script:context.StatusPath -Raw | ConvertFrom-Json
-        @($completedStatus.runs).Count | Should -Be 1
-        $status.runs.Count | Should -Be 1
-        $status.runs[0].state | Should -Be "complete"
-        $status.runs[0].outputDirectory | Should -Be $finalOutput.RelativePath
-        $status.runs[0].outputDirectory | Should -Not -Match "/1$"
+        $context.result.coverageIsComplete | Should -BeTrue
+        $capture = Get-Content -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE -Raw | ConvertFrom-Json
+        $capture.containerName | Should -Be "bcapps"
+        $capture.appId | Should -Be $context.app.id
+        $capture.appName | Should -Be $context.app.name
+        $capture.tenant | Should -Be "tenant2"
+        $capture.companyName | Should -Be "CRONUS"
+        $capture.junitResultFileName | Should -Be $parameters.JUnitResultFileName
+        $capture.testType | Should -Be "IntegrationTest"
+        @($capture.disabledTests).Count | Should -Be 1
+        $capture.disabledTests[0].codeunitName | Should -Be "Disabled Codeunit"
+        $capture.alToolPath | Should -Be $context.alToolPath
+        $capture.mode | Should -Be "line"
+        @($capture.formats) | Should -Be @("bc-json", "cobertura")
+        @($capture.sourceRoots) | Should -Be @($context.sourceRoots)
+        $capture.outputPath | Should -Be $context.coverageOutputPath
+        Test-Path -LiteralPath (
+            Join-Path $context.coverageOutputPath "coverage.bc.json"
+        ) -PathType Leaf | Should -BeTrue
+        @(
+            Get-ChildItem -LiteralPath $root -Filter "coverage-status.json" -File -Recurse
+        ).Count | Should -Be 0
+        (Get-Content -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE -Raw) |
+            Should -Not -Match "credential|password|username"
     }
 
-    It "serializes exactly one analyzer status with ordered roots and failed missing shards" {
-        Register-BcAppsAlToolCoverageShard -Context $script:context -AppId "test-app" `
-            -AppName "Test App" -LogicalShard "clean-50000"
-        $null = Write-TestCoverageSidecar -Context $script:context -LogicalShard "normal" `
-            -Attempt 1 -State "complete"
+    It "preserves valid coverage completeness when tests fail" {
+        $root = Join-Path $TestDrive "failed-tests"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root
+        $parameters = Get-TestParameterSet -Root $root
+        $fallback = Join-Path $root "fallback.ps1"
+        'throw "The BCH fallback must not run."' | Set-Content -LiteralPath $fallback
+        $env:BCAPPS_ALTOOL_RESULT = "false"
 
-        $null = Complete-BcAppsAlToolCoverage -Context $script:context
+        Invoke-BcAppsCoverageAwareTestRun `
+            -Parameters $parameters `
+            -CodeCoverageContext $context `
+            -FallbackScriptPath $fallback |
+            Should -BeFalse
 
-        @(Get-ChildItem -LiteralPath $script:context.CoverageRoot -Filter "coverage-status.json" -File -Recurse).Count |
-            Should -Be 1
-        $status = Get-Content -LiteralPath $script:context.StatusPath -Raw | ConvertFrom-Json
-        $status.PSObject.Properties.Name | Should -Be @(
-            "project", "projectName", "buildMode", "mode", "formats",
-            "sourceRoots", "sourceRootDetails", "runs"
-        )
-        $status.sourceRoots | Should -Be @("src/App")
-        $status.sourceRootDetails[0].kind | Should -Be "app"
-        @($status.runs | Where-Object { $_.state -eq "failed" }).Count | Should -Be 1
+        $context.result.coverageIsComplete | Should -BeTrue
+        Test-Path -LiteralPath (
+            Join-Path $context.coverageOutputPath "coverage.bc.json"
+        ) -PathType Leaf | Should -BeTrue
     }
 
-    It "is accepted by the actual AL-Go coverage analyzer fixture" -Skip:(
-        [string]::IsNullOrWhiteSpace($env:BCAPPS_ALGO_ANALYZER_PATH) -or
-        -not (Test-Path -LiteralPath $env:BCAPPS_ALGO_ANALYZER_PATH -PathType Leaf)
-    ) {
-        $sourceFile = Join-Path $script:tempRoot "src\App\Line.Codeunit.al"
-        1..20 | ForEach-Object { "// line $_" } | Set-Content -LiteralPath $sourceFile -Encoding UTF8
-        $output = Write-TestCoverageSidecar -Context $script:context -LogicalShard "normal" `
-            -Attempt 1 -State "complete"
-        New-Item -Path $output.FullPath -ItemType Directory -Force | Out-Null
-        Copy-Item -LiteralPath (
-            Join-Path $PSScriptRoot "TestArtifacts\AlToolCoverageAdapter\coverage.bc.json"
-        ) -Destination (Join-Path $output.FullPath "coverage.bc.json")
-        $null = Complete-BcAppsAlToolCoverage -Context $script:context
+    It "runs one BCH fallback without retry, tolerance, or disabled-test replacement when unsupported" {
+        $root = Join-Path $TestDrive "unsupported"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root -Supported $false
+        $parameters = Get-TestParameterSet -Root $root
+        $fallback = Join-Path $root "fallback.ps1"
+        $capturePath = Join-Path $root "fallback-capture.json"
+        $env:BCAPPS_FALLBACK_CAPTURE = $capturePath
+        @'
+param(
+    [hashtable]$parameters,
+    [string]$TestType,
+    [switch]$UseSuppliedDisabledTests,
+    [switch]$SkipAutomaticDisabledPass,
+    [switch]$SkipTestTolerance
+)
+@{
+    appName = $parameters.appName
+    extensionId = $parameters.extensionId
+    disabledTests = @($parameters.disabledTests)
+    returnTrueIfAllPassed = $parameters.returnTrueIfAllPassed
+    testType = $TestType
+    useSuppliedDisabledTests = $UseSuppliedDisabledTests.IsPresent
+    skipAutomaticDisabledPass = $SkipAutomaticDisabledPass.IsPresent
+    skipTestTolerance = $SkipTestTolerance.IsPresent
+} | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $env:BCAPPS_FALLBACK_CAPTURE
+return $true
+'@ | Set-Content -LiteralPath $fallback
 
-        Import-Module $env:BCAPPS_ALGO_ANALYZER_PATH -Force
-        $model = Get-ProjectCoverageModel -CoveragePath (
-            Join-Path $script:tempRoot ".buildartifacts"
-        ) -RepositoryRoot $script:tempRoot
+        try {
+            Invoke-BcAppsCoverageAwareTestRun `
+                -Parameters $parameters `
+                -CodeCoverageContext $context `
+                -FallbackScriptPath $fallback |
+                Should -BeTrue
 
-        $model.Complete | Should -BeTrue -Because (
-            @($model.Reasons) + @($model.LineReasons) -join "; "
-        )
-        $model.LineComplete | Should -BeTrue -Because (
-            @($model.Reasons) + @($model.LineReasons) -join "; "
-        )
-        $model.Runs.Count | Should -Be 1
-        $model.Runs[0].OutputDirectory | Should -Be $output.RelativePath
+            $capture = Get-Content -LiteralPath $capturePath -Raw | ConvertFrom-Json
+            $capture.appName | Should -Be $context.app.name
+            $capture.extensionId | Should -Be $context.app.id
+            @($capture.disabledTests).Count | Should -Be 1
+            $capture.returnTrueIfAllPassed | Should -BeTrue
+            $capture.testType | Should -Be "IntegrationTest"
+            $capture.useSuppliedDisabledTests | Should -BeTrue
+            $capture.skipAutomaticDisabledPass | Should -BeTrue
+            $capture.skipTestTolerance | Should -BeTrue
+            $context.result.coverageIsComplete | Should -BeNullOrEmpty
+            Test-Path -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE | Should -BeFalse
+        }
+        finally {
+            Remove-Item Env:\BCAPPS_FALLBACK_CAPTURE -ErrorAction SilentlyContinue
+        }
     }
-}
 
-Describe "AlTool coverage capability fallback" {
-    It "keeps UnitTest and Legacy on their existing runners" -ForEach @(
-        @{ TestType = "UnitTest" }
-        @{ TestType = "Legacy" }
-    ) {
-        $capability = Get-BcAppsAlToolCoverageCapability -TestType $TestType `
-            -PlatformVersion "30.0.56026.0" -PlatformVersionReason "" `
-            -ActionPath $TestDrive -CoverageEnabled $true
-        $capability.Supported | Should -BeFalse
-        $capability.Reason | Should -Match "only IntegrationTest and Uncategorized"
+    It "fails closed for an invalid contract version" {
+        $root = Join-Path $TestDrive "bad-version"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root
+        $context.contractVersion = 2
+        $parameters = Get-TestParameterSet -Root $root
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun `
+                -Parameters $parameters `
+                -CodeCoverageContext $context `
+                -FallbackScriptPath (Join-Path $root "fallback.ps1")
+        } | Should -Throw "*Expected version 1*"
     }
 
-    It "rejects platforms older than the coverage minimum" {
-        $capability = Get-BcAppsAlToolCoverageCapability -TestType "IntegrationTest" `
-            -PlatformVersion "30.0.56025.0" -PlatformVersionReason "" `
-            -ActionPath $TestDrive -CoverageEnabled $true
-        $capability.Supported | Should -BeFalse
-        $capability.Reason | Should -Match "older than the required 30.0.56026.0"
+    It "fails closed when coverage is supplied for Legacy" {
+        $root = Join-Path $TestDrive "legacy"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root -TestType "Legacy"
+        $parameters = Get-TestParameterSet -Root $root
+        $parameters.testType = "Legacy"
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun `
+                -Parameters $parameters `
+                -CodeCoverageContext $context `
+                -FallbackScriptPath (Join-Path $root "fallback.ps1")
+        } | Should -Throw "*only for IntegrationTest and Uncategorized*"
     }
 
-    It "does not replace the action-owned unsupported status when the adapter is disabled" {
-        $root = Join-Path $TestDrive "fallback"
-        $coverageRoot = Join-Path $root "CodeCoverage"
-        New-Item -Path $coverageRoot -ItemType Directory -Force | Out-Null
-        $statusPath = Join-Path $coverageRoot "coverage-status.json"
-        '{"runs":[{"state":"unsupported"}]}' | Set-Content -LiteralPath $statusPath -Encoding UTF8
-        $context = @{ Enabled = $false; Reason = "Unavailable"; StatusPath = $statusPath }
+    It "fails closed when the context app does not match the current AL-Go app" {
+        $root = Join-Path $TestDrive "mismatch"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root
+        $parameters = Get-TestParameterSet -Root $root
+        $parameters.extensionId = "33333333-3333-3333-3333-333333333333"
 
-        Complete-BcAppsAlToolCoverage -Context $context
+        {
+            Invoke-BcAppsCoverageAwareTestRun `
+                -Parameters $parameters `
+                -CodeCoverageContext $context `
+                -FallbackScriptPath (Join-Path $root "fallback.ps1")
+        } | Should -Throw "*coverage context app ID*"
+    }
 
-        (Get-Content -LiteralPath $statusPath -Raw) | Should -Match '"unsupported"'
+    It "fails closed when authoritative roots are missing regular app metadata" {
+        $root = Join-Path $TestDrive "no-app-root"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $context = Get-TestCoverageContext -Root $root
+        $context.sourceRootDetails[0].kind = "test"
+        $parameters = Get-TestParameterSet -Root $root
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun `
+                -Parameters $parameters `
+                -CodeCoverageContext $context `
+                -FallbackScriptPath (Join-Path $root "fallback.ps1")
+        } | Should -Throw "*regular app source root*"
     }
 }
