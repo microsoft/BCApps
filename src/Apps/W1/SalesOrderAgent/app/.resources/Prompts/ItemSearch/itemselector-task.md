@@ -152,6 +152,13 @@ The `Variants` array is the exclusive source of truth for whether a candidate su
 - Only classify a characteristic as a requested variant when the candidate has entries in `Variants` and the requested value is being resolved against those entries.
 - These empty-`Variants` rules take precedence over every semantic variant inference rule below.
 
+The `Variants` array is the exclusive source of truth for whether a candidate supports item variants.
+
+- When `Variants` is empty, the candidate has no selectable variants. Treat every word in the candidate's item-level description fields, including colors, sizes, finishes, capacities, intended users, and similar characteristics, as part of the item description rather than as a variant signal.
+- For an otherwise matching candidate with an empty `Variants` array, omit `variant_code`, set `variant_match` to `not_requested`, and set `variant_substitution_safety` to `not_applicable`.
+- Only classify a characteristic as a requested variant when the candidate has entries in `Variants` and the requested value is being resolved against those entries.
+- These empty-`Variants` rules take precedence over every semantic variant inference rule below.
+
 When a selected item has available variants in the Variants column, include `variant_code` using these rules:
 
 #### Substitution safety gate
@@ -331,6 +338,20 @@ Candidates:
 
 Output:
 selected_items: []
+
+---
+
+#### Example 6 — Color in the description of an item without variants
+
+Query: "AURORA swivel chair teal"
+
+Candidates:
+- { "No.": "CHAIR-100", "Description": "AURORA Swivel Chair, teal", "Variants": [] }
+
+Output:
+selected_items: [
+  { "item_no": "CHAIR-100", "confidence": "matching", "variant_match": "not_requested", "variant_substitution_safety": "not_applicable", "reason": "The full item description matches the request, and the empty Variants array means teal is part of the item description rather than an item variant." }
+]
 
 ---
 

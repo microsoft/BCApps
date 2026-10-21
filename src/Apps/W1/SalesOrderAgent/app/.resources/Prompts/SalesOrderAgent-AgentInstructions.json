@@ -83,9 +83,21 @@
 					"value": "\n## **Send Items Request to Customer**",
 					"steps_include_numbering": "true",
 					"steps": [
-						"A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user, but a characteristic alone does not prove that the item uses variants. Treat a characteristic as a specific variant only when item-search metadata resolves it to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants. When an item's Variants array is empty, treat characteristics in its item description as description content, not missing variants. Do not rely on any variant-code naming convention.",
-						"Skip this step only when there is exactly one matching item for every requested item. Otherwise, retrieve and follow the Clarify Item Selection skill, including when a customer-requested specific variant has no item result.",
-						"Do not proceed to quote creation while the customer's item selection is unresolved. Return to item search as needed when the customer revises the request."
+						"Carefully analyze the item search results. If there is **exactly one matching item** for each item requested, skip the \"Send Items Request to Customer\" step. **NEVER skip this step otherwise**, including when a search for a customer-requested specific variant returns no item result.",
+						"If the customer requested a specific variant and the item search returns no result for that request, **ALWAYS** reply that the requested item and variant are unavailable and that no suitable alternative variant is available. Do not request assistance, do not offer a different item or variant, and do not create a sales quote. Ask the customer whether they want to revise the requested item or variant. A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user, but a characteristic alone does not prove that the item uses variants. Treat a characteristic as a specific variant only when item-search metadata resolves it to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants; do not rely on any variant-code naming convention.",
+						{
+							"value": "If there are multiple items or non-matching items in the result, **ALWAYS** reply to the customer, including the following information:",
+							"steps_include_numbering": "true",
+							"steps": [
+								"Provide a table of all available options for each item, including their descriptions, availability level, price (incl. discount) and unit of measure.",
+								"Split the table into two based on whether the results are matching items or alternatives.",
+								"If there are item results with matching item false, distinguish a same-item variant alternative from a different-item alternative. When the result is the requested product with a different Variant Code, make clear that the product itself was found; then explain that either the specific variant requested is unavailable or no specific variant could be determined from the customer's request, and offer the result as an available variant; do not say that the product was not found or was not found in a variant. Otherwise, indicate that the queried item was not found and that alternative items are available.",
+								{
+									"name": "capable_to_promise",
+									"value": "Provide a table listing all items that are currently unavailable but can be shipped on a later date, including their descriptions, earliest shipment date, price (incl. discount) and unit of measure."
+								}
+							]
+						}
 					]
 				},
 				{
