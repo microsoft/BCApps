@@ -182,6 +182,7 @@ table 6900 Expense
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the amount.';
             TableRelation = "Currency";
 
             trigger OnValidate()
@@ -1157,7 +1158,10 @@ table 6900 Expense
     end;
 
     procedure UpdateAmount()
+    var
+        ExpenseCurrency: Record Currency;
     begin
+        ExpenseCurrency.Initialize(Rec."Currency Code");
         GeneralLedgerSetup.GetRecordOnce();
         UpdateCurrencyFactor();
 

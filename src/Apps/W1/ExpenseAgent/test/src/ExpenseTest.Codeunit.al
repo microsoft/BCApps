@@ -2311,7 +2311,6 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseItemization.FieldCaption(Quantity), 1, ExpenseItemization.TableCaption()));
     end;
 
-    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because setting the Expense Itemization "Start Date" is validated against the license-allowed month window ('??11*|??12*|??01*|??02*'), and the CI WorkDate can fall outside that range.
     [Test]
     [HandlerFunctions('ExactMessageHandler,SetDateInExpenseItemizationsModalPageHandler')]
     procedure DescriptionMustBeFlowFromExpenseToExpenseItemization()
@@ -2338,7 +2337,7 @@ codeunit 148305 "Expense Test"
         LibraryERM.FindPostCode(PostCode);
 
         // [GIVEN] Create Currency with Exchange Rate.
-        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(DMY2Date(1, 1, 2020), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
 
         // [GIVEN] Get Currency.
         Currency.Get(CurrencyCode);
@@ -2348,7 +2347,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense with Rule "Itemize".
         CreateExpenseWithRule(
-            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, CurrencyCode, Amount, WorkDate(),
+            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, CurrencyCode, Amount, DMY2Date(1, 1, 2025),
             "Expense Detail Needed"::Itemize, ExpenseRuleHeader."Justification Required"::" ", '', ExpenseRuleCondition."Condition Type"::"Max Amount", true, Amount);
 
         // [GIVEN] Get "Expense Category".
@@ -2368,7 +2367,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Enqueue Expense SubCategory and Work Date for ExpenseItemizationsModalPageHandler.
         LibraryVariableStorage.Enqueue(Expense."Expense Subcategory");
-        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(DMY2Date(1, 1, 2025));
 
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
