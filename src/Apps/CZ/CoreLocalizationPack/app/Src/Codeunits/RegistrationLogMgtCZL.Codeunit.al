@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 11755 "Registration Log Mgt. CZL"
 {
@@ -19,6 +20,13 @@ codeunit 11755 "Registration Log Mgt. CZL"
         NotVerifiedRegNoMsg: Label 'We couldn''t verify the registration number. Try again later.';
         DetailNotVerifiedMsg: Label 'Registration number is valid.\No details information was provided by ARES service.';
         DescriptionLbl: Label 'Registration No. Validation Service Setup';
+        ResponseIntegrityErr: Label 'The response from the ARES registration number validation service did not match the requested registration number and was rejected.';
+        ResponseMissingIdentifierErr: Label 'The response from the ARES registration number validation service did not include the requested registration number and was rejected.';
+        ResponseIntegrityTxt: Label 'The registration no. validation failed. The ARES response identifier did not match the request.', Locked = true;
+        ResponseMissingIdentifierTxt: Label 'The registration no. validation failed. The ARES response did not include the requested identifier.', Locked = true;
+        SecurityAuditResponseIntegrityTxt: Label 'The ARES registration number validation service returned a response that did not match the requested registration number.', Locked = true;
+        SecurityAuditResponseMissingIdentifierTxt: Label 'The ARES registration number validation service returned a response that did not include the requested registration number.', Locked = true;
+        AresTelemetryCategoryTok: Label 'ARES Registration No. Validation', Locked = true;
 
     procedure LogCustomer(Customer: Record Customer)
     begin
@@ -94,6 +102,10 @@ codeunit 11755 "Registration Log Mgt. CZL"
         NAKeyTok: Label 'N/A', Locked = true;
         CountryCodeKeyTok: Label 'kodStatu', Locked = true;
     begin
+        // A response from the unauthenticated ARES service is trusted only if it echoes the requested registration
+        // number, so a substituted or malformed response cannot write another company's data into master data.
+        ValidateResponseIntegrity(NewRegistrationLogCZL, ResponseObject);
+
         NewRegistrationLogCZL."Entry No." := 0;
         NewRegistrationLogCZL.Status := NewRegistrationLogCZL.Status::Valid;
         NewRegistrationLogCZL."Verified Date" := CurrentDateTime;
@@ -164,6 +176,36 @@ codeunit 11755 "Registration Log Mgt. CZL"
 
         if NewRegistrationLogCZL.LogDetails() then
             NewRegistrationLogCZL.Modify();
+    end;
+
+    local procedure ValidateResponseIntegrity(RegistrationLogCZL: Record "Registration Log CZL"; ResponseObject: JsonObject)
+    var
+        AuditLog: Codeunit "Audit Log";
+        ResponseRegistrationNo: Text;
+        RegistrationNoKeyTok: Label 'ico', Locked = true;
+    begin
+        // GetValue accepts only a scalar value, so an object or array cannot stand in for the identifier.
+        if not GetValue(ResponseObject, RegistrationNoKeyTok, ResponseRegistrationNo) or (NormalizeRegistrationNo(ResponseRegistrationNo) = '') then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+            AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifierTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('0000W6X', ResponseMissingIdentifierTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
+            Error(ResponseMissingIdentifierErr);
+        end;
+
+        if NormalizeRegistrationNo(ResponseRegistrationNo) <> NormalizeRegistrationNo(RegistrationLogCZL."Registration No.") then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('0000W6Y', ResponseIntegrityTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
+            Error(ResponseIntegrityErr);
+        end;
+    end;
+
+    local procedure NormalizeRegistrationNo(RegistrationNo: Text): Text
+    begin
+        // ARES echoes the IČO as an 8-character string padded with leading zeros, while the requested number may be
+        // entered without padding or with separators, so compare only the significant alphanumeric characters.
+        RegistrationNo := UpperCase(RegistrationNo);
+        RegistrationNo := DelChr(RegistrationNo, '=', DelChr(RegistrationNo, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'));
+        exit(DelChr(RegistrationNo, '<', '0'));
     end;
 
     local procedure FormatPostCode(PostCode: Text): Code[20]
