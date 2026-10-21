@@ -439,7 +439,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
         CheckPaymentCustomerFields(CustLedgerEntry."Customer No.");
         TempErrorMessage.LogIfEmpty(CustLedgerEntry, CustLedgerEntry.FieldNo("Payment Method Code"), TempErrorMessage."Message Type"::Error);
         CheckPaymentMethodMapping(CustLedgerEntry."Payment Method Code");
-        //TempErrorMessage.LogIfEmpty(CustLedgerEntry, CustLedgerEntry.FieldNo("Currency Code"), TempErrorMessage."Message Type"::Error);
 
         GeneralLedgerSetup.Get();
         if CustLedgerEntry."Currency Code" <> GeneralLedgerSetup."LCY Code" then
@@ -748,8 +747,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
     begin
-        // DCLE_A: Cust. Ledger Entry No. = Invoice, Applied = Payment → the entries we want.
-        // DCLE_B: Cust. Ledger Entry No. = Payment (self-referential) → must be excluded.
         DetailedCustLedgEntry.SetRange("Applied Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
         DetailedCustLedgEntry.SetRange(Unapplied, false);
@@ -822,9 +819,6 @@ codeunit 3363 "EDoc CFDI Validation MX"
             TempErrorMessage.LogMessage(CustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentEntryDetailsMissingErr, CustLedgerEntry."Entry No."));
             exit;
         end;
-
-        TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo(Amount), TempErrorMessage."Message Type"::Error);
-        TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo("Amount (LCY)"), TempErrorMessage."Message Type"::Error);
     end;
 
     local procedure CheckSATCatalogs()
