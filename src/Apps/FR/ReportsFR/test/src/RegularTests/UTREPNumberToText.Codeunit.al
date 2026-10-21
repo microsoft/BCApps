@@ -1365,7 +1365,7 @@ codeunit 144044 "UT REP Number To Text"
         JournalRecordRef: RecordRef;
         OutputStream: OutStream;
         InputStream: InStream;
-        Signature: Text[5];
+        Signature: Text;
     begin
         JournalRecordRef.GetTable(GenJournalLine);
         Check.InitializeRequest(BankAccount."No.", BankAccount."Last Check No.", false, false, true, false);

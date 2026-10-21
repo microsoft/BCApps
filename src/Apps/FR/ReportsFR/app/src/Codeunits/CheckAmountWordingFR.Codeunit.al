@@ -58,7 +58,12 @@ codeunit 10824 "Check Amount Wording FR"
         CentLbl: Label 'CENT';
 
     [EventSubscriber(ObjectType::Report, Report::Check, 'OnBeforeFormatNoText', '', false, false)]
-    internal procedure OnBeforeFormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10]; var IsHandled: Boolean)
+    local procedure OnBeforeFormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+        HandleBeforeFormatNoText(NoText, No, CurrencyCode, IsHandled);
+    end;
+
+    internal procedure HandleBeforeFormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10]; var IsHandled: Boolean)
 #if not CLEAN30
     var
 #pragma warning disable AL0432

@@ -90,7 +90,7 @@ codeunit 148009 "Library - Reports FR"
     var
         CheckAmountWordingFR: Codeunit "Check Amount Wording FR";
     begin
-        CheckAmountWordingFR.OnBeforeFormatNoText(NoText, No, CurrencyCode, IsHandled);
+        CheckAmountWordingFR.HandleBeforeFormatNoText(NoText, No, CurrencyCode, IsHandled);
     end;
 
 #if not CLEAN30

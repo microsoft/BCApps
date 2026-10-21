@@ -1641,15 +1641,15 @@ report 1401 Check
 #endif
     local procedure GetAmtDecimalPosition(): Decimal
     var
-        Currency: Record Currency;
+        CheckCurrency: Record Currency;
     begin
         if GenJnlLine."Currency Code" = '' then
-            Currency.InitRoundingPrecision()
+            CheckCurrency.InitRoundingPrecision()
         else begin
-            Currency.Get(GenJnlLine."Currency Code");
-            Currency.TestField("Amount Rounding Precision");
+            CheckCurrency.Get(GenJnlLine."Currency Code");
+            CheckCurrency.TestField("Amount Rounding Precision");
         end;
-        exit(1 / Currency."Amount Rounding Precision");
+        exit(1 / CheckCurrency."Amount Rounding Precision");
     end;
 
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean
