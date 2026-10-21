@@ -2281,10 +2281,14 @@
           InvoiceNo, VATPostingSetup."VAT Prod. Posting Group");
         Assert.AreEqual(-160, VATEntry."Remaining Unrealized Amount", 'Unapplying should restore invoice unrealized VAT');
         Assert.AreEqual(-1000, VATEntry."Remaining Unrealized Base", 'Unapplying should restore invoice unrealized base');
+        // Unapplication G/L entries have a blank document type, unlike the original credit memo.
+        GLEntry.SetFilter("Document Type", '%1|%2', GLEntry."Document Type"::"Credit Memo", GLEntry."Document Type"::" ");
         GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Account");
+        Assert.RecordCount(GLEntry, 2);
         GLEntry.CalcSums(Amount);
         Assert.AreEqual(0, GLEntry.Amount, 'Unapplying should reverse realized VAT in the sales VAT account');
         GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        Assert.RecordCount(GLEntry, 2);
         GLEntry.CalcSums(Amount);
         Assert.AreEqual(0, GLEntry.Amount, 'Unapplying should reverse the transfer from unrealized VAT');
     end;
