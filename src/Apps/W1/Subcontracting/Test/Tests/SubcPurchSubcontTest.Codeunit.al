@@ -56,6 +56,11 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         IsInitialized: Boolean;
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ComponentExpectedReceiptDateAssertMsg: Label 'Expected Receipt Date must match the component Due Date.';
+        PlannedReceiptDateAssertMsg: Label 'Planned Receipt Date must be calculated no later than Expected Receipt Date.';
+        ComponentOrderDateAssertMsg: Label 'Order Date must be calculated from the component lead time.';
+        WorkDateOrderDateAssertMsg: Label 'Order Date must not be overwritten with Work Date.';
+        ServiceLineExpectedReceiptDateAssertMsg: Label 'The service line must retain the routing operation ending date.';
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
@@ -1183,6 +1188,69 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
+    end;
+    
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
+    procedure VendorSuppliedComponentPurchaseLineUsesComponentDates()
+    var
+        ComponentItem: Record Item;
+        HomeLocation: Record Location;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+        ComponentDueDate: Date;
+    begin
+        // [SCENARIO 650504] Vendor-supplied component purchase lines use component requirement dates and standard purchase scheduling.
+        Initialize();
+
+        // [GIVEN] A subcontracting production order with a vendor-supplied component and a nonzero purchase lead time
+        SetupSubContractingProdOrder(
+            Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder,
+            "Component Supply Method"::"Vendor-Supplied", LibraryRandom.RandIntInRange(1, 10));
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+        ProdOrderComponent.FindFirst();
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
+        ComponentItem.Modify(true);
+        ComponentDueDate := CalcDate('<30D>', WorkDate());
+        ProdOrderComponent."Due Date" := ComponentDueDate;
+        ProdOrderComponent.Modify(true);
+
+        // [WHEN] A subcontracting purchase order is created directly from the production routing line
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [THEN] The component purchase line uses the component due date and its calculated order schedule
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);
+        Assert.IsTrue(PurchaseLine."Planned Receipt Date" <= PurchaseLine."Expected Receipt Date", PlannedReceiptDateAssertMsg);
+        Assert.IsTrue(PurchaseLine."Order Date" < PurchaseLine."Planned Receipt Date", ComponentOrderDateAssertMsg);
+        Assert.IsTrue(PurchaseLine."Order Date" <> WorkDate(), WorkDateOrderDateAssertMsg);
+
+        // [THEN] The subcontracting service line retains the routing operation ending date
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(ProdOrderRoutingLine."Ending Date", PurchaseLine."Expected Receipt Date", ServiceLineExpectedReceiptDateAssertMsg);
     end;
 
     local procedure Initialize()

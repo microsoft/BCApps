@@ -265,7 +265,6 @@ codeunit 20557 "Subc. Purchase Order Creator"
                             PurchaseLine."Dimension Set ID" :=
                                 DimensionManagement.GetCombinedDimensionSetID(
                                     DimensionSetIDArr, PurchaseLine."Shortcut Dimension 1 Code", PurchaseLine."Shortcut Dimension 2 Code");
-                            PurchaseLine."Order Date" := WorkDate();
 
                             PurchaseLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
                             PurchaseLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
@@ -279,6 +278,15 @@ codeunit 20557 "Subc. Purchase Order Creator"
                 end;
             end
         end;
+    end;
+
+    internal procedure SetVendorSuppliedComponentPurchaseDates(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component")
+    begin
+        if ProdOrderComponent."Due Date" = 0D then
+            exit;
+
+        PurchaseLine.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
+        PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
     end;
 
     /// <summary>
@@ -645,10 +653,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         PurchaseLine."Item Category Code" := Item."Item Category Code";
         PurchaseLine.Validate("Purchasing Code", RequisitionLine."Purchasing Code");
 
-        if RequisitionLine."Due Date" <> 0D then begin
-            PurchaseLine.Validate("Expected Receipt Date", RequisitionLine."Due Date");
-            PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
-        end;
+        SetVendorSuppliedComponentPurchaseDates(PurchaseLine, ProdOrderComponent);
     end;
 
     local procedure InsertReqWkshLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line"; ReqWkshTemplateName: Code[10]; WkshName: Code[10]; QtyToPurch: Decimal)
