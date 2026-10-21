@@ -106,7 +106,7 @@ page 43000 "Report Filename Patterns"
         {
             action(TestPattern)
             {
-                Caption = 'Test Pattern';
+                Caption = 'Test pattern';
                 ToolTip = 'Opens a page where you choose records and see the file name they would get, and whether that name comes from this pattern, from another pattern, or is Business Central''s own file name.';
                 ApplicationArea = All;
                 Image = TestFile;
@@ -162,7 +162,7 @@ page 43000 "Report Filename Patterns"
             }
             action(ShowOverlappingPatterns)
             {
-                Caption = 'Show Overlapping Patterns';
+                Caption = 'Show overlapping patterns';
                 ToolTip = 'Opens the patterns that could apply to the same files as the selected pattern, with their priorities, so you can see which one is used. Table filters are not compared, so use Test Pattern to check real records.';
                 ApplicationArea = All;
                 Image = FilterLines;

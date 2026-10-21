@@ -27,7 +27,6 @@ page 43002 "Report Filename Preview"
                 ToolTip = 'Specifies an example of the file name this pattern produces. The values show the form each value takes and are not read from any record, so the example works before any records exist. Use Test Pattern to try the pattern on real records.';
                 ApplicationArea = All;
                 MultiLine = true;
-                StyleExpr = ResultStyle;
             }
             // A run over many records produces a different name than a single-record run.
             group(OverManyRecords)
@@ -74,12 +73,8 @@ page 43002 "Report Filename Preview"
 
         // Shaped without a document, so no record's values are shown. Test Pattern is the action
         // that uses real records.
-        if ReportFilenamePreviewMgt.TryPreviewShape(Rec, ResultingFileName, Explanation) then
-            ResultStyle := 'Favorable'
-        else begin
+        if not ReportFilenamePreviewMgt.TryPreviewShape(Rec, ResultingFileName, Explanation) then
             ResultingFileName := KeepsExistingMsg;
-            ResultStyle := 'Ambiguous';
-        end;
 
         BuildMultipleRecordsExample();
         HasExplanation := Explanation <> '';
@@ -120,7 +115,6 @@ page 43002 "Report Filename Preview"
         ResultingFileName: Text;
         OverManyRecordsName: Text;
         Explanation: Text;
-        ResultStyle: Text;
         HasManyRecordsExample: Boolean;
         HasExplanation: Boolean;
         AFewLbl: Label 'A few: %1', Comment = '%1 the file name when the run covers a few records';

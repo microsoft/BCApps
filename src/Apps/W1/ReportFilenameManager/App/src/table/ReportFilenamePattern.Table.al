@@ -250,7 +250,7 @@ table 43000 "Report Filename Pattern"
         NothingCompetesMsg: Label 'No other pattern can apply to the same files as %1.', Comment = '%1 the pattern, as its card is titled';
         NoDocumentTypeForFilterErr: Label 'Choose the table this pattern applies to before you set a table filter.';
         NoDocumentTypeForLanguageErr: Label 'Choose the table this pattern applies to first, so its fields can be offered.';
-        ReportDecidesErr: Label 'The table is decided by the report this pattern applies to, %1, and cannot be changed - a pattern that disagrees with its own report would never be used. Choose Clear Report first if you want the pattern to cover every report on a table.', Comment = '%1 the report';
+        ReportDecidesErr: Label 'The table is decided by the report this pattern applies to, %1, and cannot be changed - a pattern that disagrees with its own report would never be used. Choose Clear report first if you want the pattern to cover every report on a table.', Comment = '%1 the report';
         NoLanguageFieldErr: Label 'Choose the language code field before you limit this pattern to %1.', Comment = '%1 language code';
         NotALanguageFieldErr: Label '%1 does not hold a language, because it does not relate to the Language table. Choose a field that does, such as Language Code.', Comment = '%1 the caption of the field that was chosen';
         NoLanguageFieldOnTableErr: Label '%1 has no field that holds a language, so this pattern cannot be limited to one.', Comment = '%1 the caption of the table';

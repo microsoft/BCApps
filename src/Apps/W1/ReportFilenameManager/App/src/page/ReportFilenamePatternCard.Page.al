@@ -216,7 +216,7 @@ page 43001 "Report Filename Pattern Card"
             }
             action(ClearReport)
             {
-                Caption = 'Clear Report';
+                Caption = 'Clear report';
                 ToolTip = 'Removes the report from this pattern and keeps its table, so the pattern applies to every report on that table.';
                 ApplicationArea = All;
                 Image = ClearFilter;
@@ -231,7 +231,7 @@ page 43001 "Report Filename Pattern Card"
             }
             action(TestPattern)
             {
-                Caption = 'Test Pattern';
+                Caption = 'Test pattern';
                 ToolTip = 'Opens a page where you choose records and see the file name they would get, and whether that name comes from this pattern, from another pattern, or is Business Central''s own file name.';
                 ApplicationArea = All;
                 Image = TestFile;

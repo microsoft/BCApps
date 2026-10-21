@@ -214,15 +214,15 @@ codeunit 43001 "Report Filename Subscribers"
     /// Base Application raises no event before its loop over the report selections on every route,
     /// so a batch starts when the current row is the first of the set.
     /// </summary>
-    local procedure StartBatchOnFirstSelection(var ReportSelections: Record "Report Selections" temporary)
+    local procedure StartBatchOnFirstSelection(var TempReportSelections: Record "Report Selections" temporary)
     var
         TempFirstSelection: Record "Report Selections" temporary;
         ReportFilenameContext: Codeunit "Report Filename Context";
     begin
-        TempFirstSelection.Copy(ReportSelections, true);
+        TempFirstSelection.Copy(TempReportSelections, true);
         if not TempFirstSelection.FindFirst() then
             exit;
-        if TempFirstSelection.RecordId() = ReportSelections.RecordId() then
+        if TempFirstSelection.RecordId() = TempReportSelections.RecordId() then
             ReportFilenameContext.StartBatch();
     end;
 
@@ -393,20 +393,20 @@ codeunit 43001 "Report Filename Subscribers"
     /// <summary>
     /// For NameThroughGetAttachmentFileName, whose event carries neither the report nor the selection row.
     /// </summary>
-    local procedure RecordPendingFile(var ReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant; DocumentType: Text; Channel: Enum "Report Filename Output Route")
+    local procedure RecordPendingFile(var TempReportSelections: Record "Report Selections" temporary; var RecordVariant: Variant; DocumentType: Text; Channel: Enum "Report Filename Output Route")
     var
         ReportFilenameContext: Codeunit "Report Filename Context";
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         SourceRecRef: RecordRef;
     begin
-        StartBatchOnFirstSelection(ReportSelections);
+        StartBatchOnFirstSelection(TempReportSelections);
         if not ReportFilenameMgt.IsActive() then
             exit;
         if not TryOpenFromVariant(RecordVariant, SourceRecRef) then
             exit;
-        if ReportSelections."Report ID" = 0 then
+        if TempReportSelections."Report ID" = 0 then
             exit;
-        ReportFilenameContext.SetPendingFile(SourceRecRef, ReportSelections."Report ID", DocumentType, Channel);
+        ReportFilenameContext.SetPendingFile(SourceRecRef, TempReportSelections."Report ID", DocumentType, Channel);
     end;
 
     /// <summary>
