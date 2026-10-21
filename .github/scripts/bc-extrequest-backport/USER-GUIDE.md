@@ -30,6 +30,11 @@ Either or both types are allowed. Other categories, including enum requests, ext
 3. Copy whole PRs, oldest first, normally combining each team's clean changes into one draft backport PR per run.
 4. Create or update **one tracking Task per branch and milestone**, shared across teams and runs.
 
+New code branches are named `bc-extrequest-backport/backport_11166` for original
+PR 11166, or `bc-extrequest-backport/scm-2026-10-21` for a weekly SCM batch.
+The team date uses Copenhagen time. If another backport already uses the name,
+add `-2`, `-3`, etc. Retries keep the same branch; existing branches are not renamed.
+
 Example tracker title:
 
 ```text

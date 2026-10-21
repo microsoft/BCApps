@@ -162,10 +162,29 @@ outcomes. A PR is never split simply to reduce batch size.
 
 ## Publication and recovery
 
-Independent requests retain the deterministic branch
-`bc-extrequest-backport/pr-<main-pr>/<version>.x`. Team requests have their own
-stable batch identity and branch, with immutable membership linking each source
-PR and merge SHA. The shared Task is a mutable milestone index, not a single
+New backport branches use these names:
+
+| Request | Branch example |
+| --- | --- |
+| Single original main PR 11166 | `bc-extrequest-backport/backport_11166` |
+| Weekly SCM batch | `bc-extrequest-backport/scm-2026-10-21` |
+| Weekly Finance batch | `bc-extrequest-backport/finance-2026-10-21` |
+
+The single-request number is the **original PR number**, not an issue number.
+Team names use a lowercase branch-safe slug; the date is the discovery date in
+Europe/Copenhagen. If another backport already uses or reserves the name, add
+`-2`, `-3`, and so on. The chosen name is retained with the immutable cohort,
+so a retry uses the same branch even on a different day. A branch that changes
+unexpectedly is never overwritten.
+
+Existing requests keep their original branches, including older
+`pr-<main-pr>/<version>.x`, `single-<main-pr>` and `team-<hash>` names under
+`bc-extrequest-backport/`. They are not renamed or recreated under the new naming
+scheme.
+
+Team requests retain a stable batch identity, separate from the readable branch
+name, with immutable membership linking each source PR and merge SHA.
+The shared Task is a mutable milestone index, not a single
 immutable cohort. Per-request journal records preserve membership, outcomes,
 source identities and publication intent separately from the accumulating
 table. Existing objects must have
@@ -173,6 +192,8 @@ the expected identity, repository, branches and GitHub App author. Open and
 closed PRs are both checked; legacy independent requests are not replayed into
 new team batches.
 Branches are never force-pushed and human edits are never overwritten.
+New references use create-only publication: a late collision stops rather than
+updating an existing branch or silently changing the cohort's pinned name.
 
 The only label this workflow adds to an original main PR is
 **`ext-backport-processed`**, after it confirms that source's backport PR exists.

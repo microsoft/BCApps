@@ -3,6 +3,7 @@ using module .\Backport.psm1
 Describe 'Shared milestone journal engine' {
     InModuleScope Backport {
         BeforeAll {
+            $script:originalBackportGit = (Get-Command Invoke-BackportGit).ScriptBlock
             function New-MilestoneFixture {
                 param([int] $Start = 42, [string] $Team = 'Team: Finance',
                     [string[]] $Outcomes = @('applied', 'conflict', 'already-present'), [string] $Mode = 'team')
@@ -76,6 +77,30 @@ Describe 'Shared milestone journal engine' {
                     milestone = $script:db.milestones[0]; html_url = 'https://github.com/microsoft/BCApps/issues/100'
                 }
                 $script:db.nextIssue = 101
+            }
+            function Use-ReadableBranchFixture {
+                $script:db.remoteHeads = @{}
+                Mock Invoke-BackportGit {
+                    $prefix = 'refs/heads/'
+                    if ($Arguments[0] -eq 'ls-remote') {
+                        $branch = $Arguments[-1].Substring($prefix.Length)
+                        $sha = $script:db.remoteHeads[$branch]
+                        return @{ text = if ($sha) { "$sha`t$prefix$branch" } else { '' }; exit_code = 0 }
+                    }
+                    if ($Arguments[0] -eq 'push') {
+                        $Arguments.Count | Should -Be 4
+                        $Arguments[2] | Should -Be 'origin'
+                        $sha, $ref = $Arguments[3].Split(':', 2)
+                        $Arguments[1] | Should -BeExactly "--force-with-lease=$($ref):"
+                        $branch = $ref.Substring($prefix.Length)
+                        $script:db.remoteHeads.ContainsKey($branch) | Should -BeFalse
+                        $script:db.remoteHeads[$branch] = $sha
+                        return @{ text = ''; exit_code = 0 }
+                    }
+                    throw "Unexpected Git operation $($Arguments -join ' ')"
+                }
+                $script:state.cohort.branch = New-BackportCohortBranch microsoft/BCApps $TestDrive $script:state.cohort.request @()
+                Save-MilestoneFixture $script:state
             }
         }
         BeforeEach {
@@ -194,6 +219,578 @@ Describe 'Shared milestone journal engine' {
                 }
                 throw "Unexpected API operation: $Method $Path"
             }
+        }
+
+        It 'names single requests from the original main PR, never its original issue' {
+            $script:state = New-MilestoneFixture -Start 11166 -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $state.cohort.branch | Should -BeExactly 'bc-extrequest-backport/backport_11166'
+            Publish-ExtRequestBackport $statePath 'test-app[bot]'
+            $pull = $db.pulls['200']
+            $pull.head.ref | Should -BeExactly 'bc-extrequest-backport/backport_11166'
+            $pull.head.ref | Should -Not -Match '10$'
+            Assert-BackportMilestonePull $pull $state 'test-app[bot]'
+            Should -Invoke Invoke-BackportApi -ParameterFilter {
+                $Path -like '*/pulls?state=all&head=microsoft:bc-extrequest-backport/backport_11166&*'
+            }
+            Should -Invoke Invoke-BackportGit -Times 1 -ParameterFilter {
+                $Arguments[0] -eq 'push' -and
+                $Arguments[3] -ceq "$($script:state.cohort.head):refs/heads/bc-extrequest-backport/backport_11166"
+            }
+            $db.sources['11166'].labels.name | Should -Contain 'ext-backport-processed'
+            @($db.writes | Where-Object path -eq 'repos/microsoft/BCApps/issues/10/labels').Count | Should -Be 0
+        }
+
+        It 'blocks the personal demo singleton alias after manual discovery bypasses the processed label' -ForEach @(
+            @{ status = 'open' }, @{ status = 'closed' }
+        ) {
+            $script:state = New-MilestoneFixture -Start 11166 -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            $db.sources['11166'].labels += @{ name = 'ext-backport-processed' }
+            $db.issues['13146'] = @{
+                number = 13146; title = '[Simulation] Personal backport demonstration'; state = $status
+                body = '<!-- bc-extrequest-backport-personal:tracker:v3 demonstration -->'
+                user = @{ login = 'personal-demo-author' }; milestone = $null; labels = @(@{ name = 'ext-backporting' })
+            }
+            $db.pulls['13147'] = @{
+                number = 13147; title = '[Simulation] Backport #11166'; state = $status
+                body = '<!-- bc-extrequest-backport-personal:journal:v3 demonstration -->'
+                user = @{ login = 'personal-demo-author' }
+                head = @{ ref = 'bc-extrequest-backport/single-11166'; sha = $state.cohort.head }
+            }
+            $personalBefore = ConvertTo-BackportCanonicalJson @($db.issues['13146'], $db.pulls['13147'])
+            Mock Invoke-BackportApi { @(@{ name = 'releases/29.x' }) } -ParameterFilter {
+                $Method -ne 'POST' -and $Path -like '*/branches?*'
+            }
+            $row = Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 11166 -BatchId 999
+            $row.manual | Should -BeTrue
+            $row.source_prs -join ',' | Should -BeExactly '11166'
+            $row.ContainsKey('journal_id') | Should -BeFalse
+            Use-ReadableBranchFixture
+            $state.cohort.branch | Should -BeExactly 'bc-extrequest-backport/backport_11166'
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*legacy alias*foreign or unregistered*'
+            (ConvertTo-BackportCanonicalJson @($db.issues['13146'], $db.pulls['13147'])) | Should -BeExactly $personalBefore
+            $db.writes.Count | Should -Be 0
+            $db.comments.Count | Should -Be 0
+            $db.pulls.Count | Should -Be 1
+            Should -Invoke Invoke-BackportApi -ParameterFilter {
+                $Path -like '*/pulls?state=all&head=microsoft:bc-extrequest-backport/single-11166&*'
+            }
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'blocks open or closed native-v1 aliases regardless of foreign or unregistered App authorship' -ForEach @(
+            @{ status = 'open'; author = 'human' }, @{ status = 'closed'; author = 'human' },
+            @{ status = 'open'; author = 'test-app[bot]' }, @{ status = 'closed'; author = 'test-app[bot]' }
+        ) {
+            $script:state = New-MilestoneFixture -Start 11166 -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $db.pulls['91'] = @{
+                number = 91; title = 'Unregistered native backport'; state = $status
+                body = Get-BackportBody $state.cohort.members[0]
+                user = @{ login = $author }
+                head = @{ ref = 'bc-extrequest-backport/pr-11166/29.x'; sha = $state.cohort.head }
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*legacy alias*foreign or unregistered*'
+            $db.writes.Count | Should -Be 0
+            $db.comments.Count | Should -Be 0
+            $db.pulls.Count | Should -Be 1
+            Should -Invoke Invoke-BackportApi -ParameterFilter {
+                $Path -like '*/pulls?state=all&head=microsoft:bc-extrequest-backport/pr-11166/29.x&*'
+            }
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'fails safely on multiple old aliases or multiple PRs on either alias' -ForEach @(
+            @{ kind = 'both' }, @{ kind = 'single-duplicates' }, @{ kind = 'native-duplicates' }
+        ) {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $first = if ($kind -eq 'native-duplicates') { 'bc-extrequest-backport/pr-42/29.x' }
+                else { 'bc-extrequest-backport/single-42' }
+            $second = if ($kind -eq 'both') { 'bc-extrequest-backport/pr-42/29.x' } else { $first }
+            $db.pulls['90'] = @{ number = 90; state = 'open'; head = @{ ref = $first } }
+            $db.pulls['91'] = @{ number = 91; state = 'closed'; head = @{ ref = $second } }
+            $expectedError = switch ($kind) {
+                'both' { '*Ambiguous legacy standalone backport PR aliases*' }
+                'single-duplicates' { '*Multiple PRs for one batch branch*' }
+                'native-duplicates' { '*Multiple backport PRs for the same branch*' }
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw $expectedError
+            $db.writes.Count | Should -Be 0
+            $db.comments.Count | Should -Be 0
+            $db.pulls.Count | Should -Be 2
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'blocks an old singleton alias for any member of a new readable team cohort' {
+            Use-ReadableBranchFixture
+            $db.pulls['91'] = @{
+                number = 91; title = '[Simulation] Excluded source backport'; state = 'closed'
+                head = @{ ref = 'bc-extrequest-backport/single-43' }; user = @{ login = 'human' }; body = ''
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*legacy alias*'
+            $db.writes.Count | Should -Be 0
+            $db.comments.Count | Should -Be 0
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'rechecks legacy aliases when resuming a registered but unpublished readable cohort' {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            Mock Invoke-BackportGit { throw 'Interrupted push' } -ParameterFilter { $Arguments[0] -eq 'push' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Interrupted push*'
+            $db.pulls['91'] = @{
+                number = 91; title = '[Simulation] Personal backport'; state = 'closed'
+                head = @{ ref = 'bc-extrequest-backport/single-42' }; user = @{ login = 'human' }; body = ''
+            }
+            $writes = $db.writes.Count
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*legacy alias*'
+            $db.writes.Count | Should -Be $writes
+            $db.pulls.Count | Should -Be 1
+            Should -Invoke Invoke-BackportGit -Times 1 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'does not adopt an App-authored singleton alias without its registered immutable cohort' {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $db.pulls['91'] = @{
+                number = 91; title = 'Unregistered App backport'; state = 'closed'
+                head = @{ ref = 'bc-extrequest-backport/single-42' }; user = @{ login = 'test-app[bot]' }
+                body = Get-BackportJournalMarker $state
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*foreign or unregistered*'
+            $db.writes.Count | Should -Be 0
+            $db.comments.Count | Should -Be 0
+            $db.pulls.Count | Should -Be 1
+        }
+
+        It 'rechecks old aliases after push and stops before recording PR creation intent' {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            Mock Invoke-BackportGit {
+                $script:db.remoteHeads[$script:state.cohort.branch] = $script:state.cohort.head
+                $script:db.pulls['91'] = @{
+                    number = 91; title = '[Simulation] Concurrent personal backport'; state = 'closed'
+                    head = @{ ref = 'bc-extrequest-backport/single-42' }; user = @{ login = 'human' }; body = ''
+                }
+                return @{ text = ''; exit_code = 0 }
+            } -ParameterFilter { $Arguments[0] -eq 'push' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*legacy alias*'
+            $db.comments['1000'].body | Should -Match ':branch-intent:'
+            $db.comments['1000'].body | Should -Not -Match ':publication-intent:'
+            $db.pulls.Count | Should -Be 1
+            Should -Invoke Invoke-BackportApi -Times 0 -ParameterFilter { $Method -eq 'POST' -and $Path -like '*/pulls' }
+        }
+
+        It 'normalizes actual team names to safe lowercase ASCII branch slugs' -ForEach @(
+            @{ team = 'Team:SCM'; expected = 'scm' },
+            @{ team = 'Team: Finance'; expected = 'finance' },
+            @{ team = 'Team:   MiXeD CASE / & Fulfillment...'; expected = 'mixed-case-fulfillment' },
+            @{ team = 'Team: --Client_UI::v2--'; expected = 'client-ui-v2' }
+        ) {
+            $script:state = New-MilestoneFixture -Team $team -Outcomes @('applied')
+            $request = $state.cohort.request
+            $request.reference_time = '2026-10-21T21:42:00Z'
+            [void]$request.Remove('key')
+            $request.key = 'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $request)).Substring(0, 32)
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $state.cohort.branch | Should -BeExactly "bc-extrequest-backport/$expected-2026-10-21"
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls['200'].head.ref | Should -BeExactly $state.cohort.branch
+            Assert-BackportMilestonePull $db.pulls['200'] $state 'test-app[bot]'
+            (Get-BackportSourceTeam $db.sources['42'] $state.cohort.members[0].issues microsoft/BCApps) | Should -BeExactly $team
+        }
+
+        It 'shares the Copenhagen title date across midnight and daylight-saving boundaries' -ForEach @(
+            @{ clock = '2026-10-21T22:30:00Z'; expected = '2026-10-22' },
+            @{ clock = '2026-01-31T23:30:00Z'; expected = '2026-02-01' },
+            @{ clock = '2026-10-25T22:30:00Z'; expected = '2026-10-25' }
+        ) {
+            $request = $state.cohort.request
+            $request.reference_time = $clock
+            (Get-BackportBranchBase $request) | Should -BeExactly "bc-extrequest-backport/finance-$expected"
+            Get-BackportTitle $state | Should -Match "till $expected$"
+        }
+
+        It 'rejects teams without a nonempty safe ASCII slug' -ForEach @(
+            @{ team = 'Team: !!!' }, @{ team = 'Team: 中文' }, @{ team = 'Team: ---' }
+        ) {
+            $state.cohort.request.team = $team
+            { Get-BackportBranchBase $state.cohort.request } | Should -Throw '*safe ASCII*'
+        }
+
+        It 'allocates the lowest suffix across remote branches, closed PRs and journal-only reservations' {
+            Use-ReadableBranchFixture
+            $base = $state.cohort.branch
+            $db.remoteHeads[$base] = '0' * 40
+            $db.pulls['90'] = @{ number = 90; state = 'closed'; head = @{ ref = "$base-2" } }
+            $reserved = @{}
+            $reserved += $state.cohort
+            $reserved.branch = "$base-3"
+            $records = @(@{ manifest = $reserved })
+            $chosen = New-BackportCohortBranch microsoft/BCApps $TestDrive $state.cohort.request $records
+            $chosen | Should -BeExactly "$base-4"
+            [void]$db.remoteHeads.Remove($base)
+            (New-BackportCohortBranch microsoft/BCApps $TestDrive $state.cohort.request $records) | Should -BeExactly $base
+            $db.writes.Count | Should -Be 0
+        }
+
+        It 'reserves all-conflict and no-op cohorts without a remote branch and separates another same-day run' -ForEach @(
+            @{ outcome = 'conflict' }, @{ outcome = 'already-present' }
+        ) {
+            $script:state = New-MilestoneFixture -Outcomes @($outcome)
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $first = $state
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.remoteHeads.Count | Should -Be 0
+            $script:state = New-MilestoneFixture -Start 50 -Outcomes @('applied')
+            $state.cohort.request.reference_time = $first.cohort.request.reference_time
+            [void]$state.cohort.request.Remove('key')
+            $state.cohort.request.key = 'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $state.cohort.request)).Substring(0, 32)
+            Register-MilestoneSources $state
+            $state.cohort.branch = New-BackportCohortBranch microsoft/BCApps $TestDrive $state.cohort.request @(Get-BackportBatchRecords microsoft/BCApps)
+            $state.cohort.branch | Should -BeExactly "$($first.cohort.branch)-2"
+            Save-MilestoneFixture $state
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.comments.Count | Should -Be 2
+            $db.pulls['200'].head.ref | Should -BeExactly $state.cohort.branch
+            $db.sources['42'].labels.name | Should -Not -Contain 'ext-backport-processed'
+        }
+
+        It 'keeps readable pins and compact rows through later discovery, target changes and closed PRs' {
+            Use-ReadableBranchFixture
+            $branch = $state.cohort.branch
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls['200'].state = 'closed'
+            $db.version = '29.2'
+            $row = Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 42 -TargetOverride releases/30.x -BatchId 999
+            $row.key | Should -BeExactly $state.cohort.request.key
+            $row.target | Should -BeExactly 'releases/29.x'
+            $row.ContainsKey('branch') | Should -BeFalse
+            (ConvertTo-Json $row -Compress -Depth 30).Length | Should -BeLessThan 4000
+            New-ExtRequestBackportBatch microsoft/BCApps (ConvertTo-Json $row -Depth 60) $statePath
+            $prepared = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable -Depth 80
+            $prepared.cohort.branch | Should -BeExactly $branch
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls.Count | Should -Be 1
+            Should -Invoke Invoke-BackportGit -Times 1 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'rejects malformed or identity-changing pinned branches' -ForEach @(
+            @{ branch = 'human/finance-2026-10-21' }, @{ branch = 'bc-extrequest-backport/../main' },
+            @{ branch = 'bc-extrequest-backport/backport_10' }, @{ branch = 'bc-extrequest-backport/finance-2026-10-20' },
+            @{ branch = 'bc-extrequest-backport/finance-2026-10-21-1' }, @{ branch = 'bc-extrequest-backport/finance-2026-10-21-02' },
+            @{ branch = 'bc-extrequest-backport/Finance-2026-10-21' }, @{ branch = 'bc-extrequest-backport/finance-2026-10-21.lock' },
+            @{ branch = '' }, @{ branch = $null }, @{ branch = @('bc-extrequest-backport/finance-2026-10-21') }
+        ) {
+            $state.cohort.request.reference_time = '2026-10-21T12:00:00Z'
+            [void]$state.cohort.request.Remove('key')
+            $state.cohort.request.key = 'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $state.cohort.request)).Substring(0, 32)
+            $state.cohort.branch = $branch
+            Save-MilestoneFixture $state
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*branch*'
+            $db.writes.Count | Should -Be 0
+        }
+
+        It 'rejects readable branch tampering in prepared state, journal or PR without adopting branch identity alone' -ForEach @(
+            @{ kind = 'prepared' }, @{ kind = 'journal' }, @{ kind = 'pr-head' }, @{ kind = 'pr-source' }
+        ) {
+            Use-ReadableBranchFixture
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            switch ($kind) {
+                'prepared' { $state.cohort.branch += '-2'; Save-MilestoneFixture $state }
+                'journal' {
+                    $other = ConvertTo-BackportCanonicalJson $state | ConvertFrom-Json -AsHashtable -Depth 80
+                    $other.cohort.branch += '-2'
+                    $db.comments['1000'].body = Get-BackportJournalMarker $other
+                }
+                'pr-head' { $db.pulls['200'].head.ref += '-2' }
+                'pr-source' {
+                    $other = New-MilestoneFixture -Start 50 -Outcomes @('applied')
+                    $db.pulls['200'].body = Get-BackportMilestonePullBody $other 100
+                }
+            }
+            $count = $db.writes.Count
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw
+            $db.writes.Count | Should -Be $count
+        }
+
+        It 'fails rather than repinning a branch that became reserved during preparation' {
+            Use-ReadableBranchFixture
+            $first = $state
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $script:state = New-MilestoneFixture -Start 50 -Outcomes @('applied')
+            Register-MilestoneSources $state
+            $state.cohort.branch = $first.cohort.branch
+            Save-MilestoneFixture $state
+            $count = $db.writes.Count
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*reserved*'
+            $db.writes.Count | Should -Be $count
+        }
+
+        It 'rejects an unreserved remote-only branch even when its SHA equals the prepared head' {
+            Use-ReadableBranchFixture
+            $db.remoteHeads[$state.cohort.branch] = $state.cohort.head
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*appeared*'
+            $db.writes.Count | Should -Be 0
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'resumes a lost push response from its confirmed branch intent without repinning or repeating a PR POST' {
+            Use-ReadableBranchFixture
+            Mock Invoke-BackportGit {
+                $script:db.remoteHeads[$script:state.cohort.branch] = $script:state.cohort.head
+                throw 'Lost push response'
+            } -ParameterFilter { $Arguments[0] -eq 'push' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Lost push*'
+            $db.comments['1000'].body | Should -Match 'branch-intent:v1'
+            $db.comments['1000'].body | Should -Not -Match ':publication-intent:'
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls.Count | Should -Be 1
+            $db.comments.Count | Should -Be 1
+            Should -Invoke Invoke-BackportGit -Times 1 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'reads an exact existing local-bare head without pushing only under confirmed branch intent' -ForEach @(
+            @{ confirmedIntent = $true }, @{ confirmedIntent = $false }
+        ) {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            $state.cohort.branch = Get-BackportBranchBase $state.cohort.request
+            $root = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
+            $local = Join-Path $root 'git'
+            $bare = Join-Path $root 'remote.git'
+            $null = New-Item -ItemType Directory -Path $local -Force
+            $null = & $script:originalBackportGit $local @('init', '--quiet')
+            [IO.File]::WriteAllText((Join-Path $local '.git/empty-config'), '')
+            $null = & $script:originalBackportGit $local @('commit', '--quiet', '--allow-empty', '-m', 'prepared head')
+            $head = (& $script:originalBackportGit $local @('rev-parse', 'HEAD')).text.Trim()
+            $null = & $script:originalBackportGit $local @('init', '--bare', '--quiet', $bare)
+            $null = & $script:originalBackportGit $local @('remote', 'add', 'origin', $bare)
+            $null = & $script:originalBackportGit $local @('-c', 'protocol.file.allow=always', 'push', 'origin',
+                "$($head):refs/heads/$($state.cohort.branch)")
+            $state.cohort.head = $head
+            $state.cohort.members[0].result.commit = $head
+            $script:statePath = Join-Path $root 'state.json'
+            Save-MilestoneFixture $state
+            Add-MilestoneTracker (Get-BackportSharedBody $state.release)
+            $body = Get-BackportJournalMarker $state
+            if ($confirmedIntent) { $body += "`n<!-- bc-extrequest-backport:branch-intent:v1 sha=$head -->" }
+            $db.comments['1000'] = @{ id = 1000; issue_number = 100; body = $body; user = @{ login = 'test-app[bot]' } }
+            Mock Invoke-BackportGit {
+                & $script:originalBackportGit -Directory $Directory `
+                    -Arguments (@('-c', 'protocol.file.allow=always') + $Arguments) `
+                    -InputText $InputText -AllowFailure:$AllowFailure -CommitDate $CommitDate
+            }
+            if ($confirmedIntent) {
+                Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+                $db.pulls['200'].head.sha | Should -BeExactly $head
+            }
+            else {
+                { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*no confirmed branch publication intent*'
+                $db.writes.Count | Should -Be 0
+                $db.pulls.Count | Should -Be 0
+            }
+            (& $script:originalBackportGit $local @("--git-dir=$bare", 'rev-parse',
+                "refs/heads/$($state.cohort.branch)")).text.Trim() | Should -BeExactly $head
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'reserves unfinished same-team cohorts and normalizes distinct labels without cross-associating PRs' {
+            Use-ReadableBranchFixture
+            Mock Invoke-BackportApi { throw 'Interrupted after journal reservation' } -ParameterFilter {
+                $Method -eq 'PATCH' -and $Path -like '*/issues/comments/*' -and $Body.body.Contains(':branch-intent:')
+            }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Interrupted*'
+            $first = $state
+            $db.remoteHeads.Count | Should -Be 0
+            $script:state = New-MilestoneFixture -Start 50 -Team 'Team: FINANCE!!' -Outcomes @('already-present')
+            $state.cohort.request.reference_time = $first.cohort.request.reference_time
+            [void]$state.cohort.request.Remove('key')
+            $state.cohort.request.key = 'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $state.cohort.request)).Substring(0, 32)
+            Register-MilestoneSources $state
+            $state.cohort.branch = New-BackportCohortBranch microsoft/BCApps $TestDrive $state.cohort.request @(Get-BackportBatchRecords microsoft/BCApps)
+            $state.cohort.branch | Should -BeExactly "$($first.cohort.branch)-2"
+            Save-MilestoneFixture $state
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls.Count | Should -Be 0
+            $db.comments.Count | Should -Be 2
+            $records = @(Get-BackportBatchRecords microsoft/BCApps)
+            @($records | Where-Object { $_.journal.body.Contains(':journal-complete:') }).Count | Should -Be 1
+            $row = Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 42 -BatchId 999
+            $row.key | Should -BeExactly $first.cohort.request.key
+            $row.source_prs.Count | Should -Be 3
+        }
+
+        It 'rejects a branch appearing during journal persistence without branch intent or a push' {
+            Use-ReadableBranchFixture
+            Mock Invoke-BackportApi {
+                $id = $script:db.nextComment++
+                $comment = @{ id = $id; issue_number = 100; body = $Body.body; user = @{ login = 'test-app[bot]' } }
+                $script:db.comments[[string]$id] = $comment
+                $script:db.remoteHeads[$script:state.cohort.branch] = $script:state.cohort.head
+                return $comment
+            } -ParameterFilter { $Method -eq 'POST' -and $Path -like '*/issues/100/comments' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*no confirmed branch*'
+            $db.comments['1000'].body | Should -Not -Match ':branch-intent:|:publication-intent:'
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+            $db.pulls.Count | Should -Be 0
+        }
+
+        It 'rejects changed branch reservations and malformed branch intents before any retry writes' -ForEach @(
+            @{ kind = 'wrong-sha' }, @{ kind = 'duplicate' }, @{ kind = 'malformed' }, @{ kind = 'reservation' }
+        ) {
+            Use-ReadableBranchFixture
+            Mock Invoke-BackportGit { throw 'Interrupted push' } -ParameterFilter { $Arguments[0] -eq 'push' }
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*Interrupted push*'
+            switch ($kind) {
+                'wrong-sha' {
+                    $db.comments['1000'].body = $db.comments['1000'].body.Replace(
+                        "branch-intent:v1 sha=$($state.cohort.head)", "branch-intent:v1 sha=$('0' * 40)")
+                }
+                'duplicate' { $db.comments['1000'].body += "`n<!-- bc-extrequest-backport:branch-intent:v1 sha=$($state.cohort.head) -->" }
+                'malformed' { $db.comments['1000'].body = $db.comments['1000'].body.Replace('branch-intent:v1 sha=', 'branch-intent:invalid sha=') }
+                'reservation' {
+                    $other = New-MilestoneFixture -Start 50 -Outcomes @('conflict')
+                    $other.cohort.branch = $state.cohort.branch
+                    $db.comments['1001'] = @{
+                        id = 1001; issue_number = 100; body = Get-BackportJournalMarker $other; user = @{ login = 'test-app[bot]' }
+                    }
+                }
+            }
+            $writes = $db.writes.Count
+            { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw
+            $db.writes.Count | Should -Be $writes
+            $db.pulls.Count | Should -Be 0
+        }
+
+        It 'preserves readable pins on explicit singleton conflict retries and rejects a new suffix' -ForEach @(
+            @{ changed = $false }, @{ changed = $true }
+        ) {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('conflict')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $old = @(Get-BackportJournalRecords microsoft/BCApps)[0]
+            $revision = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            $revision.cohort.request = $state.cohort.request
+            $revision.cohort.branch = $state.cohort.branch
+            $revision.supersedes = $old.journal.id
+            if ($changed) { $revision.cohort.branch += '-2' }
+            $script:state = $revision
+            Save-MilestoneFixture $state
+            if ($changed) {
+                $count = $db.writes.Count
+                { Publish-ExtRequestBackportBatch $statePath 'test-app[bot]' } | Should -Throw '*pinned cohort branch*'
+                $db.writes.Count | Should -Be $count
+            }
+            else {
+                Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+                $db.comments.Count | Should -Be 2
+                $db.pulls['200'].head.ref | Should -BeExactly 'bc-extrequest-backport/backport_42'
+                @(Get-BackportJournalRecords microsoft/BCApps).Count | Should -Be 1
+            }
+        }
+
+        It 'retains old schema-three branch derivation and canonical proof hashes when branch is absent' {
+            $marker = Get-BackportJournalMarker $state
+            $state.cohort.ContainsKey('branch') | Should -BeFalse
+            $expected = "bc-extrequest-backport/$($state.cohort.request.key)"
+            (Get-BackportCohortBranch $state.cohort) | Should -BeExactly $expected
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls['200'].head.ref | Should -BeExactly $expected
+            $row = Find-ExtRequestBackportBatches microsoft/BCApps -SourcePr 42 -BatchId 999
+            New-ExtRequestBackportBatch microsoft/BCApps (ConvertTo-Json $row -Depth 60) $statePath
+            $loaded = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable -Depth 80
+            (Get-BackportJournalMarker $loaded) | Should -BeExactly $marker
+            $loaded.cohort.ContainsKey('branch') | Should -BeFalse
+            $db.comments['1000'].body | Should -Not -Match ':branch-intent:'
+        }
+
+        It 'pins readable names when publishing genuinely unpublished schema-one or schema-two preparations' -ForEach @(
+            @{ schema = 1 }, @{ schema = 2 }
+        ) {
+            if ($schema -eq 1) { $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied') }
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $expected = $state.cohort.branch
+            if ($schema -eq 1) {
+                $old = $state.cohort.members[0]
+                $old.release = $state.release
+            }
+            else {
+                $old = @{} + $state.cohort
+                [void]$old.Remove('branch')
+            }
+            Save-MilestoneFixture $old
+            Publish-ExtRequestBackport $statePath 'test-app[bot]'
+            $wrapped = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable -Depth 80
+            $wrapped.schema | Should -Be 3
+            $wrapped.cohort.branch | Should -BeExactly $expected
+            $db.pulls['200'].head.ref | Should -BeExactly $expected
+            Publish-ExtRequestBackport $statePath 'test-app[bot]'
+            $db.pulls.Count | Should -Be 1
+            $db.comments.Count | Should -Be 1
+        }
+
+        It 'retains an unpublished durable native-v1 branch when promoting its App-authored tracker' {
+            $script:state = New-MilestoneFixture -Mode single -Outcomes @('applied')
+            Register-MilestoneSources $state
+            Use-ReadableBranchFixture
+            $member = $state.cohort.members[0]
+            $member.release = $state.release
+            $branch = Get-BackportBranch $member.source_pr $member.target
+            $db.remoteHeads[$branch] = $member.result.commit
+            $db.issues['90'] = @{
+                number = 90; title = 'Legacy Task'; body = Get-BackportBody $member; state = 'open'; milestone = $null
+                user = @{ login = 'test-app[bot]' }; labels = @(@{ name = 'ext-backporting' })
+                html_url = 'https://github.com/microsoft/BCApps/issues/90'
+            }
+            $body = $db.issues['90'].body
+            Save-MilestoneFixture $member
+            Publish-ExtRequestBackport $statePath 'test-app[bot]'
+            $wrapped = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable -Depth 80
+            $wrapped.legacy_issue | Should -Be 90
+            $wrapped.cohort.branch | Should -BeExactly 'bc-extrequest-backport/pr-42/29.x'
+            $db.pulls['200'].head.ref | Should -BeExactly $branch
+            $db.issues['90'].body | Should -BeExactly $body
+            Publish-ExtRequestBackport $statePath 'test-app[bot]'
+            $db.pulls.Count | Should -Be 1
+            Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
+        }
+
+        It 'retains a published closed v2 PR and its hashed branch through a version rollover' {
+            $legacy = $state.cohort
+            $body = Get-BackportBatchBody $legacy
+            $branch = "bc-extrequest-backport/$($legacy.request.key)"
+            $db.issues['90'] = @{
+                number = 90; title = 'Legacy cohort'; body = $body; state = 'closed'; milestone = $null
+                user = @{ login = 'test-app[bot]' }; labels = @(@{ name = 'ext-backporting' })
+            }
+            $db.pulls['91'] = @{
+                number = 91; body = Get-BackportBatchBody $legacy 90; state = 'closed'; merged_at = $null
+                user = @{ login = 'test-app[bot]' }; html_url = 'https://github.com/microsoft/BCApps/pull/91'
+                head = @{ ref = $branch; sha = $legacy.head; repo = @{ full_name = 'microsoft/BCApps' } }
+                base = @{ ref = $legacy.request.target; repo = @{ full_name = 'microsoft/BCApps' } }
+            }
+            Save-MilestoneFixture $legacy
+            $db.version = '29.2'
+            Publish-ExtRequestBackportBatch $statePath 'test-app[bot]'
+            $db.pulls['91'].head.ref | Should -BeExactly $branch
+            $db.issues['90'].body | Should -BeExactly $body
+            $db.comments.Count | Should -Be 0
+            $db.writes.Count | Should -Be 1
+            $db.writes[0].path | Should -BeExactly 'repos/microsoft/BCApps/issues/42/labels'
+            Should -Invoke Invoke-BackportGit -Times 0
         }
 
         It 'resolves the target branch version exactly instead of the highest open milestone' {
@@ -436,11 +1033,12 @@ Describe 'Shared milestone journal engine' {
             $db.writes.Count | Should -Be 0
         }
 
-        It 'pushes only the exact prepared branch tip, without force, before recording PR intent' {
+        It 'pushes only the exact prepared branch tip with an empty create-only lease before recording PR intent' {
             $script:pushed = $false
             Mock Invoke-BackportGit {
                 if ($Arguments[0] -eq 'push') {
-                    $Arguments -join ' ' | Should -BeExactly "push origin $($script:state.cohort.head):refs/heads/bc-extrequest-backport/$($script:state.cohort.request.key)"
+                    $branch = Get-BackportCohortBranch $script:state.cohort
+                    $Arguments -join ' ' | Should -BeExactly "push --force-with-lease=refs/heads/$($branch): origin $($script:state.cohort.head):refs/heads/$branch"
                     $script:db.comments['1000'].body | Should -Not -Match 'publication-intent:'
                     $script:pushed = $true
                     return @{ text = '' }
@@ -1713,6 +2311,57 @@ Describe 'Native Git backport integration' {
             (Invoke-BackportGit $directory @('log', '-1', '--format=%B')).text | Should -Match "cherry picked from commit $source"
         }
 
+        It 'never changes an existing local-bare ref even when an identical head succeeds as a no-op' -ForEach @(
+            @{ existing = 'absent' }, @{ existing = 'ancestor' }, @{ existing = 'divergent' }, @{ existing = 'identical' }
+        ) {
+            $bare = Join-Path $TestDrive ([guid]::NewGuid().ToString('N') + '.git')
+            $null = Invoke-BackportGit $directory @('init', '--bare', '--quiet', $bare)
+            $null = Invoke-BackportGit $directory @('remote', 'add', 'origin', $bare)
+            $script:createOnlyActualGit = (Get-Command Invoke-BackportGit).ScriptBlock
+            Mock Invoke-BackportGit {
+                & $script:createOnlyActualGit -Directory $Directory `
+                    -Arguments (@('-c', 'protocol.file.allow=always') + $Arguments) `
+                    -InputText $InputText -AllowFailure:$AllowFailure -CommitDate $CommitDate
+            }
+            $prepared = Invoke-BackportApply $directory $source $base
+            $prepared.outcome | Should -Be 'applied'
+            $null = Invoke-BackportGit $directory @('push', 'origin', "$($prepared.commit):refs/heads/fixture")
+            $branch = 'bc-extrequest-backport/backport_11166'
+            $ref = "refs/heads/$branch"
+            (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', $ref)).text.Trim() | Should -BeNullOrEmpty
+            if ($existing -ne 'absent') {
+                $foreign = if ($existing -eq 'identical') { $prepared.commit } else { $base }
+                if ($existing -eq 'divergent') {
+                    $null = Invoke-BackportGit $directory @('checkout', '--detach', $base)
+                    $null = Invoke-BackportGit $directory @('commit', '--quiet', '--allow-empty', '-m', 'foreign divergent head')
+                    $foreign = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
+                    $null = Invoke-BackportGit $directory @('push', 'origin', "$($foreign):refs/heads/foreign-fixture")
+                }
+                $null = Invoke-BackportGit $directory @("--git-dir=$bare", 'update-ref', $ref, $foreign)
+                if ($existing -eq 'ancestor') {
+                    (Invoke-BackportGit $directory @('push', '--dry-run', 'origin', "$($prepared.commit):$ref")).exit_code |
+                        Should -Be 0
+                }
+                if ($existing -eq 'identical') {
+                    { Publish-BackportBranchCreateOnly $directory $branch $prepared.commit } | Should -Not -Throw
+                }
+                else {
+                    { Publish-BackportBranchCreateOnly $directory $branch $prepared.commit } | Should -Throw '*failed*'
+                }
+                (Invoke-BackportGit $directory @("--git-dir=$bare", 'rev-parse', $ref)).text.Trim() | Should -BeExactly $foreign
+            }
+            else {
+                Publish-BackportBranchCreateOnly $directory $branch $prepared.commit
+                (Invoke-BackportGit $directory @("--git-dir=$bare", 'rev-parse', $ref)).text.Trim() | Should -BeExactly $prepared.commit
+            }
+            Should -Invoke Invoke-BackportGit -Times 1 -ParameterFilter {
+                $Arguments[0] -eq 'push' -and
+                $Arguments[1] -ceq '--force-with-lease=refs/heads/bc-extrequest-backport/backport_11166:' -and
+                $Arguments[2] -ceq 'origin' -and
+                $Arguments[3] -ceq "$($prepared.commit):refs/heads/bc-extrequest-backport/backport_11166"
+            }
+        }
+
         It 'proves an already-applied patch instead of creating an empty PR' {
             $result = Invoke-BackportApply $directory $source $source
             $result.outcome | Should -Be 'already-present'
@@ -1771,7 +2420,8 @@ Describe 'Native Git backport integration' {
         }
 
         It 'prepares real Git through the team or standalone API and resumes immutable state' -ForEach @(
-            @{ mode = 'team' }, @{ mode = 'single' }
+            @{ mode = 'team'; collision = $false }, @{ mode = 'single'; collision = $false },
+            @{ mode = 'team'; collision = $true }, @{ mode = 'single'; collision = $true }
         ) {
             [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "source`nsecond`n")
             $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'second')
@@ -1788,6 +2438,11 @@ Describe 'Native Git backport integration' {
             $script:release = $base
             $script:durable = $null
             $script:remoteHead = ''
+            $script:occupiedBranch = ''
+            if ($collision) {
+                $script:occupiedBranch = if ($mode -eq 'single') { 'bc-extrequest-backport/backport_42' }
+                    else { Get-BackportBranchBase $request }
+            }
             $script:actualGit = (Get-Command Invoke-BackportGit).ScriptBlock
             Mock Get-BackportBatchRecords {
                 if ($null -ne $script:durable) {
@@ -1821,7 +2476,12 @@ Describe 'Native Git backport integration' {
             }
             Mock Invoke-BackportGit {
                 if ($Arguments[0] -eq 'fetch') { return @{ text = ''; exit_code = 0 } }
-                if ($Arguments[0] -eq 'ls-remote') { return @{ text = $script:remoteHead; exit_code = 0 } }
+                if ($Arguments[0] -eq 'ls-remote') {
+                    if ($script:occupiedBranch -and $Arguments[-1] -ceq "refs/heads/$script:occupiedBranch") {
+                        return @{ text = "$('0' * 40)`trefs/heads/$script:occupiedBranch"; exit_code = 0 }
+                    }
+                    return @{ text = $script:remoteHead; exit_code = 0 }
+                }
                 & $script:actualGit -Directory $Directory -Arguments $Arguments -InputText $InputText `
                     -AllowFailure:$AllowFailure -CommitDate $CommitDate
             }
@@ -1838,6 +2498,9 @@ Describe 'Native Git backport integration' {
             $script:preparedState = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable -Depth 80
             $preparedState.schema | Should -Be 3
             $script:durable = $preparedState.cohort
+            $expectedBranch = Get-BackportBranchBase $durable.request
+            if ($collision) { $expectedBranch += '-2' }
+            $durable.branch | Should -BeExactly $expectedBranch
             $durable.members.Count | Should -Be $outcomes.Count
             if ($mode -eq 'team') {
                 $durable.members[1].result.target_sha | Should -Be $durable.members[0].result.commit
@@ -1855,7 +2518,7 @@ Describe 'Native Git backport integration' {
             $null = New-Item -ItemType Directory $resumeRoot
             Copy-Item -LiteralPath $preparedDirectory -Destination (Join-Path $resumeRoot 'git') -Recurse
             $script:release = '0' * 40
-            $script:remoteHead = "$($durable.head)`trefs/heads/bc-extrequest-backport/$($request.key)"
+            $script:remoteHead = "$($durable.head)`trefs/heads/$($durable.branch)"
             $row = @{} + $durable.request
             $row.manifest = $durable
             $resumedPath = Join-Path $resumeRoot 'state.json'
@@ -1866,13 +2529,16 @@ Describe 'Native Git backport integration' {
             Should -Invoke Invoke-BackportGit -Times 0 -ParameterFilter { $Arguments[0] -eq 'push' }
         }
 
-        It 'does not replay a frozen singleton conflict until explicit manual retry on the current release' {
+        It 'does not replay a frozen singleton conflict until explicit manual retry on the current release' -ForEach @(
+            @{ readable = $false }, @{ readable = $true }
+        ) {
             $null = Invoke-BackportGit $directory @('checkout', '--detach', $base)
             [IO.File]::WriteAllText((Join-Path $directory 'src/Foo.al'), "incompatible release`n")
             $null = Invoke-BackportGit $directory @('commit', '--quiet', '-am', 'old release')
             $oldRelease = (Invoke-BackportGit $directory @('rev-parse', 'HEAD')).text.Trim()
             $cohort = New-BatchFixture -Outcomes @('conflict')
             $cohort.request.mode = 'single'; $cohort.request.key = 'single-42'; $cohort.request.manual = $true
+            if ($readable) { $cohort.branch = 'bc-extrequest-backport/backport_42-2' }
             $cohort.request.sources[0].sha = $source
             $cohort.target_sha = $oldRelease; $cohort.head = $oldRelease
             $cohort.tree = (Invoke-BackportGit $directory @('rev-parse', 'HEAD^{tree}')).text.Trim()
@@ -1923,6 +2589,7 @@ Describe 'Native Git backport integration' {
             $prepared.supersedes | Should -Be 1000
             $prepared.cohort.target_sha | Should -Be $base
             $prepared.cohort.members[0].result.outcome | Should -Be 'applied'
+            (Get-BackportCohortBranch $prepared.cohort) | Should -BeExactly (Get-BackportCohortBranch $cohort)
             Assert-BackportPreparedBatch $prepared.cohort (Join-Path $root 'git')
         }
 

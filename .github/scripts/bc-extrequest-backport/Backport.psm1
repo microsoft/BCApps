@@ -306,6 +306,13 @@ function Invoke-BackportGit {
         -InputText $InputText -Environment $environment -AllowFailure:$AllowFailure
 }
 
+function Publish-BackportBranchCreateOnly {
+    param([string] $Directory, [string] $Branch, [string] $Head)
+    # An empty lease cannot change an existing ref; identical heads may succeed as a no-op, not ownership proof.
+    $null = Invoke-BackportGit $Directory @('push', "--force-with-lease=refs/heads/$($Branch):",
+        'origin', "$($Head):refs/heads/$Branch")
+}
+
 function Assert-BackportPaths {
     param([string] $RawDiff)
 
@@ -471,7 +478,7 @@ function New-ExtRequestBackport {
     $null = New-Item -ItemType Directory -Path (Split-Path -Parent $StatePath) -Force
     $state | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $StatePath -Encoding utf8NoBOM
     $issueLinks = if ($issues.Count -gt 0) { ($issues | ForEach-Object { $_.url }) -join ', ' } else { '(none)' }
-    $teams = @($source.labels | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team: *' })
+    $teams = @($source.labels | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team:*' })
     $teamText = if ($teams.Count -gt 0) { ($teams -join ', ') -replace '[\r\n]', ' ' } else { '(none)' }
     Write-BackportSummary "Main PR #$SourcePr (https://github.com/$Repository/pull/$SourcePr) -> $target`: **$($result.outcome)**. Main PR teams: $teamText. Source issues: $issueLinks"
 }
@@ -602,9 +609,7 @@ function Get-BackportTitle {
     if ($State.schema -eq 2) {
         $version = ($State.request.target -split '/')[1]
         $team = $State.request.team -replace '[\r\n]', ' '
-        $zone = [TimeZoneInfo]::FindSystemTimeZoneById('Europe/Copenhagen')
-        $localTime = [TimeZoneInfo]::ConvertTime([DateTimeOffset]$State.request.reference_time, $zone)
-        $date = $localTime.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+        $date = Get-BackportDiscoveryDate $State.request
         $title = "[Backport $version] [Extensibility Requests] [$team] till $date"
     }
     else {
@@ -759,7 +764,7 @@ function Get-BackportMainTeam {
     param([hashtable] $Source)
     $teams = @($Source.labels | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team:*' } | Sort-Object -Unique)
     if ($teams.Count -eq 0) { return 'Unassigned' }
-    if ($teams.Count -ne 1 -or $teams[0] -cnotmatch '^Team: \S[^\r\n]*$') { return 'Ambiguous' }
+    if ($teams.Count -ne 1 -or $teams[0] -cnotmatch '^Team: *\S[^\r\n]*$') { return 'Ambiguous' }
     return $teams[0]
 }
 
@@ -778,7 +783,7 @@ function Assert-BackportJournalState {
     }
     foreach ($member in $State.cohort.members) {
         if (-not $member.ContainsKey('main_team') -or
-            ($member.main_team -notin @('Unassigned', 'Ambiguous') -and $member.main_team -cnotmatch '^Team: \S[^\r\n]*$') -or
+            ($member.main_team -notin @('Unassigned', 'Ambiguous') -and $member.main_team -cnotmatch '^Team: *\S[^\r\n]*$') -or
             ($State.cohort.request.mode -eq 'team' -and $member.main_team -cne $State.cohort.request.team)) {
             throw 'Journal original main-PR team metadata is missing or inconsistent.'
         }
@@ -811,6 +816,18 @@ function Assert-BackportJournal {
         throw 'Cohort journal author or immutable manifest changed.'
     }
     $null = Read-BackportJournalPublication $Comment.body $State.cohort.head
+    $null = Read-BackportBranchIntent $Comment.body $State.cohort.head
+}
+
+function Read-BackportBranchIntent {
+    param([string] $Body, [string] $Head)
+    $found = [regex]::Matches($Body, '(?m)^<!-- bc-extrequest-backport:branch-intent:v1 sha=([0-9a-f]{40}) -->\r?$')
+    if ($found.Count -gt 1 -or
+        ($found.Count -eq 0 -and $Body.Contains('bc-extrequest-backport:branch-intent:')) -or
+        ($found.Count -eq 1 -and $found[0].Groups[1].Value -cne $Head)) {
+        throw 'Malformed, conflicting or changed branch publication intent.'
+    }
+    return $found.Count -eq 1
 }
 
 function Read-BackportJournalPublication {
@@ -909,6 +926,9 @@ function Get-BackportJournalRecords {
                 (Get-BackportSharedMarker $state.release) -cne (Get-BackportSharedMarker $prior[0].journal_state.release) -or
                 $state.cohort.members[0].source_sha -cne $prior[0].manifest.members[0].source_sha) {
                 throw 'Duplicate/conflicting journal source membership or unsafe conflict retry.'
+            }
+            if ((Get-BackportCohortBranch $state.cohort) -cne (Get-BackportCohortBranch $prior[0].manifest)) {
+                throw 'Conflict retry changed the pinned cohort branch.'
             }
         }
         elseif ($state.ContainsKey('supersedes')) { throw 'Conflict retry has no preceding cohort journal.' }
@@ -1048,7 +1068,7 @@ function Assert-BackportBatchRequest {
         if ($numbers.Count -ne 1 -or $Request.key -cne "single-$($numbers[0])") { throw 'Invalid independent request.' }
     }
     else {
-        if ($Request.team -cnotmatch '^Team: \S[^\r\n]*$' -or $Request.manual) { throw 'Invalid team request.' }
+        if ($Request.team -cnotmatch '^Team: *\S[^\r\n]*$' -or $Request.manual) { throw 'Invalid team request.' }
         $identity = Get-BackportRequestCore $Request
         [void]$identity.Remove('key')
         $expected = 'team-' + (Get-BackportDigest (ConvertTo-BackportCanonicalJson $identity)).Substring(0, 32)
@@ -1090,6 +1110,7 @@ function Assert-BackportBatchManifest {
     if ($Manifest.schema -ne 2) { throw 'Unsupported batch manifest schema.' }
     Assert-BackportRepository $Manifest.repository
     Assert-BackportBatchRequest $Manifest.request
+    $null = Get-BackportCohortBranch $Manifest
     if ($Manifest.request.mode -notin @('team', 'single') -or
         (ConvertTo-BackportCanonicalJson $Manifest.request) -cne
             (ConvertTo-BackportCanonicalJson (Get-BackportRequestCore $Manifest.request)) -or
@@ -1146,21 +1167,104 @@ function Get-BackportBatchRecords {
     }
 }
 
+function Get-BackportDiscoveryDate {
+    param([hashtable] $Request)
+    $zone = [TimeZoneInfo]::FindSystemTimeZoneById('Europe/Copenhagen')
+    $localTime = [TimeZoneInfo]::ConvertTime([DateTimeOffset]$Request.reference_time, $zone)
+    $localTime.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Get-BackportBranchBase {
+    param([hashtable] $Request)
+    if ($Request.mode -eq 'single') {
+        return "bc-extrequest-backport/backport_$($Request.source_prs[0])"
+    }
+    $team = $Request.team -replace '^Team:\s*', ''
+    $slug = [regex]::Replace($team.ToLowerInvariant(), '[^a-z0-9]+', '-').Trim('-')
+    if (-not $slug) { throw 'Team has no safe ASCII branch slug.' }
+    "bc-extrequest-backport/$slug-$(Get-BackportDiscoveryDate $Request)"
+}
+
+function Get-BackportCohortBranch {
+    param([hashtable] $Manifest)
+    # Absence is meaningful: old manifests and their hashes must remain unchanged.
+    if (-not $Manifest.ContainsKey('branch')) { return "bc-extrequest-backport/$($Manifest.request.key)" }
+    $branch = $Manifest.branch
+    if ($Manifest.request.mode -eq 'single' -and $branch -is [string] -and
+        $branch -ceq (Get-BackportBranch $Manifest.request.source_prs[0] $Manifest.request.target)) { return $branch }
+    $base = Get-BackportBranchBase $Manifest.request
+    $pattern = '^' + [regex]::Escape($base) + '(?:-(?:[2-9]|[1-9][0-9]+))?$'
+    if ($branch -isnot [string] -or $branch -cnotmatch $pattern) {
+        throw 'Pinned cohort branch is malformed or differs from its source/team discovery identity.'
+    }
+    return $branch
+}
+
+function New-BackportCohortBranch {
+    param([string] $Repository, [string] $Directory, [hashtable] $Request, [object[]] $Records)
+    $base = Get-BackportBranchBase $Request
+    $reserved = @($Records | ForEach-Object { Get-BackportCohortBranch $_.manifest })
+    for ($suffix = 1; $suffix -le 10000; $suffix++) {
+        $branch = if ($suffix -eq 1) { $base } else { "$base-$suffix" }
+        if ($branch -cin $reserved) { continue }
+        $remote = (Invoke-BackportGit $Directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
+        if ($remote) { continue }
+        if ($null -ne (Get-BackportBatchPull $Repository -Branch $branch)) { continue }
+        return $branch
+    }
+    throw 'No free backport branch within the allocation limit; reconcile reservations manually.'
+}
+
+function Assert-BackportBranchReservation {
+    param([hashtable] $State)
+    $branch = Get-BackportCohortBranch $State.cohort
+    foreach ($record in @(Get-BackportBatchRecords $State.repository)) {
+        if ((Get-BackportCohortBranch $record.manifest) -cne $branch) { continue }
+        if ($record.ContainsKey('shared') -and
+            (Get-BackportJournalMarker $record.journal_state) -ceq (Get-BackportJournalMarker $State)) { continue }
+        if ($State.ContainsKey('supersedes') -and $record.ContainsKey('shared') -and
+            $State.supersedes -eq $record.journal.id -and
+            $State.cohort.request.mode -eq 'single' -and $record.manifest.request.mode -eq 'single' -and
+            $State.cohort.members[0].source_pr -eq $record.manifest.members[0].source_pr -and
+            $State.cohort.members[0].source_sha -ceq $record.manifest.members[0].source_sha -and
+            $record.manifest.members[0].result.outcome -eq 'conflict') { continue }
+        if ($State.ContainsKey('legacy_issue') -and -not $record.ContainsKey('shared') -and
+            $State.legacy_issue -eq $record.issue.number) { continue }
+        throw 'Pinned backport branch is reserved by another immutable cohort; rediscover before publication.'
+    }
+}
+
 function Get-BackportBatchPull {
-    param([string] $Repository, [string] $Key)
+    param([string] $Repository, [string] $Key, [string] $Branch = '')
+    if (-not $Branch) { $Branch = "bc-extrequest-backport/$Key" }
     $owner = $Repository.Split('/')[0]
-    $pulls = @(Get-BackportApiPages "repos/$Repository/pulls?state=all&head=$owner`:bc-extrequest-backport/$Key")
+    $pulls = @(Get-BackportApiPages "repos/$Repository/pulls?state=all&head=$owner`:$Branch")
     if ($pulls.Count -gt 1) { throw 'Multiple PRs for one batch branch.' }
     if ($pulls.Count -eq 1) { return $pulls[0] }
     return $null
 }
 
+function Assert-BackportSourceAliases {
+    param([string] $Repository, [long] $SourcePr, [string] $Target)
+    $aliases = @()
+    $native = Get-BackportPull $Repository $SourcePr $Target
+    if ($null -ne $native) { $aliases += $native }
+    $single = Get-BackportBatchPull $Repository -Branch "bc-extrequest-backport/single-$SourcePr"
+    if ($null -ne $single) { $aliases += $single }
+    if ($aliases.Count -gt 1) {
+        throw 'Ambiguous legacy standalone backport PR aliases; operator reconciliation is required.'
+    }
+    if ($aliases.Count -eq 1) {
+        throw 'An existing standalone backport PR on a legacy alias is foreign or unregistered; reconcile its source identity, never duplicate or adopt it.'
+    }
+}
+
 function Get-BackportSourceTeam {
     param([hashtable] $Source, [object[]] $Issues, [string] $Repository)
-    $teams = @($Source.labels | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team: *' })
-    if ($teams.Count -ne 1 -or $teams[0] -cnotmatch '^Team: \S[^\r\n]*$') { return '' }
+    $teams = @($Source.labels | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team:*' })
+    if ($teams.Count -ne 1 -or $teams[0] -cnotmatch '^Team: *\S[^\r\n]*$') { return '' }
     foreach ($issue in $Issues) {
-        $issueTeams = @($issue.labels.nodes | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team: *' })
+        $issueTeams = @($issue.labels.nodes | ForEach-Object { $_.name } | Where-Object { $_ -clike 'Team:*' })
         if ($issueTeams.Count -ne 1 -or $issueTeams[0] -cne $teams[0] -or
             -not $issue.ContainsKey('repository') -or $null -eq $issue.repository -or
             -not $issue.repository.ContainsKey('nameWithOwner') -or $issue.repository.nameWithOwner -cne $Repository) { return '' }
@@ -1382,7 +1486,7 @@ function New-ExtRequestBackportBatch {
         return
     }
     $recordBody = if ($shared) { $overlap[0].journal.body } elseif ($resume) { $overlap[0].issue.body } else { '' }
-    $existingPull = if ($resume) { Get-BackportBatchPull $Repository $request.key } else { $null }
+    $existingPull = if ($resume) { Get-BackportBatchPull $Repository -Branch (Get-BackportCohortBranch $stored) } else { $null }
     $intent = Read-BackportPublicationIntent $recordBody
     $release = if ($shared) { $overlap[0].journal_state.release }
         elseif ($request.ContainsKey('release')) { $request.release }
@@ -1409,9 +1513,11 @@ function New-ExtRequestBackportBatch {
     }
     $directory = Join-Path $root 'git'
     Initialize-BackportBatchGit $directory $Repository
+    $branch = if ($resume) { Get-BackportCohortBranch $stored }
+        else { New-BackportCohortBranch $Repository $directory $request $records }
     $targetSha = if ($resume -and -not $retryConflict) { $stored.target_sha }
         else { (Invoke-BackportApi "repos/$Repository/git/ref/heads/$($request.target)").object.sha }
-    $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/bc-extrequest-backport/$($request.key)")).text.Trim()
+    $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
     if ($remote -and -not $resume) { throw 'Untracked batch branch exists; reconcile manually.' }
     $null = Invoke-BackportGit $directory @('fetch', '--quiet', '--no-tags', '--filter=blob:none', '--depth=2',
         'origin', "$targetSha`:refs/backport/target")
@@ -1439,6 +1545,8 @@ function New-ExtRequestBackportBatch {
         schema = 2; repository = $Repository; request = $request; members = $members; target_sha = $targetSha
         head = $tip; tree = (Invoke-BackportGit $directory @('rev-parse', "$tip`^{tree}")).text.Trim()
     }
+    if (-not $resume) { $manifest.branch = $branch }
+    elseif ($stored.ContainsKey('branch')) { $manifest.branch = $stored.branch }
     if ($resume -and -not $retryConflict) {
         # Membership, outcomes, source proofs and commit chain cannot change during recovery.
         foreach ($index in 0..($members.Count - 1)) {
@@ -1514,7 +1622,7 @@ function Assert-BackportBatchObject {
         throw 'Batch object has an unexpected author or immutable manifest.'
     }
     if ($Object.ContainsKey('head') -and
-        ($Object.head.ref -cne "bc-extrequest-backport/$($Manifest.request.key)" -or
+        ($Object.head.ref -cne (Get-BackportCohortBranch $Manifest) -or
         $Object.head.sha -cne $Manifest.head -or $Object.head.repo.full_name -cne $Manifest.repository -or
         $Object.base.ref -cne $Manifest.request.target -or $Object.base.repo.full_name -cne $Manifest.repository)) {
         throw 'Batch PR branch, target or provenance changed; never adopt human changes.'
@@ -1568,7 +1676,7 @@ function Assert-BackportMilestonePull {
     $found = Read-BackportJournalMarker $Pull.body
     if ($null -eq $found -or (Get-BackportJournalMarker $found) -cne (Get-BackportJournalMarker $State) -or
         $Pull.user.login -cne $BotLogin -or $Pull.head.sha -cne $State.cohort.head -or
-        $Pull.head.ref -cne "bc-extrequest-backport/$($State.cohort.request.key)" -or
+        $Pull.head.ref -cne (Get-BackportCohortBranch $State.cohort) -or
         $Pull.head.repo.full_name -cne $State.repository -or $Pull.base.repo.full_name -cne $State.repository -or
         $Pull.base.ref -cne $State.release.target) { throw 'Backport PR author, branch, milestone cohort or SHA proof changed.' }
     if ($null -ne $Pull.milestone -and $Pull.milestone.number -ne $State.release.milestone_number) {
@@ -1620,6 +1728,7 @@ function Assert-BackportNewCohort {
         }
     }
     foreach ($member in $cohort.members) {
+        Assert-BackportSourceAliases $repository $member.source_pr $member.target
         $source = Get-BackportSource $repository $member.source_pr
         if ($source.merge_commit_sha -cne $member.source_sha) { throw 'Source SHA changed before publication.' }
         if ('ext-backport-processed' -in @($source.labels | ForEach-Object { $_.name })) {
@@ -1629,9 +1738,6 @@ function Assert-BackportNewCohort {
         if ($null -ne $tracking -and (-not $State.ContainsKey('legacy_issue') -or $tracking.number -ne $State.legacy_issue)) {
             throw 'Source acquired a legacy tracking identity; do not duplicate it.'
         }
-        if ($null -ne (Get-BackportPull $repository $member.source_pr $member.target)) {
-            throw 'An existing standalone backport PR must be reconciled through its legacy identity, not duplicated.'
-        }
     }
     $oldBatches = @(Get-BackportBatchRecords $repository | Where-Object {
         -not $_.ContainsKey('shared') -and
@@ -1640,7 +1746,8 @@ function Assert-BackportNewCohort {
     if (@($oldBatches | Where-Object {
         -not $State.ContainsKey('legacy_issue') -or $_.issue.number -ne $State.legacy_issue
     }).Count -gt 0) { throw 'Source acquired a legacy batch identity; do not duplicate it.' }
-    if ($null -ne (Get-BackportBatchPull $repository $cohort.request.key)) {
+    Assert-BackportBranchReservation $State
+    if ($null -ne (Get-BackportBatchPull $repository -Branch (Get-BackportCohortBranch $cohort))) {
         throw 'Unregistered PR appeared before journal creation.'
     }
 }
@@ -1652,6 +1759,7 @@ function Publish-BackportMilestone {
     $repository = $State.repository
     $cohort = $State.cohort
     $release = $State.release
+    Assert-BackportBranchReservation $State
     $records = @(Get-BackportJournalRecords $repository)
     $overlap = @($records | Where-Object {
         @($_.manifest.request.source_prs | Where-Object { $_ -in $cohort.request.source_prs }).Count -gt 0
@@ -1665,6 +1773,9 @@ function Publish-BackportMilestone {
         $cohort.members[0].source_sha -ceq $record.manifest.members[0].source_sha -and
         (Get-BackportSharedMarker $release) -ceq (Get-BackportSharedMarker $record.journal_state.release)
     if ($null -ne $record -and -not $same -and -not $revision) { throw 'Source membership already belongs to another immutable cohort.' }
+    if ($revision -and (Get-BackportCohortBranch $cohort) -cne (Get-BackportCohortBranch $record.manifest)) {
+        throw 'Conflict retry changed the pinned cohort branch.'
+    }
     $legacyBatch = $false
     if ($State.ContainsKey('legacy_issue')) {
         $legacy = Invoke-BackportApi "repos/$repository/issues/$($State.legacy_issue)"
@@ -1673,7 +1784,7 @@ function Publish-BackportMilestone {
     }
     $null = @(Assert-BackportBatchSources $cohort.request $repository -Resume:($null -ne $record -or $State.ContainsKey('legacy_issue')))
     Assert-BackportRelease $release $repository
-    $pull = Get-BackportBatchPull $repository $cohort.request.key
+    $pull = Get-BackportBatchPull $repository -Branch (Get-BackportCohortBranch $cohort)
     $comment = if ($same) { $record.journal } else { $null }
     if ($null -ne $comment) {
         Assert-BackportJournal $comment $State $BotLogin
@@ -1699,6 +1810,12 @@ function Publish-BackportMilestone {
         if (-not $same -or $applied.Count -gt 0) { Assert-BackportRelease $release $repository -Current }
         if ($applied.Count -gt 0 -or (-not $same -and -not $legacyBatch)) {
             Assert-BackportPreparedBatch $cohort (Join-Path (Split-Path -Parent $StatePath) 'git')
+        }
+        if ($cohort.ContainsKey('branch') -and -not $same -and -not $State.ContainsKey('legacy_issue')) {
+            $directory = Join-Path (Split-Path -Parent $StatePath) 'git'
+            $branch = Get-BackportCohortBranch $cohort
+            $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
+            if ($remote) { throw 'Pinned branch appeared before its durable reservation; never overwrite or adopt it.' }
         }
     }
     $null = Get-BackportMilestonePullBody $State 9999999999
@@ -1758,26 +1875,51 @@ function Publish-BackportMilestone {
         }
     }
     Assert-BackportJournal $comment $State $BotLogin
+    Assert-BackportBranchReservation $State
     if ($null -eq $pull -and @($cohort.members | Where-Object { $_.result.outcome -eq 'applied' }).Count -gt 0) {
+        $guardedBranch = $cohort.ContainsKey('branch') -and -not $State.ContainsKey('legacy_issue')
+        if ($guardedBranch) {
+            foreach ($member in $cohort.members) {
+                Assert-BackportSourceAliases $repository $member.source_pr $member.target
+            }
+        }
         Assert-BackportRelease $release $repository -Current
         $directory = Join-Path (Split-Path -Parent $StatePath) 'git'
-        $branch = "bc-extrequest-backport/$($cohort.request.key)"
+        Assert-BackportBranchReservation $State
+        $branch = Get-BackportCohortBranch $cohort
         $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
+        $branchIntent = Read-BackportBranchIntent $comment.body $cohort.head
         if ($remote) {
             if (($remote -split '\s+')[0] -cne $cohort.head) { throw 'Existing branch differs; never overwrite human changes.' }
+            if ($guardedBranch -and -not $branchIntent) {
+                throw 'Existing branch has no confirmed branch publication intent; never adopt it.'
+            }
         }
         else {
-            $null = Invoke-BackportGit $directory @('push', 'origin', "$($cohort.head):refs/heads/$branch")
+            if ($guardedBranch -and -not $branchIntent) {
+                $comment = Update-BackportJournal $State $comment "<!-- bc-extrequest-backport:branch-intent:v1 sha=$($cohort.head) -->" $BotLogin
+                Assert-BackportBranchReservation $State
+                $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
+                if ($remote) { throw 'Pinned branch appeared before push; never overwrite or adopt it.' }
+            }
+            Publish-BackportBranchCreateOnly $directory $branch $cohort.head
             $remote = (Invoke-BackportGit $directory @('ls-remote', '--heads', 'origin', "refs/heads/$branch")).text.Trim()
             if (($remote -split '\s+')[0] -cne $cohort.head) { throw 'Branch publication was not confirmed.' }
         }
-        $pull = Get-BackportBatchPull $repository $cohort.request.key
+        Assert-BackportBranchReservation $State
+        $pull = Get-BackportBatchPull $repository -Branch $branch
         if ($null -eq $pull) {
             if ($null -ne (Read-BackportPublicationIntent $comment.body)) { throw 'Previous PR POST is unconfirmed; do not repeat it.' }
             Assert-BackportRelease $release $repository -Current
             $tracker = Invoke-BackportApi "repos/$repository/issues/$($tracker.number)"
             Assert-BackportSharedTracker $tracker $release $BotLogin
             Assert-BackportTrackerCapacity $tracker.body $State
+            Assert-BackportBranchReservation $State
+            if ($guardedBranch) {
+                foreach ($member in $cohort.members) {
+                    Assert-BackportSourceAliases $repository $member.source_pr $member.target
+                }
+            }
             $intent = "<!-- bc-extrequest-backport:publication-intent:v1 sha=$($cohort.head) -->"
             $comment = Update-BackportJournal $State $comment $intent $BotLogin
             try {
@@ -1908,7 +2050,7 @@ function Publish-BackportLegacyOrPromote {
         $cohort = $State
         $matchingBatchRecords = @(Get-BackportBatchRecords $repository | Where-Object { $_.manifest.request.key -ceq $cohort.request.key })
         $tracking = if ($matchingBatchRecords.Count -eq 1) { $matchingBatchRecords[0].issue } else { $null }
-        $pull = Get-BackportBatchPull $repository $cohort.request.key
+        $pull = Get-BackportBatchPull $repository -Branch (Get-BackportCohortBranch $cohort)
         if ($null -ne $tracking) { Assert-BackportBatchObject $tracking $cohort $BotLogin }
         if ($null -ne $pull) {
             if ($null -eq $tracking) { throw 'Legacy PR has no tracking identity.' }
@@ -1934,7 +2076,17 @@ function Publish-BackportLegacyOrPromote {
         elseif ($cohort.request.ContainsKey('release')) { $cohort.request.release }
         else { Get-BackportRelease $repository $cohort.request.target }
     $wrapped = @{ schema = 3; repository = $repository; cohort = $cohort; release = $release }
-    if ($null -ne $tracking) { $wrapped.legacy_issue = $tracking.number }
+    if ($null -ne $tracking) {
+        $wrapped.legacy_issue = $tracking.number
+        if ($State.schema -eq 1) { $cohort.branch = Get-BackportBranch $State.source_pr $State.target }
+    }
+    elseif (-not $cohort.ContainsKey('branch')) {
+        Assert-BackportRelease $release $repository -Current
+        $directory = Join-Path (Split-Path -Parent $StatePath) 'git'
+        $cohort.branch = New-BackportCohortBranch $repository $directory $cohort.request @(Get-BackportBatchRecords $repository)
+    }
+    Assert-BackportJournalState $wrapped
+    $wrapped | ConvertTo-Json -Depth 80 | Set-Content -LiteralPath $StatePath -Encoding utf8NoBOM
     Publish-BackportMilestone $wrapped $StatePath $BotLogin
 }
 
