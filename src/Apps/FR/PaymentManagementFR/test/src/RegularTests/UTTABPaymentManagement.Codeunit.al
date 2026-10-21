@@ -84,6 +84,9 @@ codeunit 144040 "UT TAB Payment Management"
     end;
 
     var
+#if not CLEAN28
+        OriginalPaymentFeatureStatus: Record "Feature Data Update Status";
+#endif
         Assert: Codeunit Assert;
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryDimension: Codeunit "Library - Dimension";
@@ -97,7 +100,6 @@ codeunit 144040 "UT TAB Payment Management"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
 #if not CLEAN28
-        OriginalPaymentFeatureStatus: Record "Feature Data Update Status";
         PaymentFeatureStatusExisted: Boolean;
         PaymentFeatureStatusChanged: Boolean;
         UseActualPaymentFeatureStatus: Boolean;
@@ -1337,7 +1339,6 @@ codeunit 144040 "UT TAB Payment Management"
         VATEntry: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         PaymentSubscribers: Codeunit "PaymentMgt Subscribers FR";
-        VATPart: Decimal;
     begin
         // [SCENARIO 653673] The app rejects a non-percentage setup even when the standard engine would return full realization.
         Initialize();
@@ -1345,7 +1346,7 @@ codeunit 144040 "UT TAB Payment Management"
         VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::First;
         VATPostingSetup.Modify();
 
-        asserterror VATPart := PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
+        asserterror PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
         Assert.ExpectedError(VATPostingSetup.FieldCaption("Unrealized VAT Type"));
         Assert.ExpectedErrorCode(TestFieldErr);
 
@@ -1362,7 +1363,6 @@ codeunit 144040 "UT TAB Payment Management"
         VATEntry: Record "VAT Entry";
         TaxJurisdiction: Record "Tax Jurisdiction";
         PaymentSubscribers: Codeunit "PaymentMgt Subscribers FR";
-        VATPart: Decimal;
     begin
         // [SCENARIO 653673] Sales tax validates the jurisdiction, not a VAT posting setup.
         Initialize();
@@ -1380,7 +1380,7 @@ codeunit 144040 "UT TAB Payment Management"
         TaxJurisdiction."Unrealized VAT Type" := TaxJurisdiction."Unrealized VAT Type"::First;
         TaxJurisdiction.Modify();
 
-        asserterror VATPart := PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
+        asserterror PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
         Assert.ExpectedError(TaxJurisdiction.FieldCaption("Unrealized VAT Type"));
         Assert.ExpectedErrorCode(TestFieldErr);
     end;
@@ -1470,7 +1470,8 @@ codeunit 144040 "UT TAB Payment Management"
         VerifyMigratedPaymentVATBuffer(PaymentBuffer);
         PaymentBuffer.Delete();
         PaymentDataMigration.MigratePaymentVATBuffer();
-        Assert.IsFalse(PaymentBuffer.Find(), 'An app-deleted buffer must not be reimported from the legacy table.');
+        PaymentBuffer.SetRecFilter();
+        Assert.IsTrue(PaymentBuffer.IsEmpty(), 'An app-deleted buffer must not be reimported from the legacy table.');
     end;
 
 #if not CLEAN28
@@ -1543,30 +1544,30 @@ codeunit 144040 "UT TAB Payment Management"
     procedure DirectDebitErrorsKeepPaymentOriginAndEntryLine()
     var
         DirectDebitCollection: Record "Direct Debit Collection";
-        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry" temporary;
-        OtherEntry: Record "Direct Debit Collection Entry" temporary;
+        TempDirectDebitCollectionEntry: Record "Direct Debit Collection Entry" temporary;
+        TempOtherEntry: Record "Direct Debit Collection Entry" temporary;
         PaymentError: Record "Payment Jnl. Export Error Text";
     begin
         // [SCENARIO 653676] Temporary collection lines report errors on the payment slip and retain line isolation.
         Initialize();
         SetPaymentFeatureEnabled(true);
         CreateDirectDebitTestCollection(DirectDebitCollection, Database::"Payment Header FR");
-        DirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
-        DirectDebitCollectionEntry."Entry No." := 10000;
-        OtherEntry := DirectDebitCollectionEntry;
-        OtherEntry."Entry No." := 20000;
+        TempDirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
+        TempDirectDebitCollectionEntry."Entry No." := 10000;
+        TempOtherEntry := TempDirectDebitCollectionEntry;
+        TempOtherEntry."Entry No." := 20000;
 
-        DirectDebitCollectionEntry.InsertPaymentFileErrorWithDetails('First line error', 'First line details');
-        OtherEntry.InsertPaymentFileError('Second line error');
+        TempDirectDebitCollectionEntry.InsertPaymentFileErrorWithDetails('First line error', 'First line details');
+        TempOtherEntry.InsertPaymentFileError('Second line error');
 
         PaymentError.Get('', Format(Database::"Payment Header FR"), DirectDebitCollection.Identifier, 10000, 1);
         PaymentError.TestField("Additional Information", 'First line details');
         Assert.IsTrue(DirectDebitCollection.HasPaymentFileErrors(), 'The slip must find its collection errors.');
-        DirectDebitCollectionEntry.DeletePaymentFileErrors();
-        Assert.IsFalse(DirectDebitCollectionEntry.HasPaymentFileErrors(), 'Only the first line errors must be removed.');
-        Assert.IsTrue(OtherEntry.HasPaymentFileErrors(), 'The second line error must remain.');
+        TempDirectDebitCollectionEntry.DeletePaymentFileErrors();
+        Assert.IsFalse(TempDirectDebitCollectionEntry.HasPaymentFileErrors(), 'Only the first line errors must be removed.');
+        Assert.IsTrue(TempOtherEntry.HasPaymentFileErrors(), 'The second line error must remain.');
         Assert.IsTrue(DirectDebitCollection.HasPaymentFileErrors(), 'The slip must still find the second line error.');
-        OtherEntry.DeletePaymentFileErrors();
+        TempOtherEntry.DeletePaymentFileErrors();
         Assert.IsFalse(DirectDebitCollection.HasPaymentFileErrors(), 'No errors must remain for the slip.');
         RestorePaymentFeatureStatus();
     end;

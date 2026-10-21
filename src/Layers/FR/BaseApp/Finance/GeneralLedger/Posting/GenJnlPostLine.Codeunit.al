@@ -7882,15 +7882,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
 
 #if not CLEAN30
-    local procedure GetUnrealizedVATPart(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; SettledAmount: Decimal; PaidAmount: Decimal; FullAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal): Decimal
+    local procedure GetUnrealizedVATPart(GenJnlLine: Record "Gen. Journal Line"; UnrealizedVATEntry: Record "VAT Entry"; SettledAmount: Decimal; PaidAmount: Decimal; FullAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal): Decimal
     begin
         if not FeatureKeyManagement.IsPaymentManagementEnabled() then
 #pragma warning disable AL0432
-            exit(VATEntry.GetUnrealizedVATPart(
+            exit(UnrealizedVATEntry.GetUnrealizedVATPart(
                 SettledAmount, PaidAmount, FullAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast,
                 GenJnlLine."Delayed Unrealized VAT", GenJnlLine."Realize VAT"));
 #pragma warning restore AL0432
-        exit(VATEntry.GetUnrealizedVATPart(SettledAmount, PaidAmount, FullAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast));
+        exit(UnrealizedVATEntry.GetUnrealizedVATPart(SettledAmount, PaidAmount, FullAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast));
     end;
 #endif
 #if not CLEAN30

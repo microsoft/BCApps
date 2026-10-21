@@ -105,13 +105,15 @@ codeunit 10840 "Upgrade Payment Management FR"
         FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
     begin
-#if not CLEAN28
         // Installation, upgrades and company initialization share this eligibility check.
         // A disabled company must migrate its latest legacy values only when it activates.
         // Version 31 forces activation even if the Feature Management status has not changed yet.
-        if not ForceActivation then
-            if not FeatureManagementFacade.IsEnabled('Payment') then
-                exit(false);
+        if ForceActivation then
+            exit(true);
+
+#if not CLEAN28
+        if not FeatureManagementFacade.IsEnabled('Payment') then
+            exit(false);
 #endif
         exit(true);
     end;
