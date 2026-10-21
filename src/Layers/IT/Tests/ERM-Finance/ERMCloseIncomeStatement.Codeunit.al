@@ -530,7 +530,7 @@ codeunit 134228 "ERM Close Income Statement"
         CorrectionAmount := 2000;
         AuditAdjustmentAmount := 60000;
 
-        // [GIVEN] Accounts "A1" and "A2" each have a blank-source entry followed by two USD entries on different dates
+        // [GIVEN] Accounts "A1" and "A2" each have a blank-source entry followed by two foreign-currency entries on different dates
         PostThirdClosingHistory(GenJournalLine, FirstClosedAccount."No.", BalancingAccountNo, FiscalYearStartDate, SourceCurrencyCode);
         PostThirdClosingHistory(GenJournalLine, SecondClosedAccount."No.", BalancingAccountNo, FiscalYearStartDate, SourceCurrencyCode);
         Commit();
@@ -592,10 +592,10 @@ codeunit 134228 "ERM Close Income Statement"
         FiscalYearEndDate: Date;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Balance closing without dimensions sums mixed LCY and USD entries once per account.
+        // [SCENARIO] Balance closing without dimensions sums mixed LCY and foreign-currency entries once per account.
         Initialize();
 
-        // [GIVEN] Accounts "A1" and "A2" have the reported LCY/USD totals, two global dimensions and no reporting currency
+        // [GIVEN] Accounts "A1" and "A2" have the reported local/foreign-currency totals, two global dimensions and no reporting currency
         PrepareMixedCurrencyClosingScenario(
             GenJournalLine, IncomeStatementAccounts, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -634,10 +634,10 @@ codeunit 134228 "ERM Close Income Statement"
         DimensionSetID: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Balance closing by both global dimensions sums mixed LCY and USD entries once per account.
+        // [SCENARIO] Balance closing by both global dimensions sums mixed LCY and foreign-currency entries once per account.
         Initialize();
 
-        // [GIVEN] Accounts "A1" and "A2" have the reported LCY/USD totals, two global dimensions and no reporting currency
+        // [GIVEN] Accounts "A1" and "A2" have the reported local/foreign-currency totals, two global dimensions and no reporting currency
         DimensionSetID := PrepareMixedCurrencyClosingScenario(
             GenJournalLine, IncomeStatementAccounts, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -678,7 +678,7 @@ codeunit 134228 "ERM Close Income Statement"
         // [SCENARIO] Grouped closing sums the source-currency amounts of all LCY entries, not just the first entry.
         Initialize();
 
-        // [GIVEN] Account "A" has two LCY entries of 100 separated by a USD entry, without reporting currency or dimensions
+        // [GIVEN] Account "A" has two LCY entries of 100 separated by a foreign-currency entry, without reporting currency or dimensions
         PrepareLCYSourceCurrencyClosingScenario(
             GenJournalLine, IncomeStatementAccount, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -710,7 +710,7 @@ codeunit 134228 "ERM Close Income Statement"
         // [SCENARIO] Closing without business units or dimensions sums the source-currency amounts of all LCY entries.
         Initialize();
 
-        // [GIVEN] Account "A" has two LCY entries of 100 separated by a USD entry, without reporting currency or dimensions
+        // [GIVEN] Account "A" has two LCY entries of 100 separated by a foreign-currency entry, without reporting currency or dimensions
         PrepareLCYSourceCurrencyClosingScenario(
             GenJournalLine, IncomeStatementAccount, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -755,7 +755,6 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         SelectedDimension: Record "Selected Dimension";
-        Currency: Record Currency;
     begin
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."LCY Code" := LocalCurrencyCode;
@@ -773,11 +772,8 @@ codeunit 134228 "ERM Close Income Statement"
         FiscalYearEndDate := CalcDate('<CM>', LibraryFiscalYear.GetLastPostingDate(true));
         FiscalYearStartDate := CalcDate('<-1Y+1D>', FiscalYearEndDate);
 
-        if not Currency.Get('USD') then begin
-            LibraryERM.CreateCurrency(Currency);
-            Currency.Rename('USD');
-        end;
-        SourceCurrencyCode := Currency.Code;
+        SourceCurrencyCode :=
+            LibraryERM.CreateCurrencyWithExchangeRate(FiscalYearStartDate, 0.25, 0.25);
 
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
@@ -894,7 +890,10 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
         LibraryVariableStorage.Enqueue(DocumentNo);
-        LibraryVariableStorage.Enqueue('');
+        if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
+            LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo)
+        else
+            LibraryVariableStorage.Enqueue('');
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
@@ -994,10 +993,10 @@ codeunit 134228 "ERM Close Income Statement"
         GLEntry.SetRange("Posting Date", FiscalYearStartDate, ClosingDate(FiscalYearEndDate));
         GLEntry.SetRange("Source Currency Code", SourceCurrencyCode);
         GLEntry.CalcSums(Amount);
-        Assert.AreEqual(300, GLEntry.Amount, 'The original USD entries must remain after seeding legacy closing metadata.');
+        Assert.AreEqual(300, GLEntry.Amount, 'The original foreign-currency entries must remain after seeding legacy closing metadata.');
         GLEntry.SetRange("Source Currency Code", '');
         GLEntry.CalcSums(Amount);
-        Assert.AreEqual(-300, GLEntry.Amount, 'The blank-source history must offset the USD group in LCY.');
+        Assert.AreEqual(-300, GLEntry.Amount, 'The blank-source history must offset the foreign-currency group in LCY.');
     end;
 
     local procedure VerifyIncomeStatementAccountBalance(AccountNo: Code[20]; FiscalYearStartDate: Date; FiscalYearEndDate: Date; ExpectedAmount: Decimal)
