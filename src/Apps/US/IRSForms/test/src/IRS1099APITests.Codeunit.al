@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 codeunit 148018 "IRS 1099 API Tests"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -52,6 +53,7 @@ codeunit 148018 "IRS 1099 API Tests"
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRSReportingPeriod: Record "IRS Reporting Period";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IRS1099FormDocHeader.DeleteAll(true);
         IRSReportingPeriod.DeleteAll(true);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 API Tests");
