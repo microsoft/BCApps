@@ -49,7 +49,7 @@ Original issues remain unchanged. The only label added to a main PR is `ext-back
 **Manual use:** after deployment, open **BCApps > Actions > Extensibility Request Backport > Run workflow**. Select `main` in **Use workflow from** to run the deployed workflow definition. This does not select the backport destination; the target remains the release branch.
 
 - Leave `source_pr` blank for normal 15-day selection and team batching.
-- Enter a merged main **PR number**, not an issue number, for a specific request. This bypasses date, category and processed-label selection, but not safety or duplicate checks.
+- Enter a merged main **PR number**, not an issue number, for a specific request. This can override the normal selection filters, but never creates another copy of an existing backport. An interrupted run can resume to finish missing tracking updates.
 
 Both modes reuse the same milestone tracker. **Manual runs make real changes; there is no preview mode.**
 
@@ -59,7 +59,7 @@ Both modes reuse the same milestone tracker. **Manual runs make real changes; th
 | --- | --- |
 | Nothing qualifies? | No new backport PR or tracker. |
 | The PR is older than 15 days? | Select its number manually. |
-| It was already backported? | Reuse its existing record/PR, not a duplicate. |
+| It was already backported? | Skip it; do not backport it again. PRs labeled `ext-backport-processed` are excluded from automatic selection. |
 | Team information is missing or inconsistent? | Process separately, without guessing a team. |
 | Changes conflict with the release? | Record manual attention; no partial source change or automatic retry. Unrelated clean work continues; related changes may be held. |
 | Changes are already present? | Record that outcome; create no empty PR. |
