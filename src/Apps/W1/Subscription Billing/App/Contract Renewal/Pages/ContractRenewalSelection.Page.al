@@ -425,35 +425,65 @@ page 8006 "Contract Renewal Selection"
     local procedure OpenServiceObjectAndRefreshLines()
     var
         SubscriptionLine: Record "Subscription Line";
-        TempRenewalTermEnteredOnPage: Record "Subscription Line" temporary;
+        TempSubscriptionLineBeforeCard: Record "Subscription Line" temporary;
     begin
-        // Renewal Terms entered on this page are only written to the Subscription Lines on closing, so keep them
         TempServiceCommitment.Reset();
         TempServiceCommitment.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         if TempServiceCommitment.FindSet() then
             repeat
-                if SubscriptionLine.Get(TempServiceCommitment."Entry No.") then
-                    if SubscriptionLine."Renewal Term" <> TempServiceCommitment."Renewal Term" then begin
-                        TempRenewalTermEnteredOnPage := TempServiceCommitment;
-                        TempRenewalTermEnteredOnPage.Insert(false);
-                    end;
+                if SubscriptionLine.Get(TempServiceCommitment."Entry No.") then begin
+                    TempSubscriptionLineBeforeCard := SubscriptionLine;
+                    TempSubscriptionLineBeforeCard.Insert(false);
+                end;
             until TempServiceCommitment.Next() = 0;
 
         Rec.OpenServiceObjectCard();
 
-        // Show the changes made on the Subscription
         if TempServiceCommitment.FindSet() then
             repeat
-                if SubscriptionLine.Get(TempServiceCommitment."Entry No.") then begin
-                    SubscriptionLine.CalcFields(Quantity);
-                    TempServiceCommitment.TransferFields(SubscriptionLine);
-                    if TempRenewalTermEnteredOnPage.Get(SubscriptionLine."Entry No.") then
-                        TempServiceCommitment."Renewal Term" := TempRenewalTermEnteredOnPage."Renewal Term";
+                if TempSubscriptionLineBeforeCard.Get(TempServiceCommitment."Entry No.") and SubscriptionLine.Get(TempServiceCommitment."Entry No.") then begin
+                    RefreshBufferedSubscriptionLine(TempSubscriptionLineBeforeCard, SubscriptionLine);
                     TempServiceCommitment.Modify(false);
                 end;
             until TempServiceCommitment.Next() = 0;
         TempServiceCommitment.Reset();
         CurrPage.Update(false);
+    end;
+
+    local procedure RefreshBufferedSubscriptionLine(SubscriptionLineBeforeCard: Record "Subscription Line"; SubscriptionLine: Record "Subscription Line")
+    var
+        BeforeCardRecordRef: RecordRef;
+        BufferRecordRef: RecordRef;
+        CurrentRecordRef: RecordRef;
+        BufferFieldRef: FieldRef;
+        FieldIndex: Integer;
+    begin
+        // Show the changes made on the Subscription, but keep the values that differ only on this page (Renewal Terms entered here,
+        // values set by subscribers of this page's events); they are written to the Subscription Lines when the page is closed
+        BufferRecordRef.GetTable(TempServiceCommitment);
+        BeforeCardRecordRef.GetTable(SubscriptionLineBeforeCard);
+        CurrentRecordRef.GetTable(SubscriptionLine);
+        for FieldIndex := 1 to BufferRecordRef.FieldCount() do begin
+            BufferFieldRef := BufferRecordRef.FieldIndex(FieldIndex);
+            if IsRefreshableField(BufferFieldRef) then
+                if Format(BufferFieldRef.Value(), 0, 9) = Format(BeforeCardRecordRef.FieldIndex(FieldIndex).Value(), 0, 9) then
+                    BufferFieldRef.Value(CurrentRecordRef.FieldIndex(FieldIndex).Value());
+        end;
+        BufferRecordRef.SetTable(TempServiceCommitment);
+        SubscriptionLine.CalcFields(Quantity);
+        TempServiceCommitment.Quantity := SubscriptionLine.Quantity;
+    end;
+
+    local procedure IsRefreshableField(FieldRef: FieldRef): Boolean
+    var
+        SystemFieldsStartNo: Integer;
+    begin
+        SystemFieldsStartNo := 2000000000;
+        if FieldRef.Class() <> FieldClass::Normal then
+            exit(false);
+        if FieldRef.Number() >= SystemFieldsStartNo then
+            exit(false);
+        exit(not (FieldRef.Type() in [FieldType::Blob, FieldType::Media, FieldType::MediaSet]));
     end;
 
     local procedure TransferChangedValuesFromBufferToServiceCommitment()

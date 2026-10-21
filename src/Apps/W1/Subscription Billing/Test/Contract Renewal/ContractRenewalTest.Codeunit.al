@@ -16,6 +16,7 @@ codeunit 139692 "Contract Renewal Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         TempContractRenewalLine: Record "Sub. Contract Renewal Line" temporary;
@@ -33,6 +34,7 @@ codeunit 139692 "Contract Renewal Test"
         ConfirmOption: Boolean;
         BaseCalculationPercentage: Decimal;
         CalculationBaseAmount: Decimal;
+        TermUntilSetBySubscriber: Date;
         SubscriptionLineEntryNo: Integer;
 
     #region Tests
@@ -968,6 +970,45 @@ codeunit 139692 "Contract Renewal Test"
         ContractRenewalSelection.Close();
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ServiceObjectCardModalPageHandler')]
+    [Test]
+    procedure ValueSetBySubscriberIsRetainedAfterSubscriptionIsOpened()
+    var
+        ContractRenewalTestSubscriber: Codeunit "Contract Renewal Test";
+        ContractRenewalSelection: TestPage "Contract Renewal Selection";
+        CalculationBasePercentNotUpdatedErr: Label 'Calculation Base % changed on the Subscription should be shown on the page.';
+        TermUntilNotRetainedErr: Label 'Term Until set by a subscriber on the page should be retained after the Subscription was opened.';
+        TermUntilNotSetErr: Label 'Term Until should be set by the subscriber.';
+        NewTermUntil: Date;
+    begin
+        // [SCENARIO] A value that an extension set on the Create Contract Renewal Quote page through OnAfterInitTempSubscriptionLine is kept when the Subscription is opened from the page, while the changes made on the Subscription are shown.
+        Initialize();
+
+        // [GIVEN] A Customer Subscription Contract
+        CreateBaseData();
+
+        // [GIVEN] A subscriber sets Term Until of the page lines to a date that is not stored on the Subscription Lines
+        NewTermUntil := CalcDate('<+5Y>', WorkDate());
+        ContractRenewalTestSubscriber.SetTermUntilSetBySubscriber(NewTermUntil);
+        BindSubscription(ContractRenewalTestSubscriber);
+
+        // [GIVEN] The Create Contract Renewal Quote page is open on the first contract line
+        ContractRenewalSelection.OpenEdit();
+        GoToFirstCustomerContractLine(ContractRenewalSelection);
+        Assert.AreEqual(NewTermUntil, ContractRenewalSelection."Term Until".AsDate(), TermUntilNotSetErr);
+
+        // [WHEN] The Subscription is opened from the line and the Calculation Base % of the Subscription Line is changed there
+        BaseCalculationPercentage := LibraryRandom.RandDecInDecimalRange(80, 100, 2);
+        ContractRenewalSelection."Service Object Description".AssistEdit(); // ServiceObjectCardModalPageHandler
+
+        // [THEN] The line shows the new Calculation Base % and still the Term Until set by the subscriber
+        Assert.AreEqual(BaseCalculationPercentage, ContractRenewalSelection."Calculation Base %".AsDecimal(), CalculationBasePercentNotUpdatedErr);
+        Assert.AreEqual(NewTermUntil, ContractRenewalSelection."Term Until".AsDate(), TermUntilNotRetainedErr);
+
+        ContractRenewalSelection.Close();
+        UnbindSubscription(ContractRenewalTestSubscriber);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1498,5 +1539,20 @@ codeunit 139692 "Contract Renewal Test"
     end;
 
     #endregion Handlers
+
+    #region Subscribers
+
+    procedure SetTermUntilSetBySubscriber(NewTermUntil: Date)
+    begin
+        TermUntilSetBySubscriber := NewTermUntil;
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Contract Renewal Selection", OnAfterInitTempSubscriptionLine, '', false, false)]
+    local procedure SetTermUntilOnAfterInitTempSubscriptionLine(var TempSubscriptionLine: Record "Subscription Line" temporary)
+    begin
+        TempSubscriptionLine.ModifyAll("Term Until", TermUntilSetBySubscriber, false);
+    end;
+
+    #endregion Subscribers
 }
 #pragma warning restore AA0210
