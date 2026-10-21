@@ -16,8 +16,10 @@ codeunit 139762 "SMTP Account Auth Tests"
         SMTPAccountPage: TestPage "SMTP Account";
         SMTPAccountWizardPage: TestPage "SMTP Account Wizard";
         TokenFromCacheTxt: Label 'aGVhZGVy.eyJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyQGRvbWFpbi5jb20iLCJ1cG4iOiJ0ZXN0dXNlckBkb21haW4uY29tIn0=.c2lnbmF0dXJl', Comment = 'Access token example (with no secret data)', Locked = true;
+        Base64UrlTokenTxt: Label 'aGVhZGVy.eyJ1bmlxdWVfbmFtZSI6InVzZXJAZXhhbXBsZS5jb20iLCJjbGFpbSI6In5-fiJ9.c2lnbmF0dXJl', Comment = 'Access token example with Base64URL characters (with no secret data)', Locked = true;
 #pragma warning disable AA0240
         TokenFromCacheUserNameTxt: Label 'testuser@domain.com', Locked = true;
+        Base64UrlTokenUserNameTxt: Label 'user@example.com', Locked = true;
 #pragma warning restore AA0240
         AuthenticationSuccessfulMsg: Label '%1 was authenticated.', Comment = '%1 = username';
         AuthenticationFailedMsg: Label 'Could not authenticate.';
@@ -134,6 +136,18 @@ codeunit 139762 "SMTP Account Auth Tests"
         Token := TokenFromCacheTxt;
         OAuth2SMTPAuthentication.GetUserName(Token, ReturnedUserName);
         Assert.AreEqual(TokenFromCacheUserNameTxt, ReturnedUserName, 'Incorrect returned username.');
+    end;
+
+    [Test]
+    procedure GetUserNameFromBase64UrlTokenTest()
+    var
+        OAuth2SMTPAuthentication: Codeunit "OAuth2 SMTP Authentication";
+        ReturnedUserName: Text;
+        Token: Text;
+    begin
+        Token := Base64UrlTokenTxt;
+        Assert.IsTrue(OAuth2SMTPAuthentication.GetUserName(Token, ReturnedUserName), 'Base64URL access token should be parsed.');
+        Assert.AreEqual(Base64UrlTokenUserNameTxt, ReturnedUserName, 'Incorrect returned username.');
     end;
 
     [Test]

@@ -16,7 +16,6 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
-using System.Security.User;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -619,24 +618,6 @@ codeunit 148300 "Library - Expense"
         ExpenseTeam.Validate(Code, LibraryUtility.GenerateRandomCode(ExpenseTeam.FieldNo(Code), Database::"Expense Team"));
         ExpenseTeam.Validate(Description, LibraryUtility.GenerateRandomCode(ExpenseTeam.FieldNo(Description), Database::"Expense Team"));
         ExpenseTeam.Insert(true);
-    end;
-
-    procedure SetExpenseAmountApprovalLimits(var UserSetup: Record "User Setup"; ExpenseApprovalLimit: Integer)
-    begin
-        UserSetup."Expense Amount Approval Limit" := ExpenseApprovalLimit;
-        UserSetup.Modify(true);
-    end;
-
-    procedure SetLimitedExpenseApprovalLimits(var UserSetup: Record "User Setup")
-    begin
-        UserSetup."Unlimited Expense Approval" := false;
-        UserSetup.Modify(true);
-    end;
-
-    procedure SetUnlimitedExpenseApprovalLimits(var UserSetup: Record "User Setup")
-    begin
-        UserSetup."Unlimited Expense Approval" := true;
-        UserSetup.Modify(true);
     end;
 
     internal procedure CreateExpenseApprovalSetup(var ExpenseApprovalSetup: Record "Expense Approval Setup"; ExpenseUserNo: Code[20]; ApproverNo: Code[20])
