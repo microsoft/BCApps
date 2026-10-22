@@ -72,16 +72,19 @@ codeunit 130464 "Test Input Json"
         exit(TestJson.AsArray().Count());
     end;
 
+    /// <summary>
+    /// Returns the raw scalar value without resolving placeholders.
+    /// </summary>
     procedure ElementValue(): JsonValue
     begin
         exit(TestJson.AsValue());
     end;
 
     /// <summary>
-    /// Returns the value as Text, resolving data tool placeholders when text replacement is enabled.
+    /// Returns the value as Text, resolving data tool placeholders on every read.
     /// Supported: $Placeholder-...$, $DateFormula-...$, $DateTimeFormula-...$.
     /// Named values use their full name and the current company, then the shared-company fallback.
-    /// The underlying JSON is not changed.
+    /// The underlying JSON is not changed. Use ElementValue().AsText() for raw scalar text.
     /// </summary>
     procedure ValueAsText(): Text
     var

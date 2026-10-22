@@ -7,6 +7,9 @@ namespace System.TestTools.TestRunner;
 
 codeunit 130485 "Test Input Rollback Probe"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         ExistingPlaceholderName: Text;
         InsertedPlaceholderName: Text;

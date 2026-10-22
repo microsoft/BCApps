@@ -8,13 +8,15 @@ namespace System.TestTools.TestRunner;
 table 130455 "Test Input Placeholder"
 {
     Access = Internal;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = RIMDX;
     DataClassification = CustomerContent;
     DataPerCompany = false;
     ReplicateData = false;
 
     fields
     {
-        field(1; Name; Code[100])
+        field(1; Name; Code[250])
         {
             Caption = 'Name';
             ToolTip = 'Specifies the placeholder name.';
@@ -24,9 +26,9 @@ table 130455 "Test Input Placeholder"
             Caption = 'Company';
             ToolTip = 'Specifies the company that uses the placeholder. A blank company makes the value available to all companies.';
         }
-        field(4; Value; Blob)
+        field(4; "Placeholder Value"; Blob)
         {
-            Caption = 'Value';
+            Caption = 'Placeholder Value';
             ToolTip = 'Specifies the replacement text.';
         }
     }
@@ -43,8 +45,8 @@ table 130455 "Test Input Placeholder"
     var
         ValueOutStream: OutStream;
     begin
-        Clear(Value);
-        Value.CreateOutStream(ValueOutStream, TextEncoding::UTF8);
+        Clear("Placeholder Value");
+        "Placeholder Value".CreateOutStream(ValueOutStream, TextEncoding::UTF8);
         ValueOutStream.Write(NewValue);
     end;
 
@@ -53,11 +55,11 @@ table 130455 "Test Input Placeholder"
         ValueInStream: InStream;
         ValueText: Text;
     begin
-        CalcFields(Value);
-        if not Value.HasValue() then
+        CalcFields("Placeholder Value");
+        if not "Placeholder Value".HasValue() then
             exit('');
 
-        Value.CreateInStream(ValueInStream, TextEncoding::UTF8);
+        "Placeholder Value".CreateInStream(ValueInStream, TextEncoding::UTF8);
         ValueInStream.Read(ValueText);
         exit(ValueText);
     end;

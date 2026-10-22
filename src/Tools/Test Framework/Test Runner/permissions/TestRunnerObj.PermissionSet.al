@@ -18,7 +18,6 @@ permissionset 130452 "Test Runner - Obj."
         table "AL Code Coverage Map" = X,
         table "Test Input" = X,
         table "Test Input Group" = X,
-        table "Test Input Placeholder" = X,
         table "Test Output" = X,
         codeunit "ALTestRunner Reset Environment" = X,
         codeunit "Test Profile Management" = X,

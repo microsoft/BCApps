@@ -83,14 +83,10 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLineFunction: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
-        TestInputDataTools: Codeunit "Test Input Data Tools";
         Skip: Boolean;
     begin
-        if SkipLoggingResults then begin
-            if (FunctionName <> '') and (FunctionName <> 'OnRun') then
-                TestInputDataTools.SetTextReplacementsEnabled(true);
+        if SkipLoggingResults then
             exit(true);
-        end;
 
         // Invoked by the platform before any codeunit is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then begin
@@ -110,13 +106,10 @@ codeunit 130454 "Test Runner - Mgt"
 
         SetStartTimeOnTestLine(TestMethodLineFunction);
 
-        TestInputDataTools.SetTextReplacementsEnabled(true);
         Skip := false;
         OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, Skip);
-        if Skip then begin
-            TestInputDataTools.SetTextReplacementsEnabled(false);
+        if Skip then
             exit(false);
-        end;
 
         exit(true);
     end;
@@ -125,11 +118,7 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLine: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
-        TestInputDataTools: Codeunit "Test Input Data Tools";
     begin
-        if (FunctionName <> '') and (FunctionName <> 'OnRun') then
-            TestInputDataTools.SetTextReplacementsEnabled(false);
-
         if SkipLoggingResults then begin
             OnAfterTestMethodRun(TestMethodLine, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, IsSuccess);
             exit;
