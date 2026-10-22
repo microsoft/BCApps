@@ -116,7 +116,7 @@ codeunit 5763 "Whse.-Post Shipment"
                     CheckItemTrkgPicked(WhseShptLine);
                 if Location."Bin Mandatory" then begin
                     IsHandled := false;
-                    OnCodeOnBeforeTestBinCode(WhseShptLine, IsHandled); //Neelesh
+                    OnCodeOnBeforeTestBinCode(WhseShptLine, IsHandled);
                     if not IsHandled then
                         WhseShptLine.TestField("Bin Code");
                 end;
