@@ -3195,6 +3195,8 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A default approver, an unassigned request, and a request assigned to another approver.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateApprover(DefaultApprover);
+        DefaultApprover.Validate("Unlimited Approval", true);
+        DefaultApprover.Modify(true);
         SetDefaultApprover(DefaultApprover."No.");
         CreateReleasableSpendRequest(DefaultTravelRequest, DefaultExpenseUser);
         if DefaultExpenseUserNo <> '' then begin
