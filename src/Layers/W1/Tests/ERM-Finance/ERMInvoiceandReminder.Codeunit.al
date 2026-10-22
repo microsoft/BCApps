@@ -6,6 +6,7 @@ codeunit 134907 "ERM Invoice and Reminder"
                   TableData "Detailed Cust. Ledg. Entry" = rimd;
     Subtype = Test;
     TestPermissions = NonRestrictive;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -26,6 +27,10 @@ codeunit 134907 "ERM Invoice and Reminder"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        PrintInvocationCount: Integer;
+        PrintedReminderCount: Integer;
+        PrintedAsEmail: Boolean;
+        PrintedReminderCustomerNos: List of [Code[20]];
         DueDateLbl: Label '<-%1D>', Locked = true;
         ReminderLineError: Label 'The %1 on the %2 and the %3 must be the same.';
         AmountError: Label 'Amount must be %1 in %2.';
@@ -292,7 +297,7 @@ codeunit 134907 "ERM Invoice and Reminder"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('SuggestLinesReportHandler')]
+    [HandlerFunctions('SuggestLinesWithDefaultFiltersReportHandler')]
     procedure IssueReminderForMultipleInvoicesWithDifferentReminderLevels()
     var
         ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry";
@@ -872,6 +877,51 @@ codeunit 134907 "ERM Invoice and Reminder"
         // [THEN] No chargeable reminder lines are created for the on-hold entries (no duplicates, no line fees)
         ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Reminder Line");
         Assert.RecordIsEmpty(ReminderLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('SuggestLinesWithDefaultFiltersReportHandler,IssueRemindersPrintRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure IssueMultipleRemindersWithPrintUsesSingleBatch()
+    var
+        Customer: Record Customer;
+        SecondCustomer: Record Customer;
+        ReminderHeader: Record "Reminder Header";
+        FirstReminderHeader: Record "Reminder Header";
+        SecondReminderHeader: Record "Reminder Header";
+        PrintCaptureSubscriber: Codeunit "ERM Invoice and Reminder";
+        WeekDateFormula: DateFormula;
+        ReminderPostingDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Printing multiple issued reminders uses one print call containing both reminders
+        Initialize();
+
+        // [GIVEN] Two customers with overdue invoices and separate reminders
+        Evaluate(WeekDateFormula, '<1W>');
+        CreateCustomerWithPaymentAndReminderTerms(Customer, WeekDateFormula);
+        CreateCustomerWithPaymentAndReminderTerms(SecondCustomer, WeekDateFormula);
+        PostSalesInvoice(Customer."No.", WorkDate());
+        PostSalesInvoice(SecondCustomer."No.", WorkDate());
+        ReminderPostingDate := CalcDate('<3W+1D>', WorkDate());
+        CreateReminderForDate(FirstReminderHeader, Customer."No.", ReminderPostingDate);
+        CreateReminderForDate(SecondReminderHeader, SecondCustomer."No.", ReminderPostingDate);
+        ReminderHeader.SetFilter("No.", '%1|%2', FirstReminderHeader."No.", SecondReminderHeader."No.");
+
+        // [WHEN] Issue both reminders with Print selected
+        PrintCaptureSubscriber.ResetPrintCapture();
+        BindSubscription(PrintCaptureSubscriber);
+        Report.RunModal(Report::"Issue Reminders", true, true, ReminderHeader);
+        Expand commentComment on line R914Resolved
+        UnbindSubscription(PrintCaptureSubscriber);
+
+        // [THEN] One print call contains both issued reminders and is not an email send
+        Assert.AreEqual(1, PrintCaptureSubscriber.GetPrintInvocationCount(), 'The reminders should be printed in one report invocation.');
+        Assert.AreEqual(2, PrintCaptureSubscriber.GetPrintedReminderCount(), 'The print record filter should contain both issued reminders.');
+        Assert.IsTrue(PrintCaptureSubscriber.ContainsPrintedReminderCustomer(Customer."No."), 'The first customer reminder should be included in the print batch.');
+        Assert.IsTrue(PrintCaptureSubscriber.ContainsPrintedReminderCustomer(SecondCustomer."No."), 'The second customer reminder should be included in the print batch.');
+        Assert.IsFalse(PrintCaptureSubscriber.WasPrintedAsEmail(), 'The report should use the print path, not the email path.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
