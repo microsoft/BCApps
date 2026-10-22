@@ -587,7 +587,7 @@ codeunit 12179 "Export FatturaPA Document"
             TempXMLBuffer.AddNonEmptyElement('NumeroDDT', TempFatturaLine."Document No.");
             TempXMLBuffer.AddNonEmptyElement('DataDDT', FormatDate(TempFatturaLine."Posting Date"));
             if TempFatturaLine."Related Line No." <> 0 then
-                TempXMLBuffer.AddNonEmptyElement('RiferimentoNumeroLinea', Format(TempFatturaLine."Line No."));
+                TempXMLBuffer.AddNonEmptyElement('RiferimentoNumeroLinea', Format(TempFatturaLine."Related Line No."));
             TempXMLBuffer.GetParent();
         until TempFatturaLine.Next() = 0;
     end;

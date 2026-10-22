@@ -16,7 +16,6 @@ codeunit 12281 "FatturaPA Preview Accounting"
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
         AggregatedVATEntries: Record "VAT Entry" temporary;
         VATPostingSetup: Record "VAT Posting Setup";
-        ReversedVATPostingSetup: Record "VAT Posting Setup";
         IsSplitPayment: Boolean;
         VATEntryCount: Integer;
     begin
@@ -25,8 +24,7 @@ codeunit 12281 "FatturaPA Preview Accounting"
         if TempVATEntry.FindSet() then
             repeat
                 VATPostingSetup.Get(TempVATEntry."VAT Bus. Posting Group", TempVATEntry."VAT Prod. Posting Group");
-                if (VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Full VAT") and
-                   ReversedVATPostingSetup.Get(VATPostingSetup."Reversed VAT Bus. Post. Group", VATPostingSetup."Reversed VAT Prod. Post. Group") then
+                if FatturaDocHelper.IsSplitVATSetup(VATPostingSetup) then
                     IsSplitPayment := true;
             until TempVATEntry.Next() = 0;
 
@@ -56,7 +54,7 @@ codeunit 12281 "FatturaPA Preview Accounting"
                     TempCustLedgEntry."Entry No.",
                     TempDtldCustLedgEntry);
 
-                FatturaDocHelper.InsertPreviewPaymentFatturaLine(
+                FatturaDocHelper.InsertPaymentFatturaLine(
                     TempFatturaLine, TempCustLedgEntry."Due Date", Amount);
             until TempCustLedgEntry.Next() = 0;
     end;
