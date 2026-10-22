@@ -5,6 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Sales.Setup;
@@ -268,6 +269,7 @@ page 1382 "Customer Templ. Card"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
+                        Visible = VATInUse;
                     }
                     field("Customer Posting Group"; Rec."Customer Posting Group")
                     {
@@ -518,8 +520,11 @@ page 1382 "Customer Templ. Card"
 
     trigger OnOpenPage()
     var
+        GLSetup: Record "General Ledger Setup";
         PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
     begin
+        GLSetup.Get();
+        VATInUse := GLSetup."VAT in Use";
         IsCountyVisible := FormatAddress.UseCounty(Rec."Country/Region Code");
         SalesReceivablesSetup.Get();
         IsAllowMultiplePostingGroupsVisible := SalesReceivablesSetup."Allow Multiple Posting Groups";
@@ -532,4 +537,5 @@ page 1382 "Customer Templ. Card"
         ExtendedPriceEnabled: Boolean;
         IsAllowMultiplePostingGroupsVisible: Boolean;
         IsCountyVisible: Boolean;
+        VATInUse: Boolean;
 }

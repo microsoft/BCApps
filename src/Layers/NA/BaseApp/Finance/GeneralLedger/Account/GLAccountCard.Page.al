@@ -215,11 +215,13 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+                    Visible = VATInUse;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+                    Visible = VATInUse;
                 }
                 field("Tax Group Code"; Rec."Tax Group Code")
                 {
@@ -734,6 +736,7 @@ page 17 "G/L Account Card"
 
     var
         ExtendedPriceEnabled: Boolean;
+        VATInUse: Boolean;
         SubCategoryDescription: Text[80];
 
     local procedure UpdateAccountSubcategoryDescription()
@@ -744,8 +747,11 @@ page 17 "G/L Account Card"
 
     local procedure SetControlVisibility()
     var
+        GLSetup: Record "General Ledger Setup";
         PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
     begin
+        GLSetup.Get();
+        VATInUse := GLSetup."VAT in Use";
         ExtendedPriceEnabled := PriceCalculationMgt.IsExtendedPriceCalculationEnabled();
     end;
 }
