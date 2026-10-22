@@ -45,18 +45,6 @@ codeunit 149051 "AIT Run Data Export"
         exit(ResultText);
     end;
 
-    procedure GetAgentTaskExportError(AgentTaskID: BigInteger; ErrorText: Text): Text
-    var
-        ExportError: JsonObject;
-        ResultText: Text;
-    begin
-        ExportError.Add(AgentTaskIDTok, AgentTaskID);
-        ExportError.Add(ExportStatusTok, FailedTxt);
-        ExportError.Add(ErrorTok, ErrorText);
-        ExportError.WriteTo(ResultText);
-        exit(ResultText);
-    end;
-
     procedure GetEvaluationResult(AITLogEntry: Record "AIT Log Entry"): Text
     var
         AgentTaskLog: Record "Agent Task Log";
@@ -344,7 +332,6 @@ codeunit 149051 "AIT Run Data Export"
         AccuracyTok: Label 'accuracy', Locked = true;
         AgentTaskCountTok: Label 'agentTaskCount', Locked = true;
         AgentTaskDetailsTok: Label 'agentTaskDetails', Locked = true;
-        AgentTaskIDTok: Label 'agentTaskId', Locked = true;
         AIEvalLogIDTok: Label 'aiEvalLogId', Locked = true;
         AnalysisGuidanceTok: Label 'analysisGuidance', Locked = true;
         CodeunitIDTok: Label 'codeunitId', Locked = true;
@@ -356,9 +343,7 @@ codeunit 149051 "AIT Run Data Export"
         DurationMsTok: Label 'durationMs', Locked = true;
         EndTimeTok: Label 'endTime', Locked = true;
         ErrorCallStackTok: Label 'errorCallStack', Locked = true;
-        ErrorTok: Label 'error', Locked = true;
         EvaluationsTok: Label 'evaluations', Locked = true;
-        ExportStatusTok: Label 'exportStatus', Locked = true;
         ExportStatusFileTok: Label 'exportStatusFile', Locked = true;
         GroupCodeTok: Label 'groupCode', Locked = true;
         InputCodeTok: Label 'inputCode', Locked = true;
@@ -387,7 +372,6 @@ codeunit 149051 "AIT Run Data Export"
         VersionTok: Label 'version', Locked = true;
         AnalysisGuidanceTxt: Label 'Check exportStatusFile for export completeness before analysis. Analyze each evaluation result first. Open agentTaskDetails only for failures, uncertainty, or deeper causal analysis.', Locked = true;
         ExportStatusFileTxt: Label 'export-status.json', Locked = true;
-        FailedTxt: Label 'Failed', Locked = true;
         FolderNamesNotInitializedErr: Label 'Generate the run results before exporting evaluation file paths so that dataset folder names are initialized.';
         SuccessTxt: Label 'Success', Locked = true;
         ErrorTxt: Label 'Error', Locked = true;

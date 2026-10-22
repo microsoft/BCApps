@@ -5,6 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
@@ -184,7 +185,7 @@ page 149042 "AIT CommandLine Card"
                     Caption = 'AI Eval Run Data File Error';
                     Editable = false;
                     MultiLine = true;
-                    ToolTip = 'Specifies why the current Agent Task detail file could not be exported. The file contains an error instead of task details.';
+                    ToolTip = 'Specifies file-level error information for export consumers.';
                 }
             }
             group("Test Method Lines Group")
@@ -357,7 +358,6 @@ page 149042 "AIT CommandLine Card"
         AITRunDataAgentTaskLogPositioned: Boolean;
         AITRunDataVersion: Integer;
         NoMoreAITRunDataFilesTxt: Label 'No more AI Eval run data files.', Locked = true;
-        AgentTaskExportFailedErr: Label 'Agent task %1 could not be exported. %2', Comment = '%1 = Agent Task ID, %2 = Error details.';
 
     local procedure StartAITSuite()
     var
@@ -426,6 +426,8 @@ page 149042 "AIT CommandLine Card"
     local procedure LoadNextAITRunDataFile()
     var
         SummaryLogEntry: Record "AIT Log Entry";
+        AgentTask: Codeunit "Agent Task";
+        AgentTaskDetailsJson: JsonObject;
         AgentTaskDetails: Text;
         AgentTaskFilePath: Text;
     begin
@@ -471,24 +473,12 @@ page 149042 "AIT CommandLine Card"
             end;
             AgentTaskFilePath := AITRunDataExport.GetAgentTaskDetailsFilePath(AITRunDataLogEntry, AITRunDataAgentTaskLog."Agent Task ID");
         until not AITRunDataTaskFiles.ContainsKey(AgentTaskFilePath);
-        AITRunDataTaskFiles.Add(AgentTaskFilePath, true);
 
-        ClearLastError();
-        if not TryGetAgentTaskDetails(AITRunDataAgentTaskLog."Agent Task ID", AgentTaskDetails) then begin
-            AITRunDataFileError := StrSubstNo(AgentTaskExportFailedErr, AITRunDataAgentTaskLog."Agent Task ID", GetLastErrorText());
-            ClearLastError();
-            AgentTaskDetails := AITRunDataExport.GetAgentTaskExportError(AITRunDataAgentTaskLog."Agent Task ID", AITRunDataFileError);
-        end;
+        AgentTaskDetailsJson := AgentTask.GetTaskLogEntryDetails(AITRunDataAgentTaskLog."Agent Task ID");
+        AgentTaskDetailsJson.WriteTo(AgentTaskDetails);
+        AITRunDataTaskFiles.Add(AgentTaskFilePath, true);
         SetAITRunDataFile(AgentTaskFilePath, AgentTaskDetails);
         CurrPage.Update(false);
-    end;
-
-    [TryFunction]
-    local procedure TryGetAgentTaskDetails(AgentTaskID: BigInteger; var AgentTaskDetails: Text)
-    var
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-    begin
-        AgentTaskDetails := AgentTestContextImpl.GetAgentTaskLog(AgentTaskID);
     end;
 
     local procedure InitializeAITRunDataExport(): Boolean

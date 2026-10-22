@@ -292,12 +292,18 @@ table 149034 "AIT Log Entry"
     var
         Content: TextBuilder;
         ContentLine: Text;
+        FirstLine: Boolean;
     begin
-        Source.ReadText(ContentLine);
-        Content.Append(ContentLine);
+        if Source.Length() = 0 then
+            exit('');
+
+        FirstLine := true;
         while not Source.EOS() do begin
             Source.ReadText(ContentLine);
-            Content.AppendLine('');
+            if FirstLine then
+                FirstLine := false
+            else
+                Content.AppendLine('');
             Content.Append(ContentLine);
         end;
         exit(Content.ToText());

@@ -28,6 +28,7 @@ codeunit 133960 "Agent Task Test"
     var
         AgentRecord: Record Agent;
         AgentTaskRecord: Record "Agent Task";
+        MockAgentSetup: Record "Mock Agent Setup";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         Any: Codeunit Any;
         ExportJson: JsonObject;
@@ -37,8 +38,8 @@ codeunit 133960 "Agent Task Test"
         AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
             AgentRecord,
             CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
-            CopyStr(Any.AlphanumericText(80), 1, 80),
-            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."Display Name")), 1, MaxStrLen(AgentRecord."Display Name")),
+            CopyStr(Any.AlphanumericText(MaxStrLen(MockAgentSetup.Instructions)), 1, MaxStrLen(MockAgentSetup.Instructions)));
         AgentTaskBuilder.Initialize(AgentUserId, 'Task without steps');
         AgentTaskRecord := AgentTaskBuilder.Create(false, false);
 
