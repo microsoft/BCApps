@@ -174,12 +174,10 @@ codeunit 12285 "FatturaPA Preview Mgt."
             SalesLine.SetRange("Document No.", SalesHeader."No.");
             if SalesLine.FindSet() then
                 repeat
-                    // Posted Get Shipment Lines exports use the original source-line
-                    // ordinal, including comment/split lines, for fiscal references.
-                    FatturaLineNo += 1;
                     if FatturaDocHelper.ShouldIncludePreviewSalesLine(
                         SalesHeader, SalesLine, GetEffectiveQtyToInvoice(SalesHeader, SalesLine))
                     then begin
+                        FatturaLineNo += 1;
                         if (SalesLine.Type = SalesLine.Type::Item) and
                            (SalesLine."Shipment No." <> '')
                         then
@@ -245,8 +243,7 @@ codeunit 12285 "FatturaPA Preview Mgt."
         // The shared helper reconstructs the same shipment allocation for posted output.
         FatturaDocHelper.CollectOrderShipmentReferences(
             TempShipmentBuffer, SalesHeader."No.", SalesLine."Line No.", FatturaLineNo,
-            Abs(SalesLine."Qty. to Invoice"), Abs(SalesLine."Quantity Invoiced"),
-            HasShipmentReference);
+            Abs(SalesLine."Qty. to Invoice"), HasShipmentReference);
     end;
 
     local procedure BuildDocumentLines(
@@ -310,9 +307,14 @@ codeunit 12285 "FatturaPA Preview Mgt."
     var
         SalesLine: Record "Sales Line";
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        Currency: Record Currency;
         EffectiveQuantity: Decimal;
         TotalDiscount: Decimal;
     begin
+        if SalesHeader."Currency Code" = '' then
+            Currency.InitRoundingPrecision()
+        else
+            Currency.Get(SalesHeader."Currency Code");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         if SalesLine.FindSet() then
@@ -320,7 +322,8 @@ codeunit 12285 "FatturaPA Preview Mgt."
                 EffectiveQuantity := GetEffectiveQtyToInvoice(SalesHeader, SalesLine);
                 if FatturaDocHelper.ShouldIncludePreviewSalesLine(SalesHeader, SalesLine, EffectiveQuantity) then
                     TotalDiscount += FatturaDocHelper.ProrateFatturaInvoiceDiscount(
-                        SalesLine."Inv. Discount Amount", SalesLine.Quantity, EffectiveQuantity);
+                        SalesLine."Inv. Discount Amount", SalesLine.Quantity, EffectiveQuantity,
+                        Currency."Amount Rounding Precision");
             until SalesLine.Next() = 0;
         exit(TotalDiscount);
     end;

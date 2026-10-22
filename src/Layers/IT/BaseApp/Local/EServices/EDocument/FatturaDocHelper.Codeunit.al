@@ -577,6 +577,7 @@ codeunit 12184 "Fattura Doc. Helper"
     var
         DocRecRef: RecordRef;
     begin
+        Initialize();
         TempFatturaHeader."Applied Doc. No." := AppliedCustLedgerEntry."Document No.";
         TempFatturaHeader."Applied Posting Date" := AppliedCustLedgerEntry."Posting Date";
 
@@ -1010,7 +1011,7 @@ codeunit 12184 "Fattura Doc. Helper"
                                 TempFatturaHeader."Entry Type"::Sales:
                                     begin
                                         InsertSalesShipmentReference(
-                                            TempShptFatturaLine, ShptNo, i, IsSplitPaymentLine(LineRecRef));
+                                            TempShptFatturaLine, ShptNo, DocumentLineNo, IsSplitPaymentLine(LineRecRef));
                                     end;
                                 else
                                     OnCollectShipmentInfo(
@@ -1024,7 +1025,7 @@ codeunit 12184 "Fattura Doc. Helper"
                 end;
                 if Type = GetOptionCaptionValue(SalesLine.Type::"G/L Account".AsInteger()) then
                     InsertShipmentBuffer(
-                        TempShptFatturaLine, Type, i, '', TempFatturaHeader."Posting Date", '', '', '', IsSplitPaymentLine(LineRecRef));
+                        TempShptFatturaLine, Type, DocumentLineNo, '', TempFatturaHeader."Posting Date", '', '', '', IsSplitPaymentLine(LineRecRef));
                 if TempFatturaHeader."Order No." <> '' then begin
                     TempLineNumberBuffer.Init();
                     Evaluate(TempLineNumberBuffer."Old Line Number", Format(LineRecRef.Field(LineNoFieldNo).Value));
@@ -1050,40 +1051,25 @@ codeunit 12184 "Fattura Doc. Helper"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        PreviousSalesInvoiceHeader: Record "Sales Invoice Header";
-        PreviousSalesInvoiceLine: Record "Sales Invoice Line";
-        PreviouslyInvoicedQty: Decimal;
-        HasShipmentReference: Boolean;
+        TempSalesShipmentBuffer: Record "Sales Shipment Buffer" temporary;
     begin
         if not SalesInvoiceHeader.Get(SalesInvoiceNo) then
             exit;
         if not SalesInvoiceLine.Get(SalesInvoiceNo, SalesInvoiceLineNo) then
             exit;
-        if SalesInvoiceLine."Order No." = '' then
-            exit;
 
-        // Determine the pre-posting state rather than reading the already updated
-        // Quantity Invoiced on shipment lines. Later invoices must not affect
-        // re-export of an earlier invoice.
-        PreviousSalesInvoiceLine.SetRange("Order No.", SalesInvoiceLine."Order No.");
-        PreviousSalesInvoiceLine.SetRange("Order Line No.", SalesInvoiceLine."Order Line No.");
-        PreviousSalesInvoiceLine.SetRange(Type, PreviousSalesInvoiceLine.Type::Item);
-        if PreviousSalesInvoiceLine.FindSet() then
+        // The posted value entries preserve the actual shipment linked to the
+        // invoiced quantity. Historical FIFO reconstruction can associate the
+        // wrong DDT after Get Shipment Lines or backdated later shipments.
+        TempSalesShipmentBuffer.GetLinesForSalesInvoiceLine(SalesInvoiceLine, SalesInvoiceHeader);
+        // W1's AddBufferEntry leaves its lookup filters set to the last DDT.
+        // Reset them before enumerating the complete actual value-entry mapping.
+        TempSalesShipmentBuffer.Reset();
+        if TempSalesShipmentBuffer.FindSet() then
             repeat
-                if (PreviousSalesInvoiceLine."Document No." <> SalesInvoiceNo) and
-                   PreviousSalesInvoiceHeader.Get(PreviousSalesInvoiceLine."Document No.")
-                then
-                    if (PreviousSalesInvoiceHeader.SystemCreatedAt < SalesInvoiceHeader.SystemCreatedAt) or
-                       ((PreviousSalesInvoiceHeader.SystemCreatedAt = SalesInvoiceHeader.SystemCreatedAt) and
-                        (PreviousSalesInvoiceHeader."No." < SalesInvoiceHeader."No."))
-                    then
-                        PreviouslyInvoicedQty += Abs(PreviousSalesInvoiceLine.Quantity);
-            until PreviousSalesInvoiceLine.Next() = 0;
-
-        CollectOrderShipmentReferences(
-            TempShptFatturaLine,
-            SalesInvoiceLine."Order No.", SalesInvoiceLine."Order Line No.", FatturaLineNo,
-            Abs(SalesInvoiceLine.Quantity), PreviouslyInvoicedQty, HasShipmentReference);
+                InsertSalesShipmentReference(
+                    TempShptFatturaLine, TempSalesShipmentBuffer."Document No.", FatturaLineNo, false);
+            until TempSalesShipmentBuffer.Next() = 0;
     end;
 
     /// <summary>
@@ -1121,42 +1107,36 @@ codeunit 12184 "Fattura Doc. Helper"
         OrderLineNo: Integer;
         FatturaLineNo: Integer;
         QuantityToInvoice: Decimal;
-        PreviouslyInvoicedQty: Decimal;
         var HasShipmentReference: Boolean)
     var
         SalesShipmentLine: Record "Sales Shipment Line";
-        SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesLine: Record "Sales Line";
-        ShippedQty: Decimal;
         AvailableQty: Decimal;
     begin
         if QuantityToInvoice <= 0 then
             exit;
 
-        // Use the same deterministic ordering in both source states. An invoice
-        // consumes the remaining shipped quantities after prior invoice quantities.
+        // Use W1's shipment-specific remaining invoiceable quantity.
+        // Undo Shipment marks both the original and reversing line as Correction.
+        // This is an acquisition adapter; the shared fiscal buffer logic follows.
         SalesShipmentLine.SetCurrentKey("Order No.", "Order Line No.", "Posting Date");
         SalesShipmentLine.SetRange("Order No.", OrderNo);
         SalesShipmentLine.SetRange("Order Line No.", OrderLineNo);
         SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange(Correction, false);
+        SalesShipmentLine.SetFilter(Quantity, '>0');
         if SalesShipmentLine.FindSet() then
             repeat
-                ShippedQty := Abs(SalesShipmentLine.Quantity);
-                if PreviouslyInvoicedQty >= ShippedQty then
-                    PreviouslyInvoicedQty -= ShippedQty
-                else begin
-                    AvailableQty := ShippedQty - PreviouslyInvoicedQty;
-                    PreviouslyInvoicedQty := 0;
-                    if (AvailableQty > 0) and SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then begin
-                        InsertSalesShipmentReference(
-                            TempShptFatturaLine, SalesShipmentHeader."No.", FatturaLineNo, false);
+                AvailableQty := SalesShipmentLine."Qty. Shipped Not Invoiced";
+                if AvailableQty > 0 then
+                    if InsertSalesShipmentReference(
+                        TempShptFatturaLine, SalesShipmentLine."Document No.", FatturaLineNo, false)
+                    then begin
                         HasShipmentReference := true;
                         if QuantityToInvoice <= AvailableQty then
                             QuantityToInvoice := 0
                         else
                             QuantityToInvoice -= AvailableQty;
                     end;
-                end;
             until (SalesShipmentLine.Next() = 0) or (QuantityToInvoice <= 0);
     end;
 
@@ -1447,11 +1427,12 @@ codeunit 12184 "Fattura Doc. Helper"
     procedure ProrateFatturaInvoiceDiscount(
         SourceInvoiceDiscount: Decimal;
         SourceQuantity: Decimal;
-        InvoicedQuantity: Decimal): Decimal
+        InvoicedQuantity: Decimal;
+        AmountRoundingPrecision: Decimal): Decimal
     begin
         if SourceQuantity = 0 then
             exit(0);
-        exit(SourceInvoiceDiscount * InvoicedQuantity / SourceQuantity);
+        exit(Round(SourceInvoiceDiscount * InvoicedQuantity / SourceQuantity, AmountRoundingPrecision));
     end;
 
     procedure ShouldIncludePreviewSalesLine(
