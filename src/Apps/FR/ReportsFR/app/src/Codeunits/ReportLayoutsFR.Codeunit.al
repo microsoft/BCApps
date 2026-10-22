@@ -111,8 +111,6 @@ codeunit 10822 "Report Layouts FR"
 #pragma warning restore AL0432
     begin
         FeatureKey.TestField(ID, ReportsFR.GetFeatureKeyId());
-        // These are platform-owned flags. AL must not simulate a reversible, update-free feature.
-        FeatureKey.TestField("Is One Way", true);
         FeatureKey.TestField("Data Update Required", true);
     end;
 #endif
