@@ -340,8 +340,6 @@ src/Views/**
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app
 !src/Apps/IN/INTaxBase/app/Translations/India Tax Base.en-US.xlf
-!src/Apps/W1/ReportFilenameManager/Test/Translations/Report Filename Manager Tests.da-DK.xlf
-!src/Apps/W1/ReportFilenameManager/Test/Translations/Report Filename Manager Tests.de-DE.xlf
 !src/Apps/W1/EDocumentConnectors/Avalara/App/Translations/E-Document Connector - Avalara.g.xlf
 !src/Apps/W1/Shopify/App/Translations/Shopify Connector.g.xlf
 !src/Apps/W1/Subscription Billing/App/Translations/Subscription Billing.g.xlf
