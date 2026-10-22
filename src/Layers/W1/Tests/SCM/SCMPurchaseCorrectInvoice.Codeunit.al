@@ -1221,14 +1221,14 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ItemLedgerEntry.FindLast();
         SalesShipmentLine.Get(ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.");
 
-        VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
+        LibraryPurchase.CreatePurchHeader(PurchaseInvoice, PurchaseInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseInvoice, 1, 10);
+        VATPostingSetup.Get(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group");
         if VATPostingSetup."Purchase VAT Account" = '' then begin
             VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
             VATPostingSetup.Modify(true);
         end;
 
-        LibraryPurchase.CreatePurchHeader(PurchaseInvoice, PurchaseInvoice."Document Type"::Invoice, Vendor."No.");
-        LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseInvoice, 1, 10);
         LibraryInventory.CreateItemChargeAssignPurchase(
             ItemChargeAssignmentPurch, PurchaseLine, ItemChargeAssignmentPurch."Applies-to Doc. Type"::"Sales Shipment",
             SalesShipmentLine."Document No.", SalesShipmentLine."Line No.", SalesShipmentLine."No.");
