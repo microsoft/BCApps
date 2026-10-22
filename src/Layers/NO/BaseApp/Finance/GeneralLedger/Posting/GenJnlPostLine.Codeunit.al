@@ -127,6 +127,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SourceCodeSetup: Record "Source Code Setup";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         NorwegianVATTools: Codeunit "Norwegian VAT Tools";
         RemTools: Codeunit "Remittance Tools";
         DeferralUtilities: Codeunit "Deferral Utilities";
@@ -1058,22 +1059,31 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
+        FullVATAmountSrcCurr, FullVATAmountWithPropDeductionSrcCurr : Decimal;
         LastNextEntryNo: Integer;
     begin
         if not NonDeductibleVAT.IsNonDeductibleVATEnabled() then begin
+            if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> '') and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then begin
+                FullVATAmountSrcCurr := GenJnlLine."Source Curr. VAT Amount";
+                FullVATAmountWithPropDeductionSrcCurr := -GenJnlLine."Source Curr. VAT Amount";
+                if not VATPostingParameters."Unrealized VAT" then
+                    FullVATAmountWithPropDeductionSrcCurr -= CalcAmountSrcCurr(GenJnlLine, PropDeductionVAT);
+            end else begin
+                FullVATAmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount");
+                FullVATAmountWithPropDeductionSrcCurr := CalcAmountSrcCurr(GenJnlLine, GetReverseChargeVATAmount(VATPostingParameters."Full VAT Amount", PropDeductionVAT, VATPostingParameters."Unrealized VAT"));
+            end;
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToPurchAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"), VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true,
-                CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount"));
+                FullVATAmountSrcCurr);
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToRevChargeAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetRevChargeAccount(VATPostingParameters."Unrealized VAT"),
                 GetReverseChargeVATAmount(VATPostingParameters."Full VAT Amount", PropDeductionVAT, VATPostingParameters."Unrealized VAT"),
                 GetReverseChargeVATAmountACY(VATPostingParameters."Full VAT Amount ACY", PropDedVATACY, VATPostingParameters."Unrealized VAT"), true,
-                CalcAmountSrcCurr(GenJnlLine,
-                    GetReverseChargeVATAmount(VATPostingParameters."Full VAT Amount", PropDeductionVAT, VATPostingParameters."Unrealized VAT")));
+                FullVATAmountWithPropDeductionSrcCurr);
             exit;
         end;
         if VATPostingParameters."Unrealized VAT" then begin
@@ -1125,7 +1135,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure PostFAJnlLineWithGLEntryBufUpdate(GenJnlLine: Record "Gen. Journal Line"; VATPostingParameters: Record "VAT Posting Parameters"; LastNextEntryNo: Integer)
     var
         TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         GLBalanceAmount: Decimal;
         IsLastDepreciationEntry: Boolean;
     begin
@@ -1740,7 +1749,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
         ShortcutDim1Code: Code[20];
         ShortcutDim2Code: Code[20];
@@ -1771,6 +1779,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not IsHandled then
                 FAJnlPostLine.GenJnlPostLine(
                     GenJnlLine, GLEntry2.Amount, GLEntry2."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            CreateAndPostDerogEntry(GenJnlLine);
             ShortcutDim1Code := GenJnlLine."Shortcut Dimension 1 Code";
             ShortcutDim2Code := GenJnlLine."Shortcut Dimension 2 Code";
             DimensionSetID := GenJnlLine."Dimension Set ID";
@@ -7909,6 +7918,40 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
 
         InsertGLEntry(GenJnlLine, GLEntry, true);
+    end;
+
+    /// <summary>
+    /// Posts the extra derogatory depreciation created when acquisition cost is depreciated.
+    /// FAJnlPostLine.PostDerogatoryCounterpart() copies the acquisition cost to the linked derogatory book.
+    /// This extra amount must be calculated because the acquisition line contains cost, not depreciation.
+    /// </summary>
+    /// <param name="SourceGenJournalLine">The acquisition-cost general journal line used to prepare the adjustment.</param>
+    local procedure CreateAndPostDerogEntry(SourceGenJournalLine: Record "Gen. Journal Line")
+    var
+        GenJnlLine: Record "Gen. Journal Line";
+        FAJnlLine: Record "FA Journal Line";
+        DerogFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        IntegrationGLDerogatory: Boolean;
+    begin
+        if not DerogatoryPostingMgt.PrepareAcquisitionCostAdjustment(
+             GenJnlLine, SourceGenJournalLine, IntegrationGLDerogatory)
+        then
+            exit;
+
+        // Post through the general journal so the adjustment creates G/L entries in the current transaction.
+        if IntegrationGLDerogatory then begin
+            FAJnlPostLine.GenJnlPostLineContinue(
+              GenJnlLine, GenJnlLine.Amount, GenJnlLine."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            DerogFALedgerEntry := FAJnlPostLine.GetLastSourceFALedgerEntry();
+            DerogFALedgerEntry.TestField("Entry No.");
+            DerogFALedgerEntry."Automatic Entry" := true;
+            FAJnlPostLine.InsertBalAcc(DerogFALedgerEntry);
+        end else begin
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(FAJnlLine, GenJnlLine, Enum::"Derogatory Posting Role"::Source);
+            FAJnlLine.Validate("Depreciation Book Code", SourceGenJournalLine."Depreciation Book Code");
+            FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+        end;
     end;
 
     local procedure GLEntryCalcPropDeduction(GenJnlLine: Record "Gen. Journal Line"; GLEntry: Record "G/L Entry"; VATPostingSetup: Record "VAT Posting Setup")

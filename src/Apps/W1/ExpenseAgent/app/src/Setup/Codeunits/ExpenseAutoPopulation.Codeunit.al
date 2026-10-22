@@ -227,7 +227,9 @@ codeunit 6912 "Expense Auto Population"
         case Expense."Expense Detail Required" of
             "Expense Detail Needed"::" ":
                 begin
-                    DeleteItemization(Expense);
+                    if not Expense.IsItemizationRequired() then
+                        DeleteItemization(Expense);
+
                     DeletePerDiem(Expense);
                     DeleteParticipants(Expense);
                 end;
@@ -238,12 +240,16 @@ codeunit 6912 "Expense Auto Population"
                 end;
             "Expense Detail Needed"::Participants:
                 begin
-                    DeleteItemization(Expense);
+                    if not Expense.IsItemizationRequired() then
+                        DeleteItemization(Expense);
+
                     DeletePerDiem(Expense);
                 end;
             "Expense Detail Needed"::"Per Diem":
                 begin
-                    DeleteItemization(Expense);
+                    if not Expense.IsItemizationRequired() then
+                        DeleteItemization(Expense);
+
                     DeleteParticipants(Expense);
                 end;
         end;
@@ -264,7 +270,9 @@ codeunit 6912 "Expense Auto Population"
         case ExpenseReportLine."Expense Detail Required" of
             "Expense Detail Needed"::" ":
                 begin
-                    DeleteItemization(ExpenseReportLine);
+                    if not ExpenseReportLine.IsItemizationRequired() then
+                        DeleteItemization(ExpenseReportLine);
+
                     DeletePerDiem(ExpenseReportLine);
                     DeleteParticipants(ExpenseReportLine);
                 end;
@@ -275,12 +283,16 @@ codeunit 6912 "Expense Auto Population"
                 end;
             "Expense Detail Needed"::Participants:
                 begin
-                    DeleteItemization(ExpenseReportLine);
+                    if not ExpenseReportLine.IsItemizationRequired() then
+                        DeleteItemization(ExpenseReportLine);
+
                     DeletePerDiem(ExpenseReportLine);
                 end;
             "Expense Detail Needed"::"Per Diem":
                 begin
-                    DeleteItemization(ExpenseReportLine);
+                    if not ExpenseReportLine.IsItemizationRequired() then
+                        DeleteItemization(ExpenseReportLine);
+
                     DeleteParticipants(ExpenseReportLine);
                 end;
         end;

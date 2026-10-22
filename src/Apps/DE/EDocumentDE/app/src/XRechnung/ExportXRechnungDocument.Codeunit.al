@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -44,6 +45,8 @@ codeunit 13916 "Export XRechnung Document"
         TypeHelper: Codeunit "Type Helper";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+        SourceDocumentRecordRef: RecordRef;
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
@@ -51,11 +54,15 @@ codeunit 13916 "Export XRechnung Document"
         StartEventNameTok: Label 'E-document XRechnung export started', Locked = true;
         EndEventNameTok: Label 'E-document XRechnung export completed', Locked = true;
         GLNSchemeIDTok: Label '0088', Locked = true;
+        SEPASchemeIDTok: Label 'SEPA', Locked = true;
         XmlNamespaceCBC: Text;
         XmlNamespaceCAC: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
         AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean;
         AllLinesNotSubjectToVAT: Boolean;
+#if not CLEAN30
+        EDocumentServiceProvided: Boolean;
+#endif
         DocumentLanguageCode: Code[10];
 
     trigger OnRun();
@@ -70,6 +77,7 @@ codeunit 13916 "Export XRechnung Document"
             Database::"Service Cr.Memo Header":
                 ExportServiceCreditMemo(Rec);
         end;
+        ResetProvidedService();
     end;
 
     procedure ExportSalesInvoice(var RecordExportBuffer: Record "Record Export Buffer")
@@ -82,7 +90,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(SalesInvoiceHeader);
 
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(SalesInvoiceHeader, FileOutStream);
@@ -100,7 +112,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(SalesCrMemoHeader);
 
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(SalesCrMemoHeader, FileOutStream);
@@ -118,7 +134,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(ServiceInvoiceHeader);
 
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(ServiceInvoiceHeader, FileOutStream);
@@ -136,7 +156,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(ServiceCrMemoHeader);
 
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(ServiceCrMemoHeader, FileOutStream);
@@ -163,6 +187,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesInvoiceHeader);
         CurrencyCode := GetCurrencyCode(SalesInvoiceHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
@@ -177,10 +203,10 @@ codeunit 13916 "Export XRechnung Document"
         CalculateLineAmounts(SalesInvoiceHeader, SalesInvLine, Currency, LineAmounts);
         DetectNotSubjectToVATLines(SalesInvLine);
         ClassifyItemCharges(SalesInvoiceHeader, SalesInvLine);
-        InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode);
+        InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesInvoiceHeader);
         InsertDelivery(RootXMLNode, SalesInvoiceHeader);
-        InsertPaymentMeans(RootXMLNode, '58', 'PayeeFinancialAccount', SalesInvoiceHeader."Company Bank Account Code");
+        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID");
         InsertPaymentTerms(RootXMLNode, SalesInvoiceHeader."Payment Terms Code");
         InsertVATAmounts(SalesInvLine, LineVATAmount, LineAmount, LineDiscAmount, SalesInvoiceHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, SalesInvLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -213,6 +239,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesCrMemoHeader);
         CurrencyCode := GetCurrencyCode(SalesCrMemoHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetCrMemoXMLHeader(), XMLDoc);
@@ -227,10 +255,10 @@ codeunit 13916 "Export XRechnung Document"
         CalculateLineAmounts(SalesCrMemoHeader, SalesCrMemoLine, Currency, LineAmounts);
         DetectNotSubjectToVATLines(SalesCrMemoLine);
         ClassifyItemCharges(SalesCrMemoHeader, SalesCrMemoLine);
-        InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode);
+        InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
-        InsertPaymentMeans(RootXMLNode, '58', '', SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMeans(RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '');
         InsertPaymentTerms(RootXMLNode, SalesCrMemoHeader."Payment Terms Code");
         InsertVATAmounts(SalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, SalesCrMemoLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -275,6 +303,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceInvoiceHeader);
         CurrencyCode := GetCurrencyCode(SalesInvoiceHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
@@ -288,10 +318,10 @@ codeunit 13916 "Export XRechnung Document"
         InsertAttachment(RootXMLNode, Database::"Service Invoice Header", SalesInvoiceHeader."No.");
         CalculateLineAmounts(SalesInvoiceHeader, TempSalesInvLine, Currency, LineAmounts);
         DetectNotSubjectToVATLines(TempSalesInvLine);
-        InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode);
+        InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesInvoiceHeader);
         InsertDelivery(RootXMLNode, SalesInvoiceHeader);
-        InsertPaymentMeans(RootXMLNode, '58', 'PayeeFinancialAccount', SalesInvoiceHeader."Company Bank Account Code");
+        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID");
         InsertPaymentTerms(RootXMLNode, SalesInvoiceHeader."Payment Terms Code");
         InsertVATAmounts(TempSalesInvLine, LineVATAmount, LineAmount, LineDiscAmount, SalesInvoiceHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, TempSalesInvLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -334,6 +364,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceCrMemoHeader);
         CurrencyCode := GetCurrencyCode(SalesCrMemoHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetCrMemoXMLHeader(), XMLDoc);
@@ -347,10 +379,10 @@ codeunit 13916 "Export XRechnung Document"
         InsertAttachment(RootXMLNode, Database::"Service Cr.Memo Header", SalesCrMemoHeader."No.");
         CalculateLineAmounts(SalesCrMemoHeader, TempSalesCrMemoLine, Currency, LineAmounts);
         DetectNotSubjectToVATLines(TempSalesCrMemoLine);
-        InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode);
+        InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
-        InsertPaymentMeans(RootXMLNode, '58', '', SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMeans(RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '');
         InsertPaymentTerms(RootXMLNode, SalesCrMemoHeader."Payment Terms Code");
         InsertVATAmounts(TempSalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, TempSalesCrMemoLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -396,7 +428,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('CustomizationID', XmlNamespaceCBC, 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'));
         RootXMLNode.Add(XmlElement.Create('ProfileID', XmlNamespaceCBC, 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0'));
         RootXMLNode.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesInvoiceHeader."No."));
-        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Posting Date")));
+        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Document Date")));
         if SalesInvoiceHeader."Due Date" <> CalcDate('<0D>') then
             RootXMLNode.Add(XmlElement.Create('DueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Due Date")));
         RootXMLNode.Add(XmlElement.Create('InvoiceTypeCode', XmlNamespaceCBC, '380'));
@@ -410,7 +442,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('CustomizationID', XmlNamespaceCBC, 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'));
         RootXMLNode.Add(XmlElement.Create('ProfileID', XmlNamespaceCBC, 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0'));
         RootXMLNode.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesCrMemoHeader."No."));
-        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesCrMemoHeader."Posting Date")));
+        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesCrMemoHeader."Document Date")));
         RootXMLNode.Add(XmlElement.Create('CreditNoteTypeCode', XmlNamespaceCBC, '381'));
         RootXMLNode.Add(XmlElement.Create('DocumentCurrencyCode', XmlNamespaceCBC, CurrencyCode));
         InsertBuyerReference(RootXMLNode, SalesCrMemoHeader);
@@ -932,13 +964,34 @@ codeunit 13916 "Export XRechnung Document"
     end;
     #endregion
 
-    local procedure InsertAccountingSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var RootXMLNode: XmlElement)
+    local procedure InsertAccountingSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20])
     var
         AccountingSupplierPartyElement: XmlElement;
+        PaymentMeansCode: Code[3];
     begin
         AccountingSupplierPartyElement := XmlElement.Create('AccountingSupplierParty', XmlNamespaceCAC);
-        InsertSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement);
+        PaymentMeansCode := DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode);
+        case PaymentMeansCode of
+            '49', '59':
+                InsertDirectDebitSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement, CompanyBankAccountCode);
+            else
+                InsertStandardSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement);
+        end;
         RootXMLNode.Add(AccountingSupplierPartyElement);
+    end;
+
+    local procedure InsertDirectDebitSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var AccountingSupplierPartyElement: XmlElement; CompanyBankAccountCode: Code[20])
+    var
+        CreditorNo: Code[35];
+    begin
+        // BT-90 Bank assigned creditor identifier (BG-19), required for SEPA Direct Debit.
+        CreditorNo := DEPaymentMeansHelper.GetCreditorNo(CompanyBankAccountCode);
+        InsertSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement, CreditorNo);
+    end;
+
+    local procedure InsertStandardSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var AccountingSupplierPartyElement: XmlElement)
+    begin
+        InsertSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement);
     end;
 
     local procedure InsertDelivery(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -1036,17 +1089,63 @@ codeunit 13916 "Export XRechnung Document"
         AddressElement.Add(CountryElement);
     end;
 
-    local procedure InsertPaymentMeans(var RootXMLNode: XmlElement; PaymentMeansCode: Text[10]; PayeeFinancialAccount: Text[30]; CompanyBankAccountCode: Code[20])
+    local procedure InsertPaymentMeans(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35])
     var
         PaymentMeansElement: XmlElement;
+        PaymentMeansCode: Code[3];
     begin
-        if PaymentMeansCode = '' then
-            exit;
+        PaymentMeansCode := DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode);
         PaymentMeansElement := XmlElement.Create('PaymentMeans', XmlNamespaceCAC);
         PaymentMeansElement.Add(XmlElement.Create('PaymentMeansCode', XmlNamespaceCBC, PaymentMeansCode));
-        if PayeeFinancialAccount <> '' then
-            InsertPayeeFinancialAccount(PaymentMeansElement, PayeeFinancialAccount, CompanyBankAccountCode);
+
+        case PaymentMeansCode of
+            '30', '58':
+                InsertCreditTransferPaymentMeans(PaymentMeansElement, CompanyBankAccountCode);
+            '49', '59':
+                InsertDirectDebitPaymentMeans(PaymentMeansElement, DirectDebitMandateID);
+        end;
+
+        // The original source document, so that a subscriber sees the service header and not the sales header it was transferred to.
+        OnInsertPaymentMeansOnBeforeAddToRoot(PaymentMeansElement, SourceDocumentRecordRef);
         RootXMLNode.Add(PaymentMeansElement);
+    end;
+
+    local procedure InsertDirectDebitPaymentMeans(var PaymentMeansElement: XmlElement; DirectDebitMandateID: Code[35])
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        PaymentMandateElement: XmlElement;
+        PayerFinancialAccountElement: XmlElement;
+    begin
+        // BG-17 CREDIT TRANSFER (PayeeFinancialAccount) must not be sent for direct debit (BR-DE-25-b).
+        // The creditor is identified by BT-90 in the supplier party instead.
+        if DirectDebitMandateID = '' then
+            exit;
+
+        // BG-19 DIRECT DEBIT -> PaymentMandate.
+        PaymentMandateElement := XmlElement.Create('PaymentMandate', XmlNamespaceCAC);
+        // BT-89 Mandate reference identifier.
+        PaymentMandateElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, DirectDebitMandateID));
+        // BT-91 Debited account identifier: customer account (debtor), resolved from the mandate.
+        SEPADirectDebitMandate.SetLoadFields(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code");
+        if SEPADirectDebitMandate.Get(DirectDebitMandateID) then begin
+            CustomerBankAccount.SetLoadFields(CustomerBankAccount.IBAN);
+            if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
+                if CustomerBankAccount.IBAN <> '' then begin
+                    PayerFinancialAccountElement := XmlElement.Create('PayerFinancialAccount', XmlNamespaceCAC);
+                    PayerFinancialAccountElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, GetIBAN(CustomerBankAccount.IBAN)));
+                    PaymentMandateElement.Add(PayerFinancialAccountElement);
+                end;
+        end;
+        PaymentMeansElement.Add(PaymentMandateElement);
+    end;
+
+    local procedure InsertCreditTransferPaymentMeans(var PaymentMeansElement: XmlElement; CompanyBankAccountCode: Code[20])
+    begin
+        // BT-84 Payment account identifier -> PayeeFinancialAccount (company account), for invoices and credit memos alike.
+        // Customer bank data is intentionally not used as payee here - see tech-design.md #5/#10 (BG-17/BT-84 describe the
+        // seller's account; BG-10 Payee only applies when the payee differs from the seller, which is not the case here).
+        InsertPayeeFinancialAccount(PaymentMeansElement, 'PayeeFinancialAccount', CompanyBankAccountCode);
     end;
 
     local procedure InsertPayeeFinancialAccount(var PaymentMeansElement: XmlElement; PayeeFinancialAccount: Text[30]; CompanyBankAccountCode: Code[20]);
@@ -1305,6 +1404,11 @@ codeunit 13916 "Export XRechnung Document"
     end;
 
     local procedure InsertSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var AccountingSupplierPartyElement: XmlElement);
+    begin
+        InsertSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement, '');
+    end;
+
+    local procedure InsertSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var AccountingSupplierPartyElement: XmlElement; CreditorNo: Code[35]);
     var
         TempCompanyAddress: Record "Standard Address" temporary;
         PartyElement: XmlElement;
@@ -1316,6 +1420,9 @@ codeunit 13916 "Export XRechnung Document"
             InsertPartyIdentification(PartyElement, CompanyInformation.GLN, GLNSchemeIDTok)
         else
             InsertPartyIdentification(PartyElement, GetVATRegistrationNo(CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code"));
+        // BT-90 Bank assigned creditor identifier (BG-19), required for SEPA Direct Debit.
+        if CreditorNo <> '' then
+            InsertPartyIdentification(PartyElement, CreditorNo, SEPASchemeIDTok);
         InsertPartyName(PartyElement, CompanyInformation.Name);
         TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
@@ -2016,8 +2123,36 @@ codeunit 13916 "Export XRechnung Document"
         TempCompanyAddress.Modify(false);
     end;
 
+    procedure SetEDocumentService(NewEDocumentService: Record "E-Document Service")
+    begin
+        EDocumentService := NewEDocumentService;
+#if not CLEAN30
+        EDocumentServiceProvided := true;
+#endif
+    end;
+
+    local procedure ResetProvidedService()
+    begin
+        // Clear the per-instance service state at the end of every run so a reused instance never carries
+        // the service provided for an earlier export into a later export that does not provide one.
+        Clear(EDocumentService);
+#if not CLEAN30
+        EDocumentServiceProvided := false;
+#endif
+    end;
+
+#if not CLEAN30
+#pragma warning disable AA0228, AL0432
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService. This function is still called on every export until CLEAN30: when a service was provided it only raises OnAfterFindEDocumentService without overwriting that service, otherwise it performs the legacy FindLast lookup. As of CLEAN30 this function and that fallback are removed, so any caller that does not provide a service through SetEDocumentService - for example a customized report - then exports with a blank E-Document Service.', '30.0')]
     local procedure FindEDocumentService(EDocumentFormat: Code[20])
     begin
+        // A service provided through SetEDocumentService is the service that triggered the export -
+        // never overwrite it with a lookup, but still raise the event so existing subscribers keep working.
+        if EDocumentServiceProvided then begin
+            OnAfterFindEDocumentService(EDocumentService, EDocumentFormat);
+            exit;
+        end;
+
         if EDocumentFormat = '' then
             exit;
 
@@ -2027,6 +2162,8 @@ codeunit 13916 "Export XRechnung Document"
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService, EDocumentFormat);
     end;
+#pragma warning restore AA0228, AL0432
+#endif
 
     local procedure InitializeDecimalFormatFlags()
     begin
@@ -2227,10 +2364,15 @@ codeunit 13916 "Export XRechnung Document"
     begin
     end;
 
+#if not CLEAN30
+#pragma warning disable AA0228
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService. This event is STILL raised on every export until CLEAN30 - both when a service was provided and on the legacy FindLast lookup path - so existing subscribers keep working during the deprecation window. It no longer exists as of CLEAN30; move any logic that depends on it to the service provided through SetEDocumentService.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
     begin
     end;
+#pragma warning restore AA0228
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertSalesInvHeaderData(var XMLCurrNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -2314,6 +2456,15 @@ codeunit 13916 "Export XRechnung Document"
     /// <param name="AlwaysIncludeTwoDecimalPlacesForAmountFields">Set to true to force all amount fields to include two decimal places (e.g. 1.10 instead of 1.1)</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitializeDecimalFormatFlags(var AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires immediately before the generated payment means element is added to the document root.
+    /// Subscribe to inspect or extend the payment block, using HeaderRecRef to access any field of the source document.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertPaymentMeansOnBeforeAddToRoot(var PaymentMeansElement: XmlElement; HeaderRecRef: RecordRef)
     begin
     end;
 

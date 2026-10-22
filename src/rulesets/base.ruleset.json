@@ -88,11 +88,6 @@
       "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
     },
     {
-      "id": "AS0103",
-      "action": "Warning",
-      "justification": "Table is missing a matching permission set."
-    },
-    {
       "id": "AA0021",
       "action": "Warning",
       "justification": "Variable declarations should be ordered by type. Variables should be sorted like this: Record, Report, Codeunit, XmlPort, Page, Query, Notification, BigText, DateFormula, RecordId, RecordRef, FieldRef, and FilterPageBuilder. The rest of the variables are not sorted."
@@ -121,11 +116,6 @@
       "id": "AA0131",
       "action": "Warning",
       "justification": "The number of parameters passed to a string must match the placeholders."
-    },
-    {
-      "id": "AA0136",
-      "action": "Warning",
-      "justification": "Unreachable code detected."
     },
     {
       "id": "AA0139",
@@ -281,11 +271,6 @@
       "justification": "Field ID must be within the range '[50000..99999]'."
     },
     {
-      "id": "PTE0004",
-      "action": "Warning",
-      "justification": "Table is missing a matching permission set."
-    },
-    {
       "id": "PTE0008",
       "action": "Warning",
       "justification": "Action must have a value for the ApplicationArea property so that they are visible to users. From runtime 11.0, you can specify on the application object level the ApplicationArea to use as default for all its controls and actions."
@@ -310,10 +295,6 @@
       "id": "AL1026",
       "action": "Warning",
       "justification": "RoleID exceeds the maximum length in the legacy extensionsPermissionSet.xml files of INTCS, INTDS and INTaxEngine. Tracked by AB#640773."
-    },
-    {
-      "id": "AS0011",
-      "action": "Warning"
     },
     {
       "id": "AS0016",
