@@ -1203,6 +1203,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ItemLedgerEntry: Record "Item Ledger Entry";
         ItemCharge: Record "Item Charge";
         ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        VATPostingSetup: Record "VAT Posting Setup";
         PurchInvHeader: Record "Purch. Inv. Header";
         ValueEntry: Record "Value Entry";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
@@ -1219,6 +1220,12 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Shipment");
         ItemLedgerEntry.FindLast();
         SalesShipmentLine.Get(ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.");
+
+        VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
+        if VATPostingSetup."Purchase VAT Account" = '' then begin
+            VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+            VATPostingSetup.Modify(true);
+        end;
 
         LibraryPurchase.CreatePurchHeader(PurchaseInvoice, PurchaseInvoice."Document Type"::Invoice, Vendor."No.");
         LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseInvoice, 1, 10);
