@@ -22,6 +22,7 @@ codeunit 148119 "Test Negative Outcomes"
         PostcodeServiceManager: Codeunit "Postcode Service Manager";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         MyServiceKeyTok: Label 'IDEAL_POSTCODE_POSTCODE_SERVICE', Locked = true;
+        ApiKeyTok: Label 'apikey', Locked = true;
 
     [Test]
     [HandlerFunctions('ConfigPageHandler')]
@@ -144,7 +145,7 @@ codeunit 148119 "Test Negative Outcomes"
         IPCConfig.FindFirst();
         IPCConfig.Enabled := true;
         ApiKeyGuid := CreateGuid();
-        IPCConfig.SaveAPIKeyAsSecret(ApiKeyGuid, SecretStrSubstNo('apikey'));
+        IPCConfig.SaveAPIKeyAsSecret(ApiKeyGuid, SecretStrSubstNo(ApiKeyTok));
         IPCConfig."API Key" := ApiKeyGuid;
         IPCConfig.Modify();
 

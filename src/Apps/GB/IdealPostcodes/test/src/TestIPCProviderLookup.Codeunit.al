@@ -23,6 +23,7 @@ codeunit 148120 "Test IPC Provider Lookup"
         ResolveRequestCount: Integer;
         OtherRequestCount: Integer;
         MyServiceKeyTok: Label 'IDEAL_POSTCODE_POSTCODE_SERVICE', Locked = true;
+        ApiKeyTok: Label 'apikey', Locked = true;
         RetrieveAddressDetailsErr: Label 'Failed to retrieve address details.';
         RetrievedInvalidValueTok: Label 'Retrieved field value is incorrect.', Locked = true;
 
@@ -146,7 +147,7 @@ codeunit 148120 "Test IPC Provider Lookup"
         IPCConfig.Insert();
         IPCConfig.Enabled := true;
         ApiKeyGuid := CreateGuid();
-        IPCConfig.SaveAPIKeyAsSecret(ApiKeyGuid, SecretStrSubstNo('apikey'));
+        IPCConfig.SaveAPIKeyAsSecret(ApiKeyGuid, SecretStrSubstNo(ApiKeyTok));
         IPCConfig."API Key" := ApiKeyGuid;
         IPCConfig.Modify();
         Commit();
