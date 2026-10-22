@@ -103,7 +103,7 @@ page 50 "Purchase Order"
                             if Rec."Buy-from Vendor No." <> Vendor."No." then
                                 error('');
                             IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
-                            CurrPage.Update();
+                            CurrPage.SaveRecord();
                         end;
                     end;
 
