@@ -114,7 +114,7 @@ codeunit 1232 "SEPA DD-Prepare Source"
     end;
 
 #if not CLEAN28
-    local procedure IsLegacyPaymentCollection(DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"): Boolean
+    local procedure IsLegacyPaymentCollection(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"): Boolean
     var
         DirectDebitCollection: Record "Direct Debit Collection";
         FeatureManagementFacade: Codeunit "Feature Management Facade";
