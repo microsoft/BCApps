@@ -268,6 +268,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
 
                             PurchaseLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
                             PurchaseLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
                             PurchaseLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
                             PurchaseLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
                             PurchaseLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -280,13 +281,35 @@ codeunit 20557 "Subc. Purchase Order Creator"
         end;
     end;
 
-    internal procedure SetVendorSuppliedComponentPurchaseDates(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component")
+    internal procedure SetVendorSuppliedComponentPurchaseDates(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        IsModified: Boolean;
+        PreviousOrderDate: Date;
+        PreviousExpectedReceiptDate: Date;
+        PreviousPlannedReceiptDate: Date;
+        PreviousPromisedReceiptDate: Date;
+        PreviousRequestedReceiptDate: Date;
     begin
         if ProdOrderComponent."Due Date" = 0D then
-            exit;
+            exit(false);
+
+        PreviousOrderDate := PurchaseLine."Order Date";
+        PreviousExpectedReceiptDate := PurchaseLine."Expected Receipt Date";
+        PreviousPlannedReceiptDate := PurchaseLine."Planned Receipt Date";
+        PreviousPromisedReceiptDate := PurchaseLine."Promised Receipt Date";
+        PreviousRequestedReceiptDate := PurchaseLine."Requested Receipt Date";
 
         PurchaseLine.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
-        PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
+        if PurchaseLine."Requested Receipt Date" <> PurchaseLine."Planned Receipt Date" then
+            PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
+
+        IsModified :=
+            (PreviousOrderDate <> PurchaseLine."Order Date") or
+            (PreviousExpectedReceiptDate <> PurchaseLine."Expected Receipt Date") or
+            (PreviousPlannedReceiptDate <> PurchaseLine."Planned Receipt Date") or
+            (PreviousPromisedReceiptDate <> PurchaseLine."Promised Receipt Date") or
+            (PreviousRequestedReceiptDate <> PurchaseLine."Requested Receipt Date");
+        exit(IsModified);
     end;
 
     /// <summary>
