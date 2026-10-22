@@ -221,8 +221,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
             exit(false);
         end;
 
-        SalesReceivablesSetup.GetRecordOnce();
-        if SalesReceivablesSetup."Restore Order Qty. on Return" then begin
+        if IsOrderQtyRestorationEnabled() then begin
             SalesHeaderOrder.SetRange("Document Type", SalesHeaderOrder."Document Type"::Order);
             SalesHeaderOrder.SetRange("No.", SalesInvoiceHeader."Order No.");
             if not SalesHeaderOrder.IsEmpty() then begin
@@ -1035,8 +1034,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
         RestoreOrderQuantity: Boolean;
     begin
-        SalesReceivablesSetup.GetRecordOnce();
-        RestoreOrderQuantity := SalesReceivablesSetup."Restore Order Qty. on Return";
+        RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
 
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
@@ -1142,8 +1140,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if IsHandled then
             exit;
 
-        SalesReceivablesSetup.GetRecordOnce();
-        RestoreOrderQuantity := SalesReceivablesSetup."Restore Order Qty. on Return";
+        RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeaderNo);
         if SalesInvoiceLine.FindSet() then
@@ -1341,6 +1338,15 @@ codeunit 1303 "Correct Posted Sales Invoice"
             SalesInvoiceLine.GetSalesShptLines(TempSalesShipmentLine);
             Error(DropShipmentDocumentExistsErr, TempSalesShipmentLine."Purchase Order No.");
         end;
+    end;
+
+    /// <summary>
+    /// Reads whether order quantity restoration is enabled.
+    /// </summary>
+    local procedure IsOrderQtyRestorationEnabled(): Boolean
+    begin
+        SalesReceivablesSetup.GetRecordOnce();
+        exit(SalesReceivablesSetup."Restore Order Qty. on Return");
     end;
 
     /// <summary>

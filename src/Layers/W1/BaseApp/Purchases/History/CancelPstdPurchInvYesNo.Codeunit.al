@@ -50,16 +50,23 @@ codeunit 1325 "Cancel PstdPurchInv (Yes/No)"
     end;
 
     local procedure GetCancelPostedInvoiceQst(PurchInvHeader: Record "Purch. Inv. Header"): Text
+    begin
+        if PurchInvHeader."Order No." <> '' then
+            if IsOrderQtyRestorationEnabled() then
+                exit(CancelPostedInvoiceFromOrderQst);
+
+        exit(CancelPostedInvoiceQst);
+    end;
+
+    /// <summary>
+    /// Reads whether order quantity restoration is enabled.
+    /// </summary>
+    local procedure IsOrderQtyRestorationEnabled(): Boolean
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
-        if PurchInvHeader."Order No." <> '' then begin
-            PurchasesPayablesSetup.GetRecordOnce();
-            if PurchasesPayablesSetup."Restore Order Qty. on Return" then
-                exit(CancelPostedInvoiceFromOrderQst);
-        end;
-
-        exit(CancelPostedInvoiceQst);
+        PurchasesPayablesSetup.Get();
+        exit(PurchasesPayablesSetup."Restore Order Qty. on Return");
     end;
 
     [IntegrationEvent(false, false)]

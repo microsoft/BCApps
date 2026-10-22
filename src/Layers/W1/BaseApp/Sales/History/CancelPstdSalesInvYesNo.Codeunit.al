@@ -62,16 +62,23 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
     end;
 
     local procedure GetCancelPostedInvoiceQst(SalesInvoiceHeader: Record "Sales Invoice Header"): Text
+    begin
+        if SalesInvoiceHeader."Order No." <> '' then
+            if IsOrderQtyRestorationEnabled() then
+                exit(CancelPostedInvoiceFromOrderQst);
+
+        exit(CancelPostedInvoiceQst);
+    end;
+
+    /// <summary>
+    /// Reads whether order quantity restoration is enabled.
+    /// </summary>
+    local procedure IsOrderQtyRestorationEnabled(): Boolean
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
-        if SalesInvoiceHeader."Order No." <> '' then begin
-            SalesReceivablesSetup.GetRecordOnce();
-            if SalesReceivablesSetup."Restore Order Qty. on Return" then
-                exit(CancelPostedInvoiceFromOrderQst);
-        end;
-
-        exit(CancelPostedInvoiceQst);
+        SalesReceivablesSetup.Get();
+        exit(SalesReceivablesSetup."Restore Order Qty. on Return");
     end;
 
     [IntegrationEvent(false, false)]

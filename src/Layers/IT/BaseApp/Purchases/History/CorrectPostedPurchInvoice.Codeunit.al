@@ -203,8 +203,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
             exit(false);
         end;
 
-        PurchasesPayablesSetup.GetRecordOnce();
-        if PurchasesPayablesSetup."Restore Order Qty. on Return" then begin
+        if IsOrderQtyRestorationEnabled() then begin
             PurchaseHeaderOrder.SetRange("Document Type", PurchaseHeaderOrder."Document Type"::Order);
             PurchaseHeaderOrder.SetRange("No.", PurchInvHeader."Order No.");
             if not PurchaseHeaderOrder.IsEmpty() then
@@ -845,8 +844,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         UndoPostingManagement: Codeunit "Undo Posting Management";
         RestoreOrderQuantity: Boolean;
     begin
-        PurchasesPayablesSetup.GetRecordOnce();
-        RestoreOrderQuantity := PurchasesPayablesSetup."Restore Order Qty. on Return";
+        RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
 
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
         PurchInvLine.SetRange("Prepayment Line", false);
@@ -956,8 +954,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         RestoreOrderQuantity: Boolean;
     begin
-        PurchasesPayablesSetup.GetRecordOnce();
-        RestoreOrderQuantity := PurchasesPayablesSetup."Restore Order Qty. on Return";
+        RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
 
         PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
         PurchCrMemoLine.SetRange("Document No.", PurchaseCreditMemoNo);
@@ -1148,8 +1145,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
     begin
-        PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
+        if not IsOrderQtyRestorationEnabled() then
             exit;
 
         PurchaseLine.SetLoadFields("Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Received", "Qty. Received (Base)");
@@ -1171,6 +1167,15 @@ codeunit 1313 "Correct Posted Purch. Invoice"
            (Abs(CancelledQtyBase) > Abs(PurchaseLine."Qty. Received (Base)"))
         then
             Error(CancelledQtyExceedsOrderErr, PurchaseLine."Document No.", PurchaseLine."Line No.");
+    end;
+
+    /// <summary>
+    /// Reads whether order quantity restoration is enabled.
+    /// </summary>
+    local procedure IsOrderQtyRestorationEnabled(): Boolean
+    begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        exit(PurchasesPayablesSetup."Restore Order Qty. on Return");
     end;
 
     [IntegrationEvent(false, false)]
