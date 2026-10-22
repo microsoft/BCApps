@@ -52,12 +52,12 @@ codeunit 149515 "Filename Proof Tests"
     end;
 
     [Test]
-    procedure ATranslatedCaptionBindsAcrossLanguages()
+    procedure ACaptionBindingSurvivesASessionLanguageSwitch()
     var
         ReportFilenameProof: Codeunit "Report Filename Proof";
     begin
         Prepare();
-        ReportFilenameProof.ProveTranslatedCaptionBinding();
+        ReportFilenameProof.ProveCaptionBindingAcrossSessions();
         AssertPassed();
     end;
 

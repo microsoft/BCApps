@@ -8,9 +8,8 @@ using System.Globalization;
 
 table 149501 "Filename Proof Document"
 {
-    // A stand-in document for proving language invariance: the W1 Base Application carries no .xlf
-    // translations of its captions, but this table's captions are translated by the test app's .xlf
-    // files, so a pattern that still resolves in another language resolved by field number.
+    // A stand-in document for language selection and stable field bindings.
+    // The Number caption differs from its AL field name without requiring a translation pack.
 
     Caption = 'Filename Proof Document';
     DataClassification = SystemMetadata;

@@ -15,8 +15,8 @@ codeunit 149518 "Filename Proof Kind Source"
 
     Access = Internal;
 
-    // Raised after Base Application has set the global language from the document's language, so
-    // the (translated) table caption reads in the document's language.
+    // Base Application has selected the document's language before reading this caption;
+    // the text may still be the same when no translation is installed.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnGetFullDocumentTypeTextElseCase', '', false, false)]
     local procedure OnGetFullDocumentTypeTextElseCase(DocumentRecordRef: RecordRef; var DocumentTypeText: Text[50])
     begin

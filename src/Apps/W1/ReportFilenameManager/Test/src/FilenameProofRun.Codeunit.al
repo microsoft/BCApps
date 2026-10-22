@@ -190,53 +190,76 @@ codeunit 149517 "Filename Proof Run"
     /// </summary>
     procedure ProveARunWithTwoLanguagesPicksOne()
     var
+        CompanyInformation: Record "Company Information";
+        Pattern: Record "Report Filename Pattern";
         ProofDocument: Record "Filename Proof Document";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         SourceRecRef: RecordRef;
+        OriginalCompanyLanguage: Code[10];
+        RestoreLanguage: Integer;
         DanishCaption: Text;
         GermanCaption: Text;
         BothDanish: Text;
         Mixed: Text;
+        MixedWithDanishDefault: Text;
     begin
         ClearPatterns();
+        TestData.EnsureLanguage(ProofSupport.EnglishLanguageCode(), ProofSupport.EnglishLanguageId());
+        TestData.EnsureLanguage(ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageId());
+        TestData.EnsureLanguage(ProofSupport.GermanLanguageCode(), ProofSupport.GermanLanguageId());
+        CompanyInformation.Get();
+        OriginalCompanyLanguage := CompanyInformation."Default Language Code";
+        CompanyInformation."Default Language Code" := ProofSupport.GermanLanguageCode();
+        CompanyInformation.Modify(false);
 
-        DanishCaption := ProofSupport.ReportCaptionIn(ProofSupport.DanishLanguageId(), Report::"Filename Proof Report");
-        GermanCaption := ProofSupport.ReportCaptionIn(ProofSupport.GermanLanguageId(), Report::"Filename Proof Report");
+        DanishCaption := ReportFilenameMgt.Sanitise(ProofSupport.ReportCaptionIn(ProofSupport.DanishLanguageId(), Report::"Filename Proof Report"));
+        GermanCaption := ReportFilenameMgt.Sanitise(ProofSupport.ReportCaptionIn(ProofSupport.GermanLanguageId(), Report::"Filename Proof Report"));
         ProofSupport.LogLine('20 Proof report caption DAN', DanishCaption);
         ProofSupport.LogLine('20 Proof report caption DEU', GermanCaption);
 
-        // Failed rather than skipped: identical captions would let a language-blind feature pass.
-        if DanishCaption = GermanCaption then begin
-            ProofSupport.LogLine('RESULT a run in two languages is named in one',
-                StrSubstNo(FailAgreedLanguageMsg, CaptionsDoNotDifferMsg));
-            Done();
-            exit;
-        end;
-
         WriteLanguageDocument(LanguageDocumentOneTok, ProofSupport.DanishLanguageCode());
         WriteLanguageDocument(LanguageDocumentTwoTok, ProofSupport.DanishLanguageCode());
-        SetProofLanguagePattern();
+        SetProofLanguagePattern(Pattern);
 
+        RestoreLanguage := GlobalLanguage();
+        GlobalLanguage(ProofSupport.EnglishLanguageId());
         BothDanish := NameLanguageRun(ProofDocument, SourceRecRef);
+        ProofSupport.AssertNameLanguage(Pattern, SourceRecRef, ProofSupport.DanishLanguageCode());
+        ProofSupport.AssertSessionLanguage(ProofSupport.EnglishLanguageId());
 
-        // One Danish, one German: the run has no single document language.
+        // The company default differs from the first document's language.
         WriteLanguageDocument(LanguageDocumentTwoTok, ProofSupport.GermanLanguageCode());
         Mixed := NameLanguageRun(ProofDocument, SourceRecRef);
+        ProofSupport.AssertNameLanguage(Pattern, SourceRecRef, ProofSupport.GermanLanguageCode());
+        ProofSupport.AssertSessionLanguage(ProofSupport.EnglishLanguageId());
+
+        // A valid fallback may also match the first document and produce the same filename.
+        CompanyInformation."Default Language Code" := ProofSupport.DanishLanguageCode();
+        CompanyInformation.Modify(false);
+        MixedWithDanishDefault := NameLanguageRun(ProofDocument, SourceRecRef);
+        ProofSupport.AssertNameLanguage(Pattern, SourceRecRef, ProofSupport.DanishLanguageCode());
+        ProofSupport.AssertSessionLanguage(ProofSupport.EnglishLanguageId());
+        GlobalLanguage(RestoreLanguage);
+        CompanyInformation."Default Language Code" := OriginalCompanyLanguage;
+        CompanyInformation.Modify(false);
 
         ProofSupport.LogLine('20 Two Danish documents, named as one run', BothDanish);
-        ProofSupport.LogLine('20 One Danish and one German, named as one run', Mixed);
+        ProofSupport.LogLine('20 Mixed documents, German company default', Mixed);
+        ProofSupport.LogLine('20 Mixed documents, Danish company default', MixedWithDanishDefault);
 
         case true of
             BothDanish <> DanishCaption:
                 ProofSupport.LogLine('RESULT a run in two languages is named in one',
                     StrSubstNo(FailAgreedLanguageMsg, BothDanish));
-            Mixed = '':
-                ProofSupport.LogLine('RESULT a run in two languages is named in one', FailUnnamedMsg);
-            Mixed = BothDanish:
+            Mixed <> GermanCaption:
                 ProofSupport.LogLine('RESULT a run in two languages is named in one',
-                    StrSubstNo(FailStillFirstMsg, Mixed));
+                    StrSubstNo(FailLanguageOutputMsg, GermanCaption, Mixed));
+            MixedWithDanishDefault <> DanishCaption:
+                ProofSupport.LogLine('RESULT a run in two languages is named in one',
+                    StrSubstNo(FailLanguageOutputMsg, DanishCaption, MixedWithDanishDefault));
             else
                 ProofSupport.LogLine('RESULT a run in two languages is named in one',
-                    StrSubstNo(PassLanguageMsg, BothDanish, Mixed));
+                    StrSubstNo(PassLanguageMsg, BothDanish, Mixed, MixedWithDanishDefault));
         end;
 
         ForgetLanguageDocuments();
@@ -257,9 +280,8 @@ codeunit 149517 "Filename Proof Run"
         exit(NameWith(Report::"Filename Proof Report", Channel::Preview, SourceRecRef, ''));
     end;
 
-    local procedure SetProofLanguagePattern()
+    local procedure SetProofLanguagePattern(var Pattern: Record "Report Filename Pattern")
     var
-        Pattern: Record "Report Filename Pattern";
         ProofDocument: Record "Filename Proof Document";
     begin
         Pattern.Init();
@@ -1718,27 +1740,46 @@ codeunit 149517 "Filename Proof Run"
     /// </summary>
     procedure ProveTheKindOfDocumentDeclinesOnALanguageMismatch()
     var
+        CompanyInformation: Record "Company Information";
         ProofDocument: Record "Filename Proof Document";
+        OriginalCompanyLanguage: Code[10];
+        RestoreLanguage: Integer;
         DanishKind: Text;
         EnglishKind: Text;
+        ExpectedName: Text;
         Agreed: Text;
         Silent: Text;
         Mismatched: Text;
     begin
         ClearPatterns();
+        TestData.EnsureLanguage(ProofSupport.EnglishLanguageCode(), ProofSupport.EnglishLanguageId());
+        TestData.EnsureLanguage(ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageId());
+        TestData.EnsureLanguage(ProofSupport.GermanLanguageCode(), ProofSupport.GermanLanguageId());
+        CompanyInformation.Get();
+        OriginalCompanyLanguage := CompanyInformation."Default Language Code";
+        CompanyInformation."Default Language Code" := ProofSupport.DanishLanguageCode();
+        CompanyInformation.Modify(false);
 
-        // Identical captions would make the proof meaningless; checked in the verdict below.
         DanishKind := ProofSupport.TableCaptionIn(ProofSupport.DanishLanguageId(), Database::"Filename Proof Document");
         EnglishKind := ProofSupport.TableCaptionIn(ProofSupport.EnglishLanguageId(), Database::"Filename Proof Document");
+        ExpectedName := DanishKind + '-' + KindMismatchDocumentNoTok;
 
         SetKindPatternOnProofDocument();
 
+        RestoreLanguage := GlobalLanguage();
+        GlobalLanguage(ProofSupport.GermanLanguageId());
         Agreed := NameProofDocumentByKind(ProofDocument, ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageCode());
+        ProofSupport.AssertSessionLanguage(ProofSupport.GermanLanguageId());
 
-        // SetGlobalLanguageByCode leaves the language unchanged for a blank code, so there is no mismatch.
+        // An unspecified document language agrees with the configured company default.
         Silent := NameProofDocumentByKind(ProofDocument, ProofSupport.DanishLanguageCode(), '');
+        ProofSupport.AssertSessionLanguage(ProofSupport.GermanLanguageId());
 
         Mismatched := NameProofDocumentByKind(ProofDocument, ProofSupport.DanishLanguageCode(), ProofSupport.EnglishLanguageCode());
+        ProofSupport.AssertSessionLanguage(ProofSupport.GermanLanguageId());
+        GlobalLanguage(RestoreLanguage);
+        CompanyInformation."Default Language Code" := OriginalCompanyLanguage;
+        CompanyInformation.Modify(false);
 
         // Removed before judging, so a failure cannot leave the document behind.
         ForgetKindMismatchDocument();
@@ -1749,15 +1790,12 @@ codeunit 149517 "Filename Proof Run"
         ProofSupport.LogLine('30 The word a mismatch would otherwise have used', EnglishKind);
 
         case true of
-            (DanishKind = '') or (DanishKind = EnglishKind):
+            Agreed <> ExpectedName:
                 ProofSupport.LogLine('RESULT the kind of document declines on a language mismatch',
-                    StrSubstNo(FailKindSameWordMsg, EnglishKind));
-            StrPos(Agreed, DanishKind) <> 1:
+                    StrSubstNo(FailKindAgreedMsg, ExpectedName, NameOrNone(Agreed)));
+            Silent <> ExpectedName:
                 ProofSupport.LogLine('RESULT the kind of document declines on a language mismatch',
-                    StrSubstNo(FailKindAgreedMsg, DanishKind, NameOrNone(Agreed)));
-            StrPos(Silent, DanishKind) <> 1:
-                ProofSupport.LogLine('RESULT the kind of document declines on a language mismatch',
-                    StrSubstNo(FailKindSilentMsg, DanishKind, NameOrNone(Silent)));
+                    StrSubstNo(FailKindSilentMsg, ExpectedName, NameOrNone(Silent)));
             Mismatched <> '':
                 ProofSupport.LogLine('RESULT the kind of document declines on a language mismatch',
                     StrSubstNo(FailKindMismatchMsg, Mismatched, EnglishKind, DanishKind));
@@ -2095,11 +2133,10 @@ codeunit 149517 "Filename Proof Run"
         KindAndNumberPatternTok: Label '[Kind of Document]-[Number]', Locked = true;
         KindMismatchDocumentNoTok: Label 'KIND-LANG', Locked = true;
         KindMismatchCustomerTok: Label 'Kind of document language proof', Locked = true;
-        PassKindMismatchMsg: Label 'PASS - the kind of document is named where the two languages agree (%1) and where the document names none (%2), and the run is left unnamed where Business Central would have answered %3 inside a name being built in another language.', Comment = '%1 the agreed name, %2 the name for a document with no language, %3 the word the mismatch would have used';
-        FailKindSameWordMsg: Label 'FAIL - this container names the kind of document identically in both languages (%1), so this proof cannot tell a mismatch from an agreement and proves nothing. Check that the translation files beside the proof app are installed.', Comment = '%1 the word';
-        FailKindAgreedMsg: Label 'FAIL - a document whose language agrees with the pattern''s should be named %1 first, but the run was named %2. The guard is declining where the two agree.', Comment = '%1 the expected word, %2 the name';
-        FailKindSilentMsg: Label 'FAIL - a document naming no language of its own should be named %1 first, because Microsoft''s own switch changes nothing for a blank code and the pattern''s language stands. The run was named %2.', Comment = '%1 the expected word, %2 the name';
-        FailKindMismatchMsg: Label 'FAIL - a run was named %1 where the document''s kind would be named %2 and the rest of the name is built in another language. Two languages in one file name is exactly what this guard exists to prevent; the name should have been %3 or nothing at all.', Comment = '%1 the name produced, %2 the word Business Central would use, %3 the word the pattern''s language would use';
+        PassKindMismatchMsg: Label 'PASS - matching or blank document languages are named (%1, %2); a conflicting document language produces no name, even if its caption is unchanged (%3).', Comment = '%1 the agreed name, %2 the name for a document with no language, %3 the caption for the conflicting language';
+        FailKindAgreedMsg: Label 'FAIL - a document whose language agrees with the pattern''s should be named %1, but the run was named %2.', Comment = '%1 the expected name, %2 the actual name';
+        FailKindSilentMsg: Label 'FAIL - a document with no language should use the configured company default and produce %1, but produced %2.', Comment = '%1 the expected name, %2 the actual name';
+        FailKindMismatchMsg: Label 'FAIL - conflicting document and pattern languages produced %1 instead of declining; their captions may read %2 and %3 even when the text is identical.', Comment = '%1 the name produced, %2 the document caption, %3 the pattern-language caption';
         ShapeTok: Label 'ABC-01', Locked = true;
         RangeMarkerTok: Label '-to-', Locked = true;
         YesNoLbl: Label '%1', Comment = '%1 yes or no', Locked = true;
@@ -2224,7 +2261,6 @@ codeunit 149517 "Filename Proof Run"
         PassGuardMsg: Label 'PASS - another subscriber named the file %1 and this feature stood down rather than replacing it with %2, which is the name its own enabled pattern produces.', Comment = '%1 the other subscriber''s name, %2 the name this feature would have given';
         FailWeWentFirstMsg: Label 'FAIL - this feature named the file %1, and the other subscriber - which names it %2 when nothing competes - did not get it. Whichever order the platform ran the two subscribers in, this is a defect: run first, this feature must leave a reminder Base Application names to it (Report Filename Mgt.IsNamedByReminderCommunication); run second, its guard must stand down.', Comment = '%1 this feature''s name, %2 the other subscriber''s name';
         FailNeitherMsg: Label 'FAIL - the chain came back with %1, which is neither the other subscriber''s name %2 nor this feature''s %3, so something else named the file.', Comment = '%1 what came back, %2 the other name, %3 this feature''s name';
-        CaptionsDoNotDifferMsg: Label 'this container does not translate the proof report''s caption, so a run in one language cannot be told from a run in two.';
         LanguageDocumentOneTok: Label 'PROOF-LANG-1', Locked = true;
         LanguageDocumentTwoTok: Label 'PROOF-LANG-2', Locked = true;
         LanguageCustomerTok: Label 'Language run', Locked = true;
@@ -2239,10 +2275,9 @@ codeunit 149517 "Filename Proof Run"
         PassConditionMsg: Label 'PASS - the pattern claimed the run covering only %1, and refused the run covering %2 records.', Comment = '%1 the invoice, %2 how many records';
         FailConditionLostMsg: Label 'FAIL - the pattern no longer claims even the single record its condition names; it produced %1.', Comment = '%1 what it produced';
         FailConditionClaimedMsg: Label 'FAIL - a pattern conditioned on one invoice claimed a run covering %1 records.', Comment = '%1 how many records';
-        PassLanguageMsg: Label 'PASS - a run that agrees on its language is named in it (%1), and one that does not falls back rather than taking whichever record came first (%2).', Comment = '%1 the agreed name, %2 the mixed name';
+        PassLanguageMsg: Label 'PASS - a run uses its agreed language (%1); mixed runs follow the configured company default (%2, %3), even when the resulting names match.', Comment = '%1 the agreed name, %2 the mixed name with German default, %3 the mixed name with Danish default';
         FailAgreedLanguageMsg: Label 'FAIL - a run whose records all name the same language was not named in it; it produced %1.', Comment = '%1 what it produced';
-        FailStillFirstMsg: Label 'FAIL - a run whose records disagree was still named %1, which is one record''s language rather than the run''s.', Comment = '%1 the name';
-        FailUnnamedMsg: Label 'FAIL - a run whose records disagree about their language was left with no name at all.';
+        FailLanguageOutputMsg: Label 'FAIL - expected filename %1 for the selected language, but got %2.', Comment = '%1 the expected name, %2 the actual name';
         PassSubjectMsg: Label 'PASS - the first data item is virtual table %1, and the run is correctly about table %2.', Comment = '%1 first data item table, %2 subject table';
         FailNotHiddenMsg: Label 'FAIL - this report no longer hides its subject: its first data item is table %1, so this proof is not testing what it claims.', Comment = '%1 the table';
         FailSubjectMsg: Label 'FAIL - expected the run to be about table %1 but it was about table %2.', Comment = '%1 expected table, %2 actual table';

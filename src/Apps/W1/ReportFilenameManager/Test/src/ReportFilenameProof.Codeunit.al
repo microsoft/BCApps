@@ -47,7 +47,7 @@ codeunit 149500 "Report Filename Proof"
         Commit();
         ProveLanguageInvariance();
         Commit();
-        ProveTranslatedCaptionBinding();
+        ProveCaptionBindingAcrossSessions();
         Commit();
         ProveReportCaptionFollowsDocument();
         Commit();
@@ -410,13 +410,16 @@ codeunit 149500 "Report Filename Proof"
         Pattern: Record "Report Filename Pattern";
         ProofDocument: Record "Filename Proof Document";
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
+        SourceRecRef: RecordRef;
         RestoreLanguage: Integer;
         EnglishReportCaption: Text;
         DanishReportCaption: Text;
         GermanReportCaption: Text;
         ExpectedName: Text;
+        ExpectedGermanName: Text;
         NamedFromDanish: Text;
         NamedFromGerman: Text;
+        NamedForGermanDocument: Text;
     begin
         FilenameProofLogMgt.StartNewRun();
         ClearPatterns();
@@ -430,15 +433,10 @@ codeunit 149500 "Report Filename Proof"
         ProofSupport.LogLine('7 Report caption DAN', DanishReportCaption);
         ProofSupport.LogLine('7 Report caption DEU', GermanReportCaption);
 
-        if (DanishReportCaption = EnglishReportCaption) or (GermanReportCaption = DanishReportCaption) then begin
-            ProofSupport.LogLine('RESULT report caption follows the document', NoTranslationMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Filename Proof Report");
         Pattern.Validate("File Name Pattern", ReportCaptionPatternTok);
+        Pattern.Validate("Language Code Field", ProofDocument.FieldNo("Language Code"));
         Pattern.Enabled := true;
         Pattern.Insert(true);
         ProofSupport.LogLine('7 Pattern', ReportCaptionPatternTok);
@@ -447,21 +445,39 @@ codeunit 149500 "Report Filename Proof"
 
         // The document is Danish, so the Danish caption is expected from either session.
         ExpectedName := SanitisedCaption(DanishReportCaption) + '-' + ProofDocument."No.";
+        ExpectedGermanName := SanitisedCaption(GermanReportCaption) + '-' + ProofDocument."No.";
+        ProofDocument.SetRecFilter();
+        SourceRecRef.GetTable(ProofDocument);
 
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(ProofSupport.DanishLanguageId());
+        ProofSupport.AssertNameLanguage(Pattern, SourceRecRef, ProofSupport.DanishLanguageCode());
         NamedFromDanish := NameProofDocumentAsDownload(ProofDocument);
+        ProofSupport.AssertSessionLanguage(ProofSupport.DanishLanguageId());
         GlobalLanguage(ProofSupport.GermanLanguageId());
+        ProofSupport.AssertNameLanguage(Pattern, SourceRecRef, ProofSupport.DanishLanguageCode());
         NamedFromGerman := NameProofDocumentAsDownload(ProofDocument);
+        ProofSupport.AssertSessionLanguage(ProofSupport.GermanLanguageId());
+
+        ProofDocument."Language Code" := ProofSupport.GermanLanguageCode();
+        ProofDocument.Modify(false);
+        SourceRecRef.GetTable(ProofDocument);
+        GlobalLanguage(ProofSupport.DanishLanguageId());
+        ProofSupport.AssertNameLanguage(Pattern, SourceRecRef, ProofSupport.GermanLanguageCode());
+        NamedForGermanDocument := NameProofDocumentAsDownload(ProofDocument);
+        ProofSupport.AssertSessionLanguage(ProofSupport.DanishLanguageId());
         GlobalLanguage(RestoreLanguage);
+        ProofDocument."Language Code" := ProofSupport.DanishLanguageCode();
+        ProofDocument.Modify(false);
 
         ProofSupport.LogLine('7 Expected', ExpectedName);
         ProofSupport.LogLine('7 Named from a Danish session', NamedFromDanish);
         ProofSupport.LogLine('7 Named from a German session', NamedFromGerman);
-        ProofSupport.LogLine('7 German caption, for contrast', SanitisedCaption(GermanReportCaption) + '-' + ProofDocument."No.");
+        ProofSupport.LogLine('7 German document, named from a Danish session', NamedForGermanDocument);
+        ProofSupport.LogLine('7 Expected for the German document', ExpectedGermanName);
 
-        if (NamedFromDanish = ExpectedName) and (NamedFromGerman = ExpectedName) then
-            ProofSupport.LogLine('RESULT report caption follows the document', StrSubstNo(IdenticalMsg, ExpectedName))
+        if (NamedFromDanish = ExpectedName) and (NamedFromGerman = ExpectedName) and (NamedForGermanDocument = ExpectedGermanName) then
+            ProofSupport.LogLine('RESULT report caption follows the document', PassMsg)
         else
             ProofSupport.LogLine('RESULT report caption follows the document', DifferMsg);
 
@@ -480,20 +496,18 @@ codeunit 149500 "Report Filename Proof"
     end;
 
     /// <summary>
-    /// Uses a test table and report with translated captions, because W1 Base Application has no Danish or
-    /// German translations. The Danish caption matches nothing in a German session, so a correct
-    /// name must come from the bound field number.
+    /// A caption distinct from the AL field name binds to its field number. Changing the session
+    /// language and making the pattern text unresolvable must not alter the stored binding.
     /// </summary>
-    procedure ProveTranslatedCaptionBinding()
+    procedure ProveCaptionBindingAcrossSessions()
     var
         Pattern: Record "Report Filename Pattern";
         ProofDocument: Record "Filename Proof Document";
         FilenameProofLogMgt: Codeunit "Filename Proof Log Mgt.";
         RestoreLanguage: Integer;
-        EnglishCaption: Text;
-        DanishCaption: Text;
-        GermanCaption: Text;
+        FieldCaption: Text;
         PatternText: Text;
+        ExpectedBinding: Text;
         ExpectedName: Text;
         PreviewName: Text;
         DownloadName: Text;
@@ -502,42 +516,35 @@ codeunit 149500 "Report Filename Proof"
         ClearPatterns();
         EnsureProofDocument(ProofDocument);
 
-        EnglishCaption := ProofSupport.FieldCaptionIn(ProofSupport.EnglishLanguageId(), Database::"Filename Proof Document", ProofDocument.FieldNo("Customer Name"));
-        DanishCaption := ProofSupport.FieldCaptionIn(ProofSupport.DanishLanguageId(), Database::"Filename Proof Document", ProofDocument.FieldNo("Customer Name"));
-        GermanCaption := ProofSupport.FieldCaptionIn(ProofSupport.GermanLanguageId(), Database::"Filename Proof Document", ProofDocument.FieldNo("Customer Name"));
-
-        ProofSupport.LogLine('8 Proof field caption ENU', EnglishCaption);
-        ProofSupport.LogLine('8 Proof field caption DAN', DanishCaption);
-        ProofSupport.LogLine('8 Proof field caption DEU', GermanCaption);
-
-        // Identical captions would make the rest of this proof meaningless.
-        if (DanishCaption = EnglishCaption) or (GermanCaption = DanishCaption) then begin
-            ProofSupport.LogLine('RESULT captions genuinely differ by language', NoTranslationMsg);
-            FilenameProofLogMgt.Flush();
-            exit;
-        end;
-        ProofSupport.LogLine('8 Captions genuinely differ by language', PassMsg);
+        FieldCaption := ProofSupport.FieldCaptionIn(ProofSupport.DanishLanguageId(), Database::"Filename Proof Document", ProofDocument.FieldNo("No."));
+        ExpectedBinding := DanishInvoicePrefixTok + StrSubstNo(ProofFieldBindingTok, ProofDocument.FieldNo("No."));
 
         RestoreLanguage := GlobalLanguage();
         GlobalLanguage(ProofSupport.DanishLanguageId());
-        PatternText := DanishInvoicePrefixTok + '[' + DanishCaption + ']';
+        PatternText := DanishInvoicePrefixTok + '[' + FieldCaption + ']';
         Pattern.Init();
         Pattern.Validate("Report ID", Report::"Filename Proof Report");
         Pattern.Validate("File Name Pattern", CopyStr(PatternText, 1, MaxStrLen(Pattern."File Name Pattern")));
         Pattern.Enabled := true;
         Pattern.Insert(true);
         GlobalLanguage(RestoreLanguage);
+        if Pattern.GetPlaceholderBinding() <> ExpectedBinding then
+            Error(ExpectedButGotMsg, ExpectedBinding, Pattern.GetPlaceholderBinding());
 
         ProofSupport.LogLine('8 Pattern authored in a Danish session', PatternText);
         ProofSupport.LogLine('8 Source table filled in from the report', Format(Pattern."Table No."));
         ProofSupport.LogLine('8 Binding stored', Pattern.GetPlaceholderBinding());
 
-        ExpectedName := DanishInvoicePrefixTok + ProofDocument."Customer Name";
+        ExpectedName := DanishInvoicePrefixTok + ProofDocument."No.";
 
-        // Rendered in German, where the Danish caption in the pattern text matches nothing.
+        // Do not validate: runtime resolution must use the binding, not reparse this invalid text.
+        Pattern."File Name Pattern" := TypoPatternTok;
+        Pattern.Modify(false);
         GlobalLanguage(ProofSupport.GermanLanguageId());
         PreviewName := NameProofDocumentAsPreview(ProofDocument);
+        ProofSupport.AssertSessionLanguage(ProofSupport.GermanLanguageId());
         DownloadName := NameProofDocumentAsDownload(ProofDocument);
+        ProofSupport.AssertSessionLanguage(ProofSupport.GermanLanguageId());
         GlobalLanguage(RestoreLanguage);
 
         ProofSupport.LogLine('8 Expected', ExpectedName);
@@ -545,9 +552,9 @@ codeunit 149500 "Report Filename Proof"
         ProofSupport.LogLine('8 Download rendered in German', DownloadName);
 
         if (PreviewName = ExpectedName) and (DownloadName = ExpectedName) then
-            ProofSupport.LogLine('RESULT Danish caption resolves in a German session', StrSubstNo(IdenticalMsg, ExpectedName))
+            ProofSupport.LogLine('RESULT caption binding survives a session language switch', PassMsg)
         else
-            ProofSupport.LogLine('RESULT Danish caption resolves in a German session', DifferMsg);
+            ProofSupport.LogLine('RESULT caption binding survives a session language switch', DifferMsg);
 
         FilenameProofLogMgt.Flush();
     end;
@@ -557,6 +564,9 @@ codeunit 149500 "Report Filename Proof"
     /// </summary>
     local procedure EnsureProofDocument(var ProofDocument: Record "Filename Proof Document")
     begin
+        TestData.EnsureLanguage(ProofSupport.EnglishLanguageCode(), ProofSupport.EnglishLanguageId());
+        TestData.EnsureLanguage(ProofSupport.DanishLanguageCode(), ProofSupport.DanishLanguageId());
+        TestData.EnsureLanguage(ProofSupport.GermanLanguageCode(), ProofSupport.GermanLanguageId());
         if ProofDocument.Get(ProofDocumentNoTok) then begin
             ProofDocument."Customer Name" := ProofCustomerNameTok;
             ProofDocument."Language Code" := DanishLanguageCodeTok;
@@ -770,7 +780,7 @@ codeunit 149500 "Report Filename Proof"
         ProofDocumentNoTok: Label 'PROOF-1', Locked = true;
         ProofCustomerNameTok: Label 'Northwind', Locked = true;
         BaseAppNotTranslatedMsg: Label 'NO - the languages this needs are not installed here, so the captions above all read the same and this proves nothing about language.';
-        NoTranslationMsg: Label 'INCONCLUSIVE - the captions read the same in all three languages here, so this proves nothing about language. Not a pass.';
+        ProofFieldBindingTok: Label '{f:%1}', Comment = '%1 field number', Locked = true;
         DanishInvoicePrefixTok: Label 'Faktura-', Locked = true;
         DanishLanguageCodeTok: Label 'DAN', Locked = true;
         GermanLanguageCodeTok: Label 'DEU', Locked = true;

@@ -6,8 +6,7 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
 report 149502 "Filename Proof Report"
 {
-    // Exists for its translated caption, to prove [Report Name] resolves in the document's
-    // language (the W1 Base Application carries no .xlf translations). Never rendered.
+    // Metadata-only report for document-language selection and filename composition. Never rendered.
 
     Caption = 'Proof Document';
 

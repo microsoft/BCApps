@@ -10,6 +10,7 @@ using Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
 using System.Reflection;
+using System.TestLibraries.Utilities;
 using System.Threading;
 
 codeunit 149512 "Filename Proof Support"
@@ -66,6 +67,21 @@ codeunit 149512 "Filename Proof Support"
     internal procedure GermanLanguageCode(): Code[10]
     begin
         exit('DEU');
+    end;
+
+    internal procedure AssertNameLanguage(var Pattern: Record "Report Filename Pattern"; var DocumentRecRef: RecordRef; ExpectedLanguageCode: Code[10])
+    var
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        Assert: Codeunit "Library Assert";
+    begin
+        Assert.AreEqual(ExpectedLanguageCode, ReportFilenameMgt.NameLanguage(Pattern, DocumentRecRef), UnexpectedNameLanguageErr);
+    end;
+
+    internal procedure AssertSessionLanguage(ExpectedLanguageId: Integer)
+    var
+        Assert: Codeunit "Library Assert";
+    begin
+        Assert.AreEqual(ExpectedLanguageId, GlobalLanguage(), UnexpectedSessionLanguageErr);
     end;
 
     // Without leaving the session in that language; empty when the field does not exist.
@@ -212,6 +228,8 @@ codeunit 149512 "Filename Proof Support"
     end;
 
     var
+        UnexpectedNameLanguageErr: Label 'The filename language must follow the document or its configured fallback, not the session.';
+        UnexpectedSessionLanguageErr: Label 'Filename resolution must preserve the session language.';
         InvariantAmountTok: Label '<Precision,%1><Standard Format,9>', Comment = '%1 the decimal places', Locked = true;
         DefaultDecimalPlacesTok: Label '2:2', Locked = true;
         FilterViewsTok: Label '[{"name":"%1","tableid":%2,"view":"VERSION(1) SORTING(Field%3) WHERE(Field%4=1(%5))"}]', Comment = '%1 data item name, %2 table number, %3 sorting field, %4 filtered field, %5 document number', Locked = true;
