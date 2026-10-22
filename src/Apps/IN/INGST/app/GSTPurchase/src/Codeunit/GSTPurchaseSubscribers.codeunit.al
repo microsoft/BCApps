@@ -10,6 +10,7 @@ using Microsoft.Finance.GST.Base;
 using Microsoft.Finance.TaxBase;
 using Microsoft.Finance.TaxEngine.TaxTypeHandler;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Projects.Resources.Resource;
@@ -85,7 +86,6 @@ codeunit 18080 "GST Purchase Subscribers"
             ToPurchLine."Custom Duty Amount" := 0;
             ToPurchLine.Modify(true);
         end;
-
         if not RecalculateLines then
             CalculateTax.CallTaxEngineOnPurchaseLine(ToPurchLine, ToPurchLine);
     end;
@@ -532,6 +532,58 @@ codeunit 18080 "GST Purchase Subscribers"
         FullyOpen := (PurchInvHeader."Amount Including VAT" + GSTAmount) = PurchInvHeader."Remaining Amount";
     end;
 
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnInitQtyToReceive2OnBeforeCalcInvDiscToInvoice, '', false, false)]
+    local procedure UpdateInvoicedQty(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line")
+    begin
+        SetQtyToInvoiceToRecvdQty(PurchaseLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", OnUpdatePurchLineOnBeforePurchLineModify, '', false, false)]
+    local procedure UpdateInvoicedQtyOnUndoReceipt(var PurchLine: Record "Purchase Line")
+    begin
+        if not SetQtyToInvoiceToRecvdQty(PurchLine) then
+            exit;
+
+        PurchLine.CalcInvDiscToInvoice();
+        PurchLine.CalcPrepaymentToDeduct();
+    end;
+
+    local procedure SetQtyToInvoiceToRecvdQty(var PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+
+    begin
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit(false);
+        if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
+            exit(false);
+        if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+            exit(false);
+        if not (PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]) then
+            exit(false);
+
+        PurchaseLine."Qty. to Invoice" := PurchaseLine."Qty. Rcd. Not Invoiced";
+        PurchaseLine."Qty. to Invoice (Base)" := PurchaseLine."Qty. Rcd. Not Invoiced (Base)";
+        exit(true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineBeforePost, '', false, false)]
+    local procedure IncludeQtyToReceiveOnReceiveAndInvoice(CommitIsSupressed: Boolean; RoundingLineInserted: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean)
+    begin
+        if not (PurchaseHeader.Receive and PurchaseHeader.Invoice) then
+            exit;
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit;
+        if PurchaseLine."Qty. to Receive" = 0 then
+            exit;
+        if PurchaseLine."Qty. to Invoice" <> PurchaseLine."Qty. Rcd. Not Invoiced" then
+            exit;
+
+        PurchaseLine.InitQtyToInvoice();
+    end;
+
+
     local procedure CalculateTaxOnPurchase(PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
     var
         CalculateTax: Codeunit "Calculate Tax";
@@ -621,13 +673,11 @@ codeunit 18080 "GST Purchase Subscribers"
         Vendor.Get(OrderAddress."Vendor No.");
         if Vendor."GST Vendor Type" <> Vendor."GST Vendor Type"::Exempted then
             OrderAddress."GST Registration No." := '';
-
         if Vendor."GST Vendor Type" = Vendor."GST Vendor Type"::Import then
             OrderAddress.TestField(State, '')
         else
             if Vendor."GST Vendor Type" = Vendor."GST Vendor Type"::Unregistered then
                 OrderAddress.TestField(State);
-
         if Vendor."GST Vendor Type" <> Vendor."GST Vendor Type"::Import then
             Vendor."Associated Enterprises" := false;
     end;
@@ -645,11 +695,9 @@ codeunit 18080 "GST Purchase Subscribers"
         else
             if OrderAddress."GST Registration No." <> '' then
                 Error(PANvendErr);
-
         if (OrderAddress."GST Registration No." <> '') or (OrderAddress."ARN No." <> '') then
             if Vendor."GST Vendor Type" in [Vendor."GST Vendor Type"::Unregistered, Vendor."GST Vendor Type"::Import] then
                 Error(GSTRegNoErr);
-
         if (not IsImportUnregisteredVendor(Vendor)) and (OrderAddress."ARN No." = '') then
             OrderAddress.TestField("GST Registration No.");
     end;
@@ -715,12 +763,10 @@ codeunit 18080 "GST Purchase Subscribers"
             PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
             if PurchaseHeader."GST Vendor Type" = "GST Vendor Type"::Unregistered then
                 PurchaseHeader.TestField("GST Order Address State");
-
             if PurchaseHeader."GST Vendor Type" in ["GST Vendor Type"::Registered, "GST Vendor Type"::Composite, "GST Vendor Type"::SEZ, "GST Vendor Type"::Exempted] then
                 if PurchaseHeader."Vendor GST Reg. No." = '' then
                     if Vendor.Get(PurchaseHeader."Buy-from Vendor No.") and (Vendor."ARN No." = '') then
                         Error(VendGSTARNErr);
-
             if PurchaseLine.FindSet() then
                 repeat
                     PurchaseLine."Order Address Code" := PurchaseHeader."Order Address Code";
@@ -747,7 +793,6 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if not Vendor.Get(PurchaseHeader."Buy-from Vendor No.") then
             exit;
-
         if PurchaseHeader.State = Vendor."State Code" then
             exit;
 
@@ -773,7 +818,6 @@ codeunit 18080 "GST Purchase Subscribers"
         if PurchaseHeader."GST Vendor Type" in ["GST Vendor Type"::Registered, "GST Vendor Type"::Composite, "GST Vendor Type"::Exempted, "GST Vendor Type"::SEZ] then
             if (Vendor."GST Registration No." = '') and (Vendor."ARN No." = '') then
                 Error(GSTARNErr);
-
         if PurchaseHeader."POS as Vendor State" then
             if not (PurchaseHeader."GST Vendor Type" = "GST Vendor Type"::Registered) then
                 Error(POSasVendorErr, PurchaseHeader."GST Vendor Type");
@@ -784,7 +828,6 @@ codeunit 18080 "GST Purchase Subscribers"
         if PurchaseHeader."Invoice Type" = PurchaseHeader."Invoice Type"::"Non-GST" then
             if PurchaseHeader."GST Invoice" then
                 Error(NonGSTInvTypeErr);
-
         if PurchaseHeader."Invoice Type" = PurchaseHeader."Invoice Type"::"Self Invoice" then
             if not (PurchaseHeader."GST Vendor Type" In [
                 PurchaseHeader."GST Vendor Type"::Unregistered,
@@ -794,12 +837,10 @@ codeunit 18080 "GST Purchase Subscribers"
                 Error(SelfInvoiceTypeErr);
 
         CheckReverseChargeGSTRegistered(PurchaseHeader);
-
         if PurchaseHeader."Invoice Type" = PurchaseHeader."Invoice Type"::Supplementary then
             SetSupplementaryInLine(PurchaseHeader."Document Type", PurchaseHeader."No.", true)
         else
             SetSupplementaryInLine(PurchaseHeader."Document Type", PurchaseHeader."No.", false);
-
         if PurchaseHeader."Reference Invoice No." <> '' then
             if not (PurchaseHeader."Invoice Type" in [PurchaseHeader."Invoice Type"::"Debit Note", PurchaseHeader."Invoice Type"::Supplementary]) then
                 Error(ReferenceNoErr);
@@ -822,7 +863,8 @@ codeunit 18080 "GST Purchase Subscribers"
         end;
     end;
 
-    local procedure SetSupplementaryInLine(DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; Supplementary: Boolean)
+    local procedure SetSupplementaryInLine(DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20];
+                                                             Supplementary: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
     begin
@@ -849,7 +891,6 @@ codeunit 18080 "GST Purchase Subscribers"
                 PurchaseHeader."Location State Code" := '';
                 PurchaseHeader."GST Input Service Distribution" := false;
             end;
-
         if PurchaseHeader."POS as Vendor State" then
             if PurchaseHeader."Order Address Code" <> '' then
                 PurchaseHeader."Location State Code" := PurchaseHeader."GST Order Address State"
@@ -861,7 +902,8 @@ codeunit 18080 "GST Purchase Subscribers"
         PurchaseHeader."POS Out Of India" := false;
     end;
 
-    local procedure CheckReferenceInvoiceNo(DocType: Enum "Document Type Enum"; DocNo: Code[20]; BuyFromVendNo: Code[20])
+    local procedure CheckReferenceInvoiceNo(DocType: Enum "Document Type Enum"; DocNo: Code[20];
+                                                         BuyFromVendNo: Code[20])
     var
         ReferenceInvoiceNo: Record "Reference Invoice No.";
     begin
@@ -898,7 +940,6 @@ codeunit 18080 "GST Purchase Subscribers"
                 UpdateCurrGSTJurisdictionType(PurchaseHeader, PurchaseLine);
                 PurchaseLine.Modify();
             until PurchaseLine.Next() = 0;
-
         if PurchaseHeader."POS as Vendor State" then
             if PurchaseHeader."Order Address Code" <> '' then
                 PurchaseHeader."Location State Code" := PurchaseHeader."GST Order Address State"
@@ -913,7 +954,6 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if not (PurchaseHeader."GST Vendor Type" = "GST Vendor Type"::Registered) then
             Error(POSasVendorErr, PurchaseHeader."GST Vendor Type");
-
         if PurchaseHeader."Currency Code" <> '' then
             Error(CurrencyCodePOSErr, PurchaseHeader."Currency Code");
 
@@ -923,7 +963,6 @@ codeunit 18080 "GST Purchase Subscribers"
                 PurchaseHeader."Location State Code" := PurchaseHeader."GST Order Address State"
             else
                 PurchaseHeader."Location State Code" := PurchaseHeader.State;
-
         if not PurchaseHeader."POS as Vendor State" then
             if PurchaseHeader."Location Code" = '' then begin
                 PurchaseHeader."Location GST Reg. No." := '';
@@ -939,7 +978,6 @@ codeunit 18080 "GST Purchase Subscribers"
                         PurchaseHeader."Location GST Reg. No." := Location."GST Registration No.";
                         PurchaseHeader."GST Input Service Distribution" := Location."GST Input Service Distributor";
                     end;
-
         if PurchaseHeader."POS as Vendor State" then begin
             PurchaseLine.Reset();
             PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
@@ -980,7 +1018,6 @@ codeunit 18080 "GST Purchase Subscribers"
         PurchaseHeader.TestField("POS as Vendor State", false);
         DocTypeEnum := PurchaseHeaderDocumentType2DocumentTypeEnum(PurchaseHeader."Document Type");
         CheckReferenceInvoiceNo(DocTypeEnum, PurchaseHeader."No.", PurchaseHeader."Buy-from Vendor No.");
-
         if not PurchaseHeader."GST Invoice" then
             Error(POSGSTStructErr);
 
@@ -995,7 +1032,6 @@ codeunit 18080 "GST Purchase Subscribers"
                 GSTCustType::" ");
             exit;
         end;
-
         if PurchaseLine.findset(false, false) then
             repeat
                 if PurchaseHeader."GST Order Address State" <> '' then
@@ -1034,26 +1070,22 @@ codeunit 18080 "GST Purchase Subscribers"
         PurchaseLine.TestField("Work Tax Nature Of Deduction", '');
         PurchaseLine.TestField("Non-GST Line", false);
         PurchaseLine.Validate("GST Reverse Charge", false);
-
         if GSTGroup.Get(PurchaseLine."GST Group Code") then begin
             PurchaseLine."GST Group Type" := GSTGroup."GST Group Type";
             GetPurcasehHeader(PurchaseHeader, PurchaseLine);
             if (GSTGroup."Reverse Charge" = true) or (PurchaseLine."GST Group Type" = PurchaseLine."GST Group Type"::Service) then
                 if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::Import then
                     PurchaseLine."GST Reverse Charge" := true;
-
             if PurchaseHeader."GST Vendor Type" in [
                 PurchaseHeader."GST Vendor Type"::Registered,
                 PurchaseHeader."GST Vendor Type"::Unregistered,
                 PurchaseHeader."GST Vendor Type"::SEZ]
             then
                 PurchaseLine.Validate("GST Reverse Charge", GSTGroup."Reverse Charge");
-
             if (PurchaseLine."GST Group Type" = "GST Group Type"::Service) or (PurchaseLine.Type = Type::"Charge (Item)") then begin
                 PurchaseLine.TestField("Custom Duty Amount", 0);
                 PurchaseLine.TestField("GST Assessable Value", 0);
             end;
-
             if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::Unregistered then
                 PurchaseLine."GST Reverse Charge" := true;
         end;
@@ -1081,14 +1113,12 @@ codeunit 18080 "GST Purchase Subscribers"
         GetPurcasehHeader(PurchaseHeader, PurchaseLine);
         if not PurchaseHeader."GST Invoice" then
             exit;
-
         if PurchaseLine."Document Type" in ["Document Type Enum"::"Credit Memo", "Document Type Enum"::"Return Order"] then
             PurchaseLine.TestField("Custom Duty Amount", 0);
 
         Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
         if not (Vendor."GST Vendor Type" in [Vendor."GST Vendor Type"::Import, Vendor."GST Vendor Type"::SEZ]) then
             Error(GSTVendorTypeErr, Vendor."GST Vendor Type"::Import, Vendor."GST Vendor Type"::SEZ);
-
         if (PurchaseLine."GST Group Type" <> "GST Group Type"::Goods) or (PurchaseLine.Type = Type::"Charge (Item)") then
             PurchaseLine.TestField("Custom Duty Amount", 0);
     end;
@@ -1101,14 +1131,12 @@ codeunit 18080 "GST Purchase Subscribers"
         GetPurcasehHeader(PurchaseHeader, PurchaseLine);
         if not PurchaseHeader."GST Invoice" then
             exit;
-
         if PurchaseLine."Document Type" in ["Document Type Enum"::"Credit Memo", "Document Type Enum"::"Return Order"] then
             PurchaseLine.TestField("GST Assessable Value", 0);
 
         Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
         if not (Vendor."GST Vendor Type" in [Vendor."GST Vendor Type"::Import, Vendor."GST Vendor Type"::SEZ]) then
             Error(GSTVendorTypeErr, Vendor."GST Vendor Type"::Import, Vendor."GST Vendor Type"::SEZ);
-
         if (PurchaseLine."GST Group Type" <> "GST Group Type"::Goods) or (PurchaseLine.Type = Type::"Charge (Item)") then
             PurchaseLine.TestField("GST Assessable Value", 0);
     end;
@@ -1134,7 +1162,6 @@ codeunit 18080 "GST Purchase Subscribers"
         GetPurcasehHeader(PurchaseHeader, PurchaseLine);
         if not PurchaseLine.Supplementary then
             PurchaseLine."Source Document No." := '';
-
         if PurchaseHeader."Invoice Type" = PurchaseHeader."Invoice Type"::Supplementary then
             PurchaseLine.TestField(Supplementary)
         else
@@ -1190,7 +1217,6 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if Item."GST Group Code" <> '' then
             GSTGroup.Get(Item."GST Group Code");
-
         if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
             exit;
         PurchaseLine.Validate("GST Vendor Type", PurchaseHeader."GST Vendor Type");
@@ -1230,10 +1256,10 @@ codeunit 18080 "GST Purchase Subscribers"
 
     local procedure UpdatePurchLineForGST(
         GSTCredit: Enum "GST Credit";
-        GSTGrpCode: Code[20];
-        GSTGrpType: Enum "GST Group Type";
-        HSNSACCode: Code[10];
-        GSTExempted: Boolean;
+                       GSTGrpCode: Code[20];
+                       GSTGrpType: Enum "GST Group Type";
+                       HSNSACCode: Code[10];
+                       GSTExempted: Boolean;
         var PurchaseLine: Record "Purchase Line")
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1253,7 +1279,6 @@ codeunit 18080 "GST Purchase Subscribers"
         if GSTGroup.Get(PurchaseLine."GST Group Code") then
             if (GSTGroup."Reverse Charge") or (PurchaseLine."GST Group Type" = PurchaseLine."GST Group Type"::Service) then
                 PurchaseLine."GST Reverse Charge" := PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import];
-
         if GSTGroup.Get(PurchaseLine."GST Group Code") and
            (PurchaseHeader."GST Vendor Type" in [
                PurchaseHeader."GST Vendor Type"::Registered,
@@ -1261,11 +1286,9 @@ codeunit 18080 "GST Purchase Subscribers"
                PurchaseHeader."GST Vendor Type"::SEZ])
         then
             PurchaseLine."GST Reverse Charge" := GSTGroup."Reverse Charge";
-
         if (PurchaseHeader."GST Invoice") and (PurchaseHeader."GST Input Service Distribution") then begin
             if PurchaseLine.Type in [PurchaseLine.Type::"Fixed Asset", PurchaseLine.Type::"Charge (Item)", PurchaseLine.Type::Item] then
                 Error(ChargeItemErr, PurchaseLine.Type);
-
             if (PurchaseLine."GST Group Code" <> '') and (PurchaseLine."GST Group Type" <> "GST Group Type"::Service) then
                 Error(TypeISDErr, PurchaseLine.Type, PurchaseLine.FieldCaption("GST Group Type"), "GST Group Type"::Service);
         end;
@@ -1281,7 +1304,6 @@ codeunit 18080 "GST Purchase Subscribers"
             PurchaseLine."Bill to-Location(POS)" := PurchaseHeader."Bill to-Location(POS)"
         else
             PurchaseLine."Bill to-Location(POS)" := '';
-
         if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::Unregistered then
             PurchaseLine."GST Reverse Charge" := true;
     end;
@@ -1308,7 +1330,6 @@ codeunit 18080 "GST Purchase Subscribers"
                 PurchaseHeader."Location GST Reg. No." := Location."GST Registration No.";
                 PurchaseHeader."Location State Code" := Location."State Code";
             end;
-
             if PurchaseHeader."Bill to-Location(POS)" <> '' then begin
                 Location.Get(PurchaseHeader."Bill to-Location(POS)");
                 PurchaseHeader."Location State Code" := Location."State Code";
@@ -1320,7 +1341,6 @@ codeunit 18080 "GST Purchase Subscribers"
                 PurchaseHeader."Location State Code" := PurchaseHeader."GST Order Address State"
             else
                 PurchaseHeader."Location State Code" := PurchaseHeader.State;
-
         if Location.Get(PurchaseHeader."Location Code") then
             PurchaseHeader."GST Input Service Distribution" := Location."GST Input Service Distributor";
     end;
@@ -1333,7 +1353,6 @@ codeunit 18080 "GST Purchase Subscribers"
         if (PurchaseLine."Document Type" <> PurchaseHeader."Document Type") or (PurchaseLine."Document No." <> PurchaseHeader."No.") then begin
             if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
                 exit;
-
             if PurchaseHeader."Currency Code" = '' then
                 Currency.InitRoundingPrecision()
             else begin
@@ -1354,7 +1373,6 @@ codeunit 18080 "GST Purchase Subscribers"
             else
                 if Vendor."GST Registration No." <> '' then
                     Error(PANErr);
-
             if Vendor."GST Vendor Type" = "GST Vendor Type"::" " then
                 Vendor."GST Vendor Type" := "GST Vendor Type"::Registered
             else
@@ -1371,7 +1389,6 @@ codeunit 18080 "GST Purchase Subscribers"
             Vendor."GST Registration No." := '';
             exit;
         end;
-
         if Vendor."GST Vendor Type" in ["GST Vendor Type"::Registered, "GST Vendor Type"::Composite, "GST Vendor Type"::SEZ, "GST Vendor Type"::Exempted] then begin
             if (Vendor."GST Registration No." = '') and (Vendor."ARN No." = '') then
                 Error(GSTARNErr);
@@ -1383,14 +1400,11 @@ codeunit 18080 "GST Purchase Subscribers"
             else
                 if Vendor."GST Vendor Type" = "GST Vendor Type"::Unregistered then
                     Vendor.TestField("State Code");
-
             if Vendor."GST Vendor Type" <> "GST Vendor Type"::Import then
                 Vendor."Associated Enterprises" := false;
         end;
-
         if Vendor."GST Registration No." <> '' then begin
             Vendor.TestField("State Code");
-
             if (Vendor."P.A.N. No." <> '') and (Vendor."P.A.N. Status" = Vendor."P.A.N. Status"::" ") then
                 GSTBaseValidation.CheckGSTRegistrationNo(Vendor."State Code", Vendor."GST Registration No.", Vendor."P.A.N. No.")
             else
@@ -1404,7 +1418,6 @@ codeunit 18080 "GST Purchase Subscribers"
         if (Vendor."ARN No." = '') and (Vendor."GST Registration No." = '') then
             if not (Vendor."GST Vendor Type" in ["GST Vendor Type"::Import, "GST Vendor Type"::Unregistered]) then
                 Vendor."GST Vendor Type" := "GST Vendor Type"::" ";
-
         if Vendor."GST Vendor Type" in ["GST Vendor Type"::Import, "GST Vendor Type"::Unregistered] then
             Vendor.TestField("ARN No.", '');
     end;
@@ -1413,7 +1426,6 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if not (Vendor."GST Vendor Type" in ["GST Vendor Type"::Import, "GST Vendor Type"::Unregistered]) then
             Vendor.TestField("GST Registration No.", '');
-
         if Vendor."GST Vendor Type" = "GST Vendor Type"::Import then
             Error(GSTVendTypeErr, Vendor."GST Vendor Type");
     end;
@@ -1445,11 +1457,8 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if not (PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]) then
             exit;
-
         if not (PurchaseHeader."Document Type" in ["Document Type Enum"::Order, "Document Type Enum"::Invoice]) then
             exit;
-
-
         if PurchaseHeader."Without Bill Of Entry" then
             exit;
 
@@ -1507,7 +1516,6 @@ codeunit 18080 "GST Purchase Subscribers"
         Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
         if (Vendor."Aggregate Turnover" <> Vendor."Aggregate Turnover"::"More than 20 lakh") then
             exit;
-
         if not GSTSetup.Get() then
             exit;
 
@@ -1530,12 +1538,10 @@ codeunit 18080 "GST Purchase Subscribers"
                 PurchaseLine."GST Jurisdiction Type" := PurchaseLine."GST Jurisdiction Type"::Interstate;
                 exit;
             end;
-
             if PurchaseHeader."POS Out Of India" then begin
                 PurchaseLine."GST Jurisdiction Type" := PurchaseLine."GST Jurisdiction Type"::Interstate;
                 exit;
             end;
-
             if PurchaseHeader."Location State Code" <> PurchaseHeader."State" then
                 PurchaseLine."GST Jurisdiction Type" := PurchaseLine."GST Jurisdiction Type"::Interstate
             else
@@ -1553,12 +1559,10 @@ codeunit 18080 "GST Purchase Subscribers"
             PurchaseLine."GST Jurisdiction Type" := PurchaseLine."GST Jurisdiction Type"::Interstate;
             exit;
         end;
-
         if PurchaseHeader."POS Out Of India" then begin
             PurchaseLine."GST Jurisdiction Type" := PurchaseLine."GST Jurisdiction Type"::Interstate;
             exit;
         end;
-
         if PurchaseHeader."Location State Code" <> PurchaseHeader."State" then
             PurchaseLine."GST Jurisdiction Type" := PurchaseLine."GST Jurisdiction Type"::Interstate
         else
@@ -1600,7 +1604,6 @@ codeunit 18080 "GST Purchase Subscribers"
         OnBeforePurchaseLineHSNSACEditable(PurchaseLine, IsEditable, IsHandled);
         if IsHandled then
             exit;
-
         case
             PurchaseLine.Type of
             PurchaseLine.Type::Item:
@@ -1629,7 +1632,6 @@ codeunit 18080 "GST Purchase Subscribers"
             end;
         end else
             GSTPostingManagement.SetPaytoVendorNo(PurchaseHeader."Pay-to Vendor No.");
-
         if (PurchaseHeader."Order Address Code" <> '') and (PurchaseHeader."Order Address GST Reg. No." <> '') then begin
             GSTPostingManagement.SetBuyerSellerRegNo(PurchaseHeader."Order Address GST Reg. No.");
             GSTPostingManagement.SetBuyerSellerStateCode(PurchaseHeader."GST Order Address State");
@@ -1670,7 +1672,6 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::" " then
             exit;
-
         if (PurchaseHeader."Location Code" = '') and (ShipToOptions = ShipToOptions::"Custom Address") then
             Error(ShipToOptionErr);
     end;
@@ -1679,7 +1680,6 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::" " then
             exit;
-
         if (PurchaseHeader."Location Code" = '') and (ShipToOptions = ShipToOptions::"Custom Address") then
             Error(ShipToOptionErr);
     end;
@@ -1692,10 +1692,8 @@ codeunit 18080 "GST Purchase Subscribers"
         OnBeforeCheckHeaderLocation(PurchaseLine, IsHandled);
         if IsHandled then
             exit;
-
         if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
             exit;
-
         if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::" " then
             exit;
 
@@ -1709,10 +1707,8 @@ codeunit 18080 "GST Purchase Subscribers"
         OnBeforeCheckGSTRegistrationNo(RegistrationNo, IsHandled);
         if IsHandled then
             exit;
-
         if RegistrationNo = '' then
             exit;
-
         if StrLen(RegistrationNo) <> 15 then
             Error(LengthErr);
     end;
