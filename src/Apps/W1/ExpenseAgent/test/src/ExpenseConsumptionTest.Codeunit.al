@@ -137,6 +137,29 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
+    procedure ConsumptionJsonWithNullVersionUsageIsRejected()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        AiConsumptionRequestJson: JsonObject;
+        VersionJson: JsonObject;
+        NullValue: JsonValue;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Consumption JSON with null version usage is rejected
+        Initialize();
+
+        // [GIVEN] A consumption request with null usage in the version object
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        VersionJson := AiConsumptionRequestJson.GetObject('v1');
+        NullValue.SetValueToNull();
+        VersionJson.Replace('usage', NullValue);
+
+        // [WHEN] The consumption JSON is validated
+        // [THEN] The request is rejected without a conversion error
+        Assert.IsFalse(ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson), 'A consumption request with null version usage should be rejected.');
+    end;
+
+    [Test]
     procedure ConsumptionJsonWithoutVersionUsageTypeIsRejected()
     var
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -155,6 +178,29 @@ codeunit 148299 "Expense Consumption Test"
         // [WHEN] The consumption JSON is validated
         // [THEN] The request is rejected
         Assert.IsFalse(ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson), 'A consumption request without a version usage type should be rejected.');
+    end;
+
+    [Test]
+    procedure ConsumptionJsonWithNullVersionUsageTypeIsRejected()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        AiConsumptionRequestJson: JsonObject;
+        VersionJson: JsonObject;
+        NullValue: JsonValue;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Consumption JSON with a null version usage type is rejected
+        Initialize();
+
+        // [GIVEN] A consumption request with a null usage type in the version object
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        VersionJson := AiConsumptionRequestJson.GetObject('v1');
+        NullValue.SetValueToNull();
+        VersionJson.Replace('usageType', NullValue);
+
+        // [WHEN] The consumption JSON is validated
+        // [THEN] The request is rejected without a conversion error
+        Assert.IsFalse(ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson), 'A consumption request with a null version usage type should be rejected.');
     end;
 
     [Test]
