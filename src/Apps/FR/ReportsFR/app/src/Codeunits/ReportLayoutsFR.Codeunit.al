@@ -219,7 +219,10 @@ codeunit 10822 "Report Layouts FR"
 
     internal procedure GetCheckLayout(var ReportLayoutList: Record "Report Layout List"; AppId: Guid)
     begin
-        if not ReportLayoutList.Get(Report::Check, 'CheckFR', AppId) then
+        ReportLayoutList.SetRange("Report ID", Report::Check);
+        ReportLayoutList.SetRange(Name, 'CheckFR');
+        ReportLayoutList.SetRange("Application ID", AppId);
+        if not ReportLayoutList.FindFirst() then
             Error(MissingCheckLayoutErr);
     end;
 
