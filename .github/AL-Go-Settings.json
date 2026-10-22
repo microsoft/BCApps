@@ -2,6 +2,31 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/959519dfe53da49b83bd5cf1f43eaa0be7ca5301/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
+  "CodeReviewAgent": {
+    "enabled": true,
+    "branches": [
+      "main"
+    ],
+    "model": "gpt-5.6-sol",
+    "leafModel": "gpt-5.6-luna",
+    "excludedAuthors": [
+      "business-central-bot[bot]"
+    ]
+  },
+  "BCQuality": {
+    "marketplaceRepo": "https://github.com/microsoft/BCQuality",
+    "version": "1.7",
+    "enabledLayers": [
+      "microsoft"
+    ],
+    "disabledSkills": [],
+    "knowledge": {
+      "allow": [
+        "microsoft/knowledge/**"
+      ],
+      "deny": []
+    }
+  },
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
