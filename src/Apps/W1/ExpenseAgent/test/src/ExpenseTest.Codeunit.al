@@ -2316,6 +2316,7 @@ codeunit 148305 "Expense Test"
     procedure DescriptionMustBeFlowFromExpenseToExpenseItemization()
     var
         Expense: Record Expense;
+        ExpectedExpense: Record Expense;
         PostCode: Record "Post Code";
         Currency: Record Currency;
         Employee: Record Employee;
@@ -2328,7 +2329,6 @@ codeunit 148305 "Expense Test"
         EmployeePostingGroup: Record "Employee Posting Group";
         ExpensePage: TestPage Expense;
         Amount: Decimal;
-        ExpectedAmount: Decimal;
         CurrencyCode: Code[10];
     begin
         // [SCENARIO 613263] Verify that the Description must be flow from Expense to Expense Itemization.
@@ -2371,8 +2371,9 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(DMY2Date(1, 1, 2025));
 
         // [GIVEN] Enqueue expected Message text.
-        ExpectedAmount := 0;
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedAmount, Expense.Amount));
+        ExpectedExpense := Expense;
+        ExpectedExpense.Amount := 0; // to ensure same formatting
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
 
         // [WHEN] Open Expense Page and Navigate to Expense Itemizations.
         ExpensePage.OpenEdit();
@@ -3708,13 +3709,13 @@ codeunit 148305 "Expense Test"
     procedure ExpenseItemizationQuantityValueShouldBeDefaultOne()
     var
         Expense: Record Expense;
+        ExpectedExpense: Record Expense;
         PostCode: Record "Post Code";
         Currency: Record Currency;
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpensePage: TestPage Expense;
         Amount: Decimal;
-        ExpectedAmount: Decimal;
         CurrencyCode: Code[10];
     begin
         // [SCENARIO 615830] Verify that the Itemization Quantity must be 1 in Expense Itemization Page by default.
@@ -3741,8 +3742,9 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        ExpectedAmount := 0;  // to force same type of formatting
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedAmount, Expense.Amount));
+        ExpectedExpense := Expense;
+        ExpectedExpense.Amount := 0;  // to force same type of formatting
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -4877,13 +4879,13 @@ codeunit 148305 "Expense Test"
     procedure ItemizationTotalReductionMismatchInExpenseAndExpenseItemization()
     var
         Expense: Record Expense;
+        ExpectedExpense: Record Expense;
         Currency: Record Currency;
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpenseItemization: array[2] of Record "Expense Itemization";
         ExpensePage: TestPage Expense;
         Amount: Decimal;
-        ExpectedAmount: Decimal;
         AmountReduction: Decimal;
         CurrencyCode: Code[10];
     begin
@@ -4906,8 +4908,9 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(1);
-        ExpectedAmount := Amount - 1;
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedAmount, Expense.Amount));
+        ExpectedExpense := Expense;
+        ExpectedExpense.Amount := Amount - 1;
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
 
         // [GIVEN] Update Non-Refundable Amount in Expense which is mismatch with total reduction in Itemization.
         Expense."Non-Refundable Amount" := AmountReduction;
@@ -4920,10 +4923,10 @@ codeunit 148305 "Expense Test"
         ExpensePage.Itemizations.Invoke();
 
         // [THEN] Verify that the Itemization Total Mismatch error in rule violation.
-        ExpectedAmount := AmountReduction - 1;
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalMismatchErr, ExpectedAmount, Expense.Amount));
+        ExpectedExpense.Amount := AmountReduction - 1;
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
         ExpensePage.RuleViolations.Next();
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalReductionMismatchErr, ExpectedAmount, Expense."Non-Refundable Amount"));
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalReductionMismatchErr, ExpectedExpense.Amount, Expense."Non-Refundable Amount"));
 
         // [THEN] Verify that the Non-Refundable Amount field is non-editable in Expense Page.
         Assert.AreEqual(
