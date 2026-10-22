@@ -912,7 +912,6 @@ codeunit 134907 "ERM Invoice and Reminder"
         PrintCaptureSubscriber.ResetPrintCapture();
         BindSubscription(PrintCaptureSubscriber);
         Report.RunModal(Report::"Issue Reminders", true, true, ReminderHeader);
-        Expand commentComment on line R914Resolved
         UnbindSubscription(PrintCaptureSubscriber);
 
         // [THEN] One print call contains both issued reminders and is not an email send
