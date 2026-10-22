@@ -287,6 +287,7 @@ table 5612 "FA Depreciation Book"
             trigger OnValidate()
             begin
                 ModifyDeprFields();
+                CheckFAPostingGroupChangeAfterAcquisition();
             end;
         }
         field(14; "Depreciation Ending Date"; Date)
@@ -1012,6 +1013,7 @@ table 5612 "FA Depreciation Book"
         BonusDepreciationAlreadyAppliedErr: Label 'The bonus depreciation has already been applied for this depreciation book. This change is making the fixed asset not eligible for bonus depreciation.';
         BonusDepreciationTurnedOnErr: Label 'You must uncheck Use Bonus Depreciation, because this change is making the fixed asset not eligible for bonus depreciation.';
         BonusDeprPctExceedsMaxErr: Label 'The bonus depreciation percentage cannot exceed the applicable maximum of %1%.', Comment = '%1 = maximum percentage';
+        CannotChangeFAPostingGroupAfterAcquisitionErr: Label 'You cannot change the %1 for fixed asset %2 because acquisition cost has already been posted in depreciation book %3. To move the fixed asset to another posting group, use the FA reclassification journal, or turn on the %4 toggle for the depreciation book.', Comment = '%1 = FA Posting Group field caption, %2 = fixed asset number, %3 = depreciation book code, %4 = Allow Changes in Depr. Fields field caption';
 
     protected var
         FA: Record "Fixed Asset";
@@ -1081,6 +1083,32 @@ table 5612 "FA Depreciation Book"
             end;
 
         OnAfterModifyDeprFields(Rec);
+    end;
+
+    local procedure CheckFAPostingGroupChangeAfterAcquisition()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        IsHandled: Boolean;
+    begin
+        // Compare with the stored record, because acquisition cost has already been posted to the G/L accounts of the stored posting group.
+        if not FADepreciationBook.Get("FA No.", "Depreciation Book Code") then
+            exit;
+        if (FADepreciationBook."Last Acquisition Cost Date" = 0D) or
+           (FADepreciationBook."FA Posting Group" = '') or
+           (FADepreciationBook."FA Posting Group" = "FA Posting Group")
+        then
+            exit;
+
+        IsHandled := false;
+        OnBeforeCheckFAPostingGroupChangeAfterAcquisition(Rec, FADepreciationBook, IsHandled);
+        if IsHandled then
+            exit;
+
+        DeprBook.Get("Depreciation Book Code");
+        if not DeprBook."Allow Changes in Depr. Fields" then
+            Error(
+              CannotChangeFAPostingGroupAfterAcquisitionErr, FieldCaption("FA Posting Group"), "FA No.",
+              "Depreciation Book Code", DeprBook.FieldCaption("Allow Changes in Depr. Fields"));
     end;
 
     internal procedure BonusDepreciationApplied(): Boolean
@@ -1607,6 +1635,11 @@ table 5612 "FA Depreciation Book"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterModifyDeprFields(var FADepreciationBook: Record "FA Depreciation Book")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckFAPostingGroupChangeAfterAcquisition(var FADepreciationBook: Record "FA Depreciation Book"; xFADepreciationBook: Record "FA Depreciation Book"; var IsHandled: Boolean)
     begin
     end;
 }
