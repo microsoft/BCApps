@@ -5,6 +5,7 @@
 namespace Microsoft.Projects.Resources.Resource;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Comment;
@@ -145,6 +146,7 @@ page 76 "Resource Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+                    Visible = VATInUse;
                 }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
@@ -739,8 +741,11 @@ page 76 "Resource Card"
 
     trigger OnOpenPage()
     var
+        GLSetup: Record "General Ledger Setup";
         IntegrationTableMapping: Record "Integration Table Mapping";
     begin
+        GLSetup.Get();
+        VATInUse := GLSetup."VAT in Use";
         CRMIntegrationEnabled := CRMIntegrationManagement.IsCRMIntegrationEnabled();
         if IntegrationTableMapping.Get('RESOURCE-PRODUCT') then
             BlockedFilterApplied := IntegrationTableMapping.GetTableFilter().Contains('Field38=1(0)');
@@ -759,6 +764,7 @@ page 76 "Resource Card"
         ExtendedPriceEnabled: Boolean;
         NoFieldVisible: Boolean;
         IsCountyVisible: Boolean;
+        VATInUse: Boolean;
 
     local procedure SetNoFieldVisible()
     var
