@@ -677,7 +677,7 @@ codeunit 134228 "ERM Close Income Statement"
         // [SCENARIO] Balance closing without dimensions sums mixed LCY and foreign-currency entries once per account.
         Initialize();
 
-        // [GIVEN] Accounts "A1" and "A2" have the reported LCY/foreign-currency totals, two global dimensions and no reporting currency
+        // [GIVEN] Accounts "A1" and "A2" have the reported local/foreign-currency totals, two global dimensions and no reporting currency
         PrepareMixedCurrencyClosingScenario(
             GenJournalLine, IncomeStatementAccounts, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -719,7 +719,7 @@ codeunit 134228 "ERM Close Income Statement"
         // [SCENARIO] Balance closing by both global dimensions sums mixed LCY and foreign-currency entries once per account.
         Initialize();
 
-        // [GIVEN] Accounts "A1" and "A2" have the reported LCY/foreign-currency totals, two global dimensions and no reporting currency
+        // [GIVEN] Accounts "A1" and "A2" have the reported local/foreign-currency totals, two global dimensions and no reporting currency
         DimensionSetID := PrepareMixedCurrencyClosingScenario(
             GenJournalLine, IncomeStatementAccounts, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
@@ -837,7 +837,6 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         SelectedDimension: Record "Selected Dimension";
-        Currency: Record Currency;
     begin
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."LCY Code" := LocalCurrencyCode;
@@ -855,9 +854,8 @@ codeunit 134228 "ERM Close Income Statement"
         FiscalYearEndDate := CalcDate('<CM>', LibraryFiscalYear.GetLastPostingDate(true));
         FiscalYearStartDate := CalcDate('<-1Y+1D>', FiscalYearEndDate);
 
-        LibraryERM.CreateCurrency(Currency);
-        LibraryERM.CreateExchangeRate(Currency.Code, FiscalYearStartDate, 0.25, 0.25);
-        SourceCurrencyCode := Currency.Code;
+        SourceCurrencyCode :=
+            LibraryERM.CreateCurrencyWithExchangeRate(FiscalYearStartDate, 0.25, 0.25);
 
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
