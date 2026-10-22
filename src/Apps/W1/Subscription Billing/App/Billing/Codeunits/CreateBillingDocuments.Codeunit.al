@@ -709,7 +709,6 @@ codeunit 8060 "Create Billing Documents"
         TranslationHelper.RestoreGlobalLanguage();
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Modify(false);
-        OnAfterCreatePurchaseHeaderForVendorNo(PurchaseHeader, TempBillingLine."Subscription Contract No.");
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
     end;
 
@@ -766,6 +765,7 @@ codeunit 8060 "Create Billing Documents"
         TranslationHelper.RestoreGlobalLanguage();
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Modify(false);
+        OnAfterCreatePurchaseHeaderForVendorNo(PurchaseHeader, TempBillingLine."Subscription Contract No.");
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
     end;
 
