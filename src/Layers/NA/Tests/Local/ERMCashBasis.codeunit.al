@@ -422,6 +422,7 @@
     var
         Currency: Record Currency;
         GenJournalLine: Record "Gen. Journal Line";
+        MyNotifications: Record "My Notifications";
         PurchaseLine: Record "Purchase Line";
         VATPostingSetup: Record "VAT Posting Setup";
         UnrealizedVATEntry: Record "VAT Entry";
@@ -437,7 +438,8 @@
         // [FEATURE] [Purchase]
         // [SCENARIO 363848] Realized VAT is posted with original unrealized amounts after vendor payment with new adjusted exch. rate is applied to invoice in FCY.
         Initialize();
-        LibraryERM.DisableMyNotifications(UserId(), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
+        LibraryERM.DisableMyNotifications(
+          CopyStr(UserId(), 1, MaxStrLen(MyNotifications."User Id")), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
         LibraryERM.SetUnrealizedVAT(true);
 
         // [GIVEN] Create Currency with Exchange Rates. Create Vendor with Percentage Unrealized VAT setup.
@@ -488,6 +490,7 @@
     var
         Currency: Record Currency;
         GenJournalLine: Record "Gen. Journal Line";
+        MyNotifications: Record "My Notifications";
         SalesLine: Record "Sales Line";
         VATPostingSetup: Record "VAT Posting Setup";
         UnrealizedVATEntry: Record "VAT Entry";
@@ -503,7 +506,8 @@
         // [FEATURE] [Sales]
         // [SCENARIO 363848] Realized VAT is posted with original unrealized amounts after customer payment with new adjusted exch. rate is applied to invoice in FCY.
         Initialize();
-        LibraryERM.DisableMyNotifications(UserId(), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
+        LibraryERM.DisableMyNotifications(
+          CopyStr(UserId(), 1, MaxStrLen(MyNotifications."User Id")), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
         LibraryERM.SetUnrealizedVAT(true);
 
         // [GIVEN] Create Currency with Exchange Rates. Create Customer with Percentage Unrealized VAT setup.
