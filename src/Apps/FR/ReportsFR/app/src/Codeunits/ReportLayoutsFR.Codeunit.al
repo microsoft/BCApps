@@ -111,7 +111,6 @@ codeunit 10822 "Report Layouts FR"
 #pragma warning restore AL0432
     begin
         FeatureKey.TestField(ID, ReportsFR.GetFeatureKeyId());
-        FeatureKey.TestField("Data Update Required", true);
     end;
 #endif
 
