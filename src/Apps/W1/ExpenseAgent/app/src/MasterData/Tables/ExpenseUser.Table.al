@@ -39,7 +39,6 @@ table 6923 "Expense User"
                     Employee.Get("Employee No.");
 
                     CheckDuplicateEmployeeNo();
-
                     if ConfirmOverwriteExpenseUserInformation(Employee) then begin
                         Rec.Validate("Name", Employee.FullName());
                         if Employee."Company E-Mail" = '' then
@@ -70,10 +69,8 @@ table 6923 "Expense User"
             begin
                 if Rec."E-mail" <> '' then
                     CheckDuplicateEmail();
-
                 if Rec."E-mail" <> xRec."E-mail" then begin
                     Rec."User Id For Approvals" := '';
-
                     if Rec."Can Approve" then
                         UpdateApprovalUserId();
                 end;
@@ -117,8 +114,13 @@ table 6923 "Expense User"
                     if not ConfirmApproverReassignment() then
                         Error('');
                     Rec."User Id For Approvals" := '';
-                end else
+
+                    Rec.Validate("Unlimited Approval", false);
+                    Rec.Validate("Approval Limit (LCY)", 0);
+                end else begin
+                    Rec.Validate("Unlimited Approval", true);
                     UpdateApprovalUserId();
+                end;
             end;
         }
         field(30; "Is a System User"; Boolean)
@@ -217,10 +219,8 @@ table 6923 "Expense User"
             begin
                 if Rec."Approval Limit (LCY)" <> 0 then
                     Rec.TestField("Can Approve", true);
-
                 if Rec."Unlimited Approval" and (Rec."Approval Limit (LCY)" <> 0) then
                     Error(ConflictingApprovalsErr, Rec.FieldCaption("Approval Limit (LCY)"), Rec.FieldCaption("Unlimited Approval"));
-
                 if Rec."Approval Limit (LCY)" < 0 then
                     Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit (LCY)"));
             end;
@@ -235,7 +235,8 @@ table 6923 "Expense User"
                 if Rec."Unlimited Approval" then begin
                     Rec.TestField("Can Approve", true);
                     Rec."Approval Limit (LCY)" := 0;
-                end;
+                end else
+                    CheckIfApproverIsDefaultApprover();
             end;
         }
     }
@@ -284,6 +285,7 @@ table 6923 "Expense User"
         CurrentBCUserNotMatchedToExpenseUserErr: Label 'No Expense User exists for the email %1 used by your Business Central account. Ask your administrator to create an Expense User with this email, or to update the email on the existing Expense User to match.', Comment = '%1 = authentication email of the current Business Central user';
         ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
         ConflictingApprovalsErr: Label 'You cannot have both a %1 and %2. ', Comment = '%1 = Approval Limit field caption, %2 = Unlimited Approval field caption';
+        CannotMarkAsFalseBecauseDefaultApproverErr: Label 'You cannot mark %1 as false because Expense User %2 is the default approver in Expense Agent Setup.', Comment = '%1 = field caption, %2 = Expense User No.';
 
     trigger OnDelete()
     var
@@ -303,7 +305,6 @@ table 6923 "Expense User"
         NoSeries: Codeunit "No. Series";
     begin
         ExpenseAgentSetup.GetRecordOnce();
-
         if Rec."No." = '' then begin
             ExpenseAgentSetup.TestField("Expense User Nos.");
             if NoSeries.AreRelated(ExpenseAgentSetup."Expense User Nos.", xRec."No. Series") then
@@ -349,10 +350,8 @@ table 6923 "Expense User"
     begin
         if SkipOverwriteFromEmployee then
             exit(false);
-
         if not GuiAllowed() then
             exit(true);
-
         if (Rec.Name <> '') or (Rec."E-mail" <> '') then
             if (Rec.Name <> Employee.FullName()) or (Rec."E-mail" <> Employee."Company E-Mail") then
                 exit(ConfirmManagement.GetResponseOrDefault(StrSubstNo(ConfirmOverwriteExpenseUserInformationQst, Rec."Employee No."), true));
@@ -512,7 +511,7 @@ table 6923 "Expense User"
             Error(CurrentBCUserHasNoAuthEmailErr);
 
         AuthEmail := LowerCase(User."Authentication Email");
-        
+
         ExpenseUser.SetLoadFields("No.", "E-mail");
         ExpenseUser.SetFilter("E-mail", '<>%1', '');
         if ExpenseUser.FindSet() then
@@ -557,13 +556,11 @@ table 6923 "Expense User"
         ApprovalUserId: Code[50];
     begin
         Rec.TestField("E-mail");
-
         if Rec."User Id For Approvals" <> '' then
             exit;
 
         ApprovalUserId := GetUserIdByEmail(Rec."E-mail");
         Rec."User Id For Approvals" := ApprovalUserId;
-
         if (ApprovalUserId = '') and (Rec."Can Approve") then
             Error(OnlyBCUserCanApproveErr, Rec."E-mail", Rec."No.");
     end;
@@ -645,21 +642,18 @@ table 6923 "Expense User"
             Error(NoExpenseUsersForEmployeeCreationErr);
 
         TotalCount := ExpenseUser.Count();
-
         if EmployeeTemplMgt.IsEnabled() then begin
             TemplateSelected := EmployeeTemplMgt.SelectEmployeeTemplateFromContact(EmployeeTempl);
             if not TemplateSelected then
                 if EmployeeTemplMgt.TemplatesAreNotEmpty() then
                     Error('');
         end;
-
         if GuiAllowed() then begin
             ProgressDialog.Open(EmployeesFromExpenseUsersProgressTxt);
             ProgressDialog.Update(1, '');
             ProgressDialog.Update(2, TotalCount);
             ProgressDialog.Update(3, 0);
         end;
-
         if ExpenseUser.FindSet() then
             repeat
                 if GuiAllowed() then
@@ -670,7 +664,6 @@ table 6923 "Expense User"
                 if GuiAllowed() then
                     ProgressDialog.Update(3, ProcessedCount);
             until ExpenseUser.Next() = 0;
-
         if GuiAllowed() then
             ProgressDialog.Close();
 
@@ -769,14 +762,12 @@ table 6923 "Expense User"
         AlreadySentExpenseUser.SetFilter("Welcome Email Status", '%1|%2', AlreadySentExpenseUser."Welcome Email Status"::"In Outbox", AlreadySentExpenseUser."Welcome Email Status"::Sent);
         if not AlreadySentExpenseUser.IsEmpty() then
             IncludeAlreadySent := not GuiAllowed() or Confirm(ResendWelcomeEmailQst, false);
-
         if not IncludeAlreadySent then
             ExpenseUser.SetFilter("Welcome Email Status", '<>%1&<>%2', ExpenseUser."Welcome Email Status"::"In Outbox", ExpenseUser."Welcome Email Status"::Sent);
 
         QueuedCount := ExpenseUser.Count();
         if QueuedCount > 0 then
             ExpenseUser.ModifyAll("Welcome Email Status", ExpenseUser."Welcome Email Status"::Queued);
-
         if GuiAllowed() then
             if QueuedCount = 0 then
                 Message(NoWelcomeEmailsQueuedMsg)
@@ -839,6 +830,13 @@ table 6923 "Expense User"
             repeat
                 ExpenseUser.SetWelcomeEmailDelivered(Delivered);
             until ExpenseUser.Next() = 0;
+    end;
+
+    local procedure CheckIfApproverIsDefaultApprover()
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default Approver No." = Rec."No." then
+            Error(CannotMarkAsFalseBecauseDefaultApproverErr, Rec.FieldCaption("Unlimited Approval"), Rec."No.");
     end;
 
     local procedure CheckNoPendingApprovals()

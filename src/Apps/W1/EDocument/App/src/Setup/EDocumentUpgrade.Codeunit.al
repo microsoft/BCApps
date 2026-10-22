@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument.IO;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.Processing.Import;
 #endif
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Purchases.Setup;
 using System.Upgrade;
 
@@ -26,7 +27,30 @@ codeunit 6168 "E-Document Upgrade"
 #endif
         UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
+        UpgradePaymentOccurrenceDispatcher();
         UpgradeSupportedTypeDirection();
+        UpgradePDFReaderServiceCreditMemo();
+        UpgradePaymentOccurrenceRetryStatus();
+    end;
+
+    internal procedure UpgradePDFReaderServiceCreditMemo()
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetPDFReaderServiceCreditMemoTag()) then
+            exit;
+
+        if EDocumentService.Get(EDocumentService.GetPDFReaderServiceCode()) then
+            EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
+
+        UpgradeTag.SetUpgradeTag(GetPDFReaderServiceCreditMemoTag());
+    end;
+
+    internal procedure GetPDFReaderServiceCreditMemoTag(): Code[250]
+    begin
+        exit('MS-650500-PDFReaderServiceCreditMemo-20261013');
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -68,6 +92,9 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
         PerCompanyUpgradeTags.Add(GetUpgradeSupportedTypeDirectionTag());
+        PerCompanyUpgradeTags.Add(GetPDFReaderServiceCreditMemoTag());
+        PerCompanyUpgradeTags.Add(GetPaymentOccurrenceDispatcherUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPaymentOccurrenceRetryStatusUpgradeTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -104,7 +131,6 @@ codeunit 6168 "E-Document Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(GetEnableVATOptionsForPurchEDocTag()) then
             exit;
-
         if PurchasesPayablesSetup.Get() then begin
             PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" := true;
             PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" := true;
@@ -133,7 +159,6 @@ codeunit 6168 "E-Document Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(GetUpgradeSupportedTypeDirectionTag()) then
             exit;
-
         if not EDocServiceSupportedType.IsEmpty() then
             EDocServiceSupportedType.ModifyAll(Direction, EDocServiceSupportedType.Direction::Both);
 
@@ -157,6 +182,45 @@ codeunit 6168 "E-Document Upgrade"
     internal procedure GetUpgradeSupportedTypeDirectionTag(): Code[250]
     begin
         exit('MS-EDoc-SupportedTypeDirection-20260824');
+    end;
+
+    internal procedure UpgradePaymentOccurrenceDispatcher()
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetPaymentOccurrenceDispatcherUpgradeTag()) then
+            exit;
+
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+
+        UpgradeTag.SetUpgradeTag(GetPaymentOccurrenceDispatcherUpgradeTag());
+    end;
+
+    internal procedure GetPaymentOccurrenceDispatcherUpgradeTag(): Code[250]
+    begin
+        exit('MS-EDoc-PaymentOccurrenceDispatcher-20261008');
+    end;
+
+    local procedure UpgradePaymentOccurrenceRetryStatus()
+    var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetPaymentOccurrenceRetryStatusUpgradeTag()) then
+            exit;
+
+        EDocPaymentOccurrence.SetRange(Status, EDocPaymentOccurrence.Status::Error);
+        EDocPaymentOccurrence.SetFilter("Retry Count", '<%1', 5);
+        if not EDocPaymentOccurrence.IsEmpty() then
+            EDocPaymentOccurrence.ModifyAll(Status, EDocPaymentOccurrence.Status::"Retry Pending");
+
+        UpgradeTag.SetUpgradeTag(GetPaymentOccurrenceRetryStatusUpgradeTag());
+    end;
+
+    internal procedure GetPaymentOccurrenceRetryStatusUpgradeTag(): Code[250]
+    begin
+        exit('MS-EDoc-PaymentOccurrenceRetryStatus-20261007');
     end;
 
     local procedure IsFallbackSecondaryType(EDocumentType: Enum "E-Document Type"): Boolean

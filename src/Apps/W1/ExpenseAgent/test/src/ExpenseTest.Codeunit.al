@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
@@ -246,6 +247,138 @@ codeunit 148305 "Expense Test"
             ExistingExpenseVendorNos,
             ExpenseAgentSetup."Expense Vendor Nos.",
             StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Expense Vendor Nos."), ExistingExpenseVendorNos, ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure ExistingVATPostingSetupProvidesDefaultVATBusinessPostingGroup()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        ExistingVATPercent: Decimal;
+    begin
+        // [SCENARIO 652572] An existing VAT posting setup provides the default VAT business posting group.
+        Initialize();
+
+        // [GIVEN] A VAT posting setup exists, and the expense default VAT business posting group is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+        ExistingVATPercent := LibraryRandom.RandInt(100);
+        VATPostingSetup.Validate("VAT %", ExistingVATPercent);
+        VATPostingSetup.Modify(true);
+        SetUnsupportedCountryCode(CompanyInformation);
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] The configured VAT business posting group is used without changing its existing VAT setup.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual(
+            VATBusinessPostingGroup.Code,
+            ExpenseAgentSetup."Default VAT Bus. Posting Group",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"), VATBusinessPostingGroup.Code, ExpenseAgentSetup.TableCaption()));
+        VATPostingSetup.Get(VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+        Assert.AreEqual(
+            ExistingVATPercent,
+            VATPostingSetup."VAT %",
+            StrSubstNo(ValueMustBeEqualErr, VATPostingSetup.FieldCaption("VAT %"), ExistingVATPercent, VATPostingSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure ExistingVATBusinessPostingGroupProvidesDefaultWithoutVATPostingSetup()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 652572] An existing VAT business posting group provides the default when no VAT posting setup exists.
+        Initialize();
+
+        // [GIVEN] A VAT business posting group exists without a VAT posting setup, and the expense default is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        SetUnsupportedCountryCode(CompanyInformation);
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] The existing VAT business posting group is used.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual(
+            VATBusinessPostingGroup.Code,
+            ExpenseAgentSetup."Default VAT Bus. Posting Group",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"), VATBusinessPostingGroup.Code, ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure NoVATBusinessPostingGroupsDoesNotFailCountryVATRatesDefaults()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 653962] Sales Tax countries (CA/US) without VAT business posting groups can create country VAT rate defaults.
+        Initialize();
+
+        // [GIVEN] No VAT posting setup or VAT business posting group exists, a country without VAT defaults is set, and the expense default is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        SetUnsupportedCountryCode(CompanyInformation);
+        CompanyInformation."Country/Region Code" := 'CA';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] No error occurs, the default stays blank and VAT rates are marked as applied.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", ExpenseAgentSetup.FieldCaption("VAT Rates Applied"));
+    end;
+
+    [Test]
+    procedure VATCountryWithoutBusinessPostingGroupCanApplyRatesLater()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        Initialize();
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'DE';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsFalse(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must remain pending until a VAT business posting group is available.');
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(VATPostingSetup.IsEmpty(), 'No VAT posting setup must be created with a blank business posting group.');
+
+        ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must be applied when a VAT business posting group becomes available.');
+        Assert.AreEqual(VATBusinessPostingGroup.Code, ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        Assert.IsFalse(VATPostingSetup.IsEmpty(), 'The later setup run must create VAT posting rates for the business posting group.');
     end;
 
     [Test]
@@ -3607,7 +3740,7 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -5593,6 +5726,21 @@ codeunit 148305 "Expense Test"
         Commit(); // Ensure setup data is committed before running tests. The first test is expected to fail and it rolls back the changes made after early exit on IsInitialized check.
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Test");
+    end;
+
+    local procedure ClearDefaultVATBusinessPostingGroup(var ExpenseAgentSetup: Record "Expense Agent Setup")
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", '');
+        ExpenseAgentSetup.Validate("VAT Rates Applied", false);
+        ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure SetUnsupportedCountryCode(var CompanyInformation: Record "Company Information")
+    begin
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := '';
+        CompanyInformation.Modify();
     end;
 
     local procedure CreateExpense(var Expense: Record Expense; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
