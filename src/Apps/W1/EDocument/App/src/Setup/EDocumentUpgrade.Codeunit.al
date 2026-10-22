@@ -29,28 +29,7 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeEnableVATOptionsForPurchEDoc();
         UpgradeSupportedTypeDirection();
         UpgradePaymentOccurrenceDispatcher();
-        UpgradePDFReaderServiceCreditMemo();
         UpgradePaymentOccurrenceRetryStatus();
-    end;
-
-    internal procedure UpgradePDFReaderServiceCreditMemo()
-    var
-        EDocumentService: Record "E-Document Service";
-        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
-        UpgradeTag: Codeunit "Upgrade Tag";
-    begin
-        if UpgradeTag.HasUpgradeTag(GetPDFReaderServiceCreditMemoTag()) then
-            exit;
-
-        if EDocumentService.Get(EDocumentService.GetPDFReaderServiceCode()) then
-            EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
-
-        UpgradeTag.SetUpgradeTag(GetPDFReaderServiceCreditMemoTag());
-    end;
-
-    internal procedure GetPDFReaderServiceCreditMemoTag(): Code[250]
-    begin
-        exit('MS-650500-PDFReaderServiceCreditMemo-20261013');
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -92,7 +71,6 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
         PerCompanyUpgradeTags.Add(GetUpgradeSupportedTypeDirectionTag());
-        PerCompanyUpgradeTags.Add(GetPDFReaderServiceCreditMemoTag());
         PerCompanyUpgradeTags.Add(GetPaymentOccurrenceDispatcherUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPaymentOccurrenceRetryStatusUpgradeTag());
     end;
