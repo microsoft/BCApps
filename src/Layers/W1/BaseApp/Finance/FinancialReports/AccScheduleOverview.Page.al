@@ -2291,15 +2291,15 @@ page 490 "Acc. Schedule Overview"
         ColumnFormat: Text;
         FormattedValue: Text;
         IsFormatHandled: Boolean;
-        NegativeAmountFormat: Enum "Analysis Negative Format";
+        EffectiveNegativeAmountFormat: Enum "Analysis Negative Format";
     begin
         if ColumnValues[ColumnNo] = 0 then
             exit('');
 
-        NegativeAmountFormat := TempFinancialReport.GetEffectiveNegativeAmountFormat();
+        EffectiveNegativeAmountFormat := TempFinancialReport.GetEffectiveNegativeAmountFormat();
         ColumnFormat := GetColumnFormatString(ColumnNo, IsFormatHandled);
         FormattedValue := Format(ColumnValues[ColumnNo], 0, ColumnFormat);
-        if (not IsFormatHandled) and (NegativeAmountFormat = NegativeAmountFormat::Parentheses) and (ColumnValues[ColumnNo] < 0) then
+        if (not IsFormatHandled) and (EffectiveNegativeAmountFormat = EffectiveNegativeAmountFormat::Parentheses) and (ColumnValues[ColumnNo] < 0) then
             exit(StrSubstNo('(%1)', FormattedValue.TrimStart('-')));
 
         exit(FormattedValue);
