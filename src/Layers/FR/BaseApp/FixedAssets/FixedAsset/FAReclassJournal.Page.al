@@ -135,12 +135,22 @@ page 5636 "FA Reclass. Journal"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Reclass. Derogatory"; Rec."Reclass. Derogatory")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = false;
+                }
+#if not CLEAN30
                 field("Reclassify Derogatory"; Rec."Reclassify Derogatory")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies that you want to reclassify the accumulated derogatory depreciation in the FA No. field to the fixed asset in the New FA No. field.';
                     Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
+#endif
                 field("Insert Bal. Account"; Rec."Insert Bal. Account")
                 {
                     ApplicationArea = FixedAssets;

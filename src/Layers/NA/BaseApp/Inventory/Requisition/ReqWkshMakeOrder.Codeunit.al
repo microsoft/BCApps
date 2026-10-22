@@ -671,6 +671,9 @@ codeunit 333 "Req. Wksh.-Make Order"
         if IsHandled then
             exit;
 
+        if RequisitionLine."Order Date" = PurchOrderHeader."Order Date" then
+            exit;
+
         if PurchOrderLine.CountPrice(true) > 0 then
             RequisitionLine.Validate("Order Date", PurchOrderHeader."Order Date");
     end;
@@ -1956,4 +1959,3 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
     end;
 }
-
