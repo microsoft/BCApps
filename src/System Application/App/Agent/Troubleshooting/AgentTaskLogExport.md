@@ -10,7 +10,21 @@ The Agent Task troubleshooting experience supports exporting log information as 
 
 ## Programmatic export
 
-Codeunit `"Agent Task Log Export"` provides internal stream-based APIs:
+Codeunit `"Agent Task"` provides public JSON APIs:
+
+```al
+TaskExport := AgentTask.GetTaskLogEntryDetails(AgentTaskID);
+StepExport := AgentTask.GetTaskLogEntryDetails(AgentTaskID, StepNumber);
+StepsDone := AgentTask.GetStepsDoneCount(AgentTaskID);
+```
+
+The task overload returns `taskContext`, all `logEntries`, and all `memoryEntries`.
+The step overload returns the log-entry object directly, without a `logEntries` wrapper.
+`StepNumber` is the log entry's ID within the task, not its position in the export.
+The task overload requires an existing task, and the step overload requires an existing log entry belonging to that task.
+All three methods enforce the agent-management access check.
+
+Codeunit `"Agent Task Log Export"` also provides internal stream-based APIs:
 
 ```al
 AgentTaskLogExport.ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
@@ -49,4 +63,4 @@ Serialized page content is sensitive and is included only when the current user 
 - Shared calculations were extracted from the Agent Task Log Entry page into codeunit `"Agent Task Log Entry"` so the page and JSON export use the same values.
 - Temporary log records avoid persistent task, memory, message, and related-entry lookups where those relationships are unavailable.
 - Tests cover chronological ordering, separation of log and memory entries, native memory JSON, English captions with language restoration, real task context, and redacted troubleshooting context.
-- The AI Test Toolkit command-line page streams structured AI Eval run files one at a time, with all evaluation results before optional task details. Evaluation result files reference Agent Task troubleshooting documents under `agent-task-details`. A failed task export produces an explicit error object at its referenced path without preventing later task exports; the writer records the incomplete export in the version's `export-status.json`.
+- The AI Test Toolkit command-line page streams structured AI Eval run files one at a time, with all evaluation results before optional task details. Evaluation result files reference Agent Task troubleshooting documents under `agent-task-details`. A failed task export produces an explicit error object at its referenced path without preventing later task exports; the file writer is responsible for recording the incomplete export in the version's `export-status.json`.

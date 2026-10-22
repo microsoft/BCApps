@@ -16,6 +16,29 @@ codeunit 4300 "Agent Task Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    procedure GetAllLogEntryDetails(AgentTaskID: BigInteger): JsonObject
+    var
+        AgentTask: Record "Agent Task";
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+    begin
+        AgentTask.Get(AgentTaskID);
+        exit(AgentTaskLogExport.ExportTaskToJson(AgentTaskID));
+    end;
+
+    procedure GetLogEntryDetails(AgentTaskID: BigInteger; StepNumber: Integer): JsonObject
+    var
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+        ExportJson: JsonObject;
+        EntryToken: JsonToken;
+    begin
+        AgentTaskLogEntry.Get(AgentTaskID, StepNumber);
+        AgentTaskLogEntry.SetRecFilter();
+        ExportJson := AgentTaskLogExport.ExportToJson(AgentTaskLogEntry);
+        ExportJson.GetArray('logEntries').Get(0, EntryToken);
+        exit(EntryToken.AsObject());
+    end;
+
     procedure GetStepsDoneCount(AgentTaskID: BigInteger): Integer
     var
         AgentTask: Record "Agent Task";

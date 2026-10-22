@@ -335,6 +335,9 @@ page 149042 "AIT CommandLine Card"
     end;
 
     var
+        AITRunDataLogEntry: Record "AIT Log Entry";
+        AITRunDataAgentTaskLog: Record "Agent Task Log";
+        AITRunDataExport: Codeunit "AIT Run Data Export";
         CannotFindAITSuiteErr: Label 'The specified Eval Suite with code %1 cannot be found.', Comment = '%1 = Eval Suite id.';
         AITCode: Code[100];
         LineNoFilter: Integer;
@@ -343,9 +346,6 @@ page 149042 "AIT CommandLine Card"
         InputDataset: Text;
         SuiteDefinition: Text;
         InputDatasetFilename: Text;
-        AITRunDataLogEntry: Record "AIT Log Entry";
-        AITRunDataAgentTaskLog: Record "Agent Task Log";
-        AITRunDataExport: Codeunit "AIT Run Data Export";
         AITRunDataTaskFiles: Dictionary of [Text, Boolean];
         AITRunDataFileText: Text;
         AITRunDataFilePath: Text;

@@ -291,12 +291,14 @@ table 149034 "AIT Log Entry"
     local procedure ReadStreamToEnd(var Source: InStream): Text
     var
         Content: TextBuilder;
-        Chunk: Text;
+        ContentLine: Text;
     begin
+        Source.ReadText(ContentLine);
+        Content.Append(ContentLine);
         while not Source.EOS() do begin
-            // Read preserves the line endings that ReadText discards.
-            Source.Read(Chunk);
-            Content.Append(Chunk);
+            Source.ReadText(ContentLine);
+            Content.AppendLine('');
+            Content.Append(ContentLine);
         end;
         exit(Content.ToText());
     end;

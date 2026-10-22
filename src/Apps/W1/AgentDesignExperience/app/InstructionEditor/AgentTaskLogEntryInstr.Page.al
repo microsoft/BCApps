@@ -329,9 +329,11 @@ page 4362 "Agent Task Log Entry Instr"
     local procedure UpdateControls()
     var
         User: Record User;
-        AgentTask: Codeunit "Agent Task";
+        DetailsInStream: InStream;
     begin
-        DetailsTxt := AgentTask.GetLogEntryDetails(Rec);
+        Rec.CalcFields(Details);
+        Rec.Details.CreateInStream(DetailsInStream, TextEncoding::UTF8);
+        DetailsInStream.Read(DetailsTxt);
         case Rec.Level of
             Rec.Level::Error:
                 TypeStyle := Format(PageStyle::Unfavorable);

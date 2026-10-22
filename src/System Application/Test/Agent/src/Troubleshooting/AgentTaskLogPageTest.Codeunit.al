@@ -246,6 +246,27 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
+    procedure TestExportToJson_ReturnsOnlySelectedEntry()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+        ExportJson: JsonObject;
+        EntryJson: JsonObject;
+    begin
+        CreateTempLogEntry(TempAgentTaskLogEntry, 1, 0);
+        CreateTempLogEntry(TempAgentTaskLogEntry, 7, 0);
+        TempAgentTaskLogEntry.Get(-1, 7);
+        TempAgentTaskLogEntry.SetRecFilter();
+
+        ExportJson := AgentTaskLogExport.ExportToJson(TempAgentTaskLogEntry);
+
+        Assert.AreEqual(1, ExportJson.GetArray('logEntries').Count(), 'The JSON result should contain only the selected log entry.');
+        EntryJson := GetFirstEntry(ExportJson);
+        Assert.AreEqual(7, EntryJson.GetInteger('id'), 'Selection should use the entry ID, not its position.');
+        Assert.AreEqual('-1', EntryJson.GetText('taskId'), 'The selected entry should retain its task ID.');
+    end;
+
+    [Test]
     procedure TestExportToJson_UsesChronologicalOrder()
     var
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;

@@ -24,6 +24,47 @@ codeunit 133960 "Agent Task Test"
     end;
 
     [Test]
+    procedure GetTaskLogEntryDetailsForTaskWithoutSteps()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        ExportJson: JsonObject;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        AgentTaskBuilder.Initialize(AgentUserId, 'Task without steps');
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        ExportJson := AgentTask.GetTaskLogEntryDetails(AgentTaskRecord.ID);
+
+        Assert.AreEqual(Format(AgentTaskRecord.ID, 0, 9), ExportJson.GetObject('taskContext').GetText('taskId'), 'The export should identify the requested task even without log entries.');
+        Assert.AreEqual(AgentTaskRecord.Title, ExportJson.GetObject('taskContext').GetText('taskTitle'), 'The export should include task details.');
+        Assert.AreEqual(0, ExportJson.GetArray('logEntries').Count(), 'A task that has not run should have no log entries.');
+        Assert.AreEqual(0, ExportJson.GetArray('memoryEntries').Count(), 'The full-task export should include an empty memory collection.');
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsRejectsMissingTask()
+    begin
+        asserterror AgentTask.GetTaskLogEntryDetails(-1);
+        Assert.ExpectedError('does not exist');
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsRejectsMissingStep()
+    begin
+        asserterror AgentTask.GetTaskLogEntryDetails(-1, 1);
+        Assert.ExpectedError('does not exist');
+    end;
+
+    [Test]
     procedure CreateTaskWithoutMessageAndVerify()
     var
         AgentRecord: Record Agent;

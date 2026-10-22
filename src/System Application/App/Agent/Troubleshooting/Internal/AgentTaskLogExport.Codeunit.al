@@ -17,13 +17,21 @@ codeunit 4313 "Agent Task Log Export"
 
     procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var ExportOutStream: OutStream)
     var
+        ExportRoot: JsonObject;
+    begin
+        ExportRoot := ExportToJson(SelectedAgentTaskLogEntry);
+        ExportRoot.WriteTo(ExportOutStream);
+    end;
+
+    procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    var
         SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry";
         ExportRoot: JsonObject;
         AgentTaskID: BigInteger;
     begin
         AgentTaskID := GetTaskID(SelectedAgentTaskLogEntry);
         ExportToJson(SelectedAgentTaskLogEntry, SelectedAgentTaskMemoryEntry, AgentTaskID, false, ExportRoot);
-        ExportRoot.WriteTo(ExportOutStream);
+        exit(ExportRoot);
     end;
 
     procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry"; AgentTaskID: BigInteger; var ExportOutStream: OutStream)
@@ -88,12 +96,22 @@ codeunit 4313 "Agent Task Log Export"
 
     procedure ExportTaskToJson(AgentTaskID: BigInteger; var ExportOutStream: OutStream)
     var
+        ExportRoot: JsonObject;
+    begin
+        ExportRoot := ExportTaskToJson(AgentTaskID);
+        ExportRoot.WriteTo(ExportOutStream);
+    end;
+
+    procedure ExportTaskToJson(AgentTaskID: BigInteger): JsonObject
+    var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
         AgentTaskMemoryEntry: Record "Agent Task Memory Entry";
+        ExportRoot: JsonObject;
     begin
         AgentTaskLogEntry.SetRange("Task ID", AgentTaskID);
         AgentTaskMemoryEntry.SetRange("Task ID", AgentTaskID);
-        ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, ExportOutStream);
+        ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, true, ExportRoot);
+        exit(ExportRoot);
     end;
 
     procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry")
