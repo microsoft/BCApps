@@ -183,6 +183,23 @@ table 6921 "Expense Category"
         CannotRenameExpenseCategoryWhenExpenseRuleExistErr: Label 'You cannot rename %1 %2 because it is used on %3.', Comment = '%1 = Expense Category table caption, %2 = Expense Category Code, %3 = Expense Rule Header table caption';
         ShouldChangeEnforcementQst: Label 'You have specified a limit for attachment enforcement. Do you want to change the Attachment Enforcement to "%1"?', Comment = '%1 = an option name';
 
+    internal procedure IsItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        case Rec."Expense Detail Required" of
+            Rec."Expense Detail Required"::Itemize:
+                exit(true);
+            Rec."Expense Detail Required"::Mileage, Rec."Expense Detail Required"::"Per Diem":
+                exit(false);
+        end;
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec.Code);
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
+    end;
+
     local procedure CheckExpenseCategoryIsInUse(ExpenseCategoryCode: Code[20])
     var
         Expense: Record Expense;
