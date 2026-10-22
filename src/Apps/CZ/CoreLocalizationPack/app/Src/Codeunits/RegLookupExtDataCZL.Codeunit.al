@@ -6,6 +6,7 @@ namespace Microsoft.Finance.Registration;
 
 using System.RestClient;
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 11754 "Reg. Lookup Ext. Data CZL"
 {
@@ -22,6 +23,7 @@ codeunit 11754 "Reg. Lookup Ext. Data CZL"
         RegistrationLogCZL: Record "Registration Log CZL";
         RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
         ResponseTooLargeErr: Label 'The response from the ARES registration number validation service exceeded the maximum allowed size and was rejected.';
+        InvalidResponseErr: Label 'The response from the ARES registration number validation service is not valid JSON.';
         ResponseTooLargeTxt: Label 'The registration no. validation failed. The ARES response exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The ARES registration number validation service returned a response that exceeded the maximum allowed size.', Locked = true;
         AresTelemetryCategoryTok: Label 'ARES Registration No. Validation', Locked = true;
@@ -46,22 +48,28 @@ codeunit 11754 "Reg. Lookup Ext. Data CZL"
 
     local procedure InsertLogEntry(HttpResponseMessage: Codeunit "Http Response Message")
     var
+        ResponseTempBlob: Codeunit "Temp Blob";
+        ResponseInStream: InStream;
         ResponseJsonObject: JsonObject;
     begin
-        // Reject oversized responses from the unauthenticated ARES service before the body is parsed.
-        CheckResponseSize(HttpResponseMessage.GetContent().AsText());
-        ResponseJsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
+        // Read the body once and reject an oversized response from the unauthenticated ARES service before parsing it.
+        ResponseTempBlob := HttpResponseMessage.GetContent().AsBlob();
+        CheckResponseSize(ResponseTempBlob);
+        ResponseTempBlob.CreateInStream(ResponseInStream, TextEncoding::UTF8);
+        if not ResponseJsonObject.ReadFrom(ResponseInStream) then
+            Error(InvalidResponseErr);
         if HttpResponseMessage.GetIsSuccessStatusCode() then
             RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, ResponseJsonObject)
         else
             RegistrationLogMgtCZL.LogError(RegistrationLogCZL, ResponseJsonObject);
     end;
 
-    internal procedure CheckResponseSize(ResponseText: Text)
+    internal procedure CheckResponseSize(var ResponseTempBlob: Codeunit "Temp Blob")
     var
         AuditLog: Codeunit "Audit Log";
     begin
-        if StrLen(ResponseText) <= GetMaxResponseSize() then
+        // Measure the raw bytes, not decoded characters: Czech diacritics take more than one byte in UTF-8.
+        if ResponseTempBlob.Length() <= GetMaxResponseSize() then
             exit;
 
         // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
@@ -75,7 +83,7 @@ codeunit 11754 "Reg. Lookup Ext. Data CZL"
         // A lookup returns a single company record by IČO. Its only collections are bounded by external
         // classifications (NACE activity codes, source registries), not by the company's data: the largest
         // Czech entities return under 6 KB. 64 KB leaves ample headroom while rejecting abnormal payloads.
-        exit(65536);
+        exit(65536); // bytes
     end;
 
     procedure GetRegistrationNoValidationWebServiceURL(): Text[250]

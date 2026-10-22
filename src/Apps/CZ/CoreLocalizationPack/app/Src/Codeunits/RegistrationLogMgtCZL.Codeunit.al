@@ -21,11 +21,11 @@ codeunit 11755 "Registration Log Mgt. CZL"
         DetailNotVerifiedMsg: Label 'Registration number is valid.\No details information was provided by ARES service.';
         DescriptionLbl: Label 'Registration No. Validation Service Setup';
         ResponseIntegrityErr: Label 'The response from the ARES registration number validation service did not match the requested registration number and was rejected.';
-        ResponseMissingIdentifierErr: Label 'The response from the ARES registration number validation service did not include the requested registration number and was rejected.';
+        ResponseSchemaErr: Label 'The response from the ARES registration number validation service did not contain the expected data and was rejected.';
         ResponseIntegrityTxt: Label 'The registration no. validation failed. The ARES response identifier did not match the request.', Locked = true;
-        ResponseMissingIdentifierTxt: Label 'The registration no. validation failed. The ARES response did not include the requested identifier.', Locked = true;
+        ResponseSchemaTxt: Label 'The registration no. validation failed. The ARES response did not contain the expected data.', Locked = true;
         SecurityAuditResponseIntegrityTxt: Label 'The ARES registration number validation service returned a response that did not match the requested registration number.', Locked = true;
-        SecurityAuditResponseMissingIdentifierTxt: Label 'The ARES registration number validation service returned a response that did not include the requested registration number.', Locked = true;
+        SecurityAuditResponseSchemaTxt: Label 'The ARES registration number validation service returned a response that did not contain the expected data.', Locked = true;
         AresTelemetryCategoryTok: Label 'ARES Registration No. Validation', Locked = true;
 
     procedure LogCustomer(Customer: Record Customer)
@@ -182,14 +182,12 @@ codeunit 11755 "Registration Log Mgt. CZL"
     var
         AuditLog: Codeunit "Audit Log";
         ResponseRegistrationNo: Text;
-        RegistrationNoKeyTok: Label 'ico', Locked = true;
     begin
-        // GetValue accepts only a scalar value, so an object or array cannot stand in for the identifier.
-        if not GetValue(ResponseObject, RegistrationNoKeyTok, ResponseRegistrationNo) or (ResponseRegistrationNo.Trim() = '') then begin
+        if not HasExpectedResponseSchema(ResponseObject, ResponseRegistrationNo) then begin
             // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
-            AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifierTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('0000W6X', ResponseMissingIdentifierTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
-            Error(ResponseMissingIdentifierErr);
+            AuditLog.LogAuditMessage(SecurityAuditResponseSchemaTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('0000W6X', ResponseSchemaTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
+            Error(ResponseSchemaErr);
         end;
 
         // ARES only answers successfully for an exact 8-digit IČO (anything else is rejected with HTTP 400) and echoes
@@ -199,6 +197,40 @@ codeunit 11755 "Registration Log Mgt. CZL"
             Session.LogMessage('0000W6Y', ResponseIntegrityTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
             Error(ResponseIntegrityErr);
         end;
+    end;
+
+    local procedure HasExpectedResponseSchema(ResponseObject: JsonObject; var ResponseRegistrationNo: Text): Boolean
+    var
+        AddressObject: JsonObject;
+        Name: Text;
+        RegistrationNoKeyTok: Label 'ico', Locked = true;
+        NameKeyTok: Label 'obchodniJmeno', Locked = true;
+        AddressKeyTok: Label 'sidlo', Locked = true;
+    begin
+        // ARES returns the identifier, the name and the registered address for every economic subject. Optional data,
+        // such as the VAT registration number (absent for non-VAT payers) or the street, is not required.
+        if not GetNonEmptyStringValue(ResponseObject, RegistrationNoKeyTok, ResponseRegistrationNo) then
+            exit(false);
+        if not GetNonEmptyStringValue(ResponseObject, NameKeyTok, Name) then
+            exit(false);
+        exit(GetValue(ResponseObject, AddressKeyTok, AddressObject));
+    end;
+
+    local procedure GetNonEmptyStringValue(JsonObject: JsonObject; JsonKey: Text; var Result: Text): Boolean
+    var
+        JsonToken: JsonToken;
+        RawValue: Text;
+    begin
+        if not JsonObject.Get(JsonKey, JsonToken) then
+            exit(false);
+        // Only a scalar can be read as a value, so an object or array cannot stand in for the expected field.
+        if not GetValue(JsonToken, Result) then
+            exit(false);
+        // Require a JSON string: a number or boolean is not the data type ARES returns for these fields.
+        JsonToken.AsValue().WriteTo(RawValue);
+        if not RawValue.StartsWith('"') then
+            exit(false);
+        exit(Result.Trim() <> '');
     end;
 
     local procedure FormatPostCode(PostCode: Text): Code[20]

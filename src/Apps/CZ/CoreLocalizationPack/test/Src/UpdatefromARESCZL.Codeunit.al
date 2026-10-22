@@ -149,7 +149,7 @@ codeunit 148051 "Update from ARES CZL"
         InitRegistrationLogForResponse(RegistrationLogCZL, '00006947');
 
         // [WHEN] ARES responds with the same IČO
-        RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"00006947","obchodniJmeno":"Test"}'));
+        RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"00006947","obchodniJmeno":"Test","sidlo":{"kodStatu":"CZ"}}'));
 
         // [THEN] The response is trusted and logged as valid
         RegistrationLogCZL.TestField(Status, RegistrationLogCZL.Status::Valid);
@@ -169,7 +169,7 @@ codeunit 148051 "Update from ARES CZL"
         InitRegistrationLogForResponse(RegistrationLogCZL, '12345678');
 
         // [WHEN] ARES responds with the data of another IČO
-        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"87654321","obchodniJmeno":"Other"}'));
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"87654321","obchodniJmeno":"Other","sidlo":{"kodStatu":"CZ"}}'));
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not match the requested registration number');
@@ -189,7 +189,7 @@ codeunit 148051 "Update from ARES CZL"
         InitRegistrationLogForResponse(RegistrationLogCZL, '00006947');
 
         // [WHEN] The response echoes the IČO without its leading zeros
-        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"6947","obchodniJmeno":"Test"}'));
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"6947","obchodniJmeno":"Test","sidlo":{"kodStatu":"CZ"}}'));
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not match the requested registration number');
@@ -209,10 +209,10 @@ codeunit 148051 "Update from ARES CZL"
         InitRegistrationLogForResponse(RegistrationLogCZL, '12345678');
 
         // [WHEN] ARES responds without the IČO
-        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"obchodniJmeno":"Test"}'));
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"obchodniJmeno":"Test","sidlo":{"kodStatu":"CZ"}}'));
 
         // [THEN] The response is rejected and nothing is logged as valid
-        Assert.ExpectedError('did not include the requested registration number');
+        Assert.ExpectedError('did not contain the expected data');
         VerifyNoValidLogEntry(RegistrationLogCZL);
     end;
 
@@ -229,10 +229,70 @@ codeunit 148051 "Update from ARES CZL"
         InitRegistrationLogForResponse(RegistrationLogCZL, '12345678');
 
         // [WHEN] ARES responds with the IČO wrapped in an object
-        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":{"value":"12345678"},"obchodniJmeno":"Test"}'));
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":{"value":"12345678"},"obchodniJmeno":"Test","sidlo":{"kodStatu":"CZ"}}'));
 
         // [THEN] The response is rejected and nothing is logged as valid
-        Assert.ExpectedError('did not include the requested registration number');
+        Assert.ExpectedError('did not contain the expected data');
+        VerifyNoValidLogEntry(RegistrationLogCZL);
+    end;
+
+    [Test]
+    procedure LogVerificationRejectsNumericRegistrationNo()
+    var
+        RegistrationLogCZL: Record "Registration Log CZL";
+        RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
+    begin
+        // [SCENARIO] An ARES response whose IČO is a JSON number instead of a string is rejected, even if the digits match
+        Initialize();
+
+        // [GIVEN] A registration log entry for IČO 12345678
+        InitRegistrationLogForResponse(RegistrationLogCZL, '12345678');
+
+        // [WHEN] ARES responds with the IČO as a number
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":12345678,"obchodniJmeno":"Test","sidlo":{"kodStatu":"CZ"}}'));
+
+        // [THEN] The response is rejected and nothing is logged as valid
+        Assert.ExpectedError('did not contain the expected data');
+        VerifyNoValidLogEntry(RegistrationLogCZL);
+    end;
+
+    [Test]
+    procedure LogVerificationRejectsResponseWithoutName()
+    var
+        RegistrationLogCZL: Record "Registration Log CZL";
+        RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
+    begin
+        // [SCENARIO] An ARES response with a matching IČO but without the company name is rejected
+        Initialize();
+
+        // [GIVEN] A registration log entry for IČO 12345678
+        InitRegistrationLogForResponse(RegistrationLogCZL, '12345678');
+
+        // [WHEN] ARES responds with the matching IČO but no name
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"12345678","sidlo":{"kodStatu":"CZ"}}'));
+
+        // [THEN] The response is rejected and nothing is logged as valid
+        Assert.ExpectedError('did not contain the expected data');
+        VerifyNoValidLogEntry(RegistrationLogCZL);
+    end;
+
+    [Test]
+    procedure LogVerificationRejectsResponseWithoutAddress()
+    var
+        RegistrationLogCZL: Record "Registration Log CZL";
+        RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
+    begin
+        // [SCENARIO] An ARES response with a matching IČO but without the registered address is rejected
+        Initialize();
+
+        // [GIVEN] A registration log entry for IČO 12345678
+        InitRegistrationLogForResponse(RegistrationLogCZL, '12345678');
+
+        // [WHEN] ARES responds with the matching IČO and name but no address object
+        asserterror RegistrationLogMgtCZL.LogVerification(RegistrationLogCZL, CreateAresResponse('{"ico":"12345678","obchodniJmeno":"Test"}'));
+
+        // [THEN] The response is rejected and nothing is logged as valid
+        Assert.ExpectedError('did not contain the expected data');
         VerifyNoValidLogEntry(RegistrationLogCZL);
     end;
 
@@ -240,12 +300,37 @@ codeunit 148051 "Update from ARES CZL"
     procedure ResponseSizeRejectsOversizedPayload()
     var
         RegLookupExtDataCZL: Codeunit "Reg. Lookup Ext. Data CZL";
+        TempBlob: Codeunit "Temp Blob";
     begin
         // [SCENARIO] An ARES response larger than the maximum allowed size is rejected before it is parsed
         Initialize();
 
-        // [WHEN] The size check runs on a response body that exceeds the 64 KB cap
-        asserterror RegLookupExtDataCZL.CheckResponseSize(PadStr('', 70000, 'A'));
+        // [GIVEN] A response body of 70,000 bytes, above the 64 KB cap
+        WriteResponseToTempBlob(TempBlob, PadStr('', 70000, 'A'));
+
+        // [WHEN] The size check runs
+        asserterror RegLookupExtDataCZL.CheckResponseSize(TempBlob);
+
+        // [THEN] The response is rejected
+        Assert.ExpectedError('exceeded the maximum allowed size');
+    end;
+
+    [Test]
+    procedure ResponseSizeRejectsMultibyteOversizedPayload()
+    var
+        RegLookupExtDataCZL: Codeunit "Reg. Lookup Ext. Data CZL";
+        TempBlob: Codeunit "Temp Blob";
+        MultibyteChar: Char;
+    begin
+        // [SCENARIO] The size limit counts bytes, so a multibyte response under the limit in characters is still rejected
+        Initialize();
+
+        // [GIVEN] A response body of 40,000 two-byte UTF-8 characters (U+0158, Ř): under 64 KB in characters, 80,000 bytes in size
+        MultibyteChar := 344;
+        WriteResponseToTempBlob(TempBlob, PadStr('', 40000, Format(MultibyteChar)));
+
+        // [WHEN] The size check runs
+        asserterror RegLookupExtDataCZL.CheckResponseSize(TempBlob);
 
         // [THEN] The response is rejected
         Assert.ExpectedError('exceeded the maximum allowed size');
@@ -255,13 +340,25 @@ codeunit 148051 "Update from ARES CZL"
     procedure ResponseSizeAcceptsWithinLimit()
     var
         RegLookupExtDataCZL: Codeunit "Reg. Lookup Ext. Data CZL";
+        TempBlob: Codeunit "Temp Blob";
     begin
         // [SCENARIO] An ARES response within the maximum allowed size passes the size check
         Initialize();
 
-        // [WHEN] The size check runs on a realistic response body size
+        // [GIVEN] A response body of a realistic size
+        WriteResponseToTempBlob(TempBlob, PadStr('', 6000, 'A'));
+
+        // [WHEN] The size check runs
         // [THEN] No error is raised
-        RegLookupExtDataCZL.CheckResponseSize(PadStr('', 6000, 'A'));
+        RegLookupExtDataCZL.CheckResponseSize(TempBlob);
+    end;
+
+    local procedure WriteResponseToTempBlob(var TempBlob: Codeunit "Temp Blob"; ResponseText: Text)
+    var
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(ResponseText);
     end;
 
     local procedure InitRegistrationLogForResponse(var RegistrationLogCZL: Record "Registration Log CZL"; RegistrationNo: Text[20])
