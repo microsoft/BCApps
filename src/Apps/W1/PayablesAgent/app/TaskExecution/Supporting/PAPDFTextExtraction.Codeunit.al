@@ -19,10 +19,8 @@ codeunit 3336 "PA PDF Text Extraction"
     procedure ExtractText(var Task: Codeunit "Payables Agent Task")
     var
         ExtractedText: Text;
-        Data: Record "PA Detailed Task" temporary;
     begin
-        Task.GetRecord(Data);
-        if not Data."Can Extract Text" then
+        if not Task.CanExtractText() then
             Error(ExtractionFailedErr);
         ExtractedText := GenerateText(Task);
         // The entity reloads and patches only extracted text after the potentially slow model call.

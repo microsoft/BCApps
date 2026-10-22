@@ -30,6 +30,9 @@ codeunit 3343 "PA Setup"
         PayablesAgentV2ProfileTok: Label 'Payables Agent Profile', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         PayablesAgentV2PermissionSetTok: Label 'Payables Ag. - RunV2', Locked = true;
+        AgentInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        AgentDrivenInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        AgentInstructionsV2Tok: Label 'Prompts/PayablesAgent-AgentInstructions-V2.md', Locked = true;
         PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
         MonitoringNotSupportedErr: Label 'Email monitoring is not available for this version of the Payables Agent.';
         MailboxRequiredErr: Label 'Select a mailbox before enabling email monitoring.';
@@ -191,6 +194,20 @@ codeunit 3343 "PA Setup"
         exit(PayablesAgentPermissionSetTok);
     end;
 
+    internal procedure GetAgentInstructionsResource(AgentDrivenLineMatching: Boolean): Text
+    begin
+        if PAV1V2Flag.IsV2Active() then
+            exit(AgentInstructionsV2Tok);
+        if AgentDrivenLineMatching then
+            exit(AgentDrivenInstructionsTok);
+        exit(AgentInstructionsTok);
+    end;
+
+    internal procedure SupportsEmailMonitoring(): Boolean
+    begin
+        exit(not PAV1V2Flag.IsV2Active());
+    end;
+
     internal procedure SupportsAdditionalFields(): Boolean
     begin
         exit(not IsV2);
@@ -203,7 +220,7 @@ codeunit 3343 "PA Setup"
             SetMonitorOutlook(false);
         if not GetMonitorOutlook() then
             exit;
-        if IsV2 then
+        if not SupportsEmailMonitoring() then
             Error(MonitoringNotSupportedErr);
         if GetEmailReviewPolicy() = "PA Email Review Policy"::Unset then
             Error(ReviewPolicyRequiredErr);

@@ -32,14 +32,20 @@
       "version": "30.0.0.0"
     },
     {
-      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
-      "name": "Tests-TestLibraries",
+      "id": "e6328152-bb29-4664-9dae-3bc7eaae1fd8",
+      "name": "Email - Outlook REST API",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     },
     {
-      "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
-      "name": "System Application Test Library",
+      "id": "aceb66c8-472e-437c-81d3-27e6c07d0f14",
+      "name": "Email - Microsoft 365 Connector",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     },
@@ -64,7 +70,11 @@
     },
     {
       "from": 133722,
-      "to": 133724
+      "to": 133723
+    },
+    {
+      "from": 133735,
+      "to": 133750
     }
   ],
   "resourceExposurePolicy": {

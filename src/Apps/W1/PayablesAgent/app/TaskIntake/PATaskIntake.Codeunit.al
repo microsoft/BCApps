@@ -5,10 +5,9 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
 using System.Agents;
 
+// Authoritative flow from a received source through admission to an Agent Framework task.
 codeunit 3345 "PA Task Intake"
 {
     Access = Internal;
@@ -18,39 +17,54 @@ codeunit 3345 "PA Task Intake"
 
     internal procedure CreateTask(FileName: Text; PdfInStream: InStream)
     var
-        EDocument: Record "E-Document";
         PATask: Codeunit "Payables Agent Task";
-        EDocImport: Codeunit "E-Doc. Import";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        Source: Codeunit "PA Task Source";
     begin
-        if PATask.CreateUploadBacking(FileName, PdfInStream) then begin
-            // No other module owns the uploaded PDF in v2: roll back its backing records if the agent cannot take it.
-            if not MaterializeAgentTask(PATask) then
-                Error(AgentNotActiveErr);
-            exit;
-        end;
+        if not Source.CreateFromPdf(FileName, PdfInStream) then
+            Error(SourceNotCreatedErr);
 
-        EDocImport.CreateFromType(EDocument, PADraftBasedSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileName, PdfInStream);
-        EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
-        EDocument.Modify();
-        EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
+        // Draft-based processing raises its compatibility intake event while processing the e-document.
+        if Source.GetVersion() = "PA Version"::V1 then
+            exit;
+
+        // No other module owns an uploaded v2 source: roll it back if the agent cannot take it.
+        if not CreateTask(Source, PATask) then
+            Error(AgentNotActiveErr);
     end;
 
-    internal procedure CreateTask(ExternalId: Text[2048]): Boolean
+    internal procedure CreateTask(FileName: Text; PdfInStream: InStream; var PATask: Codeunit "Payables Agent Task"): Boolean
+    var
+        Source: Codeunit "PA Task Source";
+        AgentTaskId: BigInteger;
+    begin
+        Clear(PATask);
+        if not Source.CreateFromPdf(FileName, PdfInStream) then
+            exit(false);
+
+        if Source.GetVersion() = "PA Version"::V2 then
+            exit(CreateTask(Source, PATask));
+
+        // The draft-based import subscriber performs admission during e-document processing.
+        AgentTaskId := Source.GetAgentTaskId();
+        if AgentTaskId = 0 then
+            exit(false);
+        exit(PATask.Load(AgentTaskId));
+    end;
+
+    internal procedure CreateTask(var Source: Codeunit "PA Task Source"): Boolean
     var
         PATask: Codeunit "Payables Agent Task";
     begin
-        if not PATask.Load(ExternalId) then
-            exit(false);
-        exit(MaterializeAgentTask(PATask));
+        exit(CreateTask(Source, PATask));
     end;
 
-    local procedure MaterializeAgentTask(var PATask: Codeunit "Payables Agent Task"): Boolean
+    internal procedure CreateTask(var Source: Codeunit "PA Task Source"; var PATask: Codeunit "Payables Agent Task"): Boolean
     var
         Agent: Record Agent;
         AgentTask: Record "Agent Task";
         KnownSender: Record "PA Known Sender";
         PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PAAgentInstructions: Codeunit "PA Agent Instructions";
         PATelemetry: Codeunit "PA Telemetry";
         PayablesAgentKPI: Codeunit "Payables Agent KPI";
         PATrial: Codeunit "PA Trial";
@@ -66,9 +80,10 @@ codeunit 3345 "PA Task Intake"
         RequiresReview: Boolean;
         ExcludeBilling: Boolean;
     begin
-        if PATask.GetAgentTaskId() <> 0 then
+        Clear(PATask);
+        if Source.GetAgentTaskId() <> 0 then
             exit(false);
-        ExternalId := PATask.GetAgentTaskExternalId();
+        ExternalId := Source.GetAgentTaskExternalId();
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", ExternalId);
         if not AgentTask.IsEmpty() then
@@ -78,15 +93,18 @@ codeunit 3345 "PA Task Intake"
         if Agent.State = Agent.State::Disabled then
             exit(false);
 
-        // Rejected email senders are blocked before a framework task is created.
-        if PATask.GetSourceType() = "PA Source Type"::Email then
-            if KnownSender.GetForTask(PATask, KnownSender) then
+        // Admission policy runs against the received source before a framework task exists.
+        if Source.GetSourceType() = "PA Source Type"::Email then
+            if KnownSender.GetForSource(Source, KnownSender) then
                 if KnownSender."Sender Policy" = "PA Sender Policy"::Reject then begin
-                    PATelemetry.LogTaskSkippedSenderRejected(PATask);
+                    Source.MarkRejected(SenderRejectedReasonTxt);
+                    PATelemetry.LogTaskSkippedSenderRejected(Source);
                     exit(false);
                 end;
 
-        RequiresReview := ShouldRequestReview(PATask);
+        // New tasks must use the selected prompt revision, including locally edited experiment variants.
+        PAAgentInstructions.EnsureAgentInstructionsMatchConfiguration(Agent."User Security ID");
+        RequiresReview := ShouldRequestReview(Source);
         ExcludeBilling := false;
         if PATrial.IsActive() then begin
             PATrial.IncrementTrialInvoiceCount();
@@ -94,10 +112,10 @@ codeunit 3345 "PA Task Intake"
             ExcludeBilling := true;
         end;
 
-        MessageFrom := CopyStr(PATask.GetFileName(), 1, 250);
+        MessageFrom := CopyStr(Source.GetFileName(), 1, 250);
         TaskTitle := CopyStr(StrSubstNo(UploadTitleLbl, MessageFrom), 1, 150);
-        if PATask.GetSourceType() = "PA Source Type"::Email then begin
-            MessageFrom := CopyStr(PATask.GetEmailFrom(), 1, 250);
+        if Source.GetSourceType() = "PA Source Type"::Email then begin
+            MessageFrom := CopyStr(Source.GetEmailFrom(), 1, 250);
             TaskTitle := CopyStr(StrSubstNo(EmailTitleLbl, MessageFrom), 1, 150);
         end;
         MessageText := TaskMessageLbl;
@@ -111,7 +129,9 @@ codeunit 3345 "PA Task Intake"
             .AddTaskMessage(AgentTaskMessageBuilder)
             .SetBillingContext(ExcludeBilling ? Enum::"Agent Task Billing Context"::Excluded : Enum::"Agent Task Billing Context"::Default)
             .Create();
-        PATask.BindAgentTask(AgentTask.ID);
+        Source.BindAgentTask(AgentTask.ID);
+        if not PATask.Load(AgentTask.ID) then
+            Error(TaskNotLoadableErr, AgentTask.ID);
 
         PATelemetry.LogTaskReceived(PATask, RequiresReview);
         PayablesAgentKPI.InsertKPIEntry("PA KPI Scenario"::"Agent Tasks Received");
@@ -122,14 +142,14 @@ codeunit 3345 "PA Task Intake"
     /// Only emails are subject to review. A configured subfolder explicitly trusts its contents; otherwise
     /// sender authentication, policy and the known-senders list determine whether supervisor review is needed.
     /// </summary>
-    local procedure ShouldRequestReview(PATask: Codeunit "Payables Agent Task"): Boolean
+    local procedure ShouldRequestReview(Source: Codeunit "PA Task Source"): Boolean
     var
         KnownSender: Record "PA Known Sender";
         PASetup: Codeunit "PA Setup";
         HeaderValue: Text;
         SenderAuthenticated: Boolean;
     begin
-        if PATask.GetSourceType() <> "PA Source Type"::Email then
+        if Source.GetSourceType() <> "PA Source Type"::Email then
             exit(false);
 
         PASetup.GetSetup();
@@ -142,24 +162,24 @@ codeunit 3345 "PA Task Intake"
         end;
         if PASetup.GetEmailFolder() <> '' then
             exit(false);
-        if PATask.TryGetEmailHeader('Authentication-Results', HeaderValue) then
+        if Source.TryGetEmailHeader('Authentication-Results', HeaderValue) then
             SenderAuthenticated := CompAuthPassed(HeaderValue);
         if not SenderAuthenticated then
-            SenderAuthenticated := IsSenderInternal(PATask);
+            SenderAuthenticated := IsSenderInternal(Source);
         if not SenderAuthenticated then
             exit(true);
-        if KnownSender.GetForTask(PATask, KnownSender) then
+        if KnownSender.GetForSource(Source, KnownSender) then
             exit(KnownSender."Sender Policy" <> "PA Sender Policy"::Approve);
-        if IsSenderInternal(PATask) then
+        if IsSenderInternal(Source) then
             exit(false);
         exit(true);
     end;
 
-    local procedure IsSenderInternal(PATask: Codeunit "Payables Agent Task"): Boolean
+    local procedure IsSenderInternal(Source: Codeunit "PA Task Source"): Boolean
     var
         HeaderValue: Text;
     begin
-        if PATask.TryGetEmailHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
+        if Source.TryGetEmailHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
             exit(LowerCase(HeaderValue).Trim() = 'internal');
         exit(false);
     end;
@@ -171,4 +191,7 @@ codeunit 3345 "PA Task Intake"
 
     var
         AgentNotActiveErr: Label 'The Payables Agent is not active.', Comment = 'Payables Agent is a term, and should not be translated.';
+        SourceNotCreatedErr: Label 'The invoice source could not be created.';
+        TaskNotLoadableErr: Label 'Agent task %1 was created but its Payables Agent backing could not be loaded.';
+        SenderRejectedReasonTxt: Label 'The sender policy rejected this source.';
 }

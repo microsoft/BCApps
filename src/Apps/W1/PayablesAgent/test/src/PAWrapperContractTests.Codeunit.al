@@ -6,32 +6,31 @@
 namespace System.Test.Agents.PayablesAgent;
 
 using Microsoft.Agent.PayablesAgent;
-using Microsoft.eServices.EDocument;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using System.Agents;
 using System.Environment;
 
 // Focused contract tests: no LLM, mailbox, agent user or posting setup is required.
-codeunit 133724 "PA Wrapper Contract Tests"
+codeunit 133735 "PA Wrapper Contract Tests"
 {
     Access = Internal;
     Subtype = Test;
     TestPermissions = Disabled;
 
     [Test]
-    procedure ProjectionUsesOpaqueIdentityAndLocalRowOrdinal()
+    procedure LoadsByAgentFrameworkTaskIdentity()
     var
         StoredTask: Record "Payables Agent Task";
-        Data: Record "PA Detailed Task" temporary;
         Task: Codeunit "Payables Agent Task";
     begin
         CreateTask(StoredTask, Task);
-        Task.GetRecord(Data);
-        Check(Data."Source Type" = "PA Source Type"::Upload, 'A task without an email source must be an upload.');
-        Check(not IsNullGuid(Data."Task Id"), 'A logical task identity is required.');
-        Check(Data."Entry No." = 0, 'The projection must not expose the storage entry number.');
-        Check(IsNullGuid(Data.SystemId), 'The projection must not copy storage system fields.');
-        Check(Task.Load(Data."Task Id"), 'The opaque identity must load the same task.');
+        StoredTask.Get(StoredTask."Entry No.");
+        Check(Task.GetCreatedAt() = StoredTask.SystemCreatedAt, 'Creation time must come from the platform audit field.');
+        Check(Task.GetUpdatedAt() = StoredTask.SystemModifiedAt, 'Update time must come from the platform audit field.');
+        Check(Task.GetSourceType() = "PA Source Type"::Upload, 'A task without an email source must be an upload.');
+        Check(Task.GetVersion() = "PA Version"::V2, 'The backing record must identify a v2 task.');
+        Check(Task.Load(StoredTask."Agent Task ID"), 'The Agent Framework task identity must load the same task.');
     end;
 
     [Test]
@@ -41,45 +40,49 @@ codeunit 133724 "PA Wrapper Contract Tests"
         Task: Codeunit "Payables Agent Task";
     begin
         StoredTask."Email Inbox Id" := -1; // Represents a source inbox row that no longer exists.
-        StoredTask.Insert();
-        Check(Task.Load(StoredTask.SystemId), 'The task must remain loadable after its email disappears.');
+        CreateTask(StoredTask, Task);
+        Check(Task.Load(StoredTask."Agent Task ID"), 'The task must remain loadable after its email disappears.');
         Check(Task.GetSourceType() = "PA Source Type"::Email, 'Loss of source content must not change source identity.');
         Check(Task.GetSourceEmailBody() = '', 'Unavailable source content must be handled without backing errors.');
     end;
 
     [Test]
-    procedure DraftBasedUploadRemainsUploadAndMatchesOnlyItsOwnResult()
+    procedure RefreshReloadsBackingWithoutChangingIdentity()
     var
-        Document: Record "E-Document";
-        OtherDocument: Record "E-Document";
+        StoredTask: Record "Payables Agent Task";
         Task: Codeunit "Payables Agent Task";
+        AgentTaskId: BigInteger;
     begin
-        Document."Source Details" := 'fixture.pdf';
-        Document.Insert();
-        OtherDocument.Insert();
-        Check(Task.Load(Document.SystemId), 'The draft-based task must load through opaque identity.');
-        Check(Task.GetSourceType() = "PA Source Type"::Upload, 'A draft-based upload must not be treated as email.');
-        Check(Task.IsResultRecord(Document.RecordId()), 'The source document is the draft-based review result.');
-        Check(not Task.IsResultRecord(OtherDocument.RecordId()), 'A different source of the same table is not this task result.');
+        CreateTask(StoredTask, Task);
+        AgentTaskId := Task.GetAgentTaskId();
+        StoredTask.Get(StoredTask."Entry No.");
+        StoredTask."File Name" := 'changed.pdf';
+        StoredTask.Modify();
+        Task.Refresh();
+        Check(Task.GetAgentTaskId() = AgentTaskId, 'Refresh must preserve the Agent Framework task identity.');
+        Check(Task.GetFileName() = 'changed.pdf', 'Refresh must reload the backing record.');
     end;
 
     [Test]
-    procedure RefreshPreservesTemporaryProjectionRowIdentity()
+    procedure RejectedSourceRemainsVisibleWithoutAgentTask()
     var
         StoredTask: Record "Payables Agent Task";
-        Data: Record "PA Detailed Task" temporary;
-        Task: Codeunit "Payables Agent Task";
-        RowSystemId: Guid;
+        Collection: Codeunit "PA Task Collection";
+        Source: Codeunit "PA Task Source";
+        RejectedSourceIds: List of [Guid];
     begin
-        CreateTask(StoredTask, Task);
-        Task.GetRecord(Data);
-        Data."Entry No." := 1;
-        Data.Insert();
-        RowSystemId := Data.SystemId;
-        Task.GetRecord(Data);
-        Data."Entry No." := 1;
-        Data.Modify();
-        Check(Data.SystemId = RowSystemId, 'Refreshing a projection must preserve its own row identity.');
+        StoredTask."File Name" := 'rejected.pdf';
+        StoredTask.Insert();
+        Check(Source.Load(StoredTask.SystemId), 'The received source must load before admission.');
+
+        Source.MarkRejected('Rejected by policy');
+
+        StoredTask.Get(StoredTask."Entry No.");
+        Check(StoredTask."Agent Task ID" = 0, 'Rejection must not create or bind an Agent Framework task.');
+        Check(StoredTask."Intake Status" = "PA Task Intake Status"::Rejected, 'The source must persist its rejected status.');
+        Check(StoredTask."Rejection Reason" = 'Rejected by policy', 'The source must persist its rejection reason.');
+        Collection.GetRejectedSourceIds(RejectedSourceIds);
+        Check(RejectedSourceIds.Contains(StoredTask.SystemId), 'The rejected source must remain available to supervision.');
     end;
 
     [Test]
@@ -92,19 +95,19 @@ codeunit 133724 "PA Wrapper Contract Tests"
         CreateTask(StoredTask, Task);
         Outcome := CreatePurchaseDocument("Purchase Document Type"::Invoice);
         Task.RegisterOutcome(Outcome);
-        CheckOutcome(StoredTask.SystemId, Outcome);
+        CheckOutcome(StoredTask."Agent Task ID", Outcome);
         Outcome := CreatePurchaseDocument("Purchase Document Type"::Order);
         Task.RegisterOutcome(Outcome);
-        CheckOutcome(StoredTask.SystemId, Outcome);
+        CheckOutcome(StoredTask."Agent Task ID", Outcome);
         Outcome := CreatePurchaseDocument("Purchase Document Type"::"Credit Memo");
         Task.RegisterOutcome(Outcome);
-        CheckOutcome(StoredTask.SystemId, Outcome);
+        CheckOutcome(StoredTask."Agent Task ID", Outcome);
         Outcome := CreatePostedInvoice();
         Task.RegisterOutcome(Outcome);
-        CheckOutcome(StoredTask.SystemId, Outcome);
+        CheckOutcome(StoredTask."Agent Task ID", Outcome);
         Outcome := CreatePostedCreditMemo();
         Task.RegisterOutcome(Outcome);
-        CheckOutcome(StoredTask.SystemId, Outcome);
+        CheckOutcome(StoredTask."Agent Task ID", Outcome);
     end;
 
     [Test]
@@ -143,22 +146,20 @@ codeunit 133724 "PA Wrapper Contract Tests"
     procedure StaleTextUpdatePreservesOutcomeAndOtherFields()
     var
         StoredTask: Record "Payables Agent Task";
-        Data: Record "PA Detailed Task" temporary;
         StaleTask: Codeunit "Payables Agent Task";
         OtherTask: Codeunit "Payables Agent Task";
         Outcome: RecordId;
     begin
         CreateTask(StoredTask, StaleTask);
-        Check(OtherTask.Load(StoredTask.SystemId), 'The second instance must load.');
+        Check(OtherTask.Load(StoredTask."Agent Task ID"), 'The second instance must load.');
         Outcome := CreatePurchaseDocument("Purchase Document Type"::Invoice);
         OtherTask.RegisterOutcome(Outcome);
         StoredTask.Get(StoredTask."Entry No.");
         StoredTask."File Name" := 'changed-by-another-writer.pdf';
         StoredTask.Modify();
         StaleTask.SetSourceText('extracted text');
-        StaleTask.GetRecord(Data);
-        Check(Data.Outcome = Outcome, 'A text update must preserve a newer outcome.');
-        Check(Data."File Name" = 'changed-by-another-writer.pdf', 'A text update must preserve unrelated changes.');
+        Check(StaleTask.GetOutcome() = Outcome, 'A text update must preserve a newer outcome.');
+        Check(StaleTask.GetFileName() = 'changed-by-another-writer.pdf', 'A text update must preserve unrelated changes.');
         Check(StaleTask.GetSourceText() = 'extracted text', 'The intended field must be updated.');
     end;
 
@@ -172,6 +173,7 @@ codeunit 133724 "PA Wrapper Contract Tests"
         TaskA: Codeunit "Payables Agent Task";
         TaskB: Codeunit "Payables Agent Task";
         TaskC: Codeunit "Payables Agent Task";
+        TaskOutcomes: Codeunit "PA Task Outcome Repository";
         Original: RecordId;
         Different: RecordId;
         Posted: RecordId;
@@ -186,16 +188,16 @@ codeunit 133724 "PA Wrapper Contract Tests"
         TaskB.RegisterOutcome(Original);
         TaskC.RegisterOutcome(Original);
         TaskC.RegisterOutcome(Different); // Reassigned after the original reference was observed.
-        TaskA.ReplaceOutcomeReferences(Original, Posted);
-        CheckOutcome(StoredA.SystemId, Posted);
-        CheckOutcome(StoredB.SystemId, Posted);
-        CheckOutcome(StoredC.SystemId, Different);
-        TaskA.ReplaceOutcomeReferences(Original, CreatePostedInvoice());
-        CheckOutcome(StoredA.SystemId, Posted);
-        CheckOutcome(StoredB.SystemId, Posted);
-        CheckOutcome(StoredC.SystemId, Different);
-        StoredA.Get(StoredA."Entry No.");
-        Check(StoredA."Completed At" = 0DT, 'Posting must not implicitly complete a task.');
+        TaskOutcomes.ReplaceReferences(Original, Posted);
+        CheckOutcome(StoredA."Agent Task ID", Posted);
+        CheckOutcome(StoredB."Agent Task ID", Posted);
+        CheckOutcome(StoredC."Agent Task ID", Different);
+        TaskOutcomes.ReplaceReferences(Original, CreatePostedInvoice());
+        CheckOutcome(StoredA."Agent Task ID", Posted);
+        CheckOutcome(StoredB."Agent Task ID", Posted);
+        CheckOutcome(StoredC."Agent Task ID", Different);
+        TaskA.Refresh();
+        Check(TaskA.GetState() = "PA Task State"::"Pending Processing", 'Posting or an audit timestamp update must not imply task completion.');
     end;
 
     [Test]
@@ -216,14 +218,14 @@ codeunit 133724 "PA Wrapper Contract Tests"
         PostedInvoice.Get(CreatePostedInvoice());
         Task.RegisterOutcome(Original);
         Posting.FollowPostedOutcome(Header, PostedInvoice, PostedCreditMemo, true);
-        CheckOutcome(StoredTask.SystemId, Original);
+        CheckOutcome(StoredTask."Agent Task ID", Original);
         Posting.FollowPostedOutcome(Header, PostedInvoice, PostedCreditMemo, false);
-        CheckOutcome(StoredTask.SystemId, PostedInvoice.RecordId());
+        CheckOutcome(StoredTask."Agent Task ID", PostedInvoice.RecordId());
         Original := CreatePurchaseDocument("Purchase Document Type"::Order);
         Header.Get(Original);
         Task.RegisterOutcome(Original);
         Posting.FollowPostedOutcome(Header, PostedInvoice, PostedCreditMemo, false);
-        CheckOutcome(StoredTask.SystemId, Original);
+        CheckOutcome(StoredTask."Agent Task ID", Original);
     end;
 
     [Test]
@@ -245,16 +247,16 @@ codeunit 133724 "PA Wrapper Contract Tests"
         Header.Get(Original);
         PostedCreditMemo.Get(Posted);
         Posting.FollowPostedOutcome(Header, PostedInvoice, PostedCreditMemo, false);
-        CheckOutcome(StoredTask.SystemId, Posted);
+        CheckOutcome(StoredTask."Agent Task ID", Posted);
     end;
 
     [Test]
     procedure EmptyReplacementSourceCannotMatchUnassignedTasks()
     var
-        Task: Codeunit "Payables Agent Task";
+        TaskOutcomes: Codeunit "PA Task Outcome Repository";
         EmptyOutcome: RecordId;
     begin
-        asserterror Task.ReplaceOutcomeReferences(EmptyOutcome, CreatePostedInvoice());
+        asserterror TaskOutcomes.ReplaceReferences(EmptyOutcome, CreatePostedInvoice());
         Check(StrPos(GetLastErrorText(), 'existing outcome reference is required') > 0, 'An empty old reference must be rejected.');
     end;
 
@@ -285,31 +287,6 @@ codeunit 133724 "PA Wrapper Contract Tests"
         Proposal.ApplySetup(false);
         Stored.GetSetup();
         Check(not Stored.GetMonitorOutlook(), 'A disabled configuration cannot persist monitoring on.');
-    end;
-
-    [Test]
-    [CommitBehavior(CommitBehavior::Error)]
-    procedure DeactivationStopsBackingImporter()
-    var
-        Service: Record "E-Document Service";
-        Proposal: Codeunit "PA Setup";
-        Stored: Codeunit "PA Setup";
-    begin
-        if not Service.Get('AGENT') then begin
-            Service.Code := 'AGENT';
-            Service.Insert();
-        end;
-        // Seed configured state without scheduling a real background task.
-        Service."Auto Import" := true;
-        Clear(Service."Import Recurrent Job Id");
-        Service.Modify();
-        Proposal.GetSetup();
-        Proposal.SetMonitorOutlook(true);
-        Proposal.ApplySetup(false);
-        Stored.GetSetup();
-        Service.Get('AGENT');
-        Check(not Stored.GetMonitorOutlook(), 'Deactivation must persist monitoring off.');
-        Check(not Service."Auto Import", 'Deactivation must also turn the backing importer off.');
     end;
 
     [Test]
@@ -349,23 +326,51 @@ codeunit 133724 "PA Wrapper Contract Tests"
             (StrPos(GetLastErrorText(), 'not available for this version') > 0), 'The wrapper must not trust Enabling=true without an enabled agent.');
     end;
 
-    local procedure CreateTask(var StoredTask: Record "Payables Agent Task"; var Task: Codeunit "Payables Agent Task")
+    [Test]
+    procedure InstructionSelectionAndFingerprintResolveWithoutSecrets()
+    var
+        Setup: Codeunit "PA Setup";
+        Instructions: Codeunit "PA Agent Instructions";
+        Classic: Text;
+        AgentDriven: Text;
+        Fingerprint: Text;
     begin
-        StoredTask.Init();
-        StoredTask."Entry No." := 0;
-        StoredTask."File Name" := 'fixture.pdf';
-        StoredTask.Insert();
-        Check(Task.Load(StoredTask.SystemId), 'The fixture must load through the shared contract.');
+        Classic := Setup.GetAgentInstructionsResource(false);
+        AgentDriven := Setup.GetAgentInstructionsResource(true);
+        if Classic = AgentDriven then
+            Check(Classic = 'Prompts/PayablesAgent-AgentInstructions-V2.md', 'V2 must select its prompt independently of the v1 line-matching treatment.')
+        else begin
+            Check(Classic = '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', 'The classic resource must remain available.');
+            Check(AgentDriven = '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', 'The agent-driven resource must remain available.');
+        end;
+        Fingerprint := Instructions.GetInstructionsConfigHash();
+        Check(StrLen(Fingerprint) = 64, 'The selected prompt must produce a SHA256 fingerprint.');
+        Check(Fingerprint = Instructions.GetInstructionsConfigHash(), 'An unchanged selected prompt must have a stable fingerprint.');
     end;
 
-    local procedure CheckOutcome(TaskId: Guid; Expected: RecordId)
+    local procedure CreateTask(var StoredTask: Record "Payables Agent Task"; var Task: Codeunit "Payables Agent Task")
     var
-        Data: Record "PA Detailed Task" temporary;
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Init();
+        AgentTask."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(AgentTask."Company Name"));
+        AgentTask."External ID" := CopyStr(LowerCase(Format(CreateGuid())).Replace('{', '').Replace('}', ''), 1, MaxStrLen(AgentTask."External ID"));
+        AgentTask.Insert();
+
+        StoredTask."Agent Task ID" := AgentTask.ID;
+        StoredTask."Intake Status" := "PA Task Intake Status"::Accepted;
+        if StoredTask."File Name" = '' then
+            StoredTask."File Name" := 'fixture.pdf';
+        StoredTask.Insert();
+        Check(Task.Load(AgentTask.ID), 'The fixture must load through the Agent Framework task identity.');
+    end;
+
+    local procedure CheckOutcome(AgentTaskId: BigInteger; Expected: RecordId)
+    var
         Task: Codeunit "Payables Agent Task";
     begin
-        Check(Task.Load(TaskId), 'The task must remain loadable.');
-        Task.GetRecord(Data);
-        Check(Data.Outcome = Expected, 'The persisted outcome is incorrect.');
+        Check(Task.Load(AgentTaskId), 'The task must remain loadable.');
+        Check(Task.GetOutcome() = Expected, 'The persisted outcome is incorrect.');
     end;
 
     local procedure CreatePurchaseDocument(DocumentType: Enum "Purchase Document Type"): RecordId

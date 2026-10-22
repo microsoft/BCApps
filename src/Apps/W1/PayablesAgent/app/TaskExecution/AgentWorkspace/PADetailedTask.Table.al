@@ -25,7 +25,8 @@ table 3332 "PA Detailed Task"
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
-        // Opaque logical identity; Entry No. is only a local row ordinal in this projection.
+        // Opaque source identity used by presentation for source-only rows; accepted task identity is Agent Task ID.
+        // Entry No. is only a local row ordinal in this projection.
         field(2; "Task Id"; Guid)
         {
             Caption = 'Task Id';
@@ -42,14 +43,14 @@ table 3332 "PA Detailed Task"
             Caption = 'Outcome';
             DataClassification = CustomerContent;
         }
-        field(6; "Received At"; DateTime)
+        field(6; "Created At"; DateTime)
         {
-            Caption = 'Received At';
+            Caption = 'Created At';
             DataClassification = SystemMetadata;
         }
-        field(7; "Completed At"; DateTime)
+        field(7; "Updated At"; DateTime)
         {
-            Caption = 'Completed At';
+            Caption = 'Updated At';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -63,7 +64,7 @@ table 3332 "PA Detailed Task"
         }
         field(11; "Agent Task Status"; Enum "Agent Task Status")
         {
-            Caption = 'Agent Task Status';
+            Caption = 'Task Status';
             DataClassification = SystemMetadata;
         }
         field(20; "Source Type"; Enum "PA Source Type")
@@ -95,6 +96,11 @@ table 3332 "PA Detailed Task"
         {
             Caption = 'Sender Name';
             DataClassification = CustomerContent;
+        }
+        field(28; "Email Received At"; DateTime)
+        {
+            Caption = 'Received At';
+            DataClassification = SystemMetadata;
         }
         field(29; "Email External Id"; Text[2048])
         {
@@ -129,6 +135,26 @@ table 3332 "PA Detailed Task"
         field(35; "Can Extract Text"; Boolean)
         {
             Caption = 'Can Extract Text';
+            DataClassification = SystemMetadata;
+        }
+        field(36; "Can Register Outcome"; Boolean)
+        {
+            Caption = 'Can Register Outcome';
+            DataClassification = SystemMetadata;
+        }
+        field(37; Version; Enum "PA Version")
+        {
+            Caption = 'Version';
+            DataClassification = SystemMetadata;
+        }
+        field(38; "Intake Status"; Enum "PA Task Intake Status")
+        {
+            Caption = 'Intake Status';
+            DataClassification = SystemMetadata;
+        }
+        field(39; "Rejection Reason"; Text[250])
+        {
+            Caption = 'Rejection Reason';
             DataClassification = SystemMetadata;
         }
     }

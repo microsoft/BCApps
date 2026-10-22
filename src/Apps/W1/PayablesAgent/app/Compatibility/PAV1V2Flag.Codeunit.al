@@ -11,10 +11,22 @@ codeunit 3339 "PA V1V2 Flag"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure IsV2Active(): Boolean
-    var
-        PAV1V2: Record DEVPAV1V2;
+    internal procedure GetVersion(): Enum "PA Version"
     begin
-        exit(PAV1V2.V2);
+#if DEVELOPMENT
+        if DevelopmentSettings.IsV2Enabled() then
+            exit("PA Version"::V2);
+#endif
+        exit("PA Version"::V1);
     end;
+
+    internal procedure IsV2Active(): Boolean
+    begin
+        exit(GetVersion() = "PA Version"::V2);
+    end;
+
+#if DEVELOPMENT
+    var
+        DevelopmentSettings: Codeunit "PA Development Settings";
+#endif
 }

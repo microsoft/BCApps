@@ -24,6 +24,7 @@ codeunit 3314 "PA Agent Task Execution" implements IAgentTaskExecution
         AgentTaskUserInterventionSuggestion.Description := PACreateVendorInterventionSuggestionDescriptionLbl;
         AgentTaskUserInterventionSuggestion.Instructions := PACreateVendorInterventionSuggestionInstructionsLbl;
         AgentTaskUserInterventionSuggestion.Insert();
+
     end;
 
     procedure GetAgentTaskPageContext(AgentTaskPageContextReq: Record "Agent Task Page Context Req."; var AgentTaskPageContext: Record "Agent Task Page Context")
@@ -60,5 +61,5 @@ codeunit 3314 "PA Agent Task Execution" implements IAgentTaskExecution
         PACreateVendorInterventionSuggestionCodeLbl: Label 'PA-CREATE-VENDOR', Locked = true, MaxLength = 20;
         PACreateVendorInterventionSuggestionSummaryLbl: Label 'Create vendor', MaxLength = 100;
         PACreateVendorInterventionSuggestionDescriptionLbl: Label 'Always show when request is related to not finding a vendor.', Locked = true, MaxLength = 1024;
-        PACreateVendorInterventionSuggestionInstructionsLbl: Label 'Follow the "Create a Vendor" instructions before continuing.', Locked = true, MaxLength = 1024;
+        PACreateVendorInterventionSuggestionInstructionsLbl: Label 'Follow the "Create a Vendor" instructions, then assign the new vendor to the open purchase invoice before continuing.', Locked = true, MaxLength = 1024;
 }

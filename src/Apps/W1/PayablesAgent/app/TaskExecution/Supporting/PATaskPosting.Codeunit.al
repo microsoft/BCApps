@@ -24,17 +24,17 @@ codeunit 3331 "PA Task Posting"
 
     internal procedure FollowPostedOutcome(PurchHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PreviewMode: Boolean)
     var
-        Task: Codeunit "Payables Agent Task";
+        TaskOutcomes: Codeunit "PA Task Outcome Repository";
     begin
         if PreviewMode or PurchHeader.IsTemporary() then
             exit;
         case PurchHeader."Document Type" of
             PurchHeader."Document Type"::Invoice:
                 if PurchInvHeader."No." <> '' then
-                    Task.ReplaceOutcomeReferences(PurchHeader.RecordId(), PurchInvHeader.RecordId());
+                    TaskOutcomes.ReplaceReferences(PurchHeader.RecordId(), PurchInvHeader.RecordId());
             PurchHeader."Document Type"::"Credit Memo":
                 if PurchCrMemoHdr."No." <> '' then
-                    Task.ReplaceOutcomeReferences(PurchHeader.RecordId(), PurchCrMemoHdr.RecordId());
+                    TaskOutcomes.ReplaceReferences(PurchHeader.RecordId(), PurchCrMemoHdr.RecordId());
         end;
     end;
 }

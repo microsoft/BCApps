@@ -16,19 +16,21 @@ codeunit 133703 "PA Known Sender Tests"
 
     var
         Assert: Codeunit Assert;
-        PAEDocTestGlue: Codeunit "PA EDoc Unit Test Glue";
+        PAEDocUnitTestGlue: Codeunit "PA EDoc Unit Test Glue";
 
     [Test]
     procedure InsertIfNewInsertsNewSender()
     var
         PAKnownSender: Record "PA Known Sender";
+        PATaskSource: Codeunit "PA Task Source";
         SenderEmailTok: Label 'first-sender@contoso.com', Locked = true;
     begin
-        // [GIVEN] A clean Known Sender table and a task whose sender is a given email.
+        // [GIVEN] A clean Known Sender table and a task received by email from a sender.
         PAKnownSender.DeleteAll();
+        Assert.IsTrue(PAEDocUnitTestGlue.ReceiveEmail(SenderEmailTok, 'Invoice', PATaskSource), 'The email should be received as a source');
 
         // [WHEN] The agent-side recording path runs.
-        PAEDocTestGlue.RecordKnownSender(SenderEmailTok);
+        PAKnownSender.InsertSourceIfNew(PATaskSource);
 
         // [THEN] One row exists for that sender.
         PAKnownSender.SetRange(Email, SenderEmailTok);
@@ -39,16 +41,18 @@ codeunit 133703 "PA Known Sender Tests"
     procedure InsertIfNewInsertsOnceAcrossRepeatedCalls()
     var
         PAKnownSender: Record "PA Known Sender";
+        PATaskSource: Codeunit "PA Task Source";
         SenderEmailTok: Label 'pipeline-sender@contoso.com', Locked = true;
     begin
-        // [GIVEN] A clean Known Sender table and a task whose sender is a given email.
+        // [GIVEN] A clean Known Sender table and a task received by email from a sender.
         PAKnownSender.DeleteAll();
+        Assert.IsTrue(PAEDocUnitTestGlue.ReceiveEmail(SenderEmailTok, 'Invoice', PATaskSource), 'The email should be received as a source');
 
         // [WHEN] The recording path fires multiple times for the same sender
         // [WHEN] (simulating repeated pipeline steps within an agent session).
-        PAEDocTestGlue.RecordKnownSender(SenderEmailTok);
-        PAEDocTestGlue.RecordKnownSender(SenderEmailTok);
-        PAEDocTestGlue.RecordKnownSender(SenderEmailTok);
+        PAKnownSender.InsertSourceIfNew(PATaskSource);
+        PAKnownSender.InsertSourceIfNew(PATaskSource);
+        PAKnownSender.InsertSourceIfNew(PATaskSource);
 
         // [THEN] Exactly one row exists for that sender.
         PAKnownSender.SetRange(Email, SenderEmailTok);

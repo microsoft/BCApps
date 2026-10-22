@@ -427,7 +427,7 @@ page 3304 "Payables Agent Setup"
         if TempAgentSetupBuffer."State Updated" then
             if TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled then begin
                 if not SkipAutosetOfMonitorOutlook then
-                    Rec."Monitor Outlook" := true
+                    Rec."Monitor Outlook" := PASetup.SupportsEmailMonitoring()
                 else
                     SkipAutosetOfMonitorOutlook := false;
             end

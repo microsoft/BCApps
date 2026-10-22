@@ -5,6 +5,9 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -55,12 +58,47 @@ page 3337 "Payables Agent Role Center"
                 ToolTip = 'View or edit the vendors that you trade with.';
                 RunObject = page "Vendor List";
             }
+            action(Items)
+            {
+                ApplicationArea = All;
+                Caption = 'Items';
+                ToolTip = 'Search items when matching the products described on an invoice.';
+                RunObject = page "Item List";
+            }
+            action(ItemReferences)
+            {
+                ApplicationArea = All;
+                Caption = 'Item References';
+                ToolTip = 'Search vendor and other external item references when an invoice uses a different item number.';
+                RunObject = page "Item References";
+            }
+            action(ChartOfAccounts)
+            {
+                ApplicationArea = All;
+                Caption = 'Chart of Accounts';
+                ToolTip = 'Search G/L accounts when an invoice line does not clearly match an item.';
+                RunObject = page "Chart of Accounts";
+            }
             action(PostedPurchaseInvoices)
             {
                 ApplicationArea = All;
                 Caption = 'Posted Purchase Invoices';
-                ToolTip = 'View the purchase invoices that have been posted.';
+                ToolTip = 'Review posted purchase invoices and their lines for relevant purchasing history.';
                 RunObject = page "Posted Purchase Invoices";
+            }
+            action(PostedPurchaseCreditMemos)
+            {
+                ApplicationArea = All;
+                Caption = 'Posted Purchase Credit Memos';
+                ToolTip = 'Review purchase credit memos that have already been posted.';
+                RunObject = page "Posted Purchase Credit Memos";
+            }
+            action(PostedPurchaseReceipts)
+            {
+                ApplicationArea = All;
+                Caption = 'Posted Purchase Receipts';
+                ToolTip = 'Review posted receipts when checking whether invoice lines relate to received purchase orders.';
+                RunObject = page "Posted Purchase Receipts";
             }
         }
     }

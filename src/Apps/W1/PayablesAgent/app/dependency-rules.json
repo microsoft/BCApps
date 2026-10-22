@@ -18,16 +18,8 @@
                     "reason": "Setup chooses its active-version backing representation."
                 },
                 {
-                    "from": { "paths": ["Entities/Task/PayablesAgentTask.Codeunit.al"] },
-                    "reason": "Task chooses its active-version backing representation."
-                },
-                {
-                    "from": { "paths": ["Entities/Task/PATaskCollection.Codeunit.al"] },
-                    "reason": "Task Collection chooses the active-version store and lifecycle mapping."
-                },
-                {
-                    "from": { "paths": ["Concerns/Telemetry/PATelemetry.Codeunit.al"] },
-                    "reason": "Task telemetry records the active version as a dimension."
+                    "from": { "paths": ["Entities/Task/PATaskSource.Codeunit.al"] },
+                    "reason": "Source acquisition chooses the configured version's backing representation."
                 },
                 {
                     "from": { "paths": ["Compatibility/DraftBased/TaskIntake/PADraftBasedSubscribers.Codeunit.al"] },
@@ -37,18 +29,18 @@
         },
         {
             "id": "PA002",
-            "description": "Do not bypass the version-flag API by reading its development backing table.",
+            "description": "Development settings storage is accessed only through its development API.",
             "severity": "error",
             "from": { "paths": ["*"] },
-            "to": { "kinds": ["table"], "names": ["DEVPAV1V2"] },
+            "to": { "kinds": ["table"], "names": ["PA Development Settings"] },
             "exceptions": [
                 {
-                    "from": { "paths": ["Compatibility/PAV1V2Flag.Codeunit.al"] },
-                    "reason": "The flag implementation owns this storage."
+                    "from": { "paths": ["_Development/PADevelopmentSettings.Codeunit.al"] },
+                    "reason": "The development settings API owns this storage."
                 },
                 {
-                    "from": { "paths": ["Compatibility/DEVPAV1V2.Page.al"] },
-                    "reason": "Temporary development-only flag editor; remove with the scaffold."
+                    "from": { "paths": ["_Development/PADevelopmentSettings.Page.al"] },
+                    "reason": "The development-only settings editor is bound to its backing table."
                 }
             ]
         },
@@ -126,7 +118,14 @@
             "description": "Entities must not depend on application flows, registration, UI, or draft service orchestration (cleanup target).",
             "severity": "warning",
             "from": { "paths": ["Entities/*"] },
-            "to": { "catalogs": ["app"], "paths": ["Bootstrap/*", "Configuration/*", "TaskIntake/*", "TaskExecution/*", "Supervision/*", "Compatibility/DraftBased/*"] }
+            "to": { "catalogs": ["app"], "paths": ["Bootstrap/*", "Configuration/*", "TaskIntake/*", "TaskExecution/*", "Supervision/*", "Compatibility/DraftBased/*"] },
+            "exceptions": [
+                {
+                    "from": { "paths": ["Entities/Task/PATaskSource.Codeunit.al"] },
+                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
+                    "reason": "The source factory delegates creation of the legacy e-document service to its compatibility adapter."
+                }
+            ]
         },
         {
             "id": "PA006",
@@ -156,6 +155,11 @@
                     "from": { "paths": ["Configuration/PASetupPresentation.Codeunit.al"] },
                     "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
                     "reason": "Setup Presentation deliberately delegates the v1-only additional-fields dialog."
+                },
+                {
+                    "from": { "paths": ["Entities/Task/PATaskSource.Codeunit.al"] },
+                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
+                    "reason": "Version-neutral source acquisition delegates legacy service creation to the draft compatibility adapter."
                 }
             ]
         },

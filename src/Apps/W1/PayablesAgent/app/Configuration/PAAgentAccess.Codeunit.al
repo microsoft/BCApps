@@ -23,9 +23,15 @@ codeunit 3350 "PA Agent Access"
     var
         Agent: Record Agent;
         PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        AgentSession: Codeunit "Agent Session";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
+        AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
+        // Upload and setup actions are for people supervising the agent, never for the agent runtime user.
+        // Short-circuit before configuration lookup so an agent session does not need read access to the Agent table.
+        if AgentSession.IsAgentSession(AgentMetadataProvider) then
+            exit(false);
         if not AgentUtilities.IsAgentsFeatureEnabled() then
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then

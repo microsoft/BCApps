@@ -5,19 +5,21 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-//TODOPAV1V2
-page 3314 DEVPAV1V2
+enum 3342 "PA Task Intake Status"
 {
-    SourceTable = DEVPAV1V2;
-    ApplicationArea = All;
-    PageType = Card;
+    Access = Internal;
+    Extensible = false;
 
-    layout
+    value(0; Received)
     {
-        area(Content)
-        {
-            field(V2; Rec.V2)
-            { }
-        }
+        Caption = 'Received';
+    }
+    value(1; Accepted)
+    {
+        Caption = 'Accepted';
+    }
+    value(2; Rejected)
+    {
+        Caption = 'Rejected';
     }
 }

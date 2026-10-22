@@ -57,12 +57,20 @@ table 3308 "PA Known Sender"
     end;
 
     internal procedure InsertIfNew(PATask: Codeunit "Payables Agent Task")
+    begin
+        InsertSenderIfNew(PATask.GetSenderAddress());
+    end;
+
+    internal procedure InsertSourceIfNew(PATaskSource: Codeunit "PA Task Source")
+    begin
+        InsertSenderIfNew(PATaskSource.GetSenderAddress());
+    end;
+
+    local procedure InsertSenderIfNew(SenderEmail: Text[250])
     var
         Existing: Record "PA Known Sender";
         PASetup: Codeunit "PA Setup";
-        SenderEmail: Text[250];
     begin
-        SenderEmail := PATask.GetSenderAddress();
         if SenderEmail = '' then
             exit;
         Existing.SetRange(Email, SenderEmail);
@@ -79,10 +87,17 @@ table 3308 "PA Known Sender"
     end;
 
     internal procedure GetForTask(PATask: Codeunit "Payables Agent Task"; var KnownSender: Record "PA Known Sender"): Boolean
-    var
-        SenderEmail: Text[250];
     begin
-        SenderEmail := PATask.GetSenderAddress();
+        exit(GetForSender(PATask.GetSenderAddress(), KnownSender));
+    end;
+
+    internal procedure GetForSource(PATaskSource: Codeunit "PA Task Source"; var KnownSender: Record "PA Known Sender"): Boolean
+    begin
+        exit(GetForSender(PATaskSource.GetSenderAddress(), KnownSender));
+    end;
+
+    local procedure GetForSender(SenderEmail: Text[250]; var KnownSender: Record "PA Known Sender"): Boolean
+    begin
         if SenderEmail = '' then
             exit(false);
         KnownSender.SetRange(Email, SenderEmail);

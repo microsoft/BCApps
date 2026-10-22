@@ -66,6 +66,17 @@ page 3310 "Payables Agent Activities"
                         Presentation.DrillDownByState("PA Task State"::Processed);
                     end;
                 }
+                field(Rejected; Rejected)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Rejected';
+                    ToolTip = 'Specifies the number of received sources that intake rejected before creating an agent task.';
+
+                    trigger OnDrillDown()
+                    begin
+                        Presentation.DrillDownByState("PA Task State"::Rejected);
+                    end;
+                }
             }
 
         }
@@ -74,7 +85,7 @@ page 3310 "Payables Agent Activities"
     var
         PATaskCollection: Codeunit "PA Task Collection";
         Presentation: Codeunit "PA Task Presentation";
-        PendingProcessing, NeedAttention, ReadyForReview, ProcessedThisMonth : Integer;
+        PendingProcessing, NeedAttention, ReadyForReview, ProcessedThisMonth, Rejected : Integer;
 
     trigger OnOpenPage()
     begin
@@ -82,5 +93,6 @@ page 3310 "Payables Agent Activities"
         NeedAttention := PATaskCollection.CountByState("PA Task State"::"Needs Attention");
         ReadyForReview := PATaskCollection.CountByState("PA Task State"::"Ready For Review");
         ProcessedThisMonth := PATaskCollection.CountByState("PA Task State"::Processed);
+        Rejected := PATaskCollection.CountByState("PA Task State"::Rejected);
     end;
 }

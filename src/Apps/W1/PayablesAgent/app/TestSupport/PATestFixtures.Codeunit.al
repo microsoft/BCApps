@@ -7,13 +7,6 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
 
-/// <summary>
-/// The surface the Payables Agent tests interact with the app through: configuring the agent with a test
-/// configuration, handing it tasks, and recognizing what the agent asks for along a run. It is composed only of the
-/// app's own flows and entities, so it stays the same for the draft-based (v1) and the task-based (v2) agent; the tests
-/// built on it do not know which one is active.
-/// Only visible to the test apps (internalsVisibleTo). Not used by the app itself.
-/// </summary>
 codeunit 3326 "PA Test Fixtures"
 {
     Access = Internal;
@@ -102,15 +95,20 @@ codeunit 3326 "PA Test Fixtures"
     internal procedure CreateTaskFromPdf(FileName: Text; PdfInStream: InStream; var PATask: Codeunit "Payables Agent Task"): Boolean
     var
         PATaskIntake: Codeunit "PA Task Intake";
-        LastAgentTaskIdBefore: BigInteger;
-        LastAgentTaskId: BigInteger;
     begin
-        LastAgentTaskIdBefore := GetLastAgentTaskId();
-        PATaskIntake.CreateTask(FileName, PdfInStream);
-        LastAgentTaskId := GetLastAgentTaskId();
-        if LastAgentTaskId = LastAgentTaskIdBefore then
-            exit(false);
-        exit(PATask.Load(LastAgentTaskId));
+        exit(PATaskIntake.CreateTask(FileName, PdfInStream, PATask));
+    end;
+
+    /// <summary>
+    /// Hands a received source that does not yet have an Agent Framework task to the intake flow.
+    /// </summary>
+    /// <returns>False when the source was not accepted: the agent is inactive, the sender is rejected, or the source
+    /// was already handed off.</returns>
+    internal procedure StartSource(var PATaskSource: Codeunit "PA Task Source"; var PATask: Codeunit "Payables Agent Task"): Boolean
+    var
+        PATaskIntake: Codeunit "PA Task Intake";
+    begin
+        exit(PATaskIntake.CreateTask(PATaskSource, PATask));
     end;
 
     #endregion
@@ -148,21 +146,6 @@ codeunit 3326 "PA Test Fixtures"
     end;
 
     #endregion
-
-    local procedure GetLastAgentTaskId(): BigInteger
-    var
-        Agent: Record Agent;
-        AgentTask: Record "Agent Task";
-    begin
-        if not PAAgentConfiguration.GetAgent(Agent, false) then
-            exit(0);
-        AgentTask.SetRange("Agent User Security ID", Agent."User Security ID");
-        AgentTask.SetRange("Company Name", CompanyName());
-        AgentTask.SetLoadFields(ID);
-        if AgentTask.FindLast() then
-            exit(AgentTask.ID);
-        exit(0);
-    end;
 
     var
         PASetupUpdate: Codeunit "PA Setup Update";

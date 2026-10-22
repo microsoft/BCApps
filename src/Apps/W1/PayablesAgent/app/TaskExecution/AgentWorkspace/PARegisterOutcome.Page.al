@@ -81,11 +81,8 @@ page 3334 "PA Register Outcome"
     end;
 
     internal procedure SetTask(NewTask: Codeunit "Payables Agent Task")
-    var
-        Data: Record "PA Detailed Task" temporary;
     begin
-        NewTask.GetRecord(Data);
-        if not Task.Load(Data."Task Id") then
+        if not Task.Load(NewTask.GetAgentTaskId()) then
             Error(TaskNotFoundErr);
     end;
 

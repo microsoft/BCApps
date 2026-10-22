@@ -38,14 +38,14 @@ table 3327 "Payables Agent Task"
             Caption = 'Outcome';
             DataClassification = CustomerContent;
         }
-        field(6; "Received At"; DateTime)
+        field(6; "Intake Status"; Enum "PA Task Intake Status")
         {
-            Caption = 'Received At';
+            Caption = 'Intake Status';
             DataClassification = SystemMetadata;
         }
-        field(7; "Completed At"; DateTime)
+        field(7; "Rejection Reason"; Text[250])
         {
-            Caption = 'Completed At';
+            Caption = 'Rejection Reason';
             DataClassification = SystemMetadata;
         }
         field(23; "File Name"; Text[250])
@@ -81,6 +81,9 @@ table 3327 "Payables Agent Task"
         {
         }
         key(ByOutcome; Outcome)
+        {
+        }
+        key(ByIntakeStatus; "Intake Status", "Agent Task ID")
         {
         }
     }

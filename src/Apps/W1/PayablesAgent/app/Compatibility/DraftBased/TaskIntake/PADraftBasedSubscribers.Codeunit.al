@@ -21,6 +21,7 @@ codeunit 3312 "PA Draft Based Subscribers"
     local procedure ImportStepOfEDocumentCompleted(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
     var
         PATaskIntake: Codeunit "PA Task Intake";
+        PATaskSource: Codeunit "PA Task Source";
     begin
         if PAV1V2Flag.IsV2Active() then
             exit;
@@ -35,7 +36,9 @@ codeunit 3312 "PA Draft Based Subscribers"
         EDocument.CalcFields("Import Processing Status");
         if EDocument."Import Processing Status" in ["Import E-Doc. Proc. Status"::Processed] then
             exit;
-        if PATaskIntake.CreateTask(Format(EDocument."Entry No")) then;
+        if not PATaskSource.LoadDraftBased(EDocument."Entry No") then
+            exit;
+        if PATaskIntake.CreateTask(PATaskSource) then;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
@@ -52,7 +55,7 @@ codeunit 3312 "PA Draft Based Subscribers"
             exit;
         if not PayablesAgent.IsPayablesAgentSession(SessionID) then
             exit;
-        if EDocumentPATask.Load(Format(EDocument."Entry No")) then
+        if EDocumentPATask.Load(SessionID) then
             KnownSender.InsertIfNew(EDocumentPATask);
     end;
 

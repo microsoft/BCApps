@@ -9,7 +9,6 @@ using Microsoft.Agent.PayablesAgent;
 using System.Agents;
 using System.Email;
 using System.Privacy;
-using System.TestLibraries.Email;
 using System.TestLibraries.Utilities;
 
 codeunit 133700 "PA Setup Tests"
@@ -20,8 +19,7 @@ codeunit 133700 "PA Setup Tests"
     Access = Internal;
 
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PAEDocTestGlue: Codeunit "PA EDoc Unit Test Glue";
+        PATestFixtures: Codeunit "PA Test Fixtures";
         Assert: Codeunit Assert;
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
 
@@ -29,200 +27,151 @@ codeunit 133700 "PA Setup Tests"
     [Test]
     procedure E2EActivatingPayablesAgent()
     var
-        PASetup: Record "Payables Agent Setup";
+        Agent: Record Agent;
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
+        PASetup: Codeunit "PA Setup";
+        MailboxId: Guid;
     begin
-        // [GIVEN] The Payables Agent is inactive and its intake is not configured
-        ResetPayablesAgent();
-        SetupPayablesAgent(PASetup);
-        // [THEN] The agent's intake is configured to monitor the mailbox
-        PAEDocTestGlue.AssertAgentIntakeMonitorsMailbox(PASetup);
-        ResetPayablesAgent();
+        // [GIVEN] The Payables Agent was never configured, and a mailbox is available
+        PATestFixtures.Reset();
+        MailboxId := RegisterMailbox();
+
+        // [WHEN] Activating the Payables Agent monitoring the mailbox
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, true);
+        PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, true, MailboxId, "PA Email Review Policy"::Always);
+        PATestFixtures.Activate(PASetupUpdateParameters);
+
+        // [THEN] The agent is enabled and monitors the mailbox, with the consent that was given
+        PASetup.GetSetup();
+        Assert.IsTrue(Agent.Get(PASetup.GetUserSecurityId()), 'The agent user should exist');
+        Assert.AreEqual(Agent.State::Enabled, Agent.State, 'The agent should be enabled');
+        Assert.IsTrue(PASetup.GetMonitorOutlook(), 'The agent should monitor the mailbox');
+        Assert.AreEqual(MailboxId, PASetup.GetEmailAccountId(), 'The agent should monitor the configured mailbox');
+        Assert.IsTrue(PASetup.GetEmailMonitoringConsent(), 'The consent to monitor the mailbox should be recorded');
+
+        PATestFixtures.Reset();
     end;
 
     [HandlerFunctions('ConsentHandler')]
     [Test]
     procedure E2EProcessingInvoiceWithReviewRequested()
     var
-        Agent: Record Agent;
         AgentTaskMessage: Record "Agent Task Message";
-        PASetup: Record "Payables Agent Setup";
-        AgentCU: Codeunit Agent;
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
-        ExpectedExternalId: Text;
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
+        PASetup: Codeunit "PA Setup";
+        PATask: Codeunit "Payables Agent Task";
+        PATaskSource: Codeunit "PA Task Source";
+        PAEDocUnitTestGlue: Codeunit "PA EDoc Unit Test Glue";
     begin
-        // [GIVEN] The Payables Agent is inactive and its intake is not configured
-        ResetPayablesAgent();
-        SetupPayablesAgent(PASetup);
-        PASetupConfiguration := GetPASetupConfigs();
-        AgentCU.Activate(PASetup."User Security Id");
-        Agent."User Security ID" := PASetup."User Security Id";
-        ExpectedExternalId := PAEDocTestGlue.CreateAgentTaskForInvoice(PASetup, Agent);
+        // [GIVEN] The Payables Agent monitors a mailbox, and every email it receives needs review
+        PATestFixtures.Reset();
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, true);
+        PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, true, RegisterMailbox(), "PA Email Review Policy"::Always);
+        PATestFixtures.Activate(PASetupUpdateParameters);
 
-        AgentTaskMessage.FindLast();
-        Assert.IsTrue(AgentTaskMessage."Requires Review", 'The last Agent Task Message should require review');
-        Assert.AreEqual(PASetup."User Security Id", AgentTaskMessage."Agent User Security ID", 'The Agent Task Message should be assigned to the Payables Agent User Security ID');
-        Assert.AreEqual(ExpectedExternalId, AgentTaskMessage."External ID", 'The Agent Task Message should reference the task it was created for');
+        // [WHEN] An email with an invoice is received and handed to the agent
+        Assert.IsTrue(PAEDocUnitTestGlue.ReceiveEmail('vendor@contoso.com', 'Invoice', PATaskSource), 'The email should be received as a source');
+        Assert.IsTrue(PATestFixtures.StartSource(PATaskSource, PATask), 'The source should be handed to the agent');
 
-        AgentCU.Deactivate(PASetup."User Security Id");
+        // [THEN] The agent is given the task, and its message requires review
+        PASetup.GetSetup();
+        AgentTaskMessage.SetRange("Task ID", PATask.GetAgentTaskId());
+        Assert.IsTrue(AgentTaskMessage.FindFirst(), 'The agent task should have a message');
+        Assert.IsTrue(AgentTaskMessage."Requires Review", 'The Agent Task Message should require review');
+        Assert.AreEqual(PASetup.GetUserSecurityId(), AgentTaskMessage."Agent User Security ID", 'The Agent Task Message should be assigned to the Payables Agent User Security ID');
+        Assert.AreEqual(PATask.GetAgentTaskExternalId(), AgentTaskMessage."External ID", 'The Agent Task Message should reference the task it was created for');
 
-        ResetPayablesAgent();
+        PATestFixtures.Reset();
     end;
 
-    [HandlerFunctions('ConsentHandler,PayablesAgentSetupHandler')]
+    [HandlerFunctions('PayablesAgentSetupHandler')]
     [Test]
     procedure OpenSetupPageSucceedsForPayablesAgentUserSecurityIdField()
     var
         Agent: Record Agent;
-        PASetup: Record "Payables Agent Setup";
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
+        PASetup: Codeunit "PA Setup";
         AgentCU: Codeunit Agent;
-        ExpectedAgentDisplayName: Text;
     begin
-        // [GIVEN] Payables Agent has been configured with a setup table containing "User Security Id" field casing.
-        ResetPayablesAgent();
-        SetupPayablesAgent(PASetup);
+        // [GIVEN] The Payables Agent is active
+        PATestFixtures.Reset();
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, true);
+        PATestFixtures.Activate(PASetupUpdateParameters);
+        PASetup.GetSetup();
 
         // [WHEN] Opening the setup page through the generic agent framework.
-        AgentCU.OpenSetupPageId("Agent Metadata Provider"::"Payables Agent", PASetup."User Security Id");
+        AgentCU.OpenSetupPageId("Agent Metadata Provider"::"Payables Agent", PASetup.GetUserSecurityId());
 
         // [THEN] The setup page opens instead of failing required-field validation, showing the agent that matches the provided User Security ID.
-        Agent.Get(PASetup."User Security Id");
-        ExpectedAgentDisplayName := Agent."Display Name";
-        Assert.AreEqual(ExpectedAgentDisplayName, LibraryVariableStorage.DequeueText(), 'The setup page should show the configured Payables Agent.');
+        Agent.Get(PASetup.GetUserSecurityId());
+        Assert.AreEqual(Agent."Display Name", LibraryVariableStorage.DequeueText(), 'The setup page should show the configured Payables Agent.');
         LibraryVariableStorage.AssertEmpty();
 
-        ResetPayablesAgent();
+        PATestFixtures.Reset();
     end;
 
     [Test]
     procedure IsEmailConfiguredForDemoEmailReturnsTrueWhenConfigured()
     var
-        EmailAccount: Record "Email Account";
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PADemoGuide: Codeunit "PA Demo Guide";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
     begin
-        // [GIVEN] Monitor Outlook is enabled and a valid email account is configured
-        ResetEmailDemoSetup();
-        RegisterMockEmailAccount(EmailAccount);
-        SetMonitorOutlook(true);
-        PAEDocTestGlue.SetMonitoredEmailAccount(EmailAccount."Account Id", EmailAccount.Connector);
+        // [GIVEN] Email monitoring is enabled and a valid mailbox is configured
+        PATestFixtures.Reset();
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
+        PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, true, RegisterMailbox(), "PA Email Review Policy"::Always);
 
         // [WHEN] Checking whether email is configured for the demo email
         // [THEN] It returns true
-        PASetupConfiguration := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        Assert.IsTrue(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupConfiguration), 'Email should be configured when Monitor Outlook is on and an email account is set');
+        Assert.IsTrue(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should be configured when monitoring is on and a mailbox is set');
     end;
 
     [Test]
     procedure IsEmailConfiguredForDemoEmailReturnsFalseWhenMonitoringDisabled()
     var
-        EmailAccount: Record "Email Account";
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PADemoGuide: Codeunit "PA Demo Guide";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
     begin
-        // [GIVEN] A valid email account is configured but Monitor Outlook is disabled
-        ResetEmailDemoSetup();
-        RegisterMockEmailAccount(EmailAccount);
-        SetMonitorOutlook(false);
-        PAEDocTestGlue.SetMonitoredEmailAccount(EmailAccount."Account Id", EmailAccount.Connector);
+        // [GIVEN] A valid mailbox is configured but email monitoring is disabled
+        PATestFixtures.Reset();
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
+        PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, false, RegisterMailbox(), "PA Email Review Policy"::Always);
 
         // [WHEN] Checking whether email is configured for the demo email
         // [THEN] It returns false
-        PASetupConfiguration := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupConfiguration), 'Email should not be configured when Monitor Outlook is disabled');
+        Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should not be configured when monitoring is disabled');
     end;
 
     [Test]
     procedure IsEmailConfiguredForDemoEmailReturnsFalseWhenNoAccount()
     var
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PADemoGuide: Codeunit "PA Demo Guide";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
+        NullGuid: Guid;
     begin
-        // [GIVEN] Monitor Outlook is enabled but no email account is configured
-        ResetEmailDemoSetup();
-        SetMonitorOutlook(true);
+        // [GIVEN] Email monitoring is enabled but no mailbox is configured
+        PATestFixtures.Reset();
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
+        PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, true, NullGuid, "PA Email Review Policy"::Always);
 
         // [WHEN] Checking whether email is configured for the demo email
         // [THEN] It returns false
-        PASetupConfiguration := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupConfiguration), 'Email should not be configured when no email account is set');
+        Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should not be configured when no mailbox is set');
     end;
 
-    local procedure ResetEmailDemoSetup()
+    /// <summary>
+    /// Registers a Microsoft 365 mailbox, the kind of mailbox the agent monitors.
+    /// </summary>
+    local procedure RegisterMailbox(): Guid
     var
-        PASetup: Record "Payables Agent Setup";
+        EmailOutlookAccount: Record "Email - Outlook Account";
     begin
-        PASetup.DeleteAll();
-        PAEDocTestGlue.DeleteEmailMonitoringSetup();
-    end;
-
-    local procedure RegisterMockEmailAccount(var EmailAccount: Record "Email Account")
-    var
-        EmailConnectorMock: Codeunit "Connector Mock";
-    begin
-        EmailConnectorMock.Initialize();
-        EmailConnectorMock.AddAccount(EmailAccount);
-    end;
-
-    local procedure SetMonitorOutlook(MonitorOutlook: Boolean)
-    var
-        PASetup: Record "Payables Agent Setup";
-    begin
-        PASetup.GetSetup();
-        PASetup."Monitor Outlook" := MonitorOutlook;
-        PASetup.Modify();
-    end;
-
-    local procedure SetupPayablesAgent(var PASetup: Record "Payables Agent Setup")
-    var
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
-    begin
-        PASetupConfiguration := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        // [WHEN] Activating the Payables Agent and configuring "Monitor Outlook"
-        TempAgentSetupBuffer := PASetupConfiguration.GetAgentSetupBuffer();
-        PASetup := PASetupConfiguration.GetPayablesAgentSetup();
-        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
-        PASetup."Monitor Outlook" := true;
-        PASetupConfiguration.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        // [GIVEN] An email account is configured for the Payables Agent
-        PAEDocTestGlue.SetMonitoredEmailAccount(PASetupConfiguration, CreateGuid());
-        PASetupConfiguration.SetPayablesAgentSetup(PASetup);
-        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfiguration);
-        // [THEN] The applied setup is reloaded
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        PASetup := PASetupConfiguration.GetPayablesAgentSetup();
-    end;
-
-    local procedure ResetPayablesAgent()
-    var
-        Agent: Record Agent;
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        PASetup: Record "Payables Agent Setup";
-        PASetupConfigs: Codeunit "PA Setup Configuration";
-    begin
-        PASetupConfigs := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfigs);
-        TempAgentSetupBuffer := PASetupConfigs.GetAgentSetupBuffer();
-        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Disabled;
-        PASetupConfigs.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfigs);
-        if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
-            if Agent.Get(TempAgentSetupBuffer."User Security ID") then
-                Agent.Delete();
-        PASetup.DeleteAll();
-        PAEDocTestGlue.DeleteAgentIntake();
-    end;
-
-    local procedure GetPASetupConfigs() PASetupConfigs: Codeunit "PA Setup Configuration"
-    begin
-        // Tests don't run with the agents enabled
-        PASetupConfigs.SetSkipAgentConfiguration(false);
-        PASetupConfigs.SetSkipEmailVerification(true);
-        exit(PASetupConfigs);
+        EmailOutlookAccount.Id := CreateGuid();
+        EmailOutlookAccount.Name := 'Payables';
+        EmailOutlookAccount."Email Address" := 'payables@contoso.com';
+        EmailOutlookAccount."Outlook API Email Connector" := "Email Connector"::"Microsoft 365";
+        EmailOutlookAccount.Insert();
+        exit(EmailOutlookAccount.Id);
     end;
 
     [ModalPageHandler]

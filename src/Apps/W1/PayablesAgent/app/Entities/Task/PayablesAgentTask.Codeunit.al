@@ -13,7 +13,8 @@ using System.Agents;
 using System.Email;
 using System.Utilities;
 
-// Owns task data and narrow mutations; identities are opaque and backing records never leave this contract.
+// Aggregate over one accepted Payables Agent task. Its sole identity is the Agent Framework task ID.
+// Loading resolves and validates the version-specific source backing; backing records never leave this contract.
 codeunit 3341 "Payables Agent Task"
 {
     Access = Internal;
@@ -22,68 +23,65 @@ codeunit 3341 "Payables Agent Task"
     Permissions = tabledata "Agent Task" = RM, tabledata "Agent Task Message" = R,
         tabledata "E-Document" = RM, tabledata "E-Doc. Data Storage" = R, tabledata "Email Inbox" = R;
 
-    var
-        TempLoadedTask: Record "PA Detailed Task" temporary;
-        LoadedEDocument: Record "E-Document";
-        PAV1V2Flag: Codeunit "PA V1V2 Flag";
-        LoadedKey: BigInteger;
-        LoadedIsV2: Boolean;
-        EmailInboxId: BigInteger;
-        TaskNotFoundErr: Label 'The task does not exist.';
-        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
-        SourceTextNotSupportedErr: Label 'Extracted source text cannot be stored for this task.';
-        EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
-        PdfMimeTypeTok: Label 'application/pdf', Locked = true;
-        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
-
     internal procedure Load(AgentTaskId: BigInteger): Boolean
     var
-        PayablesAgentTask: Record "Payables Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
-        AgentTask: Record "Agent Task";
+        EDocument: Record "E-Document";
+        StoredTask: Record "Payables Agent Task";
+        EDocumentEntryNo: Integer;
+        HasDraftBacking: Boolean;
+        HasTaskBacking: Boolean;
     begin
         ClearLoaded();
-        if not AgentTask.Get(AgentTaskId) then
+        if not LoadedAgentTask.Get(AgentTaskId) then
             exit(false);
-        if AgentTask."Company Name" <> CompanyName() then
+        if LoadedAgentTask."Company Name" <> CompanyName() then begin
+            ClearLoaded();
             exit(false);
-        PayablesAgentTask.SetRange("Agent Task ID", AgentTaskId);
-        if PayablesAgentTask.FindFirst() then
-            exit(LoadByKey(PayablesAgentTask."Entry No.", true));
+        end;
+
+        StoredTask.SetRange("Agent Task ID", AgentTaskId);
+        if StoredTask.FindFirst() then begin
+            LoadedStoredTask := StoredTask;
+            HasTaskBacking := true;
+            if StoredTask.Next() <> 0 then
+                Error(MultipleTaskBackingsErr, AgentTaskId);
+        end;
+
         AgentTaskMessage.SetRange("Task ID", AgentTaskId);
         AgentTaskMessage.SetFilter("External ID", '<>%1', '');
-        if not AgentTaskMessage.FindFirst() then
-            exit(false);
-        exit(Load(AgentTaskMessage."External ID"));
-    end;
+        if AgentTaskMessage.FindFirst() then
+            repeat
+                if Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
+                    if EDocument.Get(EDocumentEntryNo) then
+                        if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
+                            if HasDraftBacking and (LoadedEDocument."Entry No" <> EDocument."Entry No") then
+                                Error(MultipleTaskBackingsErr, AgentTaskId);
+                            LoadedEDocument := EDocument;
+                            HasDraftBacking := true;
+                        end;
+            until AgentTaskMessage.Next() = 0;
+        // The framework task carries the same opaque correlation and survives loss of its initial message.
+        if not HasDraftBacking then
+            if Evaluate(EDocumentEntryNo, LoadedAgentTask."External ID") then
+                if EDocument.Get(EDocumentEntryNo) then
+                    if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
+                        LoadedEDocument := EDocument;
+                        HasDraftBacking := true;
+                    end;
 
-    internal procedure Load(TaskId: Guid): Boolean
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
-        EDocument: Record "E-Document";
-    begin
-        ClearLoaded();
-        if IsNullGuid(TaskId) then
-            exit(false);
-        if PayablesAgentTask.GetBySystemId(TaskId) then
-            exit(LoadByKey(PayablesAgentTask."Entry No.", true));
-        if EDocument.GetBySystemId(TaskId) then
-            exit(LoadByKey(EDocument."Entry No", false));
-        exit(false);
-    end;
-
-    // Runtime correlation tokens are opaque to consumers, irrespective of their historical encoding.
-    internal procedure Load(ExternalId: Text[2048]): Boolean
-    var
-        TaskId: Guid;
-        EDocumentEntryNo: Integer;
-    begin
-        ClearLoaded();
-        if Evaluate(TaskId, ExternalId) then
-            exit(Load(TaskId));
-        if Evaluate(EDocumentEntryNo, ExternalId) then
-            exit(LoadByKey(EDocumentEntryNo, false));
-        exit(false);
+        if HasTaskBacking and HasDraftBacking then
+            Error(AmbiguousTaskBackingErr, AgentTaskId);
+        if HasTaskBacking then
+            LoadedVersion := "PA Version"::V2
+        else
+            if HasDraftBacking then
+                LoadedVersion := "PA Version"::V1
+            else begin
+                ClearLoaded();
+                exit(false);
+            end;
+        exit(true);
     end;
 
     internal procedure LoadCurrentSession(): Boolean
@@ -101,81 +99,193 @@ codeunit 3341 "Payables Agent Task"
 
     internal procedure Refresh()
     var
-        KeyToRefresh: BigInteger;
-        IsV2: Boolean;
+        AgentTaskId: BigInteger;
     begin
-        KeyToRefresh := LoadedKey;
-        IsV2 := LoadedIsV2;
-        if LoadByKey(KeyToRefresh, IsV2) then;
-    end;
-
-    internal procedure CreateUploadBacking(FileName: Text; PdfInStream: InStream): Boolean
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
-    begin
-        ClearLoaded();
-        if not PAV1V2Flag.IsV2Active() then
-            exit(false);
-        PayablesAgentTask."Received At" := CurrentDateTime();
-        PayablesAgentTask."File Name" := CopyStr(FileName, 1, MaxStrLen(PayablesAgentTask."File Name"));
-        PayablesAgentTask."File Content".ImportStream(PdfInStream, FileName, PdfMimeTypeTok);
-        PayablesAgentTask.Insert();
-        exit(LoadByKey(PayablesAgentTask."Entry No.", true));
-    end;
-
-    internal procedure BindAgentTask(AgentTaskId: BigInteger)
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
-    begin
-        RequireLoaded();
-        if LoadedIsV2 then begin
-            if not PayablesAgentTask.Get(LoadedKey) then
-                Error(TaskNotFoundErr);
-            PayablesAgentTask."Agent Task ID" := AgentTaskId;
-            PayablesAgentTask.Modify();
-        end;
-        Refresh();
-    end;
-
-    internal procedure GetRecord(var PADetailedTask: Record "PA Detailed Task")
-    begin
-        // Preserve the receiving temporary row's system fields; none come from backing storage.
-        PADetailedTask.TransferFields(TempLoadedTask);
+        AgentTaskId := GetAgentTaskId();
+        if Load(AgentTaskId) then;
     end;
 
     internal procedure GetAgentTaskId(): BigInteger
     begin
-        exit(TempLoadedTask."Agent Task ID");
+        RequireLoaded();
+        exit(LoadedAgentTask.ID);
+    end;
+
+    internal procedure GetVersion(): Enum "PA Version"
+    begin
+        RequireLoaded();
+        exit(LoadedVersion);
+    end;
+
+    internal procedure GetSourceId(): Guid
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            exit(LoadedStoredTask.SystemId);
+        exit(LoadedEDocument.SystemId);
     end;
 
     internal procedure GetSourceType(): Enum "PA Source Type"
     begin
-        exit(TempLoadedTask."Source Type");
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then begin
+            if LoadedStoredTask."Email Inbox Id" <> 0 then
+                exit("PA Source Type"::Email);
+            exit("PA Source Type"::Upload);
+        end;
+        if LoadedEDocument."Outlook Mail Message Id" <> '' then
+            exit("PA Source Type"::Email);
+        exit("PA Source Type"::Upload);
     end;
 
     internal procedure HasPdf(): Boolean
+    var
+        Storage: Record "E-Doc. Data Storage";
     begin
-        exit(TempLoadedTask."Has Pdf");
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            exit(LoadedStoredTask."File Content".HasValue());
+        if Storage.Get(LoadedEDocument."Unstructured Data Entry No.") then
+            exit(Storage."File Format" = Enum::"E-Doc. File Format"::PDF);
+        exit(false);
+    end;
+
+    internal procedure CanExtractText(): Boolean
+    begin
+        exit((GetVersion() = "PA Version"::V2) and HasPdf());
+    end;
+
+    internal procedure CanRegisterOutcome(): Boolean
+    begin
+        exit(GetVersion() = "PA Version"::V2);
     end;
 
     internal procedure GetFileName(): Text
+    var
+        Storage: Record "E-Doc. Data Storage";
     begin
-        exit(TempLoadedTask."File Name");
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            exit(LoadedStoredTask."File Name");
+        if Storage.Get(LoadedEDocument."Unstructured Data Entry No.") then
+            exit(Storage.Name);
+        exit('');
     end;
 
     internal procedure GetEmailFrom(): Text
+    var
+        EmailInbox: Record "Email Inbox";
     begin
-        exit(TempLoadedTask."Email From");
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V1 then
+            exit(LoadedEDocument."Source Details");
+        if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
+            exit(EmailInbox."Sender Address");
+        exit('');
+    end;
+
+    internal procedure GetSenderName(): Text
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
+                exit(EmailInbox."Sender Name");
+        exit('');
     end;
 
     internal procedure GetEmailSubject(): Text
+    var
+        EmailInbox: Record "Email Inbox";
     begin
-        exit(TempLoadedTask."Email Subject");
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V1 then
+            exit(LoadedEDocument."Additional Source Details");
+        if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
+            exit(EmailInbox.Description);
+        exit('');
+    end;
+
+    internal procedure GetEmailExternalId(): Text
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V1 then
+            exit(LoadedEDocument."Outlook Mail Message Id");
+        if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
+            exit(EmailInbox."External Message Id");
+        exit('');
+    end;
+
+    internal procedure GetEmailReceivedAt(): DateTime
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V1 then
+            exit(LoadedEDocument.SystemCreatedAt);
+        if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
+            exit(EmailInbox."Received DateTime");
+        exit(0DT);
     end;
 
     internal procedure GetSenderAddress(): Text[250]
     begin
-        exit(TempLoadedTask."Email From");
+        exit(CopyStr(GetEmailFrom(), 1, 250));
+    end;
+
+    internal procedure GetCreatedAt(): DateTime
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            exit(LoadedStoredTask.SystemCreatedAt);
+        exit(LoadedEDocument.SystemCreatedAt);
+    end;
+
+    internal procedure GetUpdatedAt(): DateTime
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            exit(LoadedStoredTask.SystemModifiedAt);
+        exit(LoadedEDocument.SystemModifiedAt);
+    end;
+
+    internal procedure GetOutcome(): RecordId
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then
+            exit(LoadedStoredTask.Outcome);
+        exit(LoadedEDocument."Document Record ID");
+    end;
+
+    internal procedure GetAgentTaskStatus(): Enum "Agent Task Status"
+    begin
+        RequireLoaded();
+        exit(LoadedAgentTask.Status);
+    end;
+
+    internal procedure GetState(): Enum "PA Task State"
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V1 then
+            exit(GetDraftBasedState());
+        if LoadedAgentTask."Needs Attention" then
+            exit("PA Task State"::"Needs Attention");
+        case LoadedAgentTask.Status of
+            LoadedAgentTask.Status::Completed:
+                exit("PA Task State"::Processed);
+            LoadedAgentTask.Status::"Stopped by User", LoadedAgentTask.Status::"Stopped by System":
+                exit("PA Task State"::"Needs Attention");
+        end;
+        exit("PA Task State"::"Pending Processing");
+    end;
+
+    internal procedure GetIntakeStatus(): Enum "PA Task Intake Status"
+    begin
+        RequireLoaded();
+        exit("PA Task Intake Status"::Accepted);
     end;
 
     internal procedure GetSourceEmailBody(): Text
@@ -206,25 +316,18 @@ codeunit 3341 "Payables Agent Task"
     internal procedure GetSourcePdf(var TempBlob: Codeunit "Temp Blob"; var FileName: Text): Boolean
     var
         Storage: Record "E-Doc. Data Storage";
-        PayablesAgentTask: Record "Payables Agent Task";
-        EDocument: Record "E-Document";
     begin
         Clear(TempBlob);
         Clear(FileName);
-        if LoadedKey = 0 then
-            exit(false);
-        if LoadedIsV2 then begin
-            if not PayablesAgentTask.Get(LoadedKey) then
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then begin
+            if not LoadedStoredTask."File Content".HasValue() then
                 exit(false);
-            if not PayablesAgentTask."File Content".HasValue() then
-                exit(false);
-            PayablesAgentTask.GetFileContent(TempBlob);
-            FileName := PayablesAgentTask."File Name";
+            LoadedStoredTask.GetFileContent(TempBlob);
+            FileName := LoadedStoredTask."File Name";
             exit(true);
         end;
-        if not EDocument.Get(LoadedKey) then
-            exit(false);
-        if not Storage.Get(EDocument."Unstructured Data Entry No.") then
+        if not Storage.Get(LoadedEDocument."Unstructured Data Entry No.") then
             exit(false);
         TempBlob := Storage.GetTempBlob();
         FileName := Storage.Name;
@@ -232,54 +335,51 @@ codeunit 3341 "Payables Agent Task"
     end;
 
     internal procedure GetSourceText(): Text
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
     begin
-        if not LoadedIsV2 or (LoadedKey = 0) then
+        RequireLoaded();
+        if LoadedVersion <> "PA Version"::V2 then
             exit('');
-        if PayablesAgentTask.Get(LoadedKey) then
-            exit(PayablesAgentTask.GetFileContentAsText());
-        exit('');
+        exit(LoadedStoredTask.GetFileContentAsText());
     end;
 
     internal procedure SetSourceText(NewText: Text)
     var
-        PayablesAgentTask: Record "Payables Agent Task";
+        StoredTask: Record "Payables Agent Task";
     begin
         RequireLoaded();
-        if not LoadedIsV2 then
+        if LoadedVersion <> "PA Version"::V2 then
             Error(SourceTextNotSupportedErr);
-        if not PayablesAgentTask.Get(LoadedKey) then
+        if not StoredTask.Get(LoadedStoredTask."Entry No.") then
             Error(TaskNotFoundErr);
-        PayablesAgentTask.SetFileContentAsText(NewText);
-        PayablesAgentTask.Modify();
+        StoredTask.SetFileContentAsText(NewText);
+        StoredTask.Modify();
         Refresh();
     end;
 
     internal procedure IsResultRecord(Candidate: RecordId): Boolean
     begin
-        if (LoadedKey = 0) or (Candidate.TableNo = 0) then
+        RequireLoaded();
+        if Candidate.TableNo = 0 then
             exit(false);
-        if Candidate = TempLoadedTask.Outcome then
+        if Candidate = GetOutcome() then
             exit(true);
-        // The draft-based review operates on the source document before finalization.
-        exit(not LoadedIsV2 and (Candidate = LoadedEDocument.RecordId()));
+        exit((LoadedVersion = "PA Version"::V1) and (Candidate = LoadedEDocument.RecordId()));
     end;
 
     internal procedure RegisterOutcome(OutcomeRecordId: RecordId)
     var
-        PayablesAgentTask: Record "Payables Agent Task";
         EDocument: Record "E-Document";
+        StoredTask: Record "Payables Agent Task";
     begin
         RequireLoaded();
         ValidateOutcome(OutcomeRecordId);
-        if LoadedIsV2 then begin
-            if not PayablesAgentTask.Get(LoadedKey) then
+        if LoadedVersion = "PA Version"::V2 then begin
+            if not StoredTask.Get(LoadedStoredTask."Entry No.") then
                 Error(TaskNotFoundErr);
-            PayablesAgentTask.Outcome := OutcomeRecordId;
-            PayablesAgentTask.Modify();
+            StoredTask.Outcome := OutcomeRecordId;
+            StoredTask.Modify();
         end else begin
-            if not EDocument.Get(LoadedKey) then
+            if not EDocument.Get(LoadedEDocument."Entry No") then
                 Error(TaskNotFoundErr);
             EDocument."Document Record ID" := OutcomeRecordId;
             EDocument.Modify();
@@ -287,48 +387,38 @@ codeunit 3341 "Payables Agent Task"
         Refresh();
     end;
 
-    // A conditional field update preserves unrelated changes and outcomes reassigned since posting began.
-    internal procedure ReplaceOutcomeReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
-        EDocument: Record "E-Document";
-    begin
-        if PreviousOutcome.TableNo = 0 then
-            Error(EmptyPreviousOutcomeErr);
-        ValidateOutcome(PostedOutcome);
-        if PreviousOutcome = PostedOutcome then
-            exit;
-        PayablesAgentTask.SetRange(Outcome, PreviousOutcome);
-        PayablesAgentTask.ModifyAll(Outcome, PostedOutcome);
-        EDocument.SetRange("Document Record ID", PreviousOutcome);
-        if EDocument.FindSet(true) then
-            repeat
-                if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
-                    EDocument."Document Record ID" := PostedOutcome;
-                    EDocument.Modify();
-                end;
-            until EDocument.Next() = 0;
-    end;
-
-    internal procedure Complete()
-    var
-        PayablesAgentTask: Record "Payables Agent Task";
-    begin
-        RequireLoaded();
-        if not LoadedIsV2 then
-            exit;
-        if not PayablesAgentTask.Get(LoadedKey) then
-            Error(TaskNotFoundErr);
-        PayablesAgentTask."Completed At" := CurrentDateTime();
-        PayablesAgentTask.Modify();
-        Refresh();
-    end;
-
     internal procedure GetAgentTaskExternalId(): Text[2048]
     begin
-        if LoadedIsV2 then
-            exit(CopyStr(LowerCase(Format(TempLoadedTask."Task Id")).Replace('{', '').Replace('}', ''), 1, 2048));
-        exit(Format(LoadedKey));
+        RequireLoaded();
+        exit(LoadedAgentTask."External ID");
+    end;
+
+    local procedure GetDraftBasedState(): Enum "PA Task State"
+    begin
+        LoadedEDocument.CalcFields("Import Processing Status");
+        case LoadedEDocument."Import Processing Status" of
+            "Import E-Doc. Proc. Status"::"Draft Ready":
+                exit("PA Task State"::"Needs Attention");
+            "Import E-Doc. Proc. Status"::"Ready for draft":
+                exit("PA Task State"::"Ready For Review");
+            "Import E-Doc. Proc. Status"::Processed:
+                exit("PA Task State"::Processed);
+        end;
+        exit("PA Task State"::"Pending Processing");
+    end;
+
+    local procedure TryGetEmailMessageId(var MessageId: Guid): Boolean
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V2 then begin
+            if not EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
+                exit(false);
+            MessageId := EmailInbox."Message Id";
+        end else
+            MessageId := LoadedEDocument."Mail Message Id";
+        exit(not IsNullGuid(MessageId));
     end;
 
     local procedure ValidateOutcome(OutcomeRecordId: RecordId)
@@ -337,7 +427,6 @@ codeunit 3341 "Payables Agent Task"
         PostedInvoice: Record "Purch. Inv. Header";
         PostedCreditMemo: Record "Purch. Cr. Memo Hdr.";
     begin
-        // Serialize registration against posting/deletion of the unposted document so posting can see the new reference.
         PurchaseHeader.ReadIsolation := IsolationLevel::UpdLock;
         case OutcomeRecordId.TableNo of
             Database::"Purchase Header":
@@ -356,135 +445,27 @@ codeunit 3341 "Payables Agent Task"
 
     local procedure RequireLoaded()
     begin
-        if LoadedKey = 0 then
+        if LoadedVersion = "PA Version"::Unknown then
             Error(TaskNotFoundErr);
     end;
 
     local procedure ClearLoaded()
     begin
-        Clear(TempLoadedTask);
-        TempLoadedTask."Source Type" := "PA Source Type"::Upload;
+        Clear(LoadedAgentTask);
+        Clear(LoadedStoredTask);
         Clear(LoadedEDocument);
-        Clear(LoadedKey);
-        Clear(LoadedIsV2);
-        Clear(EmailInboxId);
+        LoadedVersion := "PA Version"::Unknown;
     end;
 
-    local procedure LoadByKey(TaskKey: BigInteger; IsV2: Boolean): Boolean
     var
-        PayablesAgentTask: Record "Payables Agent Task";
-        EDocument: Record "E-Document";
-    begin
-        ClearLoaded();
-        if TaskKey = 0 then
-            exit(false);
-        if IsV2 then begin
-            if not PayablesAgentTask.Get(TaskKey) then
-                exit(false);
-            LoadedKey := TaskKey;
-            LoadedIsV2 := true;
-            TempLoadedTask.TransferFields(PayablesAgentTask);
-            TempLoadedTask."Entry No." := 0;
-            TempLoadedTask."Task Id" := PayablesAgentTask.SystemId;
-            TempLoadedTask."Has Pdf" := PayablesAgentTask."File Content".HasValue();
-            TempLoadedTask."Can Extract Text" := true;
-            EmailInboxId := PayablesAgentTask."Email Inbox Id";
-            TempLoadedTask.State := TempLoadedTask.State::"Pending Processing";
-            if PayablesAgentTask."Completed At" <> 0DT then
-                TempLoadedTask.State := TempLoadedTask.State::Processed;
-        end else begin
-            if not EDocument.Get(TaskKey) then
-                exit(false);
-            LoadedKey := TaskKey;
-            LoadedEDocument := EDocument;
-            TempLoadedTask."Task Id" := EDocument.SystemId;
-            TempLoadedTask.Outcome := EDocument."Document Record ID";
-            TempLoadedTask."Received At" := EDocument.SystemCreatedAt;
-            PopulateDocumentSource(EDocument);
-            TempLoadedTask."Agent Task ID" := FindAgentTaskIdForExternalId(Format(TaskKey));
-        end;
-        PopulateEmail();
-        PopulateAgentTaskStatus();
-        exit(true);
-    end;
-
-    local procedure PopulateDocumentSource(EDocument: Record "E-Document")
-    var
-        Storage: Record "E-Doc. Data Storage";
-    begin
-        if Storage.Get(EDocument."Unstructured Data Entry No.") then begin
-            TempLoadedTask."File Name" := Storage.Name;
-            TempLoadedTask."Has Pdf" := Storage."File Format" = Enum::"E-Doc. File Format"::PDF;
-        end;
-        if EDocument."Outlook Mail Message Id" <> '' then begin
-            TempLoadedTask."Source Type" := "PA Source Type"::Email;
-            TempLoadedTask."Email From" := CopyStr(EDocument."Source Details", 1, 250);
-            TempLoadedTask."Email Subject" := CopyStr(EDocument."Additional Source Details", 1, 250);
-            TempLoadedTask."Email External Id" := EDocument."Outlook Mail Message Id";
-        end;
-        EDocument.CalcFields("Import Processing Status");
-        case EDocument."Import Processing Status" of
-            "Import E-Doc. Proc. Status"::"Draft Ready":
-                TempLoadedTask.State := TempLoadedTask.State::"Needs Attention";
-            "Import E-Doc. Proc. Status"::"Ready for draft":
-                TempLoadedTask.State := TempLoadedTask.State::"Ready For Review";
-            "Import E-Doc. Proc. Status"::Processed:
-                TempLoadedTask.State := TempLoadedTask.State::Processed;
-        end;
-    end;
-
-    local procedure PopulateEmail()
-    var
-        EmailInbox: Record "Email Inbox";
-    begin
-        if EmailInboxId = 0 then
-            exit;
-        // Source identity survives loss of the referenced inbox row.
-        TempLoadedTask."Source Type" := "PA Source Type"::Email;
-        if not EmailInbox.Get(EmailInboxId) then
-            exit;
-        TempLoadedTask."Email From" := CopyStr(EmailInbox."Sender Address", 1, 250);
-        TempLoadedTask."Sender Name" := CopyStr(EmailInbox."Sender Name", 1, 250);
-        TempLoadedTask."Email Subject" := CopyStr(EmailInbox.Description, 1, 250);
-        TempLoadedTask."Email External Id" := EmailInbox."External Message Id";
-        TempLoadedTask."Received At" := EmailInbox."Received DateTime";
-    end;
-
-    local procedure TryGetEmailMessageId(var MessageId: Guid): Boolean
-    var
-        EmailInbox: Record "Email Inbox";
-    begin
-        if LoadedKey = 0 then
-            exit(false);
-        if LoadedIsV2 then begin
-            if not EmailInbox.Get(EmailInboxId) then
-                exit(false);
-            MessageId := EmailInbox."Message Id";
-        end else
-            MessageId := LoadedEDocument."Mail Message Id";
-        exit(not IsNullGuid(MessageId));
-    end;
-
-    local procedure PopulateAgentTaskStatus()
-    var
-        AgentTask: Record "Agent Task";
-    begin
-        if TempLoadedTask."Agent Task ID" = 0 then
-            exit;
-        if AgentTask.Get(TempLoadedTask."Agent Task ID") then begin
-            TempLoadedTask."Agent Task Status" := AgentTask.Status;
-            TempLoadedTask."Has Agent Task" := true;
-        end;
-    end;
-
-    local procedure FindAgentTaskIdForExternalId(ExternalId: Text[2048]): BigInteger
-    var
-        AgentTask: Record "Agent Task";
-    begin
-        AgentTask.SetRange("Company Name", CompanyName());
-        AgentTask.SetRange("External ID", ExternalId);
-        if AgentTask.FindFirst() then
-            exit(AgentTask.ID);
-        exit(0);
-    end;
+        LoadedAgentTask: Record "Agent Task";
+        LoadedStoredTask: Record "Payables Agent Task";
+        LoadedEDocument: Record "E-Document";
+        LoadedVersion: Enum "PA Version";
+        TaskNotFoundErr: Label 'The task does not exist.';
+        MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.';
+        AmbiguousTaskBackingErr: Label 'Agent task %1 has both version 1 and version 2 backing records.';
+        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
+        SourceTextNotSupportedErr: Label 'Extracted source text cannot be stored for this task.';
+        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
 }

@@ -102,15 +102,18 @@ Across the flows and cross-cutting concerns, data persistance may be required. T
 - Wrapping codeunits: Another approach is to wrap the table, and have derived state live also here as getters that read the appropriate state. This pattern is heavier, but aids in treating under the same contract entities with different backing tables as the v1-v2 change requires.
 - Wrapping temporary tables: This approach is used only to supply AL pages that are backed by such table. Useful for pages showing derived values, which we would like sort by.
 
-Entity wrappers own data access, updates and persisted invariants, hiding their backing representations. Navigation, formatting and caller-specific enrichment belong to consumers. Task identities and runtime correlation tokens are opaque: callers do not interpret them as storage keys.
+Entity wrappers own data access, updates and persisted invariants, hiding their backing representations. Navigation, formatting and caller-specific enrichment belong to consumers. `PA Detailed Task` is only the temporary, sortable backing of task list pages; other code consumes task/source getters directly.
 
 The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures backing monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
+
+A received Task Source exists before admission and may be accepted or rejected. Intake evaluates external policy such as known senders, setup, trial and agent availability. Acceptance creates the Agent Framework task and binds the source exactly once. The accepted Task aggregate has one identity, the Agent Framework Task ID, and loads the framework task together with exactly one v1 or v2 source backing. Historical v1 and current v2 tasks therefore share one list without copying e-documents into the v2 table; task capabilities disable actions unsupported by a particular version. Rejected v2 sources remain visible as rejected intake rows without pretending to have an Agent Framework task.
 
 Task mutations reload current state and update only their intended fields. Outcomes must refer to existing purchase invoices, orders, credit memos, posted purchase invoices or posted purchase credit memos; the caller judges business completeness. A posting subscriber conditionally replaces invoice/credit-memo outcome references before the posting commit, ignoring preview and order posting.
 
 Currently the identified entities are:
 - Setup: Agent's configured state and derived views of that configuration.
-- Task: Agent task's identity, source information and content access, runtime and outcome associations, and derived lifecycle views.
+- Task Source: Received source information before admission, backed by the active version's source records.
+- Task: An accepted Agent Framework task together with exactly one v1 or v2 source backing, runtime and outcome associations, and derived lifecycle views.
 - KnownSender: Senders that we have received tasks from in the past and their assigned handling policies.
 
 
@@ -150,6 +153,7 @@ Compatibility/
 Operations/
     EmailStorageCleanup/
 
+_Development/                           Objects compiled only with the DEVELOPMENT preprocessor symbol
 _Obsolete/                              Lifecycle placement for obsolete objects, not a responsibility category
 .resources/
 ```
@@ -163,9 +167,9 @@ Declarative objects directly bound to draft-based surfaces, such as profiles and
 
 ---
 
-# Transition Notes
+# Transition Notes (to be removed from this document, just to keep track in the meantime)
 
-## Changes in this PR (to be removed from this document, just to keep track in the meantime)
+## Changes in this PR
 
 Major rewrite of the app to support v2
 
@@ -175,15 +179,25 @@ Major rewrite of the app to support v2
     - TODO: Let's add a new Email page that is for v2 that doesn't reference E-Documents, and leave the other one as it was. Then remove this line
     - TODO: The change on KnownSenders functinoality to use the email rather than the SourceDetails, while this is probably ok, let's keep it retrieving sources as it was in V1. Then remove this line
 
-- Version 2 is reachable via a flag only reachable by editing the code, and exercises the basic envisioned scenario
-    - TODO: wire prompt
-    - TODO: Remove dev scaffold table,page. The IsAgentSession:=true (KEEP)
-    - TODO: delete the ReceivedAt, CompletedAt of the PATask table, and rather use the createdat, updatedat. remove the Complete().
+- Version 2 is reachable in DEVELOPMENT builds through the Payables Agent Development Settings page, and exercises the basic envisioned scenario
+    - Development builds can also simulate the agent-facing task-page experience without creating an agent session. The development settings objects and all simulation references are guarded by the DEVELOPMENT preprocessor symbol.
     - TODO: Edit AKVs with the security prompt for the extraction, rewire (KEEP)
+    - The task title in the pane is not renamed
 
 Tests are split from their original home into AI and non-AI tests.
 
+### V2 gaps and quirks
+
+- Upgrade from V1 to V2
+- Closing a PI and the "The document has been saved but is not yet posted" message
+- Task list refresh needs full refresh (backing table is temp)
+- Experience for selecting vendor when not found
+- Task timeline migration
+- Tooltips
+- Attachment should be included in PI
+- OCV
+
 ## Personal gates
 
-- Assesment of whether an object was renumbered
+- Assesment of whether an object was renumbered (can we remove install codeunits?) other breaking change analysis (pages stay with same source type)
 - Dependency rules gated by scripts, maybe merge as part of the PR in `build/scripts/` and called in a GH action yaml. (not easy to have custom analyzers)

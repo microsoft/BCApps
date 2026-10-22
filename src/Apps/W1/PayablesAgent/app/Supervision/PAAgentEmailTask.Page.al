@@ -112,13 +112,14 @@ page 3305 "PA Agent Email Task"
 
     trigger OnAfterGetCurrRecord()
     var
-        Data: Record "PA Detailed Task" temporary;
+        SenderName: Text;
     begin
-        if PATask.Load(Rec."Task ID") then;
-        PATask.GetRecord(Data);
-        EmailFrom := Data."Email From";
-        if Data."Sender Name" <> '' then
-            EmailFrom := StrSubstNo(EmailFromTxt, Data."Sender Name", Data."Email From");
+        if not PATask.Load(Rec."Task ID") then
+            exit;
+        EmailFrom := PATask.GetEmailFrom();
+        SenderName := PATask.GetSenderName();
+        if SenderName <> '' then
+            EmailFrom := StrSubstNo(EmailFromTxt, SenderName, EmailFrom);
         EmailSubject := PATask.GetEmailSubject();
         EmailContent := PATask.GetSourceEmailBody();
         ViewPDFVisible := PATask.HasPdf();

@@ -50,10 +50,35 @@ page 3333 "Payables Agent Tasks"
                 {
                     ToolTip = 'Specifies the vendor of the purchase invoice that was registered as the outcome of the task.';
                 }
+                field(AgentTaskId; Rec."Agent Task ID")
+                {
+                    Caption = 'Agent Task No.';
+                    ToolTip = 'Specifies the number of the agent task that works on this task.';
+                    Editable = false;
+                    ExtendedDatatype = Task;
+                    BlankNumbers = BlankZero;
+
+                    trigger OnDrillDown()
+                    begin
+                        Presentation.OpenAgentTask(Rec."Agent Task ID");
+                    end;
+                }
                 field("Agent Task Status"; Rec."Agent Task Status")
                 {
                     HideValue = AgentTaskStatusHidden;
                     ToolTip = 'Specifies the status of the agent task that works on this task.';
+                }
+                field("Intake Status"; Rec."Intake Status")
+                {
+                    ToolTip = 'Specifies whether the received source was accepted as an agent task or rejected during intake.';
+                }
+                field(Version; Rec.Version)
+                {
+                    ToolTip = 'Specifies the Payables Agent version that owns this task or source.';
+                }
+                field("Rejection Reason"; Rec."Rejection Reason")
+                {
+                    ToolTip = 'Specifies why the received source was rejected during intake.';
                 }
             }
         }
@@ -99,6 +124,18 @@ page 3333 "Payables Agent Tasks"
                 Caption = 'PDF';
                 Image = Document;
 
+                action(UploadPdf)
+                {
+                    Caption = 'Upload';
+                    ToolTip = 'Upload a PDF invoice to create a new task for the payables agent.';
+                    Image = Import;
+                    Visible = CanUploadPdf;
+
+                    trigger OnAction()
+                    begin
+                        UploadPdfForAgent();
+                    end;
+                }
                 action(DownloadPdf)
                 {
                     Caption = 'Download';
@@ -152,23 +189,59 @@ page 3333 "Payables Agent Tasks"
                     Presentation.OpenOutcome(PATask);
                 end;
             }
-            action(RegisterOutcome)
+            group(Agent)
             {
-                Caption = 'Register outcome';
-                ToolTip = 'Register the purchase document that is the outcome of the task.';
-                Image = Approve;
-                Visible = IsAgentSession;
+                Caption = 'Agent';
+                Image = Sparkle;
+                Visible = UseAgentExperience;
+
+                action(ExtractSourceText)
+                {
+                    Caption = 'Retrigger extraction';
+                    ToolTip = 'Extract the source PDF text again, replacing existing extracted text after confirmation.';
+                    Image = SparkleFilled;
+                    Enabled = CanExtractSourceText;
+
+                    trigger OnAction()
+                    begin
+                        LoadCurrentTask(PATask);
+                        Presentation.ExtractSourceText(PATask);
+                        RefreshCurrentTask();
+                    end;
+                }
+                action(RegisterOutcome)
+                {
+                    Caption = 'Register outcome';
+                    ToolTip = 'Register the purchase document that is the outcome of the task.';
+                    Image = Approve;
+                    Enabled = CanRegisterOutcome;
+
+                    trigger OnAction()
+                    var
+                        PARegisterOutcome: Page "PA Register Outcome";
+                    begin
+                        LoadCurrentTask(PATask);
+                        PARegisterOutcome.SetTask(PATask);
+                        if PARegisterOutcome.RunModal() <> Action::OK then
+                            exit;
+                        RefreshCurrentTask();
+                    end;
+                }
+            }
+        }
+        area(Prompting)
+        {
+            action(UploadPdfPrompting)
+            {
+                ApplicationArea = All;
+                Caption = 'New from PDF';
+                ToolTip = 'Upload a PDF invoice to create a new task for the payables agent.';
+                Image = Sparkle;
+                Visible = CanUploadPdf;
 
                 trigger OnAction()
-                var
-                    PATask: Codeunit "Payables Agent Task";
-                    PARegisterOutcome: Page "PA Register Outcome";
                 begin
-                    LoadCurrentTask(PATask);
-                    PARegisterOutcome.SetTask(PATask);
-                    if PARegisterOutcome.RunModal() <> Action::OK then
-                        exit;
-                    RefreshCurrentTask();
+                    UploadPdfForAgent();
                 end;
             }
         }
@@ -189,6 +262,9 @@ page 3333 "Payables Agent Tasks"
             {
                 Caption = 'PDF';
 
+                actionref(UploadPdf_Promoted; UploadPdf)
+                {
+                }
                 actionref(DownloadPdf_Promoted; DownloadPdf)
                 {
                 }
@@ -202,20 +278,25 @@ page 3333 "Payables Agent Tasks"
             actionref(OpenOutcome_Promoted; OpenOutcome)
             {
             }
-            actionref(RegisterOutcome_Promoted; RegisterOutcome)
+            group(Agent_Promoted)
             {
+                Caption = 'Agent';
+                Visible = UseAgentExperience;
+
+                actionref(ExtractSourceText_Promoted; ExtractSourceText)
+                {
+                }
+                actionref(RegisterOutcome_Promoted; RegisterOutcome)
+                {
+                }
             }
         }
     }
 
     trigger OnOpenPage()
-    var
-        PayablesAgent: Codeunit "Payables Agent Metadata";
-        AgentTaskID: BigInteger;
     begin
-        IsAgentSession := PayablesAgent.IsPayablesAgentSession(AgentTaskID);
-        // TODOPAV1V2
-        IsAgentSession := true;
+        UseAgentExperience := AgentExperience.IsActive();
+        CanUploadPdf := PAAgentAccess.CanShowAgentActions();
         if not TasksSupplied then
             Presentation.GetTasks(Rec);
         if Rec.FindFirst() then;
@@ -228,10 +309,12 @@ page 3333 "Payables Agent Tasks"
 
     trigger OnAfterGetCurrRecord()
     begin
-        IsEmailSourced := Rec."Source Type" = Rec."Source Type"::Email;
-        IsPdfSourced := Rec."Has Pdf";
+        IsEmailSourced := Rec."Has Agent Task" and (Rec."Source Type" = Rec."Source Type"::Email);
+        IsPdfSourced := Rec."Has Agent Task" and Rec."Has Pdf";
         HasSource := IsEmailSourced or IsPdfSourced;
-        HasOutcome := Rec.Outcome.TableNo <> 0;
+        HasOutcome := Rec."Has Agent Task" and (Rec.Outcome.TableNo <> 0);
+        CanExtractSourceText := Rec."Has Agent Task" and Rec."Can Extract Text";
+        CanRegisterOutcome := Rec."Has Agent Task" and Rec."Can Register Outcome";
         EmailWebLink := '';
         if IsEmailSourced then begin
             LoadCurrentTask(PATask);
@@ -255,23 +338,39 @@ page 3333 "Payables Agent Tasks"
         CurrPage.Update(false);
     end;
 
+    local procedure UploadPdfForAgent()
+    var
+        TaskUpload: Codeunit "PA Task Upload";
+    begin
+        if not TaskUpload.UploadInvoiceWithAgent() then
+            exit;
+        Presentation.GetTasks(Rec);
+        if Rec.FindLast() then;
+        CurrPage.Update(false);
+    end;
+
     local procedure LoadCurrentTask(var Task: Codeunit "Payables Agent Task")
     begin
-        if not Task.Load(Rec."Task Id") then
+        if not Task.Load(Rec."Agent Task ID") then
             Error(TaskNotFoundErr);
     end;
 
     var
         PATask: Codeunit "Payables Agent Task";
         Presentation: Codeunit "PA Task Presentation";
+        AgentExperience: Codeunit "PA Agent Experience";
+        PAAgentAccess: Codeunit "PA Agent Access";
         TasksSupplied: Boolean;
         TaskNotFoundErr: Label 'The task does not exist.';
         EmailWebLink: Text;
-        IsAgentSession: Boolean;
+        UseAgentExperience: Boolean;
         IsEmailSourced: Boolean;
         IsPdfSourced: Boolean;
         HasSource: Boolean;
         HasOutcome: Boolean;
         HasEmailWebLink: Boolean;
+        CanUploadPdf: Boolean;
+        CanExtractSourceText: Boolean;
+        CanRegisterOutcome: Boolean;
         AgentTaskStatusHidden: Boolean;
 }

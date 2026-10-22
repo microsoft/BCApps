@@ -6,7 +6,6 @@
 namespace System.Test.Agents.PayablesAgent;
 
 using Microsoft.Agent.PayablesAgent;
-using System.Agents;
 
 codeunit 133722 "PA Trial Tests"
 {
@@ -16,9 +15,8 @@ codeunit 133722 "PA Trial Tests"
     Access = Internal;
 
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        PATestFixtures: Codeunit "PA Test Fixtures";
         PATrial: Codeunit "PA Trial";
-        PAEDocTestGlue: Codeunit "PA EDoc Unit Test Glue";
         Assert: Codeunit Assert;
 
     [Test]
@@ -187,50 +185,20 @@ codeunit 133722 "PA Trial Tests"
 
     local procedure SetupPayablesAgent()
     var
-        PASetup: Record "Payables Agent Setup";
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
     begin
-        PASetupConfiguration := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        PASetupConfiguration.GetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetup := PASetupConfiguration.GetPayablesAgentSetup();
-        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
-        PASetupConfiguration.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetupConfiguration.SetPayablesAgentSetup(PASetup);
-        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfiguration);
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
+        PATestFixtures.Activate(PASetupUpdateParameters);
     end;
 
     local procedure ResetPayablesAgent()
-    var
-        Agent: Record Agent;
-        PASetup: Record "Payables Agent Setup";
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        PASetupConfigs: Codeunit "PA Setup Configuration";
     begin
-        PASetupConfigs := GetPASetupConfigs();
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfigs);
-        TempAgentSetupBuffer := PASetupConfigs.GetAgentSetupBuffer();
-        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Disabled;
-        PASetupConfigs.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfigs);
-        if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
-            if Agent.Get(TempAgentSetupBuffer."User Security ID") then
-                Agent.Delete();
-        PASetup.DeleteAll();
-        PAEDocTestGlue.DeleteAgentIntake();
+        PATestFixtures.Reset();
     end;
 
     local procedure ResetTrialState()
     begin
         PATrial.ResetTrial();
-    end;
-
-    local procedure GetPASetupConfigs() PASetupConfigs: Codeunit "PA Setup Configuration"
-    begin
-        PASetupConfigs.SetSkipAgentConfiguration(true);
-        PASetupConfigs.SetSkipEmailVerification(true);
-        exit(PASetupConfigs);
     end;
 
 }

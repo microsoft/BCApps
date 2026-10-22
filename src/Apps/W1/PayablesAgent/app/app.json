@@ -57,6 +57,9 @@
         "TranslationFile",
         "NoImplicitWith"
     ],
+    "preprocessorSymbols": [
+        "DEVELOPMENT"
+    ],
     "resourceFolders": [
         ".resources"
     ]

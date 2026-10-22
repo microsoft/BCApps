@@ -39,7 +39,7 @@ page 3338 "PA Email Review"
                     Caption = 'Subject';
                     ToolTip = 'Specifies the subject of the email.';
                 }
-                field(EmailReceivedAt; Rec."Received At")
+                field(EmailReceivedAt; Rec."Email Received At")
                 {
                     Caption = 'Received';
                     ToolTip = 'Specifies when the email was received.';
@@ -72,16 +72,16 @@ page 3338 "PA Email Review"
 
     internal procedure SetTask(NewTask: Codeunit "Payables Agent Task")
     var
-        Data: Record "PA Detailed Task" temporary;
+        Presentation: Codeunit "PA Task Presentation";
     begin
         // Pin this page to its own task handle rather than retain the caller's mutable wrapper.
-        NewTask.GetRecord(Data);
-        if not Task.Load(Data."Task Id") then
+        if not Task.Load(NewTask.GetAgentTaskId()) then
             Error(TaskNotFoundErr);
         Rec.Reset();
         Rec.DeleteAll();
-        Task.GetRecord(Rec);
+        Rec.Init();
         Rec."Entry No." := 1;
+        Presentation.PopulateListRow(Rec, Task);
         Rec.Insert();
     end;
 

@@ -26,4 +26,8 @@ enum 3345 "PA Task State"
     {
         Caption = 'Processed';
     }
+    value(4; Rejected)
+    {
+        Caption = 'Rejected';
+    }
 }

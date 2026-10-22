@@ -184,9 +184,12 @@ codeunit 3344 "PA Setup Update"
     var
         AgentAdminPS: Record "Aggregate Permission Set";
         AccessControl: Record "Access Control";
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
         TempModifiedAgentAccessControl: Record "Agent Access Control" temporary;
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
+        Agent: Codeunit Agent;
         AgentSetup: Codeunit "Agent Setup";
+        DesiredSetup: Codeunit "PA Setup";
         UserPermissions: Codeunit "User Permissions";
         CurrentModuleInfo: ModuleInfo;
         AgentUserId: Guid;
@@ -194,8 +197,18 @@ codeunit 3344 "PA Setup Update"
     begin
         PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
         AgentUserId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
-        // We assign the necessary permission sets to the users depending on whether or not users are able to modify the agent
+
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
+        Agent.SetProfile(AgentUserId, DesiredSetup.GetAgentProfile(), CurrentModuleInfo.Id);
+        TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
+        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
+        TempAccessControlBuffer."App ID" := CurrentModuleInfo.Id;
+        TempAccessControlBuffer."Role ID" := DesiredSetup.GetAgentPermissionSet();
+        TempAccessControlBuffer.Insert();
+        Agent.UpdateAccessControl(AgentUserId, TempAccessControlBuffer);
+
+        // We assign the necessary permission sets to the users depending on whether or not users are able to modify the agent
         Clear(AgentAdminPS);
         AgentAdminPS.SetRange("App ID", CurrentModuleInfo.Id);
         AgentAdminPS.SetRange("Role ID", AgentAdminPermissionSetTok);

@@ -5,20 +5,21 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-//TODOPAV1V2
-table 3309 "DEVPAV1V2"
+enum 3341 "PA Version"
 {
     Access = Internal;
-    fields
+    Extensible = false;
+
+    value(0; Unknown)
     {
-        field(1; PK; Integer)
-        { }
-        field(2; V2; Boolean)
-        { }
+        Caption = 'Unknown';
     }
-    keys
+    value(1; V1)
     {
-        key(PK; PK)
-        { }
+        Caption = 'Version 1';
+    }
+    value(2; V2)
+    {
+        Caption = 'Version 2';
     }
 }

@@ -17,7 +17,7 @@ codeunit 3349 "PA Agent Instructions"
     InherentPermissions = X;
 
     #region Agent instructions
-    // The prompt resource still needs version-aware selection: today the v1 prompts are always used.
+    // Resource selection is version-aware; the applied fingerprint describes the exact public prompt deployed.
 
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     begin
@@ -33,13 +33,12 @@ codeunit 3349 "PA Agent Instructions"
         Agent: Codeunit Agent;
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         PayablesAgentPromptText: Text;
-        AgentDriven: Boolean;
+        ResourceName: Text;
     begin
-        AgentDriven := IsAgentDrivenLineMatchingEnabled();
-        if AgentDriven then
-            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
-        else
-            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
+        ResourceName := PASetup.GetAgentInstructionsResource(IsAgentDrivenLineMatchingEnabled());
+        PayablesAgentPromptText := NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8);
+        if PayablesAgentPromptText = '' then
+            Error(UnableToConfigureAgentInstructionsErr);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(PayablesAgentPromptText, SecurityPromptSecretText)
         else begin
@@ -48,7 +47,8 @@ codeunit 3349 "PA Agent Instructions"
         end;
         Agent.SetInstructions(AgentUserSecurityId, CompletePromptSecretText);
 
-        ConfigHash := CopyStr(GetInstructionsConfigHash(), 1, MaxStrLen(ConfigHash));
+        // Do not re-resolve configuration after the potentially slow secret lookup.
+        ConfigHash := CopyStr(HashInstructions(ResourceName, PayablesAgentPromptText), 1, MaxStrLen(ConfigHash));
     end;
 
     internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
@@ -65,7 +65,7 @@ codeunit 3349 "PA Agent Instructions"
         PASetup.GetSetup();
         if PASetup.GetAppliedInstrConfigHash() = GetInstructionsConfigHash() then
             exit;
-        Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied due to experiment configuration drift.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PATelemetry.FeatureName());
+        Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied after instruction configuration changed.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PATelemetry.FeatureName());
         SetAgentInstructions(AgentUserSecurityId);
     end;
 
@@ -77,26 +77,22 @@ codeunit 3349 "PA Agent Instructions"
 
     internal procedure GetInstructionsConfigHash(): Text
     var
-        FeatureConfiguration: Codeunit "Feature Configuration";
+        ResourceName: Text;
+    begin
+        ResourceName := PASetup.GetAgentInstructionsResource(IsAgentDrivenLineMatchingEnabled());
+        exit(HashInstructions(ResourceName, NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8)));
+    end;
+
+    local procedure HashInstructions(ResourceName: Text; PromptText: Text): Text
+    var
         CryptographyManagement: Codeunit "Cryptography Management";
-        ConfigKey: Text;
         Signature: TextBuilder;
         HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
     begin
-        foreach ConfigKey in GetInstructionsExperimentKeys() do begin
-            Signature.Append(ConfigKey);
-            Signature.Append('=');
-            Signature.Append(FeatureConfiguration.GetConfiguration(ConfigKey));
-            Signature.Append(';');
-        end;
+        // Includes mode/variant and resource edits, but never the AKV secret or document content.
+        Signature.AppendLine(ResourceName);
+        Signature.Append(PromptText);
         exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
-    end;
-
-    local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
-    begin
-        // Tenant-level experiment keys whose ECS configuration changes the agent's instructions.
-        // Add future prompt-affecting experiment keys here.
-        Keys.Add(AgentDrivenLineMatchingTok);
     end;
 
     #endregion
@@ -104,8 +100,6 @@ codeunit 3349 "PA Agent Instructions"
     var
         PASetup: Codeunit "PA Setup";
         PATelemetry: Codeunit "PA Telemetry";
-        PayablesAgentPromptTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        PayablesAgentAgentDrivenPromptTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
         SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
