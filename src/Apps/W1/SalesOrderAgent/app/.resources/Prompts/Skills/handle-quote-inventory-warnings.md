@@ -2,15 +2,15 @@
 
 Handle low-inventory notifications on a specified Business Central sales quote using the applicable availability and capable-to-promise policies.
 
-## Required context and scope
+## Context and scope
 
-- Required context is the identified quote in the current company, its lines and notifications (pages 41 and 301), the applicable availability and capable-to-promise settings, and the quote-review requirement and its current status.
-- Use any item availability results obtained before quote creation and the requested delivery date resolved for the quote. Resolve settings from authorized task context or available BC configuration; do not infer capable-to-promise enablement from a date in the results.
+- Use the quote identified in task progress or on the current page, the current BC company, and its lines and notifications (pages 41 and 301). Do not require these values to be supplied again as separate inputs.
+- Follow the active SOA availability and capable-to-promise instructions. Use any item availability results obtained before quote creation and the requested delivery date resolved for the quote. Do not request repeated configuration confirmation or infer capable-to-promise enablement from a date in the results.
 - This skill does not authorize sending or converting the quote.
 
-## Missing context and resume
+## Using available context and resuming
 
-Open and verify the specified quote before acting. If the quote identity or required settings are unknown, request assistance; missing configuration does not mean disabled. Before handling an applicable inventory warning, request any required, incomplete quote review on the quote page and wait. Do not request a review solely for this skill when inventory handling is not applicable.
+Check whether inventory handling applies before gathering any additional context. Use the current quote and available task progress rather than asking the user to restate the quote identity, settings, or review status. Request assistance for an actual handling failure or an applicable condition described below, not because an optional input or separate configuration flag was omitted.
 
 Retain affected line identifiers, any recalculated shipment dates, and pending assistance. When resuming, check the current quote and finish unresolved handling rather than repeating completed changes.
 
@@ -19,6 +19,8 @@ Retain affected line identifiers, any recalculated shipment dates, and pending a
 If item availability checking is disabled, finish with Not applicable. Ignore inventory notifications, availability levels, and earliest shipment dates; do not request assistance because of stock or quantity.
 
 If there is no low-inventory notification, finish with Not applicable without changing shipment dates as part of this skill.
+
+Before changing an affected quote, honor a quote review only when explicitly required by the active workflow. For SOA, absence of the corresponding rule in the complete active instructions means Not required by this setup, with review completion Not applicable. Reuse a recorded completed review; if an explicitly required review is incomplete, use `request_review` on the quote and wait. Do not request a review or confirmation of its status solely because this skill was invoked.
 
 ## 2. Handle the notification without capable-to-promise
 

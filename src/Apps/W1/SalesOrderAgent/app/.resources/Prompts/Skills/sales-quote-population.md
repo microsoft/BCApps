@@ -2,17 +2,19 @@
 
 Create and populate a Business Central sales quote from an authorized request, an eligible contact or customer, and resolved item selections.
 
-## Required context and scope
+## Context and scope
 
-- Required inputs are the authorized quote-creation request, the current company, an eligible selected contact or customer, resolved item selections, and the applicable capable-to-promise setting. Use request details from the message body, subject, attachments, conversation, or supplied task context.
+- Use the authorized request, the current BC company, the eligible selected contact or customer, and resolved item selections already available to the task. Obtain request details from the message body, subject, attachments, conversation, or current page without requiring them to be supplied again as separate inputs.
 - Item selection and any required customer clarification or assistance must be resolved before creating the quote. The selected contact or customer is authoritative even if its name or email address differs from the conversation history.
-- Resolve the capable-to-promise setting from authorized task context or available BC configuration. Apply its shipment-date rule only when enabled. Do not infer enablement from the presence of a date in the search results.
+- Follow the active SOA capable-to-promise instruction: enabled when its rule is present, otherwise disabled. Do not request a separately supplied setting or infer enablement from the presence of a date in the search results.
 - Follow the numbered steps one by one. After creating the quote, perform the field and line steps on the Sales Quote page (page 41) and its lines (page 301), opening the required lookups from there.
-- This skill covers quote creation and population only. It does not authorize sending the quote, converting it to an order, or bypassing applicable review, inventory, safety, or communication requirements.
+- This skill creates and populates a draft only. Do not gather inputs, request approvals, or verify prerequisites for later review, sending, or conversion operations within this skill. Return control to the main workflow after population; its applicable requirements still govern later operations.
 
-## Missing context and resume
+## Using available context and resuming
 
-If item selections are missing, retrieve the complete "Find Requested Items" skill through BusinessIQ. If a contact or customer has not been resolved, retrieve "Resolve Contact or Customer". Retain this skill's progress while resolving these dependencies. Do not create the quote while their results require clarification or assistance. If required guidance, authorization, or configuration is unavailable, request assistance rather than guessing or treating a missing setting as disabled.
+If item selections are missing, retrieve the complete "Find Requested Items" skill through BusinessIQ. If a contact or customer has not been resolved, retrieve "Resolve Contact or Customer". Retain this skill's progress while resolving these dependencies. Do not create the quote while their results require clarification or assistance. Follow the main workflow's assistance rule if required helper guidance is unavailable or incomplete.
+
+Continue with available request details and BC defaults. An unspecified delivery date, external reference, shipping address, Variant Code, or unit of measure is not a reason to stop; apply the corresponding numbered step's default or leave the field unchanged as instructed. Do not request review status, signature content, or other later-operation context to populate the draft.
 
 When resuming this skill after an interruption or history summary, use the recorded quote and continue from the first unfinished step. Do not create another quote if creation already succeeded. Check the current page when the outcome of an earlier action is uncertain.
 
@@ -75,4 +77,6 @@ If the request explicitly specifies a unit, search and populate the unit of meas
 
 Confirm that the requested header information and all requested lines are present on the current quote. Retain its identifier and the completed population step in the task's progress before returning control.
 
-Complete with the quote identifier, the applied item/quantity/unit and delivery/address decisions, and any assumptions, notifications, or unresolved issues. The result is a populated draft, not a sent or converted document. Report Needs clarification with unresolved items when a prerequisite needs the customer's choice, or Needs assistance when blocked on assistance. Leave review, sending, and conversion to separately authorized operations.
+Report Complete when the draft is populated, with the quote identifier, applied item/quantity/unit and delivery/address decisions, and relevant assumptions or notifications. Missing optional details or context used exclusively by later operations do not make draft population incomplete.
+
+Report Needs clarification only when a creation or population step requires the customer's choice, or Needs assistance when an actual creation or population step is blocked. Identify that step and its specific blocker. The result is a populated draft, not a sent or converted document; return control to the main workflow for subsequent operations.

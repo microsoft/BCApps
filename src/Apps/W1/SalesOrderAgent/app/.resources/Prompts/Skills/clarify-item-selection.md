@@ -2,16 +2,18 @@
 
 Clarify requested items with the customer when search results are ambiguous, include non-matching alternatives, or contain no result for a requested specific variant.
 
-## Required context and scope
+## Context and scope
 
 - Use the original requested items and the completed item search results, including matching status, Variant Codes, descriptions, prices including discounts, units of measure, and applicable availability information.
-- Use explicit availability and capable-to-promise settings from authorized task context or BC configuration. Before customer contact, require permission to send the clarification, an identified recipient, and the applicable communication and review requirements, including signature mode and supplied signature content when required.
+- Follow the active SOA availability, capable-to-promise, and customer-communication instructions. Use the recipient established by the conversation/runtime routing and any available signature text; do not ask for these values or settings to be repeated as separate inputs. The active instruction to request customer clarification supplies authorization for that reply, subject to runtime permissions and required message reviews.
 - Ordinary missing-item and pricing errors belong to the item-search assistance flow. This skill handles the specific-variant no-result exception and customer selection from returned options.
 - This skill does not authorize creating a quote or selecting an alternative without resolving the customer's choice.
 
-## Missing context and resume
+## Using available context and resuming
 
-If item search has not been completed, retrieve the complete "Find Requested Items" skill through BusinessIQ and use its results before deciding whether clarification is needed. Retain this skill's progress while resolving that dependency. If required guidance, settings, or customer-contact authorization are missing or incomplete, request assistance and do not send a message.
+If item search has not been completed, retrieve the complete "Find Requested Items" skill through BusinessIQ and use its results before deciding whether clarification is needed. Retain this skill's progress while resolving that dependency. If required guidance is unavailable or incomplete, follow the main workflow's assistance rule rather than inventing a procedure.
+
+Use available search results, active instructions, and established routing without introducing a separate configuration, signature-approval, or document-review checklist for item clarification. Do not invent item facts or a recipient; request assistance if no recipient can be determined from existing routing or an actual sending operation fails.
 
 If a clarification message was already sent or is pending review, retain its identifier and wait for the outcome or customer response instead of sending it again. Honor required review before customer contact.
 
@@ -42,7 +44,7 @@ Only when capable-to-promise is explicitly enabled, also provide a table of item
 
 ## 4. Send the clarification
 
-Include any delivery-date handling disclosures carried forward from item search. Before sending, retrieve the complete "Format Customer Emails" skill through BusinessIQ and supply the required message content, signature mode, and signature content when applicable. If the formatting skill is unavailable or incomplete, request assistance instead of sending.
+Include any delivery-date handling disclosures carried forward from item search. Before sending, retrieve the complete "Format Customer Emails" skill through BusinessIQ and supply the message content and active communication instructions, including any available signature text. Do not require a separate signature-mode input or signature approval. If the formatting skill is unavailable or incomplete, request assistance instead of sending.
 
 Use `send_message` with `requestsInformation` set to true because the customer's selection or revised request is needed. Record the message outcome only after the tool returns; preparing the text or updating a todo does not establish that the message was sent.
 

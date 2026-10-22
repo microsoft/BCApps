@@ -2,15 +2,16 @@
 
 Find and evaluate every item requested in a Business Central sales inquiry, sales quote request, or sales order request before proceeding to item selection or quote creation.
 
-## Required context and scope
+## Context and scope
 
 - Use the message body, every attachment, and relevant conversation history. An item identifier can be an item number, SKU, product code, vendor item number, catalog number, or another identifying code.
-- Required context includes the current company, the designated customer/contact and location filters, and explicit enabled/disabled settings for item availability checking and capable-to-promise. Resolve these from authorized task context or available BC configuration. Apply capable-to-promise only when both settings enable it; never infer enablement from the presence of an earliest shipment date.
+- Use the current BC company and the pricing/location context already on the item availability page. "Customer No.", "Contact No.", and "Location filter" are optional search context, not prerequisites. Preserve their existing values, including blanks; do not ask the user to supply them or resolve a customer/contact before searching.
+- Follow the active SOA availability and capable-to-promise instructions without requiring separately supplied configuration flags. For SOA, capable-to-promise is enabled when its active rule is present, otherwise disabled. Apply it only when availability checking is also enabled; never infer enablement from the presence of an earliest shipment date.
 - This skill searches and evaluates items. It does not authorize selecting an unconfirmed alternative, creating a quote, or replying outside the agent's communication rules.
 
-## Missing context and resume
+## Using available context and resuming
 
-If required configuration or pricing context cannot be determined, request assistance before searching. Do not interpret an unknown setting as disabled or replace a designated customer, contact, or location to obtain a result.
+Begin searching with the request information and page values available. Do not introduce a pre-search checklist or assistance request for missing optional pricing/location context, a separately stated company, or repeated confirmation of active settings. Let the search run with the page's existing context and handle actual errors or results using the steps below. Do not replace a designated customer, contact, or location to obtain a result.
 
 Reuse confirmed search results only while the requested item, quantity, unit, date, and pricing/location context are unchanged. Search changed items again; do not duplicate results already retained by the runtime.
 
@@ -45,6 +46,8 @@ Preserve the designated pricing and availability context:
 - If "Customer No." is not empty, always use it in the search. Never modify it.
 - If "Contact No." is not empty, always use it in the search. Never modify it.
 - If "Location filter" is not empty, including when it is two single quotes (`''`), always use it in the search. Never modify it.
+
+If any of these pricing/location fields is blank, leave it blank and continue searching. Their absence is not an error and does not require assistance.
 
 ## 4. Invoke search last
 

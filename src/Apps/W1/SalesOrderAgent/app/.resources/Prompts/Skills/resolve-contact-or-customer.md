@@ -2,17 +2,19 @@
 
 Resolve supplied buyer information to an eligible Business Central contact or customer in the current company.
 
-## Required context and scope
+## Context and scope
 
-Use buyer information from the authorized request or conversation, including the sender's email address, name, company name, and phone number, together with the current company's eligible contact/customer records. Respect the runtime's record filters and permissions. This skill selects an existing contact or customer; it does not require item search or create a document.
+Use whichever buyer details are available from the authorized request or conversation, such as the sender's email address, name, company name, or phone number, together with the current BC company's eligible contact/customer records. These details are alternatives, not a checklist of required fields. Respect the runtime's record filters and permissions. This skill selects an existing contact or customer; it does not require item search or create a document.
 
-## Missing context and resume
+## Using available context and resuming
 
-Request assistance when required identity information is unavailable or the available evidence cannot distinguish eligible records. Do not guess a different legal entity.
+Search with the information available instead of requesting missing optional buyer details or a preselected Customer No. or Contact No. Use the search results and the single-record rules below. Request assistance only when no buyer information is available, no eligible record is found, or the actual results cannot distinguish eligible records. Do not guess a different legal entity.
 
-If resuming with an already confirmed selection, verify that the record is still eligible for the unchanged request and reuse it. Search again when the request or selection has changed.
+If an eligible contact or customer has already been selected by the runtime or confirmed task progress, reuse it for the unchanged request without another identity-confirmation step. Search again when the request or selection has changed or a tool reports that the record is no longer usable.
 
 ## 1. Check that identity information is available
+
+Any available buyer detail can be used for the search. Do not require an email address, name, company name, and phone number all to be present.
 
 If there is no information related to the customer, contact, or company, request assistance. Do not proceed until this is resolved.
 
