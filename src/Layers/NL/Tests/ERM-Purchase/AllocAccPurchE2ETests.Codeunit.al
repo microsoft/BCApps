@@ -1978,7 +1978,7 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         AllocationAccount."No." := Format(LibraryRandom.RandText(5));
         AllocationAccount."Account Type" := AllocationAccount."Account Type"::Fixed;
         AllocationAccount."Document Lines Split" := AllocationAccount."Document Lines Split"::"Split Amount";
-        AllocationAccount.Name := Any.AlphabeticText(MaxStrLen(AllocationAccount.Name));
+        AllocationAccount.Name := CopyStr(Any.AlphabeticText(MaxStrLen(AllocationAccount.Name)), 1, MaxStrLen(AllocationAccount.Name));
         AllocationAccount.Insert(true);
 
         AllocAccountDistribution."Allocation Account No." := AllocationAccount."No.";
