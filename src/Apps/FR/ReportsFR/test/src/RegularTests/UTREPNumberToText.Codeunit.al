@@ -376,7 +376,10 @@ codeunit 144044 "UT REP Number To Text"
         // [GIVEN] The reports extension is installed.
 
         // [WHEN] Its CheckFR layout is looked up.
-        ReportLayoutList.Get(Report::Check, 'CheckFR', ReportsAppId());
+        ReportLayoutList.SetRange("Report ID", Report::Check);
+        ReportLayoutList.SetRange(Name, 'CheckFR');
+        ReportLayoutList.SetRange("Application ID", ReportsAppId());
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'Reports FR must provide the CheckFR layout.');
 
         // [THEN] The app-owned layout is RDLC.
         Assert.AreEqual(ReportLayoutList."Layout Format"::RDLC, ReportLayoutList."Layout Format", UnexpectedLayoutErr);
