@@ -17,6 +17,9 @@ page 7136 "Travel Request List"
     CardPageId = "Travel Request Card";
     Editable = false;
     RefreshOnActivate = true;
+    Permissions = tabledata "Spend Request" = rd,
+                  tabledata "Spend Request Detail" = rd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     AboutTitle = 'About travel requests';
     AboutText = 'A travel request captures the intent to travel, its purpose, expected cost, and travelers, so it can be reviewed and approved before any expense is incurred.';
