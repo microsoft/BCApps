@@ -7,7 +7,9 @@ namespace Microsoft.Utilities;
 #if not CLEAN28
 using Microsoft.Bank.Payment;
 #endif
+#if not CLEAN30
 using Microsoft.Finance.FinancialReports;
+#endif
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.HumanResources.Absence;
@@ -35,8 +37,10 @@ codeunit 1752 "Data Class. Eval. Data Country"
         ClassifyEmployeeRelative();
         ClassifyEmployeeQualification();
         ClassifyVATReportHeader();
+#if not CLEAN30
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"FR Acc. Schedule Name");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"FR Acc. Schedule Line");
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Shipment Invoiced");
 #if not CLEAN28
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Payment Class");
