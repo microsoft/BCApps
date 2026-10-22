@@ -16,6 +16,7 @@ codeunit 137621 "SCM Costing Bugs II"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryAssembly: Codeunit "Library - Assembly";
+        LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -2980,6 +2981,7 @@ codeunit 137621 "SCM Costing Bugs II"
         LibraryInventory.PostPositiveAdjustment(
             ComponentItem, Location."Code", '', '', Quantity, WorkDate(), ComponentItem."Standard Cost");
         LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate(), AssemblyItem."No.", Location.Code, Quantity, '');
+        LibraryNotificationMgt.RecallNotificationsForRecord(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
 
