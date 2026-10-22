@@ -699,12 +699,9 @@ page 490 "Acc. Schedule Overview"
                     StyleExpr = Rec.Bold;
                     ToolTip = 'Specifies text that will appear on the account schedule line.';
                 }
-                field(ColumnValues1; ColumnValues[1])
+                field(ColumnValues1; GetColumnValueAsText(1))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(1);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[1];
                     StyleExpr = ColumnStyle1;
 
@@ -713,12 +710,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(1);
                     end;
                 }
-                field(ColumnValues2; ColumnValues[2])
+                field(ColumnValues2; GetColumnValueAsText(2))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(2);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[2];
                     StyleExpr = ColumnStyle2;
                     Visible = NoOfColumns >= 2;
@@ -728,12 +722,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(2);
                     end;
                 }
-                field(ColumnValues3; ColumnValues[3])
+                field(ColumnValues3; GetColumnValueAsText(3))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(3);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[3];
                     StyleExpr = ColumnStyle3;
                     Visible = NoOfColumns >= 3;
@@ -743,12 +734,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(3);
                     end;
                 }
-                field(ColumnValues4; ColumnValues[4])
+                field(ColumnValues4; GetColumnValueAsText(4))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(4);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[4];
                     StyleExpr = ColumnStyle4;
                     Visible = NoOfColumns >= 4;
@@ -758,12 +746,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(4);
                     end;
                 }
-                field(ColumnValues5; ColumnValues[5])
+                field(ColumnValues5; GetColumnValueAsText(5))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(5);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[5];
                     StyleExpr = ColumnStyle5;
                     Visible = NoOfColumns >= 5;
@@ -773,12 +758,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(5);
                     end;
                 }
-                field(ColumnValues6; ColumnValues[6])
+                field(ColumnValues6; GetColumnValueAsText(6))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(6);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[6];
                     StyleExpr = ColumnStyle6;
                     Visible = NoOfColumns >= 6;
@@ -788,12 +770,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(6);
                     end;
                 }
-                field(ColumnValues7; ColumnValues[7])
+                field(ColumnValues7; GetColumnValueAsText(7))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(7);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[7];
                     StyleExpr = ColumnStyle7;
                     Visible = NoOfColumns >= 7;
@@ -803,12 +782,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(7);
                     end;
                 }
-                field(ColumnValues8; ColumnValues[8])
+                field(ColumnValues8; GetColumnValueAsText(8))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(8);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[8];
                     StyleExpr = ColumnStyle8;
                     Visible = NoOfColumns >= 8;
@@ -818,12 +794,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(8);
                     end;
                 }
-                field(ColumnValues9; ColumnValues[9])
+                field(ColumnValues9; GetColumnValueAsText(9))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(9);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[9];
                     StyleExpr = ColumnStyle9;
                     Visible = NoOfColumns >= 9;
@@ -833,12 +806,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(9);
                     end;
                 }
-                field(ColumnValues10; ColumnValues[10])
+                field(ColumnValues10; GetColumnValueAsText(10))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(10);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[10];
                     StyleExpr = ColumnStyle10;
                     Visible = NoOfColumns >= 10;
@@ -848,12 +818,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(10);
                     end;
                 }
-                field(ColumnValues11; ColumnValues[11])
+                field(ColumnValues11; GetColumnValueAsText(11))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(11);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[11];
                     StyleExpr = ColumnStyle11;
                     Visible = NoOfColumns >= 11;
@@ -863,12 +830,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(11);
                     end;
                 }
-                field(ColumnValues12; ColumnValues[12])
+                field(ColumnValues12; GetColumnValueAsText(12))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(12);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[12];
                     StyleExpr = ColumnStyle12;
                     Visible = NoOfColumns >= 12;
@@ -878,12 +842,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(12);
                     end;
                 }
-                field(ColumnValues13; ColumnValues[13])
+                field(ColumnValues13; GetColumnValueAsText(13))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(13);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[13];
                     StyleExpr = ColumnStyle13;
                     Visible = NoOfColumns >= 13;
@@ -894,12 +855,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(13);
                     end;
                 }
-                field(ColumnValues14; ColumnValues[14])
+                field(ColumnValues14; GetColumnValueAsText(14))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(14);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[14];
                     StyleExpr = ColumnStyle14;
                     Visible = NoOfColumns >= 14;
@@ -910,12 +868,9 @@ page 490 "Acc. Schedule Overview"
                         DrillDown(14);
                     end;
                 }
-                field(ColumnValues15; ColumnValues[15])
+                field(ColumnValues15; GetColumnValueAsText(15))
                 {
                     ApplicationArea = Basic, Suite;
-                    AutoFormatExpression = FormatStr(15);
-                    AutoFormatType = 11;
-                    BlankZero = true;
                     CaptionClass = '3,' + ColumnCaptions[15];
                     StyleExpr = ColumnStyle15;
                     Visible = NoOfColumns >= 15;
@@ -2327,22 +2282,50 @@ page 490 "Acc. Schedule Overview"
     end;
 
     /// <summary>
-    /// Formats column values according to column layout formatting specifications.
-    /// Returns formatted string representation of financial data for display purposes.
+    /// Formats column values with the configured precision and negative amount format.
     /// </summary>
     /// <param name="ColumnNo">Column number to format</param>
     /// <returns>Formatted string value for the specified column</returns>
+    local procedure GetColumnValueAsText(ColumnNo: Integer): Text
+    var
+        ColumnFormat: Text;
+        FormattedValue: Text;
+        IsFormatHandled: Boolean;
+        NegativeAmountFormat: Enum "Analysis Negative Format";
+    begin
+        if ColumnValues[ColumnNo] = 0 then
+            exit('');
+
+        NegativeAmountFormat := TempFinancialReport.GetEffectiveNegativeAmountFormat();
+        ColumnFormat := GetColumnFormatString(ColumnNo, IsFormatHandled);
+        FormattedValue := Format(ColumnValues[ColumnNo], 0, ColumnFormat);
+        if (not IsFormatHandled) and (NegativeAmountFormat = NegativeAmountFormat::Parentheses) and (ColumnValues[ColumnNo] < 0) then
+            exit(StrSubstNo('(%1)', FormattedValue.TrimStart('-')));
+
+        exit(FormattedValue);
+    end;
+
     procedure FormatStr(ColumnNo: Integer): Text
     var
-        AddCurrency: Boolean;
-        Result: Text;
         IsHandled: Boolean;
+    begin
+        exit(GetColumnFormatString(ColumnNo, IsHandled));
+    end;
+
+    local procedure GetColumnFormatString(ColumnNo: Integer; var IsHandled: Boolean) Result: Text
+    var
+        AddCurrency: Boolean;
     begin
         GLSetup.Get();
         AddCurrency := TempFinancialReport.UseAmountsInAddCurrency and (GLSetup."Additional Reporting Currency" <> '');
+        IsHandled := false;
         OnAfterFormatStr(ColumnLayoutArr, UseAmtsInAddCurr, ColumnNo, TempFinancialReport.GetEffectiveNegativeAmountFormat(), Result, IsHandled);
         if IsHandled then
             exit(Result);
+        if TempFinancialReport.GetEffectiveNegativeAmountFormat() = Enum::"Analysis Negative Format"::Parentheses then
+            exit(MatrixMgt.FormatRoundingFactor(
+                ColumnLayoutArr[ColumnNo]."Rounding Factor", UseAmtsInAddCurr, Enum::"Analysis Negative Format"::"Minus Sign"));
+
         exit(MatrixMgt.FormatRoundingFactor(ColumnLayoutArr[ColumnNo]."Rounding Factor", UseAmtsInAddCurr, TempFinancialReport.GetEffectiveNegativeAmountFormat()));
     end;
 
