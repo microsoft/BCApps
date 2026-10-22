@@ -288,8 +288,7 @@ codeunit 134556 "ERM CF GL Budget"
     var
         CFAccount: Record "Cash Flow Account";
     begin
-        CFAccount.ModifyAll("G/L Account Filter", '');
-        CFAccount.ModifyAll("G/L Integration", CFAccount."G/L Integration"::" ");
+        CFAccount.ModifyAll("G/L Account Filter", '', "G/L Integration", CFAccount."G/L Integration"::" ");
     end;
 
     local procedure LinkCFAccount(var CFAccount: Record "Cash Flow Account"; var GLAccount: Record "G/L Account"; LinkType: Option)

@@ -49,6 +49,8 @@ codeunit 6902 "Expense Rule Validation"
         MerchantNameMandatoryOnReportLineErr: Label 'Merchant Name is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         ExpenseAlreadyExistErr: Label 'An expense already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
+        ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
     procedure ValidateExpenseAgainstRule(var Expense: Record Expense)
     var
@@ -401,10 +403,6 @@ codeunit 6902 "Expense Rule Validation"
     local procedure ValidateExpenseDetailRequirement(Expense: Record Expense)
     begin
         case Expense."Expense Detail Required" of
-            Expense."Expense Detail Required"::" ":
-                exit;
-            Expense."Expense Detail Required"::Itemize:
-                ValidateItemizationRequired(Expense);
             Expense."Expense Detail Required"::Participants:
                 ValidateParticipantsRequired(Expense);
             Expense."Expense Detail Required"::"Per Diem":
@@ -412,6 +410,9 @@ codeunit 6902 "Expense Rule Validation"
             Expense."Expense Detail Required"::Mileage:
                 ValidateMileageRequired(Expense);
         end;
+
+        if Expense.IsItemizationRequired() then
+            ValidateItemizationRequired(Expense);
 
         ValidateRuleRestriction(Expense);
     end;
@@ -421,16 +422,32 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseSubCategory: Record "Expense Subcategory";
         ExpenseItemization: Record "Expense Itemization";
         ExpenseRuleViolation: Record "Expense Rule Violation";
+        EnforcedItemization: Boolean;
     begin
-        ExpenseSubCategory.SetRange("Expense Category Code", Expense."Expense Category");
-        if ExpenseSubCategory.IsEmpty() then begin
-            ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(MissingExpenseSubCategoryErr, Expense."Expense Category"));
-            exit;
+        EnforcedItemization := Expense.IsEnforcedItemizationRequired();
+        if not EnforcedItemization then begin
+            ExpenseSubCategory.SetRange("Expense Category Code", Expense."Expense Category");
+            if ExpenseSubCategory.IsEmpty() then begin
+                ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(MissingExpenseSubCategoryErr, Expense."Expense Category"));
+                exit;
+            end;
         end;
 
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         if ExpenseItemization.IsEmpty() then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", ItemizationRequiredErr);
+
+        if not EnforcedItemization then begin
+            ExpenseItemization.SetRange("Expense Subcategory Code", '');
+            if ExpenseItemization.FindFirst() then
+                ExpenseRuleViolation.AddRuleViolation(
+                    Expense."No.",
+                    StrSubstNo(
+                        ExpenseSubCategoryMustBeRequiredInExpenseErr,
+                        ExpenseItemization.FieldCaption("Expense Subcategory Code"),
+                        ExpenseItemization."Expense No.",
+                        ExpenseItemization."Line No."));
+        end;
     end;
 
     local procedure ValidateParticipantsRequired(Expense: Record Expense)
@@ -480,6 +497,7 @@ codeunit 6902 "Expense Rule Validation"
         HasParticipants: Boolean;
         HasPerDiem: Boolean;
         HasMileage: Boolean;
+        ItemizationRequired: Boolean;
     begin
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         HasItemization := not ExpenseItemization.IsEmpty();
@@ -492,23 +510,25 @@ codeunit 6902 "Expense Rule Validation"
 
         HasMileage := Expense.Mileage > 0;
 
+        ItemizationRequired := Expense.IsItemizationRequired();
+
         case Expense."Expense Detail Required" of
             Expense."Expense Detail Required"::Itemize:
                 if HasParticipants or HasPerDiem or HasMileage then
                     ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(RuleRestrictOnlyItemizationErr,
                         BuildExtraDetailsMessage(HasParticipants, HasPerDiem, HasMileage)));
             Expense."Expense Detail Required"::Participants:
-                if HasItemization or HasPerDiem or HasMileage then
+                if (HasItemization and not ItemizationRequired) or HasPerDiem or HasMileage then
                     ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(RuleRestrictOnlyParticipantsErr,
-                        BuildExtraDetailsMessage(HasItemization, HasPerDiem, HasMileage)));
+                        BuildExtraDetailsMessage(HasItemization and not ItemizationRequired, HasPerDiem, HasMileage)));
             Expense."Expense Detail Required"::"Per Diem":
-                if HasItemization or HasParticipants or HasMileage then
+                if (HasItemization and not ItemizationRequired) or HasParticipants or HasMileage then
                     ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(RuleRestrictOnlyPerDiemErr,
-                        BuildExtraDetailsMessage(HasItemization, HasParticipants, HasMileage)));
+                        BuildExtraDetailsMessage(HasItemization and not ItemizationRequired, HasParticipants, HasMileage)));
             Expense."Expense Detail Required"::Mileage:
-                if HasItemization or HasParticipants or HasPerDiem then
+                if (HasItemization and not ItemizationRequired) or HasParticipants or HasPerDiem then
                     ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(RuleRestrictOnlyMileageErr,
-                        BuildExtraDetailsMessage(HasItemization, HasParticipants, HasPerDiem)));
+                        BuildExtraDetailsMessage(HasItemization and not ItemizationRequired, HasParticipants, HasPerDiem)));
         end;
     end;
 
@@ -734,10 +754,6 @@ codeunit 6902 "Expense Rule Validation"
     local procedure ValidateExpenseDetailRequirementForReportLine(ExpenseReportLine: Record "Expense Report Line")
     begin
         case ExpenseReportLine."Expense Detail Required" of
-            ExpenseReportLine."Expense Detail Required"::" ":
-                exit;
-            ExpenseReportLine."Expense Detail Required"::Itemize:
-                ValidateItemizationRequiredForReportLine(ExpenseReportLine);
             ExpenseReportLine."Expense Detail Required"::Participants:
                 ValidateParticipantsRequiredForReportLine(ExpenseReportLine);
             ExpenseReportLine."Expense Detail Required"::"Per Diem":
@@ -745,6 +761,9 @@ codeunit 6902 "Expense Rule Validation"
             ExpenseReportLine."Expense Detail Required"::Mileage:
                 ValidateMileageRequiredForReportLine(ExpenseReportLine);
         end;
+
+        if ExpenseReportLine.IsItemizationRequired() then
+            ValidateItemizationRequiredForReportLine(ExpenseReportLine);
 
         ValidateRuleRestrictionForReportLine(ExpenseReportLine);
     end;
@@ -754,17 +773,35 @@ codeunit 6902 "Expense Rule Validation"
         ExpReportLineItemization: Record "Expense Report Line Item";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
         ExpenseSubCategory: Record "Expense Subcategory";
+        EnforcedItemization: Boolean;
     begin
-        ExpenseSubCategory.SetRange("Expense Category Code", ExpenseReportLine."Expense Category");
-        if ExpenseSubCategory.IsEmpty() then begin
-            ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(MissingExpenseSubCategoryErr, ExpenseReportLine."Expense Category"));
-            exit;
+        EnforcedItemization := ExpenseReportLine.IsEnforcedItemizationRequired();
+        if not EnforcedItemization then begin
+            ExpenseSubCategory.SetRange("Expense Category Code", ExpenseReportLine."Expense Category");
+            if ExpenseSubCategory.IsEmpty() then begin
+                ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(MissingExpenseSubCategoryErr, ExpenseReportLine."Expense Category"));
+                exit;
+            end;
         end;
 
         ExpReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         if ExpReportLineItemization.IsEmpty() then
             ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", ItemizationRequiredErr);
+
+        if not EnforcedItemization then begin
+            ExpReportLineItemization.SetRange("Expense Subcategory Code", '');
+            if ExpReportLineItemization.FindFirst() then
+                ExpenseReportRuleViolation.AddRuleViolation(
+                    ExpenseReportLine."Document No.",
+                    ExpenseReportLine."Line No.",
+                    StrSubstNo(
+                        ExpenseSubCategoryMustBeRequiredInExpenseReportErr,
+                        ExpReportLineItemization.FieldCaption("Expense Subcategory Code"),
+                        ExpReportLineItemization."Expense Report No.",
+                        ExpReportLineItemization."Expense Report Line No.",
+                        ExpReportLineItemization."Line No."));
+        end;
     end;
 
     local procedure ValidateParticipantsRequiredForReportLine(ExpenseReportLine: Record "Expense Report Line")
@@ -822,6 +859,7 @@ codeunit 6902 "Expense Rule Validation"
         HasParticipants: Boolean;
         HasPerDiem: Boolean;
         HasMileage: Boolean;
+        ItemizationRequired: Boolean;
     begin
         ExpReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
@@ -837,23 +875,25 @@ codeunit 6902 "Expense Rule Validation"
 
         HasMileage := false;
 
+        ItemizationRequired := ExpenseReportLine.IsItemizationRequired();
+
         case ExpenseReportLine."Expense Detail Required" of
             ExpenseReportLine."Expense Detail Required"::Itemize:
                 if HasParticipants or HasPerDiem or HasMileage then
                     ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(RuleRestrictOnlyItemizationErr,
                         BuildExtraDetailsMessage(HasParticipants, HasPerDiem, HasMileage)));
             ExpenseReportLine."Expense Detail Required"::Participants:
-                if HasItemization or HasPerDiem or HasMileage then
+                if (HasItemization and not ItemizationRequired) or HasPerDiem or HasMileage then
                     ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(RuleRestrictOnlyParticipantsErr,
-                        BuildExtraDetailsMessage(HasItemization, HasPerDiem, HasMileage)));
+                        BuildExtraDetailsMessage(HasItemization and not ItemizationRequired, HasPerDiem, HasMileage)));
             ExpenseReportLine."Expense Detail Required"::"Per Diem":
-                if HasItemization or HasParticipants or HasMileage then
+                if (HasItemization and not ItemizationRequired) or HasParticipants or HasMileage then
                     ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(RuleRestrictOnlyPerDiemErr,
-                        BuildExtraDetailsMessage(HasItemization, HasParticipants, HasMileage)));
+                        BuildExtraDetailsMessage(HasItemization and not ItemizationRequired, HasParticipants, HasMileage)));
             ExpenseReportLine."Expense Detail Required"::Mileage:
-                if HasItemization or HasParticipants or HasPerDiem then
+                if (HasItemization and not ItemizationRequired) or HasParticipants or HasPerDiem then
                     ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(RuleRestrictOnlyMileageErr,
-                        BuildExtraDetailsMessage(HasItemization, HasParticipants, HasPerDiem)));
+                        BuildExtraDetailsMessage(HasItemization and not ItemizationRequired, HasParticipants, HasPerDiem)));
         end;
     end;
 
