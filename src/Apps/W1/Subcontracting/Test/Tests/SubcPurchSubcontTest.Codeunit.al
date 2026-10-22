@@ -49,6 +49,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
@@ -1213,8 +1214,8 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Item: Record Item;
         WorkCenter: array[2] of Record "Work Center";
         MachineCenter: array[2] of Record "Machine Center";
-        CalendarManagement: Codeunit "Calendar Management";
         Vendor: Record Vendor;
+        CalendarManagement: Codeunit "Calendar Management";
         ComponentDueDate: Date;
         ExpectedOrderDate: Date;
         ExpectedPlannedReceiptDate: Date;
@@ -1227,7 +1228,9 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SetupSubContractingProdOrder(
             Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder,
             "Component Supply Method"::"Vendor-Supplied", LibraryRandom.RandIntInRange(1, 10));
-        BaseCalendar.Code := LibraryRandom.RandText(MaxStrLen(BaseCalendar.Code));
+        BaseCalendar.Code := CopyStr(
+            LibraryUtility.GenerateRandomCode(BaseCalendar.FieldNo(Code), Database::"Base Calendar"),
+            1, MaxStrLen(BaseCalendar.Code));
         BaseCalendar.Name := 'Component Purchase';
         BaseCalendar.Insert();
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
@@ -1274,7 +1277,9 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         Assert.IsTrue(PurchaseLine.FindFirst(), ComponentPurchaseLineAssertMsg);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);

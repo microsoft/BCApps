@@ -598,7 +598,9 @@ codeunit 139996 "Subc. Planning Test"
         Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
         ComponentItem.Modify(true);
         Location.Get(ProdOrderComponent."Location Code");
-        BaseCalendar.Code := LibraryRandom.RandText(MaxStrLen(BaseCalendar.Code));
+        BaseCalendar.Code := CopyStr(
+            LibraryUtility.GenerateRandomCode(BaseCalendar.FieldNo(Code), Database::"Base Calendar"),
+            1, MaxStrLen(BaseCalendar.Code));
         BaseCalendar.Name := 'Component Purchase';
         BaseCalendar.Insert();
         BaseCalendarChange."Base Calendar Code" := BaseCalendar.Code;
@@ -659,7 +661,9 @@ codeunit 139996 "Subc. Planning Test"
         PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
         PurchaseLineComp.SetRange("Document No.", PurchaseLine."Document No.");
         PurchaseLineComp.SetRange(Type, PurchaseLineComp.Type::Item);
+#pragma warning disable AA0210
         PurchaseLineComp.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
         if PurchaseLineComp.FindSet() then
