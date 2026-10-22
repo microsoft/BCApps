@@ -2,6 +2,9 @@ name: Copilot PR Review Runner
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: [ Copilot PR Review ]
+    types: [ completed ]
 
 concurrency:
   group: copilot-pr-review-runner-${{ github.event.workflow_run.id }}
