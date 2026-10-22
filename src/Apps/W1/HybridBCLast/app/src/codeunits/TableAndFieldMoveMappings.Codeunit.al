@@ -22,12 +22,37 @@ codeunit 40030 "Table and Field Move Mappings"
         SubBillingOldTok: Label 'Subscription & Recurring Billing', Locked = true;
         SubBillingNewTok: Label 'Subscription Billing', Locked = true;
         SQLInvalidCharsLbl: Label '.""\/''%][', Locked = true;
+        ReportsFRAppIdTok: Label '6f93dbc5-c674-430e-b5f4-232449d55c20', Locked = true;
+        ReportsFRAppNameTok: Label 'Reports FR', Locked = true;
 
     local procedure AddMappings()
     begin
         AddNoSeriesMappings();
         AddAuditCodesMappings();
         AddSubBillingMappings();
+        AddFRFinancialScheduleMappings();
+    end;
+
+    local procedure AddFRFinancialScheduleMappings()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        CurrentModule: ModuleInfo;
+        AppliesFromVersion: Version;
+    begin
+        if EnvironmentInformation.GetApplicationFamily() <> 'FR' then
+            exit;
+        if not IsAppInstalled(ReportsFRAppIdTok) then
+            exit;
+        NavApp.GetCurrentModuleInfo(CurrentModule);
+        AppliesFromVersion := Version.Create(29, 1);
+        AddTableMapping(
+            BaseAppAppIdLbl, BaseApplicationTok, 10800, 'FR Acc. Schedule Name', false, '',
+            ReportsFRAppIdTok, ReportsFRAppNameTok, 10826, 'FR Financial Schedule Name', false, '',
+            AppliesFromVersion, CurrentModule.Id, true);
+        AddTableMapping(
+            BaseAppAppIdLbl, BaseApplicationTok, 10801, 'FR Acc. Schedule Line', false, '',
+            ReportsFRAppIdTok, ReportsFRAppNameTok, 10827, 'FR Financial Schedule Line', false, '',
+            AppliesFromVersion, CurrentModule.Id, true);
     end;
 
     local procedure AddNoSeriesMappings()
