@@ -18,6 +18,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
     procedure Initialize()
     begin
         CurrentWorkDate := WorkDate();
+        ClearLegacyLibraries(TestPermissions::Disabled);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]

@@ -6,9 +6,7 @@
 namespace System.TestTools.TestRunner;
 
 /// <summary>
-/// Adds a console-callable stability run to the Command Line Test Tool so a stability run can be
-/// driven from PowerShell / CI. Automation sets TestConfigSuiteName, invokes the RunTestConfigurations
-/// action and reads the TestConfigResultsJSON control.
+/// Generation-only transport for the PowerShell stability flow.
 /// </summary>
 pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Tool"
 {
@@ -19,19 +17,17 @@ pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Too
             group(TestConfigurationGroup)
             {
                 Caption = 'Stability';
-
                 field(TestConfigSuiteName; TestConfigSuiteName)
                 {
                     ApplicationArea = All;
-                    Caption = 'Stability Suite Name';
-                    ToolTip = 'Specifies the base suite that the stability run executes. When empty the currently selected suite is used.';
+                    Caption = 'Stability Parent Suite';
+                    ToolTip = 'Specifies the parent suite whose saved configurations will be generated.';
                 }
-
-                field(TestConfigResultsJSON; TestConfigResultsJSON)
+                field(TestConfigSuitesJSON; TestConfigSuitesJSON)
                 {
                     ApplicationArea = All;
-                    Caption = 'Stability Results JSON';
-                    ToolTip = 'Specifies the JSON produced by the last stability run.';
+                    Caption = 'Generated Stability Suites JSON';
+                    ToolTip = 'Specifies the generated suite codes and their configuration codes. Generation does not run tests.';
                     Editable = false;
                     MultiLine = true;
                 }
@@ -43,53 +39,62 @@ pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Too
     {
         addlast(processing)
         {
-            action(RunTestConfigurations)
+            action(GenerateStabilitySuites)
             {
                 ApplicationArea = All;
-                Caption = 'Run stability tests';
-                ToolTip = 'Runs every enabled test configuration for the current suite and returns the results as JSON.';
-                Image = TestReport;
+                Caption = 'Generate Stability Suites';
+                ToolTip = 'Replaces all stability suites for the parent and returns their codes without running tests.';
+                Image = CreateDocuments;
 
                 trigger OnAction()
                 var
+                    ALTestSuite: Record "AL Test Suite";
                     TestConfigurationMgt: Codeunit "Test Configuration Mgt";
+                    SuiteNames: List of [Code[10]];
+                    SuiteName: Code[10];
+                    Suites: JsonArray;
+                    Suite: JsonObject;
                 begin
-                    Clear(TestConfigResultsJSON);
-                    TestConfigResultsJSON := TestConfigurationMgt.RunTestConfigurations(GetCurrentSuite());
+                    Clear(TestConfigSuitesJSON);
+                    SuiteNames := TestConfigurationMgt.GenerateStabilitySuites(GetCurrentSuite());
+                    foreach SuiteName in SuiteNames do begin
+                        ALTestSuite.Get(SuiteName);
+                        Clear(Suite);
+                        Suite.Add('suite', SuiteName);
+                        Suite.Add('configuration', ALTestSuite.Configuration);
+                        Suites.Add(Suite);
+                    end;
+                    Suites.WriteTo(TestConfigSuitesJSON);
                     CurrPage.Update(false);
                 end;
             }
-
             action(ResetStabilityMode)
             {
                 ApplicationArea = All;
-                Caption = 'Reset stability mode';
-                ToolTip = 'Exits stability mode and safely clears the results on the current suite without running any triggers.';
+                Caption = 'Reset Stability Mode';
+                ToolTip = 'Resets the active configuration and libraries without changing saved suites or results.';
                 Image = Undo;
 
                 trigger OnAction()
                 var
                     TestConfigurationMgt: Codeunit "Test Configuration Mgt";
                 begin
-                    Clear(TestConfigResultsJSON);
                     TestConfigurationMgt.ResetStabilityMode(GetCurrentSuite());
-                    CurrPage.Update(false);
+                    Clear(TestConfigSuitesJSON);
                 end;
             }
         }
     }
 
     var
-        TestConfigResultsJSON: Text;
+        TestConfigSuitesJSON: Text;
         TestConfigSuiteName: Code[10];
-        NoSuiteSelectedErr: Label 'Select a test suite that contains tests before running stability tests.';
 
     local procedure GetCurrentSuite(): Code[10]
     begin
         if TestConfigSuiteName <> '' then
             exit(TestConfigSuiteName);
-        if Rec."Test Suite" = '' then
-            Error(NoSuiteSelectedErr);
+        Rec.TestField("Test Suite");
         exit(Rec."Test Suite");
     end;
 }

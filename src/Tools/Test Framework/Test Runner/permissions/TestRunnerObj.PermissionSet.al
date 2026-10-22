@@ -20,7 +20,6 @@ permissionset 130452 "Test Runner - Obj."
         table "Test Input Group" = X,
         table "Test Output" = X,
         table "Test Configuration" = X,
-        table "Test Configuration Line" = X,
         codeunit "ALTestRunner Reset Environment" = X,
         codeunit "Test Profile Management" = X,
         codeunit "Test Runner - Get Methods" = X,
@@ -41,8 +40,6 @@ permissionset 130452 "Test Runner - Obj."
         codeunit "Test Configuration Runner" = X,
         codeunit "Seed Test Config. Provider" = X,
         codeunit "WorkDate Test Config. Prov." = X,
-        codeunit "One By One Test Config. Prov." = X,
-        codeunit "Reverse Order Test Cfg. Prov." = X,
         xmlport "AL Code Coverage Map" = X,
         xmlport "Code Coverage Detailed" = X,
         xmlport "Code Coverage Results" = X,
@@ -59,6 +56,5 @@ permissionset 130452 "Test Runner - Obj."
         page "Test Input Part" = X,
         page "Test Outputs" = X,
         page "Test Configurations" = X,
-        page "Test Configuration Card" = X,
-        page "Test Configuration Lines" = X;
+        page "Test Configuration Card" = X;
 }

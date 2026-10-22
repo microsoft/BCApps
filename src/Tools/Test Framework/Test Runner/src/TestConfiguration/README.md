@@ -1,109 +1,92 @@
-# Test Configuration (stability mode)
+# Test configuration (stability mode)
 
-Stability mode re-runs an existing test suite under one or more **test configurations** to surface
-flaky, order-dependent and data-dependent tests. It never creates extra suites: the base suite is run
-in place under every enabled configuration, and the aggregated outcome is written back onto the base
-suite's own test method lines. When a test fails under more than one configuration, the individual
-error messages are concatenated into that line's error message, so results can be reviewed directly in
-the normal AL Test Tool.
+Stability mode generates ordinary test suites from a parent suite and runs them sequentially.
+Results stay on the generated suites; generation and execution do not change the parent's lines
+or results. Initial PowerShell setup still uses the existing source-suite setup behavior.
 
-It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command Line Test Tool).
+## Configuration
 
-## Folder layout
+The public `Test Configuration` table is keyed by **Test Suite + Code**. Each row contains all settings:
 
-- `Providers/` — the `ITest Configuration Provider` interface, the `Test Configuration Provider` enum and the built-in provider codeunits.
-- `Configurations/` — the `Test Configuration` and `Test Configuration Line` tables and the pages used to edit them (list, card, lines part).
-- `Run/` — the run engine: context, orchestrator (`Test Configuration Mgt`) and runner subscribers.
-- Top level — the page extensions on the AL Test Tool and Command Line Test Tool, and this README.
+| Setting | Behavior |
+| --- | --- |
+| Enabled | Includes the configuration in generation. |
+| Use Random Seed / Random Seed | Initializes Any and, when installed, Library - Random with the configured seed, including zero. Explicit seed/Init calls inside tests still win. |
+| WorkDate Offset | A date formula such as `<1Y>` or `<2Y>`, applied relative to the initial WorkDate before each method. Blank means no shift. |
+| One By One | Generates one codeunit header plus one method/expanded-input line per block. |
+| Reverse Order | Reverses source codeunit blocks, retaining method order within each block. |
 
-## Concepts
+Settings can be combined in one row. There are no provider lines or automatic Cartesian products.
+For example, reversing and splitting `A(1,2), B(3,4)` produces `B(3), B(4), A(1), A(2)`.
+The chosen test runner and its isolation semantics are preserved.
 
-- **Test Configuration** (`Test Configuration` table) — a named, reusable set of changes to apply to a
-  run. An empty configuration (no lines) applies nothing.
-- **Provider** (`Test Configuration Line` + enum `Test Configuration Provider`) — one part of a
-  configuration. Each line has a provider and provider-specific JSON settings (stored as a full-length
-  BLOB, not truncated). Adding a line is how a configuration is extended.
-- **Context** (`Test Configuration Context`) — single-instance state that providers write their intent
-  into and that the orchestrator and runner read while the base suite runs. It is inactive during
-  normal test runs, so the framework has no effect outside a stability run.
+Create configurations through AL or the **Test Configurations** page. **Create default configurations**
+explicitly creates BASELINE, SEED1-WD1Y, ONEBYONE, SEED2-WD2Y and REVERSE for an unconfigured
+parent. It does not overwrite existing configurations. Starting a run with no configurations, or
+with all configurations disabled, raises an error instead of silently creating defaults.
 
-## Built-in providers
+## UI
 
-| Provider | Settings | Effect |
-| --- | --- | --- |
-| `Seed` | `{ "seed": 2 }` | Uses a different random seed. The seed is stored in `Configured Random Seed` (Any app). While stability mode is active, `Any` and `Library - Random` read it from their own `SetSeed`, so the configured seed wins even when a test reseeds in its own `Initialize`. |
-| `WorkDateFuture` | `{ "formula": "<1Y>" }` | Moves WorkDate into the future by the given date formula. Re-applied before every test method because the runner restores WorkDate after each codeunit. |
-| `OneByOne` | none | Runs each test method on its own so its setup runs again for that method only (reuses the suite stability run behavior). |
-| `ReverseOrder` | none | Runs the suite in reverse order in a normal, shared-state run. |
+1. Select the parent in **AL Test Tool** and open **Test Configurations**.
+2. Configure the desired modes, or explicitly create the starter configurations.
+3. **Run All** replaces every generated suite belonging to the parent, including outputs whose
+   configuration was deleted or disabled, and runs the new suites sequentially.
+4. **Run Configuration** replaces only the selected parent/configuration pair.
+5. Open **Generated Suites** to inspect results, **Open Suite**, or **Run Suite** without regeneration.
 
-Execution order is realized by handing the base suite's lines to the test runner from the last to the
-first (the runner honors that for the codeunit sequence), so the reverse provider needs no change to
-the Test Runner itself and no extra suite. Reverse runs are **not** isolated — all tests run and share
-state, only the order changes. One-by-one is the isolated mode, where each method's setup runs again.
+Generated names use `S-00000001` and increment without overwriting other suites. The read-only
+**Created From Suite** and **Configuration** fields identify their owner and settings.
+Generated suites cannot start another stability generation.
 
-## Seed and stability state
+Ordinary execution uses the saved lines and the current runtime settings of the assigned configuration.
+Changing One By One or Reverse Order takes effect only on regeneration. Deleting or renaming an
+assigned configuration makes an ordinary run of the old generated suite fail; full regeneration removes
+that old suite. No configuration-record identity tracking is performed.
 
-`Configured Random Seed` (Any app) is a passive single-instance store that also tracks whether
-stability mode is active. It is honored in two complementary places:
+**Reset Stability Mode** resets active runtime state and libraries, preserving suite associations,
+layout and results. **Clear Results** separately clears errors, timing and results without changing Run flags.
 
-- `Any` and `Library - Random` read it from their own `SetSeed`: while stability mode is active and a
-  seed is set, they use the configured seed instead of the passed value, so the configured seed wins
-  even when a test reseeds inside its own `Initialize` (which runs after the pre-test reset);
-- `Reset State Before Test Run` checks the state **before every test method**: while stability mode is
-  active it seeds both `Library - Random` and `Any` deterministically (with the configuration's seed,
-  or `1` when the configuration sets none) so tests that never reseed still start from a known state and
-  one configuration cannot leak randomness into the next; once stability mode is exited it falls back to
-  the normal behavior (`Library - Random` seed `1`), so a stability run cannot affect later normal runs.
+## AL API
 
-The orchestrator enters stability mode at the start of a run and exits it at the end. **Reset stability
-mode** (an action on both tool pages, `Test Configuration Mgt.ResetStabilityMode`) is the safe way to
-leave stability mode at any time: it exits stability mode, clears the stored seed, turns off the
-isolation flag and clears the results on the base suite using trigger-free writes.
+```al
+// Explicit setup, not a fallback performed by generation.
+TestConfigurationMgt.EnsureDefaultConfigurations('DEFAULT');
 
-## How a run works
+// Generate only, saving the complete list before execution.
+SuiteNames := TestConfigurationMgt.GenerateStabilitySuites('DEFAULT');
+foreach SuiteName in SuiteNames do
+    TestConfigurationMgt.RunSuite(SuiteName);
+```
 
-1. `Test Configuration Mgt.RunTestConfigurations(BaseSuite)` creates the default configurations if none
-   exist, **validates every enabled configuration's settings up front** (for example that a WorkDate
-   formula parses) so bad settings error before stability mode is entered and cannot leak state, enters
-   stability mode, then for each enabled configuration in turn:
-   - clears the previous configuration's results so the run starts from a clean suite;
-   - activates the context and asks each enabled provider to `Prepare` (write seed/WorkDate/order/isolation intent);
-   - stores the seed in `Configured Random Seed` when a seed provider is used (or clears it);
-   - runs the **base suite** in place, in the requested order and isolation;
-   - captures every failing method's error and call stack, tagged with the configuration code, and keeps
-     a per-configuration summary in memory.
-   The run **stops as soon as a configuration fails**, leaving the failing state on the suite for
-   troubleshooting; the remaining configurations are not run.
-2. `Test Configuration Runner` subscribes to `OnBeforeTestMethodRun` / `OnAfterTestMethodRun` and fans
-   out to the active configuration's providers for per-method behavior (for example the WorkDate shift).
-3. After the run stops (all configurations passed, or one failed), the aggregated outcome is written back
-   onto the base suite's test method lines (failures concatenated per line). The results are also returned
-   as JSON for CI, including a `stoppedEarly` flag and a `configurations` array summarizing each
-   configuration that ran.
+`GenerateStabilitySuites(Parent, ConfigurationCode)` replaces just one configuration's suite.
+`RunTestConfigurations(Parent)` combines generation and sequential execution for the UI.
 
-## Default configurations
+The session-local `Test Configuration Context` retains the current record, loaded before test
+permissions are applied. Runtime providers implement `ITest Configuration Provider` and are
+registered through the extensible `Test Configuration Provider` enum. Providers initialize on
+suite entry, apply per-method settings and reset on normal completion. Layout is generated separately.
+Native test-handler support and special recovery from fatal runtime errors are deferred.
 
-- `BASELINE` — no changes.
-- `SEED1-WD1Y` — seed 1 + WorkDate +1 year.
-- `ONEBYONE` — each method on its own (setup re-runs per method).
-- `SEED2-WD2Y` — seed 2 + WorkDate +2 years.
-- `REVERSE` — the whole suite in reverse order.
+## PowerShell
 
-These are editable: change them on the **Test Configurations** page, or add your own configuration and
-providers.
+Use the existing NAV `Eng\Core\Tools\ALTestRunner\ALTestRunner.psm1` module:
 
-## Extending
+```powershell
+Run-AlTests -ServiceUrl $serviceUrl -TestSuite DEFAULT -StabilityMode `
+    -ResultsFilePath 'C:\TestResults\TestResults.xml'
+```
 
-To add a new kind of change:
+Configurations must already exist in AL. The script performs normal initial source setup once,
+invokes the generation-only action, saves the returned suite codes, and runs those suites without
+repopulating them. The legacy `-StabilityRun` option is unchanged; it is not the new `-StabilityMode`
+switch, and generated suites have the legacy flag disabled.
 
-1. Implement interface `ITest Configuration Provider` in a new codeunit.
-2. Add a value to enum `Test Configuration Provider` that maps to your codeunit.
-3. Add a `Test Configuration Line` that uses the new provider (with any JSON settings it needs).
+Standard xUnit files and per-suite logs are written under `C:\TestResults\StabilityRun`.
+Names combine parent, configuration and generated suite code, keeping only letters and digits in
+the stem, for example `DEFAULTBASELINES00000001.xml` and `.log`. Collisions overwrite.
+Logs use the existing NAV logger and contain suite identification and the complete returned
+result objects. Normal execution/retry logging remains unchanged. `-SaveResultFile $false` disables
+xUnit output, not the per-suite logs. Results remain in memory for existing final reporting.
 
-## Entry points
-
-- **UI**: the **Stability** group on the AL Test Tool (Run stability tests, Test configurations, Reset
-  stability mode). Results appear on the normal test lines after a run.
-- **PowerShell**: `build/scripts/StabilityTests/RunStabilityTestsInBcContainer.ps1` drives the Command
-  Line Test Tool and writes the results JSON. Wiring it into a GitHub workflow is intentionally out of
-  scope for this change.
+Test failures do not stop the next suite. System errors and retries follow the existing runner;
+they may stop execution. There is no new recovery, partial-run summary or report-identity framework.

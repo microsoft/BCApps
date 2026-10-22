@@ -27,17 +27,19 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLine: Record "Test Method Line";
         ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        TestConfigurationRunner: Codeunit "Test Configuration Runner";
         BackupTestFilter: Text;
     begin
+        TestConfigurationRunner.Initialize(NewTestMethodLine."Test Suite");
         ALTestRunnerResetEnvironment.Initialize();
         TestMethodLine.Copy(NewTestMethodLine);
         TestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
-        TestMethodLine.ModifyAll(Result, TestMethodLine.Result::" ");
-        TestMethodLine.ModifyAll("Error Message Preview", '');
+        TestSuiteMgt.ClearTestResults(TestMethodLine);
 
         Commit();
 
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
+        TestMethodLine.SetRange(Run, true);
 
         ALCodeCoverageMgt.Initialize(TestMethodLine."Test Suite");
         OnRunTestSuite(TestMethodLine);
@@ -55,6 +57,7 @@ codeunit 130454 "Test Runner - Mgt"
             until TestMethodLine.Next() = 0;
 
         OnAfterRunTestSuite(TestMethodLine);
+        TestConfigurationRunner.Reset();
     end;
 
     /// This method is called when the caller needs to run a test codeunit but does not want to log results or the caller has 
@@ -219,11 +222,10 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction.SetRange("Test Codeunit", TestCodeunit);
         TestMethodLineFunction.SetRange("Function", FunctionName);
 
-        if LineNoTestFilter <> '' then
-            TestMethodLineFunction.SetFilter("Line No.", LineNoTestFilter)
-        else
-            if CurrentTestFilter <> '' then
-                TestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
+        TestMethodLineFunction.SetFilter("Line No.", LineNoTestFilter);
+        TestMethodLineFunction.FilterGroup(2);
+        TestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
+        TestMethodLineFunction.FilterGroup(0);
 
         if not TestMethodLineFunction.FindFirst() then
             exit(false);
@@ -271,4 +273,3 @@ codeunit 130454 "Test Runner - Mgt"
     begin
     end;
 }
-

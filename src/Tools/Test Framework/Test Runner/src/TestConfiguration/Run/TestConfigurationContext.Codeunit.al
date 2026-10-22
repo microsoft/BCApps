@@ -6,132 +6,44 @@
 namespace System.TestTools.TestRunner;
 
 /// <summary>
-/// Shared, single instance state for the configuration that is currently running. Providers write
-/// their intent here during Prepare; the orchestrator and the runner read it while the base suite
-/// runs. Everything is a no-op unless a configuration is active, so regular test runs are unaffected.
+/// The current suite's configuration, loaded before test permissions are applied.
 /// </summary>
 codeunit 130469 "Test Configuration Context"
 {
     SingleInstance = true;
+    Permissions = tabledata "AL Test Suite" = r,
+                  tabledata "Test Configuration" = r;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
-        ContextActive: Boolean;
-        ActiveConfigCode: Code[20];
-        ActiveBaseSuite: Code[10];
-        DoReverseOrder: Boolean;
-        DoOneByOne: Boolean;
-        SeedValue: Integer;
-        SeedIsSet: Boolean;
-        WorkDateShifted: Boolean;
-        WorkDateFormulaText: Text[30];
-        CapturedBaseWorkDate: Date;
+        CurrentConfiguration: Record "Test Configuration";
+        CurrentSuiteName: Code[10];
 
-    /// <summary>
-    /// Activates the context for a configuration run and resets all provider intent.
-    /// </summary>
-    /// <param name="BaseSuiteName">The base suite being exercised.</param>
-    /// <param name="ConfigCode">The code of the configuration being applied.</param>
-    procedure Activate(BaseSuiteName: Code[10]; ConfigCode: Code[20])
-    begin
-        ContextActive := true;
-        ActiveBaseSuite := BaseSuiteName;
-        ActiveConfigCode := ConfigCode;
-        DoReverseOrder := false;
-        DoOneByOne := false;
-        SeedValue := 0;
-        SeedIsSet := false;
-        WorkDateShifted := false;
-        WorkDateFormulaText := '';
-        CapturedBaseWorkDate := WorkDate();
-    end;
-
-    /// <summary>
-    /// Deactivates the context so subscribers become no-ops again.
-    /// </summary>
-    procedure Deactivate()
-    begin
-        ContextActive := false;
-    end;
-
-    procedure IsActive(): Boolean
-    begin
-        exit(ContextActive);
-    end;
-
-    procedure ConfigCode(): Code[20]
-    begin
-        exit(ActiveConfigCode);
-    end;
-
-    procedure BaseSuite(): Code[10]
-    begin
-        exit(ActiveBaseSuite);
-    end;
-
-    procedure SetReverseOrder(NewValue: Boolean)
-    begin
-        DoReverseOrder := NewValue;
-    end;
-
-    procedure ReverseOrder(): Boolean
-    begin
-        exit(DoReverseOrder);
-    end;
-
-    procedure SetOneByOne(NewValue: Boolean)
-    begin
-        DoOneByOne := NewValue;
-    end;
-
-    procedure OneByOne(): Boolean
-    begin
-        exit(DoOneByOne);
-    end;
-
-    procedure SetSeed(NewSeed: Integer)
-    begin
-        SeedValue := NewSeed;
-        SeedIsSet := true;
-    end;
-
-    procedure IsSeedSet(): Boolean
-    begin
-        exit(SeedIsSet);
-    end;
-
-    procedure Seed(): Integer
-    begin
-        exit(SeedValue);
-    end;
-
-    procedure SetWorkDateFormula(FormulaText: Text[30])
-    begin
-        WorkDateFormulaText := FormulaText;
-        WorkDateShifted := FormulaText <> '';
-    end;
-
-    procedure IsWorkDateShifted(): Boolean
-    begin
-        exit(WorkDateShifted);
-    end;
-
-    procedure WorkDateFormula(): Text[30]
-    begin
-        exit(WorkDateFormulaText);
-    end;
-
-    /// <summary>
-    /// Returns the base WorkDate shifted by the configured formula, or the base WorkDate when no
-    /// shift is configured.
-    /// </summary>
-    /// <returns>The WorkDate to use.</returns>
-    procedure GetShiftedWorkDate(): Date
+    internal procedure Initialize(SuiteName: Code[10])
     var
-        WorkDateFormula: DateFormula;
+        ALTestSuite: Record "AL Test Suite";
     begin
-        if not WorkDateShifted then
-            exit(CapturedBaseWorkDate);
-        Evaluate(WorkDateFormula, WorkDateFormulaText);
-        exit(CalcDate(WorkDateFormula, CapturedBaseWorkDate));
+        Reset();
+        ALTestSuite.Get(SuiteName);
+        if ALTestSuite."Created From Suite" <> '' then
+            CurrentConfiguration.Get(ALTestSuite."Created From Suite", ALTestSuite.Configuration);
+        CurrentSuiteName := SuiteName;
+    end;
+
+    procedure GetConfiguration(var TestConfiguration: Record "Test Configuration")
+    begin
+        TestConfiguration := CurrentConfiguration;
+    end;
+
+    internal procedure IsCurrentSuite(SuiteName: Code[10]): Boolean
+    begin
+        exit((CurrentSuiteName <> '') and (CurrentSuiteName = SuiteName));
+    end;
+
+    internal procedure Reset()
+    begin
+        Clear(CurrentConfiguration);
+        Clear(CurrentSuiteName);
     end;
 }

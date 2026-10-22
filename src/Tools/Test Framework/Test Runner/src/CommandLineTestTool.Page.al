@@ -392,7 +392,7 @@ page 130455 "Command Line Test Tool"
                 trigger OnAction()
                 begin
                     Rec.SetRange("Test Suite", CurrentSuiteName);
-                    Rec.ModifyAll(Result, Rec.Result::" ", true);
+                    TestSuiteMgt.ClearTestResults(Rec);
                     Clear(TestResultsJSONText);
                 end;
             }

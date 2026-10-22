@@ -447,6 +447,11 @@ page 130451 "AL Test Tool"
         ErrorMessageWithStackTraceTxt: Text;
         DeleteQst: Label 'Are you sure you want to delete the selected lines?';
 
+    procedure SetSuiteName(SuiteName: Code[10])
+    begin
+        CurrentSuiteName := SuiteName;
+    end;
+
     local procedure ChangeTestSuite()
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";

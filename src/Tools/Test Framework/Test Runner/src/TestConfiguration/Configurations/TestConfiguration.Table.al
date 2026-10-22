@@ -6,9 +6,7 @@
 namespace System.TestTools.TestRunner;
 
 /// <summary>
-/// A named test configuration. A configuration is a container for a set of providers (its lines).
-/// An empty set of lines means nothing is applied. Stability mode runs every enabled configuration
-/// against a base suite so flaky, order dependent and data dependent tests surface.
+/// Settings for a stability suite generated from a parent test suite.
 /// </summary>
 table 130467 "Test Configuration"
 {
@@ -17,6 +15,9 @@ table 130467 "Test Configuration"
     Caption = 'Test Configuration';
     LookupPageId = "Test Configurations";
     DrillDownPageId = "Test Configurations";
+    Access = Public;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = RIMDX;
 
     fields
     {
@@ -34,21 +35,43 @@ table 130467 "Test Configuration"
             Caption = 'Enabled';
             InitValue = true;
         }
+        field(4; "Test Suite"; Code[10])
+        {
+            Caption = 'Test Suite';
+            NotBlank = true;
+            TableRelation = "AL Test Suite".Name where("Created From Suite" = const(''));
+        }
+        field(5; "Use Random Seed"; Boolean)
+        {
+            Caption = 'Use Random Seed';
+        }
+        field(6; "Random Seed"; Integer)
+        {
+            Caption = 'Random Seed';
+        }
+        field(7; "WorkDate Offset"; DateFormula)
+        {
+            Caption = 'WorkDate Offset';
+        }
+        field(8; "One By One"; Boolean)
+        {
+            Caption = 'One By One';
+        }
+        field(9; "Reverse Order"; Boolean)
+        {
+            Caption = 'Reverse Order';
+        }
     }
 
     keys
     {
-        key(Key1; "Code")
+        key(Key1; "Test Suite", "Code")
         {
             Clustered = true;
         }
+        key(EnabledConfigurations; "Test Suite", Enabled, Code)
+        {
+        }
     }
 
-    trigger OnDelete()
-    var
-        TestConfigurationLine: Record "Test Configuration Line";
-    begin
-        TestConfigurationLine.SetRange("Configuration Code", "Code");
-        TestConfigurationLine.DeleteAll(true);
-    end;
 }

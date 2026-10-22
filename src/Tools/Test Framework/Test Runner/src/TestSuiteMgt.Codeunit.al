@@ -109,7 +109,7 @@ codeunit 130456 "Test Suite Mgt."
         if not TestMethodLine.FindFirst() then
             exit(false);
 
-        TestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
+        TestMethodLine.SetRange("Line No.", TestMethodLine."Line No.");
 
         if ALTestSuite."Stability Run" then
             RunNextTestStabilityRun(TestMethodLine)
@@ -143,6 +143,7 @@ codeunit 130456 "Test Suite Mgt."
         FunctionTestMethodLine.SetRange("Test Suite", CodeunitTestMethodLine."Test Suite");
         FunctionTestMethodLine.SetRange("Line Type", CodeunitTestMethodLine."Line Type"::Function);
         FunctionTestMethodLine.SetRange("Test Codeunit", CodeunitTestMethodLine."Test Codeunit");
+        FunctionTestMethodLine.SetFilter("Line No.", GetLineNoFilterForTestCodeunit(CodeunitTestMethodLine));
     end;
 
     procedure TestResultsToJSON(var TestMethodLine: Record "Test Method Line"): Text
@@ -163,6 +164,7 @@ codeunit 130456 "Test Suite Mgt."
         CodeunitTestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
         CodeunitTestMethodLine.SetRange(Run, true);
         CodeunitTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
+        CodeunitTestMethodLine.SetFilter("Line No.", GetLineNoFilterForTestCodeunit(TestMethodLine));
         if not CodeunitTestMethodLine.FindFirst() then
             exit;
 
@@ -218,7 +220,8 @@ codeunit 130456 "Test Suite Mgt."
     procedure RunSelectedTests(var TestMethodLine: Record "Test Method Line")
     var
         ALTestSuite: Record "AL Test Suite";
-        CurrentCodeunitNumber: Integer;
+        CurrentCodeunitFilter: Text;
+        CodeunitFilter: Text;
         LineNoFilter: Text;
     begin
         TestMethodLine.SetCurrentKey("Line No.");
@@ -229,10 +232,11 @@ codeunit 130456 "Test Suite Mgt."
         ALTestSuite.Get(TestMethodLine."Test Suite");
         LineNoFilter := '';
 
-        CurrentCodeunitNumber := 0;
+        CurrentCodeunitFilter := '';
         repeat
-            if TestMethodLine."Test Codeunit" <> CurrentCodeunitNumber then begin
-                CurrentCodeunitNumber := TestMethodLine."Test Codeunit";
+            CodeunitFilter := GetLineNoFilterForTestCodeunit(TestMethodLine);
+            if CodeunitFilter <> CurrentCodeunitFilter then begin
+                CurrentCodeunitFilter := CodeunitFilter;
                 if LineNoFilter <> '' then
                     LineNoFilter += '|';
 
@@ -754,8 +758,21 @@ codeunit 130456 "Test Suite Mgt."
         Clear(TestMethodLine."Error Message Preview");
     end;
 
+    procedure ClearTestResults(TestMethodLine: Record "Test Method Line")
+    begin
+        if TestMethodLine.FindSet(true) then
+            repeat
+                TestMethodLine.Result := TestMethodLine.Result::" ";
+                ClearErrorOnLine(TestMethodLine);
+                TestMethodLine."Start Time" := 0DT;
+                TestMethodLine."Finish Time" := 0DT;
+                TestMethodLine.Modify(false);
+            until TestMethodLine.Next() = 0;
+    end;
+
     procedure GetFullErrorMessage(var TestMethodLine: Record "Test Method Line"): Text
     var
+        ErrorMessageBigText: BigText;
         ErrorMessageInStream: InStream;
         ErrorMessage: Text;
     begin
@@ -764,7 +781,8 @@ codeunit 130456 "Test Suite Mgt."
             exit('');
 
         TestMethodLine."Error Message".CreateInStream(ErrorMessageInStream, GetDefaultTextEncoding());
-        ErrorMessageInStream.ReadText(ErrorMessage);
+        ErrorMessageBigText.Read(ErrorMessageInStream);
+        ErrorMessageBigText.GetSubText(ErrorMessage, 1);
         exit(ErrorMessage);
     end;
 
@@ -789,6 +807,7 @@ codeunit 130456 "Test Suite Mgt."
 
     procedure GetErrorCallStack(var TestMethodLine: Record "Test Method Line"): Text
     var
+        ErrorCallStackBigText: BigText;
         ErrorCallStackInStream: InStream;
         ErrorCallStack: Text;
     begin
@@ -797,7 +816,8 @@ codeunit 130456 "Test Suite Mgt."
             exit('');
 
         TestMethodLine."Error Call Stack".CreateInStream(ErrorCallStackInStream, GetDefaultTextEncoding());
-        ErrorCallStackInStream.ReadText(ErrorCallStack);
+        ErrorCallStackBigText.Read(ErrorCallStackInStream);
+        ErrorCallStackBigText.GetSubText(ErrorCallStack, 1);
         exit(ErrorCallStack);
     end;
 

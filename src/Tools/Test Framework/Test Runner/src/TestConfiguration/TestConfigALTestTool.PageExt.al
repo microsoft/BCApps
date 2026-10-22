@@ -5,13 +5,34 @@
 
 namespace System.TestTools.TestRunner;
 
-/// <summary>
-/// Adds stability mode entry points to the interactive AL Test Tool page. A stability run executes
-/// the current suite under every enabled test configuration and writes the aggregated outcome back
-/// onto the suite's own test lines, so the results can be reviewed in the normal AL Test Tool.
-/// </summary>
 pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
 {
+    layout
+    {
+        addafter(CurrentSuiteName)
+        {
+            field(CreatedFromSuite; CurrentSuite."Created From Suite")
+            {
+                ApplicationArea = All;
+                Editable = false;
+                ToolTip = 'Specifies the parent of this generated stability suite.';
+            }
+            field(Configuration; CurrentSuite.Configuration)
+            {
+                ApplicationArea = All;
+                Editable = false;
+                ToolTip = 'Specifies the saved configuration used when this suite runs. Layout changes require regeneration.';
+            }
+        }
+        modify(CurrentSuiteName)
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateSuite();
+            end;
+        }
+    }
+
     actions
     {
         addlast(processing)
@@ -24,9 +45,10 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                 action(RunTestConfigurations)
                 {
                     ApplicationArea = All;
-                    Caption = 'Run stability tests';
-                    ToolTip = 'Re-runs the current suite under every enabled test configuration and writes the aggregated outcome onto the suite''s test lines.';
+                    Caption = 'Run Stability Tests';
+                    ToolTip = 'Replaces this parent''s generated suites and runs the enabled configurations sequentially. The parent''s results are unchanged.';
                     Image = TestReport;
+                    Enabled = CanGenerate;
 
                     trigger OnAction()
                     var
@@ -36,28 +58,46 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                         CurrPage.Update(false);
                     end;
                 }
-
                 action(TestConfigurations)
                 {
                     ApplicationArea = All;
-                    Caption = 'Test configurations';
-                    ToolTip = 'Opens the test configurations that are executed during a stability run.';
+                    Caption = 'Test Configurations';
+                    ToolTip = 'Opens this parent''s stability configurations. Create configurations explicitly before starting a run.';
                     Image = Setup;
+                    Enabled = CanGenerate;
 
                     trigger OnAction()
                     var
-                        TestConfigurationMgt: Codeunit "Test Configuration Mgt";
+                        TestConfiguration: Record "Test Configuration";
                     begin
-                        TestConfigurationMgt.EnsureDefaultConfigurations();
-                        Page.Run(Page::"Test Configurations");
+                        TestConfiguration.SetRange("Test Suite", GetCurrentSuite());
+                        Page.Run(Page::"Test Configurations", TestConfiguration);
                     end;
                 }
+                action(GeneratedSuites)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Generated Suites';
+                    ToolTip = 'Opens the generated suites and their results.';
+                    Image = List;
 
+                    trigger OnAction()
+                    var
+                        ALTestSuite: Record "AL Test Suite";
+                    begin
+                        UpdateSuite();
+                        if CurrentSuite."Created From Suite" = '' then
+                            ALTestSuite.SetRange("Created From Suite", CurrentSuite.Name)
+                        else
+                            ALTestSuite.SetRange("Created From Suite", CurrentSuite."Created From Suite");
+                        Page.Run(Page::"AL Test Suites", ALTestSuite);
+                    end;
+                }
                 action(ResetStabilityMode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Reset stability mode';
-                    ToolTip = 'Exits stability mode and safely clears the results on the current suite without running any triggers.';
+                    Caption = 'Reset Stability Mode';
+                    ToolTip = 'Resets the active configuration and libraries without changing this suite''s stored configuration, layout or results.';
                     Image = Undo;
 
                     trigger OnAction()
@@ -68,17 +108,53 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                         CurrPage.Update(false);
                     end;
                 }
+                action(ClearStabilityResults)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Clear Results';
+                    ToolTip = 'Clears this suite''s results, errors and timing without changing its definition or Run flags.';
+                    Image = ClearLog;
+
+                    trigger OnAction()
+                    var
+                        TestMethodLine: Record "Test Method Line";
+                        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                    begin
+                        TestMethodLine.SetRange("Test Suite", GetCurrentSuite());
+                        TestSuiteMgt.ClearTestResults(TestMethodLine);
+                        CurrPage.Update(false);
+                    end;
+                }
             }
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        UpdateSuite();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateSuite();
+    end;
+
     var
-        NoSuiteSelectedErr: Label 'Select a test suite that contains tests before running stability tests.';
+        CurrentSuite: Record "AL Test Suite";
+        CanGenerate: Boolean;
 
     local procedure GetCurrentSuite(): Code[10]
+    var
+        TestMethodLine: Record "Test Method Line";
     begin
-        if Rec."Test Suite" = '' then
-            Error(NoSuiteSelectedErr);
-        exit(Rec."Test Suite");
+        TestMethodLine.Copy(Rec);
+        TestMethodLine.FilterGroup(2);
+        exit(TestMethodLine.GetRangeMin("Test Suite"));
+    end;
+
+    local procedure UpdateSuite()
+    begin
+        CurrentSuite.Get(GetCurrentSuite());
+        CanGenerate := CurrentSuite."Created From Suite" = '';
     end;
 }

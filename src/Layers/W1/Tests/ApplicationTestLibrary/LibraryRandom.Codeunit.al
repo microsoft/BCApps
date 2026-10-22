@@ -93,14 +93,8 @@ codeunit 130440 "Library - Random"
     end;
 
     procedure SetSeed(Val: Integer): Integer
-    var
-        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
     begin
-        // Set the random seed to reproduce pseudo random sequence.
-        // During a stability run with a configured seed, honor that seed even when a test reseeds in
-        // its own Initialize (which runs after the pre-test reset), so the seed variation takes effect.
-        if ConfiguredRandomSeed.IsStabilityMode() and ConfiguredRandomSeed.IsSet() then
-            Val := ConfiguredRandomSeed.GetSeed();
+        // Set the random seed to reproduce pseudo random sequence
         Seed := Val;
         SeedSet := true;
         Randomize(Seed);
@@ -121,4 +115,3 @@ codeunit 130440 "Library - Random"
         SetSeed(NewSeed);
     end;
 }
-
