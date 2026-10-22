@@ -1088,7 +1088,6 @@ table 5612 "FA Depreciation Book"
     local procedure CheckFAPostingGroupChangeAfterAcquisition()
     var
         FADepreciationBook: Record "FA Depreciation Book";
-        IsHandled: Boolean;
     begin
         // Compare with the stored record, because acquisition cost has already been posted to the G/L accounts of the stored posting group.
         if not FADepreciationBook.Get("FA No.", "Depreciation Book Code") then
@@ -1097,11 +1096,6 @@ table 5612 "FA Depreciation Book"
            (FADepreciationBook."FA Posting Group" = '') or
            (FADepreciationBook."FA Posting Group" = "FA Posting Group")
         then
-            exit;
-
-        IsHandled := false;
-        OnBeforeCheckFAPostingGroupChangeAfterAcquisition(Rec, FADepreciationBook, IsHandled);
-        if IsHandled then
             exit;
 
         DeprBook.Get("Depreciation Book Code");
@@ -1635,11 +1629,6 @@ table 5612 "FA Depreciation Book"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterModifyDeprFields(var FADepreciationBook: Record "FA Depreciation Book")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckFAPostingGroupChangeAfterAcquisition(var FADepreciationBook: Record "FA Depreciation Book"; xFADepreciationBook: Record "FA Depreciation Book"; var IsHandled: Boolean)
     begin
     end;
 }
