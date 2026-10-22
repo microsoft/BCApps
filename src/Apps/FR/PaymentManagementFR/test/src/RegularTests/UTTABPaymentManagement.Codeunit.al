@@ -81,6 +81,9 @@ codeunit 144040 "UT TAB Payment Management"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -97,7 +100,6 @@ codeunit 144040 "UT TAB Payment Management"
         LibraryERM: Codeunit "Library - ERM";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
 #if not CLEAN28
         PaymentFeatureStatusExisted: Boolean;
@@ -353,7 +355,7 @@ codeunit 144040 "UT TAB Payment Management"
         LibraryVariableStorage.Enqueue(DimValue[1]."Dimension Code");
         LibraryVariableStorage.Enqueue(DimValue[1].Code);
         PaymentSlip."Shortcut Dimension 1 Code".Lookup();
-        PaymentHeader.FindFirst();
+        PaymentHeader.Get(PaymentLine."No.");
 
         // [THEN] Payment Line "Department Code" = X1
         VerifyPaymentLineDimSetID(PaymentLine, PaymentHeader."Dimension Set ID");
@@ -362,7 +364,7 @@ codeunit 144040 "UT TAB Payment Management"
         LibraryVariableStorage.Enqueue(DimValue[2]."Dimension Code");
         LibraryVariableStorage.Enqueue(DimValue[2].Code);
         PaymentSlip."Shortcut Dimension 2 Code".Lookup();
-        PaymentHeader.FindFirst();
+        PaymentHeader.Get(PaymentLine."No.");
 
         // [THEN] Payment Line "Project Code" = X2
         VerifyPaymentLineDimSetID(PaymentLine, PaymentHeader."Dimension Set ID");
@@ -1346,14 +1348,15 @@ codeunit 144040 "UT TAB Payment Management"
         VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::First;
         VATPostingSetup.Modify();
 
-        asserterror PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
-        Assert.ExpectedError(VATPostingSetup.FieldCaption("Unrealized VAT Type"));
-        Assert.ExpectedErrorCode(TestFieldErr);
-
+        // Check successful paths before ASSERTERROR rolls back the setup.
         Assert.AreEqual(1, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, false),
             'A payment without delayed realization must retain standard non-percentage behavior.');
         Assert.AreEqual(1, PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, false, true),
             'Realization without the delayed flag must retain standard behavior.');
+
+        asserterror PaymentSubscribers.GetPaymentUnrealizedVATPart(VATEntry, 120, 120, 120, 0, 0, true, true);
+        Assert.ExpectedError(VATPostingSetup.FieldCaption("Unrealized VAT Type"));
+        Assert.ExpectedErrorCode(TestFieldErr);
     end;
 
     [Test]
@@ -1802,7 +1805,6 @@ codeunit 144040 "UT TAB Payment Management"
     local procedure Initialize()
     begin
         RestorePaymentFeatureStatus();
-        LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
     end;
 
@@ -1830,7 +1832,6 @@ codeunit 144040 "UT TAB Payment Management"
 
     local procedure CreatePaymentVATEntry(var VATEntry: Record "VAT Entry"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
-        LibrarySetupStorage.Save(Database::"General Ledger Setup");
         LibraryERM.SetUnrealizedVAT(true);
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
         VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::Percentage;
@@ -1926,7 +1927,6 @@ codeunit 144040 "UT TAB Payment Management"
         VATAccountNo: Code[20];
         InvoiceAmount: Decimal;
     begin
-        LibrarySetupStorage.Save(Database::"General Ledger Setup");
         LibraryERM.SetUnrealizedVAT(true);
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
         VATPostingSetup.Validate("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
@@ -1966,6 +1966,7 @@ codeunit 144040 "UT TAB Payment Management"
 
         LibraryJournals.CreateGenJournalLineWithBatch(
             PaymentGenJournalLine, PaymentGenJournalLine."Document Type"::Payment, AccountType, AccountNo, -InvoiceAmount);
+        PaymentGenJournalLine.SetSuppressCommit(true);
         PaymentGenJournalLine.Validate("Applies-to Doc. Type", InvoiceGenJournalLine."Document Type");
         PaymentGenJournalLine.Validate("Applies-to Doc. No.", InvoiceGenJournalLine."Document No.");
     end;
@@ -2218,8 +2219,10 @@ codeunit 144040 "UT TAB Payment Management"
     var
         PaymentClass: Record "Payment Class FR";
         PaymentHeader: Record "Payment Header FR";
+        PaymentStatus: Record "Payment Status FR";
     begin
-        PaymentClass.FindFirst();
+        CreatePaymentClass(PaymentClass);
+        CreatePaymentStatus(PaymentStatus, PaymentClass.Code);
         PaymentHeader."No." := LibraryUTUtility.GetNewCode();
         PaymentHeader."Payment Class" := PaymentClass.Code;
         PaymentHeader.Insert();
@@ -2254,10 +2257,7 @@ codeunit 144040 "UT TAB Payment Management"
     var
         EntryNo: Integer;
     begin
-        if CustLedgerEntry.FindLast() then
-            EntryNo := CustLedgerEntry."Entry No." + 1
-        else
-            EntryNo := 1;
+        EntryNo := LibraryUtility.GetNewRecNo(CustLedgerEntry, CustLedgerEntry.FieldNo("Entry No."));
 
         CustLedgerEntry.Init();
         CustLedgerEntry."Entry No." := EntryNo;
@@ -2291,10 +2291,7 @@ codeunit 144040 "UT TAB Payment Management"
     var
         EntryNo: Integer;
     begin
-        if VendorLedgerEntry.FindLast() then
-            EntryNo := VendorLedgerEntry."Entry No." + 1
-        else
-            EntryNo := 1;
+        EntryNo := LibraryUtility.GetNewRecNo(VendorLedgerEntry, VendorLedgerEntry.FieldNo("Entry No."));
 
         VendorLedgerEntry.Init();
         VendorLedgerEntry."Entry No." := EntryNo;

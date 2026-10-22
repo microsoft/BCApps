@@ -19,7 +19,7 @@ codeunit 144077 "SEPA.02 DD Functional Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryXMLRead: Codeunit "Library - XML Read";
+        LibraryXMLRead: Codeunit "Library - XML Read OnServer";
         SEPAPartnerType: Option ,Company,Person;
         UnexpectedEmptyNodeErr: Label 'Unexpected empty value for node <%1> of subtree <%2>.';
         OneToManyNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents.';
