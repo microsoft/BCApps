@@ -1492,10 +1492,10 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         GLEntry: Record "G/L Entry";
         FALedgerEntry: Record "FA Ledger Entry";
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
-        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
 #pragma warning disable AL0432
         LegacyDeprDiffReport: Report "Calc. and Post Depr. Diff.";
 #pragma warning restore AL0432
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
         GLEntryCount: Integer;
         LegacyPostedEntryCount: Integer;
         PostedEntryCount: Integer;
