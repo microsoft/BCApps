@@ -77,33 +77,38 @@ codeunit 3316 "PA Events"
         IsAgentDraftPageFeedbackContext(Context, Handled);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
-    local procedure UpdateAgentTaskTitleOnDocumentRead(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Purchase Draft Utility", OnInsertedEDocumentPurchaseHeader, '', false, false)]
+    local procedure UpdateAgentTaskTitleOnPurchaseDocumentDraftCreated(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PayablesAgent: Codeunit "Payables Agent";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        ImportEDocumentProcess: Codeunit "Import E-Document Process";
         AgentTaskID: BigInteger;
-        ReadyForDraftIndex: Integer;
     begin
-        ReadyForDraftIndex := ImportEDocumentProcess.StatusStepIndex("Import E-Doc. Proc. Status"::"Ready for draft");
-        if (ImportEDocumentProcess.StatusStepIndex(StartState) >= ReadyForDraftIndex) or (ImportEDocumentProcess.StatusStepIndex(DesiredEndState) < ReadyForDraftIndex) then
-            exit;
-        if not EDocument.Get(EDocument."Entry No") then
+        if EDocumentPurchaseHeader.IsTemporary() then
             exit;
         if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
-            exit;
-        if not EDocumentPurchaseHeader.Get(EDocument."Entry No") then
             exit;
         if not TryFindAgentTaskID(EDocument, AgentTaskID) then
             exit;
 
-        PayablesAgent.SetAgentTaskTitle(
-            AgentTaskID,
-            EDocument."Process Draft Impl." = EDocument."Process Draft Impl."::"Purchase Credit Memo",
-            CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50),
-            CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+        PayablesAgent.SetAgentTaskTitle(AgentTaskID, IsCreditNote(EDocument), CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50), CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+    end;
+
+    local procedure IsCreditNote(EDocument: Record "E-Document"): Boolean
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        InStream: InStream;
+        StructuredData: Text;
+        SourceJsonObject: JsonObject;
+    begin
+        if not EDocDataStorage.Get(EDocument."Structured Data Entry No.") then
+            exit(false);
+        EDocDataStorage.GetTempBlob().CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(StructuredData);
+        if not SourceJsonObject.ReadFrom(StructuredData) then
+            exit(false);
+        exit(EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. M365 Conn. Events", OnGetOutlookCategoryDescription, '', false, false)]
