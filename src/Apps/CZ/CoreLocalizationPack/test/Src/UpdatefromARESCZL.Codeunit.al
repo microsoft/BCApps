@@ -173,7 +173,7 @@ codeunit 148051 "Update from ARES CZL"
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not match the requested registration number');
-        VerifyNoValidLogEntry();
+        VerifyNoValidLogEntry(RegistrationLogCZL);
     end;
 
     [Test]
@@ -193,7 +193,7 @@ codeunit 148051 "Update from ARES CZL"
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not match the requested registration number');
-        VerifyNoValidLogEntry();
+        VerifyNoValidLogEntry(RegistrationLogCZL);
     end;
 
     [Test]
@@ -213,7 +213,7 @@ codeunit 148051 "Update from ARES CZL"
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not include the requested registration number');
-        VerifyNoValidLogEntry();
+        VerifyNoValidLogEntry(RegistrationLogCZL);
     end;
 
     [Test]
@@ -233,7 +233,7 @@ codeunit 148051 "Update from ARES CZL"
 
         // [THEN] The response is rejected and nothing is logged as valid
         Assert.ExpectedError('did not include the requested registration number');
-        VerifyNoValidLogEntry();
+        VerifyNoValidLogEntry(RegistrationLogCZL);
     end;
 
     [Test]
@@ -275,10 +275,14 @@ codeunit 148051 "Update from ARES CZL"
         ResponseObject.ReadFrom(ResponseText);
     end;
 
-    local procedure VerifyNoValidLogEntry()
+    local procedure VerifyNoValidLogEntry(RequestedRegistrationLogCZL: Record "Registration Log CZL")
     var
         RegistrationLogCZL: Record "Registration Log CZL";
     begin
+        // Scope to the account of this test: asserterror rolls back to the last commit, which restores the Valid entries
+        // that other tests in this codeunit commit, so a table-wide check would not reflect this test's outcome.
+        RegistrationLogCZL.SetRange("Account Type", RequestedRegistrationLogCZL."Account Type");
+        RegistrationLogCZL.SetRange("Account No.", RequestedRegistrationLogCZL."Account No.");
         RegistrationLogCZL.SetRange(Status, RegistrationLogCZL.Status::Valid);
         Assert.RecordIsEmpty(RegistrationLogCZL);
     end;
