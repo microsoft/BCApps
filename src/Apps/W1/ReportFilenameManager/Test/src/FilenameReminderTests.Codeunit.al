@@ -55,6 +55,10 @@ codeunit 149542 "Filename Reminder Tests"
     end;
 
     local procedure RunBothWays(StopBeforeSend: Boolean)
+    var
+        IssuedReminderHeader: Record "Issued Reminder Header";
+        ReportDistributionManagement: Codeunit "Report Distribution Management";
+        Captured: List of [Text];
     begin
         FilenameProofGuard.AssertSafeEnvironment();
         GlobalLanguage(ProofSupport.EnglishLanguageId());
@@ -64,12 +68,17 @@ codeunit 149542 "Filename Reminder Tests"
 
         FilenameProofGuard.ClearPatterns();
         Commit();
-        AssertNames(RunReminderAutomation(StopBeforeSend),
-            BusinessCentralReminderTok + ReminderNoTok + PdfTok, BusinessCentralInvoiceTok, NoPatternTok);
+        Captured := RunReminderAutomation(StopBeforeSend);
+        IssuedReminderHeader.Get(ReminderNoTok);
+        AssertNames(Captured,
+            ReportDistributionManagement.GetFullDocumentTypeText(IssuedReminderHeader) + ' ' + ReminderNoTok + PdfTok,
+            ReportDistributionManagement.GetFullDocumentTypeText(FirstInvoice) + ' ' + FirstInvoice."No." + PdfTok,
+            ReportDistributionManagement.GetFullDocumentTypeText(SecondInvoice) + ' ' + SecondInvoice."No." + PdfTok, NoPatternTok);
 
         SetPatterns();
         AssertNames(RunReminderAutomation(StopBeforeSend),
-            ReminderPrefixTok + ReminderNoTok + PdfTok, InvoicePrefixTok, WithPatternsTok);
+            ReminderPrefixTok + ReminderNoTok + PdfTok,
+            InvoicePrefixTok + FirstInvoice."No." + PdfTok, InvoicePrefixTok + SecondInvoice."No." + PdfTok, WithPatternsTok);
 
         RemoveEverything();
         FilenameProofGuard.ClearPatterns();
@@ -77,7 +86,7 @@ codeunit 149542 "Filename Reminder Tests"
     end;
 
     // In Base Application's order: the reminder, then each invoice twice.
-    local procedure AssertNames(Captured: List of [Text]; ReminderName: Text; InvoiceStart: Text; Situation: Text)
+    local procedure AssertNames(Captured: List of [Text]; ReminderName: Text; FirstInvoiceName: Text; SecondInvoiceName: Text; Situation: Text)
     var
         Expected: Text;
         Actual: Text;
@@ -86,8 +95,8 @@ codeunit 149542 "Filename Reminder Tests"
             Error(NotOneEmailErr, Situation, Captured.Count());
         Captured.Get(1, Actual);
         Expected := StrSubstNo(CountLbl, 5) + ReminderName + SeparatorTok +
-            InvoiceStart + FirstInvoice."No." + PdfTok + SeparatorTok + InvoiceStart + FirstInvoice."No." + PdfTok + SeparatorTok +
-            InvoiceStart + SecondInvoice."No." + PdfTok + SeparatorTok + InvoiceStart + SecondInvoice."No." + PdfTok + SeparatorTok;
+            FirstInvoiceName + SeparatorTok + FirstInvoiceName + SeparatorTok +
+            SecondInvoiceName + SeparatorTok + SecondInvoiceName + SeparatorTok;
         if Actual <> Expected then
             Error(WrongNamesErr, Situation, Expected, Actual);
     end;
@@ -305,8 +314,6 @@ codeunit 149542 "Filename Reminder Tests"
         ReminderPrefixTok: Label 'Reminder-', Locked = true;
         InvoicePrefixTok: Label 'Invoice-', Locked = true;
         // Business Central's own names for the two documents, in English.
-        BusinessCentralReminderTok: Label 'Issued Reminder ', Locked = true;
-        BusinessCentralInvoiceTok: Label 'Sales Invoice ', Locked = true;
         PdfTok: Label '.pdf', Locked = true;
         CountLbl: Label '%1 attachments: ', Comment = '%1 how many', Locked = true;
         SeparatorTok: Label ' | ', Locked = true;

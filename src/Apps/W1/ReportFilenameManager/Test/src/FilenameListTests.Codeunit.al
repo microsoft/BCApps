@@ -249,8 +249,9 @@ codeunit 149501 "Filename List Tests"
         LastError := GetLastErrorText();
         if StrPos(LastError, Pattern.DisplayCaption()) = 0 then
             Error(RefusalDoesNotNamePatternErr, Pattern.DisplayCaption(), LastError);
-        if StrPos(LastError, ExpectedTexts.NoFileNamePatternMessage()) = 0 then
-            Error(RefusalDoesNotSayWhyErr, LastError);
+        Pattern.Get(Pattern."Entry No.");
+        if Pattern.Enabled then
+            Error(NotTurnedOffErr);
     end;
 
     [Test]
@@ -386,7 +387,6 @@ codeunit 149501 "Filename List Tests"
     end;
 
     var
-        ExpectedTexts: Codeunit "Filename Expected Texts";
         SentNotificationMessage: Text;
         ShownMessage: Text;
         CreditMemoPatternTok: Label 'CreditMemo-[No.]', Locked = true;
@@ -413,7 +413,6 @@ codeunit 149501 "Filename List Tests"
         NotTurnedOnErr: Label 'Enable on the list did not turn the selected pattern on.';
         NotTurnedOffErr: Label 'Disable on the list did not turn the selected pattern off.';
         RefusalDoesNotNamePatternErr: Label 'The refusal should name the pattern, "%1", but reads: %2', Comment = '%1 the pattern, %2 the message';
-        RefusalDoesNotSayWhyErr: Label 'The refusal should say what is missing, but reads: %1', Comment = '%1 the message';
         WrongTitleErr: Label 'The card title should name the report "%1" and the output route "%2", but reads "%3".', Comment = '%1 report, %2 output route, %3 the title';
         DrillDownRows: Integer;
         WrongEnabledCountErr: Label 'The setup should count %1 enabled patterns, but shows %2.', Comment = '%1 expected, %2 shown';

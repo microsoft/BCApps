@@ -84,6 +84,14 @@ codeunit 149512 "Filename Proof Support"
         Assert.AreEqual(ExpectedLanguageId, GlobalLanguage(), UnexpectedSessionLanguageErr);
     end;
 
+    internal procedure AssertContains(Actual: Text; ExpectedParameter: Text)
+    var
+        Assert: Codeunit "Library Assert";
+    begin
+        Assert.AreNotEqual('', ExpectedParameter, EmptyExpectedParameterErr);
+        Assert.IsTrue(StrPos(Actual, ExpectedParameter) > 0, StrSubstNo(MissingParameterErr, ExpectedParameter, Actual));
+    end;
+
     // Without leaving the session in that language; empty when the field does not exist.
     internal procedure FieldCaptionIn(LanguageId: Integer; TableNo: Integer; FieldNo: Integer) Caption: Text
     var
@@ -230,6 +238,8 @@ codeunit 149512 "Filename Proof Support"
     var
         UnexpectedNameLanguageErr: Label 'The filename language must follow the document or its configured fallback, not the session.';
         UnexpectedSessionLanguageErr: Label 'Filename resolution must preserve the session language.';
+        EmptyExpectedParameterErr: Label 'The expected message parameter must not be empty.';
+        MissingParameterErr: Label 'Expected the value "%1" in "%2".', Comment = '%1 expected parameter, %2 actual text';
         InvariantAmountTok: Label '<Precision,%1><Standard Format,9>', Comment = '%1 the decimal places', Locked = true;
         DefaultDecimalPlacesTok: Label '2:2', Locked = true;
         FilterViewsTok: Label '[{"name":"%1","tableid":%2,"view":"VERSION(1) SORTING(Field%3) WHERE(Field%4=1(%5))"}]', Comment = '%1 data item name, %2 table number, %3 sorting field, %4 filtered field, %5 document number', Locked = true;

@@ -21,6 +21,7 @@ using Microsoft.Sales.Reminder;
 using System.EMail;
 using System.Globalization;
 using System.Reflection;
+using System.TestLibraries.Utilities;
 
 codeunit 149516 "Filename Card Tests"
 {
@@ -195,8 +196,10 @@ codeunit 149516 "Filename Card Tests"
             Error(CutNameNotDeclinedErr, CutToDeviceNamePatternTok, DeviceNameFilename);
         if NothingNamed then
             Error(CutNameNotDeclinedErr, CutToNothingPatternTok, NothingFilename);
-        if TestedFromThisPattern or (TestedNameComesFrom <> NameSourceText(3)) then
+        if TestedFromThisPattern then
             Error(CutNameShownOnTestPatternErr, CutToNothingPatternTok, TestedNameComesFrom, TestedFilename);
+        AssertPreviewSource(false, TestedFromThisPattern, TestedNameComesFrom);
+        ProofSupport.AssertContains(TestedWhy, CutToNothingPatternTok.Replace('[No.]', Invoice."No."));
     end;
 
     /// <summary>
@@ -246,8 +249,8 @@ codeunit 149516 "Filename Card Tests"
         PrepareWithNoPatterns();
         CreatePattern(Pattern, InvoiceNumberPatternTok, false, '');
         PriorityWithout := Pattern.Priority();
-        if Pattern.OutputRouteFilterText() <> ExpectedTexts.NoOutputRouteFilterText() then
-            Error(WrongRouteWordsErr, ExpectedTexts.NoOutputRouteFilterText(), Pattern.OutputRouteFilterText());
+        Assert.IsFalse(Pattern.HasOutputRouteFilter(), StrSubstNo(EveryRouteNotBlankErr, Pattern.OutputRouteFilterText()));
+        Assert.AreNotEqual('', Pattern.OutputRouteFilterText(), StrSubstNo(NoRouteNotEveryRouteErr, Pattern.OutputRouteFilterText()));
 
         Routes.Add(Enum::"Report Filename Output Route"::Preview.AsInteger());
         Routes.Add(Enum::"Report Filename Output Route"::Print.AsInteger());
@@ -336,18 +339,21 @@ codeunit 149516 "Filename Card Tests"
         Pattern: Record "Report Filename Pattern";
         PatternCard: TestPage "Report Filename Pattern Card";
         Ordinal: Integer;
+        AllRoutesText: Text;
     begin
         PrepareWithNoPatterns();
         CreatePattern(Pattern, InvoiceNumberPatternTok, false, '');
         PatternCard.OpenEdit();
         PatternCard.GoToRecord(Pattern);
+        AllRoutesText := PatternCard.RouteFilterText.Value();
+        Assert.AreNotEqual('', AllRoutesText, StrSubstNo(NoRouteNotEveryRouteErr, AllRoutesText));
 
         ClearRouteHandlerState();
         foreach Ordinal in Enum::"Report Filename Output Route".Ordinals() do
             RoutesToTick.Add(Ordinal);
         PatternCard.RouteFilterText.AssistEdit();
         Pattern.Get(Pattern."Entry No.");
-        if Pattern.HasOutputRouteFilter() or (PatternCard.RouteFilterText.Value() <> ExpectedTexts.NoOutputRouteFilterText()) then
+        if Pattern.HasOutputRouteFilter() or (PatternCard.RouteFilterText.Value() <> AllRoutesText) then
             Error(EveryRouteNotBlankErr, PatternCard.RouteFilterText.Value());
 
         // One route, then nothing ticked.
@@ -359,7 +365,7 @@ codeunit 149516 "Filename Card Tests"
         ClearRouteHandlerState();
         PatternCard.RouteFilterText.AssistEdit();
         Pattern.Get(Pattern."Entry No.");
-        if Pattern.HasOutputRouteFilter() or (PatternCard.RouteFilterText.Value() <> ExpectedTexts.NoOutputRouteFilterText()) then
+        if Pattern.HasOutputRouteFilter() or (PatternCard.RouteFilterText.Value() <> AllRoutesText) then
             Error(NoRouteNotEveryRouteErr, PatternCard.RouteFilterText.Value());
         PatternCard.Close();
     end;
@@ -404,7 +410,8 @@ codeunit 149516 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// A pattern limited to Preview names a Preview run; for Print the reason says it is not its route.
+    /// A pattern limited to Preview names a Preview run. Its Print refusal includes the route
+    /// parameters in each session language without requiring translated messages.
     /// </summary>
     [Test]
     procedure TestPatternTestsTheRouteChosen()
@@ -415,9 +422,6 @@ codeunit 149516 "Filename Card Tests"
         Filename: Text;
         NameComesFrom: Text;
         Why: Text;
-        AnotherNamesIt: Text;
-        NothingElse: Text;
-        PatternOff: Text;
         FromThisPattern: Boolean;
     begin
         PrepareWithNoPatterns();
@@ -428,17 +432,42 @@ codeunit 149516 "Filename Card Tests"
 
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, Enum::"Report Filename Output Route"::Preview, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
-        if not FromThisPattern then
-            Error(WrongNameSourceErr, NameSourceText(1), NameComesFrom);
+        AssertPreviewSource(true, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(InvoicePrefixTok + ChosenInvoiceNo + PdfTok, Filename, WrongWinningNameErr);
 
+        AssertExcludedRouteInLanguage(Pattern, ProofSupport.EnglishLanguageId());
+        AssertExcludedRouteInLanguage(Pattern, ProofSupport.DanishLanguageId());
+        AssertExcludedRouteInLanguage(Pattern, ProofSupport.GermanLanguageId());
+    end;
+
+    local procedure AssertExcludedRouteInLanguage(var Pattern: Record "Report Filename Pattern"; LanguageId: Integer)
+    var
+        ReportMetadata: Record "Report Metadata";
+        ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
+        Filename: Text;
+        NameComesFrom: Text;
+        Why: Text;
+        RouteFilterText: Text;
+        RouteText: Text;
+        ExpectedFilename: Text;
+        RestoreLanguage: Integer;
+        FromThisPattern: Boolean;
+    begin
+        RestoreLanguage := GlobalLanguage();
+        GlobalLanguage(LanguageId);
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, Enum::"Report Filename Output Route"::Print, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
-        if NameComesFrom <> NameSourceText(3) then
-            Error(WrongNameSourceErr, NameSourceText(3), NameComesFrom);
-        ExpectedTexts.RouteReasonTexts(
-            Pattern.OutputRouteFilterText(), Enum::"Report Filename Output Route"::Print, '', AnotherNamesIt, NothingElse, PatternOff);
-        if Why <> NothingElse then
-            Error(WrongReasonErr, NothingElse, Why);
+        RouteFilterText := Pattern.OutputRouteFilterText();
+        RouteText := Format(Enum::"Report Filename Output Route"::Print);
+        ReportMetadata.Get(Pattern."Report ID");
+        ExpectedFilename := ReportMetadata.Caption + PdfTok;
+        GlobalLanguage(RestoreLanguage);
+
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(ExpectedFilename, Filename, WrongWinningNameErr);
+        AssertCriterion(Pattern, ChosenInvoiceNo, Enum::"Report Filename Output Route"::Print, Enum::"Report Filename Criterion"::"Output Route");
+        ProofSupport.AssertContains(Why, RouteFilterText);
+        ProofSupport.AssertContains(Why, RouteText);
     end;
 
     /// <summary>
@@ -523,10 +552,7 @@ codeunit 149516 "Filename Card Tests"
         ReportDistributionMgt: Codeunit "Report Distribution Management";
         FilenameProofSupport: Codeunit "Filename Proof Support";
         CustomerNo: Code[20];
-        OtherLanguage: Text;
-        OtherLanguageInRun: Text;
-        MixedKinds: Text;
-        TooMany: Text;
+        Why: Text;
     begin
         PrepareWithNoPatterns();
         TestData.EnsureLanguage(FilenameProofSupport.GermanLanguageCode(), FilenameProofSupport.GermanLanguageId());
@@ -538,8 +564,7 @@ codeunit 149516 "Filename Card Tests"
         CreateKindOfDocumentPattern(Pattern, Database::"Sales Invoice Header");
         SalesInvoiceHeader.Reset();
         SalesInvoiceHeader.SetFilter("No.", '%1|%2', GermanInvoice."No.", EnglishInvoice."No.");
-        ExpectedTexts.ExplanationTexts(KindOfDocumentOnlyTok, '', '', '', '', OtherLanguage, OtherLanguageInRun, MixedKinds, TooMany);
-        ExpectKindReason(Pattern, SalesInvoiceHeader.GetView(), OtherLanguageInRun);
+        Why := ExpectKindReason(Pattern, SalesInvoiceHeader.GetView());
 
         // One more than the 100 documents checked.
         TestData.InsertInvoiceHeaders(ManyInvoicesPrefixTok, CustomerNo, FilenameProofSupport.EnglishLanguageCode(), 101);
@@ -547,7 +572,8 @@ codeunit 149516 "Filename Card Tests"
         SalesInvoiceHeader.SetFilter("No.", ManyInvoicesPrefixTok + '*');
         if SalesInvoiceHeader.Count() <= 100 then
             Error(TooFewInvoicesErr, SalesInvoiceHeader.Count());
-        ExpectKindReason(Pattern, SalesInvoiceHeader.GetView(), TooMany);
+        Why := ExpectKindReason(Pattern, SalesInvoiceHeader.GetView());
+        ProofSupport.AssertContains(Why, Format(100));
 
         TestData.CreateSalesDocument(Quote."Document Type"::Quote, CustomerNo, FilenameProofSupport.EnglishLanguageCode(), Quote);
         TestData.CreateSalesDocument(Order."Document Type"::Order, CustomerNo, FilenameProofSupport.EnglishLanguageCode(), Order);
@@ -555,9 +581,9 @@ codeunit 149516 "Filename Card Tests"
         SalesHeader.SetFilter("Document Type", '%1|%2', SalesHeader."Document Type"::Quote, SalesHeader."Document Type"::Order);
         SalesHeader.SetFilter("No.", '%1|%2', Quote."No.", Order."No.");
         SalesHeader.SetRange("Sell-to Customer No.", CustomerNo);
-        ExpectedTexts.ExplanationTexts(KindOfDocumentOnlyTok, '', '', ReportDistributionMgt.GetFullDocumentTypeText(Quote), ReportDistributionMgt.GetFullDocumentTypeText(Order),
-            OtherLanguage, OtherLanguageInRun, MixedKinds, TooMany);
-        ExpectKindReason(Pattern, SalesHeader.GetView(), MixedKinds);
+        Why := ExpectKindReason(Pattern, SalesHeader.GetView());
+        ProofSupport.AssertContains(Why, ReportDistributionMgt.GetFullDocumentTypeText(Quote));
+        ProofSupport.AssertContains(Why, ReportDistributionMgt.GetFullDocumentTypeText(Order));
     end;
 
     local procedure CreateKindOfDocumentPattern(var Pattern: Record "Report Filename Pattern"; SourceTableNo: Integer)
@@ -572,17 +598,16 @@ codeunit 149516 "Filename Card Tests"
         Pattern.Insert(true);
     end;
 
-    local procedure ExpectKindReason(var Pattern: Record "Report Filename Pattern"; FilterView: Text; Expected: Text)
+    local procedure ExpectKindReason(var Pattern: Record "Report Filename Pattern"; FilterView: Text) Why: Text
     var
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
         Filename: Text;
         NameComesFrom: Text;
-        Why: Text;
         FromThisPattern: Boolean;
     begin
         ReportFilenamePreviewMgt.ExplainNameForRun(Pattern, Enum::"Report Filename Output Route"::Any, FilterView, Filename, NameComesFrom, Why, FromThisPattern);
-        if Why <> Expected then
-            Error(WrongKindReasonErr, Expected, Why);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        ProofSupport.AssertContains(Why, KindOfDocumentOnlyTok);
     end;
 
     /// <summary>
@@ -625,8 +650,9 @@ codeunit 149516 "Filename Card Tests"
         Pattern.Init();
         Pattern.Validate("Table No.", Database::"Sales Invoice Header");
         asserterror Pattern.Validate("Language Code Field", SalesInvoiceHeader.FieldNo("Your Reference"));
-        if GetLastErrorText() <> ExpectedTexts.NotALanguageFieldMessage(SalesInvoiceHeader.FieldCaption("Your Reference")) then
-            Error(WrongLanguageFieldRefusalErr, ExpectedTexts.NotALanguageFieldMessage(SalesInvoiceHeader.FieldCaption("Your Reference")), GetLastErrorText());
+        Assert.ExpectedError(SalesInvoiceHeader.FieldCaption("Your Reference"));
+        Pattern.Validate("Language Code Field", SalesInvoiceHeader.FieldNo("Language Code"));
+        Assert.AreEqual(SalesInvoiceHeader.FieldNo("Language Code"), Pattern."Language Code Field", LanguageFieldNotStoredErr);
     end;
 
     /// <summary>
@@ -648,8 +674,7 @@ codeunit 149516 "Filename Card Tests"
         Pattern.Init();
         Pattern.Validate("Table No.", Database::"G/L Account");
         asserterror Pattern.LookupLanguageCodeField();
-        if GetLastErrorText() <> ExpectedTexts.NoLanguageFieldOnTableMessage(TableMetadata.Caption) then
-            Error(WrongLanguageFieldRefusalErr, ExpectedTexts.NoLanguageFieldOnTableMessage(TableMetadata.Caption), GetLastErrorText());
+        Assert.ExpectedError(TableMetadata.Caption);
     end;
 
     [ModalPageHandler]
@@ -700,8 +725,7 @@ codeunit 149516 "Filename Card Tests"
         Pattern.Modify(true);
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, Enum::"Report Filename Output Route"::ElectronicDocument, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
-        if NameComesFrom <> NameSourceText(3) then
-            Error(WrongNameSourceErr, NameSourceText(3), NameComesFrom);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
         if Filename <> BusinessCentralsName then
             Error(WrongElectronicNameErr, BusinessCentralsName, Filename);
     end;
@@ -979,8 +1003,7 @@ codeunit 149516 "Filename Card Tests"
 
         // The leak checks use the table's captions so they follow a field rename.
         LastError := GetLastErrorText();
-        if LastError <> ExpectedTexts.NoTableForFilterMessage() then
-            Error(WrongRefusalErr, LastError);
+        Assert.AreNotEqual('', LastError, NoReasonGivenErr);
         if StrPos(LastError, Pattern.FieldCaption("Entry No.")) > 0 then
             Error(LeaksEntryNoErr, LastError);
         if StrPos(LastError, Pattern.FieldCaption("Table No.")) > 0 then
@@ -1039,10 +1062,9 @@ codeunit 149516 "Filename Card Tests"
 
         asserterror PatternCard.Enabled.SetValue(true);
 
-        // Contained rather than equal: a test page wraps the message in "Validation error for Field: ...".
         LastError := GetLastErrorText();
-        if StrPos(LastError, ExpectedTexts.NoFileNamePatternMessage()) = 0 then
-            Error(WrongEnableRefusalErr, LastError);
+        Assert.AreNotEqual('', LastError, NoReasonGivenErr);
+        Assert.AreEqual('', PatternCard."File Name Pattern".Value(), IncompletePatternExpectedErr);
         if StrPos(LastError, Pattern.FieldCaption("Entry No.")) > 0 then
             Error(LeaksEntryNoErr, LastError);
         if StrPos(LastError, Pattern.FieldCaption("Table No.")) > 0 then
@@ -1152,8 +1174,7 @@ codeunit 149516 "Filename Card Tests"
 
         Pattern.Init();
         asserterror Pattern.Validate("Separator", IllegalSeparatorTok);
-        if GetLastErrorText() <> ExpectedTexts.InvalidSeparatorMessage() then
-            Error(IllegalSeparatorAcceptedErr, GetLastErrorText());
+        Assert.ExpectedError(IllegalSeparatorTok);
     end;
 
     [Test]
@@ -1194,10 +1215,8 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
 
-        if NameComesFrom <> NameSourceText(1) then
-            Error(WrongNameSourceErr, NameSourceText(1), NameComesFrom);
-        if StrPos(Filename, ChosenInvoiceNo) = 0 then
-            Error(NameMissesRecordErr, ChosenInvoiceNo, Filename);
+        AssertPreviewSource(true, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(InvoicePrefixTok + ChosenInvoiceNo + PdfTok, Filename, WrongWinningNameErr);
         // Empty, so the page hides the explanation group.
         if Why <> '' then
             Error(UnexpectedWhyErr, Why);
@@ -1223,12 +1242,10 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
 
-        if NameComesFrom <> NameSourceText(2) then
-            Error(WrongNameSourceErr, NameSourceText(2), NameComesFrom);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
         if StrPos(Why, SpecificPatternTok) = 0 then
             Error(WinnerNotNamedErr, SpecificPatternTok, Why);
-        if StrPos(Filename, SpecificLiteralTok) = 0 then
-            Error(WrongWinningNameErr, SpecificLiteralTok, Filename);
+        Assert.AreEqual(SpecificLiteralTok + ChosenInvoiceNo + PdfTok, Filename, WrongWinningNameErr);
     end;
 
     /// <summary>
@@ -1245,9 +1262,6 @@ codeunit 149516 "Filename Card Tests"
         Filename: Text;
         NameComesFrom: Text;
         Why: Text;
-        TableFilterExcludes: Text;
-        OtherLanguage: Text;
-        OutRanked: Text;
         FromThisPattern: Boolean;
     begin
         PrepareWithNoPatterns();
@@ -1261,12 +1275,11 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, InvoiceRecordId(ExcludedInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
 
-        if NameComesFrom <> NameSourceText(2) then
-            Error(WrongNameSourceErr, NameSourceText(2), NameComesFrom);
-        ExpectedTexts.AnotherPatternReasonTexts(
-            Pattern.GetTableFilterDisplayText(), '', '', General."File Name Pattern", TableFilterExcludes, OtherLanguage, OutRanked);
-        if Why <> TableFilterExcludes then
-            Error(WrongReasonErr, TableFilterExcludes, Why);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(InvoicePrefixTok + ExcludedInvoiceNo + PdfTok, Filename, WrongWinningNameErr);
+        AssertCriterion(Pattern, ExcludedInvoiceNo, Pattern.DefaultTestRoute(), Enum::"Report Filename Criterion"::"Table Filter");
+        ProofSupport.AssertContains(Why, Pattern.GetTableFilterDisplayText());
+        ProofSupport.AssertContains(Why, General."File Name Pattern");
     end;
 
     /// <summary>
@@ -1282,9 +1295,6 @@ codeunit 149516 "Filename Card Tests"
         Filename: Text;
         NameComesFrom: Text;
         Why: Text;
-        TableFilterExcludes: Text;
-        OtherLanguage: Text;
-        OutRanked: Text;
         FromThisPattern: Boolean;
     begin
         PrepareWithNoPatterns();
@@ -1298,12 +1308,12 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
 
-        if NameComesFrom <> NameSourceText(2) then
-            Error(WrongNameSourceErr, NameSourceText(2), NameComesFrom);
-        ExpectedTexts.AnotherPatternReasonTexts(
-            '', OtherLanguageCode, GermanLanguageTok, General."File Name Pattern", TableFilterExcludes, OtherLanguage, OutRanked);
-        if Why <> OtherLanguage then
-            Error(WrongReasonErr, OtherLanguage, Why);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(InvoicePrefixTok + ChosenInvoiceNo + PdfTok, Filename, WrongWinningNameErr);
+        AssertCriterion(Pattern, ChosenInvoiceNo, Pattern.DefaultTestRoute(), Enum::"Report Filename Criterion"::Language);
+        ProofSupport.AssertContains(Why, OtherLanguageCode);
+        ProofSupport.AssertContains(Why, GermanLanguageTok);
+        ProofSupport.AssertContains(Why, General."File Name Pattern");
     end;
 
     /// <summary>
@@ -1312,42 +1322,14 @@ codeunit 149516 "Filename Card Tests"
     /// </summary>
     [Test]
     procedure AnExcludedRecordThatNothingElseNamesSaysWhatExcludesIt()
-    var
-        Pattern: Record "Report Filename Pattern";
-        NameComesFrom: Text;
-        Why: Text;
-        TableFilterExcludes: Text;
-        OtherLanguage: Text;
-        TableFilterPatternOff: Text;
-        OtherLanguagePatternOff: Text;
     begin
-        TestPatternAloneOnAnExcludedRecord(true, false, Pattern, NameComesFrom, Why);
-
-        ExpectedNothingElseReasons(Pattern, TableFilterExcludes, OtherLanguage, TableFilterPatternOff, OtherLanguagePatternOff);
-        if NameComesFrom <> NameSourceText(3) then
-            Error(WrongNameSourceErr, NameSourceText(3), NameComesFrom);
-        if Why <> TableFilterExcludes then
-            Error(WrongReasonErr, TableFilterExcludes, Why);
+        TestPatternAloneOnAnExcludedRecord(true, false);
     end;
 
     [Test]
     procedure ARecordInAnotherLanguageThatNothingElseNamesSaysSo()
-    var
-        Pattern: Record "Report Filename Pattern";
-        NameComesFrom: Text;
-        Why: Text;
-        TableFilterExcludes: Text;
-        OtherLanguage: Text;
-        TableFilterPatternOff: Text;
-        OtherLanguagePatternOff: Text;
     begin
-        TestPatternAloneOnAnExcludedRecord(true, true, Pattern, NameComesFrom, Why);
-
-        ExpectedNothingElseReasons(Pattern, TableFilterExcludes, OtherLanguage, TableFilterPatternOff, OtherLanguagePatternOff);
-        if NameComesFrom <> NameSourceText(3) then
-            Error(WrongNameSourceErr, NameSourceText(3), NameComesFrom);
-        if Why <> OtherLanguage then
-            Error(WrongReasonErr, OtherLanguage, Why);
+        TestPatternAloneOnAnExcludedRecord(true, true);
     end;
 
     /// <summary>
@@ -1355,49 +1337,29 @@ codeunit 149516 "Filename Card Tests"
     /// </summary>
     [Test]
     procedure ATurnedOffPatternWhoseTableFilterExcludesTheRecordSaysItWouldNotApply()
-    var
-        Pattern: Record "Report Filename Pattern";
-        NameComesFrom: Text;
-        Why: Text;
-        TableFilterExcludes: Text;
-        OtherLanguage: Text;
-        TableFilterPatternOff: Text;
-        OtherLanguagePatternOff: Text;
     begin
-        TestPatternAloneOnAnExcludedRecord(false, false, Pattern, NameComesFrom, Why);
-
-        ExpectedNothingElseReasons(Pattern, TableFilterExcludes, OtherLanguage, TableFilterPatternOff, OtherLanguagePatternOff);
-        if Why <> TableFilterPatternOff then
-            Error(WrongReasonErr, TableFilterPatternOff, Why);
+        TestPatternAloneOnAnExcludedRecord(false, false);
     end;
 
     [Test]
     procedure ATurnedOffPatternForAnotherLanguageSaysItWouldNotApply()
-    var
-        Pattern: Record "Report Filename Pattern";
-        NameComesFrom: Text;
-        Why: Text;
-        TableFilterExcludes: Text;
-        OtherLanguage: Text;
-        TableFilterPatternOff: Text;
-        OtherLanguagePatternOff: Text;
     begin
-        TestPatternAloneOnAnExcludedRecord(false, true, Pattern, NameComesFrom, Why);
-
-        ExpectedNothingElseReasons(Pattern, TableFilterExcludes, OtherLanguage, TableFilterPatternOff, OtherLanguagePatternOff);
-        if Why <> OtherLanguagePatternOff then
-            Error(WrongReasonErr, OtherLanguagePatternOff, Why);
+        TestPatternAloneOnAnExcludedRecord(false, true);
     end;
 
     /// <summary>
     /// Test Pattern on a record the only pattern excludes: by language (invoice posted in German) when
     /// ByLanguage, otherwise by a Table Filter on another invoice.
     /// </summary>
-    local procedure TestPatternAloneOnAnExcludedRecord(Live: Boolean; ByLanguage: Boolean; var Pattern: Record "Report Filename Pattern"; var NameComesFrom: Text; var Why: Text)
+    local procedure TestPatternAloneOnAnExcludedRecord(Live: Boolean; ByLanguage: Boolean)
     var
+        Pattern: Record "Report Filename Pattern";
+        ReportMetadata: Record "Report Metadata";
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
         TestedInvoiceNo: Code[20];
         Filename: Text;
+        NameComesFrom: Text;
+        Why: Text;
         FromThisPattern: Boolean;
     begin
         PrepareWithNoPatterns();
@@ -1416,15 +1378,19 @@ codeunit 149516 "Filename Card Tests"
         end;
 
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
-            Pattern, InvoiceRecordId(TestedInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
-    end;
-
-    local procedure ExpectedNothingElseReasons(var Pattern: Record "Report Filename Pattern"; var TableFilterExcludes: Text; var OtherLanguage: Text; var TableFilterPatternOff: Text; var OtherLanguagePatternOff: Text)
-    var
-    begin
-        ExpectedTexts.NothingElseReasonTexts(
-            Pattern.GetTableFilterDisplayText(), Pattern."Language Code", GermanLanguageTok,
-            TableFilterExcludes, OtherLanguage, TableFilterPatternOff, OtherLanguagePatternOff);
+            Pattern, Enum::"Report Filename Output Route"::Print, InvoiceRecordId(TestedInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        ReportMetadata.Get(Pattern."Report ID");
+        Assert.AreEqual(ReportMetadata.Caption + PdfTok, Filename, WrongWinningNameErr);
+        if ByLanguage then begin
+            AssertCriterion(Pattern, TestedInvoiceNo, Enum::"Report Filename Output Route"::Print, Enum::"Report Filename Criterion"::Language);
+            ProofSupport.AssertContains(Why, Pattern."Language Code");
+            ProofSupport.AssertContains(Why, GermanLanguageTok);
+        end else begin
+            AssertCriterion(Pattern, TestedInvoiceNo, Enum::"Report Filename Output Route"::Print, Enum::"Report Filename Criterion"::"Table Filter");
+            ProofSupport.AssertContains(Why, Pattern.GetTableFilterDisplayText());
+        end;
+        Assert.IsFalse(StrPos(Why, SpecificLiteralTok + TestedInvoiceNo + PdfTok) > 0, ExcludedPatternWouldNameErr);
     end;
 
     [Test]
@@ -1448,10 +1414,8 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, Enum::"Report Filename Output Route"::Print, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
 
-        if NameComesFrom <> NameSourceText(3) then
-            Error(WrongNameSourceErr, NameSourceText(3), NameComesFrom);
-        if StrPos(Filename, ReportMetadata.Caption) = 0 then
-            Error(NotTheReportCaptionErr, ReportMetadata.Caption, Filename);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(ReportMetadata.Caption + PdfTok, Filename, WrongWinningNameErr);
         if Why = '' then
             Error(NoReasonGivenErr);
     end;
@@ -1819,8 +1783,8 @@ codeunit 149516 "Filename Card Tests"
     end;
 
     /// <summary>
-    /// When an older pattern of the same priority wins, the reason says so (not "higher priority")
-    /// and names this pattern's unresolved placeholder.
+    /// An older pattern of the same priority wins, and the explanation names the winner and this
+    /// pattern's unresolved placeholder.
     /// </summary>
     [Test]
     procedure AnEqualPatternThatWinsIsSaidToTieAndTheOwnReasonIsGiven()
@@ -1832,9 +1796,6 @@ codeunit 149516 "Filename Card Tests"
         Filename: Text;
         NameComesFrom: Text;
         WhyNotThisPattern: Text;
-        NoLongerExists: Text;
-        HasNoValue: Text;
-        Expected: Text;
         FromThisPattern: Boolean;
     begin
         PrepareWithNoPatterns();
@@ -1849,13 +1810,14 @@ codeunit 149516 "Filename Card Tests"
         if Stale.Priority() <> General.Priority() then
             Error(NotATieErr, Stale.Priority(), General.Priority());
 
+        ChosenInvoiceNo := NewInvoiceNo();
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
-            Stale, InvoiceRecordId(NewInvoiceNo()), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
+            Stale, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
 
-        ExpectedTexts.PlaceholderReasonTexts(StalePlaceholderTok, NoLongerExists, HasNoValue);
-        Expected := ExpectedTexts.SamePriorityReasonText(General."File Name Pattern", NoLongerExists);
-        if WhyNotThisPattern <> Expected then
-            Error(WrongReasonErr, Expected, WhyNotThisPattern);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        Assert.AreEqual(InvoicePrefixTok + ChosenInvoiceNo + PdfTok, Filename, WrongWinningNameErr);
+        ProofSupport.AssertContains(WhyNotThisPattern, General."File Name Pattern");
+        ProofSupport.AssertContains(WhyNotThisPattern, StalePlaceholderTok);
     end;
 
     [Test]
@@ -1959,10 +1921,6 @@ codeunit 149516 "Filename Card Tests"
     var
         Pattern: Record "Report Filename Pattern";
         Customer: Record Customer;
-        NothingUsable: Text;
-        ReservedName: Text;
-        NothingAfterCut: Text;
-        ReservedAfterCut: Text;
     begin
         // Each refusal made after the name is built is the reason given, not "a placeholder has no value".
         PrepareWithNoPatterns();
@@ -1973,24 +1931,22 @@ codeunit 149516 "Filename Card Tests"
         Pattern.Insert(true);
         Customer.Get(TestData.CreateCustomer());
 
-        ExpectedTexts.RefusedNameReasonTexts(ReservedCustomerNameTok, 0, '', NothingUsable, ReservedName, NothingAfterCut, ReservedAfterCut);
-        ExpectRefusal(Pattern, Customer, ReservedCustomerNameTok, ReservedName);
-        ExpectedTexts.RefusedNameReasonTexts(OnlyRejectedCharsTok, 0, '', NothingUsable, ReservedName, NothingAfterCut, ReservedAfterCut);
-        ExpectRefusal(Pattern, Customer, OnlyRejectedCharsTok, NothingUsable);
+        ExpectRefusal(Pattern, Customer, ReservedCustomerNameTok, Enum::"Report Filename Refusal"::Reserved, 0, '');
+        ExpectRefusal(Pattern, Customer, OnlyRejectedCharsTok, Enum::"Report Filename Refusal"::"Nothing Usable", 0, '');
 
         SetMaxFileNameLength(20);
-        ExpectedTexts.RefusedNameReasonTexts(ReservedWhenCutTok, 20, CutToReservedTok, NothingUsable, ReservedName, NothingAfterCut, ReservedAfterCut);
-        ExpectRefusal(Pattern, Customer, ReservedWhenCutTok, ReservedAfterCut);
-        ExpectedTexts.RefusedNameReasonTexts(NothingWhenCutTok, 20, '', NothingUsable, ReservedName, NothingAfterCut, ReservedAfterCut);
-        ExpectRefusal(Pattern, Customer, NothingWhenCutTok, NothingAfterCut);
+        ExpectRefusal(Pattern, Customer, ReservedWhenCutTok, Enum::"Report Filename Refusal"::"Reserved After Cut", 20, CutToReservedTok);
+        ExpectRefusal(Pattern, Customer, NothingWhenCutTok, Enum::"Report Filename Refusal"::"Nothing After Cut", 20, '');
     end;
 
-    local procedure ExpectRefusal(var Pattern: Record "Report Filename Pattern"; var Customer: Record Customer; CustomerName: Text; Expected: Text)
+    local procedure ExpectRefusal(var Pattern: Record "Report Filename Pattern"; var Customer: Record Customer; CustomerName: Text; ExpectedRefusal: Enum "Report Filename Refusal"; MaxLength: Integer; CutName: Text)
     var
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
         Filename: Text;
         NameComesFrom: Text;
         WhyNotThisPattern: Text;
+        ActualCutName: Text;
         FromThisPattern: Boolean;
     begin
         Customer.Name := CopyStr(CustomerName, 1, MaxStrLen(Customer.Name));
@@ -1999,8 +1955,14 @@ codeunit 149516 "Filename Card Tests"
             Pattern, Customer.RecordId, Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
         if FromThisPattern then
             Error(RefusedNameUsedErr, CustomerName, Filename);
-        if WhyNotThisPattern <> Expected then
-            Error(WrongReasonErr, Expected, WhyNotThisPattern);
+        Assert.AreEqual(ExpectedRefusal, ReportFilenameMgt.WhyNameIsRefused(CustomerName, ActualCutName), WrongRefusalReasonErr);
+        if CutName <> '' then
+            Assert.AreEqual(CutName, ActualCutName, WrongRefusalReasonErr);
+        ProofSupport.AssertContains(WhyNotThisPattern, CustomerName);
+        if MaxLength <> 0 then
+            ProofSupport.AssertContains(WhyNotThisPattern, Format(MaxLength));
+        if CutName <> '' then
+            ProofSupport.AssertContains(WhyNotThisPattern, CutName);
     end;
 
     local procedure SetMaxFileNameLength(MaxLength: Integer)
@@ -2020,8 +1982,6 @@ codeunit 149516 "Filename Card Tests"
         BindingOutStream: OutStream;
         Resolved: Text;
         Reason: Text;
-        NoLongerExists: Text;
-        HasNoValue: Text;
     begin
         // A pattern whose placeholder no longer exists (here the old [Report Caption]). Inserted
         // without the trigger, which would refuse it; inserted at all because the binding is read
@@ -2036,9 +1996,7 @@ codeunit 149516 "Filename Card Tests"
 
         if ReportFilenamePreviewMgt.TryPreviewShape(Pattern, Resolved, Reason) then
             Error(StaleShapedErr, Resolved);
-        ExpectedTexts.PlaceholderReasonTexts(StalePlaceholderTok, NoLongerExists, HasNoValue);
-        if Reason <> NoLongerExists then
-            Error(WrongReasonErr, NoLongerExists, Reason);
+        ProofSupport.AssertContains(Reason, StalePlaceholderTok);
     end;
 
     [Test]
@@ -2050,8 +2008,6 @@ codeunit 149516 "Filename Card Tests"
         Filename: Text;
         NameComesFrom: Text;
         WhyNotThisPattern: Text;
-        NoLongerExists: Text;
-        HasNoValue: Text;
         FromThisPattern: Boolean;
     begin
         // Blank on the chosen record: the reason names the placeholder.
@@ -2067,9 +2023,8 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, SalesInvoiceHeader.RecordId(), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
 
-        ExpectedTexts.PlaceholderReasonTexts(EmptyFieldPlaceholderTok, NoLongerExists, HasNoValue);
-        if WhyNotThisPattern <> HasNoValue then
-            Error(WrongReasonErr, HasNoValue, WhyNotThisPattern);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        ProofSupport.AssertContains(WhyNotThisPattern, EmptyFieldPlaceholderTok);
     end;
 
     [Test]
@@ -2078,15 +2033,11 @@ codeunit 149516 "Filename Card Tests"
         Pattern: Record "Report Filename Pattern";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         ReportFilenameSetup: Record "Report Filename Setup";
+        ReportMetadata: Record "Report Metadata";
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
         Filename: Text;
         NameComesFrom: Text;
         WhyNotThisPattern: Text;
-        FeatureOff: Text;
-        PatternOff: Text;
-        FromThis: Text;
-        FromAnother: Text;
-        FromBusinessCentral: Text;
         FromThisPattern: Boolean;
     begin
         // With the feature off, the name comes from Business Central, not "This pattern".
@@ -2098,18 +2049,16 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenameSetup.Modify();
 
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
-            Pattern, SalesInvoiceHeader.RecordId(), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
+            Pattern, Enum::"Report Filename Output Route"::Print, SalesInvoiceHeader.RecordId(), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
 
         // Restored before asserting: with codeunit isolation the runner rolls back only when the codeunit ends.
         ReportFilenameSetup.Enabled := true;
         ReportFilenameSetup.Modify();
 
-        ExpectedTexts.NameSourceTexts(FromThis, FromAnother, FromBusinessCentral);
-        if FromThisPattern or (NameComesFrom <> FromBusinessCentral) then
-            Error(NamedWhileSwitchedOffErr, NameComesFrom, Filename);
-        ExpectedTexts.SwitchReasonTexts(InvoicePrefixTok + SalesInvoiceHeader."No." + PdfTok, FeatureOff, PatternOff);
-        if WhyNotThisPattern <> FeatureOff then
-            Error(WrongReasonErr, FeatureOff, WhyNotThisPattern);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        ReportMetadata.Get(Pattern."Report ID");
+        Assert.AreEqual(ReportMetadata.Caption + PdfTok, Filename, WrongWinningNameErr);
+        ProofSupport.AssertContains(WhyNotThisPattern, InvoicePrefixTok + SalesInvoiceHeader."No." + PdfTok);
     end;
 
     [Test]
@@ -2117,12 +2066,11 @@ codeunit 149516 "Filename Card Tests"
     var
         Pattern: Record "Report Filename Pattern";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        ReportMetadata: Record "Report Metadata";
         ReportFilenamePreviewMgt: Codeunit "Report Filename Preview Mgt.";
         Filename: Text;
         NameComesFrom: Text;
         WhyNotThisPattern: Text;
-        FeatureOff: Text;
-        PatternOff: Text;
         FromThisPattern: Boolean;
     begin
         // The reason says what it would name the file, so it can be tried before it is turned on.
@@ -2131,11 +2079,12 @@ codeunit 149516 "Filename Card Tests"
         CreatePattern(Pattern, InvoiceNoPatternTok, false, '');
 
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
-            Pattern, SalesInvoiceHeader.RecordId(), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
+            Pattern, Enum::"Report Filename Output Route"::Print, SalesInvoiceHeader.RecordId(), Filename, NameComesFrom, WhyNotThisPattern, FromThisPattern);
 
-        ExpectedTexts.SwitchReasonTexts(InvoicePrefixTok + SalesInvoiceHeader."No." + PdfTok, FeatureOff, PatternOff);
-        if WhyNotThisPattern <> PatternOff then
-            Error(WrongReasonErr, PatternOff, WhyNotThisPattern);
+        AssertPreviewSource(false, FromThisPattern, NameComesFrom);
+        ReportMetadata.Get(Pattern."Report ID");
+        Assert.AreEqual(ReportMetadata.Caption + PdfTok, Filename, WrongWinningNameErr);
+        ProofSupport.AssertContains(WhyNotThisPattern, InvoicePrefixTok + SalesInvoiceHeader."No." + PdfTok);
     end;
 
     /// <summary>
@@ -2160,8 +2109,13 @@ codeunit 149516 "Filename Card Tests"
 
         // Restored before asserting: with codeunit isolation the runner rolls back only when the codeunit ends.
         FilenameProofGuard.SwitchFeatureOn();
-        if SentNotificationMessage <> ExpectedTexts.SwitchedOffMessage() then
-            Error(CardSaysNothingWhenOffErr, ExpectedTexts.SwitchedOffMessage(), SentNotificationMessage);
+        Assert.AreNotEqual('', SentNotificationMessage, NoSwitchedOffNotificationErr);
+
+        SentNotificationMessage := '';
+        PatternCard.OpenView();
+        PatternCard.GoToRecord(Pattern);
+        PatternCard.Close();
+        Assert.AreEqual('', SentNotificationMessage, StrSubstNo(NotificationAfterTurnedOnErr, SentNotificationMessage));
     end;
 
     /// <summary>
@@ -2192,8 +2146,7 @@ codeunit 149516 "Filename Card Tests"
         AfterTurnedOn := SentNotificationMessage;
 
         FilenameProofGuard.SwitchFeatureOn();
-        if AfterLeftOff <> ExpectedTexts.SwitchedOffMessage() then
-            Error(NotificationNotBackErr, ExpectedTexts.SwitchedOffMessage(), AfterLeftOff);
+        Assert.AreNotEqual('', AfterLeftOff, NoSwitchedOffNotificationErr);
         if AfterTurnedOn <> '' then
             Error(NotificationAfterTurnedOnErr, AfterTurnedOn);
     end;
@@ -2289,26 +2242,23 @@ codeunit 149516 "Filename Card Tests"
         exit(FilenameProofSupport.DanishLanguageCode());
     end;
 
-    /// <summary>
-    /// Test Pattern's Name Source text.
-    /// </summary>
-    /// <param name="Which">1 this pattern, 2 another pattern, 3 Business Central's own file name.</param>
-    local procedure NameSourceText(Which: Integer): Text
-    var
-        FromThisPattern: Text;
-        FromAnotherPattern: Text;
-        FromBusinessCentral: Text;
+    local procedure AssertPreviewSource(ExpectedFromThisPattern: Boolean; FromThisPattern: Boolean; NameComesFrom: Text)
     begin
-        ExpectedTexts.NameSourceTexts(FromThisPattern, FromAnotherPattern, FromBusinessCentral);
-        case Which of
-            1:
-                exit(FromThisPattern);
-            2:
-                exit(FromAnotherPattern);
-            3:
-                exit(FromBusinessCentral);
-        end;
-        Error(UnknownNameSourceErr, Which);
+        Assert.AreEqual(ExpectedFromThisPattern, FromThisPattern, WrongPatternSourceErr);
+        Assert.AreNotEqual('', NameComesFrom, NoNameSourceErr);
+    end;
+
+    local procedure AssertCriterion(var Pattern: Record "Report Filename Pattern"; InvoiceNo: Code[20]; Route: Enum "Report Filename Output Route"; Expected: Enum "Report Filename Criterion")
+    var
+        Invoice: Record "Sales Invoice Header";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        DocumentRecRef: RecordRef;
+        DocumentLanguageCode: Code[10];
+    begin
+        Invoice.Get(InvoiceNo);
+        Invoice.SetRecFilter();
+        DocumentRecRef.GetTable(Invoice);
+        Assert.AreEqual(Expected, ReportFilenameMgt.FirstUnmetCriterion(Pattern, Pattern."Report ID", Route, DocumentRecRef, DocumentLanguageCode), WrongCriterionErr);
     end;
 
     var
@@ -2317,21 +2267,24 @@ codeunit 149516 "Filename Card Tests"
         LiteralTok: Label 'Invoice-', Locked = true;
         NoReportShownErr: Label 'Choosing a report left the Report field empty. Table Caption read as "%1", Language Code Field as "%2" - if those two carry values the record was updated and only the FlowField read is empty.', Comment = '%1 what the pattern applies to, %2 language field';
         NoDocumentTypeFilledErr: Label 'Choosing the report %1 did not fill in what it is about, so the administrator would have to know the table.', Comment = '%1 the report';
-        UnknownNameSourceErr: Label 'Test defect: there is no name source numbered %1.', Comment = '%1 the number asked for';
-        WrongRefusalErr: Label 'Setting a condition before saying what the report is about was refused, but not in the expected words: %1', Comment = '%1 the message';
+        WrongPatternSourceErr: Label 'The preview must identify whether the tested pattern supplied the filename.';
+        NoNameSourceErr: Label 'The preview must describe the filename source.';
+        WrongCriterionErr: Label 'The pattern must be excluded by the expected criterion.';
+        WrongRefusalReasonErr: Label 'The built filename must be refused for the expected reason.';
+        IncompletePatternExpectedErr: Label 'The rejected pattern must have no filename pattern.';
+        ExcludedPatternWouldNameErr: Label 'An excluded pattern must not be described as naming the selected record.';
+        LanguageFieldNotStoredErr: Label 'The selected language field number must be stored.';
         LeaksEntryNoErr: Label 'The refusal quotes the record entry number at the administrator: %1', Comment = '%1 the message';
         LeaksFieldNameErr: Label 'The refusal names the field as the table declares it, not as the card shows it: %1', Comment = '%1 the message';
         NothingAppendedErr: Label 'Choosing a placeholder left the pattern unchanged.';
         NotAppendedErr: Label 'The placeholder was not appended - what was typed first should stay at the front: %1', Comment = '%1 the pattern';
         NotAPlaceholderErr: Label 'What was added is not a placeholder: %1', Comment = '%1 the pattern';
         NewPatternIsLiveErr: Label 'A pattern created through the card is already switched on, so an incomplete row can be live.';
-        WrongEnableRefusalErr: Label 'Turning on a pattern with no file name pattern was refused, but not in the expected words: %1', Comment = '%1 the message';
         CompletePatternRefusedErr: Label 'A pattern with a report and a file name could not be switched on. The pattern read "%1".', Comment = '%1 the pattern text';
         ConditionCustomerTok: Label '20000', Locked = true;
         SpacedSeparatorTok: Label ' - ', Locked = true;
         IllegalSeparatorTok: Label '|', Locked = true;
         SpacedSeparatorRefusedErr: Label 'A separator with spaces around it was not kept - the card shows "%1". " - " is legal in a file name.', Comment = '%1 what the card shows';
-        IllegalSeparatorAcceptedErr: Label 'A character that cannot appear in a file name was not refused as a separator. The error was: %1', Comment = '%1 the message';
         LanguageFieldUnchangedErr: Label 'Choosing a different language field did not change what the card shows - it still reads "%1", which is what choosing the report had already suggested.', Comment = '%1 what the card showed';
         WrongLanguageFieldShownErr: Label 'The card should show the chosen field "%1" but shows "%2".', Comment = '%1 the field chosen in the lookup, %2 what the card showed';
         NoConditionTextErr: Label 'A pattern with no condition shows nothing where it should say that it applies to every document of the type.';
@@ -2342,21 +2295,18 @@ codeunit 149516 "Filename Card Tests"
         SwitchedOffMessageSeen: Boolean;
         SentNotificationMessage: Text;
         TurnOnInSetup: Boolean;
-        CardSaysNothingWhenOffErr: Label 'With file name patterns turned off, the pattern card should say "%1" but sent "%2".', Comment = '%1 expected, %2 what was sent';
-        NotificationNotBackErr: Label 'After the setup was closed with patterns still turned off, the notification should say "%1" again but sent "%2".', Comment = '%1 expected, %2 what was sent';
+        NoSwitchedOffNotificationErr: Label 'With file name patterns turned off, the card must send a notification.';
         NotificationAfterTurnedOnErr: Label 'Patterns were turned on in the setup, yet the notification came back: "%1".', Comment = '%1 what was sent';
         InvoiceNumberPatternTok: Label 'Invoice-[No.]', Locked = true;
         XmlCodeTok: Label 'xml', Locked = true;
         KindOfDocumentOnlyTok: Label '[Kind of Document]', Locked = true;
         ManyInvoicesPrefixTok: Label 'RFTMANY', Locked = true;
         TooFewInvoicesErr: Label 'Only %1 posted sales invoices are in the run; more than 100 are needed to show a run too large to check.', Comment = '%1 the count';
-        WrongKindReasonErr: Label 'Test Pattern should explain "%1" but says "%2".', Comment = '%1 expected, %2 actual';
         KindNotResolvedErr: Label 'A German reminder in a Danish company should be named by [Kind of Document] in this pattern, but the name comes from "%1" and is "%2". Reason: %3', Comment = '%1 where the name comes from, %2 the name, %3 the reason Test Pattern gave';
         KindNotInDocumentLanguageErr: Label 'A German reminder in a Danish company should be named "%1" but was named "%2". Reason: %3', Comment = '%1 expected word, %2 the name, %3 the reason Test Pattern gave';
         BusinessCentralAnswerChangedErr: Label 'Asked outside a name, Business Central should still give the reminder the company''s language, %1, but gave %2.', Comment = '%1 expected language code, %2 actual language code';
         WrongLanguageFieldsOfferedErr: Label 'The language code field lookup should offer the %1 fields that relate to the Language table, but offers %2.', Comment = '%1 expected count, %2 offered count';
         LanguageFieldNotOfferedErr: Label 'The language code field lookup does not offer %1, which relates to the Language table.', Comment = '%1 the field caption';
-        WrongLanguageFieldRefusalErr: Label 'Expected the refusal "%1" but got "%2".', Comment = '%1 expected, %2 actual';
         PreconditionErr: Label 'G/L Account was expected to have no field that relates to the Language table.';
         WrongElectronicNameErr: Label 'Test Pattern on the Electronic Document route should show "%1" but shows "%2".', Comment = '%1 the expected name, %2 the name shown';
         SpecificPatternTok: Label 'ThisOneOnly-[No.]', Locked = true;
@@ -2391,15 +2341,12 @@ codeunit 149516 "Filename Card Tests"
         CutNameNotDeclinedErr: Label 'The pattern %1, cut to 20 characters, should decline, but it named the file "%2".', Comment = '%1 the pattern, %2 the name it gave';
         NoRecordChosenErr: Label 'Choosing a record on Test Pattern left the Record field empty, so the lookup returned nothing to test against.';
         WrongRecordChosenErr: Label 'The record chosen was %1 but Test Pattern shows "%2".', Comment = '%1 the invoice chosen, %2 what the page shows';
-        WrongNameSourceErr: Label 'Test Pattern should say the name comes from "%1" but says "%2".', Comment = '%1 the expected source, %2 what the page says';
-        NameMissesRecordErr: Label 'The file name should carry the chosen record %1 but reads "%2".', Comment = '%1 the invoice chosen, %2 the file name';
         WinnerNotNamedErr: Label 'The page says another pattern wins but does not name it. It should name "%1"; it says "%2".', Comment = '%1 the winning pattern, %2 the explanation';
-        WrongWinningNameErr: Label 'The file name should be the winning pattern''s, beginning "%1", but reads "%2".', Comment = '%1 the winner''s literal text, %2 the file name';
+        WrongWinningNameErr: Label 'The complete filename must match the winning pattern or the expected default.';
         NoReasonGivenErr: Label 'Business Central named the file, but the page gives no reason for it.';
         UnexpectedWhyErr: Label 'The name comes from this pattern, so there is nothing to explain - but the page offers a reason anyway: "%1"', Comment = '%1 the explanation';
         ActionLeftNothingSavedErr: Label 'Activating an action on a brand-new pattern left no row in the table, so the action has to save the record itself.';
         ActionSavedSomethingElseErr: Label 'The saved pattern should read "%1" but reads "%2".', Comment = '%1 what was typed, %2 what was saved';
-        NotTheReportCaptionErr: Label 'With no pattern to name it the file should be called after the report, "%1", but the page reads "%2".', Comment = '%1 the report caption, %2 the file name';
         SampleCodeTok: Label 'ABC-01', Locked = true;
         NoShapeBuiltErr: Label 'No example could be built for the pattern "%1", so the card would have nothing to show.', Comment = '%1 the pattern text';
         ShapeMissingErr: Label 'The example should show the generated shape "%1" for a code field but reads "%2".', Comment = '%1 the expected shape, %2 the example';
@@ -2422,7 +2369,8 @@ codeunit 149516 "Filename Card Tests"
         ListedANonQuoteErr: Label 'The picker offered a %1, %2, for a report that can only render quotes.', Comment = '%1 the document type, %2 the document number';
 
     var
-        ExpectedTexts: Codeunit "Filename Expected Texts";
+        Assert: Codeunit "Library Assert";
+        ProofSupport: Codeunit "Filename Proof Support";
         TestData: Codeunit "Filename Test Data";
         ReportsListed: Integer;
         StalePatternTok: Label '[Report Caption]-[No.]', Locked = true;
@@ -2447,7 +2395,6 @@ codeunit 149516 "Filename Card Tests"
         ReservedWhenCutTok: Label 'CON - - - - - - - - - x', Locked = true;
         CutToReservedTok: Label 'CON', Locked = true;
         NothingWhenCutTok: Label '-------------------------x', Locked = true;
-        WrongReasonErr: Label 'The reason should be "%1" but is "%2".', Comment = '%1 expected, %2 actual';
         InvoiceNoPatternTok: Label 'Invoice-[No.]', Locked = true;
         QuoteNoPatternTok: Label 'Quote-[No.]', Locked = true;
         EveryUsageHasSelectionErr: Label 'Every report usage has a report selection in this company, so a document cannot be kept from being found by its number.';
@@ -2467,5 +2414,4 @@ codeunit 149516 "Filename Card Tests"
         InvoicePrefixTok: Label 'Invoice-', Locked = true;
         PdfTok: Label '.pdf', Locked = true;
         UnsafeNameErr: Label 'The name should have been made safe as "%1" but came out as "%2".', Comment = '%1 expected, %2 actual';
-        NamedWhileSwitchedOffErr: Label 'With report file names turned off, Test Pattern said the name comes from "%1" and is %2.', Comment = '%1 name source, %2 file name';
 }

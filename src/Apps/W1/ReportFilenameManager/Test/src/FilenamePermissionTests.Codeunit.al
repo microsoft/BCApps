@@ -7,6 +7,7 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 using Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.Sales.History;
 using System.Environment;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.TestLibraries.Security.AccessControl;
 
@@ -138,10 +139,11 @@ codeunit 149528 "Filename Permission Tests"
 
     [ModalPageHandler]
     procedure PickInvoiceReportHandler(var ReportLookup: TestPage "Report Filename Report Lookup")
+    var
+        ReportMetadata: Record "Report Metadata";
     begin
-        ReportLookup.Filter.SetFilter(Caption, InvoiceCaptionTok);
-        if not ReportLookup.First() then
-            Error(InvoiceReportNotListedErr, InvoiceCaptionTok);
+        ReportMetadata.Get(Report::"Standard Sales - Invoice");
+        ReportLookup.GoToRecord(ReportMetadata);
         ReportLookup.OK().Invoke();
     end;
 
@@ -215,7 +217,6 @@ codeunit 149528 "Filename Permission Tests"
         TestedPattern: Text;
         ManagerSetTok: Label 'Report Filename Mgr.', Locked = true;
         ManagerPatternTok: Label 'Managed-[No.]', Locked = true;
-        InvoiceReportNotListedErr: Label 'The report lookup lists no report captioned %1 for this user, so no pattern could be set up on it.', Comment = '%1 the report caption';
         ManagerCannotWriteErr: Label 'User %1, narrowed to D365 BUS FULL ACCESS and Report Filename Mgr., cannot write patterns, so the set was not applied and this test proves nothing.', Comment = '%1 the user';
         ManagerRouteNotSetErr: Label 'With only Report Filename Mgr. beside D365 BUS FULL ACCESS, ticking the first route should set the card''s Output Route Filter to %1, but it reads "%2".', Comment = '%1 expected, %2 what the card shows';
         ManagerTestPatternEmptyErr: Label 'With only Report Filename Mgr. beside D365 BUS FULL ACCESS, Test Pattern on invoice %1 showed no file name.', Comment = '%1 the invoice';

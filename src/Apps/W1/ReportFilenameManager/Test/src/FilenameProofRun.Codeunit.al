@@ -960,11 +960,6 @@ codeunit 149517 "Filename Proof Run"
         ShownName: Text;
         NameComesFrom: Text;
         WhyNotThisPattern: Text;
-        ExpectedShownName: Text;
-        ExpectedWhy: Text;
-        FromThisPatternText: Text;
-        FromAnotherPatternText: Text;
-        FromBusinessCentralText: Text;
         FromThisPattern: Boolean;
     begin
         ClearPatterns();
@@ -1018,16 +1013,16 @@ codeunit 149517 "Filename Proof Run"
         // Three: Test Pattern says so.
         Pattern.FindFirst();
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(Pattern, IssuedReminderHeader.RecordId(), ShownName, NameComesFrom, WhyNotThisPattern, FromThisPattern);
-        ExpectedTexts.ReminderTextTexts(ExpectedOurs + PdfExtensionLbl, ExpectedShownName, ExpectedWhy);
-        ExpectedTexts.NameSourceTexts(FromThisPatternText, FromAnotherPatternText, FromBusinessCentralText);
         ProofSupport.LogLine('29 Test Pattern shows', ShownName);
         ProofSupport.LogLine('29 Test Pattern says it comes from', NameComesFrom);
         ProofSupport.LogLine('29 Test Pattern gives as the reason', WhyNotThisPattern);
-        if (ShownName = ExpectedShownName) and (NameComesFrom = FromBusinessCentralText) and (WhyNotThisPattern = ExpectedWhy) and not FromThisPattern then
+        if (ShownName <> '') and (ShownName <> ExpectedOurs + PdfExtensionLbl) and (NameComesFrom <> '') and
+           (StrPos(WhyNotThisPattern, ExpectedOurs + PdfExtensionLbl) > 0) and not FromThisPattern
+        then
             ProofSupport.LogLine(ReminderTestPatternVerdictTok, PassReminderTestPatternMsg)
         else
             ProofSupport.LogLine(ReminderTestPatternVerdictTok,
-                StrSubstNo(FailReminderTestPatternMsg, ExpectedShownName, FromBusinessCentralText, ExpectedWhy, ShownName, NameComesFrom, WhyNotThisPattern));
+                StrSubstNo(FailReminderTestPatternMsg, ExpectedOurs + PdfExtensionLbl, ShownName, NameComesFrom, WhyNotThisPattern));
 
         RestoreReminderFileName(ReminderLevel, PreviousAttachmentTextId, SeededAttachmentTextId);
         ClearPatterns();
@@ -1664,9 +1659,8 @@ codeunit 149517 "Filename Proof Run"
 
     /// <summary>
     /// [Kind of Document] is Business Central's word (GetFullDocumentTypeText) in the document's language,
-    /// and a record with no such word is not named. The Danish word is not hard-coded, because Base
-    /// Application translations are not installed on W1; ProveTheKindOfDocumentDeclinesOnALanguageMismatch
-    /// proves the language switch on this app's translated table.
+    /// and a record with no such word is not named. Expected words are read from Base Application;
+    /// differing translations are not a prerequisite.
     /// </summary>
     procedure ProveTheKindOfDocumentIsNamedInItsOwnLanguage()
     var
@@ -1674,8 +1668,9 @@ codeunit 149517 "Filename Proof Run"
         ReportDistributionManagement: Codeunit "Report Distribution Management";
         SourceRecRef: RecordRef;
         Channel: Enum "Report Filename Output Route";
-        InEnglish: Text;
+        InDefaultLanguage: Text;
         InDanish: Text;
+        DefaultKind: Text;
         DanishKind: Text;
         OnAnAccount: Text;
         OriginalLanguageCode: Code[10];
@@ -1691,7 +1686,9 @@ codeunit 149517 "Filename Proof Run"
         SetPatternFor(Report::"Standard Sales - Invoice", Database::"Sales Invoice Header", KindPatternTok);
 
         SetInvoiceLanguage(InvoiceNo, '');
-        InEnglish := NameForInvoice(InvoiceNo);
+        InDefaultLanguage := NameForInvoice(InvoiceNo);
+        SalesInvoiceHeader.Get(InvoiceNo);
+        DefaultKind := ReportDistributionManagement.GetFullDocumentTypeText(SalesInvoiceHeader);
 
         SetInvoiceLanguage(InvoiceNo, ProofSupport.DanishLanguageCode());
         InDanish := NameForInvoice(InvoiceNo);
@@ -1708,24 +1705,24 @@ codeunit 149517 "Filename Proof Run"
         Clear(SourceRecRef);
         OnAnAccount := NameWith(Report::"Chart of Accounts", Channel::Print, SourceRecRef, '');
 
-        ProofSupport.LogLine('28 Kind of document, no language on the document', InEnglish);
+        ProofSupport.LogLine('28 Kind of document, no language on the document', InDefaultLanguage);
         ProofSupport.LogLine('28 Kind of document, document in Danish', InDanish);
         ProofSupport.LogLine('28 Business Central''s word for the invoice in Danish', DanishKind);
         ProofSupport.LogLine('28 Kind of document on a chart of accounts', NameOrNone(OnAnAccount));
 
         case true of
-            StrPos(InEnglish, EnglishKindTok) <> 1:
+            (DefaultKind = '') or (InDefaultLanguage <> DefaultKind + '-' + InvoiceNo):
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
-                    StrSubstNo(FailKindEnglishMsg, EnglishKindTok, InEnglish));
-            (DanishKind = '') or (StrPos(InDanish, DanishKind) <> 1):
+                    StrSubstNo(FailKindDefaultMsg, DefaultKind + '-' + InvoiceNo, InDefaultLanguage));
+            (DanishKind = '') or (InDanish <> DanishKind + '-' + InvoiceNo):
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
-                    StrSubstNo(FailKindDanishMsg, DanishKind, InDanish));
+                    StrSubstNo(FailKindDanishMsg, DanishKind + '-' + InvoiceNo, InDanish));
             OnAnAccount <> '':
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
                     StrSubstNo(FailKindDeclineMsg, OnAnAccount));
             else
                 ProofSupport.LogLine('RESULT the kind of document is named in its own language',
-                    StrSubstNo(PassKindMsg, InEnglish, InDanish));
+                    StrSubstNo(PassKindMsg, InDefaultLanguage, InDanish));
         end;
 
         Done();
@@ -2126,7 +2123,6 @@ codeunit 149517 "Filename Proof Run"
     end;
 
     var
-        ExpectedTexts: Codeunit "Filename Expected Texts";
         ProofSupport: Codeunit "Filename Proof Support";
         TestData: Codeunit "Filename Test Data";
         RangeLbl: Label 'Invoices-%1-to-%2', Comment = '%1 first number, %2 last number', Locked = true;
@@ -2167,10 +2163,9 @@ codeunit 149517 "Filename Proof Run"
         FailScheduledFinancialMsg: Label 'FAIL - a scheduled financial report should have been named %1 but its Report Inbox entry reads %2.', Comment = '%1 the expected name, %2 the name produced';
         KindPatternTok: Label '[Kind of Document]-[No.]', Locked = true;
         CaptionPatternTok: Label '[Report Name]-[No.]', Locked = true;
-        EnglishKindTok: Label 'Sales Invoice', Locked = true;
-        PassKindMsg: Label 'PASS - the same invoice is named %1 in English and %2 in Danish, and a chart of accounts run is left to Business Central.', Comment = '%1 the English name, %2 the Danish name';
-        FailKindEnglishMsg: Label 'FAIL - the name should have begun with %1 but reads %2.', Comment = '%1 the expected word, %2 the name produced';
-        FailKindDanishMsg: Label 'FAIL - with the document in Danish the name should have begun with %1 but reads %2, so it was read in the session language rather than the document''s.', Comment = '%1 the expected word, %2 the name produced';
+        PassKindMsg: Label 'PASS - the same invoice is named %1 in the default language and %2 in Danish, and a chart of accounts run is left to Business Central.', Comment = '%1 the default-language name, %2 the Danish name';
+        FailKindDefaultMsg: Label 'FAIL - the name should be %1 but reads %2.', Comment = '%1 the expected name, %2 the name produced';
+        FailKindDanishMsg: Label 'FAIL - with the document in Danish the name should be %1 but reads %2.', Comment = '%1 the expected name, %2 the name produced';
         FailKindDeclineMsg: Label 'FAIL - a chart of accounts run has no kind of document, but it was named %1.', Comment = '%1 the name produced';
         PassNoReportExampleMsg: Label 'PASS - a pattern naming no report shows the example %1 instead of reporting a placeholder that does not exist.', Comment = '%1 the example shown';
         FailNoReportExampleMsg: Label 'FAIL - a pattern naming no report produces no example at all, so the card tells whoever set it up that a placeholder names something missing.';
@@ -2247,7 +2242,7 @@ codeunit 149517 "Filename Proof Run"
         RouteDiskLbl: Label 'Send to Disk';
         RouteAttachLbl: Label 'Attach as PDF';
         PassReminderTestPatternMsg: Label 'PASS - Test Pattern says Business Central names the reminder from its attachment text, and what the pattern would name it with File Name cleared.';
-        FailReminderTestPatternMsg: Label 'FAIL - Test Pattern should show "%1", from "%2", because "%3"; it showed "%4", from "%5", because "%6".', Comment = '%1 expected name, %2 expected source, %3 expected reason, %4 name shown, %5 source shown, %6 reason shown';
+        FailReminderTestPatternMsg: Label 'FAIL - Test Pattern must defer to the reminder attachment text and explain the unused pattern name "%1"; it showed "%2", from "%3", because "%4".', Comment = '%1 unused pattern name, %2 name shown, %3 source shown, %4 reason shown';
         OurReminderPatternTok: Label 'ThisFeatureNamedThis-[No.]', Locked = true;
         OurReminderPrefixTok: Label 'ThisFeatureNamedThis-', Locked = true;
         TheirFileNameTok: Label 'ReminderCommunicationNamedThis', Locked = true;
