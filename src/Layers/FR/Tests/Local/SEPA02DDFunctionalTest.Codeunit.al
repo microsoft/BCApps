@@ -650,7 +650,9 @@ codeunit 144077 "SEPA.02 DD Functional Test"
         File: File;
     begin
         DirectDebitCollection.CreateRecord(PaymentHeader."No.", PaymentHeader."Account No.", PaymentHeader."Partner Type");
+#pragma warning disable AL0432
         DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header";
+#pragma warning restore AL0432
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         ExportedFilePath := TemporaryPath + LibraryUtility.GenerateGUID() + '.xml';
