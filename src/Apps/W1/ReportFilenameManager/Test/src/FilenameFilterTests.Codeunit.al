@@ -737,6 +737,7 @@ codeunit 149502 "Filename Filter Tests"
         FilenameProofSupport: Codeunit "Filename Proof Support";
     begin
         FilenameProofGuard.AssertSafeEnvironment();
+        TestData.Initialize();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
         FilenameProofGuard.ClearPatterns();
         if not ReportFilenameSetup.Get() then begin

@@ -7,27 +7,83 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Foundation.UOM;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Reminder;
+using Microsoft.Sales.Setup;
 using System.Globalization;
 
 codeunit 149537 "Filename Test Data"
 {
-    // Creates the documents the tests name, from the company's setup only, so results do not depend
-    // on which demo data the database carries.
-
     Access = Internal;
+
+    internal procedure Initialize()
+    var
+        CompanyInformation: Record "Company Information";
+        GLAccount: Record "G/L Account";
+        GeneralPostingSetup: Record "General Posting Setup";
+        SalesSetup: Record "Sales & Receivables Setup";
+        PurchaseSetup: Record "Purchases & Payables Setup";
+        FilenameProofGuard: Codeunit "Filename Proof Guard";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        FilenameProofGuard.AssertSafeEnvironment();
+        if not CompanyInformation.Get() then begin
+            CompanyInformation.Init();
+            CompanyInformation.Insert();
+        end;
+        if CompanyInformation.Name = '' then begin
+            CompanyInformation.Validate(Name, CompanyNameTok);
+            CompanyInformation.Modify(true);
+        end;
+
+        LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
+        // The filter and unfiltered-run proofs need at least three accounts, even in an empty company.
+        while GLAccount.Count() < 3 do
+            LibraryERM.CreateGLAccount(GLAccount);
+
+        if not SalesSetup.Get() then begin
+            SalesSetup.Init();
+            SalesSetup.Insert(true);
+        end;
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Order Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Quote Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Credit Memo Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Posted Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Posted Shipment Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Posted Credit Memo Nos."));
+
+        if not PurchaseSetup.Get() then begin
+            PurchaseSetup.Init();
+            PurchaseSetup.Insert(true);
+        end;
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Posted Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Posted Receipt Nos."));
+    end;
+
+    internal procedure SetupInvoiceReport()
+    var
+        ReportSelections: Record "Report Selections";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"S.Invoice");
+        ReportSelections.DeleteAll();
+        LibraryERM.SetupReportSelection(ReportSelections.Usage::"S.Invoice", Report::"Standard Sales - Invoice");
+    end;
 
     internal procedure PostNewInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
@@ -108,24 +164,15 @@ codeunit 149537 "Filename Test Data"
     internal procedure CreateSalesDocument(DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20]; LanguageCode: Code[10]; var SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
+        LibrarySales: Codeunit "Library - Sales";
     begin
-        Clear(SalesHeader);
-        SalesHeader.Init();
-        SalesHeader.Validate("Document Type", DocumentType);
-        SalesHeader.Insert(true);
-        SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
+        Initialize();
+        LibrarySales.CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
         if LanguageCode <> '' then
             SalesHeader.Validate("Language Code", LanguageCode);
         SalesHeader.Modify(true);
 
-        SalesLine.Init();
-        SalesLine.Validate("Document Type", SalesHeader."Document Type");
-        SalesLine.Validate("Document No.", SalesHeader."No.");
-        SalesLine."Line No." := LineNo();
-        SalesLine.Insert(true);
-        SalesLine.Validate(Type, SalesLine.Type::Item);
-        SalesLine.Validate("No.", CreateItem());
-        SalesLine.Validate(Quantity, 1);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), 1);
         SalesLine.Validate("Unit Price", DefaultUnitPrice());
         SalesLine.Modify(true);
     end;
@@ -195,92 +242,45 @@ codeunit 149537 "Filename Test Data"
     internal procedure CreateCustomer(): Code[20]
     var
         Customer: Record Customer;
-        CustomerPostingGroup: Record "Customer Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
+        LibrarySales: Codeunit "Library - Sales";
     begin
-        FindSalesPostingSetup(GeneralPostingSetup, VATPostingSetup);
-        // The first with a receivables account; past the last, TestField says which is missing.
-        CustomerPostingGroup.FindSet();
-        while CustomerPostingGroup."Receivables Account" = '' do
-            if CustomerPostingGroup.Next() = 0 then
-                CustomerPostingGroup.TestField("Receivables Account");
-
-        Customer.Init();
-        Customer.Insert(true);
+        Initialize();
+        LibrarySales.CreateCustomer(Customer);
         Customer.Validate(Name, CustomerNameTok);
-        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
-        Customer.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
-        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Customer.Modify(true);
         exit(Customer."No.");
     end;
 
     /// <summary>
-    /// Type Service, so posting needs no inventory posting group or stock. Numbered by FreeCode, not
-    /// the item number series, so creating items does not depend on that series.
+    /// Type Service, so posting needs no stock.
     /// </summary>
     local procedure CreateItem(): Code[20]
     var
         Item: Record Item;
-        UnitOfMeasure: Record "Unit of Measure";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
+        LibraryInventory: Codeunit "Library - Inventory";
     begin
-        FindSalesPostingSetup(GeneralPostingSetup, VATPostingSetup);
-        UnitOfMeasure.FindFirst();
-
-        Item.Init();
-        Item."No." := FreeCode(Database::Item);
-        Item.Insert(true);
+        LibraryInventory.CreateItem(Item);
         Item.Validate(Description, ItemDescriptionTok);
         Item.Validate(Type, Item.Type::Service);
-        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
-        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
-        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         Item.Validate("Unit Price", 100);
         Item.Modify(true);
         exit(Item."No.");
-    end;
-
-    local procedure FindSalesPostingSetup(var GeneralPostingSetup: Record "General Posting Setup"; var VATPostingSetup: Record "VAT Posting Setup")
-    begin
-        GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
-        GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', '');
-        GeneralPostingSetup.SetFilter("Sales Account", '<>%1', '');
-        GeneralPostingSetup.SetRange(Blocked, false);
-        GeneralPostingSetup.FindFirst();
-
-        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
-        VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', '');
-        VATPostingSetup.SetRange("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        VATPostingSetup.SetFilter("Sales VAT Account", '<>%1', '');
-        VATPostingSetup.SetRange(Blocked, false);
-        VATPostingSetup.FindFirst();
     end;
 
     internal procedure PostNewPurchaseInvoice(var PurchInvHeader: Record "Purch. Inv. Header")
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        LibraryPurchase: Codeunit "Library - Purchase";
         DraftNo: Code[20];
     begin
-        PurchaseHeader.Init();
-        PurchaseHeader.Validate("Document Type", PurchaseHeader."Document Type"::Invoice);
-        PurchaseHeader.Insert(true);
-        PurchaseHeader.Validate("Buy-from Vendor No.", CreateVendor());
+        Initialize();
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, CreateVendor());
         PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
         PurchaseHeader.Modify(true);
         DraftNo := PurchaseHeader."No.";
 
-        PurchaseLine.Init();
-        PurchaseLine.Validate("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine.Validate("Document No.", PurchaseHeader."No.");
-        PurchaseLine."Line No." := 10000;
-        PurchaseLine.Insert(true);
-        PurchaseLine.Validate(Type, PurchaseLine.Type::Item);
-        PurchaseLine.Validate("No.", CreatePurchaseItem());
-        PurchaseLine.Validate(Quantity, 1);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItem(), 1);
         PurchaseLine.Validate("Direct Unit Cost", 100);
         PurchaseLine.Modify(true);
 
@@ -297,63 +297,12 @@ codeunit 149537 "Filename Test Data"
     local procedure CreateVendor(): Code[20]
     var
         Vendor: Record Vendor;
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
+        LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        FindPurchasePostingSetup(GeneralPostingSetup, VATPostingSetup);
-        VendorPostingGroup.FindSet();
-        while VendorPostingGroup."Payables Account" = '' do
-            if VendorPostingGroup.Next() = 0 then
-                VendorPostingGroup.TestField("Payables Account");
-
-        Vendor.Init();
-        Vendor.Insert(true);
+        LibraryPurchase.CreateVendor(Vendor);
         Vendor.Validate(Name, VendorNameTok);
-        Vendor.Validate("Vendor Posting Group", VendorPostingGroup.Code);
-        Vendor.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
-        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Vendor.Modify(true);
         exit(Vendor."No.");
-    end;
-
-    // Type Service and numbered by FreeCode, for the same reasons as CreateItem.
-    local procedure CreatePurchaseItem(): Code[20]
-    var
-        Item: Record Item;
-        UnitOfMeasure: Record "Unit of Measure";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-    begin
-        FindPurchasePostingSetup(GeneralPostingSetup, VATPostingSetup);
-        UnitOfMeasure.FindFirst();
-
-        Item.Init();
-        Item."No." := FreeCode(Database::Item);
-        Item.Insert(true);
-        Item.Validate(Description, ItemDescriptionTok);
-        Item.Validate(Type, Item.Type::Service);
-        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
-        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
-        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        Item.Modify(true);
-        exit(Item."No.");
-    end;
-
-    local procedure FindPurchasePostingSetup(var GeneralPostingSetup: Record "General Posting Setup"; var VATPostingSetup: Record "VAT Posting Setup")
-    begin
-        GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
-        GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', '');
-        GeneralPostingSetup.SetFilter("Purch. Account", '<>%1', '');
-        GeneralPostingSetup.SetRange(Blocked, false);
-        GeneralPostingSetup.FindFirst();
-
-        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
-        VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', '');
-        VATPostingSetup.SetRange("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        VATPostingSetup.SetFilter("Purchase VAT Account", '<>%1', '');
-        VATPostingSetup.SetRange(Blocked, false);
-        VATPostingSetup.FindFirst();
     end;
 
     internal procedure CreatePaymentTerms(Description: Text[100]): Code[10]
@@ -436,6 +385,7 @@ codeunit 149537 "Filename Test Data"
         ColumnLayoutName: Record "Column Layout Name";
         ColumnLayout: Record "Column Layout";
     begin
+        Initialize();
         AccScheduleName.Init();
         AccScheduleName.Name := CopyStr(FreeCode(Database::"Acc. Schedule Name"), 1, MaxStrLen(AccScheduleName.Name));
         AccScheduleName.Description := Description;
@@ -540,6 +490,7 @@ codeunit 149537 "Filename Test Data"
     end;
 
     var
+        CompanyNameTok: Label 'Report Filename Test Company', Locked = true;
         CustomerNameTok: Label 'Report Filename Test Customer', Locked = true;
         VendorNameTok: Label 'Report Filename Test Vendor', Locked = true;
         ItemDescriptionTok: Label 'Report Filename Test Item', Locked = true;

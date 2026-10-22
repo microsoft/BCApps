@@ -405,11 +405,12 @@ codeunit 43000 "Report Filename Mgt."
                     AddToIdFilter(IdFilter, ReportMetadata.ID);
             until ReportMetadata.Next() = 0;
 
-        ReportMetadata.SetFilter(FirstDataItemTableID, '%1|>=%2', 0, SystemTableFrom());
+        ReportMetadata.SetFilter(FirstDataItemTableID, '<>%1', TableNo);
         if ReportMetadata.FindSet() then
             repeat
-                if SubjectTableNo(ReportMetadata) = TableNo then
-                    AddToIdFilter(IdFilter, ReportMetadata.ID);
+                if not IsNamableTable(ReportMetadata.FirstDataItemTableID) then
+                    if SubjectTableNo(ReportMetadata) = TableNo then
+                        AddToIdFilter(IdFilter, ReportMetadata.ID);
             until ReportMetadata.Next() = 0;
 
         if SubjectTableNo(Report::"Account Schedule") = TableNo then
@@ -421,11 +422,6 @@ codeunit 43000 "Report Filename Mgt."
         if IdFilter <> '' then
             IdFilter += '|';
         IdFilter += Format(ReportId, 0, 9);
-    end;
-
-    local procedure SystemTableFrom(): Integer
-    begin
-        exit(2000000000);
     end;
 
     local procedure SubjectFromDataItems(ReportId: Integer): Integer
@@ -482,11 +478,17 @@ codeunit 43000 "Report Filename Mgt."
     end;
 
     /// <summary>
-    /// Excludes system tables from 2000000000 up, such as Integer.
+    /// Excludes system tables and obsolete tables whose fields the placeholder picker does not offer.
     /// </summary>
     internal procedure IsNamableTable(TableNo: Integer): Boolean
+    var
+        TableMetadata: Record "Table Metadata";
     begin
-        exit((TableNo > 0) and (TableNo < 2000000000));
+        if (TableNo <= 0) or (TableNo >= 2000000000) then
+            exit(false);
+        if not TableMetadata.Get(TableNo) then
+            exit(false);
+        exit(TableMetadata.ObsoleteState = TableMetadata.ObsoleteState::No);
     end;
 
     local procedure IteratesTable(ReportId: Integer; TableNo: Integer): Boolean

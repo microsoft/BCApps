@@ -1732,8 +1732,11 @@ codeunit 149516 "Filename Card Tests"
 
     [ModalPageHandler]
     procedure PickFirstReportHandler(var ReportLookup: TestPage "Report Filename Report Lookup")
+    var
+        ReportMetadata: Record "Report Metadata";
     begin
-        ReportLookup.First();
+        ReportMetadata.Get(Report::"Standard Sales - Invoice");
+        ReportLookup.GoToRecord(ReportMetadata);
         ReportLookup.OK().Invoke();
     end;
 
@@ -2216,6 +2219,7 @@ codeunit 149516 "Filename Card Tests"
         FilenameProofSupport: Codeunit "Filename Proof Support";
     begin
         FilenameProofGuard.AssertSafeEnvironment();
+        TestData.Initialize();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
         // With patterns off the card sends a notification, which tests without a SendNotificationHandler do not expect.
         FilenameProofGuard.SwitchFeatureOn();

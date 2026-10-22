@@ -13,6 +13,12 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
+      "name": "Application Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "b41f7c62-9d3a-4e58-8a17-2c5e9f0d6b84",
       "name": "Report Filename Manager",
       "publisher": "Microsoft",

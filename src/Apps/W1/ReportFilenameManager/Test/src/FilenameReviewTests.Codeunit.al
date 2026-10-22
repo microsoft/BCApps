@@ -6,11 +6,17 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
 using Microsoft.Assembly.History;
 using Microsoft.Finance.FinancialReports;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
 using System.EMail;
 using System.Environment;
 using System.Reflection;
@@ -26,6 +32,78 @@ codeunit 149534 "Filename Review Tests"
 
     Subtype = Test;
     TestPermissions = Disabled;
+
+    [Test]
+    procedure TestDocumentsDoNotRequireDemoPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        SalesSetup: Record "Sales & Receivables Setup";
+        PurchaseSetup: Record "Purchases & Payables Setup";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        FilenameProofGuard: Codeunit "Filename Proof Guard";
+    begin
+        FilenameProofGuard.AssertSafeEnvironment();
+        GeneralPostingSetup.DeleteAll();
+        VATPostingSetup.DeleteAll();
+        SalesSetup.Get();
+        SalesSetup."Invoice Nos." := '';
+        SalesSetup."Posted Invoice Nos." := '';
+        SalesSetup.Modify();
+        PurchaseSetup.Get();
+        PurchaseSetup."Invoice Nos." := '';
+        PurchaseSetup."Posted Invoice Nos." := '';
+        PurchaseSetup.Modify();
+
+        TestData.PostNewInvoice(SalesInvoiceHeader);
+        TestData.PostNewPurchaseInvoice(PurchInvHeader);
+
+        SalesInvoiceHeader.TestField("No.");
+        PurchInvHeader.TestField("No.");
+        if GeneralPostingSetup.IsEmpty() or VATPostingSetup.IsEmpty() or (GLAccount.Count() < 3) then
+            Error(MissingTestSetupErr);
+    end;
+
+    [Test]
+    procedure InvoiceReportSelectionDoesNotDependOnCountryDemoData()
+    var
+        ReportSelections: Record "Report Selections";
+    begin
+        Prepare();
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"S.Invoice");
+        ReportSelections.DeleteAll();
+        ReportSelections.Init();
+        ReportSelections.Usage := ReportSelections.Usage::"S.Invoice";
+        ReportSelections.Sequence := '1';
+        ReportSelections."Report ID" := Report::"Filename Proof Report";
+        ReportSelections.Insert();
+
+        TestData.SetupInvoiceReport();
+
+        ReportSelections.FindFirst();
+        ReportSelections.TestField("Report ID", Report::"Standard Sales - Invoice");
+        if ReportSelections.Count() <> 1 then
+            Error(UnexpectedInvoiceSelectionsErr);
+    end;
+
+    [Test]
+    procedure ObsoleteTablesAreNotOfferedAsReportSubjects()
+    var
+        TableMetadata: Record "Table Metadata";
+        TempTableBuffer: Record "Report Filename Table Buffer" temporary;
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        PlaceholderMgt: Codeunit "Report Filename Plh. Mgt.";
+    begin
+        PlaceholderMgt.BuildTables(TempTableBuffer);
+        TableMetadata.SetFilter(ObsoleteState, '<>%1', TableMetadata.ObsoleteState::No);
+        if TableMetadata.FindSet() then
+            repeat
+                if ReportFilenameMgt.IsNamableTable(TableMetadata.ID) or TempTableBuffer.Get(TableMetadata.ID) then
+                    Error(ObsoleteTableOfferedErr, TableMetadata.ID);
+            until TableMetadata.Next() = 0;
+    end;
 
     /// <summary>
     /// For a user who cannot read Report Selections, the email name is Business Central's own with the
@@ -857,6 +935,8 @@ codeunit 149534 "Filename Review Tests"
     begin
         // Also switches the feature on and refuses to run in an unsafe environment.
         FilenameProofGuard.ClearPatterns();
+        TestData.Initialize();
+        TestData.SetupInvoiceReport();
     end;
 
     local procedure InvoiceUsage(): Integer
@@ -932,6 +1012,9 @@ codeunit 149534 "Filename Review Tests"
     var
         ReviewSupport: Codeunit "Filename Review Support";
         TestData: Codeunit "Filename Test Data";
+        MissingTestSetupErr: Label 'The document fixtures did not create their posting setup and accounts.';
+        UnexpectedInvoiceSelectionsErr: Label 'The invoice fixture must configure exactly one report selection.';
+        ObsoleteTableOfferedErr: Label 'Obsolete table %1 is offered as a report subject.', Comment = '%1 = Table ID';
         EmptyNoticeSentId: Guid;
         EmptyNoticeRecalled: Boolean;
         EmptyNoticeErr: Label 'The patterns list''s notice that no pattern is set up %1.', Comment = '%1 what went wrong';

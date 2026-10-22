@@ -128,6 +128,8 @@ codeunit 149535 "Filename End-To-End Tests"
         PatternCard: TestPage "Report Filename Pattern Card";
     begin
         FilenameProofGuard.ClearPatterns();
+        TestData.Initialize();
+        TestData.SetupInvoiceReport();
         ReviewSupport.SetFeature(false);
         SwitchFeatureOnTheSetupPage(true);
         TestData.PostNewInvoice(SalesInvoiceHeader);

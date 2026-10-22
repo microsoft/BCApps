@@ -5,15 +5,29 @@
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.CRM.Outlook;
+using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Utilities;
 using System.Email;
 using System.IO;
+using System.Privacy;
 using System.Utilities;
 
 codeunit 43001 "Report Filename Subscribers"
 {
     Access = Internal;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
+    local procedure ClassifyDataSensitivity()
+    var
+        ReportInbox: Record "Report Inbox";
+        DataClassificationMgt: Codeunit "Data Classification Mgt.";
+    begin
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Report Filename Pattern");
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Report Filename Setup");
+        DataClassificationMgt.SetFieldToCompanyConfidential(Database::"Report Inbox", ReportInbox.FieldNo("File Name"));
+    end;
 
     // Subscriber order is unspecified: preserve names already supplied by another extension.
     // Document Attachment's save event has no handled signal.

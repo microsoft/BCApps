@@ -519,8 +519,10 @@ codeunit 149515 "Filename Proof Tests"
         FilenameProofGuard: Codeunit "Filename Proof Guard";
         FilenameProofGate: Codeunit "Filename Proof Gate";
         FilenameProofSupport: Codeunit "Filename Proof Support";
+        TestData: Codeunit "Filename Test Data";
     begin
         FilenameProofGuard.AssertSafeEnvironment();
+        TestData.Initialize();
         BaselineEntryNo := FilenameProofGate.Baseline();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
     end;
