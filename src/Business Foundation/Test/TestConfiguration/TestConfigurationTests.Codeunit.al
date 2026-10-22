@@ -136,6 +136,24 @@ codeunit 134549 "Test Configuration Tests"
     end;
 
     [Test]
+    procedure DeletingParentRemovesOnlyItsConfigurations()
+    var
+        FirstParent: Record "AL Test Suite";
+        SecondParent: Record "AL Test Suite";
+        Configuration: Record "Test Configuration";
+    begin
+        CreateSource(FirstParent);
+        CreateSource(SecondParent);
+        CreateConfiguration(FirstParent.Name, 'BASELINE', Configuration);
+        CreateConfiguration(SecondParent.Name, 'BASELINE', Configuration);
+
+        FirstParent.Delete(true);
+
+        LibraryAssert.IsFalse(Configuration.Get(FirstParent.Name, 'BASELINE'), 'Deleting a parent must remove its configurations.');
+        LibraryAssert.IsTrue(Configuration.Get(SecondParent.Name, 'BASELINE'), 'Other parents must keep their configurations.');
+    end;
+
+    [Test]
     procedure DeletedConfigurationPreventsOrdinaryExecution()
     var
         ParentSuite: Record "AL Test Suite";
@@ -178,8 +196,10 @@ codeunit 134549 "Test Configuration Tests"
         ResultToken: JsonToken;
         MethodToken: JsonToken;
         MessageToken: JsonToken;
+        StackToken: JsonToken;
         ErrorStream: OutStream;
         ErrorText: Text;
+        StackText: Text;
         NewLine: Char;
     begin
         CreateSource(ParentSuite);
@@ -195,11 +215,12 @@ codeunit 134549 "Test Configuration Tests"
         Method.FindFirst();
         NewLine := 10;
         ErrorText := 'First line' + Format(NewLine) + PadStr('Details', 3000, 'x') + Format(NewLine) + 'Last line';
+        StackText := 'Codeunit "Fixture".First\Second' + Format(NewLine) + PadStr('Stack', 3000, 'y') + Format(NewLine) + 'Last frame';
         Method.Result := Method.Result::Failure;
         Method."Error Message".CreateOutStream(ErrorStream, TextEncoding::UTF16);
         ErrorStream.WriteText(ErrorText);
         Method."Error Call Stack".CreateOutStream(ErrorStream, TextEncoding::UTF16);
-        ErrorStream.WriteText(ErrorText);
+        ErrorStream.WriteText(StackText);
         Method.Modify();
 
         Results.ReadFrom(TestSuiteMgt.TestResultsToJSON(Header));
@@ -209,7 +230,9 @@ codeunit 134549 "Test Configuration Tests"
         ResultToken.AsArray().Get(0, MethodToken);
         MethodToken.AsObject().Get('message', MessageToken);
         LibraryAssert.AreEqual(ErrorText, MessageToken.AsValue().AsText(), 'Multiline diagnostics must not be truncated.');
-        LibraryAssert.AreEqual(ErrorText, TestSuiteMgt.GetErrorCallStack(Method), 'The complete stack must be read.');
+        MethodToken.AsObject().Get('stackTrace', StackToken);
+        LibraryAssert.AreEqual(StackText, StackToken.AsValue().AsText(), 'JSON must retain the complete stack, including quoted identifiers and backslashes.');
+        LibraryAssert.AreEqual(StackText, TestSuiteMgt.GetErrorCallStack(Method), 'The complete stack must be read.');
         Method.Run := false;
         Method.Modify();
         TestSuiteMgt.ClearTestResults(Method);
@@ -223,19 +246,37 @@ codeunit 134549 "Test Configuration Tests"
     var
         Configuration: Record "Test Configuration";
         Any: Codeunit Any;
+        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
         SeedProvider: Codeunit "Seed Test Config. Provider";
         WorkDateProvider: Codeunit "WorkDate Test Config. Prov.";
-        OriginalWorkDate: Date;
+        ConfiguredSeedValue: Integer;
+        DefaultSeedValue: Integer;
         ExplicitSeedValue: Integer;
+        OriginalWorkDate: Date;
     begin
+        Any.SetSeed(1);
+        DefaultSeedValue := Any.IntegerInRange(1, 1000000);
+        Any.SetSeed(17);
+        ConfiguredSeedValue := Any.IntegerInRange(1, 1000000);
         Any.SetSeed(42);
         ExplicitSeedValue := Any.IntegerInRange(1, 1000000);
         Configuration."Use Random Seed" := true;
+        Configuration."Random Seed" := 17;
+        SeedProvider.Initialize(Configuration);
+        LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'Initialization must apply the configured seed.');
+        SeedProvider.OnBeforeTestMethodRun();
+        LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'Each method must start with the configured seed.');
         Configuration."Random Seed" := 0;
         SeedProvider.Initialize(Configuration);
+        LibraryAssert.IsTrue(ConfiguredRandomSeed.IsSet(), 'Zero must be treated as an explicitly configured seed.');
+        LibraryAssert.AreEqual(0, ConfiguredRandomSeed.GetSeed(), 'Zero must survive the seed transport.');
         SeedProvider.OnBeforeTestMethodRun();
         Any.SetSeed(42);
         LibraryAssert.AreEqual(ExplicitSeedValue, Any.IntegerInRange(1, 1000000), 'The configured seed must not override an explicit test seed.');
+        Configuration."Use Random Seed" := false;
+        SeedProvider.Initialize(Configuration);
+        LibraryAssert.IsFalse(ConfiguredRandomSeed.IsSet(), 'An unset seed must not retain an earlier configuration.');
+        LibraryAssert.AreEqual(DefaultSeedValue, Any.IntegerInRange(1, 1000000), 'An unset seed must initialize the normal default.');
         SeedProvider.Reset();
 
         OriginalWorkDate := WorkDate();

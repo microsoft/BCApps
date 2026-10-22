@@ -30,4 +30,14 @@ tableextension 130466 "Test Config. AL Test Suite" extends "AL Test Suite"
         {
         }
     }
+
+    trigger OnAfterDelete()
+    var
+        TestConfiguration: Record "Test Configuration";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        TestConfiguration.SetRange("Test Suite", Rec.Name);
+        TestConfiguration.DeleteAll(true);
+    end;
 }

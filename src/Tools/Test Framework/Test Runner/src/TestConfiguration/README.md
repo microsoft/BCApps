@@ -69,7 +69,8 @@ Native test-handler support and special recovery from fatal runtime errors are d
 
 ## PowerShell
 
-Use the existing NAV `Eng\Core\Tools\ALTestRunner\ALTestRunner.psm1` module:
+Use the existing NAV `Eng\Core\Tools\ALTestRunner\ALTestRunner.psm1` module from the initialized
+PowerShell 7 environment:
 
 ```powershell
 Run-AlTests -ServiceUrl $serviceUrl -TestSuite DEFAULT -StabilityMode `
@@ -87,6 +88,10 @@ the stem, for example `DEFAULTBASELINES00000001.xml` and `.log`. Collisions over
 Logs use the existing NAV logger and contain suite identification and the complete returned
 result objects. Normal execution/retry logging remains unchanged. `-SaveResultFile $false` disables
 xUnit output, not the per-suite logs. Results remain in memory for existing final reporting.
+
+Use a clean results directory for each complete run. Regeneration allocates new suite codes, so old
+files have different names and remain in the folder. Point the existing `Invoke-ALTestResultVerification`
+at the current run's `StabilityRun` folder, without mixing previous runs' XML files.
 
 Test failures do not stop the next suite. System errors and retries follow the existing runner;
 they may stop execution. There is no new recovery, partial-run summary or report-identity framework.

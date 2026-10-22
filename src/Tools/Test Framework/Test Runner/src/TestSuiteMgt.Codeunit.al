@@ -156,7 +156,6 @@ codeunit 130456 "Test Suite Mgt."
         TestResultJson: JsonObject;
         CodeunitResultJson: JsonObject;
         ResultsJsonText: Text;
-        ConvertedText: Text;
         ResultInteger: Integer;
     begin
         CodeunitTestMethodLine.Copy(TestMethodLine);
@@ -200,10 +199,7 @@ codeunit 130456 "Test Suite Mgt."
                 TestResultJson.Add('result', ResultInteger);
                 if (FunctionTestMethodLine.Result = FunctionTestMethodLine.Result::Failure) then begin
                     TestResultJson.Add('message', GetFullErrorMessage(FunctionTestMethodLine));
-                    ConvertedText := GetErrorCallStack(FunctionTestMethodLine);
-                    ConvertedText := ConvertedText.Replace('\', ';');
-                    ConvertedText := ConvertedText.Replace('"', '');
-                    TestResultJson.Add('stackTrace', ConvertedText);
+                    TestResultJson.Add('stackTrace', GetErrorCallStack(FunctionTestMethodLine));
                 end;
 
                 TestResultArray.Add(TestResultJson);
