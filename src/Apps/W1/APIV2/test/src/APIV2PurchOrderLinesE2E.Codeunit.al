@@ -200,7 +200,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
 
-        Evaluate(LineNo, LineNoFromJSON);
+        Evaluate(LineNo, LineNoFromJSON, 9);
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
         PurchaseLine.SetRange("Line No.", LineNo);
@@ -382,7 +382,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
 
-        Evaluate(LineNo, LineNoFromJSON);
+        Evaluate(LineNo, LineNoFromJSON, 9);
         ApiPurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         ApiPurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
         ApiPurchaseLine.SetRange("Line No.", LineNo);
@@ -967,7 +967,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
 
-        Evaluate(LineNo, LineNoFromJSON);
+        Evaluate(LineNo, LineNoFromJSON, 9);
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
         PurchaseLine.SetRange("Line No.", LineNo);
@@ -1082,12 +1082,10 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
 
     local procedure VerifyPurchaseIdsSetFromTxt(PurchaseLine: Record "Purchase Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        "Newtonsoft.Json.Linq.JObject": DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject("Newtonsoft.Json.Linq.JObject");
-        LibraryGraphDocumentTools.VerifyPurchaseIdsSet(PurchaseLine, "Newtonsoft.Json.Linq.JObject");
+        JsonObject.ReadFrom(JObjectTxt);
+        LibraryGraphDocumentTools.VerifyPurchaseIdsSet(PurchaseLine, JsonObject);
     end;
 
     local procedure VerifyIdsAreBlank(JsonObjectTxt: Text)
