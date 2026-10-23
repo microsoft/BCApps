@@ -74,6 +74,19 @@ codeunit 130131 "MCP Config Test Library"
             until TempMCPSystemTool.Next() = 0;
     end;
 
+    procedure GetChatSystemTools(var SystemTools: Dictionary of [Text, Text])
+    var
+        TempMCPSystemTool: Record "MCP System Tool" temporary;
+        MCPChatToolsFeature: Codeunit "MCP Chat Tools Feature";
+    begin
+        Clear(SystemTools);
+        MCPChatToolsFeature.LoadSystemTools(TempMCPSystemTool);
+        if TempMCPSystemTool.FindSet() then
+            repeat
+                SystemTools.Add(TempMCPSystemTool."Tool Name", TempMCPSystemTool."Tool Description");
+            until TempMCPSystemTool.Next() = 0;
+    end;
+
     procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
     begin
         exit(MCPConfigImplementation.ConfirmDataQueryToolsOnImport(EnableDataQueryTools));

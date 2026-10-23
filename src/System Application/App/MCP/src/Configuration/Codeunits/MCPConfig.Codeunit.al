@@ -132,6 +132,16 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Enables or disables the Chat Tools feature for the specified configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableChatTools(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableChatTools(ConfigId, Enable);
+    end;
+
+    /// <summary>
     /// Enables or disables tools for Business Central agents for the specified configuration.
     /// Agent discovery is limited to agents explicitly added to the configuration, including the default configuration.
     /// Does nothing if the configuration does not exist.
