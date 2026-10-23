@@ -11,7 +11,7 @@ using Microsoft.Utilities;
 using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
-codeunit 148006 "UT REP Export G/L FR"
+codeunit 148007 "UT REP Export G/L FR"
 {
     Subtype = Test;
     TestType = IntegrationTest;
