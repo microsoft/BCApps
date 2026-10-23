@@ -382,6 +382,9 @@ codeunit 6912 "Expense Auto Population"
                 Expense.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
 
+        if Expense.IsItemizationRequired() then
+            UpdateExpenseItemizationCurrency(Expense);
+
         if Expense."Expense Detail Required" = Expense."Expense Detail Required"::Itemize then
             UpdateItemizationInformationOnExpense(Expense);
 
@@ -411,6 +414,41 @@ codeunit 6912 "Expense Auto Population"
         ExpenseReportLine."Non-Refundable Amount" := ExpenseReportLineItemization.Amount;
     end;
 
+    local procedure UpdateExpenseItemizationCurrency(Expense: Record Expense)
+    var
+        ExpenseItemization: Record "Expense Itemization";
+        Currency: Record Currency;
+    begin
+        Currency.Initialize(Expense."Currency Code");
+
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        if ExpenseItemization.FindSet(true) then
+            repeat
+                ExpenseItemization."Currency Code" := Expense."Currency Code";
+                ExpenseItemization."Daily Rate" := Round(ExpenseItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseItemization.Amount := Round(ExpenseItemization.Quantity * ExpenseItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseItemization.Modify(false);
+            until ExpenseItemization.Next() = 0;
+    end;
+
+    local procedure UpdateExpenseReportItemizationCurrency(ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLineItemization: Record "Expense Report Line Item";
+        Currency: Record Currency;
+    begin
+        Currency.Initialize(ExpenseReportLine."Expense Currency Code");
+
+        ExpenseReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        if ExpenseReportLineItemization.FindSet(true) then
+            repeat
+                ExpenseReportLineItemization."Currency Code" := ExpenseReportLine."Expense Currency Code";
+                ExpenseReportLineItemization."Daily Rate" := Round(ExpenseReportLineItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseReportLineItemization.Amount := Round(ExpenseReportLineItemization.Quantity * ExpenseReportLineItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseReportLineItemization.Modify(false);
+            until ExpenseReportLineItemization.Next() = 0;
+    end;
+
     local procedure UpdateFromRuleForReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseRuleHeader: Record "Expense Rule Header")
     begin
         ExpenseReportLine."Applied Rule Id" := ExpenseRuleHeader.SystemId;
@@ -438,6 +476,9 @@ codeunit 6912 "Expense Auto Population"
             if ExpenseReportLine."Unit of Measure Code" = '' then
                 ExpenseReportLine.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
+
+        if ExpenseReportLine.IsItemizationRequired() then
+            UpdateExpenseReportItemizationCurrency(ExpenseReportLine);
 
         if ExpenseReportLine."Expense Detail Required" = ExpenseReportLine."Expense Detail Required"::Itemize then
             UpdateItemizationInformationOnExpenseReportLine(ExpenseReportLine);
