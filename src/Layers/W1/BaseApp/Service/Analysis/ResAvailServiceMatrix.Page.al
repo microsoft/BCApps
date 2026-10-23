@@ -839,6 +839,11 @@ page 9229 "Res. Avail. (Service) Matrix"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterMatrixOnAfterGetRecord(Resource: Record Resource; var MatrixCellData: array[32] of Decimal; MatrixColumnDateFilters: array[32] of Record Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeMatrixOnAfterGetRecord(var MatrixRec: Record Resource; var MATRIX_CellData: array[32] of Decimal; var MatrixColumnDateFilters: array[32] of Record Date; var IsHandled: Boolean)
     begin
     end;
