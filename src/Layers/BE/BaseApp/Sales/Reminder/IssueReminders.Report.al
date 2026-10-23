@@ -82,33 +82,28 @@ report 190 "Issue Reminders"
             begin
                 Window.Close();
                 Commit();
-                if PrintEmailDocument <> PrintEmailDocument::" " then
-                    if PrintEmailDocument <> PrintEmailDocument::" " then begin
-                        if TempIssuedReminderHeader.FindSet() then
-                            repeat
-                                IssuedReminderHeaderPrint := TempIssuedReminderHeader;
-                                IsHandled := false;
-                                OnBeforePrintIssuedReminderHeader(IssuedReminderHeaderPrint, IsHandled, PrintEmailDocument, HideDialog);
-                                if not IsHandled then begin
+                if PrintEmailDocument <> PrintEmailDocument::" " then begin
+                    if TempIssuedReminderHeader.FindSet() then
+                        repeat
+                            IssuedReminderHeaderPrint := TempIssuedReminderHeader;
+                            IsHandled := false;
+                            OnBeforePrintIssuedReminderHeader(IssuedReminderHeaderPrint, IsHandled, PrintEmailDocument, HideDialog);
+                            if not IsHandled then
+                                if PrintEmailDocument = PrintEmailDocument::Print then begin
+                                    TempIssuedReminderHeaderToPrint := IssuedReminderHeaderPrint;
+                                    TempIssuedReminderHeaderToPrint.Insert();
+                                end else begin
                                     IssuedReminderHeaderPrint.SetRecFilter();
-                                    IssuedReminderHeaderPrint.PrintRecords(false, PrintEmailDocument = PrintEmailDocument::Email, HideDialog);
+                                    IssuedReminderHeaderPrint.PrintRecords(false, true, HideDialog);
                                 end;
-                                if not IsHandled then
-                                    if PrintEmailDocument = PrintEmailDocument::Print then begin
-                                        TempIssuedReminderHeaderToPrint := IssuedReminderHeaderPrint;
-                                        TempIssuedReminderHeaderToPrint.Insert();
-                                    end else begin
-                                        IssuedReminderHeaderPrint.SetRecFilter();
-                                        IssuedReminderHeaderPrint.PrintRecords(false, true, HideDialog);
-                                    end;
-                            until TempIssuedReminderHeader.Next() = 0;
-                        if (PrintEmailDocument = PrintEmailDocument::Print) and TempIssuedReminderHeaderToPrint.FindSet() then begin
-                            IssuedReminderHeaderRef.GetTable(TempIssuedReminderHeaderToPrint);
-                            IssuedReminderHeaderPrint.Reset();
-                            IssuedReminderHeaderPrint.SetFilter("No.", SelectionFilterManagement.GetSelectionFilter(IssuedReminderHeaderRef, TempIssuedReminderHeaderToPrint.FieldNo("No.")));
-                            IssuedReminderHeaderPrint.PrintRecords(false, false, HideDialog);
-                        end;
+                        until TempIssuedReminderHeader.Next() = 0;
+                    if (PrintEmailDocument = PrintEmailDocument::Print) and TempIssuedReminderHeaderToPrint.FindSet() then begin
+                        IssuedReminderHeaderRef.GetTable(TempIssuedReminderHeaderToPrint);
+                        IssuedReminderHeaderPrint.Reset();
+                        IssuedReminderHeaderPrint.SetFilter("No.", SelectionFilterManagement.GetSelectionFilter(IssuedReminderHeaderRef, TempIssuedReminderHeaderToPrint.FieldNo("No.")));
+                        IssuedReminderHeaderPrint.PrintRecords(false, false, HideDialog);
                     end;
+                end;
                 MarkedOnly := true;
                 if FindFirst() then
                     if ConfirmManagement.GetResponse(ShowNotIssuedQst, true) then
@@ -400,4 +395,3 @@ report 190 "Issue Reminders"
     begin
     end;
 }
-

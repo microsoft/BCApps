@@ -87,33 +87,28 @@ report 193 "Issue Finance Charge Memos"
             begin
                 Window.Close();
                 Commit();
-                if PrintDoc <> PrintDoc::" " then
-                    if PrintDoc <> PrintDoc::" " then begin
-                        if TempIssuedFinChrgMemoHeader.FindSet() then
-                            repeat
-                                IssuedFinChrgMemoHeader := TempIssuedFinChrgMemoHeader;
-                                IsHandled := false;
-                                OnBeforePrintRecords(IssuedFinChrgMemoHeader, IsHandled);
-                                if not IsHandled then begin
+                if PrintDoc <> PrintDoc::" " then begin
+                    if TempIssuedFinChrgMemoHeader.FindSet() then
+                        repeat
+                            IssuedFinChrgMemoHeader := TempIssuedFinChrgMemoHeader;
+                            IsHandled := false;
+                            OnBeforePrintRecords(IssuedFinChrgMemoHeader, IsHandled);
+                            if not IsHandled then
+                                if PrintDoc = PrintDoc::Print then begin
+                                    TempIssuedFinChrgMemoHeaderToPrint := IssuedFinChrgMemoHeader;
+                                    TempIssuedFinChrgMemoHeaderToPrint.Insert();
+                                end else begin
                                     IssuedFinChrgMemoHeader.SetRecFilter();
-                                    IssuedFinChrgMemoHeader.PrintRecords(false, PrintDoc = PrintDoc::Email, HideDialog);
+                                    IssuedFinChrgMemoHeader.PrintRecords(false, true, HideDialog);
                                 end;
-                                if not IsHandled then
-                                    if PrintDoc = PrintDoc::Print then begin
-                                        TempIssuedFinChrgMemoHeaderToPrint := IssuedFinChrgMemoHeader;
-                                        TempIssuedFinChrgMemoHeaderToPrint.Insert();
-                                    end else begin
-                                        IssuedFinChrgMemoHeader.SetRecFilter();
-                                        IssuedFinChrgMemoHeader.PrintRecords(false, true, HideDialog);
-                                    end;
-                            until TempIssuedFinChrgMemoHeader.Next() = 0;
-                        if (PrintDoc = PrintDoc::Print) and TempIssuedFinChrgMemoHeaderToPrint.FindSet() then begin
-                            IssuedFinChrgMemoHeaderRef.GetTable(TempIssuedFinChrgMemoHeaderToPrint);
-                            IssuedFinChrgMemoHeader.Reset();
-                            IssuedFinChrgMemoHeader.SetFilter("No.", SelectionFilterManagement.GetSelectionFilter(IssuedFinChrgMemoHeaderRef, TempIssuedFinChrgMemoHeaderToPrint.FieldNo("No.")));
-                            IssuedFinChrgMemoHeader.PrintRecords(false, false, HideDialog);
-                        end;
+                        until TempIssuedFinChrgMemoHeader.Next() = 0;
+                    if (PrintDoc = PrintDoc::Print) and TempIssuedFinChrgMemoHeaderToPrint.FindSet() then begin
+                        IssuedFinChrgMemoHeaderRef.GetTable(TempIssuedFinChrgMemoHeaderToPrint);
+                        IssuedFinChrgMemoHeader.Reset();
+                        IssuedFinChrgMemoHeader.SetFilter("No.", SelectionFilterManagement.GetSelectionFilter(IssuedFinChrgMemoHeaderRef, TempIssuedFinChrgMemoHeaderToPrint.FieldNo("No.")));
+                        IssuedFinChrgMemoHeader.PrintRecords(false, false, HideDialog);
                     end;
+                end;
                 MarkedOnly := true;
                 if FindFirst() then
                     if ConfirmManagement.GetResponse(ShowNotIssuedQst, true) then
@@ -276,4 +271,3 @@ report 193 "Issue Finance Charge Memos"
     begin
     end;
 }
-
