@@ -6,7 +6,11 @@ or results. Initial PowerShell setup still uses the existing source-suite setup 
 
 ## Installation and dependencies
 
-Install **Test Stability** before using its UI actions or the PowerShell `-StabilityMode` switch.
+**Test Stability** targets Cloud and follows Agent Test Library's SaaS shipping model:
+it is included in the SaaS distribution for **Sandbox** environments and installed on environment updates.
+Production environments are excluded. On-premises installation remains optional.
+
+The app must be installed before using its UI actions or the PowerShell `-StabilityMode` switch.
 This app depends on **Test Runner**, **Any**, and **Application Test Library** (for Library - Random),
 including the application dependencies of that library.
 Test Runner and Any do not depend on this app or on each other.
@@ -22,7 +26,7 @@ The public `Test Configuration` table is keyed by **Test Suite + Code**. Each ro
 | Setting | Behavior |
 | --- | --- |
 | Enabled | Includes the configuration in generation. |
-| Use Random Seed / Random Seed | Initializes Any and, when installed, Library - Random with the configured seed, including zero. Explicit seed/Init calls inside tests still win. |
+| Use Random Seed / Random Seed | Initializes Any and Library - Random with the configured seed, including zero. Explicit seed/Init calls inside tests still win. |
 | WorkDate Offset | A date formula such as `<1Y>` or `<2Y>`, applied relative to the initial WorkDate before each method. Blank means no shift. |
 | One By One | Generates one codeunit header plus one method/expanded-input line per block. |
 | Reverse Order | Reverses source codeunit blocks, retaining method order within each block. |

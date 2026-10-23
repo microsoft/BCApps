@@ -462,23 +462,6 @@
     ]
   },
   {
-    "name": "Test Stability",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "TestFramework-Helpers",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
     "name": "Tests-Monitor Sensitive Fields",
     "groups": [
       {
@@ -896,6 +879,31 @@
       },
       {
         "name": "TestFramework"
+      }
+    ]
+  },
+  {
+    "name": "Test Stability",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "TestLibraries"
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "TestFramework-Helpers",
+        "doNotInstall": true
       }
     ]
   },
