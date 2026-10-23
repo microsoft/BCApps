@@ -372,25 +372,24 @@ codeunit 18200 "GST Distribution"
                     until DetailedGSTLedgerEntry.Next() = 0;
             until GSTDistributionLine.Next() = 0;
         if DistReversal then
-            ApplyDistComponentReversalRoundingAmount(DistributionNo)
+            ApplyDistBalComponentReversalRoundingAmount(DistributionNo)
         else
             ApplyDistBalComponentRoundingAmount(DistributionNo, DistComponentAmount);
     end;
 
-    local procedure ApplyDistComponentReversalRoundingAmount(DistributionNo: Code[20])
+    local procedure ApplyDistBalComponentReversalRoundingAmount(DistributionNo: Code[20])
     var
         GstdistributionHeader: Record "GST Distribution Header";
         NonAvailmentDistComponentAmount: Record "Dist. Component Amount";
         ExpenseDistComponentAmount: Record "Dist. Component Amount";
         RoundingAmount: Decimal;
     begin
-
-        gstdistributionHeader.Get(DistributionNo);
-        if gstdistributionHeader."Dist. Credit Type" <> gstdistributionHeader."Dist. Credit Type"::"Non-Availment" then
+        GstdistributionHeader.Get(DistributionNo);
+        if GstdistributionHeader."Dist. Credit Type" <> GstdistributionHeader."Dist. Credit Type"::"Non-Availment" then
             exit;
 
         NonAvailmentDistComponentAmount.SetLoadFields("Distribution No.", "GST Credit", "GST Component Code", "Credit Amount");
-        nonavailmentDistComponentAmount.SetRange("Distribution No.", DistributionNo);
+        NonAvailmentDistComponentAmount.SetRange("Distribution No.", DistributionNo);
         NonAvailmentDistComponentAmount.SetRange("GST Credit", NonAvailmentDistComponentAmount."GST Credit"::"Non-Availment");
         NonAvailmentDistComponentAmount.SetRange("GST Component Code", '');
         NonAvailmentDistComponentAmount.CalcSums("Credit Amount");
