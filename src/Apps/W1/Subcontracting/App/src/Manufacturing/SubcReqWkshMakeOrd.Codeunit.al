@@ -200,8 +200,25 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
                 ShouldModifyPurchaseLine := false;
                 if not FoundPurchaseLineComp then begin
-                    PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
+                    PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
                     FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                    if FoundPurchaseLineComp then begin
+                        PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
+                        ShouldModifyPurchaseLine := true;
+                    end;
+                end;
+                if not FoundPurchaseLineComp then begin
+                    PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
+                    PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
+                    FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                    if not FoundPurchaseLineComp then begin
+                        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+                        FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                        if FoundPurchaseLineComp then begin
+                            PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
+                            ShouldModifyPurchaseLine := true;
+                        end;
+                    end;
                     if FoundPurchaseLineComp then begin
                         PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
                         ShouldModifyPurchaseLine := true;
