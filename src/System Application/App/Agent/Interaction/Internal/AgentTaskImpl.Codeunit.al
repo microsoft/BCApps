@@ -29,14 +29,9 @@ codeunit 4300 "Agent Task Impl."
     var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
         AgentTaskLogExport: Codeunit "Agent Task Log Export";
-        ExportJson: JsonObject;
-        EntryToken: JsonToken;
     begin
         AgentTaskLogEntry.Get(AgentTaskID, StepNumber);
-        AgentTaskLogEntry.SetRecFilter();
-        ExportJson := AgentTaskLogExport.ExportToJson(AgentTaskLogEntry);
-        ExportJson.GetArray('logEntries').Get(0, EntryToken);
-        exit(EntryToken.AsObject());
+        exit(AgentTaskLogExport.ExportLogEntryToJson(AgentTaskLogEntry));
     end;
 
     procedure GetStepsDoneCount(AgentTaskID: BigInteger): Integer
@@ -56,15 +51,51 @@ codeunit 4300 "Agent Task Impl."
         exit(AgentTaskLogEntry.Count());
     end;
 
+    procedure GetDetailsForAgentTaskLogEntry(AgentTaskID: BigInteger; StepNumber: Integer): Text
+    var
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+    begin
+        AgentTaskLogEntry.Get(AgentTaskID, StepNumber);
+        exit(GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
+    end;
+
     procedure GetDetailsForAgentTaskLogEntry(var AgentTaskLogEntry: Record "Agent Task Log Entry"): Text
     var
         ContentInStream: InStream;
-        ContentText: Text;
     begin
         AgentTaskLogEntry.CalcFields(Details);
         AgentTaskLogEntry.Details.CreateInStream(ContentInStream, GetDefaultEncoding());
-        ContentInStream.Read(ContentText);
-        exit(ContentText);
+        exit(ReadStreamToEnd(ContentInStream));
+    end;
+
+    procedure GetDetailsForAgentTaskMemoryEntry(var AgentTaskMemoryEntry: Record "Agent Task Memory Entry"): Text
+    var
+        ContentInStream: InStream;
+    begin
+        AgentTaskMemoryEntry.CalcFields(Details);
+        AgentTaskMemoryEntry.Details.CreateInStream(ContentInStream, GetDefaultEncoding());
+        exit(ReadStreamToEnd(ContentInStream));
+    end;
+
+    procedure ReadStreamToEnd(var Source: InStream): Text
+    var
+        Content: TextBuilder;
+        ContentLine: Text;
+        FirstLine: Boolean;
+    begin
+        if Source.Length() = 0 then
+            exit('');
+
+        FirstLine := true;
+        while not Source.EOS() do begin
+            Source.ReadText(ContentLine);
+            if FirstLine then
+                FirstLine := false
+            else
+                Content.AppendLine('');
+            Content.Append(ContentLine);
+        end;
+        exit(Content.ToText());
     end;
 
     procedure ShowTaskLogEntries(AgentTaskID: BigInteger)

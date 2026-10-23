@@ -284,6 +284,20 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
+    /// Gets the details text of the specified agent task log entry without generating a JSON export.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <param name="StepNumber">The ID of the agent task log entry.</param>
+    /// <returns>The details text with normalized line separators.</returns>
+    procedure GetTaskLogEntryDetailsText(AgentTaskID: BigInteger; StepNumber: Integer): Text
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskID, StepNumber));
+    end;
+
+    /// <summary>
     /// Gets the number of steps done for the specified agent task.
     /// </summary>
     /// <param name="AgentTaskID">The ID of the agent task.</param>

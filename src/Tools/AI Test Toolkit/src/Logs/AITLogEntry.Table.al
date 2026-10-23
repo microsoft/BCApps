@@ -224,12 +224,10 @@ table 149034 "AIT Log Entry"
     procedure GetInputBlob(): Text
     var
         InStream: InStream;
-        InputContent: Text;
     begin
         CalcFields("Input Data");
         "Input Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.Read(InputContent);
-        exit(InputContent);
+        exit(ReadStreamToEnd(InStream));
     end;
 
     procedure SetOutputBlob(NewOutput: Text)
@@ -244,12 +242,10 @@ table 149034 "AIT Log Entry"
     procedure GetOutputBlob(): Text
     var
         InStream: InStream;
-        OutputContent: Text;
     begin
         CalcFields("Output Data");
         "Output Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.Read(OutputContent);
-        exit(OutputContent);
+        exit(ReadStreamToEnd(InStream));
     end;
 
     procedure SetMessage(NewMessageText: Text)

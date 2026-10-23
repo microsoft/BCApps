@@ -10,19 +10,22 @@ The Agent Task troubleshooting experience supports exporting log information as 
 
 ## Programmatic export
 
-Codeunit `"Agent Task"` provides public JSON APIs:
+Codeunit `"Agent Task"` provides public APIs for task troubleshooting:
 
 ```al
 TaskExport := AgentTask.GetTaskLogEntryDetails(AgentTaskID);
 StepExport := AgentTask.GetTaskLogEntryDetails(AgentTaskID, StepNumber);
 StepsDone := AgentTask.GetStepsDoneCount(AgentTaskID);
+DetailsText := AgentTask.GetTaskLogEntryDetailsText(AgentTaskID, StepNumber);
 ```
 
 The task overload returns `taskContext`, all `logEntries`, and all `memoryEntries`.
 The step overload returns the log-entry object directly, without a `logEntries` wrapper.
 `StepNumber` is the log entry's ID within the task, not its position in the export.
 The task overload requires an existing task, and the step overload requires an existing log entry belonging to that task.
-All three methods enforce the agent-management access check.
+The text helper returns only the stored details text, without generating an export, and also requires an existing log entry. All four methods enforce the agent-management access check.
+
+Log details, memory details, messages, and troubleshooting context use a shared multiline reader. It handles empty streams, preserves leading and interior blank lines, and inserts a default line separator only between lines without trimming their content. Original line endings and trailing terminators are not guaranteed to be preserved.
 
 Codeunit `"Agent Task Log Export"` also provides internal stream-based APIs:
 

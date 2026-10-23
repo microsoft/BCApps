@@ -23,24 +23,6 @@ codeunit 133960 "Agent Task Test"
         LibraryTestAgent.DeleteAllAgents();
     end;
 
-    local procedure CreateTaskWithoutSteps(): Record "Agent Task"
-    var
-        AgentRecord: Record Agent;
-        MockAgentSetup: Record "Mock Agent Setup";
-        AgentTaskBuilder: Codeunit "Agent Task Builder";
-        Any: Codeunit Any;
-        AgentUserId: Guid;
-    begin
-        Initialize();
-        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
-            AgentRecord,
-            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
-            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."Display Name")), 1, MaxStrLen(AgentRecord."Display Name")),
-            CopyStr(Any.AlphanumericText(MaxStrLen(MockAgentSetup.Instructions)), 1, MaxStrLen(MockAgentSetup.Instructions)));
-        AgentTaskBuilder.Initialize(AgentUserId, 'Task without steps');
-        exit(AgentTaskBuilder.Create(false, false));
-    end;
-
     [Test]
     procedure GetTaskLogEntryDetailsForTaskWithoutSteps()
     var
@@ -75,6 +57,25 @@ codeunit 133960 "Agent Task Test"
         AgentTaskLogEntry.ID := 1;
 
         asserterror AgentTask.GetTaskLogEntryDetails(AgentTaskLogEntry."Task ID", AgentTaskLogEntry.ID);
+
+        Assert.ExpectedErrorCannotFind(
+            Database::"Agent Task Log Entry",
+            StrSubstNo('%1=''%2'',%3=''%4''',
+                AgentTaskLogEntry.FieldCaption("Task ID"), AgentTaskLogEntry."Task ID",
+                AgentTaskLogEntry.FieldCaption(ID), AgentTaskLogEntry.ID));
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsTextRejectsMissingStep()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+    begin
+        AgentTaskRecord := CreateTaskWithoutSteps();
+        AgentTaskLogEntry."Task ID" := AgentTaskRecord.ID;
+        AgentTaskLogEntry.ID := 1;
+
+        asserterror AgentTask.GetTaskLogEntryDetailsText(AgentTaskLogEntry."Task ID", AgentTaskLogEntry.ID);
 
         Assert.ExpectedErrorCannotFind(
             Database::"Agent Task Log Entry",
@@ -1139,4 +1140,22 @@ codeunit 133960 "Agent Task Test"
     end;
 
     #endregion
+
+    local procedure CreateTaskWithoutSteps(): Record "Agent Task"
+    var
+        AgentRecord: Record Agent;
+        MockAgentSetup: Record "Mock Agent Setup";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."Display Name")), 1, MaxStrLen(AgentRecord."Display Name")),
+            CopyStr(Any.AlphanumericText(MaxStrLen(MockAgentSetup.Instructions)), 1, MaxStrLen(MockAgentSetup.Instructions)));
+        AgentTaskBuilder.Initialize(AgentUserId, 'Task without steps');
+        exit(AgentTaskBuilder.Create(false, false));
+    end;
 }
