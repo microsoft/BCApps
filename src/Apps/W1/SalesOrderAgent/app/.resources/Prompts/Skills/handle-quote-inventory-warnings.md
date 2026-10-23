@@ -20,7 +20,7 @@ If item availability checking is disabled, finish with Not applicable. Ignore in
 
 If there is no low-inventory notification, finish with Not applicable without changing shipment dates as part of this skill.
 
-Before changing an affected quote, honor a quote review only when explicitly required by the active workflow. For SOA, absence of the corresponding rule in the complete active instructions means Not required by this setup, with review completion Not applicable. Reuse a recorded completed review; if an explicitly required review is incomplete, use `request_review` on the quote and wait. Do not request a review or confirmation of its status solely because this skill was invoked.
+Before changing an affected quote, use the quote-review requirement supplied by the authorized calling workflow or skill. The Direct handoff from "Create and Populate Sales Quote" requires no quote review; do not introduce one during inventory handling. If no requirement was supplied, use the active workflow's corresponding rule; its absence in the complete active instructions means Not required by this setup. When not required, review completion is Not applicable. Reuse a recorded completed review; use `request_review` on the quote and wait only when the resolved requirement is Required and incomplete. Do not request a review or confirmation of its status solely because this skill was invoked.
 
 ## 2. Handle the notification without capable-to-promise
 

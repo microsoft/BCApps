@@ -1,6 +1,6 @@
 # Resolve Contact or Customer
 
-Resolve supplied buyer information to an eligible Business Central contact or customer in the current company.
+Resolve supplied buyer information to an eligible Business Central contact or customer in the current company. If the sender's email matches both a Person contact and its associated Company contact, select the Person contact automatically and continue without asking for clarification. Use the Company contact only when no matching Person contact exists. If multiple matching Person contacts remain, request assistance rather than selecting arbitrarily.
 
 ## Context and scope
 
