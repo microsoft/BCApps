@@ -241,6 +241,8 @@ codeunit 149501 "Filename List Tests"
         // With several rows selected, the card's own refusal would not say which one is at fault.
         PrepareWithNoPatterns();
         CreatePattern(Pattern, '', false, '');
+        // Keep the fixture when the expected error rolls back the enable action.
+        Commit();
 
         PatternList.OpenView();
         PatternList.GoToRecord(Pattern);

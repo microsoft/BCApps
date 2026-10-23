@@ -718,8 +718,8 @@ codeunit 149516 "Filename Card Tests"
             Pattern, Enum::"Report Filename Output Route"::Print, InvoiceRecordId(ChosenInvoiceNo), PdfName, NameComesFrom, Why, FromThisPattern);
         ReportFilenamePreviewMgt.ExplainNameForChosenRecord(
             Pattern, Enum::"Report Filename Output Route"::ElectronicDocument, InvoiceRecordId(ChosenInvoiceNo), Filename, NameComesFrom, Why, FromThisPattern);
-        if Filename <> WithoutSuffix(PdfName) + SuffixOfName(BusinessCentralsName) then
-            Error(WrongElectronicNameErr, WithoutSuffix(PdfName) + SuffixOfName(BusinessCentralsName), Filename);
+        if Filename <> WithoutSuffix(PdfName) + XmlExtensionTok then
+            Error(WrongElectronicNameErr, WithoutSuffix(PdfName) + XmlExtensionTok, Filename);
 
         FilenameProofSupport.LimitToRoute(Pattern, Enum::"Report Filename Output Route"::Print);
         Pattern.Modify(true);
@@ -2299,6 +2299,7 @@ codeunit 149516 "Filename Card Tests"
         NotificationAfterTurnedOnErr: Label 'Patterns were turned on in the setup, yet the notification came back: "%1".', Comment = '%1 what was sent';
         InvoiceNumberPatternTok: Label 'Invoice-[No.]', Locked = true;
         XmlCodeTok: Label 'xml', Locked = true;
+        XmlExtensionTok: Label '.XML', Locked = true;
         KindOfDocumentOnlyTok: Label '[Kind of Document]', Locked = true;
         ManyInvoicesPrefixTok: Label 'RFTMANY', Locked = true;
         TooFewInvoicesErr: Label 'Only %1 posted sales invoices are in the run; more than 100 are needed to show a run too large to check.', Comment = '%1 the count';

@@ -6,7 +6,9 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
@@ -32,11 +34,14 @@ codeunit 149537 "Filename Test Data"
     var
         CompanyInformation: Record "Company Information";
         GLAccount: Record "G/L Account";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
         SalesSetup: Record "Sales & Receivables Setup";
         PurchaseSetup: Record "Purchases & Payables Setup";
         FilenameProofGuard: Codeunit "Filename Proof Guard";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryUtility: Codeunit "Library - Utility";
     begin
         FilenameProofGuard.AssertSafeEnvironment();
@@ -48,8 +53,28 @@ codeunit 149537 "Filename Test Data"
             CompanyInformation.Validate(Name, CompanyNameTok);
             CompanyInformation.Modify(true);
         end;
+        if CompanyInformation."Bank Name" = '' then begin
+            CompanyInformation.Validate("Bank Name", BankNameTok);
+            CompanyInformation.Modify(true);
+        end;
+
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."LCY Code" = '' then
+            LibraryERM.SetLCYCode(LCYCodeTok);
+        GeneralLedgerSetup.Get();
+        // These fixtures exercise report delivery, not VAT reporting periods or local VAT dates.
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup.Validate("VAT Reporting Date Usage", GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled);
+            GeneralLedgerSetup.Modify(true);
+        end;
 
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
+        CompleteGeneralPostingSetup(GeneralPostingSetup);
+        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
+        VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', '');
+        VATPostingSetup.SetRange("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        if VATPostingSetup.IsEmpty() then
+            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
         // The filter and unfiltered-run proofs need at least three accounts, even in an empty company.
         while GLAccount.Count() < 3 do
             LibraryERM.CreateGLAccount(GLAccount);
@@ -58,6 +83,7 @@ codeunit 149537 "Filename Test Data"
             SalesSetup.Init();
             SalesSetup.Insert(true);
         end;
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Customer Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Invoice Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Order Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Quote Nos."));
@@ -70,9 +96,52 @@ codeunit 149537 "Filename Test Data"
             PurchaseSetup.Init();
             PurchaseSetup.Insert(true);
         end;
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Vendor Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Invoice Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Posted Invoice Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Posted Receipt Nos."));
+        SetupDocumentJournalTemplates();
+        LibraryERMCountryData.UpdateSalesReceivablesSetup();
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+    end;
+
+    local procedure SetupDocumentJournalTemplates()
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+        PurchaseSetup: Record "Purchases & Payables Setup";
+    begin
+        SalesSetup.Get();
+        if SalesSetup."S. Invoice Template Name" = '' then begin
+            SalesSetup.Validate(
+                "S. Invoice Template Name",
+                CreatePostingJournalTemplate(Enum::"Gen. Journal Template Type"::Sales, SalesSetup."Posted Invoice Nos."));
+            SalesSetup.Modify(true);
+        end;
+        if SalesSetup."S. Cr. Memo Template Name" = '' then begin
+            SalesSetup.Validate(
+                "S. Cr. Memo Template Name",
+                CreatePostingJournalTemplate(Enum::"Gen. Journal Template Type"::Sales, SalesSetup."Posted Credit Memo Nos."));
+            SalesSetup.Modify(true);
+        end;
+        PurchaseSetup.Get();
+        if PurchaseSetup."P. Invoice Template Name" = '' then begin
+            PurchaseSetup.Validate(
+                "P. Invoice Template Name",
+                CreatePostingJournalTemplate(Enum::"Gen. Journal Template Type"::Purchases, PurchaseSetup."Posted Invoice Nos."));
+            PurchaseSetup.Modify(true);
+        end;
+    end;
+
+    local procedure CreatePostingJournalTemplate(TemplateType: Enum "Gen. Journal Template Type"; PostingNoSeries: Code[20]): Code[10]
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, TemplateType);
+        GenJournalTemplate.Validate("Posting No. Series", PostingNoSeries);
+        GenJournalTemplate.Modify(true);
+        exit(GenJournalTemplate.Name);
     end;
 
     internal procedure SetupInvoiceReport()
@@ -172,7 +241,9 @@ codeunit 149537 "Filename Test Data"
             SalesHeader.Validate("Language Code", LanguageCode);
         SalesHeader.Modify(true);
 
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), 1);
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item,
+            CreateItem(SalesHeader."Gen. Bus. Posting Group", SalesHeader."VAT Bus. Posting Group"), 1);
         SalesLine.Validate("Unit Price", DefaultUnitPrice());
         SalesLine.Modify(true);
     end;
@@ -254,17 +325,40 @@ codeunit 149537 "Filename Test Data"
     /// <summary>
     /// Type Service, so posting needs no stock.
     /// </summary>
-    local procedure CreateItem(): Code[20]
+    local procedure CreateItem(GenBusPostingGroup: Code[20]; VATBusPostingGroup: Code[20]): Code[20]
     var
         Item: Record Item;
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
         LibraryInventory.CreateItem(Item);
+        // Use the document's business groups, not an unrelated pair found by the item helper.
+        if not GeneralPostingSetup.Get(GenBusPostingGroup, Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, Item."Gen. Prod. Posting Group");
+        CompleteGeneralPostingSetup(GeneralPostingSetup);
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', '');
+        VATPostingSetup.FindFirst();
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         Item.Validate(Description, ItemDescriptionTok);
         Item.Validate(Type, Item.Type::Service);
         Item.Validate("Unit Price", 100);
         Item.Modify(true);
         exit(Item."No.");
+    end;
+
+    local procedure CompleteGeneralPostingSetup(var GeneralPostingSetup: Record "General Posting Setup")
+    var
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
     end;
 
     internal procedure PostNewPurchaseInvoice(var PurchInvHeader: Record "Purch. Inv. Header")
@@ -280,7 +374,9 @@ codeunit 149537 "Filename Test Data"
         PurchaseHeader.Modify(true);
         DraftNo := PurchaseHeader."No.";
 
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItem(), 1);
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+            CreateItem(PurchaseHeader."Gen. Bus. Posting Group", PurchaseHeader."VAT Bus. Posting Group"), 1);
         PurchaseLine.Validate("Direct Unit Cost", 100);
         PurchaseLine.Modify(true);
 
@@ -491,6 +587,8 @@ codeunit 149537 "Filename Test Data"
 
     var
         CompanyNameTok: Label 'Report Filename Test Company', Locked = true;
+        BankNameTok: Label 'Report Filename Test Bank', Locked = true;
+        LCYCodeTok: Label 'LCY', Locked = true;
         CustomerNameTok: Label 'Report Filename Test Customer', Locked = true;
         VendorNameTok: Label 'Report Filename Test Vendor', Locked = true;
         ItemDescriptionTok: Label 'Report Filename Test Item', Locked = true;
