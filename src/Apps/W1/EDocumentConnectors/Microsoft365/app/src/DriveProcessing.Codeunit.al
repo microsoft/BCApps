@@ -26,7 +26,7 @@ codeunit 6381 "Drive Processing"
     var
         GraphClient: Codeunit "Graph Client";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        SiteId: Text;
+        DriveId: Text;
         NewFolderId: Text;
     begin
         FeatureTelemetry.LogUptake('0000OAY', FeatureName(), Enum::"Feature Uptake Status"::Used);
@@ -34,31 +34,48 @@ codeunit 6381 "Drive Processing"
         if EDocument."Drive Item Id" = '' then
             Error(DocumentIdEmptyErr, EDocument."Entry No");
 
-        SiteId := GetSiteId(EDocumentService."Service Integration V2");
+        DriveId := GetDocumentsDriveId(EDocumentService."Service Integration V2");
         NewFolderId := GetImportedDocumentsFolderId(EDocumentService."Service Integration V2");
 
-        GraphClient.MoveDriveItem(SiteId, EDocument."Drive Item Id", NewFolderId);
+        GraphClient.MoveDriveItem(DriveId, EDocument."Drive Item Id", NewFolderId);
     end;
 
     procedure GetSiteId(FolderSharedLink: Text[2048]): Text
     var
+        ParentReferenceJson: JsonObject;
+        SiteIdToken: JsonToken;
+    begin
+        ParentReferenceJson := GetParentReference(FolderSharedLink);
+        if ParentReferenceJson.Get('siteId', SiteIdToken) then
+            exit(SiteIdToken.AsValue().AsText())
+    end;
+
+    procedure GetDriveId(FolderSharedLink: Text[2048]): Text
+    var
+        ParentReferenceJson: JsonObject;
+        DriveIdToken: JsonToken;
+    begin
+        ParentReferenceJson := GetParentReference(FolderSharedLink);
+        if ParentReferenceJson.Get('driveId', DriveIdToken) then
+            exit(DriveIdToken.AsValue().AsText())
+    end;
+
+    local procedure GetParentReference(FolderSharedLink: Text[2048]): JsonObject
+    var
         GraphClient: Codeunit "Graph Client";
         Base64Convert: Codeunit "Base64 Convert";
-        MySiteLink, Base64SharedLink, ErrorMessageTxt : Text;
-        FilesJson: JsonObject;
-        SiteIdToken: JsonToken;
+        ParentReferenceLink, Base64SharedLink, ErrorMessageTxt : Text;
+        ParentReferenceJson: JsonObject;
     begin
         Base64SharedLink := Base64Convert.ToBase64(FolderSharedLink);
         Base64SharedLink := 'u!' + Base64SharedLink.TrimEnd('=').Replace('/', '_').Replace('+', '-');
-        MySiteLink := GetGraphSharesURL() + Base64SharedLink + '/driveItem/parentReference';
-        if not GraphClient.GetDriveFolderInfo(MySiteLink, FilesJson) then begin
+        ParentReferenceLink := GetGraphSharesURL() + Base64SharedLink + '/driveItem/parentReference';
+        if not GraphClient.GetDriveFolderInfo(ParentReferenceLink, ParentReferenceJson) then begin
             ErrorMessageTxt := GetLastErrorText() + GetLastErrorCallStack();
             ClearLastError();
             Error(ErrorMessageTxt);
         end;
-
-        if FilesJson.Get('siteId', SiteIdToken) then
-            exit(SiteIdToken.AsValue().AsText())
+        exit(ParentReferenceJson);
     end;
 
     procedure GetId(FolderSharedLink: Text[2048]): Text
@@ -195,7 +212,7 @@ codeunit 6381 "Drive Processing"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         DocumentOutStream: OutStream;
         DocumentInStream: InStream;
-        DocumentId, FileId, SiteId : Text;
+        DocumentId, FileId, DriveId : Text;
     begin
         ExtractItemIdAndName(DocumentMetadataBlob, DocumentId, FileId);
 
@@ -203,12 +220,12 @@ codeunit 6381 "Drive Processing"
         TempDocumentSharing."Item Id" := CopyStr(DocumentId, 1, MaxStrLen(TempDocumentSharing."Item Id"));
         TempDocumentSharing.Insert();
 
-        SiteId := GetSiteId(EDocumentService."Service Integration V2");
+        DriveId := GetDocumentsDriveId(EDocumentService."Service Integration V2");
 
         FeatureTelemetry.LogUptake('0000OB0', FeatureName(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000OB3', FeatureName(), Format(EDocumentService."Service Integration V2"));
 
-        if not GraphClient.GetFileContent(SiteId, TempDocumentSharing) then begin
+        if not GraphClient.GetFileContent(DriveId, TempDocumentSharing) then begin
             EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
             ClearLastError();
             exit;
@@ -283,29 +300,33 @@ codeunit 6381 "Drive Processing"
         end;
     end;
 
-    local procedure GetSiteId(var ServiceIntegration: Enum "Service Integration"): Text
+    // Resolved from the shared link rather than the stored SiteId: /sites/{id}/drive only addresses the
+    // site's default document library, so items in other libraries were not found (404).
+    local procedure GetDocumentsDriveId(var ServiceIntegration: Enum "Service Integration"): Text
     var
         SharepointSetup: Record "Sharepoint Setup";
         OneDriveSetup: Record "OneDrive Setup";
-        SiteId: Text;
+        DriveId: Text;
     begin
         case ServiceIntegration of
             ServiceIntegration::SharePoint:
                 begin
                     CheckSetupEnabled(SharepointSetup);
                     CheckFolderSharedLinkNotEmpty(SharepointSetup."Documents Folder", SharepointSetup.TableCaption());
-                    SiteId := SharepointSetup.SiteId;
+                    DriveId := GetDriveId(SharepointSetup."Documents Folder");
                 end;
             ServiceIntegration::OneDrive:
                 begin
                     CheckSetupEnabled(OneDriveSetup);
                     CheckFolderSharedLinkNotEmpty(OneDriveSetup."Documents Folder", OneDriveSetup.TableCaption());
-                    SiteId := OneDriveSetup.SiteId;
+                    DriveId := GetDriveId(OneDriveSetup."Documents Folder");
                 end;
             else
                 Error(UnsupportedIntegrationTypeErr);
         end;
-        exit(SiteId);
+        if DriveId = '' then
+            Error(DriveIdEmptyErr);
+        exit(DriveId);
     end;
 
     local procedure GetSourceDetails(var ServiceIntegration: Enum "Service Integration"): Text
@@ -385,4 +406,5 @@ codeunit 6381 "Drive Processing"
         IntegrationNotEnabledErr: Label '%1 must be enabled.', Comment = '%1 - a table caption, Sharepoint Document Import Setup';
         UnsupportedIntegrationTypeErr: Label 'You must choose a upported integration type.';
         DocumentIdEmptyErr: Label 'Drive Item Id is empty on e-document %1.', Comment = '%1 - an integer';
+        DriveIdEmptyErr: Label 'Unable to determine the document library of the folder specified on the setup page. Verify that the shared link points to an existing folder and that you have access to it.';
 }
