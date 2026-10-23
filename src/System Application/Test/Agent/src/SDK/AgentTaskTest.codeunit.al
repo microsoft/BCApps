@@ -23,15 +23,12 @@ codeunit 133960 "Agent Task Test"
         LibraryTestAgent.DeleteAllAgents();
     end;
 
-    [Test]
-    procedure GetTaskLogEntryDetailsForTaskWithoutSteps()
+    local procedure CreateTaskWithoutSteps(): Record "Agent Task"
     var
         AgentRecord: Record Agent;
-        AgentTaskRecord: Record "Agent Task";
         MockAgentSetup: Record "Mock Agent Setup";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         Any: Codeunit Any;
-        ExportJson: JsonObject;
         AgentUserId: Guid;
     begin
         Initialize();
@@ -41,7 +38,16 @@ codeunit 133960 "Agent Task Test"
             CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."Display Name")), 1, MaxStrLen(AgentRecord."Display Name")),
             CopyStr(Any.AlphanumericText(MaxStrLen(MockAgentSetup.Instructions)), 1, MaxStrLen(MockAgentSetup.Instructions)));
         AgentTaskBuilder.Initialize(AgentUserId, 'Task without steps');
-        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+        exit(AgentTaskBuilder.Create(false, false));
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsForTaskWithoutSteps()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        ExportJson: JsonObject;
+    begin
+        AgentTaskRecord := CreateTaskWithoutSteps();
 
         ExportJson := AgentTask.GetTaskLogEntryDetails(AgentTaskRecord.ID);
 
@@ -60,9 +66,21 @@ codeunit 133960 "Agent Task Test"
 
     [Test]
     procedure GetTaskLogEntryDetailsRejectsMissingStep()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
     begin
-        asserterror AgentTask.GetTaskLogEntryDetails(-1, 1);
-        Assert.ExpectedError('does not exist');
+        AgentTaskRecord := CreateTaskWithoutSteps();
+        AgentTaskLogEntry."Task ID" := AgentTaskRecord.ID;
+        AgentTaskLogEntry.ID := 1;
+
+        asserterror AgentTask.GetTaskLogEntryDetails(AgentTaskLogEntry."Task ID", AgentTaskLogEntry.ID);
+
+        Assert.ExpectedErrorCannotFind(
+            Database::"Agent Task Log Entry",
+            StrSubstNo('%1=''%2'',%3=''%4''',
+                AgentTaskLogEntry.FieldCaption("Task ID"), AgentTaskLogEntry."Task ID",
+                AgentTaskLogEntry.FieldCaption(ID), AgentTaskLogEntry.ID));
     end;
 
     [Test]

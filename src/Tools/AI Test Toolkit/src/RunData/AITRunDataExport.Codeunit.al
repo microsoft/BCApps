@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Utilities;
+
 codeunit 149051 "AIT Run Data Export"
 {
     Access = Internal;
@@ -184,14 +186,14 @@ codeunit 149051 "AIT Run Data Export"
                 exit;
             end;
 
-        FolderName := AbbreviateFolderName(FullFolderName, MaximumFolderNameLength);
+        FolderName := CopyStr(FullFolderName, 1, MaximumFolderNameLength);
         AbbreviationKey := FolderName.ToUpper();
         if not FolderNameSuffixes.Get(AbbreviationKey, SuffixNumber) then
             SuffixNumber := 1;
         while AllocatedFolderNames.ContainsKey(FolderName.ToUpper()) do begin
             SuffixNumber += 1;
             Suffix := '-' + Format(SuffixNumber, 0, 9);
-            FolderName := AbbreviateFolderName(FullFolderName, MaximumFolderNameLength - StrLen(Suffix)) + Suffix;
+            FolderName := CopyStr(FullFolderName, 1, MaximumFolderNameLength - StrLen(Suffix)) + Suffix;
         end;
 
         if FolderNameSuffixes.ContainsKey(AbbreviationKey) then
@@ -200,23 +202,6 @@ codeunit 149051 "AIT Run Data Export"
             FolderNameSuffixes.Add(AbbreviationKey, SuffixNumber);
         AllocatedFolderNames.Add(FolderName.ToUpper(), true);
         EvaluationFolderNames.Add(DatasetIdentity, FolderName);
-    end;
-
-    local procedure AbbreviateFolderName(FolderName: Text; MaximumLength: Integer): Text
-    var
-        LastCharacter: Char;
-    begin
-        FolderName := CopyStr(FolderName, 1, MaximumLength);
-        if FolderName.EndsWith('%') then
-            FolderName := CopyStr(FolderName, 1, StrLen(FolderName) - 1)
-        else
-            if (StrLen(FolderName) > 1) and (FolderName[StrLen(FolderName) - 1] = '%') then
-                FolderName := CopyStr(FolderName, 1, StrLen(FolderName) - 2);
-
-        LastCharacter := FolderName[StrLen(FolderName)];
-        if (LastCharacter >= 55296) and (LastCharacter <= 56319) then
-            FolderName := CopyStr(FolderName, 1, StrLen(FolderName) - 1);
-        exit(FolderName);
     end;
 
     local procedure GetDatasetIdentity(AITLogEntry: Record "AIT Log Entry"): Text
@@ -270,25 +255,15 @@ codeunit 149051 "AIT Run Data Export"
 
     local procedure GetSafePathSegment(Value: Text; FallbackValue: Text): Text
     var
+        Regex: Codeunit Regex;
         SafeValue: Text;
     begin
-        SafeValue := Value.Trim()
-            .Replace('%', '%25')
-            .Replace('<', '%3C')
-            .Replace('>', '%3E')
-            .Replace(':', '%3A')
-            .Replace('"', '%22')
-            .Replace('/', '%2F')
-            .Replace('\', '%5C')
-            .Replace('|', '%7C')
-            .Replace('?', '%3F')
-            .Replace('*', '%2A')
-            .Replace('.', '%2E');
+        SafeValue := Regex.Replace(Value.Trim(), '[^A-Za-z0-9_-]', '_');
 
-        if (SafeValue = '') or (SafeValue = '.') or (SafeValue = '..') then
+        if SafeValue = '' then
             exit(FallbackValue);
         if IsWindowsReservedPathSegment(SafeValue) then
-            exit('%00' + SafeValue);
+            exit('_' + SafeValue);
         exit(SafeValue);
     end;
 
