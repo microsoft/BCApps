@@ -34,6 +34,7 @@ table 6381 "OneDrive Setup"
                 if Rec.Enabled then begin
                     if (Rec."Imp. Documents Folder" = '') or (Rec."Documents Folder" = '') then
                         Error(URLsMustBeSpecifiedErr);
+                    DriveProcessing.CheckFoldersInSameDrive(Rec."Documents Folder", Rec."Drive Id", Rec."Imp. Documents Folder");
                     FeatureTelemetry.LogUptake('0000OB9', DriveProcessing.FeatureName(), Enum::"Feature Uptake Status"::Used);
                     FeatureTelemetry.LogUsage('0000OBA', DriveProcessing.FeatureName(), 'OneDrive');
                     Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, DriveIntegrationImpl.SecurityAuditLogSetupStatusDescription(Rec.FieldName(Enabled), Rec.TableName()), AuditCategory::CustomerFacing);
