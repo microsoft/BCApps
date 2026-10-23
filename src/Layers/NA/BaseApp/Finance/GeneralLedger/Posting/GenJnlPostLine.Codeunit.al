@@ -5762,6 +5762,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         CustomerPostingGroup: Record "Customer Posting Group";
         EmployeePostingGroup: Record "Employee Posting Group";
+        VendorPostingGroup: Record "Vendor Posting Group";
         AccNo2: Code[20];
         AccNo3: Code[20];
         IsHandled: Boolean;
@@ -5799,6 +5800,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     GetCustomerPostingGroup(GenJournalLine, CustomerPostingGroup);
                                     AccNo2 := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
                                     AccNo3 := GetCustomerReceivablesAccount(GenJournalLine, CustomerPostingGroup);
+                                end;
+                            GenJournalLine."Account Type"::Vendor:
+                                begin
+                                    GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
+                                    AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
+                                    AccNo3 := GetVendorPayablesAccount(GenJournalLine, VendorPostingGroup);
                                 end;
                             GenJournalLine."Account Type"::Employee:
                                 begin

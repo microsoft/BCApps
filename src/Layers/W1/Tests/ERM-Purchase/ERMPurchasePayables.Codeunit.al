@@ -3262,6 +3262,84 @@ codeunit 134331 "ERM Purchase Payables"
         PurchOrderArchives."Amount Including VAT".AssertEquals(ExpectedAmountInclVAT);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure UnrealizedGainLossEntriesAreRestoredWhenUnapplyingWithMultiplePostingGroups()
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: array[3] of Record "Currency Exchange Rate";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorPostingGroup: array[2] of Record "Vendor Posting Group";
+        BalanceBeforeApplication: array[2] of Decimal;
+        ActualAmount: array[2] of Decimal;
+        ActualBalance: Decimal;
+        PostingDate: array[3] of Date;
+        PaymentDocNo: Code[20];
+        VATCalculationType: Enum "Tax Calculation Type";
+    begin
+        // [FEATURE] [AI test] [Purchase] [Application]
+        // [SCENARIO 549246] Unapplying an FCY application restores payable account balances for multiple vendor posting groups.
+        Initialize();
+
+        // [GIVEN] Set Journal Template Name mandatory to false.
+        SetJournalTemplNameMandatoryFalse();
+
+        // [GIVEN] Create currency, exchange rates, and zero VAT setup.
+        GeneratePostingDate(PostingDate);
+        CreateCurrencyWithExchangeRates(Currency, CurrencyExchangeRate, PostingDate);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType::"Normal VAT", 0);
+
+        // [GIVEN] Create a vendor with two alternative posting groups and different payable accounts.
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup[1]);
+        SetPurchAllowMultiplePostingGroups(true);
+        CreateVendorWithAllowMultiplePostingGroups(
+            Vendor, VendorPostingGroup[1].Code, Currency.Code, VATPostingSetup."VAT Bus. Posting Group");
+        CreateVendorPostingGroupWithCopy(VendorPostingGroup);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[1].Code, 1, 10), CopyStr(VendorPostingGroup[2].Code, 1, 10));
+
+        // [GIVEN] Post an FCY invoice, run exchange rate adjustment, and post a payment to the alternative group.
+        Item.Get(LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
+        CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, PostingDate[3], Item."No.", Vendor."No.");
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+        LibraryERM.RunExchRateAdjustment(
+            Currency.Code, PostingDate[3], PostingDate[1], AdjustExchRateDefaultDescTxt, PostingDate[2],
+            CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(PaymentDocNo)), false);
+        CreateGeneralJournalBatch(GenJournalBatch, true);
+        CreatePaymentAndPost(
+            GenJournalLine, GenJournalBatch, Vendor."No.", VendorPostingGroup[2].Code, PostingDate[1],
+            PaymentDocNo, LibraryRandom.RandIntInRange(100, 100));
+
+        GetGLEntryBalance(VendorPostingGroup[1]."Payables Account", BalanceBeforeApplication[1]);
+        GetGLEntryBalance(VendorPostingGroup[2]."Payables Account", BalanceBeforeApplication[2]);
+
+        // [WHEN] Apply, then unapply the payment and invoice.
+        ApplyPostVendPayment2Invoices(PaymentDocNo, PurchInvHeader."No.");
+        VerifyGLEntryForAccount(VendorPostingGroup, ActualAmount);
+        LibraryERM.FindVendorLedgerEntry(
+            VendorLedgerEntry, VendorLedgerEntry."Document Type"::Payment, PaymentDocNo);
+        LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+
+        // [THEN] Unapplication restores the original balance on each payable account.
+        GetGLEntryBalance(VendorPostingGroup[1]."Payables Account", ActualBalance);
+        Assert.AreEqual(
+            BalanceBeforeApplication[1], ActualBalance,
+            StrSubstNo(AccountBalanceErrLbl, VendorPostingGroup[1]."Payables Account"));
+        GetGLEntryBalance(VendorPostingGroup[2]."Payables Account", ActualBalance);
+        Assert.AreEqual(
+            BalanceBeforeApplication[2], ActualBalance,
+            StrSubstNo(AccountBalanceErrLbl, VendorPostingGroup[2]."Payables Account"));
+    end;
+
     local procedure Initialize()
     var
         PriceListLine: Record "Price List Line";
@@ -3272,7 +3350,6 @@ codeunit 134331 "ERM Purchase Payables"
         LibraryVariableStorage.Clear();
         PriceListLine.DeleteAll();
         LibraryPriceCalculation.DisableExtendedPriceCalculation();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"ERM Purchase Payables");
