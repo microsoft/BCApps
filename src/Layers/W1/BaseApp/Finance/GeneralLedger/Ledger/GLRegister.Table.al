@@ -23,7 +23,8 @@ table 45 "G/L Register"
 {
     Caption = 'G/L Register';
     LookupPageID = "G/L Registers";
-    Permissions = TableData "G/L Register" = rimd;
+    Permissions = TableData "G/L Entry" = m,
+                  TableData "G/L Register" = rimd;
     DataClassification = CustomerContent;
 
     fields

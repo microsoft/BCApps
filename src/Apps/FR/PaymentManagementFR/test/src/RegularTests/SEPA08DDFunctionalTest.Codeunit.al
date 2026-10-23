@@ -665,7 +665,7 @@ codeunit 144029 "SEPA.08 DD Functional Test"
         File: File;
     begin
         DirectDebitCollection.CreateRecord(PaymentHeader."No.", PaymentHeader."Account No.", PaymentHeader."Partner Type");
-        DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header FR";
+        DirectDebitCollection."Source Table ID FR" := DATABASE::"Payment Header FR";
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         ExportedFilePath := TemporaryPath + LibraryUtility.GenerateGUID() + '.xml';
