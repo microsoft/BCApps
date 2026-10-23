@@ -60,7 +60,7 @@ codeunit 7140 "Expense Line Split"
         SplitExpenseLineUsers: Page "Split Expense Line Users";
         CreatedExpenseNos: List of [Code[20]];
     begin
-        // CheckLineCanBeSplitWithDifferentUsers(ExpenseReportLine);
+        CheckLineCanBeSplitWithDifferentUsers(ExpenseReportLine);
 
         SplitExpenseLineUsers.SetExpenseReportLine(ExpenseReportLine);
         if SplitExpenseLineUsers.RunModal() <> Action::OK then

@@ -653,7 +653,7 @@ page 6999 "Expense Report SubPage"
                         Caption = 'Different Users';
                         Image = Allocations;
                         Enabled = Rec."Line No." <> 0;
-                        // Visible = SplitWithDifferentUsersAvailable;
+                        Visible = SplitWithDifferentUsersAvailable;
                         ToolTip = 'Split the line with other users. Specify the users and the amount for each of them. A new expense with status Open is created for each user, who must confirm it before it can be processed. The amount of the original line is reduced accordingly.';
 
                         trigger OnAction()
@@ -769,7 +769,6 @@ page 6999 "Expense Report SubPage"
     begin
         if not ExpenseReportHeader.Get(Rec."Document No.") then
             exit;
-
         if ExpenseReportHeader."Reimbursement Currency Code" <> '' then
             exit(StrSubstNo(ReimbursementAmountLbl, Rec.FieldCaption("Reimbursable Amount"), ExpenseReportHeader."Reimbursement Currency Code"))
         else
