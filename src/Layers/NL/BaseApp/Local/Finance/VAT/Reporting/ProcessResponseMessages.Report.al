@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-using System;
-using System.Xml;
-
 report 11406 "Process Response Messages"
 {
     Caption = 'Process Response Messages';
@@ -24,12 +21,10 @@ report 11406 "Process Response Messages"
             trigger OnAfterGetRecord()
             var
                 ErrorLog: Record "Elec. Tax Decl. Error Log";
-                XMLDOMManagement: Codeunit "XML DOM Management";
-                XMLDoc: DotNet XmlDocument;
+                XmlDoc: XmlDocument;
                 InStream: InStream;
-                NodeList: DotNet XmlNodeList;
-                XmlNode: DotNet XmlNode;
-                Index: Integer;
+                NodeList: XmlNodeList;
+                XmlNode: XmlNode;
                 NextErrorNo: Integer;
             begin
                 Session.LogMessage('0000CED', ProcessingResponseMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DigipoortTok);
@@ -49,18 +44,16 @@ report 11406 "Process Response Messages"
                 CalcFields(Message);
                 if Message.HasValue and ("Status Code" in ['311']) then begin
                     Message.CreateInStream(InStream);
-                    XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, XMLDoc);
+                    XmlDocument.ReadFrom(InStream, XmlDoc);
 
-                    NodeList := XMLDoc.GetElementsByTagName('msg');
-                    for Index := 0 to NodeList.Count - 1 do begin
-                        XmlNode := NodeList.ItemOf(Index);
-
+                    XmlDoc.SelectNodes('//*[name()="msg"]', NodeList);
+                    foreach XmlNode in NodeList do begin
                         ErrorLog.Init();
                         ErrorLog."No." := NextErrorNo;
                         ErrorLog."Declaration Type" := "Declaration Type";
                         ErrorLog."Declaration No." := "Declaration No.";
                         ErrorLog."Error Class" := CopyStr(GetAttributeValue(XmlNode, 'level'), 1, MaxStrLen(ErrorLog."Error Class"));
-                        ErrorLog."Error Description" := CopyStr(XmlNode.InnerXml, 1, MaxStrLen(ErrorLog."Error Description"));
+                        ErrorLog."Error Description" := CopyStr(XmlNode.AsXmlElement().InnerXml(), 1, MaxStrLen(ErrorLog."Error Description"));
 
                         ErrorLog.Insert(true);
                         NextErrorNo += 1;
@@ -126,14 +119,12 @@ report 11406 "Process Response Messages"
         WarningStatusCodeMsg: Label 'Warning for declaration type %1, status code %2', Locked = true;
         AcknowledgeStatusCodeMsg: Label 'Declaration type %1 acknowledged, status code: %2', Locked = true;
 
-    local procedure GetAttributeValue(var XMLNode: DotNet XmlNode; "Key": Text): Text
+    local procedure GetAttributeValue(XmlNode: XmlNode; "Key": Text): Text
     var
-        XmlAttNode: DotNet XmlNode;
-        XmlAttributes: DotNet XmlAttributeCollection;
+        XmlAttribute: XmlAttribute;
     begin
-        XmlAttributes := XMLNode.Attributes;
-        XmlAttNode := XmlAttributes.GetNamedItem(Key);
-        exit(XmlAttNode.Value);
+        XmlNode.AsXmlElement().Attributes().Get(Key, XmlAttribute);
+        exit(XmlAttribute.Value());
     end;
 }
 

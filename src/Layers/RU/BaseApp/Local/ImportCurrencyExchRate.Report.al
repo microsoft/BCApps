@@ -18,7 +18,7 @@ report 14900 "Import Currency Exch. Rate"
                 Window.Update(1, Format("Period Start"));
                 Window.Update(2, Round(DaysCounter / ProcessingDaysQty * 10000, 1));
 
-                LoadXML("Period Start", XMLRootNode, DateLoaded, false);
+                LoadXML("Period Start", XmlRootElement, DateLoaded, false);
                 if DateLoaded <> "Period Start" then
                     CurrReport.Skip();
 
@@ -43,7 +43,7 @@ report 14900 "Import Currency Exch. Rate"
                 Window.Update(1, Format("Period Start"));
                 Window.Update(3, Round(MonthesCounter / ProcessingMonthesQty * 10000, 1));
 
-                LoadXML("Period Start", XMLRootNode, DateLoaded, true);
+                LoadXML("Period Start", XmlRootElement, DateLoaded, true);
 
                 ImportExchRates();
             end;
@@ -115,7 +115,7 @@ report 14900 "Import Currency Exch. Rate"
         CompanyInformation: Record "Company Information";
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         Company: Record Company;
-        XMLRootNode: DotNet XmlNode;
+        XmlRootElement: XmlElement;
         Window: Dialog;
         StartDate: Date;
         EndDate: Date;
@@ -158,8 +158,83 @@ report 14900 "Import Currency Exch. Rate"
 #pragma warning disable AA0074
         Text009: Label 'You must specify the End Date.';
 #pragma warning restore AA0074
+        ExchRatesUrlTxt: Label 'http://www.cbr.ru/scripts/XML_daily.asp?date_req=%1%2', Locked = true;
+        DownloadFailedErr: Label 'The currency exchange rates could not be downloaded. The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, %2 = reason phrase';
 
     [Scope('OnPrem')]
+    procedure LoadXML(DateReq: Date; var ValCursXmlElement: XmlElement; var LoadedDate: Date; MonthlyRates: Boolean)
+    var
+        XmlDoc: XmlDocument;
+        DateXmlAttribute: XmlAttribute;
+        MonthlyURLAppendix: Text[30];
+    begin
+        if MonthlyRates then
+            MonthlyURLAppendix := '&d=1';
+
+        DownloadXmlDocument(
+          StrSubstNo(ExchRatesUrlTxt, Format(DateReq, 0, '<Day,2>.<Month,2>.<Year4>'), MonthlyURLAppendix), XmlDoc);
+        XmlDoc.GetRoot(ValCursXmlElement);
+
+        if ValCursXmlElement.Name() <> 'ValCurs' then
+            Error(Text002);
+
+        if not ValCursXmlElement.Attributes().Get('Date', DateXmlAttribute) then
+            Error(Text004, 'Date');
+
+        if not EvaluateDate(LoadedDate, CopyStr(DateXmlAttribute.Value(), 1, 30)) then
+            Error(Text005, 'Date');
+    end;
+
+    local procedure DownloadXmlDocument(Uri: Text; var XmlDoc: XmlDocument)
+    var
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
+        XmlText: Text;
+    begin
+        if not HttpClient.Get(Uri, HttpResponseMessage) then
+            Error(GetLastErrorText());
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            Error(DownloadFailedErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
+        HttpResponseMessage.Content().ReadAs(XmlText);
+        XmlDocument.ReadFrom(XmlText, XmlDoc);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetExchRateParameters(CurrencyCode: Code[10]; var NewExchRateAmount: Decimal; var NewRelationalExchRateAmount: Decimal; ValCursXmlElement: XmlElement): Boolean
+    var
+        ExchRateXmlNode: XmlNode;
+        CurrencyCodeXmlNode: XmlNode;
+        ExchRateAmountXmlNode: XmlNode;
+        RelExchRateAmountXmlNode: XmlNode;
+    begin
+        foreach ExchRateXmlNode in ValCursXmlElement.GetChildNodes() do
+            if ExchRateXmlNode.IsXmlElement() then
+                if FindNode(ExchRateXmlNode, 'CharCode', CurrencyCodeXmlNode) then
+                    if Format(CurrencyCodeXmlNode.AsXmlElement().InnerText()) = CurrencyCode then begin
+                        if FindNode(ExchRateXmlNode, 'Nominal', ExchRateAmountXmlNode) then
+                            if not Evaluate(NewExchRateAmount,
+                                 ConvertToXMLFormat(CopyStr(ExchRateAmountXmlNode.AsXmlElement().InnerText(), 1, 1024)), 9) then
+                                Error(Text006, 'Nominal');
+
+                        if FindNode(ExchRateXmlNode, 'Value', RelExchRateAmountXmlNode) then
+                            if not Evaluate(NewRelationalExchRateAmount,
+                                 ConvertToXMLFormat(CopyStr(RelExchRateAmountXmlNode.AsXmlElement().InnerText(), 1, 1024)), 9) then
+                                Error(Text006, 'Value');
+                        exit(true);
+                    end;
+
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure FindNode(XmlRootNode: XmlNode; NodePath: Text[250]; var FoundXmlNode: XmlNode): Boolean
+    begin
+        exit(XmlRootNode.SelectSingleNode(NodePath, FoundXmlNode));
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('XML DOM Management is being phased out. Use the LoadXML overload with the native XmlElement type instead.', '30.0')]
     procedure LoadXML(DateReq: Date; var XMLNode: DotNet XmlNode; var DateLoaded: Date; MonthlyRates: Boolean)
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
@@ -187,6 +262,7 @@ report 14900 "Import Currency Exch. Rate"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('XML DOM Management is being phased out. Use the GetExchRateParameters overload with the native XmlElement type instead.', '30.0')]
     procedure GetExchRateParameters(CurrencyCode: Code[10]; var ExchRateAmount: Decimal; var RelationalExchRateAmount: Decimal; var XMLNode: DotNet XmlNode): Boolean
     var
         XMLNodeList: DotNet XmlNodeList;
@@ -219,12 +295,7 @@ report 14900 "Import Currency Exch. Rate"
     end;
 
     [Scope('OnPrem')]
-    procedure ConvertToXMLFormat(Str: Text[1024]): Text[1024]
-    begin
-        exit(ConvertStr(Str, ',', '.'));
-    end;
-
-    [Scope('OnPrem')]
+    [Obsolete('XML DOM Management is being phased out. Use the FindNode overload with the native XmlNode type instead.', '30.0')]
     procedure FindNode(var XMLRootNode: DotNet XmlNode; NodePath: Text[250]; var FoundXMLNode: DotNet XmlNode): Boolean
     begin
         if IsNull(XMLRootNode) then
@@ -236,6 +307,13 @@ report 14900 "Import Currency Exch. Rate"
             exit(false);
 
         exit(true);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure ConvertToXMLFormat(Str: Text[1024]): Text[1024]
+    begin
+        exit(ConvertStr(Str, ',', '.'));
     end;
 
     [Scope('OnPrem')]
@@ -273,7 +351,7 @@ report 14900 "Import Currency Exch. Rate"
                         repeat
                             Currency.TestField("RU Bank Code");
 
-                            if GetExchRateParameters(Currency."RU Bank Code", ExchRateAmount, RelationalExchRateAmount, XMLRootNode) then begin
+                            if GetExchRateParameters(Currency."RU Bank Code", ExchRateAmount, RelationalExchRateAmount, XmlRootElement) then begin
                                 CurrencyExchangeRate.ChangeCompany(Company.Name);
                                 if not CurrencyExchangeRate.Get(Currency.Code, DateLoaded) then begin
                                     CurrencyExchangeRate.Init();
