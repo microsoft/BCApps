@@ -61,7 +61,6 @@ codeunit 133700 "PA Setup Tests"
         PASetup: Codeunit "PA Setup";
         PATask: Codeunit "Payables Agent Task";
         PATaskSource: Codeunit "PA Task Source";
-        PAEDocUnitTestGlue: Codeunit "PA EDoc Unit Test Glue";
     begin
         // [GIVEN] The Payables Agent monitors a mailbox, and every email it receives needs review
         PATestFixtures.Reset();
@@ -70,7 +69,7 @@ codeunit 133700 "PA Setup Tests"
         PATestFixtures.Activate(PASetupUpdateParameters);
 
         // [WHEN] An email with an invoice is received and handed to the agent
-        Assert.IsTrue(PAEDocUnitTestGlue.ReceiveEmail('vendor@contoso.com', 'Invoice', PATaskSource), 'The email should be received as a source');
+        Assert.IsTrue(PATestFixtures.ReceiveEmail('vendor@contoso.com', 'Invoice', PATaskSource), 'The email should be received as a source');
         Assert.IsTrue(PATestFixtures.StartSource(PATaskSource, PATask), 'The source should be handed to the agent');
 
         // [THEN] The agent is given the task, and its message requires review

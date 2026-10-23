@@ -24,7 +24,6 @@ codeunit 3314 "PA Agent Task Execution" implements IAgentTaskExecution
         AgentTaskUserInterventionSuggestion.Description := PACreateVendorInterventionSuggestionDescriptionLbl;
         AgentTaskUserInterventionSuggestion.Instructions := PACreateVendorInterventionSuggestionInstructionsLbl;
         AgentTaskUserInterventionSuggestion.Insert();
-
     end;
 
     procedure GetAgentTaskPageContext(AgentTaskPageContextReq: Record "Agent Task Page Context Req."; var AgentTaskPageContext: Record "Agent Task Page Context")

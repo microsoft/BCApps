@@ -34,6 +34,46 @@ codeunit 133735 "PA Wrapper Contract Tests"
     end;
 
     [Test]
+    procedure TaskBasedDiagnosticsNormalizeTheRegisteredPurchaseInvoice()
+    var
+        StoredTask: Record "Payables Agent Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Task: Codeunit "Payables Agent Task";
+        Fixtures: Codeunit "PA Test Fixtures";
+        Diagnostics, Header, PurchaseInvoice : JsonObject;
+        Errors, Lines : JsonArray;
+    begin
+        CreateTask(StoredTask, Task);
+        PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
+        PurchaseHeader."No." := NewDocumentNo();
+        PurchaseHeader."Vendor Invoice No." := 'FIXTURE-INV';
+        PurchaseHeader.Insert();
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLine."Line No." := 10000;
+        PurchaseLine.Description := 'Fixture line';
+        PurchaseLine.Quantity := 2;
+        PurchaseLine."Direct Unit Cost" := 10;
+        PurchaseLine."Line Amount" := 20;
+        PurchaseLine."Amount Including VAT" := 25;
+        PurchaseLine."VAT %" := 25;
+        PurchaseLine.Insert();
+        Task.RegisterOutcome(PurchaseHeader.RecordId());
+
+        Check(Fixtures.GetTaskDiagnosticEvidence(Task.GetAgentTaskId(), Diagnostics), 'Diagnostics must be available for the Payables Agent task.');
+        Check(GetJsonText(Diagnostics, 'paVersion') = 'V2', 'Diagnostics must identify the task-based version.');
+        Check(GetJsonText(Diagnostics, 'outcomeStatus') = 'InvoiceCreated', 'A registered purchase invoice must be classified as created.');
+        PurchaseInvoice := GetJsonObject(Diagnostics, 'purchaseInvoice');
+        Header := GetJsonObject(PurchaseInvoice, 'header');
+        Check(GetJsonText(Header, 'number') = PurchaseHeader."No.", 'The normalized header must identify the purchase invoice.');
+        Lines := GetJsonArray(PurchaseInvoice, 'lines');
+        Check(Lines.Count() = 1, 'The purchase invoice line must be included in normalized diagnostics.');
+        Errors := GetJsonArray(Diagnostics, 'errors');
+        Check(Errors.Count() = 0, 'The registered purchase invoice must not produce diagnostic errors.');
+    end;
+
+    [Test]
     procedure MissingInboxRowDoesNotTurnAnEmailIntoAnUpload()
     var
         StoredTask: Record "Payables Agent Task";
@@ -404,6 +444,30 @@ codeunit 133735 "PA Wrapper Contract Tests"
     local procedure NewDocumentNo(): Code[20]
     begin
         exit(CopyStr(Format(CreateGuid()).Replace('{', '').Replace('}', '').Replace('-', ''), 1, 20));
+    end;
+
+    local procedure GetJsonText(Object: JsonObject; PropertyName: Text): Text
+    var
+        Token: JsonToken;
+    begin
+        Object.Get(PropertyName, Token);
+        exit(Token.AsValue().AsText());
+    end;
+
+    local procedure GetJsonObject(Object: JsonObject; PropertyName: Text): JsonObject
+    var
+        Token: JsonToken;
+    begin
+        Object.Get(PropertyName, Token);
+        exit(Token.AsObject());
+    end;
+
+    local procedure GetJsonArray(Object: JsonObject; PropertyName: Text): JsonArray
+    var
+        Token: JsonToken;
+    begin
+        Object.Get(PropertyName, Token);
+        exit(Token.AsArray());
     end;
 
     local procedure Check(Condition: Boolean; Message: Text)

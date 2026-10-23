@@ -16,7 +16,7 @@ codeunit 133703 "PA Known Sender Tests"
 
     var
         Assert: Codeunit Assert;
-        PAEDocUnitTestGlue: Codeunit "PA EDoc Unit Test Glue";
+        PATestFixtures: Codeunit "PA Test Fixtures";
 
     [Test]
     procedure InsertIfNewInsertsNewSender()
@@ -27,7 +27,7 @@ codeunit 133703 "PA Known Sender Tests"
     begin
         // [GIVEN] A clean Known Sender table and a task received by email from a sender.
         PAKnownSender.DeleteAll();
-        Assert.IsTrue(PAEDocUnitTestGlue.ReceiveEmail(SenderEmailTok, 'Invoice', PATaskSource), 'The email should be received as a source');
+        Assert.IsTrue(PATestFixtures.ReceiveEmail(SenderEmailTok, 'Invoice', PATaskSource), 'The email should be received as a source');
 
         // [WHEN] The agent-side recording path runs.
         PAKnownSender.InsertSourceIfNew(PATaskSource);
@@ -46,7 +46,7 @@ codeunit 133703 "PA Known Sender Tests"
     begin
         // [GIVEN] A clean Known Sender table and a task received by email from a sender.
         PAKnownSender.DeleteAll();
-        Assert.IsTrue(PAEDocUnitTestGlue.ReceiveEmail(SenderEmailTok, 'Invoice', PATaskSource), 'The email should be received as a source');
+        Assert.IsTrue(PATestFixtures.ReceiveEmail(SenderEmailTok, 'Invoice', PATaskSource), 'The email should be received as a source');
 
         // [WHEN] The recording path fires multiple times for the same sender
         // [WHEN] (simulating repeated pipeline steps within an agent session).

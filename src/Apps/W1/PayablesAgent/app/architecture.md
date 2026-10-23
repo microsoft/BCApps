@@ -77,11 +77,6 @@ Cross-cutting concerns that need to be consistent across several flows that own 
 
 Other cross-cutting concerns that appear in several flows, but that don't own state
 
-| Concern | Registration | Configuration | Task ingestion | Task execution | Upgrade |
-| --- | --- | --- | --- | --- | --- |
-| Telemetry | Record agent identity/dimensions. | Log setup and activation. | Log accepted and rejected tasks and trial counts. | Log task-related events and v1 billing. | - |
-| Security |
-
 - Telemetry: Emits telemetry with certain conventions
 - Security: end-user permissions, audit, consent
 
@@ -153,6 +148,8 @@ Compatibility/
 Operations/
     EmailStorageCleanup/
 
+TestSupport/                            Semantic fixture API consumed by tests without exposing backing records or version dispatch
+
 _Development/                           Objects compiled only with the DEVELOPMENT preprocessor symbol
 _Obsolete/                              Lifecycle placement for obsolete objects, not a responsibility category
 .resources/
@@ -161,43 +158,9 @@ _Obsolete/                              Lifecycle placement for obsolete objects
 Declarative objects directly bound to draft-based surfaces, such as profiles and page customizations, remain draft-based when their definitions cannot be shared; a shared helper does not make the containing object version-neutral.
 
 ## Other code conventions
-- All code is `internal` when possible (pages can't be), the extensibility of the agents is a separate story and not done via traditional AL customizations. This aids in evolving the app.
+- All code is `internal` when possible (pages can't be), the extensibility of the agents is a separate story and not done via traditional AL customizations.
+- Tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while backing-specific fixture implementations stay under the corresponding compatibility boundary; test apps do not reference backing frameworks such as E-Documents directly.
+- var block location
 
 ### Dependency rules
 
----
-
-# Transition Notes (to be removed from this document, just to keep track in the meantime)
-
-## Changes in this PR
-
-Major rewrite of the app to support v2
-
-- Version 1 stays mostly intact (functionality wise): 
-    - KPI functionality stops counting E-Document related metrics, and counts instead Purchase Invoices. Semantic change from E-Documents finalized by the user or the agent, and instead only track the create Purchase Invoices. This is acceptable, since it's not a crucial field, and consolidating behavior is considered more valuable.
-    - Configuration for PO-matching was removed: this was already ignored, since the draft page was considering the BaseApp settings, these were just removed as part of the changes.
-    - TODO: Let's add a new Email page that is for v2 that doesn't reference E-Documents, and leave the other one as it was. Then remove this line
-    - TODO: The change on KnownSenders functinoality to use the email rather than the SourceDetails, while this is probably ok, let's keep it retrieving sources as it was in V1. Then remove this line
-
-- Version 2 is reachable in DEVELOPMENT builds through the Payables Agent Development Settings page, and exercises the basic envisioned scenario
-    - Development builds can also simulate the agent-facing task-page experience without creating an agent session. The development settings objects and all simulation references are guarded by the DEVELOPMENT preprocessor symbol.
-    - TODO: Edit AKVs with the security prompt for the extraction, rewire (KEEP)
-    - The task title in the pane is not renamed
-
-Tests are split from their original home into AI and non-AI tests.
-
-### V2 gaps and quirks
-
-- Upgrade from V1 to V2
-- Closing a PI and the "The document has been saved but is not yet posted" message
-- Task list refresh needs full refresh (backing table is temp)
-- Experience for selecting vendor when not found
-- Task timeline migration
-- Tooltips
-- Attachment should be included in PI
-- OCV
-
-## Personal gates
-
-- Assesment of whether an object was renumbered (can we remove install codeunits?) other breaking change analysis (pages stay with same source type)
-- Dependency rules gated by scripts, maybe merge as part of the PR in `build/scripts/` and called in a GH action yaml. (not easy to have custom analyzers)

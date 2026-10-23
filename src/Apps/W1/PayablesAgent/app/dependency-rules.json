@@ -101,6 +101,11 @@
                     "reason": "The setup flow transports the temporary page snapshot through wrapper GetPageRecord/SetPageRecord, without using it for database access."
                 },
                 {
+                    "from": { "paths": ["TestSupport/PATestFixtures.Codeunit.al"] },
+                    "to": { "names": ["Payables Agent Task"] },
+                    "reason": "The app-owned test cleanup facade deletes v2 task backing data while hiding its representation from test apps."
+                },
+                {
                     "from": { "paths": ["Upgrade/PayablesAgentUpgrade.Codeunit.al"] },
                     "to": { "names": ["Payables Agent Setup"] },
                     "reason": "Historical setup migrations must operate on the persisted old schema."
@@ -160,6 +165,11 @@
                     "from": { "paths": ["Entities/Task/PATaskSource.Codeunit.al"] },
                     "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
                     "reason": "Version-neutral source acquisition delegates legacy service creation to the draft compatibility adapter."
+                },
+                {
+                    "from": { "paths": ["TestSupport/PATestFixtures.Codeunit.al"] },
+                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Test Fixtures"] },
+                    "reason": "The semantic fixture facade delegates draft-specific source construction, setup and scripted user actions to its compatibility fixture."
                 }
             ]
         },
