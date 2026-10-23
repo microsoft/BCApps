@@ -5,6 +5,7 @@
 namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 
 page 1386 "Vendor Templ. Card"
@@ -216,7 +217,7 @@ page 1386 "Vendor Templ. Card"
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = VAT;
                     Importance = Additional;
                 }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
@@ -238,6 +239,7 @@ page 1386 "Vendor Templ. Card"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
+                        Visible = VATInUse;
                     }
                     field("Vendor Posting Group"; Rec."Vendor Posting Group")
                     {
@@ -443,11 +445,16 @@ page 1386 "Vendor Templ. Card"
     }
 
     trigger OnOpenPage()
+    var
+        GLSetup: Record "General Ledger Setup";
     begin
+        GLSetup.Get();
+        VATInUse := GLSetup."VAT in Use";
         IsCountyVisible := FormatAddress.UseCounty(Rec."Country/Region Code");
     end;
 
     var
         FormatAddress: Codeunit "Format Address";
         IsCountyVisible: Boolean;
+        VATInUse: Boolean;
 }

@@ -12,6 +12,7 @@ codeunit 138012 "O365 Templates Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryResource: Codeunit "Library - Resource";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryUtility: Codeunit "Library - Utility";
@@ -1602,6 +1603,230 @@ codeunit 138012 "O365 Templates Test"
         VerifyItemAfterApplyTemplateWithPhysInvtCountingPeriod(Item, ItemTempl);
     end;
 
+    [Test]
+    procedure ItemTemplateVATFieldsHiddenWhenVATNotInUse()
+    var
+        ItemTemplate: Record "Item Templ.";
+        ItemTemplateCard: TestPage "Item Templ. Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Item templates hide VAT posting fields without hiding sales tax fields when VAT is not in use.
+        Initialize();
+
+        // [GIVEN] An item template with VAT in Use disabled while VAT and sales tax application areas are enabled.
+        SetVATInUse(false);
+        LibraryTemplates.CreateItemTemplateWithData(ItemTemplate);
+
+        // [WHEN] The item template card is opened.
+        ItemTemplateCard.OpenView();
+        ItemTemplateCard.GoToRecord(ItemTemplate);
+
+        // [THEN] VAT posting fields are hidden and the sales tax field remains visible.
+        VerifyItemTemplateVATFieldVisibility(ItemTemplateCard, false);
+        ItemTemplateCard.Close();
+    end;
+
+    [Test]
+    procedure GLAccountVATFieldsHiddenWhenVATNotInUse()
+    var
+        GLAccount: Record "G/L Account";
+        GLAccountCard: TestPage "G/L Account Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] G/L accounts hide VAT posting fields without hiding sales tax fields when VAT is not in use.
+        Initialize();
+
+        // [GIVEN] A G/L account with VAT in Use disabled while VAT and sales tax application areas are enabled.
+        SetVATInUse(false);
+        LibraryERM.CreateGLAccount(GLAccount);
+
+        // [WHEN] The G/L account card is opened.
+        GLAccountCard.OpenView();
+        GLAccountCard.GoToRecord(GLAccount);
+
+        // [THEN] VAT posting fields are hidden and the sales tax field remains visible.
+        VerifyGLAccountVATFieldVisibility(GLAccountCard, false);
+        GLAccountCard.Close();
+    end;
+
+    [Test]
+    procedure CustomerTemplateVATPostingHiddenWhenVATNotInUse()
+    var
+        CustomerTemplate: Record "Customer Templ.";
+        CustomerTemplateCard: TestPage "Customer Templ. Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Customer templates hide VAT posting setup without hiding general posting setup when VAT is not in use.
+        Initialize();
+
+        // [GIVEN] A customer template with VAT in Use disabled while the VAT application area is enabled.
+        SetVATInUse(false);
+        LibraryTemplates.CreateCustomerTemplate(CustomerTemplate);
+
+        // [WHEN] The customer template card is opened.
+        CustomerTemplateCard.OpenView();
+        CustomerTemplateCard.GoToRecord(CustomerTemplate);
+
+        // [THEN] Only the VAT posting group is hidden.
+        Assert.IsFalse(CustomerTemplateCard."VAT Bus. Posting Group".Visible(), 'Customer template VAT posting group must be hidden when VAT is not in use.');
+        Assert.IsTrue(CustomerTemplateCard."Gen. Bus. Posting Group".Visible(), 'Customer template general posting group must remain visible.');
+        Assert.IsTrue(CustomerTemplateCard."Customer Posting Group".Visible(), 'Customer posting group must remain visible.');
+        CustomerTemplateCard.Close();
+    end;
+
+    [Test]
+    procedure VendorTemplateVATPostingHiddenWhenVATNotInUse()
+    var
+        VendorTemplate: Record "Vendor Templ.";
+        VendorTemplateCard: TestPage "Vendor Templ. Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Vendor templates hide VAT posting setup without hiding general posting setup when VAT is not in use.
+        Initialize();
+
+        // [GIVEN] A vendor template with VAT in Use disabled while the VAT application area is enabled.
+        SetVATInUse(false);
+        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
+
+        // [WHEN] The vendor template card is opened.
+        VendorTemplateCard.OpenView();
+        VendorTemplateCard.GoToRecord(VendorTemplate);
+
+        // [THEN] Only the VAT posting group is hidden.
+        Assert.IsFalse(VendorTemplateCard."VAT Bus. Posting Group".Visible(), 'Vendor template VAT posting group must be hidden when VAT is not in use.');
+        Assert.IsTrue(VendorTemplateCard."Gen. Bus. Posting Group".Visible(), 'Vendor template general posting group must remain visible.');
+        Assert.IsTrue(VendorTemplateCard."Vendor Posting Group".Visible(), 'Vendor posting group must remain visible.');
+        VendorTemplateCard.Close();
+    end;
+
+    [Test]
+    procedure ResourceVATFieldHiddenWhenVATNotInUse()
+    var
+        Resource: Record Resource;
+        ResourceCard: TestPage "Resource Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Resources hide VAT posting setup without hiding sales tax when VAT is not in use.
+        Initialize();
+
+        // [GIVEN] A resource with VAT in Use disabled while VAT and sales tax application areas are enabled.
+        SetVATInUse(false);
+        LibraryResource.CreateResourceNew(Resource);
+
+        // [WHEN] The resource card is opened.
+        ResourceCard.OpenView();
+        ResourceCard.GoToRecord(Resource);
+
+        // [THEN] The VAT posting group is hidden and Tax Group Code remains visible.
+        VerifyResourceVATFieldVisibility(ResourceCard, false);
+        ResourceCard.Close();
+    end;
+
+    [Test]
+    procedure VATPostingFieldsVisibleWhenVATInUse()
+    var
+        ItemTemplate: Record "Item Templ.";
+        UpdatedItemTemplate: Record "Item Templ.";
+        GLAccount: Record "G/L Account";
+        CustomerTemplate: Record "Customer Templ.";
+        VendorTemplate: Record "Vendor Templ.";
+        Resource: Record Resource;
+        UpdatedResource: Record Resource;
+        ItemTemplateCard: TestPage "Item Templ. Card";
+        GLAccountCard: TestPage "G/L Account Card";
+        CustomerTemplateCard: TestPage "Customer Templ. Card";
+        VendorTemplateCard: TestPage "Vendor Templ. Card";
+        ResourceCard: TestPage "Resource Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] VAT posting fields follow VAT in Use when the same template, account and resource cards are reopened.
+        Initialize();
+
+        // [GIVEN] Templates, a G/L account and a resource in a company that uses VAT.
+        SetVATInUse(true);
+        LibraryTemplates.CreateItemTemplateWithData(ItemTemplate);
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryTemplates.CreateCustomerTemplate(CustomerTemplate);
+        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
+        LibraryResource.CreateResourceNew(Resource);
+
+        // [WHEN] The cards are opened.
+        ItemTemplateCard.OpenView();
+        ItemTemplateCard.GoToRecord(ItemTemplate);
+        GLAccountCard.OpenView();
+        GLAccountCard.GoToRecord(GLAccount);
+        CustomerTemplateCard.OpenView();
+        CustomerTemplateCard.GoToRecord(CustomerTemplate);
+        VendorTemplateCard.OpenView();
+        VendorTemplateCard.GoToRecord(VendorTemplate);
+        ResourceCard.OpenView();
+        ResourceCard.GoToRecord(Resource);
+
+        // [THEN] VAT posting fields and sales tax fields remain visible.
+        VerifyItemTemplateVATFieldVisibility(ItemTemplateCard, true);
+        VerifyGLAccountVATFieldVisibility(GLAccountCard, true);
+        Assert.IsTrue(CustomerTemplateCard."VAT Bus. Posting Group".Visible(), 'Customer template VAT posting group must be visible when VAT is in use.');
+        Assert.IsTrue(VendorTemplateCard."VAT Bus. Posting Group".Visible(), 'Vendor template VAT posting group must be visible when VAT is in use.');
+        VerifyResourceVATFieldVisibility(ResourceCard, true);
+        ResourceCard.Close();
+        VendorTemplateCard.Close();
+        CustomerTemplateCard.Close();
+        GLAccountCard.Close();
+        ItemTemplateCard.Close();
+
+        // [WHEN] VAT is disabled and the same records are reopened.
+        SetVATInUse(false);
+        ItemTemplateCard.OpenView();
+        ItemTemplateCard.GoToRecord(ItemTemplate);
+        GLAccountCard.OpenView();
+        GLAccountCard.GoToRecord(GLAccount);
+        CustomerTemplateCard.OpenView();
+        CustomerTemplateCard.GoToRecord(CustomerTemplate);
+        VendorTemplateCard.OpenView();
+        VendorTemplateCard.GoToRecord(VendorTemplate);
+        ResourceCard.OpenView();
+        ResourceCard.GoToRecord(Resource);
+
+        // [THEN] VAT posting fields are hidden without hiding sales tax or clearing stored VAT posting groups.
+        VerifyItemTemplateVATFieldVisibility(ItemTemplateCard, false);
+        VerifyGLAccountVATFieldVisibility(GLAccountCard, false);
+        Assert.IsFalse(CustomerTemplateCard."VAT Bus. Posting Group".Visible(), 'Customer template must reload VAT in Use when reopened.');
+        Assert.IsFalse(VendorTemplateCard."VAT Bus. Posting Group".Visible(), 'Vendor template must reload VAT in Use when reopened.');
+        VerifyResourceVATFieldVisibility(ResourceCard, false);
+        ResourceCard.Close();
+        VendorTemplateCard.Close();
+        CustomerTemplateCard.Close();
+        GLAccountCard.Close();
+        ItemTemplateCard.Close();
+
+        UpdatedItemTemplate.Get(ItemTemplate.Code);
+        UpdatedItemTemplate.TestField("VAT Prod. Posting Group", ItemTemplate."VAT Prod. Posting Group");
+        UpdatedResource.Get(Resource."No.");
+        UpdatedResource.TestField("VAT Prod. Posting Group", Resource."VAT Prod. Posting Group");
+    end;
+
+    [Test]
+    procedure TemplateVATPricesHiddenWithoutVATApplicationArea()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Template VAT pricing fields are hidden for sales tax application areas even when VAT is in use.
+        Initialize();
+        SetVATInUse(true);
+        LibraryApplicationArea.EnableSalesTaxSetup();
+        VerifyTemplateVATPriceVisibility(false);
+    end;
+
+    [Test]
+    procedure TemplateVATPricesVisibleWithVATApplicationArea()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Template VAT pricing fields follow their master cards when the VAT application area is enabled.
+        Initialize();
+        SetVATInUse(false);
+        LibraryApplicationArea.EnableFoundationSetup();
+        VerifyTemplateVATPriceVisibility(true);
+    end;
+
     local procedure Initialize()
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -1610,6 +1835,7 @@ codeunit 138012 "O365 Templates Test"
         DeleteConfigurationTemplates();
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
+        LibraryApplicationArea.EnableFoundationSetup();
 
         // Lazy Setup.
         if isInitialized then
@@ -1629,11 +1855,11 @@ codeunit 138012 "O365 Templates Test"
         if not LibraryFiscalYear.AccountingPeriodsExists() then
             LibraryFiscalYear.CreateFiscalYear();
 
-        LibraryApplicationArea.EnableFoundationSetup();
         LibrarySetupStorage.Save(DATABASE::"Marketing Setup");
         LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
         LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
+        LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
 
         SalesSetup.Get();
         SalesSetup."Stockout Warning" := false;
@@ -1642,6 +1868,70 @@ codeunit 138012 "O365 Templates Test"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"O365 Templates Test");
+    end;
+
+    local procedure SetVATInUse(VATInUse: Boolean)
+    var
+        ApplicationAreaSetup: Record "Application Area Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+    begin
+        LibraryApplicationArea.EnableSalesTaxSetup();
+        ApplicationAreaSetup.Get(CompanyName(), '', '');
+        ApplicationAreaSetup.Validate(VAT, true);
+        ApplicationAreaSetup.Modify(true);
+        ApplicationAreaMgmtFacade.SetupApplicationArea();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("VAT in Use", VATInUse);
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure VerifyItemTemplateVATFieldVisibility(var ItemTemplateCard: TestPage "Item Templ. Card"; VATInUse: Boolean)
+    begin
+        Assert.AreEqual(VATInUse, ItemTemplateCard."VAT Prod. Posting Group".Visible(), 'Item template VAT posting field visibility must follow VAT in Use.');
+        Assert.IsTrue(ItemTemplateCard."Tax Group Code".Visible(), 'Item template Tax Group Code must remain visible for sales tax.');
+    end;
+
+    local procedure VerifyGLAccountVATFieldVisibility(var GLAccountCard: TestPage "G/L Account Card"; VATInUse: Boolean)
+    begin
+        Assert.AreEqual(VATInUse, GLAccountCard."VAT Bus. Posting Group".Visible(), 'G/L account VAT business posting field visibility must follow VAT in Use.');
+        Assert.AreEqual(VATInUse, GLAccountCard."VAT Prod. Posting Group".Visible(), 'G/L account VAT product posting field visibility must follow VAT in Use.');
+        Assert.IsTrue(GLAccountCard."Tax Group Code".Visible(), 'G/L account Tax Group Code must remain visible for sales tax.');
+    end;
+
+    local procedure VerifyResourceVATFieldVisibility(var ResourceCard: TestPage "Resource Card"; VATInUse: Boolean)
+    begin
+        Assert.AreEqual(VATInUse, ResourceCard."VAT Prod. Posting Group".Visible(), 'Resource VAT posting field visibility must follow VAT in Use.');
+        Assert.IsTrue(ResourceCard."Tax Group Code".Visible(), 'Resource Tax Group Code must remain visible for sales tax.');
+    end;
+
+    local procedure VerifyTemplateVATPriceVisibility(ExpectedVisible: Boolean)
+    var
+        ItemTemplate: Record "Item Templ.";
+        CustomerTemplate: Record "Customer Templ.";
+        VendorTemplate: Record "Vendor Templ.";
+        ItemTemplateCard: TestPage "Item Templ. Card";
+        CustomerTemplateCard: TestPage "Customer Templ. Card";
+        VendorTemplateCard: TestPage "Vendor Templ. Card";
+    begin
+        LibraryTemplates.CreateItemTemplate(ItemTemplate);
+        LibraryTemplates.CreateCustomerTemplate(CustomerTemplate);
+        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
+
+        ItemTemplateCard.OpenView();
+        ItemTemplateCard.GoToRecord(ItemTemplate);
+        Assert.AreEqual(ExpectedVisible, ItemTemplateCard."Price Includes VAT".Visible(), 'Item template VAT pricing visibility must follow the VAT application area.');
+        ItemTemplateCard.Close();
+
+        CustomerTemplateCard.OpenView();
+        CustomerTemplateCard.GoToRecord(CustomerTemplate);
+        Assert.AreEqual(ExpectedVisible, CustomerTemplateCard."Prices Including VAT".Visible(), 'Customer template VAT pricing visibility must follow the VAT application area.');
+        CustomerTemplateCard.Close();
+
+        VendorTemplateCard.OpenView();
+        VendorTemplateCard.GoToRecord(VendorTemplate);
+        Assert.AreEqual(ExpectedVisible, VendorTemplateCard."Prices Including VAT".Visible(), 'Vendor template VAT pricing visibility must follow the VAT application area.');
+        VendorTemplateCard.Close();
     end;
 
     local procedure ClearTable(TableID: Integer)

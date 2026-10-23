@@ -5,6 +5,7 @@
 namespace Microsoft.Inventory.Item;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Setup;
 
@@ -209,6 +210,7 @@ page 1384 "Item Templ. Card"
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
                         ShowMandatory = true;
+                        Visible = VATInUse;
                     }
                     field("Tax Group Code"; Rec."Tax Group Code")
                     {
@@ -253,7 +255,7 @@ page 1384 "Item Templ. Card"
                 }
                 field("Price Includes VAT"; Rec."Price Includes VAT")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = VAT;
                     Importance = Additional;
                 }
                 field("Price/Profit Calculation"; Rec."Price/Profit Calculation")
@@ -593,13 +595,18 @@ page 1384 "Item Templ. Card"
     end;
 
     trigger OnOpenPage()
+    var
+        GLSetup: Record "General Ledger Setup";
     begin
+        GLSetup.Get();
+        VATInUse := GLSetup."VAT in Use";
         EnablePlanningControls();
         EnableShowVariantMandatory();
     end;
 
     var
         ShowVariantMandatoryDefaultYes: Boolean;
+        VATInUse: Boolean;
 
     protected var
         TimeBucketEnable: Boolean;
