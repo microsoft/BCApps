@@ -54,6 +54,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
+#if not CLEAN30
+        EDocumentServiceProvided: Boolean;
+#endif
         DocumentLanguageCode: Code[10];
 
     trigger OnRun()
@@ -65,6 +68,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExportSalesDocument(Rec);
 
         UnbindSubscription(ZUGFeRDReportIntegration);
+        ResetProvidedService();
     end;
 
 
@@ -293,7 +297,11 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         FindEDocumentService();
+#pragma warning restore AL0432, AS0105
+#endif
         if not DocumentLinesExist(SalesInvoiceHeader, SalesInvLine) then
             exit;
 
@@ -332,7 +340,11 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         FindEDocumentService();
+#pragma warning restore AL0432, AS0105
+#endif
         if not DocumentLinesExist(SalesCrMemoHeader, SalesCrMemoLine) then
             exit;
 
@@ -373,7 +385,11 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         FindEDocumentService();
+#pragma warning restore AL0432, AS0105
+#endif
         ClearItemChargeClassification();
         TransferToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
         SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
@@ -422,7 +438,11 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         FindEDocumentService();
+#pragma warning restore AL0432, AS0105
+#endif
         ClearItemChargeClassification();
         TransferToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
         SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
@@ -2067,12 +2087,44 @@ codeunit 13917 "Export ZUGFeRD Document"
         exit(VATPostingSetup."Tax Category");
     end;
 
+    procedure SetEDocumentService(NewEDocumentService: Record "E-Document Service")
+    begin
+        EDocumentService := NewEDocumentService;
+#if not CLEAN30
+        EDocumentServiceProvided := true;
+#endif
+    end;
+
+    local procedure ResetProvidedService()
+    begin
+        // Clear the per-instance service state at the end of every run so a reused instance never carries
+        // the service provided for an earlier export into a later export that does not provide one.
+        Clear(EDocumentService);
+#if not CLEAN30
+        EDocumentServiceProvided := false;
+#endif
+    end;
+
+#if not CLEAN30
+#pragma warning disable AA0228, AL0432, AS0105
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService (threaded via "ZUGFeRD Export Context"). This function is still called on every export until CLEAN30: when a service was provided it only raises OnAfterFindEDocumentService without overwriting that service, otherwise it performs the legacy FindLast lookup. As of CLEAN30 this function and that fallback are removed, so any caller that does not provide a service - for example a customized sales report that never sets the ZUGFeRD Export Context - then exports with a blank E-Document Service.', '30.0')]
     local procedure FindEDocumentService()
     begin
+        // A service provided through SetEDocumentService is the service that triggered the export -
+        // never overwrite it with a lookup, but still raise the event so existing subscribers keep working.
+        // When nothing was provided (for example a customized report that does not use the context)
+        // the original lookup runs unchanged.
+        if EDocumentServiceProvided then begin
+            OnAfterFindEDocumentService(EDocumentService);
+            exit;
+        end;
+
         EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::ZUGFeRD);
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService);
     end;
+#pragma warning restore AA0228, AL0432, AS0105
+#endif
 
     local procedure GetBankAccountPaymentDetails(BankAccountCode: Code[20]; var IBAN: Text[50]; var SWIFTCode: Code[20])
     var
@@ -2090,10 +2142,15 @@ codeunit 13917 "Export ZUGFeRD Document"
     end;
     #endregion
 
+#if not CLEAN30
+#pragma warning disable AA0228, AS0105
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService (threaded via "ZUGFeRD Export Context"). This event is STILL raised on every export until CLEAN30 - both when a service was provided and on the legacy FindLast lookup path - so existing subscribers keep working during the deprecation window. It no longer exists as of CLEAN30; move any logic that depends on it to the service provided through SetEDocumentService.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service")
     begin
     end;
+#pragma warning restore AA0228, AS0105
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertSalesInvHeaderData(var XMLCurrNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
