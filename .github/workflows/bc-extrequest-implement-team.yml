@@ -139,7 +139,7 @@ jobs:
         id: azure-login
         if: steps.telemetry-config.outputs.enabled == 'true'
         continue-on-error: true
-        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
@@ -165,7 +165,7 @@ jobs:
           }
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -268,7 +268,7 @@ jobs:
         id: azure-login
         if: steps.telemetry-config.outputs.enabled == 'true'
         continue-on-error: true
-        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
@@ -295,7 +295,7 @@ jobs:
           }
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
