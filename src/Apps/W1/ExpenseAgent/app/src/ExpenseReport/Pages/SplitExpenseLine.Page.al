@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7140 "Split Expense Line"
+page 7142 "Split Expense Line"
 {
     PageType = StandardDialog;
     Caption = 'Split Expense - Same User';
