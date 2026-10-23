@@ -523,8 +523,7 @@ codeunit 149515 "Filename Proof Tests"
     begin
         FilenameProofGuard.AssertSafeEnvironment();
         TestData.Initialize();
-        TestData.SetupInvoiceReport();
-        TestData.SetupPurchaseInvoiceReport();
+        TestData.SetupDocumentReports();
         BaselineEntryNo := FilenameProofGate.Baseline();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
     end;

@@ -8,8 +8,10 @@ using Microsoft.Assembly.History;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.Purchases.History;
@@ -39,6 +41,7 @@ codeunit 149534 "Filename Review Tests"
         GeneralPostingSetup: Record "General Posting Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
         VATPostingSetup: Record "VAT Posting Setup";
+        TaxGroup: Record "Tax Group";
         GLAccount: Record "G/L Account";
         SalesSetup: Record "Sales & Receivables Setup";
         PurchaseSetup: Record "Purchases & Payables Setup";
@@ -49,8 +52,10 @@ codeunit 149534 "Filename Review Tests"
         FilenameProofGuard.AssertSafeEnvironment();
         GeneralPostingSetup.DeleteAll();
         VATPostingSetup.DeleteAll();
+        TaxGroup.DeleteAll();
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."Inv. Rounding Precision (LCY)" := 0;
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Enabled;
         GeneralLedgerSetup.Modify();
         SalesSetup.Get();
         SalesSetup."Invoice Nos." := '';
@@ -68,6 +73,9 @@ codeunit 149534 "Filename Review Tests"
         PurchInvHeader.TestField("No.");
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.TestField("Inv. Rounding Precision (LCY)", 0.01);
+        GeneralLedgerSetup.TestField("VAT Reporting Date Usage", GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled);
+        if TaxGroup.IsEmpty() then
+            Error(MissingTestSetupErr);
         if GeneralPostingSetup.IsEmpty() or VATPostingSetup.IsEmpty() or (GLAccount.Count() < 3) then
             Error(MissingTestSetupErr);
     end;
@@ -147,6 +155,69 @@ codeunit 149534 "Filename Review Tests"
             Error(UnexpectedInvoiceSelectionsErr);
         ReportMetadata.Get(ReportSelections."Report ID");
         ReportMetadata.TestField(ProcessingOnly, false);
+    end;
+
+    [Test]
+    procedure DocumentReportsAreRenderableAndSurviveDocumentCreation()
+    var
+        ReportSelections: Record "Report Selections";
+        ReportMetadata: Record "Report Metadata";
+        Invoice: Record "Sales Invoice Header";
+        Usages: List of [Enum "Report Selection Usage"];
+        Usage: Enum "Report Selection Usage";
+    begin
+        Prepare();
+        Usages.Add(Usage::"S.Invoice");
+        Usages.Add(Usage::"P.Invoice");
+        Usages.Add(Usage::"S.Invoice Draft");
+        Usages.Add(Usage::"S.Quote");
+        foreach Usage in Usages do begin
+            ReportSelections.Reset();
+            ReportSelections.SetRange(Usage, Usage);
+            ReportSelections.ModifyAll("Report ID", Report::"Filename Proof Report");
+        end;
+
+        TestData.SetupDocumentReports();
+        foreach Usage in Usages do begin
+            ReportSelections.Reset();
+            ReportSelections.SetRange(Usage, Usage);
+            ReportSelections.FindFirst();
+            if ReportSelections.Count() <> 1 then
+                Error(UnexpectedInvoiceSelectionsErr);
+            ReportMetadata.Get(ReportSelections."Report ID");
+            ReportMetadata.TestField(ProcessingOnly, false);
+            if ReportSelections."Report ID" = Report::"Filename Proof Report" then
+                Error(DocumentReportNotReplacedErr);
+        end;
+
+        ReportSelections.Reset();
+        ReportSelections.Get(Usage::"S.Invoice", '1');
+        ReportSelections.Sequence := '2';
+        ReportSelections.Insert();
+        TestData.PostNewInvoice(Invoice);
+        ReportSelections.Get(Usage::"S.Invoice", '2');
+        ReportSelections.TestField("Report ID", Report::"Standard Sales - Invoice");
+    end;
+
+    [Test]
+    procedure CustomPaymentTermsSupportPosting()
+    var
+        Invoice: Record "Sales Invoice Header";
+        PaymentTerms: Record "Payment Terms";
+        CustomerNo: Code[20];
+        PaymentTermsCode: Code[10];
+    begin
+        Prepare();
+        CustomerNo := TestData.CreateCustomer();
+        PaymentTermsCode := TestData.CreatePaymentTerms(PaymentTermsDescriptionTok);
+
+        TestData.PostNewInvoice(CustomerNo, '', PaymentTermsCode, Invoice);
+
+        Invoice.TestField("Payment Terms Code", PaymentTermsCode);
+        PaymentTerms.Get(PaymentTermsCode);
+        PaymentTerms.TestField(Description, PaymentTermsDescriptionTok);
+        Invoice.CalcFields(Amount);
+        Invoice.TestField(Amount, 100);
     end;
 
     [Test]
@@ -997,7 +1068,7 @@ codeunit 149534 "Filename Review Tests"
         // Also switches the feature on and refuses to run in an unsafe environment.
         FilenameProofGuard.ClearPatterns();
         TestData.Initialize();
-        TestData.SetupInvoiceReport();
+        TestData.SetupDocumentReports();
     end;
 
     local procedure InvoiceUsage(): Integer
@@ -1076,6 +1147,8 @@ codeunit 149534 "Filename Review Tests"
         MissingTestSetupErr: Label 'The document fixtures did not create their posting setup and accounts.';
         SamePostedInvoiceErr: Label 'Two posted invoice fixtures returned the same invoice.';
         SameDraftInvoiceErr: Label 'Repeated fixture setup reused a draft invoice number.';
+        DocumentReportNotReplacedErr: Label 'The document report fixture kept the previous report selection.';
+        PaymentTermsDescriptionTok: Label 'Filename custom payment terms', Locked = true;
         UnexpectedInvoiceSelectionsErr: Label 'The invoice fixture must configure exactly one report selection.';
         ObsoleteTableOfferedErr: Label 'Obsolete table %1 is offered as a report subject.', Comment = '%1 = Table ID';
         EmptyNoticeSentId: Guid;

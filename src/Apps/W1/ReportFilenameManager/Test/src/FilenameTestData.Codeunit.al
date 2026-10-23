@@ -8,6 +8,7 @@ using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
@@ -35,6 +36,7 @@ codeunit 149537 "Filename Test Data"
         GeneralLedgerSetup: Record "General Ledger Setup";
         GeneralPostingSetup: Record "General Posting Setup";
         VATPostingSetup: Record "VAT Posting Setup";
+        TaxGroup: Record "Tax Group";
         SalesSetup: Record "Sales & Receivables Setup";
         PurchaseSetup: Record "Purchases & Payables Setup";
         FilenameProofGuard: Codeunit "Filename Proof Guard";
@@ -65,9 +67,13 @@ codeunit 149537 "Filename Test Data"
         end;
         // These fixtures exercise report delivery, not VAT reporting periods or local VAT dates.
         if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
-            GeneralLedgerSetup.Validate("VAT Reporting Date Usage", GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled);
+            // Set the test precondition directly; CZ validation prompts for a production data migration.
+            GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup."VAT Reporting Date" := GeneralLedgerSetup."VAT Reporting Date"::"Posting Date";
             GeneralLedgerSetup.Modify(true);
         end;
+        if TaxGroup.IsEmpty() then
+            LibraryERM.CreateTaxGroup(TaxGroup);
 
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
         CompleteGeneralPostingSetup(GeneralPostingSetup);
@@ -163,23 +169,31 @@ codeunit 149537 "Filename Test Data"
     end;
 
     internal procedure SetupInvoiceReport()
-    var
-        ReportSelections: Record "Report Selections";
-        LibraryERM: Codeunit "Library - ERM";
     begin
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"S.Invoice");
-        ReportSelections.DeleteAll();
-        LibraryERM.SetupReportSelection(ReportSelections.Usage::"S.Invoice", Report::"Standard Sales - Invoice");
+        SetupReportSelection(Enum::"Report Selection Usage"::"S.Invoice", Report::"Standard Sales - Invoice");
     end;
 
     internal procedure SetupPurchaseInvoiceReport()
+    begin
+        SetupReportSelection(Enum::"Report Selection Usage"::"P.Invoice", Report::"Purchase - Invoice");
+    end;
+
+    internal procedure SetupDocumentReports()
+    begin
+        SetupInvoiceReport();
+        SetupPurchaseInvoiceReport();
+        SetupReportSelection(Enum::"Report Selection Usage"::"S.Invoice Draft", Report::"Standard Sales - Draft Invoice");
+        SetupReportSelection(Enum::"Report Selection Usage"::"S.Quote", Report::"Standard Sales - Quote");
+    end;
+
+    local procedure SetupReportSelection(Usage: Enum "Report Selection Usage"; ReportId: Integer)
     var
         ReportSelections: Record "Report Selections";
         LibraryERM: Codeunit "Library - ERM";
     begin
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Invoice");
+        ReportSelections.SetRange(Usage, Usage);
         ReportSelections.DeleteAll();
-        LibraryERM.SetupReportSelection(ReportSelections.Usage::"P.Invoice", Report::"Purchase - Invoice");
+        LibraryERM.SetupReportSelection(Usage, ReportId);
     end;
 
     internal procedure PostNewInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -342,6 +356,7 @@ codeunit 149537 "Filename Test Data"
         Initialize();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate(Name, CustomerNameTok);
+        Customer.Validate("Payment Terms Code", CreatePaymentTerms(PaymentTermsTok));
         Customer.Modify(true);
         exit(Customer."No.");
     end;
@@ -417,6 +432,7 @@ codeunit 149537 "Filename Test Data"
     begin
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Validate(Name, VendorNameTok);
+        Vendor.Validate("Payment Terms Code", CreatePaymentTerms(PaymentTermsTok));
         Vendor.Modify(true);
         exit(Vendor."No.");
     end;
@@ -424,12 +440,16 @@ codeunit 149537 "Filename Test Data"
     internal procedure CreatePaymentTerms(Description: Text[100]): Code[10]
     var
         PaymentTerms: Record "Payment Terms";
+        LibraryERM: Codeunit "Library - ERM";
     begin
-        PaymentTerms.Init();
-        PaymentTerms.Code := CopyStr(FreeCode(Database::"Payment Terms"), 1, MaxStrLen(PaymentTerms.Code));
-        PaymentTerms.Description := Description;
-        Evaluate(PaymentTerms."Due Date Calculation", DueDateCalculationTok);
-        PaymentTerms.Insert(true);
+        // The localized library also creates IT payment lines; inserting only the header is insufficient.
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+        PaymentTerms.Validate(Description, Description);
+        if PaymentTerms.FieldActive("Due Date Calculation") then begin
+            Evaluate(PaymentTerms."Due Date Calculation", DueDateCalculationTok);
+            PaymentTerms.Validate("Due Date Calculation");
+        end;
+        PaymentTerms.Modify(true);
         exit(PaymentTerms.Code);
     end;
 
@@ -610,6 +630,7 @@ codeunit 149537 "Filename Test Data"
         BankNameTok: Label 'Report Filename Test Bank', Locked = true;
         LCYCodeTok: Label 'LCY', Locked = true;
         CustomerNameTok: Label 'Report Filename Test Customer', Locked = true;
+        PaymentTermsTok: Label 'Report Filename Test Terms', Locked = true;
         VendorNameTok: Label 'Report Filename Test Vendor', Locked = true;
         ItemDescriptionTok: Label 'Report Filename Test Item', Locked = true;
         ReminderTermsTok: Label 'Report Filename Test Terms', Locked = true;

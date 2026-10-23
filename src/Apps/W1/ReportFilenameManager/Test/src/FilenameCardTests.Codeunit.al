@@ -2173,6 +2173,7 @@ codeunit 149516 "Filename Card Tests"
     begin
         FilenameProofGuard.AssertSafeEnvironment();
         TestData.Initialize();
+        TestData.SetupDocumentReports();
         GlobalLanguage(FilenameProofSupport.EnglishLanguageId());
         // With patterns off the card sends a notification, which tests without a SendNotificationHandler do not expect.
         FilenameProofGuard.SwitchFeatureOn();

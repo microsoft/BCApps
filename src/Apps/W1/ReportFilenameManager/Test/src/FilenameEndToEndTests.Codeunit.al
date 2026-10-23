@@ -129,7 +129,7 @@ codeunit 149535 "Filename End-To-End Tests"
     begin
         FilenameProofGuard.ClearPatterns();
         TestData.Initialize();
-        TestData.SetupInvoiceReport();
+        TestData.SetupDocumentReports();
         ReviewSupport.SetFeature(false);
         SwitchFeatureOnTheSetupPage(true);
         TestData.PostNewInvoice(SalesInvoiceHeader);

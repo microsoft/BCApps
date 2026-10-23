@@ -147,6 +147,7 @@ codeunit 149542 "Filename Reminder Tests"
         CustomerNo: Code[20];
     begin
         CustomerNo := TestData.CreateCustomer();
+        TestData.SetupDocumentReports();
         TestData.PostNewInvoice(CustomerNo, FirstInvoice);
         TestData.PostNewInvoice(CustomerNo, SecondInvoice);
 
