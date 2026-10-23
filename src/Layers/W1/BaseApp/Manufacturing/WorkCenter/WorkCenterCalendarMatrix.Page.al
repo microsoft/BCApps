@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.WorkCenter;
 
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
-using Microsoft.Manufacturing.Setup;
 using System.Utilities;
 
 page 9291 "Work Center Calendar Matrix"

@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.MachineCenter;
 
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using System.Utilities;
 
