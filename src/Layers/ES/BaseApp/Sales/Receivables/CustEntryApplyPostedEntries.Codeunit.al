@@ -81,10 +81,6 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         CannotUnapplyInReversalErr: Label 'You cannot unapply Cust. Ledger Entry No. %1 because the entry is part of a reversal.';
 #pragma warning restore AA0470
         CannotApplyClosedEntriesErr: Label 'One or more of the entries that you selected is closed. You cannot apply closed entries.';
-        Text1100000: Label 'Application of %1 %2';
-        Text1100001: Label 'Application of %1 %2/%3';
-        Text1100002: Label 'To apply a set of entries containing bills, rejected invoices or invoices to cartera, the cursor should be positioned on an entry different than bill type, rejected invoice or invoices to cartera.';
-        UnapplyBlankedDocTypeErr: Label 'You cannot unapply the entries because one entry has a blank document type.';
 
     /// <summary>
     /// Applies the customer ledger entry based on the specified application parameters.
@@ -98,16 +94,6 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         IsHandled: Boolean;
     begin
         OnBeforeApply(CustLedgEntry, ApplyUnapplyParameters."Document No.", ApplyUnapplyParameters."Posting Date");
-
-        if (CustLedgEntry."Document Type" = CustLedgEntry."Document Type"::Bill) or
-           ((CustLedgEntry."Document Type" = CustLedgEntry."Document Type"::Invoice) and
-            (CustLedgEntry."Document Situation" = CustLedgEntry."Document Situation"::"Closed BG/PO") and
-            (CustLedgEntry."Document Status" = CustLedgEntry."Document Status"::Rejected)) or
-           ((CustLedgEntry."Document Type" = CustLedgEntry."Document Type"::Invoice) and
-            (CustLedgEntry."Document Situation" = CustLedgEntry."Document Situation"::Cartera) and
-            (CustLedgEntry."Document Status" = CustLedgEntry."Document Status"::Open))
-        then
-            Error(Text1100002);
 
         IsHandled := false;
         OnApplyOnBeforePmtTolCust(CustLedgEntry, PaymentToleranceMgt, PreviewMode, IsHandled);
@@ -194,18 +180,12 @@ codeunit 226 "CustEntry-Apply Posted Entries"
             (CustLedgEntry."Debit Amount" < 0) or (CustLedgEntry."Credit Amount" < 0) or
             (CustLedgEntry."Debit Amount (LCY)" < 0) or (CustLedgEntry."Credit Amount (LCY)" < 0);
         GenJnlLine.CopyCustLedgEntry(CustLedgEntry);
-        if CustLedgEntry."Document Type" <> CustLedgEntry."Document Type"::Bill then
-            GenJnlLine.Description := StrSubstNo(Text1100000, CustLedgEntry."Document Type", CustLedgEntry."Document No.")
-        else
-            GenJnlLine.Description := StrSubstNo(Text1100001, CustLedgEntry."Document Type", CustLedgEntry."Document No.", CustLedgEntry."Bill No.");
         GenJnlLine."Source Code" := SourceCodeSetup."Sales Entry Application";
         GenJnlLine."System-Created Entry" := true;
         GenJnlLine."Journal Template Name" := ApplyUnapplyParameters."Journal Template Name";
         GenJnlLine."Journal Batch Name" := ApplyUnapplyParameters."Journal Batch Name";
 
         EntryNoBeforeApplication := FindLastApplDtldCustLedgEntry();
-
-        GenJnlPostLine.SetIDBillSettlement(IsToSetIDBillSettlement(CustLedgEntry));
 
         OnBeforePostApplyCustLedgEntry(GenJnlLine, CustLedgEntry, GenJnlPostLine, ApplyUnapplyParameters);
         GenJnlPostLine.CustPostApplyCustLedgEntry(GenJnlLine, CustLedgEntry);
@@ -496,8 +476,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         if IsHandled then
             exit;
 
-        if DtldCustLedgEntry."Initial Document Type" = DtldCustLedgEntry."Initial Document Type"::" " then
-            Error(UnapplyBlankedDocTypeErr);
+        OnAfterCheckInitialDocumentType(DtldCustLedgEntry);
     end;
 
     local procedure CheckPostingDate(ApplyUnapplyParameters: Record "Apply Unapply Parameters"; var MaxPostingDate: Date)
@@ -643,41 +622,6 @@ codeunit 226 "CustEntry-Apply Posted Entries"
                     LastTransactionNo := DtldCustLedgEntry."Transaction No.";
             until DtldCustLedgEntry.Next() = 0;
         exit(LastTransactionNo);
-    end;
-
-    local procedure BeAppliedToBill(CustLedgEntry2: Record "Cust. Ledger Entry"): Boolean
-    var
-        CustLedgEntry3: Record "Cust. Ledger Entry";
-    begin
-        CustLedgEntry3.SetCurrentKey("Applies-to ID", "Document Type");
-        CustLedgEntry3.SetRange("Applies-to ID", CustLedgEntry2."Applies-to ID");
-        CustLedgEntry3.SetRange("Document Type", CustLedgEntry2."Document Type"::Bill);
-        if not CustLedgEntry3.IsEmpty() then
-            exit(true);
-        exit(false);
-    end;
-
-    local procedure BeAppliedToInvoiceToCartera(CustLedgEntry2: Record "Cust. Ledger Entry"): Boolean
-    var
-        CustLedgEntry3: Record "Cust. Ledger Entry";
-    begin
-        CustLedgEntry3.SetCurrentKey("Applies-to ID", "Document Type", "Document Situation", "Document Status");
-        CustLedgEntry3.SetRange("Applies-to ID", CustLedgEntry2."Applies-to ID");
-        CustLedgEntry3.SetRange("Document Type", CustLedgEntry2."Document Type"::Invoice);
-        CustLedgEntry3.SetRange("Document Situation", CustLedgEntry3."Document Situation"::"Closed BG/PO");
-        CustLedgEntry3.SetRange("Document Status", CustLedgEntry3."Document Status"::Rejected);
-        if not CustLedgEntry3.IsEmpty() then
-            exit(true);
-        exit(false);
-    end;
-
-    local procedure IsToSetIDBillSettlement(CustLedgEntry2: Record "Cust. Ledger Entry"): Boolean
-    begin
-        if CustLedgEntry2."Applies-to ID" = '' then
-            exit(false);
-        if BeAppliedToBill(CustLedgEntry2) then
-            exit(true);
-        exit(BeAppliedToInvoiceToCartera(CustLedgEntry2));
     end;
 
     /// <summary>
@@ -1081,12 +1025,29 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// <param name="CustLedgerEntry">The customer ledger entry to apply.</param>
     /// <param name="ApplyUnapplyParameters">The application parameters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; var CommitChanges: Boolean; var IsHandled: Boolean);
+    local procedure OnApplyOnBeforeCustPostApplyCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking initial document Type
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnApplyOnBeforeCustPostApplyCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyUnapplyParameters: Record "Apply Unapply Parameters")
+    local procedure OnAfterCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry");
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before checking initial document Type
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="PostingDate">The posting date.</param>
+    /// <param name="CommitChanges">Indicates whether to commit changes.</param>
+    /// <param name="IsHandled">Indicates whether the event is handled.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; var CommitChanges: Boolean; var IsHandled: Boolean);
     begin
     end;
 

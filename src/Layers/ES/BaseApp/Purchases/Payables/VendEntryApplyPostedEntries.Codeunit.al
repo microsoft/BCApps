@@ -78,10 +78,6 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         CannotUnapplyInReversalErr: Label 'You cannot unapply Vendor Ledger Entry No. %1 because the entry is part of a reversal.';
 #pragma warning restore AA0470
         CannotApplyClosedEntriesErr: Label 'One or more of the entries that you selected is closed. You cannot apply closed entries.';
-        Text1100000: Label 'Application of %1 %2';
-        Text1100001: Label 'Application of %1 %2/%3';
-        Text1100002: Label 'To apply a set of entries containing bills, the cursor should be positioned on an entry different than bill type or Invoice to cartera type.';
-        UnapplyBlankedDocTypeErr: Label 'You cannot unapply the entries because one entry has a blank document type.';
 
     procedure Apply(VendLedgEntry: Record "Vendor Ledger Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters"): Boolean
     var
@@ -89,13 +85,6 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         IsHandled: Boolean;
     begin
         OnBeforeApply(VendLedgEntry, ApplyUnapplyParameters."Document No.", ApplyUnapplyParameters."Posting Date");
-
-        if (VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Bill) or
-           ((VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Invoice) and
-            (VendLedgEntry."Document Situation" = VendLedgEntry."Document Situation"::Cartera) and
-            (VendLedgEntry."Document Status" = VendLedgEntry."Document Status"::Open))
-        then
-            Error(Text1100002);
 
         IsHandled := false;
         OnApplyOnBeforePmtTolVend(VendLedgEntry, PaymentToleranceMgt, PreviewMode, IsHandled);
@@ -181,19 +170,13 @@ codeunit 227 "VendEntry-Apply Posted Entries"
             (VendLedgEntry."Debit Amount" < 0) or (VendLedgEntry."Credit Amount" < 0) or
             (VendLedgEntry."Debit Amount (LCY)" < 0) or (VendLedgEntry."Credit Amount (LCY)" < 0);
         GenJnlLine.CopyVendLedgEntry(VendLedgEntry);
-        if VendLedgEntry."Document Type" <> VendLedgEntry."Document Type"::Bill then
-            GenJnlLine.Description := StrSubstNo(Text1100000, VendLedgEntry."Document Type", VendLedgEntry."Document No.")
-        else
-            GenJnlLine.Description := StrSubstNo(Text1100001, VendLedgEntry."Document Type", VendLedgEntry."Document No.", VendLedgEntry."Bill No.");
         GenJnlLine."Source Code" := SourceCodeSetup."Purchase Entry Application";
         GenJnlLine."System-Created Entry" := true;
+        GenJnlLine."External Document No." := VendLedgEntry."External Document No.";
         GenJnlLine."Journal Template Name" := ApplyUnapplyParameters."Journal Template Name";
         GenJnlLine."Journal Batch Name" := ApplyUnapplyParameters."Journal Batch Name";
 
         EntryNoBeforeApplication := FindLastApplDtldVendLedgEntry();
-
-        GenJnlPostLine.SetIDBillSettlement(BeAppliedToBill(VendLedgEntry));
-        GenJnlPostLine.SetIDInvoiceSettlement(BeAppliedToInvoice(VendLedgEntry));
 
         OnBeforePostApplyVendLedgEntry(GenJnlLine, VendLedgEntry, GenJnlPostLine, ApplyUnapplyParameters);
         GenJnlPostLine.VendPostApplyVendLedgEntry(GenJnlLine, VendLedgEntry);
@@ -455,8 +438,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         if IsHandled then
             exit;
 
-        if DtldVendLedgEntry."Initial Document Type" = DtldVendLedgEntry."Initial Document Type"::" " then
-            Error(UnapplyBlankedDocTypeErr);
+        OnAfterCheckInitialDocumentType(DtldVEndLedgEntry);
     end;
 
     local procedure CheckPostingDate(ApplyUnapplyParameters: Record "Apply Unapply Parameters"; var MaxPostingDate: Date)
@@ -594,36 +576,6 @@ codeunit 227 "VendEntry-Apply Posted Entries"
                     LastTransactionNo := DtldVendLedgEntry."Transaction No.";
             until DtldVendLedgEntry.Next() = 0;
         exit(LastTransactionNo);
-    end;
-
-    local procedure BeAppliedToBill(VendLedgEntry2: Record "Vendor Ledger Entry"): Boolean
-    var
-        VendLedgEntry3: Record "Vendor Ledger Entry";
-    begin
-        if VendLedgEntry2."Applies-to ID" = '' then
-            exit(false);
-        VendLedgEntry3.SetCurrentKey("Applies-to ID", "Document Type");
-        VendLedgEntry3.SetRange("Applies-to ID", VendLedgEntry2."Applies-to ID");
-        VendLedgEntry3.SetRange("Document Type", VendLedgEntry2."Document Type"::Bill);
-        if not VendLedgEntry3.IsEmpty() then
-            exit(true);
-        exit(false);
-    end;
-
-    local procedure BeAppliedToInvoice(VendLedgEntry2: Record "Vendor Ledger Entry"): Boolean
-    var
-        VendLedgEntry3: Record "Vendor Ledger Entry";
-    begin
-        if VendLedgEntry2."Applies-to ID" = '' then
-            exit(false);
-
-        VendLedgEntry3.SetCurrentKey("Applies-to ID", "Document Type");
-        VendLedgEntry3.SetRange("Applies-to ID", VendLedgEntry2."Applies-to ID");
-        VendLedgEntry3.SetRange("Document Type", VendLedgEntry2."Document Type"::Invoice);
-        if not VendLedgEntry3.IsEmpty() then
-            exit(true);
-
-        exit(false);
     end;
 
     procedure PreviewApply(VendorLedgerEntry: Record "Vendor Ledger Entry"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
@@ -855,6 +807,22 @@ codeunit 227 "VendEntry-Apply Posted Entries"
     begin
     end;
 
+    /// <summary>
+    /// Raised after checking initial document Type
+    /// </summary>
+    /// <param name="DtldVendLedgEntry">The detailed vendor ledger entry.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before checking initial document Type
+    /// </summary>
+    /// <param name="DtldVendLedgEntry">The detailed vendor ledger entry.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="PostingDate">The posting date.</param>
+    /// <param name="IsHandled">Indicates whether the event is handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; var IsHandled: Boolean)
     begin

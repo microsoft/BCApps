@@ -283,7 +283,6 @@ table 120 "Purch. Rcpt. Header"
                 VendLedgEntry.SetCurrentKey("Document No.");
                 VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
                 VendLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-                VendLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
                 OnLookupAppliesToDocNoOnAfterSetFilters(VendLedgEntry, Rec);
                 PAGE.Run(0, VendLedgEntry);
             end;
@@ -591,10 +590,6 @@ table 120 "Purch. Rcpt. Header"
         {
             Caption = 'Generate AutoInvoices';
             Editable = false;
-        }
-        field(7000000; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
         }
         field(7000001; "Vendor Bank Acc. Code"; Code[20])
         {

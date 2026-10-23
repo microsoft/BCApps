@@ -1016,18 +1016,6 @@ page 21 "Customer Card"
                               "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
                               "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
             }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
             part(Control1905532107; "Dimensions FactBox")
             {
                 ApplicationArea = Basic, Suite;

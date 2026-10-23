@@ -803,12 +803,6 @@ page 6640 "Purchase Return Order"
                 ShowFilter = false;
                 Visible = false;
             }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Pay-to Vendor No.");
-                Visible = true;
-            }
             part(Control1903435607; "Vendor Hist. Buy-from FactBox")
             {
                 ApplicationArea = PurchReturnOrder;

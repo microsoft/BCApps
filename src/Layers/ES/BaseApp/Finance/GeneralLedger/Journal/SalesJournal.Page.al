@@ -138,12 +138,6 @@ page 253 "Sales Journal"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                 }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number for this bill generated from the journal.';
-                    Visible = false;
-                }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -482,11 +476,6 @@ page 253 "Sales Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = not IsSimplePage;
-                }
-                field("Applies-to Bill No."; Rec."Applies-to Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bill to be settled.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {

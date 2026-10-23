@@ -1911,6 +1911,7 @@ page 344 Navigate
         ItemTrackingFilters.SetFilter("Package No. Filter", PackageNoFilter);
 
         OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(ItemTrackingFilters);
+        OnFindTrackingRecordsOnAfterSetTrackingFilters(ItemTrackingFilters);
 
         Clear(ItemTrackingNavigateMgt);
         ItemTrackingNavigateMgt.FindTrackingRecords(ItemTrackingFilters);
@@ -2204,7 +2205,6 @@ page 344 Navigate
     begin
     end;
 
-
     [IntegrationEvent(true, false)]
     local procedure OnFindExtRecordsOnAfterSetSalesCrMemoFilter(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -2377,6 +2377,11 @@ page 344 Navigate
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(var ItemTrackingFilters: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnFindTrackingRecordsOnAfterSetTrackingFilters(var ItemTrackingFilters: Record Item)
     begin
     end;
 

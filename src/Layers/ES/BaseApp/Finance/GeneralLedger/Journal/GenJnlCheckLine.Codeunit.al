@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,7 +12,6 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
@@ -61,12 +60,10 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GenJnlBatch: Record "Gen. Journal Batch";
         CostAccSetup: Record "Cost Accounting Setup";
         TempErrorMessage: Record "Error Message" temporary;
-        CarteraSetup: Record "Cartera Setup";
         DimMgt: Codeunit DimensionManagement;
         CostAccMgt: Codeunit "Cost Account Mgt";
         ApplicationAreaMgmt: Codeunit System.Environment.Configuration."Application Area Mgmt.";
         ErrorMessageMgt: Codeunit "Error Message Management";
-        DocPost: Codeunit "Document-Post";
         SkipFiscalYearCheck: Boolean;
         GenJnlTemplateFound: Boolean;
         OverrideDimErr: Boolean;
@@ -117,7 +114,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
     /// </remarks>
     procedure RunCheck(var GenJnlLine: Record "Gen. Journal Line")
     var
-        PaymentTerms: Record "Payment Terms";
         ICGLAcount: Record "IC G/L Account";
         ICBankAccount: Record "IC Bank Account";
         ErrorMessageHandler: Codeunit "Error Message Handler";
@@ -147,15 +143,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GenJnlLine.ValidateSalesPersonPurchaserCode(GenJnlLine);
 
         TestDocumentNo(GenJnlLine);
-        if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::Invoice) and (GenJnlLine."Document Date" <> 0D) and (GenJnlLine."Payment Terms Code" <> '') then
-            if PaymentTerms.Get(GenJnlLine."Payment Terms Code") then
-                PaymentTerms.VerifyMaxNoDaysTillDueDate(GenJnlLine."Due Date", GenJnlLine."Document Date", GenJnlLine.FieldCaption("Due Date"));
-
-        if ((GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Bill, GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"]) or
-           (GenJnlLine."Applies-to Doc. Type" in [GenJnlLine."Applies-to Doc. Type"::Bill, GenJnlLine."Applies-to Doc. Type"::Invoice])) and
-           CarteraSetup.ReadPermission
-        then
-            DocPost.CheckGenJnlLine(GenJnlLine);
 
         TestAccountAndBalAccountType(GenJnlLine);
 
@@ -258,6 +245,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
             exit;
 
         GenJournalLine.TestField("Document No.", ErrorInfo.Create());
+
+        OnAfterTestDocumentNo(GenJournalLine);
     end;
 
     local procedure TestAccountAndBalAccountType(var GenJnlLine: Record "Gen. Journal Line")
@@ -1590,6 +1579,15 @@ codeunit 11 "Gen. Jnl.-Check Line"
     /// <param name="IsHandled">Set to true to skip standard journal line validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRunCheck(var GenJournalLine: Record "Gen. Journal Line"; OverrideDimErr: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after validating document number field requirements for journal lines.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for document number requirements.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTestDocumentNo(GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 

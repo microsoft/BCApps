@@ -11,7 +11,6 @@ using Microsoft.CostAccounting.Ledger;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.FixedAssets.Insurance;
@@ -96,21 +95,6 @@ page 344 Navigate
                         ClearContactInfo();
                         DocNoFilterOnAfterValidate();
                         FilterSelectionChanged();
-                    end;
-                }
-                field(CarteraDocNoFilter; CarteraDocNoFilter)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bill No.';
-                    ToolTip = 'Specifies the number of the bill.';
-
-                    trigger OnValidate()
-                    begin
-                        SetPostingDate(PostingDateFilter);
-                        ContactType := ContactType::" ";
-                        ContactNo := '';
-                        ExtDocNo := '';
-                        CarteraDocNoFilterOnAfterValidate();
                     end;
                 }
                 field(PostingDateFilter; PostingDateFilter)
@@ -602,21 +586,6 @@ page 344 Navigate
         SourceType: Text[30];
         SourceNo: Code[20];
         SourceName: Text[100];
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        CarteraDoc: Record "Cartera Doc.";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        PostedCarteraDoc: Record "Posted Cartera Doc.";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        ClosedCarteraDoc: Record "Closed Cartera Doc.";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        PostedBillGr: Record "Posted Bill Group";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        ClosedBillGr: Record "Closed Bill Group";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        PostedPmtOrd: Record "Posted Payment Order";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        ClosedPmtOrd: Record "Closed Payment Order";
-        CarteraDocNoFilter: Text[250];
         ShowEnable: Boolean;
         PrintEnable: Boolean;
         DocTypeEnable: Boolean;
@@ -780,7 +749,7 @@ page 344 Navigate
                         SalesShptHeader.SetFilter("External Document No.", ExtDocNo);
                         Rec.InsertIntoDocEntry(Database::"Sales Shipment Header", PostedSalesShipmentTxt, SalesShptHeader.Count);
                     end;
-                    if SalesInvHeader.ReadPermission() and (CarteraDocNoFilter = '') then begin
+                    if SalesInvHeader.ReadPermission() then begin
                         SalesInvHeader.Reset();
                         SalesInvHeader.SetCurrentKey("Sell-to Customer No.", "External Document No.");
                         SalesInvHeader.SetFilter("Sell-to Customer No.", ContactNo);
@@ -795,7 +764,7 @@ page 344 Navigate
                         ReturnRcptHeader.SetFilter("External Document No.", ExtDocNo);
                         Rec.InsertIntoDocEntry(Database::"Return Receipt Header", PostedReturnReceiptTxt, ReturnRcptHeader.Count);
                     end;
-                    if SalesCrMemoHeader.ReadPermission() and (CarteraDocNoFilter = '') then begin
+                    if SalesCrMemoHeader.ReadPermission() then begin
                         SalesCrMemoHeader.Reset();
                         SalesCrMemoHeader.SetCurrentKey("Sell-to Customer No.", "External Document No.");
                         SalesCrMemoHeader.SetFilter("Sell-to Customer No.", ContactNo);
@@ -907,7 +876,7 @@ page 344 Navigate
         FindPostedGenJournalLine();
         FindSpendRequests();
 
-        if NoTaxableEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if NoTaxableEntry.ReadPermission() then begin
             NoTaxableEntry.Reset();
             NoTaxableEntry.SetCurrentKey("Document No.", "Posting Date");
             NoTaxableEntry.SetFilter("Document No.", DocNoFilter);
@@ -926,22 +895,18 @@ page 344 Navigate
         OnBeforeFindCustLedgerEntry(CustLedgEntry, DocNoFilter, PostingDateFilter, ExtDocNo, IsHandled);
         if CustLedgEntry.ReadPermission() and (not IsHandled) then begin
             CustLedgEntry.Reset();
-            CustLedgEntry.SetCurrentKey("Document No.", "Document Type");
+            CustLedgEntry.SetCurrentKey("Document No.");
             CustLedgEntry.SetFilter("Document No.", DocNoFilter);
-            CustLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
             CustLedgEntry.SetFilter("Posting Date", PostingDateFilter);
             CustLedgEntry.SetFilter("External Document No.", ExtDocNo);
             OnFindCustEntriesOnAfterSetFilters(CustLedgEntry);
             Rec.InsertIntoDocEntry(Database::"Cust. Ledger Entry", CustLedgEntry.TableCaption(), CustLedgEntry.Count);
-            if CustLedgEntry.FindFirst() then
-                FindCarteraDocs(CarteraDoc.Type::Receivable.AsInteger());
         end;
         if (DocNoFilter <> '') or (PostingDateFilter <> '') then
             if DtldCustLedgEntry.ReadPermission() then begin
                 DtldCustLedgEntry.Reset();
-                DtldCustLedgEntry.SetCurrentKey("Document No.", "Document Type");
+                DtldCustLedgEntry.SetCurrentKey("Document No.");
                 DtldCustLedgEntry.SetFilter("Document No.", DocNoFilter);
-                DtldCustLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
                 DtldCustLedgEntry.SetFilter("Posting Date", PostingDateFilter);
                 OnFindCustEntriesOnAfterDtldCustLedgEntriesSetFilters(DtldCustLedgEntry);
                 Rec.InsertIntoDocEntry(Database::"Detailed Cust. Ledg. Entry", DtldCustLedgEntry.TableCaption(), DtldCustLedgEntry.Count);
@@ -957,20 +922,16 @@ page 344 Navigate
             VendLedgEntry.Reset();
             VendLedgEntry.SetCurrentKey("Document No.");
             VendLedgEntry.SetFilter("Document No.", DocNoFilter);
-            VendLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
             VendLedgEntry.SetFilter("External Document No.", ExtDocNo);
             VendLedgEntry.SetFilter("Posting Date", PostingDateFilter);
             OnFindVendEntriesOnAfterSetFilters(VendLedgEntry);
             Rec.InsertIntoDocEntry(Database::"Vendor Ledger Entry", VendLedgEntry.TableCaption(), VendLedgEntry.Count);
-            if VendLedgEntry.FindFirst() then
-                FindCarteraDocs(CarteraDoc.Type::Payable.AsInteger());
         end;
         if (DocNoFilter <> '') or (PostingDateFilter <> '') then
             if DtldVendLedgEntry.ReadPermission() then begin
                 DtldVendLedgEntry.Reset();
                 DtldVendLedgEntry.SetCurrentKey("Document No.");
                 DtldVendLedgEntry.SetFilter("Document No.", DocNoFilter);
-                DtldVendLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
                 DtldVendLedgEntry.SetFilter("Posting Date", PostingDateFilter);
                 OnFindVendEntriesOnAfterDtldVendLedgEntriesSetFilters(DtldVendLedgEntry);
                 Rec.InsertIntoDocEntry(Database::"Detailed Vendor Ledg. Entry", DtldVendLedgEntry.TableCaption(), DtldVendLedgEntry.Count);
@@ -988,12 +949,11 @@ page 344 Navigate
             BankAccLedgEntry.Reset();
             BankAccLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             BankAccLedgEntry.SetFilter("Document No.", DocNoFilter);
-            BankAccLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
             BankAccLedgEntry.SetFilter("Posting Date", PostingDateFilter);
             OnFindBankEntriesOnAfterSetFilters(BankAccLedgEntry);
             Rec.InsertIntoDocEntry(Database::"Bank Account Ledger Entry", BankAccLedgEntry.TableCaption(), BankAccLedgEntry.Count);
         end;
-        if CheckLedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if CheckLedgEntry.ReadPermission() then begin
             CheckLedgEntry.Reset();
             CheckLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             CheckLedgEntry.SetFilter("Document No.", DocNoFilter);
@@ -1011,7 +971,6 @@ page 344 Navigate
             GLEntry.Reset();
             GLEntry.SetCurrentKey("Document No.", "Posting Date");
             GLEntry.SetFilter("Document No.", DocNoFilter);
-            GLEntry.SetFilter("Bill No.", CarteraDocNoFilter);
             GLEntry.SetFilter("Posting Date", PostingDateFilter);
             GLEntry.SetFilter("External Document No.", ExtDocNo);
             OnFindGLEntriesOnAfterSetFilters(GLEntry);
@@ -1023,7 +982,7 @@ page 344 Navigate
     begin
         if (DocNoFilter = '') and (PostingDateFilter = '') then
             exit;
-        if VATEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if VATEntry.ReadPermission() then begin
             VATEntry.Reset();
             VATEntry.SetCurrentKey("Document No.", "Posting Date");
             VATEntry.SetFilter("Document No.", DocNoFilter);
@@ -1037,7 +996,7 @@ page 344 Navigate
     begin
         if (DocNoFilter = '') and (PostingDateFilter = '') then
             exit;
-        if FALedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if FALedgEntry.ReadPermission() then begin
             FALedgEntry.Reset();
             FALedgEntry.SetCurrentKey("Document No.", "Posting Date");
             FALedgEntry.SetFilter("Document No.", DocNoFilter);
@@ -1045,14 +1004,14 @@ page 344 Navigate
             OnFindFAEntriesOnAfterSetFilters(FALedgEntry);
             Rec.InsertIntoDocEntry(Database::"FA Ledger Entry", FALedgEntry.TableCaption(), FALedgEntry.Count);
         end;
-        if MaintenanceLedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if MaintenanceLedgEntry.ReadPermission() then begin
             MaintenanceLedgEntry.Reset();
             MaintenanceLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             MaintenanceLedgEntry.SetFilter("Document No.", DocNoFilter);
             MaintenanceLedgEntry.SetFilter("Posting Date", PostingDateFilter);
             Rec.InsertIntoDocEntry(Database::"Maintenance Ledger Entry", MaintenanceLedgEntry.TableCaption(), MaintenanceLedgEntry.Count);
         end;
-        if InsuranceCovLedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if InsuranceCovLedgEntry.ReadPermission() then begin
             InsuranceCovLedgEntry.Reset();
             InsuranceCovLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             InsuranceCovLedgEntry.SetFilter("Document No.", DocNoFilter);
@@ -1079,7 +1038,7 @@ page 344 Navigate
             ValueEntry.SetFilter("Posting Date", PostingDateFilter);
             Rec.InsertIntoDocEntry(Database::"Value Entry", ValueEntry.TableCaption(), ValueEntry.Count);
         end;
-        if PhysInvtLedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if PhysInvtLedgEntry.ReadPermission() then begin
             PhysInvtLedgEntry.Reset();
             PhysInvtLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             PhysInvtLedgEntry.SetFilter("Document No.", DocNoFilter);
@@ -1106,7 +1065,7 @@ page 344 Navigate
     begin
         if (DocNoFilter = '') and (PostingDateFilter = '') then
             exit;
-        if ResLedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if ResLedgEntry.ReadPermission() then begin
             ResLedgEntry.Reset();
             ResLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             ResLedgEntry.SetFilter("Document No.", DocNoFilter);
@@ -1146,7 +1105,7 @@ page 344 Navigate
     begin
         if (DocNoFilter = '') and (PostingDateFilter = '') then
             exit;
-        if JobLedgEntry.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if JobLedgEntry.ReadPermission() then begin
             JobLedgEntry.Reset();
             JobLedgEntry.SetCurrentKey("Document No.", "Posting Date");
             JobLedgEntry.SetFilter("Document No.", DocNoFilter);
@@ -1188,37 +1147,6 @@ page 344 Navigate
         FindPstdPhysInvtOrderHdr();
         FindPostedInvtReceipt();
         FindPostedInvtShipment();
-
-        if (DocNoFilter <> '') or (PostingDateFilter <> '') then begin
-            if PostedBillGr.ReadPermission() and (CarteraDocNoFilter = '') then begin
-                PostedBillGr.Reset();
-                PostedBillGr.SetCurrentKey("No.");
-                PostedBillGr.SetFilter("No.", DocNoFilter);
-                PostedBillGr.SetFilter("Posting Date", PostingDateFilter);
-                Rec.InsertIntoDocEntry(DATABASE::"Posted Bill Group", PostedBillGr.TableCaption(), PostedBillGr.Count);
-            end;
-            if ClosedBillGr.ReadPermission() and (CarteraDocNoFilter = '') then begin
-                ClosedBillGr.Reset();
-                ClosedBillGr.SetCurrentKey("No.");
-                ClosedBillGr.SetFilter("No.", DocNoFilter);
-                ClosedBillGr.SetFilter("Posting Date", PostingDateFilter);
-                Rec.InsertIntoDocEntry(DATABASE::"Closed Bill Group", ClosedBillGr.TableCaption(), ClosedBillGr.Count);
-            end;
-            if PostedPmtOrd.ReadPermission() and (CarteraDocNoFilter = '') then begin
-                PostedPmtOrd.Reset();
-                PostedPmtOrd.SetCurrentKey("No.");
-                PostedPmtOrd.SetFilter("No.", DocNoFilter);
-                PostedPmtOrd.SetFilter("Posting Date", PostingDateFilter);
-                Rec.InsertIntoDocEntry(DATABASE::"Posted Payment Order", PostedPmtOrd.TableCaption(), PostedPmtOrd.Count);
-            end;
-            if ClosedPmtOrd.ReadPermission() and (CarteraDocNoFilter = '') then begin
-                ClosedPmtOrd.Reset();
-                ClosedPmtOrd.SetCurrentKey("No.");
-                ClosedPmtOrd.SetFilter("No.", DocNoFilter);
-                ClosedPmtOrd.SetFilter("Posting Date", PostingDateFilter);
-                Rec.InsertIntoDocEntry(DATABASE::"Closed Payment Order", ClosedPmtOrd.TableCaption(), ClosedPmtOrd.Count);
-            end;
-        end;
 
         OnAfterFindPostedDocuments(DocNoFilter, PostingDateFilter, Rec);
     end;
@@ -1330,7 +1258,7 @@ page 344 Navigate
 
     local procedure FindPurchRcptHeader()
     begin
-        if PurchRcptHeader.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if PurchRcptHeader.ReadPermission() then begin
             PurchRcptHeader.Reset();
             PurchRcptHeader.SetFilter("No.", DocNoFilter);
             PurchRcptHeader.SetFilter("Posting Date", PostingDateFilter);
@@ -1344,7 +1272,7 @@ page 344 Navigate
 
     local procedure FindPurchInvoiceHeader()
     begin
-        if PurchInvHeader.ReadPermission() and (CarteraDocNoFilter = '') then begin
+        if PurchInvHeader.ReadPermission() then begin
             PurchInvHeader.Reset();
             PurchInvHeader.SetFilter("No.", DocNoFilter);
             PurchInvHeader.SetFilter("Posting Date", PostingDateFilter);
@@ -1764,20 +1692,6 @@ page 344 Navigate
                         PAGE.Run(PAGE::"Posted Invt. Shipment", PostedInvtShptHeader)
                     else
                         PAGE.Run(0, PostedInvtShptHeader);
-                DATABASE::"Cartera Doc.":
-                    PAGE.Run(0, CarteraDoc);
-                DATABASE::"Posted Cartera Doc.":
-                    PAGE.Run(0, PostedCarteraDoc);
-                DATABASE::"Closed Cartera Doc.":
-                    PAGE.Run(0, ClosedCarteraDoc);
-                DATABASE::"Posted Bill Group":
-                    PAGE.Run(0, PostedBillGr);
-                DATABASE::"Closed Bill Group":
-                    PAGE.Run(0, ClosedBillGr);
-                DATABASE::"Posted Payment Order":
-                    PAGE.Run(0, PostedPmtOrd);
-                DATABASE::"Closed Payment Order":
-                    PAGE.Run(0, ClosedPmtOrd);
                 DATABASE::"No Taxable Entry":
                     PAGE.Run(0, NoTaxableEntry);
             end;
@@ -2010,6 +1924,7 @@ page 344 Navigate
         ItemTrackingFilters.SetFilter("Package No. Filter", PackageNoFilter);
 
         OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(ItemTrackingFilters);
+        OnFindTrackingRecordsOnAfterSetTrackingFilters(ItemTrackingFilters);
 
         Clear(ItemTrackingNavigateMgt);
         ItemTrackingNavigateMgt.FindTrackingRecords(ItemTrackingFilters);
@@ -2073,51 +1988,12 @@ page 344 Navigate
         ContactNo := '';
     end;
 
-    [Scope('OnPrem')]
-    procedure FindCarteraDocs(AccountType: Option Receivable,Payable)
-    begin
-        if (DocNoFilter = '') and (PostingDateFilter = '') and (CarteraDocNoFilter = '') then
-            exit;
-
-        if CarteraDoc.ReadPermission() then begin
-            CarteraDoc.Reset();
-            CarteraDoc.SetCurrentKey(Type, "Original Document No.");
-            CarteraDoc.SetFilter("Original Document No.", DocNoFilter);
-            CarteraDoc.SetFilter("No.", CarteraDocNoFilter);  // C2
-            CarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-            CarteraDoc.SetRange(Type, AccountType);
-            Rec.InsertIntoDocEntry(DATABASE::"Cartera Doc.", CarteraDoc.TableCaption(), CarteraDoc.Count);
-        end;
-        if PostedCarteraDoc.ReadPermission() then begin
-            PostedCarteraDoc.Reset();
-            PostedCarteraDoc.SetCurrentKey(Type, "Original Document No.");
-            PostedCarteraDoc.SetFilter("Original Document No.", DocNoFilter);
-            PostedCarteraDoc.SetFilter("No.", CarteraDocNoFilter);  // C2
-            PostedCarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-            Rec.InsertIntoDocEntry(DATABASE::"Posted Cartera Doc.", PostedCarteraDoc.TableCaption(), PostedCarteraDoc.Count);
-        end;
-        if ClosedCarteraDoc.ReadPermission() then begin
-            ClosedCarteraDoc.Reset();
-            ClosedCarteraDoc.SetCurrentKey(Type, "Original Document No.");
-            ClosedCarteraDoc.SetFilter("Original Document No.", DocNoFilter);
-            ClosedCarteraDoc.SetFilter("No.", CarteraDocNoFilter);  // C2
-            ClosedCarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-            ClosedCarteraDoc.SetRange(Type, AccountType);
-            Rec.InsertIntoDocEntry(DATABASE::"Closed Cartera Doc.", ClosedCarteraDoc.TableCaption(), ClosedCarteraDoc.Count);
-        end;
-    end;
-
     local procedure DocNoFilterOnAfterValidate()
     begin
         ClearSourceInfo();
     end;
 
     local procedure PostingDateFilterOnAfterValidate()
-    begin
-        ClearSourceInfo();
-    end;
-
-    local procedure CarteraDocNoFilterOnAfterValidate()
     begin
         ClearSourceInfo();
     end;
@@ -2514,6 +2390,11 @@ page 344 Navigate
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(var ItemTrackingFilters: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnFindTrackingRecordsOnAfterSetTrackingFilters(var ItemTrackingFilters: Record Item)
     begin
     end;
 

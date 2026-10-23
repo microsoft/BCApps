@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-using Microsoft;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -15,7 +14,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -266,22 +264,6 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(10700; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
-        }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
         }
         field(7000004; "Excluded from calculation"; Boolean)
         {

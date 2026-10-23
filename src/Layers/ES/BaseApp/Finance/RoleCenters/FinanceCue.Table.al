@@ -6,7 +6,6 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.Reconciliation;
 using Microsoft.EServices.EDocument;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -282,32 +281,6 @@ table 9054 "Finance Cue"
             CalcFormula = count("Reminder Automation Error" where(Dismissed = const(false)));
             Caption = 'Reminder Automation Failures';
             ToolTip = 'Specifies the number of failures that occured for the existing reminder automations.';
-        }
-        field(7000000; "Receivable Documents"; Integer)
-        {
-            CalcFormula = count("Cartera Doc." where(Type = const(Receivable),
-                                                      "Bill Gr./Pmt. Order No." = const('')));
-            Caption = 'Receivable Documents';
-            FieldClass = FlowField;
-        }
-        field(7000001; "Payable Documents"; Integer)
-        {
-            CalcFormula = count("Cartera Doc." where(Type = const(Payable),
-                                                      "Bill Gr./Pmt. Order No." = const('')));
-            Caption = 'Payable Documents';
-            FieldClass = FlowField;
-        }
-        field(7000002; "Posted Receivable Documents"; Integer)
-        {
-            CalcFormula = count("Posted Cartera Doc." where(Type = const(Receivable)));
-            Caption = 'Posted Receivable Documents';
-            FieldClass = FlowField;
-        }
-        field(7000003; "Posted Payable Documents"; Integer)
-        {
-            CalcFormula = count("Posted Cartera Doc." where(Type = const(Payable)));
-            Caption = 'Posted Payable Documents';
-            FieldClass = FlowField;
         }
     }
 

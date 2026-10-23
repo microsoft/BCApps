@@ -79,11 +79,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         NotAllowedPostingDatesErr: Label 'Posting date is not within the range of allowed posting dates.';
 #pragma warning disable AA0470
         LatestEntryMustBeApplicationErr: Label 'The latest Transaction No. must be an application in Cust. Ledger Entry No. %1.';
-#pragma warning restore AA0470
-#pragma warning disable AA0470
         CannotUnapplyExchRateErr: Label 'You cannot unapply the entry with the posting date %1, because the exchange rate for the additional reporting currency has been changed.';
-#pragma warning restore AA0470
-#pragma warning disable AA0470
         CannotUnapplyInReversalErr: Label 'You cannot unapply Cust. Ledger Entry No. %1 because the entry is part of a reversal.';
 #pragma warning restore AA0470
         CannotApplyClosedEntriesErr: Label 'One or more of the entries that you selected is closed. You cannot apply closed entries.';
@@ -425,6 +421,8 @@ codeunit 226 "CustEntry-Apply Posted Entries"
                     CheckAdditionalCurrency(ApplyUnapplyParameters."Posting Date", DtldCustLedgEntry."Posting Date");
                     AddCurrChecked := true;
                 end;
+                CheckInitialDocumentType(
+                    DtldCustLedgEntry, ApplyUnapplyParameters."Document No.", ApplyUnapplyParameters."Posting Date", CommitChanges);
                 CheckReversal(DtldCustLedgEntry."Cust. Ledger Entry No.");
                 if DtldCustLedgEntry."Transaction No." <> 0 then
                     CheckUnappliedEntries(DtldCustLedgEntry);
@@ -495,6 +493,18 @@ codeunit 226 "CustEntry-Apply Posted Entries"
             exit;
 
         ExchRateAdjmtRunHandler.RunCustExchRateAdjustment(GenJnlLine, TempCustLedgerEntry);
+    end;
+
+    local procedure CheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; var CommitChanges: Boolean)
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeCheckInitialDocumentType(DtldCustLedgEntry, DocNo, PostingDate, CommitChanges, IsHandled);
+        if IsHandled then
+            exit;
+
+        OnAfterCheckInitialDocumentType(DtldCustLedgEntry);
     end;
 
     local procedure CheckPostingDate(ApplyUnapplyParameters: Record "Apply Unapply Parameters"; var MaxPostingDate: Date)
@@ -1064,6 +1074,28 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// <param name="ApplyUnapplyParameters">The application parameters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyOnBeforeCustPostApplyCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyUnapplyParameters: Record "Apply Unapply Parameters")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after checking initial document Type
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry");
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before checking initial document Type
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="PostingDate">The posting date.</param>
+    /// <param name="CommitChanges">Indicates whether to commit changes.</param>
+    /// <param name="IsHandled">Indicates whether the event is handled.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; var CommitChanges: Boolean; var IsHandled: Boolean);
     begin
     end;
 
