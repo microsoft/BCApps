@@ -26,7 +26,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
 {
     Subtype = Install;
     Access = Internal;
-    Permissions = tabledata "Retention Period" = ri, tabledata "Retention Policy Setup" = ri, tabledata "Retention Policy Setup Line" = r;
+    Permissions = tabledata "Retention Period" = ri, tabledata "Retention Policy Setup" = rimd, tabledata "Retention Policy Setup Line" = rm;
 
     trigger OnInstallAppPerCompany()
     begin
@@ -287,6 +287,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
         RecRef.GetTable(PostedInvtPickHeader);
         RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, "Retention Period Enum"::"1 Year", PostedInvtPickHeader.FieldNo("Registering Date"), true, false, RecRef);
         RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Pick Header", PostedInvtPickHeader.FieldNo("Registering Date"), TableFilters);
+        AddDefaultTableFiltersToExistingRetentionPolicySetup(Database::"Posted Invt. Pick Header");
 
         if not IsInitialSetup then
             exit;
@@ -308,11 +309,72 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
         RecRef.GetTable(PostedInvtPutawayHeader);
         RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, "Retention Period Enum"::"1 Year", PostedInvtPutawayHeader.FieldNo("Registering Date"), true, false, RecRef);
         RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Put-away Header", PostedInvtPutawayHeader.FieldNo("Registering Date"), TableFilters);
+        AddDefaultTableFiltersToExistingRetentionPolicySetup(Database::"Posted Invt. Put-away Header");
 
         if not IsInitialSetup then
             exit;
 
         CreateRetentionPolicySetup(Database::"Posted Invt. Put-away Header", FindOrCreateRetentionPeriod(Enum::"Retention Period Enum"::"1 Year"));
+    end;
+
+    local procedure AddDefaultTableFiltersToExistingRetentionPolicySetup(TableId: Integer)
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        PreviousRetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        LastExistingLineNo: Integer;
+    begin
+        if not RetentionPolicySetup.Get(TableId) then
+            exit;
+
+        RetentionPolicySetupLine.SetRange("Table ID", TableId);
+        if RetentionPolicySetupLine.FindSet() then
+            repeat
+                if RetentionPolicySetupLine.IsLocked() then
+                    exit; // the default table filters are already in place
+                LastExistingLineNo := RetentionPolicySetupLine."Line No.";
+            until RetentionPolicySetupLine.Next() = 0;
+
+        PreviousRetentionPolicySetup := RetentionPolicySetup;
+
+        // Deleting without running the OnDelete trigger keeps the existing (customer) lines.
+        // Re-inserting the setup makes the System Application append the default table filters, including the locked ones.
+        RetentionPolicySetup.Delete(false);
+        RetentionPolicySetup.Enabled := false;
+        RetentionPolicySetup.Insert(true);
+
+        if PreviousRetentionPolicySetup."Apply to all records" then begin
+            // existing lines were not in effect while the policy applied to all records, so keep them inactive
+            RetentionPolicySetupLine.SetFilter("Line No.", '..%1', LastExistingLineNo);
+            if RetentionPolicySetupLine.FindSet() then
+                repeat
+                    RetentionPolicySetupLine.Validate(Enabled, false);
+                    RetentionPolicySetupLine.Modify(true);
+                until RetentionPolicySetupLine.Next() = 0;
+        end;
+
+        RetentionPolicySetupLine.SetFilter("Line No.", '>%1', LastExistingLineNo);
+        if RetentionPolicySetupLine.FindSet() then
+            repeat
+                if not RetentionPolicySetupLine.IsLocked() then begin
+                    if PreviousRetentionPolicySetup."Apply to all records" then begin
+                        // carry the customer's retention period and date field over to the line that replaces "Apply to all records"
+                        if PreviousRetentionPolicySetup."Retention Period" <> '' then
+                            RetentionPolicySetupLine.Validate("Retention Period", PreviousRetentionPolicySetup."Retention Period");
+                        if PreviousRetentionPolicySetup."Date Field No." <> 0 then
+                            RetentionPolicySetupLine.Validate("Date Field No.", PreviousRetentionPolicySetup."Date Field No.");
+                    end else
+                        // the customer already defined which records to delete, so don't add a new deletion rule
+                        RetentionPolicySetupLine.Validate(Enabled, false);
+                    RetentionPolicySetupLine.Modify(true);
+                end;
+            until RetentionPolicySetupLine.Next() = 0;
+
+        RetentionPolicySetup.Get(TableId);
+        RetentionPolicySetup.Validate("Apply to all records", false);
+        if PreviousRetentionPolicySetup.Enabled then
+            RetentionPolicySetup.Validate(Enabled, true);
+        RetentionPolicySetup.Modify(true);
     end;
 
     local procedure AddRegisteredInvtMovementHdrToAllowedTables(IsInitialSetup: Boolean)
