@@ -365,6 +365,7 @@ codeunit 139912 "Customer Deferrals Test"
         // [WHEN] The contract billing document is created and posted
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
         Assert.AreEqual(SalesHeader."Document Type"::"Credit Memo", SalesHeader."Document Type", UnexpectedDocumentTypeErr);
+        ContractTestLibrary.SetReasonCode(SalesHeader);
         ContractTestLibrary.ResetPostingNoSeriesDateUsage();
         PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
@@ -428,6 +429,7 @@ codeunit 139912 "Customer Deferrals Test"
         SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::" ";
         SalesCrMemoHeader."Applies-to Doc. No." := '';
         SalesCrMemoHeader.Modify(false);
+        ContractTestLibrary.SetReasonCode(SalesCrMemoHeader);
         ClearCorrectionDocumentNoFromBillingLines(SalesCrMemoHeader."No.");
         ContractTestLibrary.ResetPostingNoSeriesDateUsage();
         CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
@@ -1631,6 +1633,7 @@ codeunit 139912 "Customer Deferrals Test"
     local procedure PostSalesCreditMemo()
     begin
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
+        ContractTestLibrary.SetReasonCode(SalesCrMemoHeader);
         CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
     end;
 

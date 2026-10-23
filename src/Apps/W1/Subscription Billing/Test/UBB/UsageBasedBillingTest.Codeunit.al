@@ -249,6 +249,7 @@ codeunit 148153 "Usage Based Billing Test"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         UsageDataBilling: Record "Usage Data Billing";
+        PostedCreditMemoNo: Code[20];
         UsageAmount: Decimal;
     begin
         // [SCENARIO] Customer usage with a negative amount is billed as a contract credit memo that credits the customer
@@ -261,14 +262,15 @@ codeunit 148153 "Usage Based Billing Test"
         UsageAmount := NegateUsageDataBillingAmounts("Service Partner"::Customer);
 
         // [WHEN] The contract billing document is created and posted
-        PostDocument := true;
-        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
-
-        // [THEN] A posted credit memo carries the usage amount as a positive (credited) amount
-        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Credit Memo");
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Credit Memo");
         UsageDataBilling.FindFirst();
-        SalesCrMemoLine.SetRange("Document No.", UsageDataBilling."Document No.");
+        SalesHeader.Get(SalesHeader."Document Type"::"Credit Memo", UsageDataBilling."Document No.");
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostedCreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The posted credit memo carries the usage amount as a positive (credited) amount
+        SalesCrMemoLine.SetRange("Document No.", PostedCreditMemoNo);
         SalesCrMemoLine.CalcSums(Amount);
         Assert.AreEqual(-UsageAmount, SalesCrMemoLine.Amount, CreditMemoAmountMismatchLbl);
 
@@ -278,7 +280,7 @@ codeunit 148153 "Usage Based Billing Test"
 
         // [THEN] The customer ledger entry of the credit memo reduces the customer balance
         CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
-        CustLedgerEntry.SetRange("Document No.", UsageDataBilling."Document No.");
+        CustLedgerEntry.SetRange("Document No.", PostedCreditMemoNo);
         CustLedgerEntry.FindFirst();
         CustLedgerEntry.CalcFields(Amount);
         Assert.IsTrue(CustLedgerEntry.Amount < 0, CustomerNotCreditedLbl);

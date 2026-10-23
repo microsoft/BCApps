@@ -377,6 +377,7 @@ codeunit 139913 "Vendor Deferrals Test"
         // [WHEN] The contract billing document is created and posted
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
         Assert.AreEqual(PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type", UnexpectedDocumentTypeErr);
+        ContractTestLibrary.SetReasonCode(PurchaseHeader);
         ContractTestLibrary.ResetPostingNoSeriesDateUsage();
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
@@ -441,6 +442,7 @@ codeunit 139913 "Vendor Deferrals Test"
         PurchaseCrMemoHeader."Applies-to Doc. Type" := PurchaseCrMemoHeader."Applies-to Doc. Type"::" ";
         PurchaseCrMemoHeader."Applies-to Doc. No." := '';
         PurchaseCrMemoHeader.Modify(false);
+        ContractTestLibrary.SetReasonCode(PurchaseCrMemoHeader);
         ClearCorrectionDocumentNoFromBillingLines(PurchaseCrMemoHeader."No.");
         ContractTestLibrary.ResetPostingNoSeriesDateUsage();
         CorrectedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseCrMemoHeader, true, true);
@@ -1830,6 +1832,7 @@ codeunit 139913 "Vendor Deferrals Test"
         CorrectPostedPurchaseInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseCrMemoHeader);
         PurchaseCrMemoHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseCrMemoHeader.Modify(false);
+        ContractTestLibrary.SetReasonCode(PurchaseCrMemoHeader);
         CorrectedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseCrMemoHeader, true, true);
     end;
 

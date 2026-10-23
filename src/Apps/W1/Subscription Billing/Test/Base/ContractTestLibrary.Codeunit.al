@@ -1239,6 +1239,24 @@ codeunit 139685 "Contract Test Library"
         end;
     end;
 
+    procedure SetReasonCode(var PurchaseHeader: Record "Purchase Header")
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        LibraryERM.CreateReasonCode(ReasonCode);
+        PurchaseHeader.Validate("Reason Code", ReasonCode.Code);
+        PurchaseHeader.Modify(false);
+    end;
+
+    procedure SetReasonCode(var SalesHeader: Record "Sales Header")
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        LibraryERM.CreateReasonCode(ReasonCode);
+        SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesHeader.Modify(false);
+    end;
+
     procedure SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(var NewItem: Record Item; ItemServiceCommitmentType: Enum "Item Service Commitment Type"; ServiceCommitmentPackageCode: Code[20])
     begin
         CreateItemWithServiceCommitmentOption(NewItem, ItemServiceCommitmentType);
