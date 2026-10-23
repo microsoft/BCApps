@@ -6,10 +6,8 @@ namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Finance.GeneralLedger.Journal;
-using System;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 report 15000003 "Rem. payment order - Import"
 {
@@ -337,13 +335,15 @@ report 15000003 "Rem. payment order - Import"
 
     local procedure DetermineFileType(Filename: Text[250]): Integer
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ImportPain002: Codeunit "Import Pain002";
         ImportCAMT054: Codeunit "Import CAMT054";
-        XmlDocument: DotNet XmlDocument;
+        ImportSEPACommon: Codeunit "Import SEPA Common";
+        ReturnXmlDocument: XmlDocument;
+        RootXmlElement: XmlElement;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(Filename, XmlDocument);
-        case XmlDocument.DocumentElement.NamespaceURI of
+        ImportSEPACommon.LoadXmlDocumentFromServerFile(Filename, ReturnXmlDocument);
+        ReturnXmlDocument.GetRoot(RootXmlElement);
+        case RootXmlElement.NamespaceUri() of
             ImportPain002.GetNamespace():
                 exit(ReturnFile.Format::Pain002);
             ImportCAMT054.GetNamespace():
