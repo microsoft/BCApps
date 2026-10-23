@@ -287,7 +287,6 @@ page 29 "Vendor Ledger Entries"
                 field("Dispute Status"; Rec."Dispute Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    Visible = false;
                 }
                 field("On Hold"; Rec."On Hold")
                 {

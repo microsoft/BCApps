@@ -31,8 +31,7 @@ tableextension 8401 "IC Dimension" extends Dimension
             begin
                 if "Map-to IC Dimension Code" <> xRec."Map-to IC Dimension Code" then begin
                     DimensionValue.SetRange("Dimension Code", Code);
-                    DimensionValue.ModifyAll("Map-to IC Dimension Code", "Map-to IC Dimension Code");
-                    DimensionValue.ModifyAll("Map-to IC Dimension Value Code", '');
+                    DimensionValue.ModifyAll("Map-to IC Dimension Code", "Map-to IC Dimension Code", "Map-to IC Dimension Value Code", '');
                 end;
             end;
         }

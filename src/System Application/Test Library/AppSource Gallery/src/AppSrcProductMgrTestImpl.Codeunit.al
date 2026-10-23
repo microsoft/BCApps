@@ -36,6 +36,15 @@ codeunit 132935 "AppSrc Product Mgr. Test Impl."
     end;
 
     /// <summary>
+    /// Opens the in-client AppSource product details page.
+    /// </summary>
+    /// <param name="UniqueProductIDValue">The unique product ID of the product to show.</param>
+    procedure OpenProductDetailsPage(UniqueProductIDValue: Text)
+    begin
+        AppSourceProductManager.OpenProductDetailsPage(UniqueProductIDValue);
+    end;
+
+    /// <summary>
     /// Extracts the AppID from the Unique Product ID.
     /// </summary>
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product as defined in MicrosoftAppSource</param>

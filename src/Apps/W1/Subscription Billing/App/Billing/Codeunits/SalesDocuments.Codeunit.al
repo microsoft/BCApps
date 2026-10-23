@@ -171,8 +171,7 @@ codeunit 8063 "Sales Documents"
         if not BillingLine.IsEmpty() then begin
             BillingLine.ModifyAll("Document Type", BillingLine."Document Type"::None, false);
             BillingLine.SetRange("Document Type", BillingLine."Document Type"::None);
-            BillingLine.ModifyAll("Document No.", '', false);
-            BillingLine.ModifyAll("Document Line No.", 0, false);
+            BillingLine.ModifyAll("Document No.", '', "Document Line No.", 0, false);
         end
     end;
 
