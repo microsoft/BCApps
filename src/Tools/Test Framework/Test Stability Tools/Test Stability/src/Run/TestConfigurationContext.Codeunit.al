@@ -3,12 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
+
+using System.TestTools.TestRunner;
 
 /// <summary>
 /// The current suite's configuration, loaded before test permissions are applied.
 /// </summary>
-codeunit 130469 "Test Configuration Context"
+codeunit 130482 "Test Configuration Context"
 {
     SingleInstance = true;
     Permissions = tabledata "AL Test Suite" = r,

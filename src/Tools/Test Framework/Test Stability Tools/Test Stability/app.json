@@ -1,0 +1,53 @@
+{
+  "id": "7432a170-5fb0-4f95-9b1d-b0ffcbec19bc",
+  "name": "Test Stability",
+  "publisher": "Microsoft",
+  "brief": "Generates and runs test suites with stability configurations.",
+  "description": "Configures random seeds, WorkDate offsets, one-by-one execution and reverse codeunit order in generated test suites. Extends Test Runner with stability configuration, generation and execution actions.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2131960",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
+      "publisher": "Microsoft",
+      "name": "Test Runner",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+      "publisher": "Microsoft",
+      "name": "Any",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
+      "publisher": "Microsoft",
+      "name": "Application Test Library",
+      "version": "30.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 130482,
+      "to": 130499
+    }
+  ],
+  "features": [
+    "TranslationFile",
+    "GenerateCaptions"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "Cloud"
+}

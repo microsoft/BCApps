@@ -120,7 +120,8 @@
     "../../../src/Tools/Test Framework/Test Libraries/Permissions Mock",
     "../../../src/Tools/Test Framework/Test Libraries/Variable Storage",
     "../../../src/Tools/Test Framework/Test Runner",
-    "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
+    "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates",
+    "../../../src/Tools/Test Framework/Test Stability Tools/Test Stability"
   ],
   "testFolders": [
     "../../../src/Apps/NA/MX_DIOT/test",

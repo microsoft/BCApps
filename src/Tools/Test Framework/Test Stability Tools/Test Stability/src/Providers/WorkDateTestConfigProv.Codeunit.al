@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
 
-codeunit 130476 "WorkDate Test Config. Prov." implements ITestConfigurationProvider
+codeunit 130486 "WorkDate Test Config. Prov." implements ITestConfigurationProvider
 {
     SingleInstance = true;
 

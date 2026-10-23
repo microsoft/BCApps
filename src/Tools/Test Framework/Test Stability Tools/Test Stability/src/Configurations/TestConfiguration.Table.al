@@ -3,12 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
+
+using System.TestTools.TestRunner;
 
 /// <summary>
 /// Settings for a stability suite generated from a parent test suite.
 /// </summary>
-table 130467 "Test Configuration"
+table 130482 "Test Configuration"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;

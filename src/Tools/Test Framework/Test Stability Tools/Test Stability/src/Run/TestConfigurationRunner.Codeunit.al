@@ -3,9 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
 
-codeunit 130474 "Test Configuration Runner"
+using System.TestTools.TestRunner;
+
+codeunit 130484 "Test Configuration Runner"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -42,8 +44,20 @@ codeunit 130474 "Test Configuration Runner"
         TestConfigurationContext.Reset();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
-    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeRunTestSuite', '', false, false)]
+    local procedure InitializeBeforeRunTestSuite(var TestMethodLine: Record "Test Method Line")
+    begin
+        Initialize(TestMethodLine."Test Suite");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterRunTestSuite', '', false, false)]
+    local procedure ResetAfterRunTestSuite()
+    begin
+        Reset();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ALTestRunner Reset Environment", 'OnAfterResetTestMethodEnvironment', '', false, false)]
+    local procedure ApplyAfterResetTestMethodEnvironment(var CurrentTestMethodLine: Record "Test Method Line")
     var
         TestConfigurationContext: Codeunit "Test Configuration Context";
         ProviderType: Enum "Test Configuration Provider";

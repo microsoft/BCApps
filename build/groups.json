@@ -462,6 +462,23 @@
     ]
   },
   {
+    "name": "Test Stability",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "TestFramework-Helpers",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Tests-Monitor Sensitive Fields",
     "groups": [
       {

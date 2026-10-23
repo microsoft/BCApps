@@ -3,20 +3,22 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
 
-tableextension 130466 "Test Config. AL Test Suite" extends "AL Test Suite"
+using System.TestTools.TestRunner;
+
+tableextension 130482 "Test Config. AL Test Suite" extends "AL Test Suite"
 {
     fields
     {
-        field(130466; "Created From Suite"; Code[10])
+        field(130482; "Created From Suite"; Code[10])
         {
             Caption = 'Created From Suite';
             DataClassification = CustomerContent;
             TableRelation = "AL Test Suite".Name;
             Editable = false;
         }
-        field(130467; Configuration; Code[20])
+        field(130483; Configuration; Code[20])
         {
             Caption = 'Configuration';
             DataClassification = CustomerContent;

@@ -259,20 +259,25 @@ codeunit 130500 "Any"
 
     /// <summary>.
     /// This function must be called from all functions that want to use Pseudo-random generation.
-    /// This function initializes the configured seed, or the default seed when none is configured.
+    /// This function initializes the default seed when no seed has been set.
     /// </summary>
     /// <param name="MaxValue">Upper range for the number</param>
     /// <returns>Pseudo-random integer value</returns>
     local procedure GetNextValue(MaxValue: Integer): Integer
     var
-        AnyConfiguration: Codeunit "Any Configuration";
+        InitialSeed: Integer;
     begin
-        if (not SeedSet) then
-            if AnyConfiguration.IsSet() then
-                SetSeed(AnyConfiguration.GetSeed())
-            else
-                SetSeed(1);
+        if (not SeedSet) then begin
+            InitialSeed := 1;
+            OnBeforeInitializeSeed(InitialSeed);
+            SetSeed(InitialSeed);
+        end;
 
         exit(Random(MaxValue));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInitializeSeed(var InitialSeed: Integer)
+    begin
     end;
 }

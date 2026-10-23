@@ -3,13 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.Utilities;
+namespace System.TestTools.TestStability;
+
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Carries the current suite's optional seed to random-library initialization.
 /// Explicit calls to random-library setters do not consult this state.
 /// </summary>
-codeunit 130501 "Any Configuration"
+codeunit 130487 "Any Configuration"
 {
     SingleInstance = true;
     InherentEntitlements = X;
@@ -39,5 +41,12 @@ codeunit 130501 "Any Configuration"
     procedure GetSeed(): Integer
     begin
         exit(SeedValue);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::Any, 'OnBeforeInitializeSeed', '', false, false)]
+    local procedure ApplyConfiguredSeed(var InitialSeed: Integer)
+    begin
+        if SeedIsSet then
+            InitialSeed := SeedValue;
     end;
 }

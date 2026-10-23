@@ -547,7 +547,10 @@ codeunit 130456 "Test Suite Mgt."
         exit(LineNoFilter);
     end;
 
-    internal procedure GetLineNoFilterForTestCodeunit(TestMethodLine: Record "Test Method Line"): Text
+    /// <summary>
+    /// Gets the line-number filter for the codeunit block containing the supplied test line.
+    /// </summary>
+    procedure GetLineNoFilterForTestCodeunit(TestMethodLine: Record "Test Method Line"): Text
     var
         CodeunitTestMethodLine: Record "Test Method Line";
         NextCodeunitTestMethodLine: Record "Test Method Line";

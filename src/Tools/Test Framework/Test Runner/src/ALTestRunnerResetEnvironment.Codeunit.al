@@ -19,6 +19,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
     begin
         CurrentWorkDate := WorkDate();
         ClearLegacyLibraries(TestPermissions::Disabled);
+        OnAfterInitialize();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
@@ -31,6 +32,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
 
         ClearLegacyLibraries(FunctionTestPermissions);
         BindStopSystemTableChanges();
+        OnAfterResetTestMethodEnvironment(CurrentTestMethodLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterCodeunitRun', '', false, false)]
@@ -75,6 +77,16 @@ codeunit 130453 "ALTestRunner Reset Environment"
             Codeunit.Run(BlockChangesToSystemTables);
     end;
 
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitialize()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterResetTestMethodEnvironment(var CurrentTestMethodLine: Record "Test Method Line")
+    begin
+    end;
 
     var
         CurrentWorkDate: Date;

@@ -3,9 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
 
-codeunit 130473 "Test Configuration Mgt"
+using System.TestTools.TestRunner;
+
+codeunit 130483 "Test Configuration Mgt"
 {
     Permissions = tabledata "AL Test Suite" = rimd,
                   tabledata "Test Method Line" = rimd,

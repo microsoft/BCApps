@@ -1,8 +1,19 @@
-# Test configuration (stability mode)
+# Test Stability
 
 Stability mode generates ordinary test suites from a parent suite and runs them sequentially.
 Results stay on the generated suites; generation and execution do not change the parent's lines
 or results. Initial PowerShell setup still uses the existing source-suite setup behavior.
+
+## Installation and dependencies
+
+Install **Test Stability** before using its UI actions or the PowerShell `-StabilityMode` switch.
+This app depends on **Test Runner**, **Any**, and **Application Test Library** (for Library - Random),
+including the application dependencies of that library.
+Test Runner and Any do not depend on this app or on each other.
+
+Configuration, suite generation, page/table extensions, runtime providers, and Any Configuration
+are owned by this app in the `System.TestTools.TestStability` namespace. Assign **Test Stability Exec**
+to stability users; it includes **Test Runner - Exec** and the required configuration/library permissions.
 
 ## Configuration
 
@@ -61,12 +72,19 @@ foreach SuiteName in SuiteNames do
 `GenerateStabilitySuites(Parent, ConfigurationCode)` replaces just one configuration's suite.
 `RunTestConfigurations(Parent)` combines generation and sequential execution for the UI.
 
+Use `System.TestTools.TestStability` for the configuration API.
 The session-local `Test Configuration Context` retains the current record, loaded before test
 permissions are applied. Runtime providers implement `ITestConfigurationProvider` and are
 registered through the extensible `Test Configuration Provider` enum. Providers initialize on
 suite entry, apply per-method settings through `ApplyBeforeTestMethodRun()` and reset on normal
 completion. Layout is generated separately.
-Native test-handler support and special recovery from fatal runtime errors are deferred.
+
+The app subscribes to generic Test Runner lifecycle events. Seed application runs after environment
+initialization; per-method settings run after the standard method environment reset. This ordering
+prevents the legacy reset from overwriting configured seeds. Any's generic `OnBeforeInitializeSeed`
+event supplies the configured seed to fresh Any instances without a reverse app dependency.
+Explicit `Any.SetSeed`, `Any.SetDefaultSeed`, and `Library - Random.Init`/`SetSeed` calls are unchanged.
+Special recovery from fatal runtime errors remains deferred; the next suite entry resets stale state.
 
 ## PowerShell
 

@@ -54,6 +54,17 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
+    "Test Stability": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Stability Tools\\Test Stability",
+      "dvdFolder": "Applications\\TestFramework\\TestStabilityTools\\TestStability",
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
+    },
     "Permissions Mock": {
       "isMultiCountry": true,
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\Permissions Mock",

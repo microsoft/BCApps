@@ -27,10 +27,9 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLine: Record "Test Method Line";
         ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
-        TestConfigurationRunner: Codeunit "Test Configuration Runner";
         BackupTestFilter: Text;
     begin
-        TestConfigurationRunner.Initialize(NewTestMethodLine."Test Suite");
+        OnBeforeRunTestSuite(NewTestMethodLine);
         ALTestRunnerResetEnvironment.Initialize();
         TestMethodLine.Copy(NewTestMethodLine);
         TestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
@@ -57,7 +56,6 @@ codeunit 130454 "Test Runner - Mgt"
             until TestMethodLine.Next() = 0;
 
         OnAfterRunTestSuite(TestMethodLine);
-        TestConfigurationRunner.Reset();
     end;
 
     /// This method is called when the caller needs to run a test codeunit but does not want to log results or the caller has 
@@ -241,6 +239,11 @@ codeunit 130454 "Test Runner - Mgt"
         CodeunitTestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
 
         exit(CodeunitTestMethodLineFunction.FindFirst());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRunTestSuite(var TestMethodLine: Record "Test Method Line")
+    begin
     end;
 
     [IntegrationEvent(false, false)]

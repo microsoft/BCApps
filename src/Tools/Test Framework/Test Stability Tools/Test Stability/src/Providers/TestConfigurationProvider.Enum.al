@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
 
 /// <summary>
 /// Runtime providers initialized for each suite. Extensions can read their settings from the configuration.
 /// </summary>
-enum 130466 "Test Configuration Provider" implements ITestConfigurationProvider
+enum 130482 "Test Configuration Provider" implements ITestConfigurationProvider
 {
     Extensible = true;
 

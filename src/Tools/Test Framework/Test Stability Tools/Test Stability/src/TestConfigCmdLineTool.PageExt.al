@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestTools.TestRunner;
+namespace System.TestTools.TestStability;
+
+using System.TestTools.TestRunner;
 
 /// <summary>
 /// Generation-only transport for the PowerShell stability flow.
