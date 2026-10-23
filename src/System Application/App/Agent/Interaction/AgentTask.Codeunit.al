@@ -257,16 +257,44 @@ codeunit 4303 "Agent Task"
 #endif
 
     /// <summary>
-    /// Gets the details for the specified agent task log entry.
+    /// Exports all steps of the specified agent task as JSON, including task memory entries.
     /// </summary>
-    /// <param name="AgentTaskLogEntry">The agent task log entry to get details for.</param>
-    /// <returns>The details of the agent task log entry.</returns>
-    [Scope('OnPrem')]
-    procedure GetLogEntryDetails(var AgentTaskLogEntry: Record "Agent Task Log Entry"): Text
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <returns>The JSON export of all steps of the agent task.</returns>
+    procedure GetTaskLogEntryDetails(AgentTaskID: BigInteger): JsonObject
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetAllLogEntryDetails(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Exports the specified agent task step as JSON.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <param name="StepNumber">The ID of the agent task log entry to export.</param>
+    /// <returns>The JSON export of the specified step.</returns>
+    procedure GetTaskLogEntryDetails(AgentTaskID: BigInteger; StepNumber: Integer): JsonObject
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetLogEntryDetails(AgentTaskID, StepNumber));
+    end;
+
+    /// <summary>
+    /// Gets the details text of the specified agent task log entry without generating a JSON export.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <param name="StepNumber">The ID of the agent task log entry.</param>
+    /// <returns>The details text with normalized line separators.</returns>
+    procedure GetTaskLogEntryDetailsText(AgentTaskID: BigInteger; StepNumber: Integer): Text
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskID, StepNumber));
     end;
 
     /// <summary>

@@ -246,6 +246,98 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
+    procedure TestExportLogEntryToJson_ReturnsOnlySelectedEntry()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+        EntryJson: JsonObject;
+    begin
+        CreateTempLogEntry(TempAgentTaskLogEntry, 1, 0);
+        CreateTempLogEntry(TempAgentTaskLogEntry, 7, 0);
+        TempAgentTaskLogEntry.Get(-1, 7);
+
+        EntryJson := AgentTaskLogExport.ExportLogEntryToJson(TempAgentTaskLogEntry);
+
+        Assert.IsFalse(EntryJson.Contains('logEntries'), 'A single-entry export should return the entry itself, not the collection wrapper.');
+        Assert.AreEqual(7, EntryJson.GetInteger('id'), 'Selection should use the entry ID, not its position.');
+        Assert.AreEqual('-1', EntryJson.GetText('taskId'), 'The selected entry should retain its task ID.');
+    end;
+
+    [Test]
+    procedure TestDetailsReaders_HandleEmptyDetails()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        CreateTempLogEntry(TempAgentTaskLogEntry, 1, 0);
+        CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, '');
+
+        Assert.AreEqual('', AgentTaskImpl.GetDetailsForAgentTaskLogEntry(TempAgentTaskLogEntry), 'Empty log details should remain empty.');
+        Assert.AreEqual('', AgentTaskImpl.GetDetailsForAgentTaskMemoryEntry(TempAgentTaskMemoryEntry), 'Empty memory details should remain empty.');
+    end;
+
+    [Test]
+    procedure TestExportToJson_PreservesMultilineDetails()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
+        DetailsOutStream: OutStream;
+        DetailsTxt: Text;
+        ExpectedDetails: TextBuilder;
+        ExportJson: JsonObject;
+        EntryToken: JsonToken;
+        LineFeed: Char;
+        NonAsciiCharacter: Char;
+    begin
+        LineFeed := 10;
+        NonAsciiCharacter := 233;
+        DetailsTxt := Format(LineFeed) + '  first ' + Format(NonAsciiCharacter) + Format(LineFeed) + Format(LineFeed) + 'last  ';
+        ExpectedDetails.AppendLine('');
+        ExpectedDetails.AppendLine('  first ' + Format(NonAsciiCharacter));
+        ExpectedDetails.AppendLine('');
+        ExpectedDetails.Append('last  ');
+
+        CreateTempLogEntry(TempAgentTaskLogEntry, 1, 0);
+        TempAgentTaskLogEntry.Details.CreateOutStream(DetailsOutStream, TextEncoding::UTF8);
+        DetailsOutStream.Write(DetailsTxt);
+        TempAgentTaskLogEntry.Modify();
+        CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, '');
+        SetTempMemoryEntryDetails(TempAgentTaskMemoryEntry, DetailsTxt);
+
+        ExportToJson(TempAgentTaskLogEntry, TempAgentTaskMemoryEntry, ExportJson);
+
+        Assert.AreEqual(ExpectedDetails.ToText(), GetFirstEntry(ExportJson).GetText('details'), 'Log details should preserve whitespace, blank lines, and UTF-8 text while normalizing separators.');
+        ExportJson.GetArray('memoryEntries').Get(0, EntryToken);
+        Assert.AreEqual(ExpectedDetails.ToText(), EntryToken.AsObject().GetText('details'), 'Memory details should use the same multiline pattern as log details.');
+    end;
+
+    [Test]
+    procedure TestReadContext_PreservesMultilineJson()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        ContextOutStream: OutStream;
+        ContextText: TextBuilder;
+    begin
+        ContextText.AppendLine('{');
+        ContextText.AppendLine('');
+        ContextText.AppendLine('  "message": "full context"');
+        ContextText.Append('}');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, ContextText.ToText());
+        CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, '');
+#pragma warning disable AL0432
+        TempAgentTaskMemoryEntry.Context.CreateOutStream(ContextOutStream, TextEncoding::UTF8);
+#pragma warning restore AL0432
+        ContextOutStream.WriteText(ContextText.ToText());
+        TempAgentTaskMemoryEntry.Modify();
+
+        Assert.AreEqual(ContextText.ToText(), AgentTaskLogEntry.ReadContext(TempAgentTaskLogEntry), 'Log context should include every line, including blank lines.');
+        Assert.AreEqual(ContextText.ToText(), AgentTaskLogEntry.ReadContext(TempAgentTaskMemoryEntry), 'Memory context should include every line, including blank lines.');
+    end;
+
+    [Test]
     procedure TestExportToJson_UsesChronologicalOrder()
     var
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
