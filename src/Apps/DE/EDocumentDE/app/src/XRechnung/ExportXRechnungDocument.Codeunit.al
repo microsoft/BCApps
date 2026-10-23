@@ -997,6 +997,8 @@ codeunit 13916 "Export XRechnung Document"
     local procedure InsertDelivery(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         DeliveryAddress: Record "Standard Address";
+        ActualDeliveryDate: Date;
+        DeliveryGLN: Code[13];
         DeliveryElement: XmlElement;
     begin
         DeliveryAddress.Address := SalesInvoiceHeader."Ship-to Address";
@@ -1004,20 +1006,27 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryAddress.City := SalesInvoiceHeader."Ship-to City";
         DeliveryAddress."Post Code" := SalesInvoiceHeader."Ship-to Post Code";
         DeliveryAddress."Country/Region Code" := SalesInvoiceHeader."Ship-to Country/Region Code";
+        ActualDeliveryDate := SalesInvoiceHeader."Shipment Date";
+        DeliveryGLN := GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code");
+
+        OnBeforeInsertSalesInvDelivery(SalesInvoiceHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
 
         DeliveryElement := XmlElement.Create('Delivery', XmlNamespaceCAC);
 
-        if SalesInvoiceHeader."Shipment Date" <> CalcDate('<0D>') then
-            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Shipment Date")));
+        if ActualDeliveryDate <> CalcDate('<0D>') then
+            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(ActualDeliveryDate)));
 
-        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
+        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, DeliveryGLN);
 
+        OnInsertDeliveryOnBeforeAddSalesInvDeliveryElement(SalesInvoiceHeader, DeliveryElement);
         RootXMLNode.Add(DeliveryElement);
     end;
 
     local procedure InsertDelivery(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         DeliveryAddress: Record "Standard Address";
+        ActualDeliveryDate: Date;
+        DeliveryGLN: Code[13];
         DeliveryElement: XmlElement;
     begin
         DeliveryAddress.Address := SalesCrMemoHeader."Ship-to Address";
@@ -1025,14 +1034,19 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryAddress.City := SalesCrMemoHeader."Ship-to City";
         DeliveryAddress."Post Code" := SalesCrMemoHeader."Ship-to Post Code";
         DeliveryAddress."Country/Region Code" := SalesCrMemoHeader."Ship-to Country/Region Code";
+        ActualDeliveryDate := SalesCrMemoHeader."Shipment Date";
+        DeliveryGLN := GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code");
+
+        OnBeforeInsertSalesCrMemoDelivery(SalesCrMemoHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
 
         DeliveryElement := XmlElement.Create('Delivery', XmlNamespaceCAC);
 
-        if SalesCrMemoHeader."Shipment Date" <> CalcDate('<0D>') then
-            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(SalesCrMemoHeader."Shipment Date")));
+        if ActualDeliveryDate <> CalcDate('<0D>') then
+            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(ActualDeliveryDate)));
 
-        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
+        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, DeliveryGLN);
 
+        OnInsertDeliveryOnBeforeAddSalesCrMemoDeliveryElement(SalesCrMemoHeader, DeliveryElement);
         RootXMLNode.Add(DeliveryElement);
     end;
 
@@ -1447,7 +1461,12 @@ codeunit 13916 "Export XRechnung Document"
         Customer: Record Customer;
         TempBodyReportSelections: Record "Report Selections" temporary;
         ReportSelections: Record "Report Selections";
-        CustomerGLN: Text[13];
+        VATRegNo: Text[20];
+        CustomerGLN: Code[13];
+        PartyName: Text[100];
+        CustomerName: Text[100];
+        ContactName: Text[100];
+        ContactEMail: Text[250];
         AccountingCustomerParty: XmlElement;
     begin
         BillToAddress.Address := SalesInvoiceHeader."Bill-to Address";
@@ -1457,15 +1476,19 @@ codeunit 13916 "Export XRechnung Document"
         BillToAddress."Country/Region Code" := SalesInvoiceHeader."Bill-to Country/Region Code";
 
         if Customer.Get(SalesInvoiceHeader."Sell-to Customer No.") then;
-        AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
+        VATRegNo := Customer."VAT Registration No.";
+        PartyName := SalesInvoiceHeader."Bill-to Name";
+        CustomerName := SalesInvoiceHeader."Sell-to Customer Name";
+        ContactName := SalesInvoiceHeader."Sell-to Contact";
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
-        InsertCustomerParty(
-              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN,
-              SalesInvoiceHeader."Bill-to Name", BillToAddress, SalesInvoiceHeader."Sell-to Customer Name",
-              SalesInvoiceHeader."Sell-to Contact",
-              ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections));
+        ContactEMail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
+
+        OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+
+        AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
+        InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
@@ -1475,7 +1498,12 @@ codeunit 13916 "Export XRechnung Document"
         Customer: Record Customer;
         TempBodyReportSelections: Record "Report Selections" temporary;
         ReportSelections: Record "Report Selections";
-        CustomerGLN: Text[13];
+        VATRegNo: Text[20];
+        CustomerGLN: Code[13];
+        PartyName: Text[100];
+        CustomerName: Text[100];
+        ContactName: Text[100];
+        ContactEMail: Text[250];
         AccountingCustomerParty: XmlElement;
     begin
         BillToAddress.Address := SalesCrMemoHeader."Bill-to Address";
@@ -1485,15 +1513,19 @@ codeunit 13916 "Export XRechnung Document"
         BillToAddress."Country/Region Code" := SalesCrMemoHeader."Bill-to Country/Region Code";
 
         if Customer.Get(SalesCrMemoHeader."Sell-to Customer No.") then;
-        AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
+        VATRegNo := Customer."VAT Registration No.";
+        PartyName := SalesCrMemoHeader."Bill-to Name";
+        CustomerName := SalesCrMemoHeader."Sell-to Customer Name";
+        ContactName := SalesCrMemoHeader."Sell-to Contact";
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
-        InsertCustomerParty(
-              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN,
-              SalesCrMemoHeader."Bill-to Name", BillToAddress, SalesCrMemoHeader."Sell-to Customer Name",
-              SalesCrMemoHeader."Sell-to Contact",
-              ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections));
+        ContactEMail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
+
+        OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+
+        AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
+        InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
@@ -1751,34 +1783,48 @@ codeunit 13916 "Export XRechnung Document"
 
     procedure InsertOrderReference(var RootElement: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header");
     var
+        OrderReferenceID: Text[35];
+        SalesOrderID: Code[20];
         OrderReferenceElement: XmlElement;
     begin
         if SalesInvoiceHeader."External Document No." = '' then
             SalesInvoiceHeader."External Document No." := SalesInvoiceHeader."No.";
         if SalesInvoiceHeader."Order No." = '' then
             SalesInvoiceHeader."Order No." := SalesInvoiceHeader."Pre-Assigned No.";
+        OrderReferenceID := SalesInvoiceHeader."External Document No.";
+        SalesOrderID := SalesInvoiceHeader."Order No.";
+
+        OnInsertOrderReferenceOnBeforeCreateSalesInvoiceElement(SalesInvoiceHeader, OrderReferenceID, SalesOrderID);
 
         OrderReferenceElement := XmlElement.Create('OrderReference', XmlNamespaceCAC);
-        OrderReferenceElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesInvoiceHeader."External Document No."));
-        OrderReferenceElement.Add(XmlElement.Create('SalesOrderID', XmlNamespaceCBC, SalesInvoiceHeader."Order No."));
+        OrderReferenceElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, OrderReferenceID));
+        OrderReferenceElement.Add(XmlElement.Create('SalesOrderID', XmlNamespaceCBC, SalesOrderID));
         OnInsertOrderReferenceOnBeforeInsertSalesInvoiceElement(SalesInvoiceHeader, OrderReferenceElement);
         RootElement.Add(OrderReferenceElement);
+        OnInsertOrderReferenceOnAfterInsertSalesInvoiceElement(SalesInvoiceHeader, RootElement);
     end;
 
     procedure InsertOrderReference(var RootElement: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header");
     var
+        OrderReferenceID: Text[35];
+        SalesOrderID: Code[20];
         OrderReferenceElement: XmlElement;
     begin
         if SalesCrMemoHeader."External Document No." = '' then
             SalesCrMemoHeader."External Document No." := SalesCrMemoHeader."No.";
         if SalesCrMemoHeader."Return Order No." = '' then
             SalesCrMemoHeader."Return Order No." := SalesCrMemoHeader."Pre-Assigned No.";
+        OrderReferenceID := SalesCrMemoHeader."External Document No.";
+        SalesOrderID := SalesCrMemoHeader."Return Order No.";
+
+        OnInsertOrderReferenceOnBeforeCreateSalesCrMemoElement(SalesCrMemoHeader, OrderReferenceID, SalesOrderID);
 
         OrderReferenceElement := XmlElement.Create('OrderReference', XmlNamespaceCAC);
-        OrderReferenceElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesCrMemoHeader."External Document No."));
-        OrderReferenceElement.Add(XmlElement.Create('SalesOrderID', XmlNamespaceCBC, SalesCrMemoHeader."Return Order No."));
+        OrderReferenceElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, OrderReferenceID));
+        OrderReferenceElement.Add(XmlElement.Create('SalesOrderID', XmlNamespaceCBC, SalesOrderID));
         OnInsertOrderReferenceOnBeforeInsertSalesCrMemoElement(SalesCrMemoHeader, OrderReferenceElement);
         RootElement.Add(OrderReferenceElement);
+        OnInsertOrderReferenceOnAfterInsertSalesCrMemoElement(SalesCrMemoHeader, RootElement);
     end;
 
     local procedure InsertInvoiceLines(var InvoiceElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; Currency: Record Currency; CurrencyCode: Code[10]; PricesIncVAT: Boolean)
@@ -2391,6 +2437,90 @@ codeunit 13916 "Export XRechnung Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertOrderReferenceOnBeforeInsertSalesCrMemoElement(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var OrderReferenceElement: XmlElement)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the order reference (BT-13, BT-14) is created for a sales invoice. Subscribe to override its values.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertOrderReferenceOnBeforeCreateSalesInvoiceElement(SalesInvoiceHeader: Record "Sales Invoice Header"; var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the order reference (BT-13, BT-14) is created for a sales credit memo. Subscribe to override its values.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertOrderReferenceOnBeforeCreateSalesCrMemoElement(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires after the order reference is added to the document root of a sales invoice, before the additional document references.
+    /// Subscribe to append document references that UBL places at this position, such as the despatch advice reference (BT-16).
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertOrderReferenceOnAfterInsertSalesInvoiceElement(SalesInvoiceHeader: Record "Sales Invoice Header"; var RootElement: XmlElement)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires after the order reference is added to the document root of a sales credit memo, before the additional document references.
+    /// Subscribe to append document references that UBL places at this position, such as the despatch advice reference (BT-16).
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertOrderReferenceOnAfterInsertSalesCrMemoElement(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var RootElement: XmlElement)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the buyer (BG-7) is created for a sales invoice. Subscribe to override its values.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader: Record "Sales Invoice Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the buyer (BG-7) is created for a sales credit memo. Subscribe to override its values.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the delivery information (BG-13) is created for a sales invoice. Subscribe to override its values.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesInvDelivery(SalesInvoiceHeader: Record "Sales Invoice Header"; var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address"; var DeliveryGLN: Code[13])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the delivery information (BG-13) is created for a sales credit memo. Subscribe to override its values.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesCrMemoDelivery(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address"; var DeliveryGLN: Code[13])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the delivery element is added to the document root of a sales invoice.
+    /// Subscribe to add optional delivery elements, such as the deliver-to party (BT-70).
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertDeliveryOnBeforeAddSalesInvDeliveryElement(SalesInvoiceHeader: Record "Sales Invoice Header"; var DeliveryElement: XmlElement)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires before the delivery element is added to the document root of a sales credit memo.
+    /// Subscribe to add optional delivery elements, such as the deliver-to party (BT-70).
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertDeliveryOnBeforeAddSalesCrMemoDeliveryElement(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var DeliveryElement: XmlElement)
     begin
     end;
 
