@@ -1079,5 +1079,46 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         BindSubscription(ActiveDirectoryMockEvents);
         ActiveDirectoryMockEvents.Enable();
     end;
+
+    procedure ResetPrintCapture()
+    begin
+        Clear(PrintedFinChargeMemoCustomerNos);
+        Clear(PrintInvocationCount);
+        Clear(PrintedFinChargeMemoCount);
+        PrintedAsEmail := false;
+    end;
+
+    procedure GetPrintInvocationCount(): Integer
+    begin
+        exit(PrintInvocationCount);
+    end;
+
+    procedure GetPrintedFinChargeMemoCount(): Integer
+    begin
+        exit(PrintedFinChargeMemoCount);
+    end;
+
+    procedure ContainsPrintedFinChargeMemoCustomer(CustomerNo: Code[20]): Boolean
+    begin
+        exit(PrintedFinChargeMemoCustomerNos.Contains(CustomerNo));
+    end;
+
+    procedure WasPrintedAsEmail(): Boolean
+    begin
+        exit(PrintedAsEmail);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Issued Fin. Charge Memo Header", 'OnBeforePrintRecords', '', false, false)]
+    local procedure CaptureIssuedFinChargeMemoPrint(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header"; ShowRequestForm: Boolean; SendAsEmail: Boolean; HideDialog: Boolean; var IsHandled: Boolean)
+    begin
+        PrintInvocationCount += 1;
+        PrintedFinChargeMemoCount := IssuedFinChargeMemoHeader.Count();
+        PrintedAsEmail := SendAsEmail;
+        if IssuedFinChargeMemoHeader.FindSet() then
+            repeat
+                PrintedFinChargeMemoCustomerNos.Add(IssuedFinChargeMemoHeader."Customer No.");
+            until IssuedFinChargeMemoHeader.Next() = 0;
+        IsHandled := true;
+    end;
 }
 
