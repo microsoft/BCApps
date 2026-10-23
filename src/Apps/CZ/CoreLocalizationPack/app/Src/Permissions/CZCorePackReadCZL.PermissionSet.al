@@ -26,6 +26,7 @@ permissionset 11730 "CZ Core Pack - Read CZL"
                   tabledata "Document Footer CZL" = R,
                   tabledata "EET Business Premises CZL" = R,
                   tabledata "EET Cash Register CZL" = R,
+                  tabledata "EET Cue CZL" = R,
                   tabledata "EET Entry CZL" = R,
                   tabledata "EET Entry Status Log CZL" = R,
                   tabledata "EET Service Setup CZL" = R,
