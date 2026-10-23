@@ -22,7 +22,7 @@
             "to": 48536
         }
     ],
-    "target": "Cloud",
+    "target": "OnPrem",
     "internalsVisibleTo": [
         {
             "id": "46efa2e4-0567-4657-82a2-48ae2d905d7c",
