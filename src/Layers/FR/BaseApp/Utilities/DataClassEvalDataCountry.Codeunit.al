@@ -8,7 +8,9 @@ namespace Microsoft.Utilities;
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Finance.FinancialReports;
+#if not CLEAN30
 using Microsoft.Finance.ReceivablesPayables;
+#endif
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Employee;
@@ -51,7 +53,11 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Bank Account Buffer");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Payment Address");
 #endif
+#if not CLEAN30
+#pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Unreal. CV Ledg. Entry Buffer");
+#pragma warning restore AL0432
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Alt. Employee Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Employee Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cause of Absence");
