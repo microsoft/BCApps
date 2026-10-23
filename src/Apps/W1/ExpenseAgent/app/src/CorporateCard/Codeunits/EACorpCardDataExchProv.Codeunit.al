@@ -429,6 +429,8 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
         CorpCardRecRef: RecordRef;
         FieldValueByColumnNo: Dictionary of [Integer, Text];
+        FieldMappingRecordIdByColumnNo: Dictionary of [Integer, RecordId];
+        FieldMappingRecordId: RecordId;
         CurrentLineNo: Integer;
         HasNextField: Boolean;
         StrictMappingProvider: Boolean;
@@ -438,7 +440,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         IsValid: Boolean;
     begin
         Clear(ColumnNoByName);
-        LoadFieldMappings(CorpCardProvider, TempDataExchFieldMapping);
+        LoadFieldMappings(CorpCardProvider, TempDataExchFieldMapping, FieldMappingRecordIdByColumnNo);
         StrictMappingProvider := IsStrictMappingProvider(CorpCardProvider);
 
         DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
@@ -466,13 +468,15 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 if not StrictMappingProvider then
                     if not FieldValueByColumnNo.ContainsKey(DataExchField."Column No.") then
                         FieldValueByColumnNo.Add(DataExchField."Column No.", DataExchField.GetValue());
-                if FindFieldMapping(DataExchField."Column No.", TempDataExchFieldMapping) then
+                if FieldMappingRecordIdByColumnNo.Get(DataExchField."Column No.", FieldMappingRecordId) then begin
+                    TempDataExchFieldMapping.Get(FieldMappingRecordId);
                     if TempDataExchFieldMapping."Field ID" = CorpCardTrans.FieldNo("Card Last 4") then
                         CardLast4 := DataExchField.GetValue()
                     else begin
                         NormalizeMappedCurrencyCode(TempDataExchFieldMapping, DataExchField, CorpCardTrans, CorpCardValidateMgt);
                         ProcessDataExch.SetField(CorpCardRecRef, TempDataExchFieldMapping, DataExchField, TempFieldIdsToNegate);
                     end;
+                end;
                 HasNextField := DataExchField.Next() <> 0;
             until not HasNextField or (DataExchField."Line No." <> CurrentLineNo);
 
@@ -581,7 +585,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         exit(CurrentList + ', ' + FieldName);
     end;
 
-    local procedure LoadFieldMappings(CorpCardProvider: Record "EA Corp Card Provider"; var TempDataExchFieldMapping: Record "Data Exch. Field Mapping" temporary)
+    local procedure LoadFieldMappings(CorpCardProvider: Record "EA Corp Card Provider"; var TempDataExchFieldMapping: Record "Data Exch. Field Mapping" temporary; var FieldMappingRecordIdByColumnNo: Dictionary of [Integer, RecordId])
     var
         DataExchFieldMapping: Record "Data Exch. Field Mapping";
     begin
@@ -593,14 +597,9 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             repeat
                 TempDataExchFieldMapping := DataExchFieldMapping;
                 TempDataExchFieldMapping.Insert();
+                if not FieldMappingRecordIdByColumnNo.ContainsKey(DataExchFieldMapping."Column No.") then
+                    FieldMappingRecordIdByColumnNo.Add(DataExchFieldMapping."Column No.", TempDataExchFieldMapping.RecordId());
             until DataExchFieldMapping.Next() = 0;
-    end;
-
-    local procedure FindFieldMapping(ColumnNo: Integer; var TempDataExchFieldMapping: Record "Data Exch. Field Mapping" temporary): Boolean
-    begin
-        TempDataExchFieldMapping.Reset();
-        TempDataExchFieldMapping.SetRange("Column No.", ColumnNo);
-        exit(TempDataExchFieldMapping.FindFirst());
     end;
 
     local procedure InsertException(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans"; ExcpType: Enum "EA Corp Card Exception Type"; Message: Text[250])

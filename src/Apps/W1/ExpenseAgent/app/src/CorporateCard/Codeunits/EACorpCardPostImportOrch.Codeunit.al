@@ -44,8 +44,11 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         if not CorpCardTrans.FindSet() then
             exit;
         repeat
-            if (CorpCardTrans.Status = CorpCardTrans.Status::Imported) or HasProcessingException(CorpCardTrans) then
-                TransactionEntryNos.Add(CorpCardTrans."Entry No.");
+            if CorpCardTrans.Status = CorpCardTrans.Status::Imported then
+                TransactionEntryNos.Add(CorpCardTrans."Entry No.")
+            else
+                if HasProcessingException(CorpCardTrans) then
+                    TransactionEntryNos.Add(CorpCardTrans."Entry No.");
         until CorpCardTrans.Next() = 0;
 
         Commit();

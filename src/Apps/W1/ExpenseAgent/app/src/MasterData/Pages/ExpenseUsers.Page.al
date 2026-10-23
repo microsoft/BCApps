@@ -85,7 +85,7 @@ page 6951 "Expense Users"
             }
             action(ImportExpenseUsers)
             {
-                Caption = 'Import Expense Users';
+                Caption = 'Import expense users';
                 ApplicationArea = All;
                 Image = Import;
                 ToolTip = 'Imports employees from your organization as expense users.';
