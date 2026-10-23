@@ -35,6 +35,7 @@ table 6382 "Sharepoint Setup"
                 if Rec.Enabled then begin
                     if (Rec."Imp. Documents Folder" = '') or (Rec."Documents Folder" = '') then
                         Error(URLsMustBeSpecifiedErr);
+                    DriveProcessing.CheckFoldersInSameDrive(Rec."Documents Folder", Rec."Drive Id", Rec."Imp. Documents Folder");
 
                     FeatureTelemetry.LogUptake('0000OBB', DriveProcessing.FeatureName(), Enum::"Feature Uptake Status"::Used);
                     FeatureTelemetry.LogUsage('0000OBC', DriveProcessing.FeatureName(), 'Sharepoint');
