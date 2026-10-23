@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144036 "UT REP Legal Report"
 {
     // // [FEATURE] [Report]
@@ -91,6 +92,9 @@ codeunit 144036 "UT REP Legal Report"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -2159,4 +2163,4 @@ codeunit 144036 "UT REP Legal Report"
         VendorTrialBalance.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
+#endif

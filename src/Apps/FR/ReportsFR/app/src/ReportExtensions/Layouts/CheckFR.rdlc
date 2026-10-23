@@ -1851,11 +1851,11 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!TotalLineDiscountLineDisc.Value</Value>
+                                                    <Value>=Fields!TotalLineDiscountLineDiscount.Value</Value>
                                                     <Style>
                                                       <FontSize>7pt</FontSize>
                                                       <FontWeight>Bold</FontWeight>
-                                                      <Format>=Fields!TotalLineDiscountLineDiscFormat.Value</Format>
+                                                      <Format>=Fields!TotalLineDiscountLineDiscountFormat.Value</Format>
                                                     </Style>
                                                   </TextRun>
                                                 </TextRuns>
@@ -2148,7 +2148,7 @@
                                                     <Style>
                                                       <FontSize>7pt</FontSize>
                                                       <FontWeight>Bold</FontWeight>
-                                                      <Format>=Fields!TotalLineDiscountLineDiscFormat.Value</Format>
+                                                      <Format>=Fields!TotalLineDiscountLineDiscountFormat.Value</Format>
                                                     </Style>
                                                   </TextRun>
                                                 </TextRuns>
@@ -2567,8 +2567,8 @@
                                   <TablixMember>
                                     <Group Name="Table1_Group1">
                                       <GroupExpressions>
-                                        <GroupExpression>=Fields!JnlTemplName_GenJnlLine.Value</GroupExpression>
-                                        <GroupExpression>=Fields!JnlBatchName_GenJnlLine.Value</GroupExpression>
+                                        <GroupExpression>=Fields!JournalTempName_GenJnlLine.Value</GroupExpression>
+                                        <GroupExpression>=Fields!JournalBatchName_GenJnlLine.Value</GroupExpression>
                                         <GroupExpression>=Fields!LineNo_GenJnlLine.Value</GroupExpression>
                                       </GroupExpressions>
                                       <Filters>
@@ -2733,7 +2733,7 @@ Last(Fields!CompanyAddr8.Value)</Value>
                                                   <TextRun>
                                                     <Value>=Last(Fields!DescriptionLine1.Value) + Chr(177) +
 Last(Fields!DescriptionLine2.Value) + Chr(177) +
-Last(Fields!CheckToAddr17.Value) + Chr(177) +
+Last(Fields!CheckToAddr1Control7.Value) + Chr(177) +
 Last(Fields!CheckToAddr2.Value) + Chr(177) +
 Last(Fields!CheckToAddr3.Value) + Chr(177) +
 Last(Fields!CheckToAddr4.Value) + Chr(177) +
@@ -2771,8 +2771,8 @@ Last(Fields!CheckToAddr5.Value)</Value>
                                                   <TextRun>
                                                     <Value>=CStr(last(Fields!TotalText.Value)) + Chr(177) +
 CStr(Last(Fields!TotalLineAmount.Value)) + Chr(177) +
-CStr(Last(Fields!CheckNoText2.Value)) + Chr(177) +
-CStr(Last(Fields!CheckDateText2.Value)) + Chr(177) +
+CStr(Last(Fields!CheckNoTextControl21.Value)) + Chr(177) +
+CStr(Last(Fields!CheckDateTextControl2.Value)) + Chr(177) +
 CStr(Last(Fields!CheckAmountText.Value)) + Chr(177) +
 CStr(Last(Fields!VoidText.Value)) + Chr(177) +
 CStr(Last(Fields!LineAmountFormat.Value))</Value>
@@ -3651,11 +3651,11 @@ End Function</Code>
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
-        <Field Name="JnlTemplName_GenJnlLine">
-          <DataField>JnlTemplName_GenJnlLine</DataField>
+        <Field Name="JournalTempName_GenJnlLine">
+          <DataField>JournalTempName_GenJnlLine</DataField>
         </Field>
-        <Field Name="JnlBatchName_GenJnlLine">
-          <DataField>JnlBatchName_GenJnlLine</DataField>
+        <Field Name="JournalBatchName_GenJnlLine">
+          <DataField>JournalBatchName_GenJnlLine</DataField>
         </Field>
         <Field Name="LineNo_GenJnlLine">
           <DataField>LineNo_GenJnlLine</DataField>
@@ -3681,11 +3681,11 @@ End Function</Code>
         <Field Name="NetAmount">
           <DataField>NetAmount</DataField>
         </Field>
-        <Field Name="TotalLineDiscountLineDisc">
-          <DataField>TotalLineDiscountLineDisc</DataField>
+        <Field Name="TotalLineDiscountLineDiscount">
+          <DataField>TotalLineDiscountLineDiscount</DataField>
         </Field>
-        <Field Name="TotalLineDiscountLineDiscFormat">
-          <DataField>TotalLineDiscountLineDiscFormat</DataField>
+        <Field Name="TotalLineDiscountLineDiscountFormat">
+          <DataField>TotalLineDiscountLineDiscountFormat</DataField>
         </Field>
         <Field Name="TotalLineAmountLineAmount">
           <DataField>TotalLineAmountLineAmount</DataField>
@@ -3762,8 +3762,8 @@ End Function</Code>
         <Field Name="CheckAmountText">
           <DataField>CheckAmountText</DataField>
         </Field>
-        <Field Name="CheckDateText2">
-          <DataField>CheckDateText2</DataField>
+        <Field Name="CheckDateTextControl2">
+          <DataField>CheckDateTextControl2</DataField>
         </Field>
         <Field Name="DescriptionLine2">
           <DataField>DescriptionLine2</DataField>
@@ -3771,8 +3771,8 @@ End Function</Code>
         <Field Name="DescriptionLine1">
           <DataField>DescriptionLine1</DataField>
         </Field>
-        <Field Name="CheckToAddr17">
-          <DataField>CheckToAddr17</DataField>
+        <Field Name="CheckToAddr1Control7">
+          <DataField>CheckToAddr1Control7</DataField>
         </Field>
         <Field Name="CheckToAddr2">
           <DataField>CheckToAddr2</DataField>
@@ -3804,8 +3804,8 @@ End Function</Code>
         <Field Name="CompanyAddr3">
           <DataField>CompanyAddr3</DataField>
         </Field>
-        <Field Name="CheckNoText2">
-          <DataField>CheckNoText2</DataField>
+        <Field Name="CheckNoTextControl21">
+          <DataField>CheckNoTextControl21</DataField>
         </Field>
         <Field Name="CompanyAddr2">
           <DataField>CompanyAddr2</DataField>

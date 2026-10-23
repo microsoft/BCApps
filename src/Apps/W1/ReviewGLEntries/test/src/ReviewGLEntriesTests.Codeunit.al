@@ -228,6 +228,66 @@ codeunit 139759 "Review G/L Entries Tests"
         Assert.AreEqual(0, GLEntryReviewLog.Count(), 'All review log entries should be removed');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure StatementReviewFilterPreservesPreviousSkip()
+    var
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        Skip: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653672] Review integration does not undo a previous subscriber's exclusion.
+        Initialize();
+
+        // [GIVEN] E has already been excluded by another subscriber.
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLEntry.Get(InsertGLEntry(GLAccount."No.", 100, 0, 0));
+        Skip := true;
+
+        // [WHEN] The standard review publisher invokes the provider for All.
+        GLEntry.OnSkipGLEntryByReviewStatus(GLEntry, 0, 20260131D, Skip);
+
+        // [THEN] A prior exclusion remains respected.
+        Assert.IsTrue(Skip, 'Review filtering must never reset an earlier skip decision.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure StatementReviewFilterCalculatesReviewDateFlowField()
+    var
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        ReviewLog: Record "G/L Entry Review Log";
+        Skip: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653672] A real review log determines boundary inclusion without the caller pre-calculating its FlowField.
+        Initialize();
+
+        // [GIVEN] E has a real review on the evaluation date, but its FlowFields have not been calculated.
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLEntry.Get(InsertGLEntry(GLAccount."No.", 100, 0, 0));
+        ReviewLog."G/L Entry No." := GLEntry."Entry No.";
+        ReviewLog."G/L Account No." := GLAccount."No.";
+        ReviewLog."Reviewed At" := CreateDateTime(20260131D, 120000T);
+        ReviewLog."Reviewed Amount" := 100;
+        ReviewLog.Insert(true);
+
+        // [WHEN] The standard publisher asks for reviewed entries at the boundary.
+        GLEntry.OnSkipGLEntryByReviewStatus(GLEntry, 1, 20260131D, Skip);
+
+        // [THEN] The provider computes the review-date FlowField and includes E.
+        Assert.IsFalse(Skip, 'A review on the evaluation date must be included.');
+
+        // [WHEN] The same entry is evaluated before the review occurred.
+        Clear(Skip);
+        GLEntry.OnSkipGLEntryByReviewStatus(GLEntry, 1, 20260130D, Skip);
+
+        // [THEN] Future reviews cannot make E reviewed at an earlier date.
+        Assert.IsTrue(Skip, 'Review-date filtering must use the requested evaluation boundary.');
+    end;
+
     local procedure CreateGeneralLedgerEntriesForGLAccount(var GLAccount: record "G/L Account"; ReviewPolicy: enum "Review Policy Type"; RandomAmount: boolean; NonEmptyAmountToReview: boolean)
     var
         Count: Integer;

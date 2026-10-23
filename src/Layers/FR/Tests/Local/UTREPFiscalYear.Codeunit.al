@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144072 "UT REP Fiscal Year"
 {
     //   1-3. Purpose of these test cases to verify different error messages on OnPreDataItem Date Trigger for Report 10800 (G/L Journal).
@@ -19,6 +20,9 @@ codeunit 144072 "UT REP Fiscal Year"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -465,4 +469,4 @@ codeunit 144072 "UT REP Fiscal Year"
         Journals.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
+#endif
