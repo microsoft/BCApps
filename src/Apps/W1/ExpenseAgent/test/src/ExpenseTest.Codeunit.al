@@ -4923,9 +4923,10 @@ codeunit 148305 "Expense Test"
         ExpensePage.Itemizations.Invoke();
 
         // [THEN] Verify that the Itemization Total Mismatch error in rule violation.
-        ExpectedExpense.Amount := AmountReduction - 1;
+        ExpectedExpense.Amount := Amount - 1;
         ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
         ExpensePage.RuleViolations.Next();
+        ExpectedExpense.Amount := AmountReduction - 1;
         ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(ItemizationTotalReductionMismatchErr, ExpectedExpense.Amount, Expense."Non-Refundable Amount"));
 
         // [THEN] Verify that the Non-Refundable Amount field is non-editable in Expense Page.
