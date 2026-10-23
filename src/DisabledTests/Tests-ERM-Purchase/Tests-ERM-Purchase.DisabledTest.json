@@ -752,12 +752,12 @@
   {
     "codeunitId": 134327,
     "codeunitName": "ERM Purchase Order",
-    "method": "PurchaseCreditMemo"
+    "method": "PurchaseCreditMemoPostAndVerify"
   },
   {
     "codeunitId": 134327,
     "codeunitName": "ERM Purchase Order",
-    "method": "PurchaseInvoice"
+    "method": "PurchaseInvoicePostAndVerify"
   },
   {
     "codeunitId": 134327,
@@ -902,11 +902,6 @@
   {
     "codeunitId": 134327,
     "codeunitName": "ERM Purchase Order",
-    "method": "VerifyManuallyCreatedPurchaseCrMemoUpdateExistingPurchaseOrder"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
     "method": "VerifyPostPurchaseOrderWithChargeItemPostedFromPurchaseInvoiceRelatedToReceiptCreatedFromPurchaseOrder"
   },
   {
@@ -922,37 +917,7 @@
   {
     "codeunitId": 134327,
     "codeunitName": "ERM Purchase Order",
-    "method": "VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItem"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
     "method": "VerifyPurchaseOrderCanBeInvoicedOnRenamedResourseWhichExistOnPurchaseLine"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
-    "method": "VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntries"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
-    "method": "VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantity"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
-    "method": "VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoice"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
-    "method": "VerifyQtyReceivedBaseAfterCorrectOnPartialInvoice"
-  },
-  {
-    "codeunitId": 134327,
-    "codeunitName": "ERM Purchase Order",
-    "method": "VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemo"
   },
   {
     "codeunitId": 134327,
@@ -2412,11 +2377,6 @@
   {
     "codeunitId": 134332,
     "codeunitName": "ERM Copy Purch/Sales Doc",
-    "method": "VerifyQtyToShipNotClearedAfterPostingSalesReturnOrder"
-  },
-  {
-    "codeunitId": 134332,
-    "codeunitName": "ERM Copy Purch/Sales Doc",
     "method": "VerifyReceivedFromCountryAfterPostingSalesCreditMemoWithoutReturnReceipt"
   },
   {
@@ -2932,21 +2892,6 @@
   {
     "codeunitId": 134398,
     "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "CancelMadeFromOrderPurchaseInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "CancelMadeFromOrderSalesInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "CancelMadeFromShipmentSalesInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
     "method": "CancelPurchaseInvoiceWithGLAccountAndEmptyDirectCostAppliedAccount"
   },
   {
@@ -2963,11 +2908,6 @@
     "codeunitId": 134398,
     "codeunitName": "ERM Sales/Purch. Correct. Docs",
     "method": "CantCancelSalesInvoiceWithInventoryItemWhenCOGSAccountIsEmpty"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "CorrectPostedPurchInvoiceWithZeroQuantityItemCharge"
   },
   {
     "codeunitId": 134398,
@@ -3092,11 +3032,6 @@
   {
     "codeunitId": 134398,
     "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "ItemTrackingUndoReceiveAfterCancelMadeFromOrderPurchaseInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
     "method": "PurchaseInvoiceShouldNotPostWithIncorrectDeferralScheduleValues"
   },
   {
@@ -3163,41 +3098,6 @@
     "codeunitId": 134398,
     "codeunitName": "ERM Sales/Purch. Correct. Docs",
     "method": "TestCorrectInvoiceIsAllowed_Sales_ItemCharge_InventoryPeriod_Open"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "UndoReceiveAfterCancelMadeFromOrderPurchaseInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "UndoReceiveAfterCancelPurchaseInvoiceWithResource"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "UndoShipmentAfterCancelMadeFromOrderSalesInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "UndoShipmentAfterCancelMadeFromShipmentSalesInvoiceWithOrder"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "UndoShipmentAfterCancelSalesInvoiceWithGLAccount"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "VerifyConfirmMessageWhenCorrectedThePostedPurchaseInvoice"
-  },
-  {
-    "codeunitId": 134398,
-    "codeunitName": "ERM Sales/Purch. Correct. Docs",
-    "method": "VerifyConfirmMessageWhenCorrectedThePostedSalesInvoice"
   },
   {
     "codeunitId": 134416,

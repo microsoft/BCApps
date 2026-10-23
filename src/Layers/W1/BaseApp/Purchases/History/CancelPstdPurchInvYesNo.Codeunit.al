@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
+using Microsoft.Purchases.Setup;
 using Microsoft.Utilities;
 
 codeunit 1325 "Cancel PstdPurchInv (Yes/No)"
@@ -51,8 +52,21 @@ codeunit 1325 "Cancel PstdPurchInv (Yes/No)"
     local procedure GetCancelPostedInvoiceQst(PurchInvHeader: Record "Purch. Inv. Header"): Text
     begin
         if PurchInvHeader."Order No." <> '' then
-            exit(CancelPostedInvoiceFromOrderQst);
+            if IsOrderQtyRestorationEnabled() then
+                exit(CancelPostedInvoiceFromOrderQst);
+
         exit(CancelPostedInvoiceQst);
+    end;
+
+    /// <summary>
+    /// Reads whether order quantity restoration is enabled.
+    /// </summary>
+    local procedure IsOrderQtyRestorationEnabled(): Boolean
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        exit(PurchasesPayablesSetup."Restore Order Qty. on Return");
     end;
 
     [IntegrationEvent(false, false)]

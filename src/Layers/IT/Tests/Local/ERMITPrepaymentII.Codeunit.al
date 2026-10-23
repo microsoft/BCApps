@@ -92,10 +92,14 @@ codeunit 144173 "ERM IT Prepayment II"
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryJournals: Codeunit "Library - Journals";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        QuantityMustBeRevertedErr: Label 'Quantity Received and Invoiced must be reverted to 0';
+        QuantityMustBeRestoredErr: Label 'Qty. to Receive and Invoice must be restored to original values';
         AmountErr: Label 'Amount must be equal.';
         ConfirmPurchaseChangeVATBusPostingGroupTxt: Label 'If you change VAT Bus. Posting Group, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.';
         ConfirmSalesChangeVATBusPostingGroupTxt: Label 'If you change VAT Bus. Posting Group, the existing sales lines will be deleted and new sales lines based on the new information on the header will be created.';
@@ -748,6 +752,525 @@ codeunit 144173 "ERM IT Prepayment II"
         // Tear Down.
         DeleteVATPostingSetup(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group");
         UpdateUnrealizedVATOnGeneralLedgerSetup(OldUnrealizedVAT);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure CancelInvoiceFromGetReceiptLinesWithPrepaymentRevertsOrderLineWhenRestoreQtyEnabled()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        PurchaseHeaderCrMemo: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        Quantity: Decimal;
+        NetCheckTotal: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 635874] Cancelling a posted purchase invoice created via Get Receipt Lines from a PO with prepayment fully reverts the PO line quantities
+        InitializePurchaseInvoiceCancellation(LibrarySetupStorage);
+        SetRestoreOrderQtyOnReturn(true);
+
+        // [GIVEN] General and VAT Posting Setup with Purch. Prepayments Account configured
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup.Modify(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
+        SetupPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+        VATPostingSetup."Purch. Prepayments Account" := GeneralPostingSetup."Purch. Prepayments Account";
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Item "I" with matching posting groups
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        // [GIVEN] Vendor "V" with matching posting groups
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        // [GIVEN] Purchase Order with Prepayment % and one line for Item "I"
+        Quantity := LibraryRandom.RandIntInRange(1, 10);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        PurchaseHeaderOrder.Validate("Prepayment %", LibraryRandom.RandIntInRange(10, 50));
+        PurchaseHeaderOrder.Validate("Prepayment Due Date", WorkDate());
+        PurchaseHeaderOrder.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeaderOrder, PurchaseLine.Type::Item, Item."No.", Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 500, 2));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Posted prepayment invoice
+        LibraryPurchase.PostPrepaymentInvoice(PurchaseHeaderOrder);
+
+        // [GIVEN] Purchase Order posted with Receive only
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [GIVEN] Purchase Invoice created via Get Receipt Lines from the receipt
+        PurchRcptHeader.SetRange("Order No.", PurchaseHeaderOrder."No.");
+        PurchRcptHeader.FindFirst();
+        PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        PurchGetReceipt.SetPurchHeader(PurchaseHeaderInvoice);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [GIVEN] Check Total on Purchase Order is IT-mandatory and is based on the net amount
+        PurchaseHeaderOrder.Find();
+        PurchaseHeaderOrder.Validate(Invoice, true);
+        PurchaseHeaderOrder.Modify(true);
+        LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeaderOrder, false, false, true);
+        NetCheckTotal := PurchaseHeaderOrder."Check Total";
+
+        // [GIVEN] Purchase Invoice posted with the IT-mandatory net "Check Total"
+        PurchInvHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeaderInvoice, NetCheckTotal));
+
+        // [WHEN] Cancel the Posted Purchase Invoice
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCrMemo);
+        PurchCrMemoHdr.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeaderCrMemo, NetCheckTotal));
+        CorrectPostedPurchInvoice.UpdatePurchaseOrderLineIfExist(PurchCrMemoHdr."No.");
+
+        // [THEN] Purchase Order line is fully reverted: Qty. Received = 0, Qty. Invoiced = 0
+        PurchaseLine.Find();
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", QuantityMustBeRevertedErr);
+        Assert.AreEqual(0, PurchaseLine."Quantity Invoiced", QuantityMustBeRevertedErr);
+        Assert.AreEqual(Quantity, PurchaseLine."Qty. to Receive", QuantityMustBeRestoredErr);
+        Assert.AreEqual(Quantity, PurchaseLine."Qty. to Invoice", QuantityMustBeRestoredErr);
+        PurchaseLine.TestField("Prepmt Amt Deducted", 0);
+        PurchaseLine.TestField("Prepmt Amt to Deduct", PurchaseLine."Prepmt. Amt. Inv.");
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelPartialInvoiceRecalculatesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(true);
+    end;
+
+    local procedure CancelInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        PrepaidPurchaseLine: Record "Purchase Line";
+        PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseHeaderCrMemo: Record "Purchase Header";
+        PurchaseInvoiceHeader: Record "Purch. Inv. Header";
+        PurchasePrepaymentInvoiceHeader: Record "Purch. Inv. Header";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        RemainingPurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        ExpectedPrepmtToDeduct: Decimal;
+        InvoicedQuantity: Decimal;
+        NetCheckTotal: Decimal;
+        OrderQuantity: Decimal;
+        PrepaymentCreditMemoNo: Code[20];
+        PrepaymentInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 649626] Cancelling an invoice reconciles its prepayment when order quantity restoration is disabled.
+        InitializePurchaseInvoiceCancellation(LibrarySetupStorage);
+        InvoicedQuantity := 1;
+        OrderQuantity := 1;
+        if PartiallyInvoice then begin
+            InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
+            // Keep the remaining line amount above the full 50% prepayment.
+            OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            ExpectedPrepmtToDeduct := OrderQuantity * 50;
+            PurchasesPayablesSetup.Get();
+            PurchasesPayablesSetup.Validate("Default Qty. to Receive", PurchasesPayablesSetup."Default Qty. to Receive"::Remainder);
+            PurchasesPayablesSetup.Modify(true);
+        end;
+
+        // [GIVEN] A Purchase Order with a paid 50% prepayment on the line that will be posted.
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup.Modify(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
+        SetupPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+        VATPostingSetup."Purch. Prepayments Account" := GeneralPostingSetup."Purch. Prepayments Account";
+        VATPostingSetup.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Prepayment %", 50);
+        PurchaseHeader.Validate("Prepayment Due Date", WorkDate());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PrepaidPurchaseLine, PurchaseHeader, PrepaidPurchaseLine.Type::Item, Item."No.", OrderQuantity);
+        PrepaidPurchaseLine.Validate("Direct Unit Cost", 100);
+        PrepaidPurchaseLine.Validate("Qty. to Receive", InvoicedQuantity);
+        PrepaidPurchaseLine.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(RemainingPurchaseLine, PurchaseHeader, RemainingPurchaseLine.Type::Item, Item."No.", OrderQuantity);
+        RemainingPurchaseLine.Validate("Direct Unit Cost", 100);
+        RemainingPurchaseLine.Validate("Prepayment %", 0);
+        RemainingPurchaseLine.Validate("Qty. to Receive", 0);
+        RemainingPurchaseLine.Validate("Qty. to Invoice", 0);
+        RemainingPurchaseLine.Modify(true);
+
+        LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, true, false, false);
+        PrepaymentInvoiceNo := LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+        PurchasePrepaymentInvoiceHeader.Get(PrepaymentInvoiceNo);
+        PurchasePrepaymentInvoiceHeader.CalcFields("Amount Including VAT");
+        PostPaymentToInvoice(
+            "Gen. Journal Account Type"::Vendor, Vendor."No.", PrepaymentInvoiceNo,
+            PurchasePrepaymentInvoiceHeader."Amount Including VAT");
+
+        // [GIVEN] The prepaid line is received and invoiced, and quantity restoration is disabled.
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Validate(Receive, true);
+        PurchaseHeader.Validate(Invoice, true);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, false, true, true);
+        NetCheckTotal := PurchaseHeader."Check Total";
+        PurchaseInvoiceHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeader, NetCheckTotal));
+        if PartiallyInvoice then begin
+            PrepaidPurchaseLine.Find();
+            PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct * InvoicedQuantity / OrderQuantity);
+            PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct * (OrderQuantity - InvoicedQuantity) / OrderQuantity);
+        end;
+        SetRestoreOrderQtyOnReturn(false);
+        Commit();
+
+        // [WHEN] The posted invoice is cancelled.
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseHeaderCrMemo);
+        PurchaseCrMemoHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeaderCrMemo, NetCheckTotal));
+        CorrectPostedPurchInvoice.UpdatePurchaseOrderLineIfExist(PurchaseCrMemoHeader."No.");
+
+        // [THEN] The order quantities remain posted, but its deducted prepayment is released.
+        PrepaidPurchaseLine.Find();
+        PrepaidPurchaseLine.TestField("Quantity Received", InvoicedQuantity);
+        PrepaidPurchaseLine.TestField("Quantity Invoiced", InvoicedQuantity);
+        PrepaidPurchaseLine.TestField(Quantity, OrderQuantity);
+        PrepaidPurchaseLine.TestField("Qty. to Receive", OrderQuantity - InvoicedQuantity);
+        PrepaidPurchaseLine.TestField("Qty. to Invoice", OrderQuantity - InvoicedQuantity);
+        PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", 0);
+        PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct);
+
+        if PartiallyInvoice then begin
+            // [THEN] The remaining quantity consumes the full released prepayment.
+            // Posting resets pending quantities on the other line, which must remain unposted.
+            RemainingPurchaseLine.Find();
+            RemainingPurchaseLine.Validate("Qty. to Receive", 0);
+            RemainingPurchaseLine.Validate("Qty. to Invoice", 0);
+            RemainingPurchaseLine.Modify(true);
+            PurchaseHeader.Find();
+            PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+            PurchaseHeader.Validate(Receive, true);
+            PurchaseHeader.Validate(Invoice, true);
+            PurchaseHeader.Modify(true);
+            LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, false, true, true);
+            PurchaseInvoiceHeader.Get(PostPurchaseDocWithNetCheckTotal(PurchaseHeader, PurchaseHeader."Check Total"));
+            PurchaseInvoiceHeader.CalcFields(Amount);
+            PurchaseInvoiceHeader.TestField(Amount, (OrderQuantity - InvoicedQuantity) * PrepaidPurchaseLine."Direct Unit Cost" - ExpectedPrepmtToDeduct);
+            PrepaidPurchaseLine.Find();
+            PrepaidPurchaseLine.TestField(Quantity, OrderQuantity);
+            PrepaidPurchaseLine.TestField("Quantity Received", OrderQuantity);
+            PrepaidPurchaseLine.TestField("Quantity Invoiced", OrderQuantity);
+            PrepaidPurchaseLine.TestField("Qty. to Receive", 0);
+            PrepaidPurchaseLine.TestField("Qty. to Invoice", 0);
+            PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct);
+            PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 0);
+            RemainingPurchaseLine.Find();
+            RemainingPurchaseLine.TestField("Quantity Received", 0);
+            RemainingPurchaseLine.TestField("Quantity Invoiced", 0);
+            LibrarySetupStorage.Restore();
+            exit;
+        end;
+
+        // [THEN] The released prepayment can be credited from the original order.
+        PurchaseHeader.Find();
+        LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, true, false, false);
+        PrepaymentCreditMemoNo := LibraryPurchase.PostPurchasePrepaymentCreditMemo(PurchaseHeader);
+        PurchaseCrMemoHeader.Get(PrepaymentCreditMemoNo);
+        PurchaseCrMemoHeader.CalcFields("Amount Including VAT");
+        PurchaseCrMemoHeader.TestField("Amount Including VAT", PurchasePrepaymentInvoiceHeader."Amount Including VAT");
+        LibrarySetupStorage.Restore();
+    end;
+
+    local procedure InitializePurchaseInvoiceCancellation(var LibrarySetupStorage: Codeunit "Library - Setup Storage")
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+    begin
+        LibrarySetupStorage.SavePurchasesSetup();
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+        LibraryERMCountryData.CreateGeneralPostingSetupData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Ext. Doc. No. Mandatory" := false;
+        PurchasesPayablesSetup."Credit Memo Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        PurchasesPayablesSetup."Posted Credit Memo Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        PurchasesPayablesSetup."Invoice Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        PurchasesPayablesSetup."Order Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        PurchasesPayablesSetup."Vendor Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure PostPaymentToInvoice(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentNo: Code[20]; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, GenJournalLine."Document Type"::Payment, AccountType, AccountNo, Amount);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", DocumentNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure SetupPrepmtGLAccountPostingGroups(GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(GeneralPostingSetup."Purch. Prepayments Account");
+        GLAccount.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        GLAccount.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure PostPurchaseDocWithNetCheckTotal(var PurchaseHeader: Record "Purchase Header"; CheckTotal: Decimal): Code[20]
+    var
+        PurchPost: Codeunit "Purch.-Post";
+    begin
+        // Posts a purchase document with an explicit net "Check Total"
+        PurchPost.SetPostingFlags(PurchaseHeader);
+        if (PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo") and (PurchaseHeader."Vendor Cr. Memo No." = '') then
+            PurchaseHeader."Vendor Cr. Memo No." := PurchaseHeader."No.";
+        PurchaseHeader.Validate("Check Total", CheckTotal);
+        PurchaseHeader.Modify(true);
+        Codeunit.Run(Codeunit::"Purch.-Post", PurchaseHeader);
+        exit(PurchaseHeader."Last Posting No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelSalesInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelSalesInvoiceWithPrepaymentAndVerify(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelPartialSalesInvoiceRecalculatesPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelSalesInvoiceWithPrepaymentAndVerify(true);
+    end;
+
+    local procedure CancelSalesInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean)
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GLAccount: Record "G/L Account";
+        Item: Record Item;
+        PrepaidSalesLine: Record "Sales Line";
+        RemainingSalesLine: Record "Sales Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesPrepaymentInvoiceHeader: Record "Sales Invoice Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        ExpectedPrepmtToDeduct: Decimal;
+        InvoicedQuantity: Decimal;
+        OrderQuantity: Decimal;
+        PrepaymentCreditMemoNo: Code[20];
+        PrepaymentInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 649626] Cancelling an invoice reconciles its prepayment when order quantity restoration is disabled.
+        InitializeSalesInvoiceCancellation(LibrarySetupStorage);
+        InvoicedQuantity := 1;
+        OrderQuantity := 1;
+        if PartiallyInvoice then begin
+            InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
+            // Keep the remaining line amount above the full 50% prepayment.
+            OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            ExpectedPrepmtToDeduct := OrderQuantity * 50;
+            SalesReceivablesSetup.Get();
+            SalesReceivablesSetup.Validate("Default Quantity to Ship", SalesReceivablesSetup."Default Quantity to Ship"::Remainder);
+            SalesReceivablesSetup.Modify(true);
+        end;
+
+        // [GIVEN] A Sales Order with a paid 50% prepayment on the line that will be posted.
+        LibrarySales.CreatePrepaymentVATSetup(GLAccount, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup."Sales Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup.Modify(true);
+        VATPostingSetup.Get(GLAccount."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
+        VATPostingSetup.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prepayment %", 50);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(PrepaidSalesLine, SalesHeader, PrepaidSalesLine.Type::Item, Item."No.", OrderQuantity);
+        PrepaidSalesLine.Validate("Unit Price", 100);
+        PrepaidSalesLine.Validate("Qty. to Ship", InvoicedQuantity);
+        PrepaidSalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(RemainingSalesLine, SalesHeader, RemainingSalesLine.Type::Item, Item."No.", OrderQuantity);
+        RemainingSalesLine.Validate("Unit Price", 100);
+        RemainingSalesLine.Validate("Prepayment %", 0);
+        RemainingSalesLine.Validate("Qty. to Ship", 0);
+        RemainingSalesLine.Validate("Qty. to Invoice", 0);
+        RemainingSalesLine.Modify(true);
+
+        PrepaymentInvoiceNo := LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        SalesPrepaymentInvoiceHeader.Get(PrepaymentInvoiceNo);
+        SalesPrepaymentInvoiceHeader.CalcFields("Amount Including VAT");
+        LibrarySales.CreatePaymentAndApplytoInvoice(
+            GenJournalLine, Customer."No.", PrepaymentInvoiceNo, -SalesPrepaymentInvoiceHeader."Amount Including VAT");
+
+        // [GIVEN] The prepaid line is shipped and invoiced, and quantity restoration is disabled.
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        if PartiallyInvoice then begin
+            PrepaidSalesLine.Find();
+            PrepaidSalesLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct * InvoicedQuantity / OrderQuantity);
+            PrepaidSalesLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct * (OrderQuantity - InvoicedQuantity) / OrderQuantity);
+        end;
+        SetRestoreSalesOrderQtyOnReturn(false);
+        Commit();
+
+        // [WHEN] The posted invoice is cancelled.
+        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN] The order quantities remain posted, but its deducted prepayment is released.
+        PrepaidSalesLine.Find();
+        PrepaidSalesLine.TestField("Quantity Shipped", InvoicedQuantity);
+        PrepaidSalesLine.TestField("Quantity Invoiced", InvoicedQuantity);
+        PrepaidSalesLine.TestField(Quantity, OrderQuantity);
+        PrepaidSalesLine.TestField("Qty. to Ship", OrderQuantity - InvoicedQuantity);
+        PrepaidSalesLine.TestField("Qty. to Invoice", OrderQuantity - InvoicedQuantity);
+        PrepaidSalesLine.TestField("Prepmt Amt Deducted", 0);
+        PrepaidSalesLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct);
+
+        if PartiallyInvoice then begin
+            // [THEN] The remaining quantity consumes the full released prepayment.
+            // Posting resets pending quantities on the other line, which must remain unposted.
+            RemainingSalesLine.Find();
+            RemainingSalesLine.Validate("Qty. to Ship", 0);
+            RemainingSalesLine.Validate("Qty. to Invoice", 0);
+            RemainingSalesLine.Modify(true);
+            SalesHeader.Find();
+            SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+            SalesInvoiceHeader.CalcFields(Amount);
+            SalesInvoiceHeader.TestField(Amount, (OrderQuantity - InvoicedQuantity) * PrepaidSalesLine."Unit Price" - ExpectedPrepmtToDeduct);
+            PrepaidSalesLine.Find();
+            PrepaidSalesLine.TestField(Quantity, OrderQuantity);
+            PrepaidSalesLine.TestField("Quantity Shipped", OrderQuantity);
+            PrepaidSalesLine.TestField("Quantity Invoiced", OrderQuantity);
+            PrepaidSalesLine.TestField("Qty. to Ship", 0);
+            PrepaidSalesLine.TestField("Qty. to Invoice", 0);
+            PrepaidSalesLine.TestField("Prepmt Amt Deducted", ExpectedPrepmtToDeduct);
+            PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 0);
+            RemainingSalesLine.Find();
+            RemainingSalesLine.TestField("Quantity Shipped", 0);
+            RemainingSalesLine.TestField("Quantity Invoiced", 0);
+            LibrarySetupStorage.Restore();
+            exit;
+        end;
+
+        // [THEN] The released prepayment can be credited from the original order.
+        SalesHeader.Find();
+        PrepaymentCreditMemoNo := LibrarySales.PostSalesPrepaymentCreditMemo(SalesHeader);
+        SalesCrMemoHeader.Get(PrepaymentCreditMemoNo);
+        SalesCrMemoHeader.CalcFields("Amount Including VAT");
+        SalesCrMemoHeader.TestField("Amount Including VAT", SalesPrepaymentInvoiceHeader."Amount Including VAT");
+        LibrarySetupStorage.Restore();
+    end;
+
+    local procedure InitializeSalesInvoiceCancellation(var LibrarySetupStorage: Codeunit "Library - Setup Storage")
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+    begin
+        LibrarySetupStorage.SaveSalesSetup();
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryERMCountryData.CreateGeneralPostingSetupData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdateSalesReceivablesSetup();
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Credit Memo Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        SalesReceivablesSetup."Posted Credit Memo Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        SalesReceivablesSetup."Invoice Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        SalesReceivablesSetup."Order Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        SalesReceivablesSetup."Customer Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        SalesReceivablesSetup.Modify(true);
+    end;
+
+    local procedure SetRestoreSalesOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
     end;
 
     [Test]

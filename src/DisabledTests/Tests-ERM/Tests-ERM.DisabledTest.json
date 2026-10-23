@@ -4817,21 +4817,6 @@
   {
     "codeunitId": 138015,
     "codeunitName": "O365 Correct Sales Invoice",
-    "method": "CorrectInvoicePostedFromTwoShipmentsOfSingleOrder"
-  },
-  {
-    "codeunitId": 138015,
-    "codeunitName": "O365 Correct Sales Invoice",
-    "method": "CorrectInvoicePostedFromTwoShipmentsOfTwoOrders"
-  },
-  {
-    "codeunitId": 138015,
-    "codeunitName": "O365 Correct Sales Invoice",
-    "method": "CorrectPartialInvoicePostedFromOrder"
-  },
-  {
-    "codeunitId": 138015,
-    "codeunitName": "O365 Correct Sales Invoice",
     "method": "PostedSalesInvoiceFoundationSetupDisabled"
   },
   {
@@ -5038,21 +5023,6 @@
     "codeunitId": 138025,
     "codeunitName": "O365 Correct Purchase Invoice",
     "method": "CorrectFullInvoicePostedFromOrder"
-  },
-  {
-    "codeunitId": 138025,
-    "codeunitName": "O365 Correct Purchase Invoice",
-    "method": "CorrectInvoicePostedFromTwoShipmentsOfSingleOrder"
-  },
-  {
-    "codeunitId": 138025,
-    "codeunitName": "O365 Correct Purchase Invoice",
-    "method": "CorrectInvoicePostedFromTwoShipmentsOfTwoOrders"
-  },
-  {
-    "codeunitId": 138025,
-    "codeunitName": "O365 Correct Purchase Invoice",
-    "method": "CorrectPartialInvoicePostedFromOrder"
   },
   {
     "codeunitId": 138025,
