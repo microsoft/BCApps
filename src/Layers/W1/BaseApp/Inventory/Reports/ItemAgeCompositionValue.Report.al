@@ -214,6 +214,21 @@ report 5808 "Item Age Composition - Value"
             column(PrintLine; PrintLine)
             {
             }
+            column(EndingDateText; Format(PeriodStartDate[5]))
+            {
+            }
+            column(Period1RangeText; Period1Text)
+            {
+            }
+            column(Period2RangeText; Period2Text)
+            {
+            }
+            column(Period3RangeText; Period3Text)
+            {
+            }
+            column(LocationFilterText; GetFilter("Location Filter"))
+            {
+            }
             dataitem("Item Ledger Entry"; "Item Ledger Entry")
             {
                 DataItemLink = "Item No." = field("No."), "Location Code" = field("Location Filter"), "Variant Code" = field("Variant Filter"), "Global Dimension 1 Code" = field("Global Dimension 1 Filter"), "Global Dimension 2 Code" = field("Global Dimension 2 Filter");
@@ -226,7 +241,6 @@ report 5808 "Item Age Composition - Value"
                     PrintLine := true;
                     CalcRemainingQty();
                     RemainingQty += TotalInvtQty;
-
                     if Item."Costing Method" = Item."Costing Method"::Average then begin
                         InvtValue[i] += AverageCost[i] * InvtQty[i];
                         InvtValueRTC[i] += AverageCost[i] * InvtQty[i];
@@ -238,7 +252,6 @@ report 5808 "Item Age Composition - Value"
                         TotalInvtValueRTC += UnitCost * Abs(TotalInvtQty);
                         InvtValueRTC[i] += UnitCost * Abs(InvtQty[i]);
                     end;
-
                     for j := 1 to 5 do
                         InvtQtyTotal[j] += InvtQty[j];
                 end;
@@ -482,6 +495,7 @@ report 5808 "Item Age Composition - Value"
         Inventory4Lbl = 'Inventory for Period 4';
         InventoryValueLbl = 'Inventory Value';
         InventoryLbl = 'Inventory';
+        LocationFilterLbl = 'Location Filter';
         // About the report labels
         AboutTheReportLbl = 'About the report';
         EnvironmentLbl = 'Environment';
@@ -561,7 +575,6 @@ report 5808 "Item Age Composition - Value"
     begin
         ValueEntry.SetRange("Item Ledger Entry No.", "Item Ledger Entry"."Entry No.");
         UnitCost := 0;
-
         if ValueEntry.Find('-') then
             repeat
                 if ValueEntry."Partial Revaluation" then

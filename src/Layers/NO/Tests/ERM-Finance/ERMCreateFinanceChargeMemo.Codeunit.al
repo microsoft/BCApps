@@ -2,6 +2,7 @@ codeunit 134911 "ERM Create Finance Charge Memo"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -21,6 +22,10 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         MIRHelperFunctions: Codeunit "MIR - Helper Functions";
         IsInitialized: Boolean;
+        PrintInvocationCount: Integer;
+        PrintedFinChargeMemoCount: Integer;
+        PrintedAsEmail: Boolean;
+        PrintedFinChargeMemoCustomerNos: List of [Code[20]];
         AmountErr: Label 'Amount must be %1 for Finance Charge Header No: %2.';
         FinChrgMemoHeaderFilterTxt: Label 'Finance Charge Memo: No.: %1, Customer No.: %2';
         WrongNumberOfMemosErr: Label 'Wrong number of created Finance Charge Memos.';
@@ -467,7 +472,6 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         asserterror Error('');
         asserterror FinanceChargeMemoHeader.Get(FinChargeMemoNo);
         Assert.AssertRecordNotFound();
-
     end;
 
     [Test]
@@ -578,6 +582,54 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         // [THEN] NrOfDays = Closed at Date - Due Date (not Document Date - Due Date)
         FindFinChrgMemoLineOfCustLedgEntryType(FinanceChargeMemoLine, FinanceChargeMemoHeader."No.");
         Assert.AreEqual('NrDays=' + Format(ClosedAtDate - DueDate), FinanceChargeMemoLine.Description, NrOfDaysUseClosedAtDateForClosedEntriesLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('IssueFinanceChargeMemosHandler')]
+    [Scope('OnPrem')]
+    procedure IssueMultipleFinChargeMemosWithPrintUsesSingleBatch()
+    var
+        Customer: Record Customer;
+        SecondCustomer: Record Customer;
+        PrintCaptureSubscriber: Codeunit "ERM Create Finance Charge Memo";
+        FirstCustomerNo: Code[20];
+        SecondCustomerNo: Code[20];
+        FinanceChargeTermsCode: Code[10];
+        FirstFinChargeMemoNo: Code[20];
+        SecondFinChargeMemoNo: Code[20];
+        FinChargeMemoHeaderFilter: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Printing multiple issued finance charge memos uses one print call containing both memos
+        Initialize();
+
+        // [GIVEN] Two customers with finance charge terms and one memo each
+        FinanceChargeTermsCode := CreateFinanceChargeTerms(1);
+        FirstCustomerNo := CreateCustomerWithFinanceChargeTerms(FinanceChargeTermsCode);
+        SecondCustomerNo := CreateCustomerWithFinanceChargeTerms(FinanceChargeTermsCode);
+        Customer.Get(FirstCustomerNo);
+        SecondCustomer.Get(SecondCustomerNo);
+        FirstFinChargeMemoNo := CreateFinChargeMemoAtDate(Customer, CalcDate('<-1D>', WorkDate()));
+        SecondFinChargeMemoNo := CreateFinChargeMemoAtDate(SecondCustomer, CalcDate('<-1D>', WorkDate()));
+        FinChargeMemoHeaderFilter := StrSubstNo('%1|%2', FirstFinChargeMemoNo, SecondFinChargeMemoNo);
+        Commit();
+
+        // [WHEN] Issue both memos with Print selected
+        LibraryVariableStorage.Enqueue(PrintDocRef::Print);
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(FinChargeMemoHeaderFilter);
+        PrintCaptureSubscriber.ResetPrintCapture();
+        BindSubscription(PrintCaptureSubscriber);
+        IssueAndPrintFinChargeMemo();
+        UnbindSubscription(PrintCaptureSubscriber);
+
+        // [THEN] One print call contains both issued memos and is not an email send
+        Assert.AreEqual(1, PrintCaptureSubscriber.GetPrintInvocationCount(), 'The memos should be printed in one report invocation.');
+        Assert.AreEqual(2, PrintCaptureSubscriber.GetPrintedFinChargeMemoCount(), 'The print record filter should contain both issued memos.');
+        Assert.IsTrue(PrintCaptureSubscriber.ContainsPrintedFinChargeMemoCustomer(FirstCustomerNo), 'The first customer memo should be included in the print batch.');
+        Assert.IsTrue(PrintCaptureSubscriber.ContainsPrintedFinChargeMemoCustomer(SecondCustomerNo), 'The second customer memo should be included in the print batch.');
+        Assert.IsFalse(PrintCaptureSubscriber.WasPrintedAsEmail(), 'The report should use the print path, not the email path.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -1033,6 +1085,47 @@ codeunit 134911 "ERM Create Finance Charge Memo"
             exit;
         BindSubscription(ActiveDirectoryMockEvents);
         ActiveDirectoryMockEvents.Enable();
+    end;
+
+    procedure ResetPrintCapture()
+    begin
+        Clear(PrintedFinChargeMemoCustomerNos);
+        Clear(PrintInvocationCount);
+        Clear(PrintedFinChargeMemoCount);
+        PrintedAsEmail := false;
+    end;
+
+    procedure GetPrintInvocationCount(): Integer
+    begin
+        exit(PrintInvocationCount);
+    end;
+
+    procedure GetPrintedFinChargeMemoCount(): Integer
+    begin
+        exit(PrintedFinChargeMemoCount);
+    end;
+
+    procedure ContainsPrintedFinChargeMemoCustomer(CustomerNo: Code[20]): Boolean
+    begin
+        exit(PrintedFinChargeMemoCustomerNos.Contains(CustomerNo));
+    end;
+
+    procedure WasPrintedAsEmail(): Boolean
+    begin
+        exit(PrintedAsEmail);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Issued Fin. Charge Memo Header", 'OnBeforePrintRecords', '', false, false)]
+    local procedure CaptureIssuedFinChargeMemoPrint(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header"; ShowRequestForm: Boolean; SendAsEmail: Boolean; HideDialog: Boolean; var IsHandled: Boolean)
+    begin
+        PrintInvocationCount += 1;
+        PrintedFinChargeMemoCount := IssuedFinChargeMemoHeader.Count();
+        PrintedAsEmail := SendAsEmail;
+        if IssuedFinChargeMemoHeader.FindSet() then
+            repeat
+                PrintedFinChargeMemoCustomerNos.Add(IssuedFinChargeMemoHeader."Customer No.");
+            until IssuedFinChargeMemoHeader.Next() = 0;
+        IsHandled := true;
     end;
 }
 
