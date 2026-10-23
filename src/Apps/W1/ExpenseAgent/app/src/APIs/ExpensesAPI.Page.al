@@ -260,11 +260,6 @@ page 6927 "Expenses API"
                     Caption = 'Compliance Status';
                     Editable = false;
                 }
-                field(complianceReason; Rec."Compliance Reason")
-                {
-                    Caption = 'Compliance Reason';
-                    Editable = false;
-                }
                 field(createdDateTime; Rec."Created Date-Time")
                 {
                     Caption = 'Created Date Time';

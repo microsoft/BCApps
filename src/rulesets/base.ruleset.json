@@ -31,7 +31,7 @@
     {
       "id": "AA0248",
       "action": "None",
-      "justification": "Wrong, useless rule."
+      "justification": "Wrong, useless rule. Requires use of 'this.' on all global variables."
     },
     {
       "id": "AL0605",

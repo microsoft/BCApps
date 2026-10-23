@@ -759,12 +759,6 @@ table 6900 Expense
             ToolTip = 'Specifies the compliance status assigned to the expense.';
             Editable = false;
         }
-        field(205; "Compliance Reason"; Text[250])
-        {
-            Caption = 'Compliance Reason';
-            DataClassification = CustomerContent;
-            Editable = false;
-        }
         field(206; "No Receipt Generated At"; DateTime)
         {
             Caption = 'No Receipt Generated At';

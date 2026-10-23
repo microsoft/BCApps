@@ -301,11 +301,6 @@ page 6929 "Expense Report Lines API"
                     Caption = 'Compliance Status';
                     Editable = false;
                 }
-                field(complianceReason; Rec."Compliance Reason")
-                {
-                    Caption = 'Compliance Reason';
-                    Editable = false;
-                }
                 field(createdByExpenseUserId; Rec."Created By Exp. User Id")
                 {
                     Caption = 'Created By Expense User Id';
