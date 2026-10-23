@@ -259,14 +259,19 @@ codeunit 130500 "Any"
 
     /// <summary>.
     /// This function must be called from all functions that want to use Pseudo-random generation.
-    /// This function will call the SetSeed with the default value to ensure the same numbers are returned
+    /// This function initializes the configured seed, or the default seed when none is configured.
     /// </summary>
     /// <param name="MaxValue">Upper range for the number</param>
     /// <returns>Pseudo-random integer value</returns>
     local procedure GetNextValue(MaxValue: Integer): Integer
+    var
+        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
     begin
         if (not SeedSet) then
-            SetSeed(1);
+            if ConfiguredRandomSeed.IsSet() then
+                SetSeed(ConfiguredRandomSeed.GetSeed())
+            else
+                SetSeed(1);
 
         exit(Random(MaxValue));
     end;

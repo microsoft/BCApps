@@ -262,8 +262,11 @@ codeunit 134549 "Test Configuration Tests"
         ExplicitSeedValue := Any.IntegerInRange(1, 1000000);
         Configuration."Use Random Seed" := true;
         Configuration."Random Seed" := 17;
+        Clear(Any);
         SeedProvider.Initialize(Configuration);
-        LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'Initialization must apply the configured seed.');
+        LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'A fresh Any instance must use the configured seed.');
+        LibraryAssert.AreEqual(17, Any.GetSeed(), 'Lazy initialization must retain the configured seed.');
+        Clear(Any);
         SeedProvider.OnBeforeTestMethodRun();
         LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'Each method must start with the configured seed.');
         Configuration."Random Seed" := 0;
@@ -274,6 +277,7 @@ codeunit 134549 "Test Configuration Tests"
         Any.SetSeed(42);
         LibraryAssert.AreEqual(ExplicitSeedValue, Any.IntegerInRange(1, 1000000), 'The configured seed must not override an explicit test seed.');
         Configuration."Use Random Seed" := false;
+        Clear(Any);
         SeedProvider.Initialize(Configuration);
         LibraryAssert.IsFalse(ConfiguredRandomSeed.IsSet(), 'An unset seed must not retain an earlier configuration.');
         LibraryAssert.AreEqual(DefaultSeedValue, Any.IntegerInRange(1, 1000000), 'An unset seed must initialize the normal default.');

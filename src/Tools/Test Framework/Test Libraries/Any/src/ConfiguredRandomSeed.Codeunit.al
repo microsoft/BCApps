@@ -6,7 +6,7 @@
 namespace System.TestLibraries.Utilities;
 
 /// <summary>
-/// Carries the current suite's optional seed to the legacy random-library reset.
+/// Carries the current suite's optional seed to random-library initialization.
 /// Explicit calls to random-library setters do not consult this state.
 /// </summary>
 codeunit 130501 "Configured Random Seed"
