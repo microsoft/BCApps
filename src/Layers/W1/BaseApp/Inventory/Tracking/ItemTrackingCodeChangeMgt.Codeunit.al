@@ -25,7 +25,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
 using System.Utilities;
 
-codeunit 6535 "Item Tracking Code Change Mgt."
+codeunit 6540 "Item Tracking Code Change Mgt."
 {
     #region Item Tracking Code Change Checks
 
@@ -478,6 +478,21 @@ codeunit 6535 "Item Tracking Code Change Mgt."
         ItemLedgerEntry.Get(ItemLedgerEntryNo);
         ItemTrackingCode := GetTrackingCodeAtPosting(ItemLedgerEntry);
         exit(true);
+    end;
+
+    internal procedure IsCurrentTrackingCodeCompatibleWithEntry(ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        Item.Get(ItemLedgerEntry."Item No.");
+        if not ItemTrackingCode.Get(Item."Item Tracking Code") then
+            Clear(ItemTrackingCode);
+
+        exit(
+            (ItemTrackingCode."SN Specific Tracking" = (ItemLedgerEntry."Serial No." <> '')) and
+            (ItemTrackingCode."Lot Specific Tracking" = (ItemLedgerEntry."Lot No." <> '')) and
+            (ItemTrackingCode."Package Specific Tracking" = (ItemLedgerEntry."Package No." <> '')));
     end;
 
     local procedure GetTrackingCodeAtPosting(ItemLedgerEntry: Record "Item Ledger Entry"): Code[10]

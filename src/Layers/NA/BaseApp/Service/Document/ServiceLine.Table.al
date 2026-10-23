@@ -5476,7 +5476,6 @@ table 5902 "Service Line"
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry")
     var
-        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         QtyBase: Decimal;
         ShippedQtyNotReturned: Decimal;
     begin
@@ -5496,8 +5495,7 @@ table 5902 "Service Line"
         ItemLedgEntry.TestField(Positive, false);
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");
-        if not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", ItemLedgEntry."Entry No.") then
-            ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
+        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
 
         if "Document Type" in ["Document Type"::"Credit Memo"] then
             QtyBase := "Quantity (Base)"

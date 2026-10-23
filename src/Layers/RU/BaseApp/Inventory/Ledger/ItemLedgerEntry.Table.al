@@ -23,12 +23,10 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Project.Job;
-using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
 using Microsoft.Utilities;
 
 table 32 "Item Ledger Entry"
@@ -1021,11 +1019,6 @@ table 32 "Item Ledger Entry"
     end;
 
     procedure CheckTrackingDoesNotExist(RecId: RecordId; FldCaption: Text)
-    begin
-        CheckTrackingDoesNotExist(RecId, FldCaption, '', 0, false);
-    end;
-
-    internal procedure CheckTrackingDoesNotExist(RecId: RecordId; FldCaption: Text; SourceItemNo: Code[20]; ApplicationEntryNo: Integer; IsCreditDocument: Boolean)
     var
         ItemTrackingLines: Page "Item Tracking Lines";
         IsHandled: Boolean;
@@ -1035,54 +1028,20 @@ table 32 "Item Ledger Entry"
         if IsHandled then
             exit;
 
-        if IsCrossPeriodReturnApplication(
-             RecId, FldCaption, SourceItemNo, ApplicationEntryNo, IsCreditDocument)
-        then
-            exit;
-
         if TrackingExists() then
             Error(UseItemTrackingLinesPageErr, ItemTrackingLines.Caption, FldCaption);
     end;
 
-    local procedure IsCrossPeriodReturnApplication(
-        RecId: RecordId;
-        FldCaption: Text;
-        SourceItemNo: Code[20];
-        ApplicationEntryNo: Integer;
-        IsCreditDocument: Boolean): Boolean
+    procedure IsRedStorno() RedStorno: Boolean
     var
-        PurchaseLine: Record "Purchase Line";
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
-        SalesLine: Record "Sales Line";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        ValueEntry: Record "Value Entry";
     begin
-        if ApplicationEntryNo <> "Entry No." then
-            exit(false);
+        ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Entry Type");
+        ValueEntry.SetRange("Item Ledger Entry No.", "Entry No.");
+        if ValueEntry.FindFirst() then
+            exit(ValueEntry."Red Storno");
 
-        case RecId.TableNo of
-            Database::"Purchase Line":
-                if (FldCaption <> PurchaseLine.FieldCaption("Appl.-to Item Entry")) or
-                   not IsCreditDocument
-                then
-                    exit(false);
-            Database::"Purch. Cr. Memo Line":
-                if FldCaption <> PurchCrMemoLine.FieldCaption("Appl.-to Item Entry") then
-                    exit(false);
-            Database::"Sales Line":
-                if (FldCaption <> SalesLine.FieldCaption("Appl.-from Item Entry")) or
-                   not IsCreditDocument
-                then
-                    exit(false);
-            Database::"Sales Cr.Memo Line":
-                if FldCaption <> SalesCrMemoLine.FieldCaption("Appl.-from Item Entry") then
-                    exit(false);
-            else
-                exit(false);
-        end;
-
-        exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
-            SourceItemNo, ApplicationEntryNo));
+        exit(false);
     end;
 
     procedure CopyTrackingFromItemJnlLine(ItemJnlLine: Record "Item Journal Line")

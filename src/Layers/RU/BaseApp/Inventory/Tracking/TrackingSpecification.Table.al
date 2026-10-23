@@ -181,8 +181,6 @@ table 336 "Tracking Specification"
             trigger OnValidate()
             var
                 ItemLedgEntry: Record "Item Ledger Entry";
-                ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
-                CrossPeriodPurchaseReturn: Boolean;
             begin
                 if "Appl.-to Item Entry" = 0 then
                     exit;
@@ -192,14 +190,9 @@ table 336 "Tracking Specification"
 
                 ItemLedgEntry.Get("Appl.-to Item Entry");
 
-                if IsPurchaseReturnSource() then
-                    CrossPeriodPurchaseReturn :=
-                        ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("Item No.", ItemLedgEntry."Entry No.");
-                TestApplyToItemLedgEntryNo(ItemLedgEntry, CrossPeriodPurchaseReturn);
+                TestApplyToItemLedgEntryNo(ItemLedgEntry);
 
-                if not CrossPeriodPurchaseReturn and
-                   (Abs("Quantity (Base)" - "Quantity Handled (Base)") > Abs(ItemLedgEntry."Remaining Quantity"))
-                then
+                if Abs("Quantity (Base)" - "Quantity Handled (Base)") > Abs(ItemLedgEntry."Remaining Quantity") then
                     Error(
                       RemainingQtyErr,
                       ItemLedgEntry.FieldCaption("Remaining Quantity"), ItemLedgEntry."Entry No.");
@@ -429,8 +422,6 @@ table 336 "Tracking Specification"
             trigger OnValidate()
             var
                 ItemLedgEntry: Record "Item Ledger Entry";
-                ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
-                CrossPeriodSalesReturn: Boolean;
             begin
                 if "Appl.-from Item Entry" = 0 then
                     exit;
@@ -446,11 +437,7 @@ table 336 "Tracking Specification"
                 if ItemLedgEntry."Shipped Qty. Not Returned" + Abs("Qty. to Handle (Base)") > 0 then
                     ItemLedgEntry.FieldError("Shipped Qty. Not Returned");
                 ItemLedgEntry.TestField("Variant Code", "Variant Code");
-                if IsSalesReturnSource() then
-                    CrossPeriodSalesReturn :=
-                        ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("Item No.", ItemLedgEntry."Entry No.");
-                if not CrossPeriodSalesReturn then
-                    ItemLedgEntry.TestTrackingEqualToTrackingSpec(Rec);
+                ItemLedgEntry.TestTrackingEqualToTrackingSpec(Rec);
 
                 OnAfterValidateApplFromItemEntry(Rec, ItemLedgEntry, IsReclass());
             end;
@@ -768,7 +755,7 @@ table 336 "Tracking Specification"
         OnAfterIsReclass(Rec, Reclass);
     end;
 
-    local procedure TestApplyToItemLedgEntryNo(ItemLedgEntry: Record "Item Ledger Entry"; SkipTrackingValidation: Boolean)
+    local procedure TestApplyToItemLedgEntryNo(ItemLedgEntry: Record "Item Ledger Entry")
     var
         ItemJnlLine: Record "Item Journal Line";
         IsHandled: Boolean;
@@ -781,8 +768,7 @@ table 336 "Tracking Specification"
         ItemLedgEntry.TestField("Item No.", "Item No.");
         ItemLedgEntry.TestField(Positive, true);
         ItemLedgEntry.TestField("Variant Code", "Variant Code");
-        if not SkipTrackingValidation then
-            ItemLedgEntry.TestTrackingEqualToTrackingSpec(Rec);
+        ItemLedgEntry.TestTrackingEqualToTrackingSpec(Rec);
         if "Source Type" = Database::"Item Journal Line" then begin
             ItemJnlLine.SetRange("Journal Template Name", "Source ID");
             ItemJnlLine.SetRange("Journal Batch Name", "Source Batch Name");
@@ -796,24 +782,6 @@ table 336 "Tracking Specification"
                     ItemLedgEntry.TestField("Entry Type", ItemJnlLine."Entry Type");
                 end;
         end;
-    end;
-
-    local procedure IsPurchaseReturnSource(): Boolean
-    begin
-        exit(
-            ("Source Type" = Database::"Purchase Line") and
-            ("Source Subtype" in [
-                "Purchase Document Type"::"Return Order".AsInteger(),
-                "Purchase Document Type"::"Credit Memo".AsInteger()]));
-    end;
-
-    local procedure IsSalesReturnSource(): Boolean
-    begin
-        exit(
-            ("Source Type" = Database::"Sales Line") and
-            ("Source Subtype" in [
-                "Sales Document Type"::"Return Order".AsInteger(),
-                "Sales Document Type"::"Credit Memo".AsInteger()]));
     end;
 
     procedure TestFieldError(FieldCaptionText: Text[80]; CurrFieldValue: Decimal; CompareValue: Decimal)

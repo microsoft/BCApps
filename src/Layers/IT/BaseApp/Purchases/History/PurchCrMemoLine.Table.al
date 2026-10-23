@@ -1118,9 +1118,7 @@ table 125 "Purch. Cr. Memo Line"
         ItemLedgerEntry.TestField(Positive, true);
         ItemLedgerEntry.TestField("Item No.", "No.");
         ItemLedgerEntry.TestField("Variant Code", "Variant Code");
-        ItemLedgerEntry.CheckTrackingDoesNotExist(
-            RecordId, FieldCaption("Appl.-to Item Entry"), "No.",
-            "Appl.-to Item Entry", true);
+        ItemLedgerEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-to Item Entry"));
     end;
 
     local procedure FindItemLedgerEntryFromItemApplicationEntry(var ItemLedgerEntry: Record "Item Ledger Entry")

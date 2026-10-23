@@ -148,6 +148,7 @@ codeunit 137072 "SCM Production Orders II"
         UnitCostMustBeEqualErr: Label '%1 must be correct in %2', Comment = '%1 =Field Name %2 = Table Name';
         PostingReverseEntriesQst: Label 'To reverse these entries, correcting entries will be posted.\Do you want to reverse the entries?';
         QtyMustBeEqualErr: Label 'Quantity must be equal after reverse production entry';
+        TrackingInformationCannotBeDeterminedErr: Label 'The required tracking information cannot be determined automatically.';
         ReservedQtyErr: Label 'Reserved Qty. (Base) on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
         InvtReservedQtyErr: Label 'Quantity reserved from inventory on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
 
@@ -7620,7 +7621,7 @@ codeunit 137072 "SCM Production Orders II"
 
     [Test]
     [HandlerFunctions('ProductionJnlPageHandler2,ConfirmHandler,MessageHandlerNoText')]
-    procedure ReverseProductionConsumptionAfterComponentChangedFromBlankToLotTracking()
+    procedure ReverseProductionConsumptionIsBlockedAfterComponentChangedFromBlankToLotTracking()
     var
         CompItem: Record Item;
         FGItem: Record Item;
@@ -7633,7 +7634,7 @@ codeunit 137072 "SCM Production Orders II"
         OriginalConsumptionEntryNo: Integer;
     begin
         // [FEATURE] [Item Tracking Code Change]
-        // [SCENARIO] Reverse production consumption uses the historical blank tracking code after lot tracking is enabled.
+        // [SCENARIO] Reverse production consumption is blocked after lot tracking is enabled for a historically untracked component.
         Initialize();
 
         // [GIVEN] An untracked component is fully consumed by a released production order.
@@ -7664,16 +7665,10 @@ codeunit 137072 "SCM Production Orders II"
 
         // [WHEN] The historical consumption entry is reversed.
         ItemLedgerEntry.SetRange("Entry No.", OriginalConsumptionEntryNo);
-        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+        asserterror UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
 
-        // [THEN] The reversal has no lot and applies from the original consumption.
-        ItemLedgerEntry.Reset();
-        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
-        ItemLedgerEntry.FindLast();
-        ItemLedgerEntry.TestField(Positive, true);
-        ItemLedgerEntry.TestField("Lot No.", '');
-        ItemLedgerEntry.TestField("Applies-from Entry", OriginalConsumptionEntryNo);
+        // [THEN] Reversal is blocked before posting because the required lot cannot be determined.
+        Assert.ExpectedError(TrackingInformationCannotBeDeterminedErr);
     end;
 
     [Test]

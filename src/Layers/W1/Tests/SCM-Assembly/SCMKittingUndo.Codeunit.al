@@ -88,6 +88,7 @@ codeunit 137097 "SCM Kitting - Undo"
         MSG_WANT_UNDO: Label 'Do you want to undo posting of the posted assembly order?';
         WhseItemTrackingLinesShouldBeDeletedErr: Label 'Whse. Item Tracking Lines should be deleted after undo and recreate';
         WhseItemTrackingLinesShouldExistErr: Label 'Whse. Item Tracking Lines should exist after registering inventory movement';
+        TrackingInformationCannotBeDeterminedErr: Label 'The required tracking information cannot be determined automatically.';
 
     [Normal]
     local procedure Initialize()
@@ -2108,7 +2109,7 @@ codeunit 137097 "SCM Kitting - Undo"
     end;
 
     [Test]
-    procedure UndoAssemblyWithComponentChangedFromBlankToLotTracking()
+    procedure UndoAssemblyIsBlockedWhenComponentChangedFromBlankToLotTracking()
     var
         ItemTrackingCode: Record "Item Tracking Code";
         AsmItem: Record Item;
@@ -2117,12 +2118,10 @@ codeunit 137097 "SCM Kitting - Undo"
         ItemJournalLine: Record "Item Journal Line";
         AssemblyHeader: Record "Assembly Header";
         PostedAssemblyHeader: Record "Posted Assembly Header";
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        OriginalConsumptionEntryNo: Integer;
         PostingDate: Date;
     begin
         // [FEATURE] [Item Tracking Code Change]
-        // [SCENARIO] Undo assembly uses the historical blank tracking code after lot tracking is enabled.
+        // [SCENARIO] Undo assembly is blocked when lot tracking is enabled for a historically untracked component.
         Initialize();
         PostingDate := WorkDate() - 1;
 
@@ -2142,11 +2141,6 @@ codeunit 137097 "SCM Kitting - Undo"
         AssemblyHeader.Modify(true);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
-        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Consumption");
-        ItemLedgerEntry.SetRange("Document No.", PostedAssemblyHeader."No.");
-        ItemLedgerEntry.FindFirst();
-        OriginalConsumptionEntryNo := ItemLedgerEntry."Entry No.";
         CompItem.CalcFields(Inventory);
         CompItem.TestField(Inventory, 0);
         LibraryCosting.AdjustCostItemEntries(CompItem."No.", '');
@@ -2158,18 +2152,52 @@ codeunit 137097 "SCM Kitting - Undo"
         CompItem.Modify(true);
 
         // [WHEN] The posted assembly order is undone.
-        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, '');
+        // [THEN] Undo is blocked before posting because the required lot cannot be determined.
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, TrackingInformationCannotBeDeterminedErr);
+    end;
 
-        // [THEN] The corrective component entry is posted without a lot and applies to the historical consumption.
-        ItemLedgerEntry.Reset();
-        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Consumption");
-        ItemLedgerEntry.SetRange("Document No.", PostedAssemblyHeader."No.");
-        ItemLedgerEntry.SetRange(Correction, true);
-        ItemLedgerEntry.FindFirst();
-        ItemLedgerEntry.TestField(Positive, true);
-        ItemLedgerEntry.TestField("Lot No.", '');
-        ItemLedgerEntry.TestField("Applies-from Entry", OriginalConsumptionEntryNo);
+    [Test]
+    procedure UndoAssemblyIsBlockedWhenProducedItemTrackingCodeChanged()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        AsmItem: Record Item;
+        CompItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Item Tracking Code Change]
+        // [SCENARIO] Undo assembly is blocked when the produced item's tracking code changed after posting.
+        Initialize();
+        PostingDate := WorkDate() - 1;
+
+        // [GIVEN] An untracked item is produced by a posted assembly order.
+        LibraryInventory.CreateItem(AsmItem);
+        AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
+        AsmItem.Modify(true);
+        LibraryInventory.CreateItem(CompItem);
+        AddComponentToAssemblyList(
+            BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, '', '', '', PostingDate, 1);
+        AssemblyHeader.Validate("Posting Date", PostingDate);
+        AssemblyHeader.Modify(true);
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+
+        // [GIVEN] Lot tracking is enabled for the produced item without a historical change-log entry.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        AsmItem."Item Tracking Code" := ItemTrackingCode.Code;
+        AsmItem.Modify(true);
+
+        // [WHEN] The posted assembly order is undone.
+        // [THEN] Undo is blocked before posting because the required lot cannot be determined.
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, TrackingInformationCannotBeDeterminedErr);
     end;
 
     [Test]
