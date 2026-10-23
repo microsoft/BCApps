@@ -4385,13 +4385,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     LastConnectionNo := VATEntry2."Sales Tax Connection No.";
                 end;
 
-                VATPart :=
-                  VATEntry2.GetUnrealizedVATPart(
-                    Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
-                    PaidAmount,
-                    CustLedgEntry2."Amount (LCY)",
-                    TotalUnrealVATAmountFirst,
-                    TotalUnrealVATAmountLast);
+                IsHandled := false;
+                OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2, VATPart, IsHandled);
+                if not IsHandled then
+                    VATPart :=
+                    VATEntry2.GetUnrealizedVATPart(
+                        Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                        PaidAmount,
+                        CustLedgEntry2."Amount (LCY)",
+                        TotalUnrealVATAmountFirst,
+                        TotalUnrealVATAmountLast);
 
                 OnCustUnrealizedVATOnAfterVATPartCalculation(
                   GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2);
@@ -11121,6 +11124,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnVendUnrealizedVATOnBeforeGetUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
     begin
     end;
 
