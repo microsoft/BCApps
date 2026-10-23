@@ -6,10 +6,10 @@ codeunit 130301 "Reset State Before Test Run"
     var
         LibraryRandom: Codeunit "Library - Random";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
-        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
+        AnyConfiguration: Codeunit "Any Configuration";
     begin
-        if ConfiguredRandomSeed.IsSet() then
-            LibraryRandom.SetSeed(ConfiguredRandomSeed.GetSeed())
+        if AnyConfiguration.IsSet() then
+            LibraryRandom.SetSeed(AnyConfiguration.GetSeed())
         else
             LibraryRandom.SetSeed(1);
         RunLegacyPermissionSet();

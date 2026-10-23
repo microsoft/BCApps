@@ -9,7 +9,7 @@ namespace System.TestLibraries.Utilities;
 /// Carries the current suite's optional seed to random-library initialization.
 /// Explicit calls to random-library setters do not consult this state.
 /// </summary>
-codeunit 130501 "Configured Random Seed"
+codeunit 130501 "Any Configuration"
 {
     SingleInstance = true;
     InherentEntitlements = X;

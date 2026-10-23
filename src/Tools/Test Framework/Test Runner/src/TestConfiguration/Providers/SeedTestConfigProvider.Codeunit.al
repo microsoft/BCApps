@@ -11,26 +11,26 @@ codeunit 130475 "Seed Test Config. Provider" implements ITestConfigurationProvid
 {
     var
         Any: Codeunit Any;
-        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
+        AnyConfiguration: Codeunit "Any Configuration";
 
     procedure Initialize(TestConfiguration: Record "Test Configuration")
     begin
         Reset();
         if TestConfiguration."Use Random Seed" then begin
-            ConfiguredRandomSeed.SetSeed(TestConfiguration."Random Seed");
+            AnyConfiguration.SetSeed(TestConfiguration."Random Seed");
             Any.SetSeed(TestConfiguration."Random Seed");
         end;
     end;
 
     procedure ApplyBeforeTestMethodRun()
     begin
-        if ConfiguredRandomSeed.IsSet() then
-            Any.SetSeed(ConfiguredRandomSeed.GetSeed());
+        if AnyConfiguration.IsSet() then
+            Any.SetSeed(AnyConfiguration.GetSeed());
     end;
 
     procedure Reset()
     begin
-        ConfiguredRandomSeed.ClearSeed();
+        AnyConfiguration.ClearSeed();
         Any.SetSeed(1);
     end;
 }

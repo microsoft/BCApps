@@ -265,11 +265,11 @@ codeunit 130500 "Any"
     /// <returns>Pseudo-random integer value</returns>
     local procedure GetNextValue(MaxValue: Integer): Integer
     var
-        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
+        AnyConfiguration: Codeunit "Any Configuration";
     begin
         if (not SeedSet) then
-            if ConfiguredRandomSeed.IsSet() then
-                SetSeed(ConfiguredRandomSeed.GetSeed())
+            if AnyConfiguration.IsSet() then
+                SetSeed(AnyConfiguration.GetSeed())
             else
                 SetSeed(1);
 
