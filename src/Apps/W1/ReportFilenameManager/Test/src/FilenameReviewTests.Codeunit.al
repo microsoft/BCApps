@@ -37,6 +37,7 @@ codeunit 149534 "Filename Review Tests"
     procedure TestDocumentsDoNotRequireDemoPostingSetup()
     var
         GeneralPostingSetup: Record "General Posting Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         GLAccount: Record "G/L Account";
         SalesSetup: Record "Sales & Receivables Setup";
@@ -48,6 +49,9 @@ codeunit 149534 "Filename Review Tests"
         FilenameProofGuard.AssertSafeEnvironment();
         GeneralPostingSetup.DeleteAll();
         VATPostingSetup.DeleteAll();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Inv. Rounding Precision (LCY)" := 0;
+        GeneralLedgerSetup.Modify();
         SalesSetup.Get();
         SalesSetup."Invoice Nos." := '';
         SalesSetup."Posted Invoice Nos." := '';
@@ -62,6 +66,8 @@ codeunit 149534 "Filename Review Tests"
 
         SalesInvoiceHeader.TestField("No.");
         PurchInvHeader.TestField("No.");
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("Inv. Rounding Precision (LCY)", 0.01);
         if GeneralPostingSetup.IsEmpty() or VATPostingSetup.IsEmpty() or (GLAccount.Count() < 3) then
             Error(MissingTestSetupErr);
     end;
@@ -86,6 +92,61 @@ codeunit 149534 "Filename Review Tests"
         ReportSelections.TestField("Report ID", Report::"Standard Sales - Invoice");
         if ReportSelections.Count() <> 1 then
             Error(UnexpectedInvoiceSelectionsErr);
+    end;
+
+    [Test]
+    procedure RepeatedSetupReturnsDistinctInvoicesWithTheirOwnAmounts()
+    var
+        FirstInvoice: Record "Sales Invoice Header";
+        SecondInvoice: Record "Sales Invoice Header";
+        SalesSetup: Record "Sales & Receivables Setup";
+        PreviousSalesSetup: Record "Sales & Receivables Setup";
+        CustomerNo: Code[20];
+    begin
+        Prepare();
+        CustomerNo := TestData.CreateCustomer();
+        PreviousSalesSetup.Get();
+        TestData.PostNewInvoice(CustomerNo, '', '', 100, FirstInvoice);
+        TestData.PostNewInvoice(CustomerNo, '', '', 250, SecondInvoice);
+
+        SalesSetup.Get();
+        SalesSetup.TestField("Customer Nos.", PreviousSalesSetup."Customer Nos.");
+        SalesSetup.TestField("Invoice Nos.", PreviousSalesSetup."Invoice Nos.");
+        SalesSetup.TestField("S. Invoice Template Name", PreviousSalesSetup."S. Invoice Template Name");
+        SalesSetup.TestField("S. Cr. Memo Template Name", PreviousSalesSetup."S. Cr. Memo Template Name");
+        if FirstInvoice."No." = SecondInvoice."No." then
+            Error(SamePostedInvoiceErr);
+        if FirstInvoice."Pre-Assigned No." = SecondInvoice."Pre-Assigned No." then
+            Error(SameDraftInvoiceErr);
+        FirstInvoice.CalcFields(Amount);
+        SecondInvoice.CalcFields(Amount);
+        FirstInvoice.TestField(Amount, 100);
+        SecondInvoice.TestField(Amount, 250);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceReportSelectionDoesNotDependOnCountryDemoData()
+    var
+        ReportSelections: Record "Report Selections";
+        ReportMetadata: Record "Report Metadata";
+    begin
+        Prepare();
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Invoice");
+        ReportSelections.DeleteAll();
+        ReportSelections.Init();
+        ReportSelections.Usage := ReportSelections.Usage::"P.Invoice";
+        ReportSelections.Sequence := '1';
+        ReportSelections."Report ID" := Report::"Filename Proof Report";
+        ReportSelections.Insert();
+
+        TestData.SetupPurchaseInvoiceReport();
+
+        ReportSelections.FindFirst();
+        ReportSelections.TestField("Report ID", Report::"Purchase - Invoice");
+        if ReportSelections.Count() <> 1 then
+            Error(UnexpectedInvoiceSelectionsErr);
+        ReportMetadata.Get(ReportSelections."Report ID");
+        ReportMetadata.TestField(ProcessingOnly, false);
     end;
 
     [Test]
@@ -1013,6 +1074,8 @@ codeunit 149534 "Filename Review Tests"
         ReviewSupport: Codeunit "Filename Review Support";
         TestData: Codeunit "Filename Test Data";
         MissingTestSetupErr: Label 'The document fixtures did not create their posting setup and accounts.';
+        SamePostedInvoiceErr: Label 'Two posted invoice fixtures returned the same invoice.';
+        SameDraftInvoiceErr: Label 'Repeated fixture setup reused a draft invoice number.';
         UnexpectedInvoiceSelectionsErr: Label 'The invoice fixture must configure exactly one report selection.';
         ObsoleteTableOfferedErr: Label 'Obsolete table %1 is offered as a report subject.', Comment = '%1 = Table ID';
         EmptyNoticeSentId: Guid;

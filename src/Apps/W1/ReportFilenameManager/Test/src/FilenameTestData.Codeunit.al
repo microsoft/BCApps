@@ -15,13 +15,11 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Posting;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
 using System.Globalization;
@@ -41,7 +39,6 @@ codeunit 149537 "Filename Test Data"
         PurchaseSetup: Record "Purchases & Payables Setup";
         FilenameProofGuard: Codeunit "Filename Proof Guard";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryUtility: Codeunit "Library - Utility";
     begin
         FilenameProofGuard.AssertSafeEnvironment();
@@ -62,6 +59,10 @@ codeunit 149537 "Filename Test Data"
         if GeneralLedgerSetup."LCY Code" = '' then
             LibraryERM.SetLCYCode(LCYCodeTok);
         GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."Inv. Rounding Precision (LCY)" = 0 then begin
+            GeneralLedgerSetup.Validate("Inv. Rounding Precision (LCY)", 0.01);
+            GeneralLedgerSetup.Modify(true);
+        end;
         // These fixtures exercise report delivery, not VAT reporting periods or local VAT dates.
         if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
             GeneralLedgerSetup.Validate("VAT Reporting Date Usage", GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled);
@@ -101,8 +102,25 @@ codeunit 149537 "Filename Test Data"
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Posted Invoice Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchaseSetup.FieldNo("Posted Receipt Nos."));
         SetupDocumentJournalTemplates();
+        UpdateCountrySetup();
+    end;
+
+    local procedure UpdateCountrySetup()
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+        PreviousSalesSetup: Record "Sales & Receivables Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+    begin
+        PreviousSalesSetup.Get();
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+        // BE replaces these on every call. Keep the fixture's numbering and templates across documents.
+        SalesSetup.Get();
+        SalesSetup.Validate("Customer Nos.", PreviousSalesSetup."Customer Nos.");
+        SalesSetup.Validate("Invoice Nos.", PreviousSalesSetup."Invoice Nos.");
+        SalesSetup.Validate("S. Invoice Template Name", PreviousSalesSetup."S. Invoice Template Name");
+        SalesSetup.Validate("S. Cr. Memo Template Name", PreviousSalesSetup."S. Cr. Memo Template Name");
+        SalesSetup.Modify(true);
     end;
 
     local procedure SetupDocumentJournalTemplates()
@@ -154,6 +172,16 @@ codeunit 149537 "Filename Test Data"
         LibraryERM.SetupReportSelection(ReportSelections.Usage::"S.Invoice", Report::"Standard Sales - Invoice");
     end;
 
+    internal procedure SetupPurchaseInvoiceReport()
+    var
+        ReportSelections: Record "Report Selections";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Invoice");
+        ReportSelections.DeleteAll();
+        LibraryERM.SetupReportSelection(ReportSelections.Usage::"P.Invoice", Report::"Purchase - Invoice");
+    end;
+
     internal procedure PostNewInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         PostNewInvoice(CreateCustomer(), SalesInvoiceHeader);
@@ -176,13 +204,13 @@ codeunit 149537 "Filename Test Data"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        DraftNo: Code[20];
+        LibrarySales: Codeunit "Library - Sales";
+        PostedInvoiceNo: Code[20];
     begin
         CreateSalesDocument(SalesHeader."Document Type"::Invoice, CustomerNo, LanguageCode, SalesHeader);
         if PaymentTermsCode <> '' then
             SalesHeader.Validate("Payment Terms Code", PaymentTermsCode);
         SalesHeader.Modify(true);
-        DraftNo := SalesHeader."No.";
 
         SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", LineNo());
         if SalesLine."Unit Price" <> UnitPrice then begin
@@ -190,14 +218,10 @@ codeunit 149537 "Filename Test Data"
             SalesLine.Modify(true);
         end;
 
-        SalesHeader.Ship := true;
-        SalesHeader.Invoice := true;
-        Codeunit.Run(Codeunit::"Sales-Post", SalesHeader);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        // By the draft number, not the last one posted.
         SalesInvoiceHeader.Reset();
-        SalesInvoiceHeader.SetRange("Pre-Assigned No.", DraftNo);
-        SalesInvoiceHeader.FindFirst();
+        SalesInvoiceHeader.Get(PostedInvoiceNo);
         SalesInvoiceHeader.SetRecFilter();
     end;
 
@@ -366,13 +390,12 @@ codeunit 149537 "Filename Test Data"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         LibraryPurchase: Codeunit "Library - Purchase";
-        DraftNo: Code[20];
+        PostedInvoiceNo: Code[20];
     begin
         Initialize();
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, CreateVendor());
         PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
         PurchaseHeader.Modify(true);
-        DraftNo := PurchaseHeader."No.";
 
         LibraryPurchase.CreatePurchaseLine(
             PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
@@ -380,13 +403,10 @@ codeunit 149537 "Filename Test Data"
         PurchaseLine.Validate("Direct Unit Cost", 100);
         PurchaseLine.Modify(true);
 
-        PurchaseHeader.Receive := true;
-        PurchaseHeader.Invoice := true;
-        Codeunit.Run(Codeunit::"Purch.-Post", PurchaseHeader);
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         PurchInvHeader.Reset();
-        PurchInvHeader.SetRange("Pre-Assigned No.", DraftNo);
-        PurchInvHeader.FindFirst();
+        PurchInvHeader.Get(PostedInvoiceNo);
         PurchInvHeader.SetRecFilter();
     end;
 
