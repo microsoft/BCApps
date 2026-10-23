@@ -3078,7 +3078,8 @@
         CreateVendorWithAllowMultiplePostingGroups(
             Vendor, VendorPostingGroup[1].Code, Currency.Code, VATPostingSetup."VAT Bus. Posting Group");
         CreateVendorPostingGroupWithCopy(VendorPostingGroup);
-        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[1].Code, VendorPostingGroup[2].Code);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[1].Code, 1, 10), CopyStr(VendorPostingGroup[2].Code, 1, 10));
 
         // [GIVEN] Post an FCY invoice, run exchange rate adjustment, and post a payment to the alternative group.
         Item.Get(LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
@@ -3086,7 +3087,7 @@
         PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
         LibraryERM.RunExchRateAdjustment(
             Currency.Code, PostingDate[3], PostingDate[1], AdjustExchRateDefaultDescTxt, PostingDate[2],
-            LibraryRandom.RandText(10), false);
+            CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(PaymentDocNo)), false);
         CreateGeneralJournalBatch(GenJournalBatch, true);
         CreatePaymentAndPost(
             GenJournalLine, GenJournalBatch, Vendor."No.", VendorPostingGroup[2].Code, PostingDate[1],
