@@ -144,6 +144,18 @@
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
   "enableCodeAnalyzersOnTestApps": true,
+  "BCQuality": {
+    "enabledLayers": [
+      "microsoft"
+    ]
+  },
+  "CodeReviewAgent": {
+    "enabled": true,
+    "excludedAuthors": [
+      "business-central-bot[bot]",
+      "dependabot[bot]"
+    ]
+  },
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
