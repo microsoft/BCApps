@@ -2044,7 +2044,14 @@ codeunit 6516 "Package Management"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterTestFirstApplyItemLedgerEntryTracking', '', false, false)]
     local procedure ItemJnlPostLineOnAfterTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code")
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
     begin
+        if ItemTrackingCodeChangeMgt.IsReturnApplicationAcrossTrackingPeriods(
+             ItemLedgEntry, OldItemLedgEntry, OldItemLedgEntry."Entry No.")
+        then
+            exit;
+
         if ItemTrackingCode."Package Specific Tracking" then
             OldItemLedgEntry.TestField("Package No.", ItemLedgEntry."Package No.");
         if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Package No." <> '') then
