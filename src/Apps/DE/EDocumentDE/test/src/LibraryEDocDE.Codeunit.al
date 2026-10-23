@@ -9,6 +9,7 @@ using Microsoft.Bank.DirectDebit;
 #if not CLEAN30
 using Microsoft.eServices.EDocument;
 #endif
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using System.Reflection;
@@ -23,6 +24,16 @@ codeunit 13925 "Library - E-Doc DE"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         CapturedPaymentMeansHeaderRecordId: RecordId;
+        CapturedTradeAgreementHeaderRecordId: RecordId;
+        CapturedTradeDeliveryValuesHeaderRecordId: RecordId;
+        CapturedTradeDeliveryElementHeaderRecordId: RecordId;
+        OverrideZUGFeRDCustomerName: Text[100];
+        OverrideZUGFeRDExternalDocumentNo: Code[35];
+        OverrideZUGFeRDShipToName: Text[100];
+        OverrideZUGFeRDShipToCity: Text[30];
+        OverrideZUGFeRDActualDeliveryDate: Date;
+        AddedZUGFeRDDespatchAdviceID: Text[35];
+        RAMNamespaceTxt: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         CapturedEDocumentServiceCode: Code[20];
@@ -161,6 +172,97 @@ codeunit 13925 "Library - E-Doc DE"
         Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
         Customer.Modify(true);
         exit(Customer."No.");
+    end;
+
+    /// <summary>
+    /// Resets the values that the ZUGFeRD trade agreement and trade delivery subscribers set or add, and the headers they captured.
+    /// Bind this codeunit with BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    procedure ClearZUGFeRDOverrides()
+    begin
+        Clear(CapturedTradeAgreementHeaderRecordId);
+        Clear(CapturedTradeDeliveryValuesHeaderRecordId);
+        Clear(CapturedTradeDeliveryElementHeaderRecordId);
+        Clear(OverrideZUGFeRDCustomerName);
+        Clear(OverrideZUGFeRDExternalDocumentNo);
+        Clear(OverrideZUGFeRDShipToName);
+        Clear(OverrideZUGFeRDShipToCity);
+        Clear(OverrideZUGFeRDActualDeliveryDate);
+        Clear(AddedZUGFeRDDespatchAdviceID);
+    end;
+
+    /// <summary>
+    /// Sets the values that the subscribers of the ZUGFeRD trade agreement and trade delivery events pass back to the export.
+    /// </summary>
+    /// <param name="CustomerName">The buyer name (BT-44) to pass back to the export.</param>
+    /// <param name="ExternalDocumentNo">The purchase order reference (BT-13) to pass back to the export.</param>
+    /// <param name="ShipToName">The deliver-to party name (BT-70) to pass back to the export.</param>
+    /// <param name="ShipToCity">The deliver-to city (BT-77) to pass back to the export.</param>
+    /// <param name="ActualDeliveryDate">The actual delivery date (BT-72) to pass back to the export.</param>
+    procedure SetZUGFeRDValueOverrides(CustomerName: Text[100]; ExternalDocumentNo: Code[35]; ShipToName: Text[100]; ShipToCity: Text[30]; ActualDeliveryDate: Date)
+    begin
+        OverrideZUGFeRDCustomerName := CustomerName;
+        OverrideZUGFeRDExternalDocumentNo := ExternalDocumentNo;
+        OverrideZUGFeRDShipToName := ShipToName;
+        OverrideZUGFeRDShipToCity := ShipToCity;
+        OverrideZUGFeRDActualDeliveryDate := ActualDeliveryDate;
+    end;
+
+    /// <summary>
+    /// Sets the despatch advice reference (BT-16) that the subscriber adds to ram:ApplicableHeaderTradeDelivery of the ZUGFeRD export.
+    /// </summary>
+    /// <param name="DespatchAdviceID">The despatch advice reference to add as ram:DespatchAdviceReferencedDocument.</param>
+    procedure SetZUGFeRDDespatchAdviceID(DespatchAdviceID: Text[35])
+    begin
+        AddedZUGFeRDDespatchAdviceID := DespatchAdviceID;
+    end;
+
+    /// <summary>
+    /// Returns the record IDs of the headers carried by the last ZUGFeRD trade agreement and trade delivery events.
+    /// </summary>
+    /// <param name="TradeAgreementHeaderRecordId">The header carried by OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement.</param>
+    /// <param name="TradeDeliveryValuesHeaderRecordId">The header carried by OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement.</param>
+    /// <param name="TradeDeliveryElementHeaderRecordId">The header carried by OnAfterInsertApplicableHeaderTradeDelivery.</param>
+    procedure GetCapturedZUGFeRDTradeHeaderRecordIds(var TradeAgreementHeaderRecordId: RecordId; var TradeDeliveryValuesHeaderRecordId: RecordId; var TradeDeliveryElementHeaderRecordId: RecordId)
+    begin
+        TradeAgreementHeaderRecordId := CapturedTradeAgreementHeaderRecordId;
+        TradeDeliveryValuesHeaderRecordId := CapturedTradeDeliveryValuesHeaderRecordId;
+        TradeDeliveryElementHeaderRecordId := CapturedTradeDeliveryElementHeaderRecordId;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement, '', false, false)]
+    local procedure OverrideZUGFeRDOnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement(HeaderRecordRef: RecordRef; var CustomerName: Text[100]; var ExternalDocumentNo: Code[35])
+    begin
+        CapturedTradeAgreementHeaderRecordId := HeaderRecordRef.RecordId();
+        if OverrideZUGFeRDCustomerName <> '' then
+            CustomerName := OverrideZUGFeRDCustomerName;
+        if OverrideZUGFeRDExternalDocumentNo <> '' then
+            ExternalDocumentNo := OverrideZUGFeRDExternalDocumentNo;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement, '', false, false)]
+    local procedure OverrideZUGFeRDOnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(HeaderRecordRef: RecordRef; var ShipToName: Text[100]; var ShipToAddress: Record "Standard Address"; var ActualDeliveryDate: Date)
+    begin
+        CapturedTradeDeliveryValuesHeaderRecordId := HeaderRecordRef.RecordId();
+        if OverrideZUGFeRDShipToName <> '' then
+            ShipToName := OverrideZUGFeRDShipToName;
+        if OverrideZUGFeRDShipToCity <> '' then
+            ShipToAddress.City := OverrideZUGFeRDShipToCity;
+        if OverrideZUGFeRDActualDeliveryDate <> 0D then
+            ActualDeliveryDate := OverrideZUGFeRDActualDeliveryDate;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnAfterInsertApplicableHeaderTradeDelivery, '', false, false)]
+    local procedure AddZUGFeRDDespatchAdviceOnAfterInsertApplicableHeaderTradeDelivery(var DeliveryElement: XmlElement; HeaderRecordRef: RecordRef)
+    var
+        DespatchAdviceElement: XmlElement;
+    begin
+        CapturedTradeDeliveryElementHeaderRecordId := HeaderRecordRef.RecordId();
+        if AddedZUGFeRDDespatchAdviceID = '' then
+            exit;
+        DespatchAdviceElement := XmlElement.Create('DespatchAdviceReferencedDocument', RAMNamespaceTxt);
+        DespatchAdviceElement.Add(XmlElement.Create('IssuerAssignedID', RAMNamespaceTxt, AddedZUGFeRDDespatchAdviceID));
+        DeliveryElement.Add(DespatchAdviceElement);
     end;
 
     procedure CreateValidRoutingNo(): Text[50]

@@ -2280,6 +2280,184 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VerifyServiceCrMemoLine(ServiceCrMemoHeader, TempXMLBuffer);
     end;
     #endregion
+
+    #region ExtensibilityEvents
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatUsesValuesFromTradeAgreementAndDeliveryEvents()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerName: Text[100];
+        ExternalDocumentNo: Code[35];
+        ShipToName: Text[100];
+        ShipToCity: Text[30];
+        ActualDeliveryDate: Date;
+    begin
+        // [SCENARIO] Values passed back by subscribers of the trade agreement and trade delivery events of a sales invoice are exported instead of the document values
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] Subscribers pass back a buyer name, a purchase order reference, a deliver-to name and city and an actual delivery date
+        GenerateEventOverrideValues(CustomerName, ExternalDocumentNo, ShipToName, ShipToCity, ActualDeliveryDate);
+        LibraryEDocDE.ClearZUGFeRDOverrides();
+        LibraryEDocDE.SetZUGFeRDValueOverrides(CustomerName, ExternalDocumentNo, ShipToName, ShipToCity, ActualDeliveryDate);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The values passed back by the subscribers are exported
+        VerifyEventOverrideValues(TempXMLBuffer, CustomerName, ExternalDocumentNo, ShipToName, ShipToCity, ActualDeliveryDate);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatUsesValuesFromTradeAgreementAndDeliveryEvents()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerName: Text[100];
+        ExternalDocumentNo: Code[35];
+        ShipToName: Text[100];
+        ShipToCity: Text[30];
+        ActualDeliveryDate: Date;
+    begin
+        // [SCENARIO] Values passed back by subscribers of the trade agreement and trade delivery events of a sales cr. memo are exported instead of the document values
+        Initialize();
+
+        // [GIVEN] Create and Post sales cr. memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] Subscribers pass back a buyer name, a purchase order reference, a deliver-to name and city and an actual delivery date
+        GenerateEventOverrideValues(CustomerName, ExternalDocumentNo, ShipToName, ShipToCity, ActualDeliveryDate);
+        LibraryEDocDE.ClearZUGFeRDOverrides();
+        LibraryEDocDE.SetZUGFeRDValueOverrides(CustomerName, ExternalDocumentNo, ShipToName, ShipToCity, ActualDeliveryDate);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The values passed back by the subscribers are exported
+        VerifyEventOverrideValues(TempXMLBuffer, CustomerName, ExternalDocumentNo, ShipToName, ShipToCity, ActualDeliveryDate);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatKeepsDespatchAdviceAddedByDeliveryEvent()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DespatchAdviceID: Text[35];
+    begin
+        // [SCENARIO] A despatch advice reference added to ram:ApplicableHeaderTradeDelivery of a sales invoice is exported at its schema-valid position
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A subscriber adds a despatch advice reference (BT-16) to the delivery element
+        DespatchAdviceID := LibraryUtility.GenerateGUID();
+        LibraryEDocDE.ClearZUGFeRDOverrides();
+        LibraryEDocDE.SetZUGFeRDDespatchAdviceID(DespatchAdviceID);
+
+        // [WHEN] Export ZUGFeRD Electronic Document, which validates it against the CII schema.
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The despatch advice reference directly follows the actual delivery event
+        VerifyEventAddedDespatchAdvice(TempXMLBuffer, DespatchAdviceID);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatPassesServiceHeaderToTradeEvents()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] The trade agreement and trade delivery events carry the posted service invoice, not the sales invoice header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+        LibraryEDocDE.ClearZUGFeRDOverrides();
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] All three events carried the posted service invoice
+        VerifyTradeEventsHeaderRecordId(ServiceInvoiceHeader.RecordId());
+    end;
+
+    [Test]
+    procedure ExportPostedServiceCrMemoInZUGFeRDFormatPassesServiceHeaderToTradeEvents()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] The trade agreement and trade delivery events carry the posted service cr. memo, not the sales cr. memo header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post service cr. memo.
+        ServiceCrMemoHeader.Get(CreateAndPostServiceCrMemoDocument());
+        LibraryEDocDE.ClearZUGFeRDOverrides();
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] All three events carried the posted service cr. memo
+        VerifyTradeEventsHeaderRecordId(ServiceCrMemoHeader.RecordId());
+    end;
+
+    [Test]
+    procedure ReusedInstanceDirectCallPassesGivenHeaderToTradeEvents()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+        Currency: Record Currency;
+        ReusedExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        TempBlob: Codeunit "Temp Blob";
+        RootXMLNode: XmlElement;
+        XmlOutStream: OutStream;
+        LineAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Decimal, Decimal];
+        LineAmounts: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Decimal, Decimal];
+    begin
+        // [SCENARIO] A direct InsertSupplyChainTradeTransaction call on a reused instance passes its own header to the trade agreement
+        // and trade delivery events, not the source document of an earlier CreateXML.
+        Initialize();
+
+        // [GIVEN] A posted service invoice and a posted sales invoice
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A first export of the service invoice on this instance
+        TempBlob.CreateOutStream(XmlOutStream);
+        ReusedExportZUGFeRDDocument.CreateXML(ServiceInvoiceHeader, XmlOutStream);
+
+        // [WHEN] The same instance builds the trade transaction for the sales invoice directly, without CreateXML
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName(Amount), 0);
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName("Inv. Discount Amount"), 0);
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName("Amount Including VAT"), 0);
+        RootXMLNode := XmlElement.Create('Root');
+        LibraryEDocDE.ClearZUGFeRDOverrides();
+        BindSubscription(LibraryEDocDE);
+        ReusedExportZUGFeRDDocument.InsertSupplyChainTradeTransaction(RootXMLNode, SalesInvoiceHeader, TempSalesInvoiceLine, '', Currency, LineAmount, LineVATAmount, LineAmounts, LineDiscAmount);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] All three events carried the sales invoice passed to the direct call, not the earlier service invoice
+        VerifyTradeEventsHeaderRecordId(SalesInvoiceHeader.RecordId());
+    end;
+    #endregion
+
     #region InvoiceDiscount
 
     [Test]
@@ -4915,6 +5093,76 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     begin
         Path := DocumentTok + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID';
         Assert.AreEqual(ExternalDocumentNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure GenerateEventOverrideValues(var CustomerName: Text[100]; var ExternalDocumentNo: Code[35]; var ShipToName: Text[100]; var ShipToCity: Text[30]; var ActualDeliveryDate: Date)
+    begin
+        CustomerName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(CustomerName));
+        ExternalDocumentNo := LibraryUtility.GenerateGUID();
+        ShipToName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(ShipToName));
+        ShipToCity := CopyStr(LibraryUtility.GenerateRandomText(20), 1, MaxStrLen(ShipToCity));
+        ActualDeliveryDate := LibraryRandom.RandDate(30);
+    end;
+
+    local procedure VerifyEventOverrideValues(var TempXMLBuffer: Record "XML Buffer" temporary; CustomerName: Text; ExternalDocumentNo: Code[35]; ShipToName: Text; ShipToCity: Text; ActualDeliveryDate: Date)
+    var
+        TradeTransactionTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction', Locked = true;
+        Path: Text;
+    begin
+        Path := TradeTransactionTok + '/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Name';
+        Assert.AreEqual(CustomerName, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        VerifyBuyerOrderReference(ExternalDocumentNo, TempXMLBuffer, '/rsm:CrossIndustryInvoice');
+        Path := TradeTransactionTok + '/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:Name';
+        Assert.AreEqual(ShipToName, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := TradeTransactionTok + '/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:PostalTradeAddress/ram:CityName';
+        Assert.AreEqual(ShipToCity, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := TradeTransactionTok + '/ram:ApplicableHeaderTradeDelivery/ram:ActualDeliverySupplyChainEvent/ram:OccurrenceDateTime/udt:DateTimeString';
+        Assert.AreEqual(FormatDate(ActualDeliveryDate), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyEventAddedDespatchAdvice(var TempXMLBuffer: Record "XML Buffer" temporary; DespatchAdviceID: Text)
+    var
+        TradeDeliveryTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery', Locked = true;
+        Path: Text;
+    begin
+        Path := TradeDeliveryTok + '/ram:DespatchAdviceReferencedDocument/ram:IssuerAssignedID';
+        Assert.AreEqual(DespatchAdviceID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := TradeDeliveryTok + '/ram:DespatchAdviceReferencedDocument';
+        Assert.AreEqual(Path, GetNextSiblingPath(TempXMLBuffer, TradeDeliveryTok + '/ram:ActualDeliverySupplyChainEvent'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyTradeEventsHeaderRecordId(ExpectedHeaderRecordId: RecordId)
+    var
+        TradeAgreementHeaderRecordId: RecordId;
+        TradeDeliveryValuesHeaderRecordId: RecordId;
+        TradeDeliveryElementHeaderRecordId: RecordId;
+    begin
+        LibraryEDocDE.GetCapturedZUGFeRDTradeHeaderRecordIds(TradeAgreementHeaderRecordId, TradeDeliveryValuesHeaderRecordId, TradeDeliveryElementHeaderRecordId);
+        Assert.AreEqual(ExpectedHeaderRecordId, TradeAgreementHeaderRecordId, 'OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement carried the wrong header');
+        Assert.AreEqual(ExpectedHeaderRecordId, TradeDeliveryValuesHeaderRecordId, 'OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement carried the wrong header');
+        Assert.AreEqual(ExpectedHeaderRecordId, TradeDeliveryElementHeaderRecordId, 'OnAfterInsertApplicableHeaderTradeDelivery carried the wrong header');
+    end;
+
+    local procedure GetNextSiblingPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
+    var
+        ParentEntryNo: Integer;
+        EntryNo: Integer;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        if not TempXMLBuffer.FindFirst() then
+            Error('Node not found: %1', XPath);
+        ParentEntryNo := TempXMLBuffer."Parent Entry No.";
+        EntryNo := TempXMLBuffer."Entry No.";
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange("Parent Entry No.", ParentEntryNo);
+        TempXMLBuffer.SetFilter("Entry No.", '>%1', EntryNo);
+        if not TempXMLBuffer.FindFirst() then
+            Error('Node %1 has no following sibling', XPath);
+        exit(TempXMLBuffer.Path);
     end;
 
     local procedure VerifySellerData(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
