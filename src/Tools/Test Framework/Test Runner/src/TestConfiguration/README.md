@@ -62,9 +62,10 @@ foreach SuiteName in SuiteNames do
 `RunTestConfigurations(Parent)` combines generation and sequential execution for the UI.
 
 The session-local `Test Configuration Context` retains the current record, loaded before test
-permissions are applied. Runtime providers implement `ITest Configuration Provider` and are
+permissions are applied. Runtime providers implement `ITestConfigurationProvider` and are
 registered through the extensible `Test Configuration Provider` enum. Providers initialize on
-suite entry, apply per-method settings and reset on normal completion. Layout is generated separately.
+suite entry, apply per-method settings through `ApplyBeforeTestMethodRun()` and reset on normal
+completion. Layout is generated separately.
 Native test-handler support and special recovery from fatal runtime errors are deferred.
 
 ## PowerShell

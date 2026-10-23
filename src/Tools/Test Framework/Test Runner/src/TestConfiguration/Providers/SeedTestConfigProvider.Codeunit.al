@@ -7,7 +7,7 @@ namespace System.TestTools.TestRunner;
 
 using System.TestLibraries.Utilities;
 
-codeunit 130475 "Seed Test Config. Provider" implements "ITest Configuration Provider"
+codeunit 130475 "Seed Test Config. Provider" implements ITestConfigurationProvider
 {
     var
         Any: Codeunit Any;
@@ -22,7 +22,7 @@ codeunit 130475 "Seed Test Config. Provider" implements "ITest Configuration Pro
         end;
     end;
 
-    procedure OnBeforeTestMethodRun()
+    procedure ApplyBeforeTestMethodRun()
     begin
         if ConfiguredRandomSeed.IsSet() then
             Any.SetSeed(ConfiguredRandomSeed.GetSeed());

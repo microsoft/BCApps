@@ -5,7 +5,7 @@
 
 namespace System.TestTools.TestRunner;
 
-codeunit 130476 "WorkDate Test Config. Prov." implements "ITest Configuration Provider"
+codeunit 130476 "WorkDate Test Config. Prov." implements ITestConfigurationProvider
 {
     SingleInstance = true;
 
@@ -21,7 +21,7 @@ codeunit 130476 "WorkDate Test Config. Prov." implements "ITest Configuration Pr
             ConfiguredWorkDate := CalcDate(TestConfiguration."WorkDate Offset", InitialWorkDate);
     end;
 
-    procedure OnBeforeTestMethodRun()
+    procedure ApplyBeforeTestMethodRun()
     begin
         if ConfiguredWorkDate <> 0D then
             WorkDate(ConfiguredWorkDate);

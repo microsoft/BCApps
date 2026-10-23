@@ -8,9 +8,9 @@ namespace System.TestTools.TestRunner;
 /// <summary>
 /// Applies runtime settings from the current flat configuration. Layout is generated separately.
 /// </summary>
-interface "ITest Configuration Provider"
+interface ITestConfigurationProvider
 {
     procedure Initialize(TestConfiguration: Record "Test Configuration");
-    procedure OnBeforeTestMethodRun();
+    procedure ApplyBeforeTestMethodRun();
     procedure Reset();
 }

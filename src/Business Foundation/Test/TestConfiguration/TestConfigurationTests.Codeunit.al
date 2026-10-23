@@ -267,13 +267,13 @@ codeunit 134549 "Test Configuration Tests"
         LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'A fresh Any instance must use the configured seed.');
         LibraryAssert.AreEqual(17, Any.GetSeed(), 'Lazy initialization must retain the configured seed.');
         Clear(Any);
-        SeedProvider.OnBeforeTestMethodRun();
+        SeedProvider.ApplyBeforeTestMethodRun();
         LibraryAssert.AreEqual(ConfiguredSeedValue, Any.IntegerInRange(1, 1000000), 'Each method must start with the configured seed.');
         Configuration."Random Seed" := 0;
         SeedProvider.Initialize(Configuration);
         LibraryAssert.IsTrue(ConfiguredRandomSeed.IsSet(), 'Zero must be treated as an explicitly configured seed.');
         LibraryAssert.AreEqual(0, ConfiguredRandomSeed.GetSeed(), 'Zero must survive the seed transport.');
-        SeedProvider.OnBeforeTestMethodRun();
+        SeedProvider.ApplyBeforeTestMethodRun();
         Any.SetSeed(42);
         LibraryAssert.AreEqual(ExplicitSeedValue, Any.IntegerInRange(1, 1000000), 'The configured seed must not override an explicit test seed.');
         Configuration."Use Random Seed" := false;
@@ -286,8 +286,8 @@ codeunit 134549 "Test Configuration Tests"
         OriginalWorkDate := WorkDate();
         Evaluate(Configuration."WorkDate Offset", '<2Y>');
         WorkDateProvider.Initialize(Configuration);
-        WorkDateProvider.OnBeforeTestMethodRun();
-        WorkDateProvider.OnBeforeTestMethodRun();
+        WorkDateProvider.ApplyBeforeTestMethodRun();
+        WorkDateProvider.ApplyBeforeTestMethodRun();
         LibraryAssert.AreEqual(CalcDate('<2Y>', OriginalWorkDate), WorkDate(), 'Repeated callbacks must not compound the offset.');
         WorkDateProvider.Reset();
         LibraryAssert.AreEqual(OriginalWorkDate, WorkDate(), 'Normal reset must restore WorkDate.');

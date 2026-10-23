@@ -16,7 +16,7 @@ codeunit 130474 "Test Configuration Runner"
         TestConfiguration: Record "Test Configuration";
         TestConfigurationContext: Codeunit "Test Configuration Context";
         ProviderType: Enum "Test Configuration Provider";
-        Provider: Interface "ITest Configuration Provider";
+        Provider: Interface ITestConfigurationProvider;
         ProviderOrdinal: Integer;
     begin
         Reset();
@@ -32,7 +32,7 @@ codeunit 130474 "Test Configuration Runner"
     var
         TestConfigurationContext: Codeunit "Test Configuration Context";
         ProviderType: Enum "Test Configuration Provider";
-        Provider: Interface "ITest Configuration Provider";
+        Provider: Interface ITestConfigurationProvider;
         ProviderOrdinal: Integer;
     begin
         foreach ProviderOrdinal in ProviderType.Ordinals() do begin
@@ -47,14 +47,14 @@ codeunit 130474 "Test Configuration Runner"
     var
         TestConfigurationContext: Codeunit "Test Configuration Context";
         ProviderType: Enum "Test Configuration Provider";
-        Provider: Interface "ITest Configuration Provider";
+        Provider: Interface ITestConfigurationProvider;
         ProviderOrdinal: Integer;
     begin
         if not TestConfigurationContext.IsCurrentSuite(CurrentTestMethodLine."Test Suite") then
             exit;
         foreach ProviderOrdinal in ProviderType.Ordinals() do begin
             Provider := Enum::"Test Configuration Provider".FromInteger(ProviderOrdinal);
-            Provider.OnBeforeTestMethodRun();
+            Provider.ApplyBeforeTestMethodRun();
         end;
     end;
 }
