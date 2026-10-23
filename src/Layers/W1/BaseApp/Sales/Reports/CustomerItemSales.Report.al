@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ report 113 "Customer/Item Sales"
     ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
     DataAccessIntent = ReadOnly;
     ExcelLayoutMultipleDataSheets = true;
-    DefaultRenderingLayout = Excel;
+    DefaultRenderingLayout = Word;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
 
@@ -445,13 +445,6 @@ report 113 "Customer/Item Sales"
 
     rendering
     {
-        layout(Excel)
-        {
-            Caption = 'Customer Item Sales Excel';
-            Type = Excel;
-            LayoutFile = './Sales/Reports/CustomerItemSales.xlsx';
-            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
-        }
         layout(Word)
         {
             Caption = 'Customer Item Sales Word';

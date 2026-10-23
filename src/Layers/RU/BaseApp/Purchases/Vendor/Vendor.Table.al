@@ -29,13 +29,11 @@ using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Graph;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
@@ -1106,53 +1104,6 @@ table 23 Vendor
             Editable = false;
             FieldClass = FlowField;
         }
-        field(119; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            ToolTip = 'Specifies the vendor''s intercompany partner code.';
-            TableRelation = "IC Partner";
-
-            trigger OnValidate()
-            var
-                VendLedgEntry: Record "Vendor Ledger Entry";
-                AccountingPeriod: Record "Accounting Period";
-                ICPartner: Record "IC Partner";
-                ConfirmManagement: Codeunit "Confirm Management";
-            begin
-                if xRec."IC Partner Code" <> "IC Partner Code" then begin
-                    if not VendLedgEntry.SetCurrentKey("Vendor No.", Open) then
-                        VendLedgEntry.SetCurrentKey("Vendor No.");
-                    VendLedgEntry.SetRange("Vendor No.", "No.");
-                    VendLedgEntry.SetRange(Open, true);
-                    if VendLedgEntry.FindLast() then
-                        Error(Text010, FieldCaption("IC Partner Code"), TableCaption);
-
-                    VendLedgEntry.Reset();
-                    VendLedgEntry.SetCurrentKey("Vendor No.", "Posting Date");
-                    VendLedgEntry.SetRange("Vendor No.", "No.");
-                    AccountingPeriod.SetRange(Closed, false);
-                    if AccountingPeriod.FindFirst() then begin
-                        VendLedgEntry.SetFilter("Posting Date", '>=%1', AccountingPeriod."Starting Date");
-                        if VendLedgEntry.FindFirst() then
-                            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text009, TableCaption), true) then
-                                "IC Partner Code" := xRec."IC Partner Code";
-                    end;
-                end;
-
-                if "IC Partner Code" <> '' then begin
-                    ICPartner.Get("IC Partner Code");
-                    if (ICPartner."Vendor No." <> '') and (ICPartner."Vendor No." <> "No.") then
-                        Error(Text008, FieldCaption("IC Partner Code"), "IC Partner Code", TableCaption(), ICPartner."Vendor No.");
-                    ICPartner."Vendor No." := "No.";
-                    ICPartner.Modify();
-                end;
-
-                if (xRec."IC Partner Code" <> "IC Partner Code") and ICPartner.Get(xRec."IC Partner Code") then begin
-                    ICPartner."Vendor No." := '';
-                    ICPartner.Modify();
-                end;
-            end;
-        }
         field(120; Refunds; Decimal)
         {
             AutoFormatType = 1;
@@ -2018,16 +1969,13 @@ table 23 Vendor
         key(Key13; Contact)
         {
         }
-        key(Key14; "Vendor Type")
+        key(Key14; Blocked)
         {
         }
-        key(Key15; Blocked)
+        key(Key15; SystemModifiedAt)
         {
         }
-        key(Key16; SystemModifiedAt)
-        {
-        }
-        key(Key21; "IC Partner Code")
+        key(Key16; "Vendor Type")
         {
         }
     }
@@ -2208,46 +2156,18 @@ table 23 Vendor
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'You cannot delete %1 %2 because there is at least one outstanding Purchase %3 for this vendor.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text003: Label 'Do you wish to create a contact for %1 %2?';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text004: Label 'Contact %1 %2 is not related to vendor %3 %4.';
 #pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text005: Label 'post';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text006: Label 'create';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
 #pragma warning disable AA0470
         Text007: Label 'You cannot %1 this type of document when Vendor %2 is blocked with type %3';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 #pragma warning disable AA0074
 #pragma warning disable AA0470
-        Text008: Label 'The %1 %2 has been assigned to %3 %4.\The same %1 cannot be entered on more than one %3.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
-        Text009: Label 'Reconciling IC transactions may be difficult if you change IC Partner Code because this %1 has ledger entries in a fiscal year that has not yet been closed.\ Do you still want to change the IC Partner Code?';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text010: Label 'You cannot change the contents of the %1 field because this %2 has one or more open ledger entries.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text012: Label 'The field %1 cannot be changed for a vendor with ledger entries.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -2901,6 +2821,15 @@ table 23 Vendor
         exit(UpdateNeeded);
     end;
 
+    /// <summary>
+    /// Gets the partner code for the specified vendor
+    /// </summary>
+    /// <returns></returns>
+    procedure GetPartnerCode() PartnerCode: Code[20]
+    begin
+        OnGetPartnerCode(Rec, PartnerCode);
+    end;
+
     procedure GetInsertFromContact(): Boolean
     begin
         exit(InsertFromContact);
@@ -3464,4 +3393,13 @@ table 23 Vendor
     begin
     end;
 
+    /// <summary>
+    /// Raised on getting partner code
+    /// </summary>
+    /// <param name="Rec"></param>
+    /// <param name="PartnerCode"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnGetPartnerCode(var Rec: Record Vendor; var PartnerCode: Code[20])
+    begin
+    end;
 }

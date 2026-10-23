@@ -20,7 +20,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -107,8 +106,6 @@ table 1570 "G/L Entry Posting Preview"
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner"
             else
             if ("Bal. Account Type" = const(Employee)) Employee;
         }
@@ -415,14 +412,6 @@ table 1570 "G/L Entry Posting Preview"
         field(71; "Close Income Statement Dim. ID"; Integer)
         {
             Caption = 'Close Income Statement Dim. ID';
-        }
-        /// <summary>
-        /// Intercompany partner code for this preview G/L entry.
-        /// </summary>
-        field(72; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Indicates whether this preview G/L entry would be reversed.

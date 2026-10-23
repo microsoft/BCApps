@@ -283,14 +283,14 @@ table 440 "Handled IC Inbox Purch. Header"
     trigger OnDelete()
     var
         HndlICInboxPurchLine: Record "Handled IC Inbox Purch. Line";
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
         HndlICInboxPurchLine.SetRange("IC Partner Code", "IC Partner Code");
         HndlICInboxPurchLine.SetRange("IC Transaction No.", "IC Transaction No.");
         HndlICInboxPurchLine.SetRange("Transaction Source", "Transaction Source");
         if HndlICInboxPurchLine.FindFirst() then
             HndlICInboxPurchLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"Handled IC Inbox Purch. Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
     end;
 }

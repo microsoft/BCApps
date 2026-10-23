@@ -675,7 +675,7 @@ report 10089 "Payment Journal - Test"
                                     "Account Type"::"Fixed Asset":
                                         CheckFixedAsset("Gen. Journal Line", AccName);
                                     "Account Type"::"IC Partner":
-                                        CheckICPartner("Gen. Journal Line", AccName);
+                                        CheckICPartnerAcc("Gen. Journal Line", AccName);
                                 end;
                             if "Bal. Account No." <> '' then begin
                                 ExchAccGLJnlLine.Run("Gen. Journal Line");
@@ -691,7 +691,7 @@ report 10089 "Payment Journal - Test"
                                     "Account Type"::"Fixed Asset":
                                         CheckFixedAsset("Gen. Journal Line", BalAccName);
                                     "Account Type"::"IC Partner":
-                                        CheckICPartner("Gen. Journal Line", AccName);
+                                        CheckICPartnerAcc("Gen. Journal Line", AccName);
                                 end;
                                 ExchAccGLJnlLine.Run("Gen. Journal Line");
                             end;
@@ -1597,7 +1597,15 @@ report 10089 "Payment Journal - Test"
         end;
     end;
 
-    procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])
+#if not CLEAN30
+    [Obsolete('Use CheckICPartner procedure in Gen. Journal Line instead', '30.0')]
+    procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
+    begin
+        CheckICPartnerAcc(GenJnlLine, AccName2);
+    end;
+#endif
+
+    local procedure CheckICPartnerAcc(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
     begin
         if not ICPartner.Get(GenJnlLine."Account No.") then
             AddError(
@@ -1605,7 +1613,7 @@ report 10089 "Payment Journal - Test"
                 Text031,
                 ICPartner.TableCaption(), GenJnlLine."Account No."))
         else begin
-            AccName := ICPartner.Name;
+            AccName2 := ICPartner.Name;
             if ICPartner.Blocked then
                 AddError(
                   StrSubstNo(
@@ -2008,4 +2016,3 @@ report 10089 "Payment Journal - Test"
             end;
     end;
 }
-

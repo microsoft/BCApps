@@ -2180,7 +2180,6 @@ codeunit 6620 "Copy Document Mgt."
         ClearPurchLastNoSFields(PurchaseHeader);
         PurchaseHeader.Receive := false;
         PurchaseHeader.Status := PurchaseHeader.Status::Open;
-        PurchaseHeader."IC Status" := PurchaseHeader."IC Status"::New;
         if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
             PurchaseHeader."Prepayment %" := 0;
         if FromDocType in ["Purchase Document Type From"::Quote, "Purchase Document Type From"::"Blanket Order"] then
@@ -2188,6 +2187,8 @@ codeunit 6620 "Copy Document Mgt."
                 PurchaseHeader."Posting Date" := WorkDate()
             else
                 PurchaseHeader."Posting Date" := OriginalPurchaseHeader."Posting Date";
+
+        OnAfterUpdatePurchHeaderWhenCopyFromPurchHeader(PurchaseHeader, OriginalPurchaseHeader, FromDocType);
     end;
 
     local procedure UpdatePurchHeaderWhenCopyFromPurchHeaderArchive(var PurchaseHeader: Record "Purchase Header")
@@ -8247,8 +8248,7 @@ codeunit 6620 "Copy Document Mgt."
     /// <param name="CopyPostedDeferral">A boolean variable indicating if posted deferrals should be copied.</param>
     /// <param name="NextLineNo">The next line number for the target document.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCopyPurchLine(var ToPurchHeader: Record "Purchase Header"; FromPurchHeader: Record "Purchase Header"; FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean; var CopyThisLine: Boolean; ToPurchLine: Record "Purchase Line"; MoveNegLines: Boolean; var RoundingLineInserted: Boolean; var Result: Boolean; var IsHandled: Boolean; FromPurchDocType: Enum "Purchase Document Type From"; DocLineNo: Integer;
-                                                                                                                                                                                                                                                                                                                                                                                                 RecalculateLines: Boolean; var LinesNotCopied: Integer; var CopyPostedDeferral: Boolean; var NextLineNo: Integer)
+    local procedure OnBeforeCopyPurchLine(var ToPurchHeader: Record "Purchase Header"; FromPurchHeader: Record "Purchase Header"; FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean; var CopyThisLine: Boolean; ToPurchLine: Record "Purchase Line"; MoveNegLines: Boolean; var RoundingLineInserted: Boolean; var Result: Boolean; var IsHandled: Boolean; FromPurchDocType: Enum "Purchase Document Type From"; DocLineNo: Integer; RecalculateLines: Boolean; var LinesNotCopied: Integer; var CopyPostedDeferral: Boolean; var NextLineNo: Integer)
     begin
     end;
 
@@ -12554,6 +12554,11 @@ codeunit 6620 "Copy Document Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateJobPlanningLineOnAfterInitFromJobPlanningLine(var NewJobPlanningLine: Record "Job Planning Line"; JobPlanningLine: Record "Job Planning Line"; SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdatePurchHeaderWhenCopyFromPurchHeader(var PurchaseHeader: Record "Purchase Header"; var OriginalPurchaseHeader: Record "Purchase Header"; FromDocType: Enum "Purchase Document Type From")
     begin
     end;
 }
