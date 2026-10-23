@@ -140,6 +140,14 @@ codeunit 8222 "Create Expense Country Data"
         end;
     end;
 
+    procedure IsVATCountry(): Boolean
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+    begin
+        ContosoCoffeeDemoDataSetup.Get();
+        exit(ContosoCoffeeDemoDataSetup."Company Type" <> ContosoCoffeeDemoDataSetup."Company Type"::"Sales Tax");
+    end;
+
     local procedure CreateCountryMasterData(CountryCode: Code[10])
     begin
         CreateExpenseCategories(CountryCode);
