@@ -40,33 +40,16 @@ codeunit 6381 "Drive Processing"
         GraphClient.MoveDriveItem(DriveId, EDocument."Drive Item Id", NewFolderId);
     end;
 
-    procedure GetSiteId(FolderSharedLink: Text[2048]): Text
-    var
-        ParentReferenceJson: JsonObject;
-        SiteIdToken: JsonToken;
-    begin
-        ParentReferenceJson := GetParentReference(FolderSharedLink);
-        if ParentReferenceJson.Get('siteId', SiteIdToken) then
-            exit(SiteIdToken.AsValue().AsText())
-    end;
-
-    procedure GetDriveId(FolderSharedLink: Text[2048]): Text
-    var
-        ParentReferenceJson: JsonObject;
-        DriveIdToken: JsonToken;
-    begin
-        ParentReferenceJson := GetParentReference(FolderSharedLink);
-        if ParentReferenceJson.Get('driveId', DriveIdToken) then
-            exit(DriveIdToken.AsValue().AsText())
-    end;
-
-    local procedure GetParentReference(FolderSharedLink: Text[2048]): JsonObject
+    internal procedure GetSiteAndDriveId(FolderSharedLink: Text[2048]; var SiteId: Text; var DriveId: Text)
     var
         GraphClient: Codeunit "Graph Client";
         Base64Convert: Codeunit "Base64 Convert";
         ParentReferenceLink, Base64SharedLink, ErrorMessageTxt : Text;
         ParentReferenceJson: JsonObject;
+        Token: JsonToken;
     begin
+        Clear(SiteId);
+        Clear(DriveId);
         Base64SharedLink := Base64Convert.ToBase64(FolderSharedLink);
         Base64SharedLink := 'u!' + Base64SharedLink.TrimEnd('=').Replace('/', '_').Replace('+', '-');
         ParentReferenceLink := GetGraphSharesURL() + Base64SharedLink + '/driveItem/parentReference';
@@ -75,7 +58,11 @@ codeunit 6381 "Drive Processing"
             ClearLastError();
             Error(ErrorMessageTxt);
         end;
-        exit(ParentReferenceJson);
+
+        if ParentReferenceJson.Get('siteId', Token) then
+            SiteId := Token.AsValue().AsText();
+        if ParentReferenceJson.Get('driveId', Token) then
+            DriveId := Token.AsValue().AsText();
     end;
 
     procedure GetId(FolderSharedLink: Text[2048]): Text
@@ -300,30 +287,35 @@ codeunit 6381 "Drive Processing"
         end;
     end;
 
-    // Resolved from the shared link rather than the stored SiteId: /sites/{id}/drive only addresses the
-    // site's default document library, so items in other libraries were not found (404).
+    // /sites/{id}/drive only addresses the site's default document library, so items are addressed by drive instead.
     local procedure GetDocumentsDriveId(var ServiceIntegration: Enum "Service Integration"): Text
     var
         SharepointSetup: Record "Sharepoint Setup";
         OneDriveSetup: Record "OneDrive Setup";
-        DriveId: Text;
+        DocumentsFolder: Text[2048];
+        SiteId, DriveId : Text;
     begin
         case ServiceIntegration of
             ServiceIntegration::SharePoint:
                 begin
                     CheckSetupEnabled(SharepointSetup);
                     CheckFolderSharedLinkNotEmpty(SharepointSetup."Documents Folder", SharepointSetup.TableCaption());
-                    DriveId := GetDriveId(SharepointSetup."Documents Folder");
+                    DocumentsFolder := SharepointSetup."Documents Folder";
+                    DriveId := SharepointSetup."Drive Id";
                 end;
             ServiceIntegration::OneDrive:
                 begin
                     CheckSetupEnabled(OneDriveSetup);
                     CheckFolderSharedLinkNotEmpty(OneDriveSetup."Documents Folder", OneDriveSetup.TableCaption());
-                    DriveId := GetDriveId(OneDriveSetup."Documents Folder");
+                    DocumentsFolder := OneDriveSetup."Documents Folder";
+                    DriveId := OneDriveSetup."Drive Id";
                 end;
             else
                 Error(UnsupportedIntegrationTypeErr);
         end;
+        // Setups saved before the Drive Id field existed resolve it from the shared link.
+        if DriveId = '' then
+            GetSiteAndDriveId(DocumentsFolder, SiteId, DriveId);
         if DriveId = '' then
             Error(DriveIdEmptyErr);
         exit(DriveId);
