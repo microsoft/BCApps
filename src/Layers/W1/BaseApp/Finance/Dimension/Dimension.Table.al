@@ -122,6 +122,7 @@ table 348 Dimension
         /// <summary>
         /// System field that tracks when the dimension record was last modified.
         /// Used for synchronization and audit purposes.
+        /// </summary>
         field(8001; "Last Modified Date Time"; DateTime)
         {
             Caption = 'Last Modified Date Time';
