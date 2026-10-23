@@ -30,4 +30,9 @@ enum 8351 "MCP Server Feature" implements "MCP Server Features"
         Caption = 'Agent Tools (Preview/Billable)';
         Implementation = "MCP Server Features" = "MCP Agent Tools Feature";
     }
+    value(4; "Chat Tools")
+    {
+        Caption = 'Chat Tools';
+        Implementation = "MCP Server Features" = "MCP Chat Tools Feature";
+    }
 }

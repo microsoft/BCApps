@@ -46,6 +46,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.GetBySystemId(ConfigId);
         Assert.AreEqual(Name, MCPConfiguration.Name, 'Name mismatch');
         Assert.AreEqual(Description, MCPConfiguration.Description, 'Description mismatch');
+        Assert.IsFalse(MCPConfiguration.EnableChatTools, 'Chat Tools should be disabled by default');
     end;
 
     [Test]
@@ -227,6 +228,7 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] Source configuration and tool are created
         SourceConfigId := CreateMCPConfig(true, true, true, false);
         SourceConfigToolId := CreateMCPConfigTool(SourceConfigId);
+        MCPConfig.EnableChatTools(SourceConfigId, true);
 
         // [WHEN] Configuration is copied
         SourceMCPConfiguration.GetBySystemId(SourceConfigId);
@@ -240,6 +242,7 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(NewMCPConfiguration.Active, SourceMCPConfiguration.Active, 'Active is not true');
         Assert.AreEqual(NewMCPConfiguration.EnableDynamicToolMode, SourceMCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode is not true');
         Assert.AreEqual(NewMCPConfiguration.EnableAgents, SourceMCPConfiguration.EnableAgents, 'EnableAgents mismatch');
+        Assert.IsTrue(NewMCPConfiguration.EnableChatTools, 'Chat Tools should remain enabled in the copied configuration');
         Assert.AreEqual(NewMCPConfiguration.AllowProdChanges, SourceMCPConfiguration.AllowProdChanges, 'AllowProdChanges is not true');
 
         NewMCPConfigurationTool.SetRange(ID, NewConfigId);
@@ -328,6 +331,49 @@ codeunit 130130 "MCP Config Test"
         MCPConfig.EnableDataQueryTools(ConfigId, false);
         MCPConfiguration.GetBySystemId(ConfigId);
         Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled');
+    end;
+
+    #endregion
+
+    #region Chat Tools
+
+    [Test]
+    procedure TestEnableChatTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+
+        MCPConfig.EnableChatTools(ConfigId, true);
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableChatTools, 'Chat Tools should be enabled');
+        Assert.IsFalse(MCPConfiguration.EnableApiTools, 'Enabling Chat Tools should not enable API Tools');
+    end;
+
+    [Test]
+    procedure TestDisableChatTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableChatTools(ConfigId, true);
+
+        MCPConfig.EnableChatTools(ConfigId, false);
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableChatTools, 'Chat Tools should be disabled');
+    end;
+
+    [Test]
+    procedure TestEnableChatToolsForMissingConfiguration()
+    begin
+        asserterror MCPConfig.EnableChatTools(CreateGuid(), true);
+
+        Assert.ExpectedError('The MCP configuration was not found.');
     end;
 
     #endregion
@@ -1281,7 +1327,7 @@ codeunit 130130 "MCP Config Test"
         AgentsArray: JsonArray;
         AgentId: Guid;
     begin
-        // [GIVEN] Configuration with API, data query, and agent tools enabled is created
+        // [GIVEN] Configuration with API, data query, agent, and chat tools enabled is created
         ConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(ConfigId);
         CreateMCPConfigTool(ConfigId);
@@ -1291,6 +1337,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.EnableApiTools := true;
         MCPConfiguration.EnableAlQueryTools := true;
         MCPConfiguration.EnableAgents := true;
+        MCPConfiguration.EnableChatTools := true;
         MCPConfiguration.Modify();
 
         // [WHEN] Export configuration is called
@@ -1316,6 +1363,9 @@ codeunit 130130 "MCP Config Test"
 
         ConfigJson.Get('enableAgents', JsonToken);
         Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableAgents mismatch');
+
+        ConfigJson.Get('enableChatTools', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableChatTools mismatch');
 
         ConfigJson.Get('tools', JsonToken);
         Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
@@ -1344,7 +1394,7 @@ codeunit 130130 "MCP Config Test"
         NewName: Text[100];
         NewDescription: Text[250];
     begin
-        // [GIVEN] Configuration with API, data query, and agent tools enabled is created and exported
+        // [GIVEN] Configuration with API, data query, agent, and chat tools enabled is created and exported
         SourceConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(SourceConfigId);
         CreateMCPConfigTool(SourceConfigId);
@@ -1352,6 +1402,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.EnableApiTools := true;
         MCPConfiguration.EnableAlQueryTools := true;
         MCPConfiguration.EnableAgents := true;
+        MCPConfiguration.EnableChatTools := true;
         MCPConfiguration.Modify();
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
@@ -1373,12 +1424,34 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
         Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled on import');
         Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents mismatch');
+        Assert.IsTrue(MCPConfiguration.EnableChatTools, 'Chat Tools should remain enabled on import');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
         Assert.RecordCount(MCPConfigurationTool, 2);
         MCPConfigurationTool.FindFirst();
         Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
+    end;
+
+    [Test]
+    procedure TestImportConfigurationWithoutChatTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+        ImportedConfigId: Guid;
+        NewName: Text[100];
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('{"name":"Imported configuration","tools":[]}');
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        NewName := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewName));
+
+        ImportedConfigId := MCPConfig.ImportConfiguration(InStream, NewName, 'Imported configuration');
+
+        MCPConfiguration.GetBySystemId(ImportedConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableChatTools, 'Chat Tools should be disabled when absent from imported JSON');
     end;
 
     [Test]
@@ -1743,7 +1816,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfigCard.OpenEdit();
         MCPConfigCard.GoToRecord(MCPConfiguration);
 
-        // [THEN] The Server Features list shows all four features in enum order
+        // [THEN] The Server Features list shows all five features in enum order
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.First(), 'Server Features list is empty');
         Assert.AreEqual('API Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected first feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Dynamic Tool Mode row is missing');
@@ -1752,6 +1825,8 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual('Data Query Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Agent Tools row is missing');
         Assert.AreEqual('Agent Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fourth feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Chat Tools row is missing');
+        Assert.AreEqual('Chat Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fifth feature');
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
     end;
 
@@ -1832,6 +1907,43 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.GetBySystemId(ConfigId);
         Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents was not set');
         AssertAgentSystemTools(MCPConfigCard);
+    end;
+
+    [Test]
+    procedure TestToggleChatToolsFromServerFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        MCPConfig.EnableDataQueryTools(ConfigId, false);
+        MCPConfig.EnableAgents(ConfigId, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Last(), 'Chat Tools row is missing');
+        Assert.AreEqual('Chat Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Not positioned on the Chat Tools row');
+        Assert.AreEqual('Inactive', MCPConfigCard.ServerFeatureList.Status.Value, 'Chat Tools should initially be inactive');
+        Assert.IsFalse(MCPConfigCard.SystemToolList.First(), 'No system tools should be active');
+
+        MCPConfigCard.ServerFeatureList.Activate.Invoke();
+
+        MCPConfigCard.ServerFeatureList.Last();
+        Assert.AreEqual('Active', MCPConfigCard.ServerFeatureList.Status.Value, 'Chat Tools row is not Active');
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Chat Tools should not expose settings');
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableChatTools, 'EnableChatTools was not set');
+        AssertChatSystemTools(MCPConfigCard);
+
+        MCPConfigCard.ServerFeatureList.Deactivate.Invoke();
+
+        MCPConfigCard.ServerFeatureList.Last();
+        Assert.AreEqual('Inactive', MCPConfigCard.ServerFeatureList.Status.Value, 'Chat Tools row is not Inactive');
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableChatTools, 'EnableChatTools was not cleared');
+        Assert.IsFalse(MCPConfigCard.SystemToolList.First(), 'Chat system tools should be removed after deactivation');
     end;
 
     [Test]
@@ -2045,6 +2157,24 @@ codeunit 130130 "MCP Config Test"
                 ToolName := MCPConfigCard.SystemToolList."Tool Name".Value;
                 Assert.IsTrue(ExpectedSystemTools.ContainsKey(ToolName), 'Unexpected active system tool: ' + ToolName);
                 Assert.AreEqual(ExpectedSystemTools.Get(ToolName), MCPConfigCard.SystemToolList."Tool Description".Value, 'Agent system tool description mismatch');
+            until not MCPConfigCard.SystemToolList.Next();
+
+        Assert.AreEqual(ExpectedSystemTools.Count(), ToolCount, 'Unexpected Active System Tools count');
+    end;
+
+    local procedure AssertChatSystemTools(var MCPConfigCard: TestPage "MCP Config Card")
+    var
+        ExpectedSystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
+        ToolCount: Integer;
+    begin
+        MCPConfigTestLibrary.GetChatSystemTools(ExpectedSystemTools);
+        if MCPConfigCard.SystemToolList.First() then
+            repeat
+                ToolCount += 1;
+                ToolName := MCPConfigCard.SystemToolList."Tool Name".Value;
+                Assert.IsTrue(ExpectedSystemTools.ContainsKey(ToolName), 'Unexpected active system tool: ' + ToolName);
+                Assert.AreEqual(ExpectedSystemTools.Get(ToolName), MCPConfigCard.SystemToolList."Tool Description".Value, 'Chat system tool description mismatch');
             until not MCPConfigCard.SystemToolList.Next();
 
         Assert.AreEqual(ExpectedSystemTools.Count(), ToolCount, 'Unexpected Active System Tools count');

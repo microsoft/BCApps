@@ -328,6 +328,29 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfiguration.EnableAlQueryTools);
     end;
 
+    internal procedure EnableChatTools(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+
+        xMCPConfiguration := MCPConfiguration;
+        MCPConfiguration.EnableChatTools := Enable;
+        MCPConfiguration.Modify();
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
+    end;
+
+    internal procedure IsChatToolsEnabled(ConfigId: Guid): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            MCPConfiguration.Init();
+        exit(MCPConfiguration.EnableChatTools);
+    end;
+
     internal procedure EnableAgents(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1574,6 +1597,7 @@ codeunit 8351 "MCP Config Implementation"
         ConfigJson.Add('enableApiTools', MCPConfiguration.EnableApiTools);
         ConfigJson.Add('enableAlQueryTools', MCPConfiguration.EnableAlQueryTools);
         ConfigJson.Add('enableAgents', MCPConfiguration.EnableAgents);
+        ConfigJson.Add('enableChatTools', MCPConfiguration.EnableChatTools);
 
         MCPConfigurationTool.SetRange(ID, ConfigId);
         if MCPConfigurationTool.FindSet() then
@@ -1670,6 +1694,10 @@ codeunit 8351 "MCP Config Implementation"
 
         if ConfigJson.Contains('enableAgents') then
             MCPConfiguration.EnableAgents := ConfigJson.GetBoolean('enableAgents');
+
+        MCPConfiguration.EnableChatTools := false;
+        if ConfigJson.Contains('enableChatTools') then
+            MCPConfiguration.EnableChatTools := ConfigJson.GetBoolean('enableChatTools');
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);
@@ -1860,6 +1888,10 @@ codeunit 8351 "MCP Config Implementation"
         if MCPConfiguration.EnableAgents <> xMCPConfiguration.EnableAgents then begin
             Dimensions.Add('OldEnableAgents', Format(xMCPConfiguration.EnableAgents));
             Dimensions.Add('NewEnableAgents', Format(MCPConfiguration.EnableAgents));
+        end;
+        if MCPConfiguration.EnableChatTools <> xMCPConfiguration.EnableChatTools then begin
+            Dimensions.Add('OldChatTools', Format(xMCPConfiguration.EnableChatTools));
+            Dimensions.Add('NewChatTools', Format(MCPConfiguration.EnableChatTools));
         end;
         Session.LogMessage('0000QE9', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
