@@ -427,10 +427,10 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         ProcessDataExch: Codeunit "Process Data Exch.";
         CorpCardDedupMgt: Codeunit "EA Corp Card Dedup Mgt";
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
+        FieldMappingRecordId: RecordId;
         CorpCardRecRef: RecordRef;
         FieldValueByColumnNo: Dictionary of [Integer, Text];
         FieldMappingRecordIdByColumnNo: Dictionary of [Integer, RecordId];
-        FieldMappingRecordId: RecordId;
         CurrentLineNo: Integer;
         HasNextField: Boolean;
         StrictMappingProvider: Boolean;
@@ -449,7 +449,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             exit;
         if not StrictMappingProvider then
             SourcePayloadTxt := ReadSourcePayload(DataExch);
-
         repeat
             CurrentLineNo := DataExchField."Line No.";
             Clear(FieldValueByColumnNo);
@@ -463,7 +462,6 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
             CorpCardTrans.Status := CorpCardTrans.Status::Imported;
 
             CorpCardRecRef.GetTable(CorpCardTrans);
-
             repeat
                 if not StrictMappingProvider then
                     if not FieldValueByColumnNo.ContainsKey(DataExchField."Column No.") then
