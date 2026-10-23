@@ -164,6 +164,9 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLineComp: Record "Purchase Line";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        FoundPurchaseLineComp: Boolean;
+        ShouldModifyPurchaseLine: Boolean;
     begin
         if RequisitionLine."Prod. Order No." = '' then
             exit;
@@ -182,7 +185,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity");
+        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity", "Due Date");
         if ProdOrderComponent.FindSet() then
             repeat
                 PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
@@ -191,12 +194,47 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 PurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
                 PurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
                 PurchaseLineComp.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+                PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
                 PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
-                if PurchaseLineComp.FindFirst() then
+                PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
+                FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                ShouldModifyPurchaseLine := false;
+                if not FoundPurchaseLineComp then begin
+                    PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+                    FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                    if FoundPurchaseLineComp then begin
+                        PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
+                        ShouldModifyPurchaseLine := true;
+                    end;
+                end;
+                if not FoundPurchaseLineComp then begin
+                    PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
+                    PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
+                    FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                    if not FoundPurchaseLineComp then begin
+                        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+                        FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                        if FoundPurchaseLineComp then begin
+                            PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
+                            ShouldModifyPurchaseLine := true;
+                        end;
+                    end;
+                    if FoundPurchaseLineComp then begin
+                        PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
+                        ShouldModifyPurchaseLine := true;
+                    end;
+                end;
+
+                if FoundPurchaseLineComp then begin
                     if PurchaseLineComp.Quantity <> ProdOrderComponent."Remaining Quantity" then begin
                         PurchaseLineComp.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
-                        PurchaseLineComp.Modify(true);
+                        ShouldModifyPurchaseLine := true;
                     end;
+                    if SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLineComp, ProdOrderComponent) then
+                        ShouldModifyPurchaseLine := true;
+                    if ShouldModifyPurchaseLine then
+                        PurchaseLineComp.Modify(true);
+                end;
             until ProdOrderComponent.Next() = 0;
     end;
 }

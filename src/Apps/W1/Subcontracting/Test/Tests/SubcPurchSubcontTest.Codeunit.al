@@ -6,10 +6,12 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Calendar;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
@@ -47,6 +49,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
@@ -56,6 +59,13 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         IsInitialized: Boolean;
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ComponentExpectedReceiptDateAssertMsg: Label 'Expected Receipt Date must match the component Due Date.';
+        PlannedReceiptDateAssertMsg: Label 'Planned Receipt Date must be calculated no later than Expected Receipt Date.';
+        ComponentOrderDateAssertMsg: Label 'Order Date must use the item lead time and configured calendars.';
+        WorkDateOrderDateAssertMsg: Label 'Order Date must not be overwritten with Work Date.';
+        ServiceLineExpectedReceiptDateAssertMsg: Label 'The service line must retain the routing operation ending date.';
+        VendorSuppliedComponentAssertMsg: Label 'Expected to find a vendor-supplied production order component.';
+        ComponentPurchaseLineAssertMsg: Label 'Expected to find the purchase line linked to the production order.';
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
@@ -1183,6 +1193,113 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
+    end;
+    
+    [Test]
+    procedure VendorSuppliedComponentPurchaseLineUsesComponentDates()
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        ComponentItem: Record Item;
+        BaseCalendar: Record "Base Calendar";
+        BaseCalendarChange: Record "Base Calendar Change";
+        HomeLocation: Record Location;
+        CustomizedCalendarChange: array[2] of Record "Customized Calendar Change";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+        Vendor: Record Vendor;
+        CalendarManagement: Codeunit "Calendar Management";
+        ComponentDueDate: Date;
+        ExpectedOrderDate: Date;
+        ExpectedPlannedReceiptDate: Date;
+        FoundRecord: Boolean;
+    begin
+        // [SCENARIO 650504] Vendor-supplied component purchase lines use component requirement dates and standard purchase scheduling.
+        Initialize();
+
+        // [GIVEN] A subcontracting production order with a vendor-supplied component and a nonzero purchase lead time
+        SetupSubContractingProdOrder(
+            Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder,
+            "Component Supply Method"::"Vendor-Supplied", LibraryRandom.RandIntInRange(1, 10));
+        BaseCalendar.Code := CopyStr(
+            LibraryUtility.GenerateRandomCode(BaseCalendar.FieldNo(Code), Database::"Base Calendar"),
+            1, MaxStrLen(BaseCalendar.Code));
+        BaseCalendar.Name := 'Component Purchase';
+        BaseCalendar.Insert();
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Base Calendar Code" := BaseCalendar.Code;
+        Evaluate(Vendor."Lead Time Calculation", '<20D>');
+        Vendor.Modify(true);
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        FoundRecord := ProdOrderComponent.FindSet();
+        while FoundRecord and
+            ((ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Vendor-Supplied") or
+             (ProdOrderComponent."Location Code" = '')) do
+            FoundRecord := ProdOrderComponent.Next() <> 0;
+        Assert.IsTrue(FoundRecord, VendorSuppliedComponentAssertMsg);
+        HomeLocation.Get(ProdOrderComponent."Location Code");
+        HomeLocation."Base Calendar Code" := BaseCalendar.Code;
+        Evaluate(HomeLocation."Inbound Whse. Handling Time", '<2D>');
+        HomeLocation.Modify(true);
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
+        ComponentItem.Modify(true);
+        ComponentDueDate := CalcDate('<30D>', WorkDate());
+        BaseCalendarChange."Base Calendar Code" := BaseCalendar.Code;
+        BaseCalendarChange.Validate(Date, CalcDate('<-2D>', ComponentDueDate));
+        BaseCalendarChange.Description := 'Handling calendar test';
+        BaseCalendarChange.Insert(true);
+        CustomizedCalendarChange[1].SetSource(
+            CustomizedCalendarChange[1]."Source Type"::Location, HomeLocation.Code, '', BaseCalendar.Code);
+        ExpectedPlannedReceiptDate := CalendarManagement.CalcDateBOC2('<2D>', ComponentDueDate, CustomizedCalendarChange, false);
+        CustomizedCalendarChange[1].SetSource(
+            CustomizedCalendarChange[1]."Source Type"::Vendor, Vendor."No.", '', BaseCalendar.Code);
+        CustomizedCalendarChange[2].SetSource(
+            CustomizedCalendarChange[2]."Source Type"::Location, HomeLocation.Code, '', BaseCalendar.Code);
+        ProdOrderComponent."Due Date" := ComponentDueDate;
+        ProdOrderComponent.Modify(true);
+
+        // [WHEN] A subcontracting purchase order is created by carrying out the requisition worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The component purchase line uses the component due date and its calculated order schedule
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        Assert.IsTrue(PurchaseLine.FindFirst(), ComponentPurchaseLineAssertMsg);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);
+        Assert.IsTrue(PurchaseLine."Planned Receipt Date" <= ExpectedPlannedReceiptDate, PlannedReceiptDateAssertMsg);
+        ExpectedOrderDate := CalendarManagement.CalcDateBOC2('<10D>', PurchaseLine."Planned Receipt Date", CustomizedCalendarChange, true);
+        Assert.AreEqual(ExpectedOrderDate, PurchaseLine."Order Date", ComponentOrderDateAssertMsg);
+        Assert.IsTrue(PurchaseLine."Order Date" <> WorkDate(), WorkDateOrderDateAssertMsg);
+
+        // [THEN] The subcontracting service line retains the routing operation ending date
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(ProdOrderRoutingLine."Ending Date", PurchaseLine."Expected Receipt Date", ServiceLineExpectedReceiptDateAssertMsg);
     end;
 
     local procedure Initialize()

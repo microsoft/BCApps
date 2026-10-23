@@ -112,6 +112,12 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(20551; "Subc. Prod. Comp. Line No."; Integer)
+        {
+            Caption = 'Prod. Order Comp. Line No. (Sub)';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
