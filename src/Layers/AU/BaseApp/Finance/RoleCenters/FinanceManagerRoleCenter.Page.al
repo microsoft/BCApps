@@ -541,6 +541,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Journals';
                             RunObject = Report Journals;
+                            Tooltip = 'Run the Journals report.';
                         }
                         action("Trial Balance by Period")
                         {

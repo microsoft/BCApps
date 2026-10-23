@@ -9408,9 +9408,9 @@ codeunit 90 "Purch.-Post"
     end;
 
 #if not CLEAN30
-    internal procedure RunOnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
+    internal procedure RunOnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PostedPurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
-        OnAfterPostAccICLine(PurchaseLine, CommitIsSupressed, PurchaseHeader, PurchInvHeader, PurchCrMemoHdr);
+        OnAfterPostAccICLine(PurchaseLine, CommitIsSupressed, PurchaseHeader, PostedPurchInvHeader, PurchCrMemoHdr);
     end;
 
     [Obsolete('Moved to ICPurchPost.Codeunit', '30.0')]
@@ -11806,11 +11806,6 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostWHT(var PurchaseHeader: Record "Purchase Header"; var TotalInvAmount: Decimal; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var TempPurchaseLineGlobal: Record "Purchase Line" temporary; var WHTEntry: Record "WHT Entry"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
 }

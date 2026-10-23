@@ -14248,7 +14248,7 @@ codeunit 80 "Sales-Post"
     /// <param name="SrcCode">The source code.</param>
     /// <param name="SuppressCommit">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line" temporary; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
+    local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
     begin
     end;
 }

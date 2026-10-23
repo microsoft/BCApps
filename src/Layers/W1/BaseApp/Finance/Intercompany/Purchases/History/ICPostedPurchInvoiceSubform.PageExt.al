@@ -16,6 +16,7 @@ pageextension 8440 "ICPostedPurchInvoiceSubform" extends "Posted Purch. Invoice 
             field("IC Partner Code"; Rec."IC Partner Code")
             {
                 ApplicationArea = Intercompany;
+                ToolTip = 'Specifies the intercompany partner code.';
                 Visible = false;
             }
         }

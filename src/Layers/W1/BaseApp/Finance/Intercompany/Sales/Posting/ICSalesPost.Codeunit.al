@@ -70,7 +70,7 @@ codeunit 8505 "IC Sales-Post"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnGLAccount, '', true, false)]
-    local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line" temporary; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
+    local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
     begin
         PostGLAccICLine(SalesHeader, SalesLine, xSalesLine, InvoicePostingParameters, SuppressCommit);
     end;

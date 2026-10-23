@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -222,7 +222,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
         UpgradeNoSeriesIT();
-#if not CLEAN29
+#if not CLEAN30
         UpgradeDirectTransferPostingToEnum();
 #endif
         UpgradeDirectTransferOnTransferRoute();
@@ -3387,9 +3387,7 @@ codeunit 104000 "Upgrade - BaseApp"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefCountry.GetNoSeriesITUpgradeTag()) then
             exit;
 
-
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series");
-
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series Line");
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series Line Sales");
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series Line Purchase");
@@ -3803,6 +3801,44 @@ codeunit 104000 "Upgrade - BaseApp"
             until ManIntegrationTableMapping.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetIntegrationTableMappingTemplatesUpgradeTag());
+    end;
+
+    local procedure SetShowCurrencySymbolPosition()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag()) then
+            exit;
+
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::Default then begin
+                GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"Before Amount";
+                GeneralLedgerSetup.Modify();
+            end else
+                if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::"Before Amount" then begin
+                    GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"After Amount";
+                    GeneralLedgerSetup.Modify();
+                end;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::"Before Amount");
+        Currency.SetLoadFields("Currency Symbol Position");
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"After Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::Default);
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"Before Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag());
     end;
 
     [IntegrationEvent(false, false)]

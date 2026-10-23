@@ -1494,8 +1494,6 @@ table 81 "Gen. Journal Line"
                     Validate("Payment Terms Code", '');
 
                 OnValidateBalAccountTypeOnBeforeCheckTemplateType(Rec, xRec);
-
-                ClearInvCrMemoTypeFields();
             end;
         }
         /// <summary>
@@ -4850,25 +4848,6 @@ table 81 "Gen. Journal Line"
         CheckSpendRequest(GLAcc);
 
         OnAfterCheckGLAcc(Rec, GLAcc);
-    end;
-
-    local procedure CheckAccAndBalAccType(AccType: Enum "Gen. Journal Account Type")
-    begin
-        if ("Account Type" <> AccType) and ("Bal. Account Type" <> AccType) then
-            Error(
-              IncorrectAccTypeErr,
-              FieldCaption("Account Type"), FieldCaption("Bal. Account Type"), Format(AccType));
-    end;
-
-    local procedure CheckDataForCorrection()
-    begin
-        TestField("Document Type", "Document Type"::"Credit Memo");
-        if not (("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor]) or
-                ("Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor]))
-        then
-            Error(IncorrectAccTypeErr,
-              FieldCaption("Account Type"), FieldCaption("Bal. Account Type"),
-              StrSubstNo(OneOrAnotherTok, Format("Account Type"::Customer), Format("Account Type"::Vendor)));
     end;
 
     local procedure CheckDirectPosting(var GLAccount: Record "G/L Account")
@@ -12832,11 +12811,6 @@ table 81 "Gen. Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateICAccountNo(var Rec: Record "Gen. Journal Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckICPartner(var Rec: Record "Gen. Journal Line"; ICPartnerCode: Code[20]; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
     begin
     end;
 

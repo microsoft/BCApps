@@ -44,7 +44,7 @@ tableextension 8447 ICVendor extends Vendor
                     AccountingPeriod.SetRange(Closed, false);
                     if AccountingPeriod.FindFirst() then begin
                         VendLedgEntry.SetFilter("Posting Date", '>=%1', AccountingPeriod."Starting Date");
-                        if VendLedgEntry.FindFirst() then
+                        if not VendLedgEntry.IsEmpty() then
                             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(EntriesInOpenPeriodQst, TableCaption), true) then
                                 "IC Partner Code" := xRec."IC Partner Code";
                     end;

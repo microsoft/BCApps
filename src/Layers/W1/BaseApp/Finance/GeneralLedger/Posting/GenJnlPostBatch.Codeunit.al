@@ -1828,7 +1828,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
     local procedure BlankICPartner() Result: Boolean
     begin
-        OnBlankICPartner(Result);
+        OnBeforeBlankICPartner(Result);
     end;
 
     /// <summary>
@@ -2389,7 +2389,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     [InternalEvent(false)]
-    local procedure OnProcessLinesOnProcessICTransaction(var GenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var GenJnlTemplate: Record "Gen. Journal Template")
+    local procedure OnProcessLinesOnProcessICTransaction(var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var GenJournalTemplate: Record "Gen. Journal Template")
     begin
     end;
 
@@ -2409,7 +2409,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     [InternalEvent(false)]
-    local procedure OnBlankICPartner(var Result: Boolean)
+    local procedure OnBeforeBlankICPartner(var Result: Boolean)
     begin
     end;
 }

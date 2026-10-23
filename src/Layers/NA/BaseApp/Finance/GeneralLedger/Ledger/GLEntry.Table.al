@@ -485,6 +485,7 @@ table 17 "G/L Entry"
         field(72; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
+            ToolTip = 'Specifies the code of the intercompany partner that the entry is related to.';
         }
         /// <summary>
         /// Indicates whether this entry has been reversed.
