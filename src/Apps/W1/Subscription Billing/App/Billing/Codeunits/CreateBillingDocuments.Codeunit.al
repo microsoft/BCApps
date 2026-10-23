@@ -325,6 +325,8 @@ codeunit 8060 "Create Billing Documents"
             UsageDataBilling.SetRange("Subscription Contract Line No.", CustomerContractLine."Line No.");
             UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
             UsageDataBilling.SetRange("Document No.", '');
+            UsageDataBilling.SetFilter("Charge Start Date", '>=%1', TempBillingLine."Billing from");
+            UsageDataBilling.SetFilter("Charge End Date", '<=%1', CalcDate('<1D>', TempBillingLine."Billing to"));
             if UsageDataBilling.FindSet() then begin
                 BillingLineNoByTempEntryNo.Get(TempBillingLine."Entry No.", BillingLineNo);
                 repeat
@@ -460,6 +462,8 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange("Subscription Contract Line No.", ServiceCommitment."Subscription Contract Line No.");
         UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetRange("Document No.", '');
+        UsageDataBilling.SetFilter("Charge Start Date", '>=%1', TempBillingLine."Billing from");
+        UsageDataBilling.SetFilter("Charge End Date", '<=%1', CalcDate('<1D>', TempBillingLine."Billing to"));
         if UsageDataBilling.FindSet() then begin
             BillingLineNoByTempEntryNo.Get(TempBillingLine."Entry No.", BillingLineNo);
             repeat
