@@ -63,7 +63,6 @@ codeunit 137097 "SCM Kitting - Undo"
         LibraryAssembly: Codeunit "Library - Assembly";
         LibraryCosting: Codeunit "Library - Costing";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory to G/L";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryPlanning: Codeunit "Library - Planning";
@@ -2109,6 +2108,7 @@ codeunit 137097 "SCM Kitting - Undo"
     end;
 
     [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
     procedure UndoAssemblyIsBlockedWhenComponentChangedFromBlankToLotTracking()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -2130,6 +2130,8 @@ codeunit 137097 "SCM Kitting - Undo"
         AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
         AsmItem.Modify(true);
         LibraryInventory.CreateItem(CompItem);
+        CompItem.Validate("Unit Cost", 1);
+        CompItem.Modify(true);
         AddComponentToAssemblyList(
             BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
@@ -2144,7 +2146,7 @@ codeunit 137097 "SCM Kitting - Undo"
         CompItem.CalcFields(Inventory);
         CompItem.TestField(Inventory, 0);
         LibraryCosting.AdjustCostItemEntries(CompItem."No.", '');
-        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), CompItem."No.");
+        PostItemCostToGL(CompItem."No.", PostingDate);
 
         // [GIVEN] Lot tracking is enabled for the component after it has zero inventory.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
@@ -2198,6 +2200,46 @@ codeunit 137097 "SCM Kitting - Undo"
         // [WHEN] The posted assembly order is undone.
         // [THEN] Undo is blocked before posting because the required lot cannot be determined.
         LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, TrackingInformationCannotBeDeterminedErr);
+    end;
+
+    [Test]
+    procedure UndoAssemblyIsAllowedWhenComponentTrackingChangedBeforePosting()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        AsmItem: Record Item;
+        CompItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Assembly undo remains allowed when the component tracking change predates posting.
+        Initialize();
+
+        // [GIVEN] Untracked component "C" whose latest tracking change predates assembly posting.
+        LibraryInventory.CreateItem(AsmItem);
+        AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
+        AsmItem.Modify(true);
+        LibraryInventory.CreateItem(CompItem);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CreateItemTrackingCodeChangeLog(CompItem."No.", WorkDate() - 1, ItemTrackingCode.Code, '');
+        AddComponentToAssemblyList(
+            BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Posted assembly order "AO" consumes component "C".
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, '', '', '', WorkDate(), 1);
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+
+        // [WHEN] Posted assembly order "AO" is undone.
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, '');
+
+        // [THEN] The posted assembly order is marked as reversed.
+        PostedAssemblyHeader.Get(PostedAssemblyHeader."No.");
+        Assert.IsTrue(PostedAssemblyHeader.Reversed, 'The posted assembly order should be reversed.');
     end;
 
     [Test]
@@ -2516,5 +2558,37 @@ codeunit 137097 "SCM Kitting - Undo"
         WhseItemTrackingLine.Reset();
         WhseItemTrackingLine.SetSourceFilter(Database::"Assembly Line", "Assembly Document Type"::Order.AsInteger(), AssemblyHeader."No.", -1, true);
         Assert.IsTrue(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldBeDeletedErr);
+    end;
+
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDate: Date; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        ItemTrackingCodeChangeLog.Init();
+        ItemTrackingCodeChangeLog."Item No." := ItemNo;
+        ItemTrackingCodeChangeLog."Change Date" := ChangeDate;
+        ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
+        ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
+        ItemTrackingCodeChangeLog.Insert(true);
+    end;
+
+    local procedure PostItemCostToGL(ItemNo: Code[20]; PostingDate: Date)
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        PostInventoryCostToGL: Report "Post Inventory Cost to G/L";
+        PostMethod: Option "per Posting Group","per Entry";
+    begin
+        Commit();
+        PostValueEntryToGL.SetRange("Item No.", ItemNo);
+        PostValueEntryToGL.SetRange("Posting Date", PostingDate);
+        PostInventoryCostToGL.InitializeRequest(PostMethod::"per Entry", '', true);
+        PostInventoryCostToGL.SetTableView(PostValueEntryToGL);
+        PostInventoryCostToGL.UseRequestPage(false);
+        PostInventoryCostToGL.SaveAsPdf(TemporaryPath + DelChr(Format(CreateGuid()), '=', '{}') + '.pdf');
+    end;
+
+    [MessageHandler]
+    procedure CostPostingMessageHandler(Message: Text[1024])
+    begin
     end;
 }

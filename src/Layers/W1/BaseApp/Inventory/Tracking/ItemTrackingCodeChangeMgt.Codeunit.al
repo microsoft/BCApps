@@ -49,6 +49,7 @@ codeunit 6540 "Item Tracking Code Change Mgt."
         ItemTrackingCode: Record "Item Tracking Code";
         PreviousItemTrackingCode: Record "Item Tracking Code")
     begin
+        TestItemTrackingCodeChangePermission(Item);
         TestNoExpirationCalculation(Item);
         TestCostIsAdjustedAndPostedToGL(Item);
         TestNoOpenItemLedgerEntries(Item);
@@ -66,6 +67,14 @@ codeunit 6540 "Item Tracking Code Change Mgt."
         end;
 
         LogItemTrackingCodeChange(Item."No.", PreviousItemTrackingCode.Code, ItemTrackingCode.Code);
+    end;
+
+    local procedure TestItemTrackingCodeChangePermission(Item: Record Item)
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        if not ItemTrackingCodeChangeLog.WritePermission() then
+            Error(MissingItemTrackingChangePermissionErr, Item."No.");
     end;
 
     local procedure ShowCollectedErrors()
@@ -513,6 +522,7 @@ codeunit 6540 "Item Tracking Code Change Mgt."
 
     var
         ItemLedgerEntriesOnChangeDateErr: Label 'You cannot change the Item Tracking Code for item %1 because item ledger entries exist with Posting Date %2.', Comment = '%1 = Item No., %2 = posting date';
+        MissingItemTrackingChangePermissionErr: Label 'You do not have permission to change the Item Tracking Code for item %1. The ITEM TRACKING CHANGE permission set must be assigned to you.', Comment = '%1 = Item No. Do not translate ITEM TRACKING CHANGE.';
         OpenItemLedgerEntriesExistErr: Label 'You cannot change %1 for item %2 because one or more open item ledger entries exist.', Comment = '%1 = Item Tracking Code field caption, %2 = Item No.';
         RecordsExistErr: Label 'You cannot change %1 for item %2 because one or more %3 records exist.', Comment = '%1 = Item Tracking Code field caption, %2 = Item No., %3 = table caption';
 }

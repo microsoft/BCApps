@@ -15,7 +15,6 @@ codeunit 137012 "SCM Costing Sales Returns I"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory to G/L";
         LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -25,6 +24,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
         CorrectedInvoiceNoQst: Label 'have a Corrected Invoice No. Do you want to continue?';
 
     [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
     procedure SalesReturnUsesMultipleCurrentLotsAfterLotTrackingIsEnabled()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -39,16 +39,22 @@ codeunit 137012 "SCM Costing Sales Returns I"
         OriginalSalesEntryNo: Integer;
         LotNos: array[3] of Code[50];
         i: Integer;
+        PostingDate: Date;
     begin
-        // [FEATURE] [Item Tracking Code Change]
-        // [SCENARIO] A sales return splits one historical untracked entry into multiple current lots.
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A sales return splits one historical untracked entry into multiple current lots.
         Initialize();
+        PostingDate := WorkDate() - 1;
 
         // [GIVEN] An untracked item is purchased into inventory and completely sold.
         LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', ArrayLen(LotNos));
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), WorkDate(), 0);
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), PostingDate, 0);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
@@ -59,9 +65,8 @@ codeunit 137012 "SCM Costing Sales Returns I"
         Item.TestField(Inventory, 0);
 
         // [GIVEN] Costs are finalized and lot tracking is enabled on the following day.
-        WorkDate(WorkDate() + 1);
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        PostItemCostToGL(Item."No.", PostingDate);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
@@ -102,6 +107,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
     end;
 
     [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
     procedure SalesReturnUsesCurrentBlankTrackingAfterLotTrackingIsDisabled()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -115,21 +121,27 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesReturnLine: Record "Sales Line";
         OriginalSalesEntryNo: Integer;
         LotNo: Code[50];
+        PostingDate: Date;
     begin
-        // [FEATURE] [Item Tracking Code Change]
-        // [SCENARIO] A sales return uses current blank tracking after lot tracking is disabled.
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A sales return uses current blank tracking after lot tracking is disabled.
         Initialize();
+        PostingDate := WorkDate() - 1;
 
         // [GIVEN] A lot-tracked item is purchased into inventory and completely sold.
         LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
         LotNo := ItemTrackingCode.Code;
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', 1);
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, 1);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', 1, WorkDate(), 0);
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', 1, PostingDate, 0);
         LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo, 1);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
@@ -141,9 +153,8 @@ codeunit 137012 "SCM Costing Sales Returns I"
         Item.TestField(Inventory, 0);
 
         // [GIVEN] Costs are finalized and lot tracking is disabled on the following day.
-        WorkDate(WorkDate() + 1);
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        PostItemCostToGL(Item."No.", PostingDate);
         Item.Validate("Item Tracking Code", '');
         Item.Modify(true);
 
@@ -168,6 +179,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
     end;
 
     [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
     procedure CopiedSalesReturnWithCurrentBlankTrackingPostsWithoutTrackingError()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -187,13 +199,17 @@ codeunit 137012 "SCM Costing Sales Returns I"
         LinesNotCopied: Integer;
         MissingExCostRevLink: Boolean;
         i: Integer;
+        PostingDate: Date;
     begin
         // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
         // [SCENARIO 435436] A copied two-lot sales return posts without a tracking error after tracking is disabled.
         Initialize();
+        PostingDate := WorkDate() - 1;
 
         // [GIVEN] Lot-tracked inventory is sold from two different lots.
         LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
@@ -201,13 +217,15 @@ codeunit 137012 "SCM Costing Sales Returns I"
             LotNos[i] := ItemTrackingCode.Code + Format(i);
         LibraryInventory.CreateItemJournalLineInItemTemplate(
             ItemJournalLine, Item."No.", '', '', ArrayLen(LotNos));
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
         for i := 1 to ArrayLen(LotNos) do
             LibraryItemTracking.CreateItemJournalLineItemTracking(
                 ReservationEntry, ItemJournalLine, '', LotNos[i], 1);
         LibraryInventory.PostItemJournalLine(
             ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
         LibrarySales.CreateSalesOrder(
-            SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), WorkDate(), 0);
+            SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), PostingDate, 0);
         for i := 1 to ArrayLen(LotNos) do
             LibraryItemTracking.CreateSalesOrderItemTracking(
                 ReservationEntry, SalesLine, '', LotNos[i], 1);
@@ -224,9 +242,8 @@ codeunit 137012 "SCM Costing Sales Returns I"
         Assert.AreEqual(0, Item.Inventory, 'The item inventory must be zero after the sale.');
 
         // [GIVEN] Costs are finalized and item tracking is disabled on the following day.
-        WorkDate(WorkDate() + 1);
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        PostItemCostToGL(Item."No.", PostingDate);
         Item.Validate("Item Tracking Code", '');
         Item.Modify(true);
 
@@ -274,6 +291,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
     end;
 
     [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
     procedure SalesReturnSplitsHistoricalLotIntoCurrentSerialNumbers()
     var
         HistoricalTrackingCode: Record "Item Tracking Code";
@@ -290,23 +308,29 @@ codeunit 137012 "SCM Costing Sales Returns I"
         LotNo: Code[50];
         SerialNos: array[2] of Code[50];
         i: Integer;
+        PostingDate: Date;
     begin
-        // [FEATURE] [Item Tracking Code Change]
-        // [SCENARIO] A sales return splits one historical lot entry into current serial-number entries.
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A sales return splits one historical lot entry into current serial-number entries.
         Initialize();
+        PostingDate := WorkDate() - 1;
 
         // [GIVEN] A lot-tracked item is added to inventory and completely sold as one lot.
         LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
         LibraryItemTracking.CreateItemTrackingCode(HistoricalTrackingCode, false, true);
         Item.Validate("Item Tracking Code", HistoricalTrackingCode.Code);
         Item.Modify(true);
         LotNo := HistoricalTrackingCode.Code;
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', ArrayLen(SerialNos));
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
         LibraryItemTracking.CreateItemJournalLineItemTracking(
             ReservationEntry, ItemJournalLine, '', LotNo, ArrayLen(SerialNos));
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
         LibrarySales.CreateSalesOrder(
-            SalesHeader, SalesLine, Item, '', '', ArrayLen(SerialNos), WorkDate(), 0);
+            SalesHeader, SalesLine, Item, '', '', ArrayLen(SerialNos), PostingDate, 0);
         LibraryItemTracking.CreateSalesOrderItemTracking(
             ReservationEntry, SalesLine, '', LotNo, ArrayLen(SerialNos));
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -319,9 +343,8 @@ codeunit 137012 "SCM Costing Sales Returns I"
         Item.TestField(Inventory, 0);
 
         // [GIVEN] Costs are finalized and serial-number tracking is enabled on the following day.
-        WorkDate(WorkDate() + 1);
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), Item."No.");
+        PostItemCostToGL(Item."No.", PostingDate);
         LibraryItemTracking.CreateItemTrackingCode(CurrentTrackingCode, true, false);
         Item.Validate("Item Tracking Code", CurrentTrackingCode.Code);
         Item.Modify(true);
@@ -1025,6 +1048,26 @@ codeunit 137012 "SCM Costing Sales Returns I"
 
         Assert.AreNearlyEqual(
           ExpectedSalesInvoiceAmount - ExpectedSalesCrMemoAmount, ActualCustLedgerAmount, 0.1, SalesAmountMustBeSameErr);
+    end;
+
+    local procedure PostItemCostToGL(ItemNo: Code[20]; PostingDate: Date)
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        PostInventoryCostToGL: Report "Post Inventory Cost to G/L";
+        PostMethod: Option "per Posting Group","per Entry";
+    begin
+        Commit();
+        PostValueEntryToGL.SetRange("Item No.", ItemNo);
+        PostValueEntryToGL.SetRange("Posting Date", PostingDate);
+        PostInventoryCostToGL.InitializeRequest(PostMethod::"per Entry", '', true);
+        PostInventoryCostToGL.SetTableView(PostValueEntryToGL);
+        PostInventoryCostToGL.UseRequestPage(false);
+        PostInventoryCostToGL.SaveAsPdf(TemporaryPath + DelChr(Format(CreateGuid()), '=', '{}') + '.pdf');
+    end;
+
+    [MessageHandler]
+    procedure CostPostingMessageHandler(Message: Text[1024])
+    begin
     end;
 
     [ConfirmHandler]
