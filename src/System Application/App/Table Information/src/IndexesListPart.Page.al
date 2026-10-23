@@ -97,7 +97,7 @@ page 8704 "Indexes List Part"
                     ToolTip = 'Specifies the percentage of fragmentation in the index.';
                     AutoFormatType = 0;
                     DecimalPlaces = 0;
-                    StyleExpr = FragmentationStyleExpr;
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Index size in KB"; Rec."Index Size (KB)")
                 {
@@ -193,9 +193,6 @@ page 8704 "Indexes List Part"
                     RecordIDOfCurrentPosition: RecordId;
                     IsMetadataDefined: Boolean;
                 begin
-                    if Rec."Index Type" = Rec."Index Type"::SIFT then
-                        Error(CannotDisableSIFTIndexErr, Rec."Index Name");
-
                     IsMetadataDefined := Rec."Metadata Defined";
 
                     if not IsMetadataDefined then
@@ -230,9 +227,6 @@ page 8704 "Indexes List Part"
                     RecordIDOfCurrentPosition: RecordId;
                     IsMetadataDefined: Boolean;
                 begin
-                    if Rec."Index Type" = Rec."Index Type"::SIFT then
-                        Error(CannotDisableSIFTIndexErr, Rec."Index Name");
-
                     IsMetadataDefined := Rec."Metadata Defined";
 
                     if not IsMetadataDefined then
@@ -307,12 +301,7 @@ page 8704 "Indexes List Part"
         if Rec.Enabled then
             IndexStyleExpr := 'Standard'
         else
-            IndexStyleExpr := 'Attention';
-
-        if Rec."Fragmentation %" > 30 then
-            FragmentationStyleExpr := 'Attention'
-        else
-            FragmentationStyleExpr := IndexStyleExpr;
+            IndexStyleExpr := 'Subordinate';
 
         if FindKeyFromDatabaseIndex(Rec, KeyRec) then begin
             MaintainVSIFT := KeyRec.MaintainSIFTIndex;
@@ -483,7 +472,6 @@ page 8704 "Indexes List Part"
     var
         SetCompanyName: Text;
         IndexStyleExpr: Text;
-        FragmentationStyleExpr: Text;
         VSIFTFields: Text;
         LastSeekText: Text;
         LastScanText: Text;
@@ -494,5 +482,4 @@ page 8704 "Indexes List Part"
         NoDateTimeValueLbl: Label '-', Locked = true;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
         TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on. It will be attempted during the subsequent maintenance window (overnight local time).';
-        CannotDisableSIFTIndexErr: Label 'Cannot enable or disable SIFT indexes ''%1''.', Comment = '%1 = Index Name';
 }
