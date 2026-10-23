@@ -9,6 +9,7 @@ using Microsoft.Bank.DirectDebit;
 #if not CLEAN30
 using Microsoft.eServices.EDocument;
 #endif
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using System.Reflection;
@@ -27,6 +28,16 @@ codeunit 13925 "Library - E-Doc DE"
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         CapturedEDocumentServiceCode: Code[20];
         EDocumentServiceEventCount: Integer;
+        OverridePartyName: Text[100];
+        OverrideCustomerName: Text[100];
+        OverrideActualDeliveryDate: Date;
+        OverrideDeliveryCity: Text[30];
+        OverrideOrderReferenceID: Text[35];
+        OverrideSalesOrderID: Code[20];
+        AddedDeliveryPartyName: Text[100];
+        AddedDespatchDocumentID: Text[35];
+        CACNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+        CBCNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
 
     /// <summary>
     /// Resets the OnAfterFindEDocumentService capture state. Bind this codeunit with
@@ -94,6 +105,162 @@ codeunit 13925 "Library - E-Doc DE"
     local procedure CaptureZUGFeRDOnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
     begin
         CapturedPaymentMeansHeaderRecordId := HeaderRecRef.RecordId();
+    end;
+
+    /// <summary>
+    /// Resets the values that the XRechnung buyer, delivery and order reference subscribers set or add.
+    /// Bind this codeunit with BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    procedure ClearXRechnungOverrides()
+    begin
+        Clear(OverridePartyName);
+        Clear(OverrideCustomerName);
+        Clear(OverrideActualDeliveryDate);
+        Clear(OverrideDeliveryCity);
+        Clear(OverrideOrderReferenceID);
+        Clear(OverrideSalesOrderID);
+        Clear(AddedDeliveryPartyName);
+        Clear(AddedDespatchDocumentID);
+    end;
+
+    /// <summary>
+    /// Sets the values that the subscribers of the XRechnung buyer, delivery and order reference events pass back to the export.
+    /// </summary>
+    /// <param name="PartyName">The buyer name (BT-44) to pass back to the export.</param>
+    /// <param name="CustomerName">The buyer legal registration name to pass back to the export.</param>
+    /// <param name="ActualDeliveryDate">The actual delivery date (BT-72) to pass back to the export.</param>
+    /// <param name="DeliveryCity">The deliver-to city (BT-77) to pass back to the export.</param>
+    /// <param name="OrderReferenceID">The purchase order reference (BT-13) to pass back to the export.</param>
+    /// <param name="SalesOrderID">The sales order reference (BT-14) to pass back to the export.</param>
+    procedure SetXRechnungValueOverrides(PartyName: Text[100]; CustomerName: Text[100]; ActualDeliveryDate: Date; DeliveryCity: Text[30]; OrderReferenceID: Text[35]; SalesOrderID: Code[20])
+    begin
+        OverridePartyName := PartyName;
+        OverrideCustomerName := CustomerName;
+        OverrideActualDeliveryDate := ActualDeliveryDate;
+        OverrideDeliveryCity := DeliveryCity;
+        OverrideOrderReferenceID := OrderReferenceID;
+        OverrideSalesOrderID := SalesOrderID;
+    end;
+
+    /// <summary>
+    /// Sets the elements that the subscribers add to the XRechnung delivery (deliver-to party, BT-70)
+    /// and after the order reference (despatch advice reference, BT-16).
+    /// </summary>
+    /// <param name="DeliveryPartyName">The deliver-to party name to add to cac:Delivery.</param>
+    /// <param name="DespatchDocumentID">The despatch advice reference to add after cac:OrderReference.</param>
+    procedure SetXRechnungAddedElements(DeliveryPartyName: Text[100]; DespatchDocumentID: Text[35])
+    begin
+        AddedDeliveryPartyName := DeliveryPartyName;
+        AddedDespatchDocumentID := DespatchDocumentID;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesInvCustomerParty, '', false, false)]
+    local procedure OverrideXRechnungOnBeforeInsertSalesInvCustomerParty(var PartyName: Text[100]; var CustomerName: Text[100])
+    begin
+        OverrideCustomerPartyValues(PartyName, CustomerName);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesCrMemoCustomerParty, '', false, false)]
+    local procedure OverrideXRechnungOnBeforeInsertSalesCrMemoCustomerParty(var PartyName: Text[100]; var CustomerName: Text[100])
+    begin
+        OverrideCustomerPartyValues(PartyName, CustomerName);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesInvDelivery, '', false, false)]
+    local procedure OverrideXRechnungOnBeforeInsertSalesInvDelivery(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
+    begin
+        OverrideDeliveryValues(ActualDeliveryDate, DeliveryAddress);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesCrMemoDelivery, '', false, false)]
+    local procedure OverrideXRechnungOnBeforeInsertSalesCrMemoDelivery(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
+    begin
+        OverrideDeliveryValues(ActualDeliveryDate, DeliveryAddress);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertDeliveryOnBeforeAddSalesInvDeliveryElement, '', false, false)]
+    local procedure AddXRechnungDeliveryPartyOnBeforeAddSalesInvDeliveryElement(var DeliveryElement: XmlElement)
+    begin
+        AddDeliveryParty(DeliveryElement);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertDeliveryOnBeforeAddSalesCrMemoDeliveryElement, '', false, false)]
+    local procedure AddXRechnungDeliveryPartyOnBeforeAddSalesCrMemoDeliveryElement(var DeliveryElement: XmlElement)
+    begin
+        AddDeliveryParty(DeliveryElement);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertOrderReferenceOnBeforeCreateSalesInvoiceElement, '', false, false)]
+    local procedure OverrideXRechnungOnInsertOrderReferenceOnBeforeCreateSalesInvoiceElement(var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    begin
+        OverrideOrderReferenceValues(OrderReferenceID, SalesOrderID);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertOrderReferenceOnBeforeCreateSalesCrMemoElement, '', false, false)]
+    local procedure OverrideXRechnungOnInsertOrderReferenceOnBeforeCreateSalesCrMemoElement(var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    begin
+        OverrideOrderReferenceValues(OrderReferenceID, SalesOrderID);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertOrderReferenceOnAfterInsertSalesInvoiceElement, '', false, false)]
+    local procedure AddXRechnungDespatchReferenceOnAfterInsertSalesInvoiceElement(var RootElement: XmlElement)
+    begin
+        AddDespatchDocumentReference(RootElement);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertOrderReferenceOnAfterInsertSalesCrMemoElement, '', false, false)]
+    local procedure AddXRechnungDespatchReferenceOnAfterInsertSalesCrMemoElement(var RootElement: XmlElement)
+    begin
+        AddDespatchDocumentReference(RootElement);
+    end;
+
+    local procedure OverrideCustomerPartyValues(var PartyName: Text[100]; var CustomerName: Text[100])
+    begin
+        if OverridePartyName <> '' then
+            PartyName := OverridePartyName;
+        if OverrideCustomerName <> '' then
+            CustomerName := OverrideCustomerName;
+    end;
+
+    local procedure OverrideDeliveryValues(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
+    begin
+        if OverrideActualDeliveryDate <> 0D then
+            ActualDeliveryDate := OverrideActualDeliveryDate;
+        if OverrideDeliveryCity <> '' then
+            DeliveryAddress.City := OverrideDeliveryCity;
+    end;
+
+    local procedure OverrideOrderReferenceValues(var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    begin
+        if OverrideOrderReferenceID <> '' then
+            OrderReferenceID := OverrideOrderReferenceID;
+        if OverrideSalesOrderID <> '' then
+            SalesOrderID := OverrideSalesOrderID;
+    end;
+
+    local procedure AddDeliveryParty(var DeliveryElement: XmlElement)
+    var
+        DeliveryPartyElement: XmlElement;
+        PartyNameElement: XmlElement;
+    begin
+        if AddedDeliveryPartyName = '' then
+            exit;
+        PartyNameElement := XmlElement.Create('PartyName', CACNamespaceTxt);
+        PartyNameElement.Add(XmlElement.Create('Name', CBCNamespaceTxt, AddedDeliveryPartyName));
+        DeliveryPartyElement := XmlElement.Create('DeliveryParty', CACNamespaceTxt);
+        DeliveryPartyElement.Add(PartyNameElement);
+        DeliveryElement.Add(DeliveryPartyElement);
+    end;
+
+    local procedure AddDespatchDocumentReference(var RootElement: XmlElement)
+    var
+        DespatchDocumentReferenceElement: XmlElement;
+    begin
+        if AddedDespatchDocumentID = '' then
+            exit;
+        DespatchDocumentReferenceElement := XmlElement.Create('DespatchDocumentReference', CACNamespaceTxt);
+        DespatchDocumentReferenceElement.Add(XmlElement.Create('ID', CBCNamespaceTxt, AddedDespatchDocumentID));
+        RootElement.Add(DespatchDocumentReferenceElement);
     end;
 
     /// <summary>
