@@ -66,7 +66,7 @@ page 6931 "Expense Report Line Items"
                 field(TotalAmount; TotalAmount)
                 {
                     AutoFormatType = 1;
-                    AutoFormatExpression = '';
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Amount';
                     Editable = false;
@@ -75,7 +75,7 @@ page 6931 "Expense Report Line Items"
                 field(ExpenseAmount; ExpenseAmount)
                 {
                     AutoFormatType = 1;
-                    AutoFormatExpression = '';
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     Caption = 'Expense Amount';
                     Editable = false;
@@ -87,8 +87,10 @@ page 6931 "Expense Report Line Items"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        if ExpenseReportLine.Get(Rec.GetFilter("Expense Report No."), Rec.GetFilter("Expense Report Line No.")) then
+        if ExpenseReportLine.Get(Rec.GetFilter("Expense Report No."), Rec.GetFilter("Expense Report Line No.")) then begin
             Rec."Expense Category Code" := ExpenseReportLine."Expense Category";
+            Rec."Currency Code" := ExpenseReportLine."Expense Currency Code";
+        end;
     end;
 
     trigger OnAfterGetCurrRecord()

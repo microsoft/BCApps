@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
 using Microsoft.HumanResources.Employee;
 
 codeunit 148312 "Expense Rule Violation Test"
@@ -17,11 +18,14 @@ codeunit 148312 "Expense Rule Violation Test"
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
         LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         EmployeePostingGroupMandatoryErr: Label '%1 is mandatory on %2 %3.', Comment = '%1 = Field Caption, %2 = Table Caption, %3 = Employee No.';
         EmployeePostingGroupMandatoryOnExpenseReportErr: Label '%1 is mandatory on Expense Report No. %2.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
+        ExpenseItemizationCurrencyMismatchErr: Label '%1 on %2 must be the same as %1 on %3 in Expense No.=%4, Line No.=%5.', Comment = '%1 = Currency Code field caption, %2 = Expense Itemization table caption, %3 = Expense table caption, %4 = Expense No., %5 = Line No.';
+        ExpenseReportItemizationCurrencyMismatchErr: Label '%1 on %2 must be the same as %3 on %4 in Expense Report No.=%5, Expense Report Line No.=%6, Line No.=%7.', Comment = '%1 = Currency Code field caption, %2 = Expense Report Line Item table caption, %3 = Expense Currency Code field caption, %4 = Expense Report Line table caption, %5 = Expense Report No., %6 = Expense Report Line No., %7 = Line No.';
 
     [Test]
     procedure AddRuleViolationInsertsRecordWithDescription()
@@ -482,6 +486,212 @@ codeunit 148312 "Expense Rule Violation Test"
         VerifyNoExpenseReportRuleViolation(ExpenseReportHeader."No.", ExpenseReportLine."Line No.");
     end;
 
+    [Test]
+    procedure ExpenseValidationWithItemizationCurrencyMismatchCreatesRuleViolation()
+    var
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] Validating an expense whose itemization has a different currency than the expense creates a rule violation.
+        Initialize();
+
+        // [GIVEN] Expense "E1" in currency "FCY" with an itemization whose currency is changed to blank.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        CreateItemizedExpense(Expense, ExpenseItemization, CurrencyCode, 10, 1);
+        ExpenseItemization."Currency Code" := '';
+        ExpenseItemization.Modify(false);
+
+        // [WHEN] Validate expense against rules is executed.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+
+        // [THEN] A rule violation states that the itemization currency must be the same as the expense currency.
+        VerifyExpenseRuleViolationExists(Expense."No.", GetExpenseItemizationCurrencyMismatchMessage(Expense, ExpenseItemization));
+    end;
+
+    [Test]
+    procedure ExpenseValidationWithMatchingItemizationCurrencyCreatesNoCurrencyRuleViolation()
+    var
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] Validating an expense whose itemization has the same currency as the expense does not create a currency rule violation.
+        Initialize();
+
+        // [GIVEN] Expense "E1" in currency "FCY" with an itemization created in the same currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        CreateItemizedExpense(Expense, ExpenseItemization, CurrencyCode, 10, 1);
+
+        // [WHEN] Validate expense against rules is executed.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+
+        // [THEN] No currency mismatch rule violation exists.
+        VerifyNoExpenseRuleViolationWithDescription(Expense."No.", GetExpenseItemizationCurrencyMismatchMessage(Expense, ExpenseItemization));
+    end;
+
+    [Test]
+    procedure ExpenseReportLineValidationWithItemizationCurrencyMismatchCreatesRuleViolation()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] Validating an expense report line whose itemization has a different currency than the line creates a report rule violation.
+        Initialize();
+
+        // [GIVEN] Expense report line "L1" in currency "FCY" with an itemization whose currency is changed to blank.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        CreateItemizedExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineItem, CurrencyCode, 10, 1);
+        ExpenseReportLineItem."Currency Code" := '';
+        ExpenseReportLineItem.Modify(false);
+
+        // [WHEN] Validate expense report line against rules is executed.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] A report rule violation states that the itemization currency must be the same as the expense currency.
+        VerifyExpenseReportRuleViolationExists(
+            ExpenseReportHeader."No.", ExpenseReportLine."Line No.",
+            GetExpenseReportItemizationCurrencyMismatchMessage(ExpenseReportLine, ExpenseReportLineItem));
+    end;
+
+    [Test]
+    procedure ExpenseReportLineValidationWithMatchingItemizationCurrencyCreatesNoCurrencyRuleViolation()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] Validating an expense report line whose itemization has the same currency as the line does not create a currency rule violation.
+        Initialize();
+
+        // [GIVEN] Expense report line "L1" in currency "FCY" with an itemization created in the same currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        CreateItemizedExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineItem, CurrencyCode, 10, 1);
+
+        // [WHEN] Validate expense report line against rules is executed.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] No currency mismatch report rule violation exists.
+        VerifyNoExpenseReportRuleViolationWithDescription(
+            ExpenseReportHeader."No.", ExpenseReportLine."Line No.",
+            GetExpenseReportItemizationCurrencyMismatchMessage(ExpenseReportLine, ExpenseReportLineItem));
+    end;
+
+    [Test]
+    procedure ExpenseItemizationInheritsExpenseCurrencyOnInsert()
+    var
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] A new expense itemization takes the currency of its expense.
+        Initialize();
+
+        // [GIVEN] Expense "E1" in currency "FCY".
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+
+        // [WHEN] An itemization is created for expense "E1".
+        CreateItemizedExpense(Expense, ExpenseItemization, CurrencyCode, 10, 1);
+
+        // [THEN] The itemization "Currency Code" is "FCY".
+        ExpenseItemization.Get(ExpenseItemization."Expense No.", ExpenseItemization."Line No.");
+        Assert.AreEqual(CurrencyCode, ExpenseItemization."Currency Code", 'Itemization currency should match the expense currency.');
+    end;
+
+    [Test]
+    procedure ExpenseReportLineItemizationInheritsLineCurrencyOnInsert()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] A new expense report line itemization takes the expense currency of its line.
+        Initialize();
+
+        // [GIVEN] Expense report line "L1" in currency "FCY".
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+
+        // [WHEN] An itemization is created for line "L1".
+        CreateItemizedExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineItem, CurrencyCode, 10, 1);
+
+        // [THEN] The itemization "Currency Code" is "FCY".
+        ExpenseReportLineItem.Get(ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No.");
+        Assert.AreEqual(CurrencyCode, ExpenseReportLineItem."Currency Code", 'Itemization currency should match the expense report line currency.');
+    end;
+
+    [Test]
+    procedure ApplyRuleUpdatesExpenseItemizationCurrencyAndRounding()
+    var
+        Currency: Record Currency;
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] Applying the rule after the expense currency changed updates the itemization currency and rounds amounts with the new currency precision.
+        Initialize();
+
+        // [GIVEN] Currency "FCY" with amount rounding precision 1 and expense "E1" in local currency with an itemization of daily rate 10.5 and quantity 2.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        Currency.Get(CurrencyCode);
+        Currency."Amount Rounding Precision" := 1;
+        Currency.Modify();
+        CreateItemizedExpense(Expense, ExpenseItemization, '', 10.5, 2);
+
+        // [GIVEN] The expense currency is changed to "FCY".
+        Expense."Currency Code" := CurrencyCode;
+        Expense.Modify();
+
+        // [WHEN] Rule is applied on expense "E1".
+        Expense.ApplyRule();
+
+        // [THEN] The itemization currency is "FCY", the daily rate is rounded to 11 and the amount is 22.
+        ExpenseItemization.Get(ExpenseItemization."Expense No.", ExpenseItemization."Line No.");
+        Assert.AreEqual(CurrencyCode, ExpenseItemization."Currency Code", 'Itemization currency should be updated to the expense currency.');
+        Assert.AreEqual(11, ExpenseItemization."Daily Rate", 'Daily rate should be rounded with the expense currency precision.');
+        Assert.AreEqual(22, ExpenseItemization.Amount, 'Amount should be recalculated from the rounded daily rate.');
+    end;
+
+    [Test]
+    procedure ApplyRuleUpdatesExpenseReportLineItemizationCurrencyAndRounding()
+    var
+        Currency: Record Currency;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 656372] Applying the rule after the expense report line currency changed updates the itemization currency and rounds amounts with the new currency precision.
+        Initialize();
+
+        // [GIVEN] Currency "FCY" with amount rounding precision 1 and line "L1" in local currency with an itemization of daily rate 10.5 and quantity 2.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        Currency.Get(CurrencyCode);
+        Currency."Amount Rounding Precision" := 1;
+        Currency.Modify();
+        CreateItemizedExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineItem, '', 10.5, 2);
+
+        // [GIVEN] The line expense currency is changed to "FCY".
+        ExpenseReportLine."Expense Currency Code" := CurrencyCode;
+        ExpenseReportLine.Modify();
+
+        // [WHEN] Rule is applied on line "L1".
+        ExpenseReportLine.ApplyRule();
+
+        // [THEN] The itemization currency is "FCY", the daily rate is rounded to 11 and the amount is 22.
+        ExpenseReportLineItem.Get(ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No.");
+        Assert.AreEqual(CurrencyCode, ExpenseReportLineItem."Currency Code", 'Itemization currency should be updated to the expense report line currency.');
+        Assert.AreEqual(11, ExpenseReportLineItem."Daily Rate", 'Daily rate should be rounded with the line currency precision.');
+        Assert.AreEqual(22, ExpenseReportLineItem.Amount, 'Amount should be recalculated from the rounded daily rate.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -546,6 +756,95 @@ codeunit 148312 "Expense Rule Violation Test"
     begin
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
         LibraryExpense.CreateExpense(Expense, ExpenseUserNo, ExpenseCategory.Code, '', '', true, '', LibraryRandom.RandIntInRange(10, 100));
+    end;
+
+    local procedure CreateItemizedExpense(var Expense: Record Expense; var ExpenseItemization: Record "Expense Itemization"; CurrencyCode: Code[10]; DailyRate: Decimal; Quantity: Decimal)
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+    begin
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, CurrencyCode, LibraryRandom.RandIntInRange(100, 200));
+        Expense."Expense Detail Required" := Expense."Expense Detail Required"::Itemize;
+        Expense.Modify();
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory.Code, WorkDate(), DailyRate, Quantity);
+    end;
+
+    local procedure CreateItemizedExpenseReportLine(var ExpenseReportHeader: Record "Expense Report Header"; var ExpenseReportLine: Record "Expense Report Line"; var ExpenseReportLineItem: Record "Expense Report Line Item"; CurrencyCode: Code[10]; DailyRate: Decimal; Quantity: Decimal)
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+    begin
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", CurrencyCode, '');
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, '', true, CurrencyCode, LibraryRandom.RandIntInRange(100, 200));
+        ExpenseReportLine."Expense Detail Required" := ExpenseReportLine."Expense Detail Required"::Itemize;
+        ExpenseReportLine.Modify();
+        LibraryExpense.CreateExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory.Code, WorkDate(), DailyRate, Quantity);
+    end;
+
+    local procedure GetExpenseItemizationCurrencyMismatchMessage(Expense: Record Expense; ExpenseItemization: Record "Expense Itemization"): Text
+    begin
+        exit(
+            StrSubstNo(
+                ExpenseItemizationCurrencyMismatchErr,
+                ExpenseItemization.FieldCaption("Currency Code"), ExpenseItemization.TableCaption(), Expense.TableCaption(),
+                ExpenseItemization."Expense No.", ExpenseItemization."Line No."));
+    end;
+
+    local procedure GetExpenseReportItemizationCurrencyMismatchMessage(ExpenseReportLine: Record "Expense Report Line"; ExpenseReportLineItem: Record "Expense Report Line Item"): Text
+    begin
+        exit(
+            StrSubstNo(
+                ExpenseReportItemizationCurrencyMismatchErr,
+                ExpenseReportLineItem.FieldCaption("Currency Code"), ExpenseReportLineItem.TableCaption(),
+                ExpenseReportLine.FieldCaption("Expense Currency Code"), ExpenseReportLine.TableCaption(),
+                ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No."));
+    end;
+
+    local procedure VerifyExpenseRuleViolationExists(ExpenseNo: Code[20]; ExpectedDescription: Text)
+    var
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        ExpenseRuleViolation.SetRange("Expense No.", ExpenseNo);
+        ExpenseRuleViolation.SetRange(Description, CopyStr(ExpectedDescription, 1, MaxStrLen(ExpenseRuleViolation.Description)));
+        Assert.RecordCount(ExpenseRuleViolation, 1);
+    end;
+
+    local procedure VerifyNoExpenseRuleViolationWithDescription(ExpenseNo: Code[20]; Description: Text)
+    var
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        ExpenseRuleViolation.SetRange("Expense No.", ExpenseNo);
+        ExpenseRuleViolation.SetRange(Description, CopyStr(Description, 1, MaxStrLen(ExpenseRuleViolation.Description)));
+        Assert.RecordIsEmpty(ExpenseRuleViolation);
+    end;
+
+    local procedure VerifyExpenseReportRuleViolationExists(ReportNo: Code[20]; ReportLineNo: Integer; ExpectedDescription: Text)
+    var
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ReportNo);
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ReportLineNo);
+        ExpenseReportRuleViolation.SetRange(Description, CopyStr(ExpectedDescription, 1, MaxStrLen(ExpenseReportRuleViolation.Description)));
+        Assert.RecordCount(ExpenseReportRuleViolation, 1);
+    end;
+
+    local procedure VerifyNoExpenseReportRuleViolationWithDescription(ReportNo: Code[20]; ReportLineNo: Integer; Description: Text)
+    var
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ReportNo);
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ReportLineNo);
+        ExpenseReportRuleViolation.SetRange(Description, CopyStr(Description, 1, MaxStrLen(ExpenseReportRuleViolation.Description)));
+        Assert.RecordIsEmpty(ExpenseReportRuleViolation);
     end;
 
     local procedure VerifyExpenseRuleViolation(ExpenseNo: Code[20]; ExpectedDescription: Text)
