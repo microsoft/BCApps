@@ -390,7 +390,7 @@ page 61 "Applied Customer Entries"
     /// Filters the page to show a specific customer ledger entry by entry number.
     /// </summary>
     /// <param name="NewTempCustLedgEntryNo">The entry number of the customer ledger entry to filter to.</param>
-    procedure SetTempCustLedgEntry(NewTempCustLedgEntryNo: Integer)
+    procedure SetTempCustLedgEntry(NewTempCustLedgEntryNo: BigInteger)
     begin
         if NewTempCustLedgEntryNo <> 0 then begin
             Rec.SetRange("Entry No.", NewTempCustLedgEntryNo);

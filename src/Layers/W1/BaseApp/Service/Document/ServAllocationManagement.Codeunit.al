@@ -29,7 +29,7 @@ codeunit 5930 ServAllocationManagement
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure AllocateDate(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: Integer; ResNo: Code[20]; ResGrNo: Code[20]; CurrentDate: Date; Quantity: Decimal)
+    procedure AllocateDate(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: BigInteger; ResNo: Code[20]; ResGrNo: Code[20]; CurrentDate: Date; Quantity: Decimal)
     var
         ServHeader: Record "Service Header";
         ServOrderAlloc: Record "Service Order Allocation";
@@ -345,7 +345,7 @@ codeunit 5930 ServAllocationManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAllocateDate(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: Integer; ResNo: Code[20]; ResGrNo: Code[20]; CurrentDate: Date; Quantity: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforeAllocateDate(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: BigInteger; ResNo: Code[20]; ResGrNo: Code[20]; CurrentDate: Date; Quantity: Decimal; var IsHandled: Boolean)
     begin
     end;
 

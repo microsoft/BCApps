@@ -237,7 +237,7 @@ table 5876 "Phys. Invt. Order Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;
@@ -640,7 +640,7 @@ table 5876 "Phys. Invt. Order Line"
         TestQtyExpected();
     end;
 
-    procedure CalcQtyAndLastItemLedgExpected(var QtyExpected: Decimal; var LastItemLedgEntryNo: Integer)
+    procedure CalcQtyAndLastItemLedgExpected(var QtyExpected: Decimal; var LastItemLedgEntryNo: BigInteger)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         WhseEntry: Record "Warehouse Entry";
@@ -1248,7 +1248,7 @@ table 5876 "Phys. Invt. Order Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcQtyAndLastItemLedgExpected(var QtyExpected: Decimal; var LastItemLedgEntryNo: Integer; var PhysInvtOrderLine: Record "Phys. Invt. Order Line")
+    local procedure OnAfterCalcQtyAndLastItemLedgExpected(var QtyExpected: Decimal; var LastItemLedgEntryNo: BigInteger; var PhysInvtOrderLine: Record "Phys. Invt. Order Line")
     begin
     end;
 

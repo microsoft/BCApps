@@ -28,7 +28,7 @@ codeunit 5366 "CRM Archived Sales Orders Job"
         BidirectionalSyncNotEnabledErr: Label 'Bidirectional sales order synchronization is not enabled.';
         ArchivedOrdersUpdatedMsg: Label 'Archived sales orders have been synchronized.';
 
-    local procedure UpdateOrders(JobLogEntryNo: Integer)
+    local procedure UpdateOrders(JobLogEntryNo: BigInteger)
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
         ConnectionName: Text;
@@ -50,7 +50,7 @@ codeunit 5366 "CRM Archived Sales Orders Job"
         CRMConnectionSetup.UnregisterConnectionWithName(ConnectionName);
     end;
 
-    local procedure UpdateArchivedOrders(JobLogEntryNo: Integer)
+    local procedure UpdateArchivedOrders(JobLogEntryNo: BigInteger)
     var
         CRMIntegrationRecord: Record "CRM Integration Record";
         CRMIntegrationRecord2: Record "CRM Integration Record";

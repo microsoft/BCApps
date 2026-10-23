@@ -19,7 +19,7 @@ table 2585 "Dim Correct Selection Criteria"
         /// <summary>
         /// Unique identifier for the selection criteria entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             AutoIncrement = true;

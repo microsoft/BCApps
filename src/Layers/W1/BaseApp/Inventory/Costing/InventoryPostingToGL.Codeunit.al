@@ -80,7 +80,7 @@ codeunit 5802 "Inventory Posting To G/L"
         TotalVarMfgOvhdCostAmt: Decimal;
         TotalWIPInvtAmt: Decimal;
         TotalInvtAmt: Decimal;
-        GlobalInvtPostBufEntryNo: Integer;
+        GlobalInvtPostBufEntryNo: BigInteger;
         PostBufDimNo: Integer;
         GLSetupRead: Boolean;
         SourceCodeSetupRead: Boolean;
@@ -130,7 +130,7 @@ codeunit 5802 "Inventory Posting To G/L"
         OnAfterSetRunOnlyCheck(CalledFromItemPosting, RunOnlyCheck, CalledFromTestReport);
     end;
 
-    procedure GetGLRegister(var GLRegister: Record "G/L Register"; var NextVATEntryNo: Integer; var NextTransactionNo: Integer)
+    procedure GetGLRegister(var GLRegister: Record "G/L Register"; var NextVATEntryNo: BigInteger; var NextTransactionNo: Integer)
     begin
         GenJnlPostLine.GetGLReg(GLRegister);
         NextVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();
@@ -934,7 +934,7 @@ codeunit 5802 "Inventory Posting To G/L"
         InvtPostBuf."Amount (ACY)" := CostToPostACY;
     end;
 
-    local procedure UpdateGlobalInvtPostBuf(ValueEntryNo: Integer) Result: Boolean
+    local procedure UpdateGlobalInvtPostBuf(ValueEntryNo: BigInteger) Result: Boolean
     var
         i: Integer;
         ShouldInsertTempGLItemLedgRelation: Boolean;
@@ -1591,12 +1591,12 @@ codeunit 5802 "Inventory Posting To G/L"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnUpdateGlobalInvtPostBufOnAfterCalcShouldInsertTempGLItemLedgRelation(var TempGLItemLedgerRelation: Record "G/L - Item Ledger Relation" temporary; TempInvtPostingBuffer: Record "Invt. Posting Buffer" temporary; ValueEntryNo: Integer; RunOnlyCheck: Boolean; CalledFromTestReport: Boolean; var ShouldInsertTempGLItemLedgRelation: Boolean)
+    local procedure OnUpdateGlobalInvtPostBufOnAfterCalcShouldInsertTempGLItemLedgRelation(var TempGLItemLedgerRelation: Record "G/L - Item Ledger Relation" temporary; TempInvtPostingBuffer: Record "Invt. Posting Buffer" temporary; ValueEntryNo: BigInteger; RunOnlyCheck: Boolean; CalledFromTestReport: Boolean; var ShouldInsertTempGLItemLedgRelation: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterBufferGLItemLedgRelation(var TempGLItemLedgRelation: Record "G/L - Item Ledger Relation" temporary; GlobalInvtPostBufEntryNo: Integer)
+    local procedure OnAfterBufferGLItemLedgRelation(var TempGLItemLedgRelation: Record "G/L - Item Ledger Relation" temporary; GlobalInvtPostBufEntryNo: BigInteger)
     begin
     end;
 
@@ -1671,7 +1671,7 @@ codeunit 5802 "Inventory Posting To G/L"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateGlobalInvtPostBuf(ValueEntryNo: Integer; var TempInvtPostBuf: array[20] of Record "Invt. Posting Buffer" temporary; RunOnlyCheck: Boolean; CalledFromTestReport: Boolean; Result: Boolean; IsHandled: Boolean)
+    local procedure OnBeforeUpdateGlobalInvtPostBuf(ValueEntryNo: BigInteger; var TempInvtPostBuf: array[20] of Record "Invt. Posting Buffer" temporary; RunOnlyCheck: Boolean; CalledFromTestReport: Boolean; Result: Boolean; IsHandled: Boolean)
     begin
     end;
 }

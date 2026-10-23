@@ -54,8 +54,8 @@ codeunit 5830 "Calc. Availability Overview"
         Window: Dialog;
         StartDate: Date;
         EndDate: Date;
-        AttachedToEntryNo: Integer;
-        EntryNo: Integer;
+        AttachedToEntryNo: BigInteger;
+        EntryNo: BigInteger;
         DemandType: Enum "Demand Order Source Type";
         DemandNo: Code[20];
         WindowUpdateDateTime: DateTime;
@@ -69,7 +69,7 @@ codeunit 5830 "Calc. Availability Overview"
     var
         CopyOfAvailabilityCalcOverview: Record "Availability Calc. Overview";
         CopyOfItem: Record Item;
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
     begin
         CopyOfItem.Copy(Item);
         CopyOfAvailabilityCalcOverview.Copy(AvailabilityCalcOverview);
@@ -132,7 +132,7 @@ codeunit 5830 "Calc. Availability Overview"
     procedure CalculateDate(var AvailabilityCalcOverview: Record "Availability Calc. Overview")
     var
         CopyOfAvailabilityCalcOverview: Record "Availability Calc. Overview";
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
     begin
         CopyOfAvailabilityCalcOverview.Copy(AvailabilityCalcOverview);
         AttachedToEntryNo := AvailabilityCalcOverview."Attached to Entry No.";
@@ -440,7 +440,7 @@ codeunit 5830 "Calc. Availability Overview"
     local procedure UpdateRunningTotals(var AvailabilityCalcOverview: Record "Availability Calc. Overview")
     var
         CopyOfAvailCalcOverview: Record "Availability Calc. Overview";
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
         RunningTotal: Decimal;
         SupplyRunningTotal: Decimal;
         DemandRunningTotal: Decimal;
@@ -512,7 +512,7 @@ codeunit 5830 "Calc. Availability Overview"
         exit(EntryNo);
     end;
 
-    local procedure SetEntryNo(NewEntryNo: Integer)
+    local procedure SetEntryNo(NewEntryNo: BigInteger)
     begin
         EntryNo := NewEntryNo;
     end;

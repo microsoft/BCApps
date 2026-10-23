@@ -337,7 +337,7 @@ report 96 "Copy G/L Budget"
         ToDateCompression: Option "None",Day,Week,Month,Quarter,Year,Period;
         ColumnDim: Text[250];
         AmountAdjustFactor: Decimal;
-        GLBudgetEntryNo: Integer;
+        GLBudgetEntryNo: BigInteger;
         GlobalDim1Code: Code[20];
         GlobalDim2Code: Code[20];
         BudgetDim1Code: Code[20];
@@ -374,7 +374,7 @@ report 96 "Copy G/L Budget"
     local procedure ProcessRecord(GLAccNo: Code[20]; BUCode: Code[20]; PostingDate: Date; PostingDescription: Text[100]; DimSetID: Integer; Amount: Decimal)
     var
         NewDate: Date;
-        NewDimSetID: Integer;
+        NewDimSetID: BigInteger;
     begin
         if CurrentDateTime - WindowUpdateDateTime >= 750 then begin
             Window.Update(1, GLAccNo);
@@ -591,7 +591,7 @@ report 96 "Copy G/L Budget"
         exit(TempDimBuf2.FindFirst());
     end;
 
-    local procedure IncludeFromEntry(var DimSetID: Integer): Boolean
+    local procedure IncludeFromEntry(var DimSetID: BigInteger): Boolean
     var
         IncludeEntry: Boolean;
     begin

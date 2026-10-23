@@ -527,7 +527,7 @@ codeunit 432 Consolidate
     /// <returns>Entry number assigned to the temporary consolidation entry</returns>
     procedure InsertGLEntry(NewGLEntry: Record "G/L Entry"): Integer
     var
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         NextEntryNo := TempSubsidGLEntry.GetLastEntryNo() + 1;
 
@@ -549,7 +549,7 @@ codeunit 432 Consolidate
     /// </summary>
     /// <param name="NewDimBuf">Dimension buffer containing dimension values for the G/L Entry</param>
     /// <param name="GLEntryNo">Entry number of the G/L Entry to associate dimensions with</param>
-    procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: Integer)
+    procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: BigInteger)
     begin
         if TempSubsidDimBuf.Get(NewDimBuf."Table ID", GLEntryNo, NewDimBuf."Dimension Code") then begin
             if NewDimBuf."Dimension Value Code" <> TempSubsidDimBuf."Dimension Value Code" then
@@ -1206,7 +1206,7 @@ codeunit 432 Consolidate
 
     local procedure UpdateTempGLEntry(var GLEntry: Record "G/L Entry")
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
         Found: Boolean;
         IsHandled: Boolean;
     begin

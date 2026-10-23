@@ -18,7 +18,7 @@ codeunit 5359 "Int. Coupling Job Runner"
         RunIntegrationTableCouple(IntegrationTableMapping, Rec.GetLastLogEntryNo());
     end;
 
-    procedure RunIntegrationTableCouple(IntegrationTableMapping: Record "Integration Table Mapping"; JobLogEntryNo: Integer)
+    procedure RunIntegrationTableCouple(IntegrationTableMapping: Record "Integration Table Mapping"; JobLogEntryNo: BigInteger)
     begin
         IntegrationTableMapping.SetJobLogEntryNo(JobLogEntryNo);
         Codeunit.Run(IntegrationTableMapping."Coupling Codeunit ID", IntegrationTableMapping);

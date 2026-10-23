@@ -40,7 +40,7 @@ codeunit 1273 "Exp. Pre-Mapping Gen. Jnl."
 #pragma warning restore AA0470
         EmployeeMustHaveBankAccountNoErr: Label 'You must specify either Bank Account No. or IBAN for employee %1.', Comment = '%1 - Employee name';
 
-    local procedure PreparePaymentExportDataJnl(GenJnlLine: Record "Gen. Journal Line"; DataExchEntryNo: Integer; LineNo: Integer)
+    local procedure PreparePaymentExportDataJnl(GenJnlLine: Record "Gen. Journal Line"; DataExchEntryNo: BigInteger; LineNo: Integer)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         PaymentExportData: Record "Payment Export Data";

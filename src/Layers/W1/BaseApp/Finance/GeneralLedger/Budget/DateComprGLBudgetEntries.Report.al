@@ -89,7 +89,7 @@ report 97 "Date Compr. G/L Budget Entries"
             begin
                 InsertRegister();
                 if AnalysisView.FindFirst() then
-                    if LowestEntryNo < 2147483647 then
+                    if LowestEntryNo < 99999999999999999L then
                         UpdateAnalysisView.SetLastBudgetEntryNo(LowestEntryNo - 1);
                 if UseDataArchive then
                     DataArchive.Save();
@@ -132,7 +132,7 @@ report 97 "Date Compr. G/L Budget Entries"
 
                 GLBudgetEntry2.LockTable();
                 LastEntryNo := GLBudgetEntry2.GetLastEntryNo();
-                LowestEntryNo := 2147483647;
+                LowestEntryNo := 99999999999999999L;
 
                 Window.Open(
                   Text003 +
@@ -298,12 +298,12 @@ report 97 "Date Compr. G/L Budget Entries"
         NoOfFields: Integer;
         Retain: array[10] of Boolean;
         FieldNumber: array[10] of Integer;
-        LastEntryNo: Integer;
-        LowestEntryNo: Integer;
+        LastEntryNo: BigInteger;
+        LowestEntryNo: BigInteger;
         NoOfDeleted: Integer;
         i: Integer;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -365,9 +365,9 @@ report 97 "Date Compr. G/L Budget Entries"
     procedure ComprCollectedEntries()
     var
         GLBudgetEntry: Record "G/L Budget Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        GLBudgetEntryNo: Integer;
+        GLBudgetEntryNo: BigInteger;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, GLBudgetEntryNo) then begin
@@ -419,7 +419,7 @@ report 97 "Date Compr. G/L Budget Entries"
         Window.Update(4, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewGLBudgetEntry: Record "G/L Budget Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var NewGLBudgetEntry: Record "G/L Budget Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

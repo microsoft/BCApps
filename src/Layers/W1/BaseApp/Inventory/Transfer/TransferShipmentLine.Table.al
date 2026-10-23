@@ -170,7 +170,7 @@ table 5745 "Transfer Shipment Line"
             Editable = false;
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
-        field(31; "Item Shpt. Entry No."; Integer)
+        field(31; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
         }

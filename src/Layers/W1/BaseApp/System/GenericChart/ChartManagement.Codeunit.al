@@ -422,7 +422,7 @@ codeunit 1315 "Chart Management"
     [Scope('OnPrem')]
     procedure ScheduleTopCustomerListRefreshTask()
     var
-        LastCustomerLedgerEntryNo: Integer;
+        LastCustomerLedgerEntryNo: BigInteger;
     begin
         if TopCustomerListUpdatedRecently(LastCustomerLedgerEntryNo) then
             exit;
@@ -431,7 +431,7 @@ codeunit 1315 "Chart Management"
     end;
 
     [Scope('OnPrem')]
-    procedure TopCustomerListUpdatedRecently(var LastCustomerLedgerEntryNo: Integer): Boolean
+    procedure TopCustomerListUpdatedRecently(var LastCustomerLedgerEntryNo: BigInteger): Boolean
     var
         TopCustomersBySalesBuffer: Record "Top Customers By Sales Buffer";
         LastBufferUpdateDateTime: DateTime;

@@ -61,7 +61,7 @@ codeunit 338 "VAT Entry - Edit"
     /// </summary>
     /// <param name="VATEntryNo">VAT entry number to update</param>
     /// <param name="GLAccountNo">G/L account number to assign</param>
-    procedure SetGLAccountNo(VATEntryNo: Integer; GLAccountNo: Code[20])
+    procedure SetGLAccountNo(VATEntryNo: BigInteger; GLAccountNo: Code[20])
     begin
         VATEntry.SetRange("Entry No.", VATEntryNo);
         VATEntry.ModifyAll("G/L Acc. No.", GLAccountNo, false);

@@ -166,7 +166,7 @@ report 5885 "Calc. Phys. Invt. Order (Bins)"
         WindowDialog: Dialog;
         ErrorText: Text[250];
         QtyExp: Decimal;
-        LastItemLedgEntryNo: Integer;
+        LastItemLedgEntryNo: BigInteger;
         NextLineNo: Integer;
         LineCount: Integer;
         ZeroQtyReq: Boolean;
@@ -220,7 +220,7 @@ report 5885 "Calc. Phys. Invt. Order (Bins)"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNewPhysInvtOrderLineForWhseEntry(Item: Record Item; WarehouseEntry: Record "Warehouse Entry"; PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; var PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var ErrorText: Text; var NextLineNo: Integer; CalcQtyExpected: Boolean; var LastItemLedgEntryNo: Integer; var LineCount: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateNewPhysInvtOrderLineForWhseEntry(Item: Record Item; WarehouseEntry: Record "Warehouse Entry"; PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; var PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var ErrorText: Text; var NextLineNo: Integer; CalcQtyExpected: Boolean; var LastItemLedgEntryNo: BigInteger; var LineCount: Integer; var IsHandled: Boolean)
     begin
     end;
 
@@ -230,7 +230,7 @@ report 5885 "Calc. Phys. Invt. Order (Bins)"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnCreateNewPhysInvtOrderLineOnAfterCalcQtyAndLastItemLedgExpected(QtyExpected: Decimal; LastItemLedgEntryNo: Integer; WarehouseEntry: Record "Warehouse Entry"; PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var InsertLine: Boolean)
+    local procedure OnCreateNewPhysInvtOrderLineOnAfterCalcQtyAndLastItemLedgExpected(QtyExpected: Decimal; LastItemLedgEntryNo: BigInteger; WarehouseEntry: Record "Warehouse Entry"; PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var InsertLine: Boolean)
     begin
     end;
 

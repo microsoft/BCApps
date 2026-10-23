@@ -671,7 +671,7 @@ page 7100 "Contact Sync"
         PreviousFolderName: Text;
         SelectedFolderId: Text;
         SelectedFolderName: Text;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         FolderName: Text;
         Step: Option Welcome,ContactFilter,SyncOptions,Finish;
         AccessToken: SecretText;

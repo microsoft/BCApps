@@ -80,6 +80,11 @@
     "method": "TestImportWrongRSPackage"
   },
   {
+    "codeunitId": 139733,
+    "codeunitName": "APIV1 - Attachments E2E",
+    "method": "TestCreateGLEntryAttachment"
+  },
+  {
     "codeunitId": 139734,
     "codeunitName": "APIV1 - Sales Inv. Lines E2E",
     "method": "TestGettingLinesWithDifferentTypes"

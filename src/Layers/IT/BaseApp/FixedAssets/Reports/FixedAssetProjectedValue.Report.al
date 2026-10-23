@@ -1026,7 +1026,7 @@ report 5607 "Fixed Asset - Projected Value"
     local procedure UpdateTotals()
     var
         BudgetDepreciation: Codeunit "Budget Depreciation";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         CodeName: Code[20];
     begin
         EntryAmounts[1] := EntryAmounts[1] + DeprAmount + Custom1Amount + Custom2Amount;

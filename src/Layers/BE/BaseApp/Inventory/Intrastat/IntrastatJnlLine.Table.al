@@ -8,6 +8,7 @@ namespace Microsoft.Inventory.Intrastat;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Location;
+
 table 263 "Intrastat Jnl. Line"
 {
     Caption = 'Intrastat Jnl. Line';
@@ -76,7 +77,7 @@ table 263 "Intrastat Jnl. Line"
         }
 #pragma warning restore AS0105        
 #endif
-        field(12; "Source Entry No."; Integer)
+        field(12; "Source Entry No."; BigInteger)
         {
             Caption = 'Source Entry No.';
             Editable = false;

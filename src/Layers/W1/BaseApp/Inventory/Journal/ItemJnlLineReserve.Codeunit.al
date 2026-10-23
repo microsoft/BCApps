@@ -487,7 +487,7 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
         exit(41);
     end;
 
-    local procedure MatchThisEntry(EntryNo: Integer): Boolean
+    local procedure MatchThisEntry(EntryNo: BigInteger): Boolean
     begin
         exit(EntryNo in [41, 42, 43, 44, 45]);
     end;

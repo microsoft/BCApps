@@ -203,7 +203,7 @@ page 1572 "VAT Entries Preview Subform"
     var
         TempVATPostingSetup: Record "VAT Posting Setup" temporary;
         TempVATEntry: Record "VAT Entry" temporary;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if RecRef.FindSet() then
             repeat

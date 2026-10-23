@@ -116,7 +116,7 @@ page 1288 "Payment-to-Entry Match"
         AccountTypeFieldRef: FieldRef;
         StatementTypeFieldRef: FieldRef;
         MatchConfidenceFieldRef: FieldRef;
-        AppliesToEntryNo: Integer;
+        AppliesToEntryNo: BigInteger;
         AccountType: Enum "Gen. Journal Account Type";
         StatementType: Option;
         BankAccountNo: Text;

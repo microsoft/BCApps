@@ -508,7 +508,7 @@ codeunit 1252 "Match Bank Rec. Lines"
         exit(false)
     end;
 
-    local procedure RemoveBestMatchingCandidateForBankAccountLedgerEntry(var CandidatesBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; BankAccountLedgerEntryNo: Integer)
+    local procedure RemoveBestMatchingCandidateForBankAccountLedgerEntry(var CandidatesBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; BankAccountLedgerEntryNo: BigInteger)
     begin
         CandidatesBankStatementMatchingBuffer.SetRange("Entry No.", BankAccountLedgerEntryNo);
         CandidatesBankStatementMatchingBuffer.FindFirst();

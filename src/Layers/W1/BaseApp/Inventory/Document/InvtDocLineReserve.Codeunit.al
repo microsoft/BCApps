@@ -415,7 +415,7 @@ codeunit 5854 "Invt. Doc. Line-Reserve"
         exit("Reservation Summary Type"::"Inventory Receipt".AsInteger());
     end;
 
-    local procedure MatchThisEntry(EntryNo: Integer): Boolean
+    local procedure MatchThisEntry(EntryNo: BigInteger): Boolean
     begin
         if not (EntryNo in ["Reservation Summary Type"::"Inventory Receipt".AsInteger(),
                             "Reservation Summary Type"::"Inventory Shipment".AsInteger()])
@@ -681,7 +681,7 @@ codeunit 5854 "Invt. Doc. Line-Reserve"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAfterAutoReserveOneLine', '', false, false)]
-    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
+    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
     begin
         if MatchThisEntry(ReservSummEntryNo) then
             AutoInvtDocLineReserve(
@@ -689,7 +689,7 @@ codeunit 5854 "Invt. Doc. Line-Reserve"
                 Description, AvailabilityDate, Search, NextStep, Positive);
     end;
 
-    local procedure AutoInvtDocLineReserve(var CalcReservEntry: Record "Reservation Entry"; var sender: Codeunit "Reservation Management"; ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; Positive: Boolean)
+    local procedure AutoInvtDocLineReserve(var CalcReservEntry: Record "Reservation Entry"; var sender: Codeunit "Reservation Management"; ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; Positive: Boolean)
     var
         CallTrackingSpecification: Record "Tracking Specification";
         InvtDocLine: Record "Invt. Document Line";

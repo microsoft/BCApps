@@ -18,7 +18,7 @@ table 1004 "Job WIP Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -81,7 +81,7 @@ table 1004 "Job WIP Entry"
             Caption = 'Project Complete';
             ToolTip = 'Specifies whether the Project WIP Entry was created for a project with a Completed status.';
         }
-        field(12; "Job WIP Total Entry No."; Integer)
+        field(12; "Job WIP Total Entry No."; BigInteger)
         {
             Caption = 'Project WIP Total Entry No.';
             ToolTip = 'Specifies the entry number of the WIP total.';
@@ -222,7 +222,7 @@ table 1004 "Job WIP Entry"
             DeleteAll(true);
     end;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

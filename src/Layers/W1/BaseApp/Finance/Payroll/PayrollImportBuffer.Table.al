@@ -23,7 +23,7 @@ table 1662 "Payroll Import Buffer"
         /// <summary>
         /// Auto-incrementing unique identifier for buffer entries.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';

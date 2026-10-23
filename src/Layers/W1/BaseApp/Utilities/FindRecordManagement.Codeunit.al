@@ -41,41 +41,77 @@ codeunit 703 "Find Record Management"
     end;
 
     [Scope('OnPrem')]
-    procedure GetIntFieldValue(RecRef: RecordRef; FieldNo: Integer): Integer;
+    procedure GetIntFieldValue(RecRef: RecordRef; FieldNo: Integer): BigInteger;
     var
-        IntFields: list of [Integer];
+        IntFields: list of [BigInteger];
     begin
         IntFields.Add(FieldNo);
         GetIntFieldValues(RecRef, IntFields);
         exit(IntFields.Get(1));
     end;
 
+
     [Scope('OnPrem')]
     procedure GetIntFieldValues(RecRef: RecordRef; var IntFields: list of [Integer])
     var
-        FieldNos: list of [Integer];
+        BigIntFields: list of [BigInteger];
+        bi: BigInteger;
+        ni: Integer;
+        i: Integer;
+    begin
+        for i := 1 to IntFields.Count() do
+            BigIntFields.Add(IntFields.Get(i));
+        GetIntFieldValues(RecRef, BigIntFields);
+        for i := 1 to IntFields.Count() do begin
+            bi := BigIntFields.Get(i);
+            ni := bi; // will throw a runtime error if overflow
+            IntFields.Set(i, ni);
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetIntFieldValues(RecRef: RecordRef; var IntFields: list of [BigInteger])
+    var
+        FieldNos: list of [BigInteger];
         FieldNo: Integer;
         FieldValue: Variant;
     begin
         FieldNos := IntFields;
         clear(IntFields);
         foreach FieldNo in FieldNos do
-            if IsFieldValid(RecRef, FieldNo, FieldType::Integer, FieldValue) then
+            if IsFieldValid(RecRef, FieldNo, FieldType::Integer, FieldType::BigInteger, FieldValue) then
                 IntFields.Add(FieldValue)
             else
                 IntFields.Add(0);
     end;
 
-    procedure GetLastEntryIntFieldValue(SourceRec: Variant; FieldNo: Integer): Integer;
+    procedure GetLastEntryIntFieldValue(SourceRec: Variant; FieldNo: Integer): BigInteger;
     var
-        IntFields: list of [Integer];
+        IntFields: list of [BigInteger];
     begin
         IntFields.Add(FieldNo);
         GetLastEntryIntFieldValues(SourceRec, IntFields);
         exit(IntFields.Get(1));
     end;
 
-    procedure GetLastEntryIntFieldValues(SourceRec: Variant; var FieldNoValues: List of [Integer])
+    procedure GetLastEntryIntFieldValues(RecRef: RecordRef; var FieldNoValues: list of [Integer])
+    var
+        BigIntFields: list of [BigInteger];
+        bi: BigInteger;
+        ni: Integer;
+        i: Integer;
+    begin
+        for i := 1 to FieldNoValues.Count() do
+            BigIntFields.Add(FieldNoValues.Get(i));
+        GetIntFieldValues(RecRef, BigIntFields);
+        for i := 1 to FieldNoValues.Count() do begin
+            bi := BigIntFields.Get(i);
+            ni := bi; // will throw a runtime error if overflow
+            FieldNoValues.Set(i, ni);
+        end;
+    end;
+
+    procedure GetLastEntryIntFieldValues(SourceRec: Variant; var FieldNoValues: List of [BigInteger])
     var
         RecRef: RecordRef;
         FieldNo: Integer;
@@ -108,14 +144,14 @@ codeunit 703 "Find Record Management"
         end;
     end;
 
-    local procedure IsFieldValid(RecRef: RecordRef; FieldNo: Integer; ExpectedFieldType: FieldType; var Value: Variant): Boolean
+    local procedure IsFieldValid(RecRef: RecordRef; FieldNo: Integer; ExpectedFieldType1: FieldType; ExpectedFieldType2: FieldType; var Value: Variant): Boolean
     var
         FldRef: FieldRef;
     begin
         Clear(Value);
         if RecRef.FieldExist(FieldNo) then begin
             FldRef := RecRef.Field(FieldNo);
-            if FldRef.Type = ExpectedFieldType then begin
+            if FldRef.Type in [ExpectedFieldType1, ExpectedFieldType2] then begin
                 if FldRef.Class = FieldClass::FlowField then
                     FldRef.CalcField();
                 Value := FldRef.Value();
@@ -132,7 +168,6 @@ codeunit 703 "Find Record Management"
         OnBeforeFindNoFromTypedValue(Type, Value, FoundNo);
         if FoundNo <> '' then
             exit(FoundNo);
-
         if Type = Type::Item then
             exit(Item.GetItemNo(Value));
 
@@ -151,7 +186,6 @@ codeunit 703 "Find Record Management"
     begin
         if UseDefaultTableRelationFilters and (Type = Type::"G/L Account") then
             RecordView := GetGLAccountTableRelationView();
-
         if FindRecordByDescriptionAndView(ResultValue, Type, Description, RecordView) = 1 then
             exit(CopyStr(ResultValue, 1, MaxStrLen(GLAccount."No.")));
 
@@ -181,7 +215,6 @@ codeunit 703 "Find Record Management"
         // SearchFieldNo[2] - "Description"/"Name"
         // SearchFieldNo[3] - "Base Unit of Measure" (used for items)
         Result := '';
-
         if SearchText = '' then
             exit(0);
 
@@ -257,7 +290,6 @@ codeunit 703 "Find Record Management"
         OnBeforeFindRecordStartingWithSearchString(Type, RecRef, RecFilterFromStart);
         GetRecordsSearchResult(RecRef, SearchFieldRef[1].Number, Result, RecordsCount);
         SearchFieldRef[2].SetRange();
-
         if RecordsCount > 0 then
             exit(RecordsCount);
 
@@ -270,7 +302,6 @@ codeunit 703 "Find Record Management"
             SearchFieldRef[3].SetFilter(RecFilterContains);
         OnBeforeFindRecordContainingSearchString(Type, RecRef, RecFilterContains);
         GetRecordsSearchResult(RecRef, SearchFieldRef[1].Number, Result, RecordsCount);
-
         if RecordsCount > 0 then
             exit(RecordsCount);
 
@@ -315,7 +346,6 @@ codeunit 703 "Find Record Management"
                 TextBuilder.Append('|' + SelectionFilterManagement.AddQuotes(Format(FieldRef.Value)));
                 RecordsCount += 1;
             until ((RecRef.Next() = 0) or (RecordsCount > GetMaxRecordCountToReturn()));
-
         if RecordsCount = 1 then begin //to avoid adding single quotes
             Result := Format(FieldRef.Value);
             exit;

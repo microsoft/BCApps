@@ -143,14 +143,14 @@ page 1115 "Cost Budget Entries"
 
     var
         CostBudgetName: Record "Cost Budget Name";
-        CurrRegNo: Integer;
+        CurrRegNo: BigInteger;
 
-    procedure SetCurrRegNo(RegNo: Integer)
+    procedure SetCurrRegNo(RegNo: BigInteger)
     begin
         CurrRegNo := RegNo;
     end;
 
-    procedure GetCurrRegNo(): Integer
+    procedure GetCurrRegNo(): BigInteger
     begin
         exit(CurrRegNo);
     end;

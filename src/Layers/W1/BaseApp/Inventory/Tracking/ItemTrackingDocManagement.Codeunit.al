@@ -105,7 +105,7 @@ codeunit 6503 "Item Tracking Doc. Management"
 
     local procedure FillTrackingSpecBuffer(var TempTrackingSpecBuffer: Record "Tracking Specification" temporary; Type: Integer; Subtype: Integer; ID: Code[20]; BatchName: Code[10]; ProdOrderLine: Integer; RefNo: Integer; Description: Text[100]; ItemNo: Code[20]; VariantCode: Code[10]; ItemTrackingSetup: Record "Item Tracking Setup"; Qty: Decimal; Correction: Boolean)
     var
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         TempTrackingSpecBuffer.Reset();
         LastEntryNo := TempTrackingSpecBuffer.GetLastEntryNo();
@@ -212,7 +212,7 @@ codeunit 6503 "Item Tracking Doc. Management"
         TempTrackingSpecBuffer.Reset();
     end;
 
-    local procedure InitTrackingSpecBuffer(var TempTrackingSpecBuffer: Record "Tracking Specification" temporary; EntryNo: Integer; Type: Integer; Subtype: Integer; ID: Code[20]; BatchName: Code[10]; ProdOrderLine: Integer; RefNo: Integer; Description: Text[100]; ItemNo: Code[20]; VariantCode: Code[10]; ItemTrackingSetup: Record "Item Tracking Setup"; Correction: Boolean)
+    local procedure InitTrackingSpecBuffer(var TempTrackingSpecBuffer: Record "Tracking Specification" temporary; EntryNo: BigInteger; Type: Integer; Subtype: Integer; ID: Code[20]; BatchName: Code[10]; ProdOrderLine: Integer; RefNo: Integer; Description: Text[100]; ItemNo: Code[20]; VariantCode: Code[10]; ItemTrackingSetup: Record "Item Tracking Setup"; Correction: Boolean)
     begin
         // initializes a new record for TempTrackingSpecBuffer
 

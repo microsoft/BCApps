@@ -14,7 +14,7 @@ table 5811 "Post Value Entry to G/L"
 
     fields
     {
-        field(1; "Value Entry No."; Integer)
+        field(1; "Value Entry No."; BigInteger)
         {
             Caption = 'Value Entry No.';
             TableRelation = "Value Entry";

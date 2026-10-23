@@ -32,7 +32,7 @@ table 1226 "Payment Export Data"
         /// <summary>
         /// Unique identifier for the payment export data entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -798,7 +798,7 @@ table 1226 "Payment Export Data"
         case FieldRef.Type of
             FieldType::Text, FieldType::Code, FieldType::Date:
                 BlankValue := '';
-            FieldType::Decimal, FieldType::Integer:
+            FieldType::Decimal, FieldType::Integer, FieldType::BigInteger:
                 BlankValue := '0';
         end;
         exit(Format(FieldRef.Value) = BlankValue);

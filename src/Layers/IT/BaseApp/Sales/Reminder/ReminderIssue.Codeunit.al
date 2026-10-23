@@ -222,7 +222,7 @@ codeunit 393 "Reminder-Issue"
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorContextElement: Codeunit "Error Context Element";
         DocNo: Code[20];
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         ReplacePostingDate, ReplaceVATDate : Boolean;
         PostingDate, VATDate : Date;
         SrcCode: Code[10];
@@ -631,7 +631,7 @@ codeunit 393 "Reminder-Issue"
         CustLedgEntry.Modify();
     end;
 
-    local procedure UpdateCustLedgEntriesCalculateInterest(EntryNo: Integer; CurrencyCode: Code[10])
+    local procedure UpdateCustLedgEntriesCalculateInterest(EntryNo: BigInteger; CurrencyCode: Code[10])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CustLedgerEntry2: Record "Cust. Ledger Entry";
@@ -831,7 +831,7 @@ codeunit 393 "Reminder-Issue"
     /// <param name="ReminderLine">The reminder line being processed.</param>
     /// <param name="NextEntryNo">The entry number assigned to the reminder entry.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertReminderEntry(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; NextEntryNo: Integer)
+    local procedure OnAfterInsertReminderEntry(var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; ReminderHeader: Record "Reminder Header"; ReminderLine: Record "Reminder Line"; NextEntryNo: BigInteger)
     begin
     end;
 
@@ -1002,7 +1002,7 @@ codeunit 393 "Reminder-Issue"
     /// <param name="IssuedReminderHeader">The issued reminder header that was created.</param>
     /// <param name="NextEntryNo">The next entry number for reminder entries.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnRunOnBeforeReminderLineDeleteAll(var ReminderHeader: Record "Reminder Header"; var IssuedReminderHeader: Record "Issued Reminder Header"; NextEntryNo: Integer)
+    local procedure OnRunOnBeforeReminderLineDeleteAll(var ReminderHeader: Record "Reminder Header"; var IssuedReminderHeader: Record "Issued Reminder Header"; NextEntryNo: BigInteger)
     begin
     end;
 

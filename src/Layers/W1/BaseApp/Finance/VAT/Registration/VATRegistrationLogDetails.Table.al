@@ -18,7 +18,7 @@ table 227 "VAT Registration Log Details"
         /// <summary>
         /// Reference to the parent VAT registration log entry.
         /// </summary>
-        field(1; "Log Entry No."; Integer)
+        field(1; "Log Entry No."; BigInteger)
         {
             Caption = 'Log Entry No.';
             TableRelation = "VAT Registration Log";
