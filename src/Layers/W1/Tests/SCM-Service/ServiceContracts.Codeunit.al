@@ -3769,11 +3769,9 @@ codeunit 136102 "Service Contracts"
         Dimension: Record Dimension;
         DimensionValue: Record "Dimension Value";
         GlobalDimensionValue: Record "Dimension Value";
-        LibraryDimension: Codeunit "Library - Dimension";
         ServiceContractHeader: Record "Service Contract Header";
         ServiceContractLine: Record "Service Contract Line";
         ServiceHeader: Record "Service Header";
-        SignServContractDoc: Codeunit SignServContractDoc;
     begin
         // [SCENARIO 654757] Test Dimension on Service Order Created from Service Contract.
 
