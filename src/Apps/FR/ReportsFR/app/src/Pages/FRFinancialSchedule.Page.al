@@ -141,6 +141,9 @@ page 10827 "FR Financial Schedule"
 
     trigger OnOpenPage()
     begin
+        if RequestedSchedName <> '' then
+            CurrentSchedName := RequestedSchedName;
+
         AccSchedManagement.OpenSchedule(CurrentSchedName, Rec);
     end;
 
@@ -148,10 +151,11 @@ page 10827 "FR Financial Schedule"
         AccSchedName: Record "FR Financial Schedule Name";
         AccSchedManagement: Codeunit "FR Financial Schedule Mgt.";
         CurrentSchedName: Code[10];
+        RequestedSchedName: Code[10];
 
     procedure SetAccSchedName(NewAccSchedName: Code[10])
     begin
-        CurrentSchedName := NewAccSchedName;
+        RequestedSchedName := NewAccSchedName;
     end;
 
     local procedure CurrentSchedNameOnAfterValidat()
