@@ -5,6 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 page 10863 "Payment Report"
 {
     Caption = 'Payment Report';
@@ -71,5 +73,15 @@ page 10863 "Payment Report"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+    begin
+        if FeatureKeyManagement.IsPaymentManagementEnabled() then begin
+            Page.Run(10841); // Payment Report FR
+            Error('');
+        end;
+    end;
 }
 #endif
