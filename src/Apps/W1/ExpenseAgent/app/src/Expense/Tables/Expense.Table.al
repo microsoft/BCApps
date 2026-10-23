@@ -719,6 +719,28 @@ table 6900 Expense
             TableRelation = "Expense Vendor";
             Editable = false;
         }
+        field(70; "Split from Exp. Report No."; Code[20])
+        {
+            Caption = 'Split from Expense Report No.';
+            ToolTip = 'Specifies the expense report that this expense was split from when another user shared the expense with you.';
+            Editable = false;
+        }
+        field(71; "Split from Exp. Rep. Line No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Split from Expense Report Line No.';
+            ToolTip = 'Specifies the expense report line that this expense was split from.';
+            Editable = false;
+        }
+        field(72; "Original Amount"; Decimal)
+        {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
+            BlankZero = true;
+            Caption = 'Original Amount';
+            ToolTip = 'Specifies the amount of the expense before it was split between several users.';
+            Editable = false;
+        }
     }
     keys
     {

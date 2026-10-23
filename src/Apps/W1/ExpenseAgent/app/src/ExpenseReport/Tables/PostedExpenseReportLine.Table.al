@@ -133,7 +133,8 @@ table 6916 "Posted Expense Report Line"
         field(21; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text"
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text"
             else
             if ("Account Type" = const(Resource)) Resource
             else
@@ -462,6 +463,22 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Policy Status At Posting';
             DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(110; "Original Amount"; Decimal)
+        {
+            AutoFormatExpression = Rec."Expense Currency Code";
+            AutoFormatType = 1;
+            BlankZero = true;
+            Caption = 'Original Amount';
+            ToolTip = 'Specifies the amount of the expense before it was split into several lines or shared with other users.';
+            Editable = false;
+        }
+        field(111; "Split from Line No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Split from Line No.';
+            ToolTip = 'Specifies the number of the original expense report line that this line was split from.';
             Editable = false;
         }
         field(999; "Is Canceled"; Boolean)
