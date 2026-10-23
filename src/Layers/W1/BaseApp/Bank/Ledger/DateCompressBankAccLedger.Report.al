@@ -105,6 +105,7 @@ report 1498 "Date Compress Bank Acc. Ledger"
 
                 SourceCodeSetup.Get();
                 SourceCodeSetup.TestField("Compress Bank Acc. Ledger");
+                CheckConcurrentPostingIsNotEnabled();
 
                 SelectedDim.GetSelectedDim(
                   UserId, 3, REPORT::"Date Compress Bank Acc. Ledger", '', TempSelectedDim);
@@ -314,6 +315,16 @@ report 1498 "Date Compress Bank Acc. Ledger"
         RetainDimensionsLbl: Label 'Retain Dimensions';
         StartDateCompressionTelemetryMsg: Label 'Running date compression report %1 %2.', Locked = true;
         EndDateCompressionTelemetryMsg: Label 'Completed date compression report %1 %2.', Locked = true;
+
+    local procedure CheckConcurrentPostingIsNotEnabled()
+    var
+        GLSetup: Record "General Ledger Setup";
+        ConcurrentPostingNotSupportedErr: Label 'Date compression is not supported while concurrent posting is enabled in General Ledger Setup.';
+    begin
+        GLSetup.Get();
+        if GLSetup.UseConcurrentPosting() then
+            Error(ConcurrentPostingNotSupportedErr);
+    end;
 
     local procedure InitRegisters()
     var
