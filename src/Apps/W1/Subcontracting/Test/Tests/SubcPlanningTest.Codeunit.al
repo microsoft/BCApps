@@ -805,7 +805,9 @@ codeunit 139996 "Subc. Planning Test"
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+#pragma warning disable AA0210
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
         SubcontractingMgmtLibrary.FindComponentPurchLine(
             PurchaseLineComp, PurchaseLine."Document No.", ProdOrderComponent."Item No.");
