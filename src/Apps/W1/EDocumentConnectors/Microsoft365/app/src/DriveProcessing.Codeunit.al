@@ -17,8 +17,8 @@ codeunit 6381 "Drive Processing"
     Access = Internal;
     Permissions = tabledata "E-Document" = m,
                   tabledata "E-Document Service Status" = m,
-                  tabledata "OneDrive Setup" = r,
-                  tabledata "Sharepoint Setup" = r;
+                  tabledata "OneDrive Setup" = rm,
+                  tabledata "Sharepoint Setup" = rm;
     InherentPermissions = X;
     InherentEntitlements = X;
 
@@ -63,6 +63,18 @@ codeunit 6381 "Drive Processing"
             SiteId := Token.AsValue().AsText();
         if ParentReferenceJson.Get('driveId', Token) then
             DriveId := Token.AsValue().AsText();
+    end;
+
+    // Graph cannot move items between drives, so the archive folder must be in the same document library as the documents folder.
+    internal procedure CheckFoldersInSameDrive(DocumentsFolder: Text[2048]; DocumentsDriveId: Text; ArchiveFolder: Text[2048])
+    var
+        SiteId, ArchiveDriveId : Text;
+    begin
+        if DocumentsDriveId = '' then
+            GetSiteAndDriveId(DocumentsFolder, SiteId, DocumentsDriveId);
+        GetSiteAndDriveId(ArchiveFolder, SiteId, ArchiveDriveId);
+        if (DocumentsDriveId <> '') and (ArchiveDriveId <> '') and (DocumentsDriveId <> ArchiveDriveId) then
+            Error(FoldersInDifferentDrivesErr);
     end;
 
     procedure GetId(FolderSharedLink: Text[2048]): Text
@@ -292,30 +304,39 @@ codeunit 6381 "Drive Processing"
     var
         SharepointSetup: Record "Sharepoint Setup";
         OneDriveSetup: Record "OneDrive Setup";
-        DocumentsFolder: Text[2048];
         SiteId, DriveId : Text;
     begin
+        // Setups saved before the Drive Id field existed resolve it from the shared link once and store it.
         case ServiceIntegration of
             ServiceIntegration::SharePoint:
                 begin
                     CheckSetupEnabled(SharepointSetup);
                     CheckFolderSharedLinkNotEmpty(SharepointSetup."Documents Folder", SharepointSetup.TableCaption());
-                    DocumentsFolder := SharepointSetup."Documents Folder";
+                    if SharepointSetup."Drive Id" = '' then begin
+                        GetSiteAndDriveId(SharepointSetup."Documents Folder", SiteId, DriveId);
+                        if DriveId <> '' then begin
+                            SharepointSetup."Drive Id" := CopyStr(DriveId, 1, MaxStrLen(SharepointSetup."Drive Id"));
+                            SharepointSetup.Modify();
+                        end;
+                    end;
                     DriveId := SharepointSetup."Drive Id";
                 end;
             ServiceIntegration::OneDrive:
                 begin
                     CheckSetupEnabled(OneDriveSetup);
                     CheckFolderSharedLinkNotEmpty(OneDriveSetup."Documents Folder", OneDriveSetup.TableCaption());
-                    DocumentsFolder := OneDriveSetup."Documents Folder";
+                    if OneDriveSetup."Drive Id" = '' then begin
+                        GetSiteAndDriveId(OneDriveSetup."Documents Folder", SiteId, DriveId);
+                        if DriveId <> '' then begin
+                            OneDriveSetup."Drive Id" := CopyStr(DriveId, 1, MaxStrLen(OneDriveSetup."Drive Id"));
+                            OneDriveSetup.Modify();
+                        end;
+                    end;
                     DriveId := OneDriveSetup."Drive Id";
                 end;
             else
                 Error(UnsupportedIntegrationTypeErr);
         end;
-        // Setups saved before the Drive Id field existed resolve it from the shared link.
-        if DriveId = '' then
-            GetSiteAndDriveId(DocumentsFolder, SiteId, DriveId);
         if DriveId = '' then
             Error(DriveIdEmptyErr);
         exit(DriveId);
@@ -399,4 +420,5 @@ codeunit 6381 "Drive Processing"
         UnsupportedIntegrationTypeErr: Label 'You must choose a upported integration type.';
         DocumentIdEmptyErr: Label 'Drive Item Id is empty on e-document %1.', Comment = '%1 - an integer';
         DriveIdEmptyErr: Label 'Unable to determine the document library of the folder specified on the setup page. Verify that the shared link points to an existing folder and that you have access to it.';
+        FoldersInDifferentDrivesErr: Label 'The archive folder must be in the same document library as the document folder.';
 }
