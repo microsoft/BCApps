@@ -5,6 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 page 10862 "View/Edit Payment Line"
 {
     Caption = 'View/Edit Payment Lines';
@@ -66,5 +68,15 @@ page 10862 "View/Edit Payment Line"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+    begin
+        if FeatureKeyManagement.IsPaymentManagementEnabled() then begin
+            Page.Run(10857); // View/Edit Payment Line FR
+            Error('');
+        end;
+    end;
 }
 #endif
