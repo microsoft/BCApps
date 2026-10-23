@@ -5,6 +5,9 @@
 namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Finance.Currency;
+#if not CLEAN29
+using Microsoft.Finance.Dimension;
+#endif
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 #if not CLEAN29
@@ -501,6 +504,40 @@ codeunit 137079 "SCM Production Order III"
         VerifyRequisitionLineWithLocation(Item."No.", Quantity, LocationBlue.Code, RequisitionLine."Action Message"::New);
     end;
 #if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure CalcSubcontractOrderKeepsProdOrderLineDimensionAfterVendorChange()
+    var
+        DimensionValue: Record "Dimension Value";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO] A suggestion of the obsolete Calculate Subcontracts report keeps the production-only dimension after its vendor is changed and changed back.
+        Initialize();
+
+        // [GIVEN] A released production order with a subcontracting operation whose line carries a dimension that no default dimension provides.
+        LibraryInventory.CreateItem(Item);
+        CreateRoutingAndUpdateItemSubc(Item, WorkCenter, true);
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandInt(10), '', '');
+        AddNewDimensionToProdOrderLine(ProductionOrder."No.", DimensionValue);
+
+        // [GIVEN] The obsolete Calculate Subcontracts report has created a suggestion that carries the production dimension.
+        CalculateSubcontractOrder(WorkCenter);
+        FindRequisitionLine(RequisitionLine, Item."No.");
+        VerifyDimensionValueInSet(RequisitionLine."Dimension Set ID", DimensionValue);
+
+        // [WHEN] The vendor is changed and changed back, which rebuilds the dimensions from the defaults.
+        RequisitionLine.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        RequisitionLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        RequisitionLine.Modify(true);
+
+        // [THEN] The suggestion still carries the production dimension.
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        VerifyDimensionValueInSet(RequisitionLine."Dimension Set ID", DimensionValue);
+    end;
+
     [Test]
     [HandlerFunctions('ItemTrackingPageHandler')]
     [Scope('OnPrem')]
@@ -9041,6 +9078,30 @@ codeunit 137079 "SCM Production Order III"
 #pragma warning disable AL0432
         LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
 #pragma warning restore AL0432
+    end;
+
+    local procedure AddNewDimensionToProdOrderLine(ProdOrderNo: Code[20]; var DimensionValue: Record "Dimension Value")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        ProdOrderLine.SetLoadFields("Dimension Set ID");
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderLine.FindFirst();
+        ProdOrderLine."Dimension Set ID" :=
+            LibraryDimension.CreateDimSet(ProdOrderLine."Dimension Set ID", DimensionValue."Dimension Code", DimensionValue.Code);
+        ProdOrderLine.Modify();
+    end;
+
+    local procedure VerifyDimensionValueInSet(DimensionSetID: Integer; DimensionValue: Record "Dimension Value")
+    var
+        DimensionSetEntry: Record "Dimension Set Entry";
+    begin
+        DimensionSetEntry.SetLoadFields("Dimension Value Code");
+        Assert.IsTrue(DimensionSetEntry.Get(DimensionSetID, DimensionValue."Dimension Code"), 'The production dimension must be in the dimension set.');
+        Assert.AreEqual(DimensionValue.Code, DimensionSetEntry."Dimension Value Code", 'The production dimension value must be kept.');
     end;
 #endif
 

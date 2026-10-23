@@ -38,7 +38,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeOnRun(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if PlanningResiliency then
             Rec.LockTable();
 
@@ -110,6 +109,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         HideProgressWindow: Boolean;
         PlanningResiliency: Boolean;
         SimulationMode: Boolean;
+        UsingPurchaseOrderTarget: Boolean;
 
     internal procedure SetSimulationMode(NewSimulationMode: Boolean)
     begin
@@ -131,6 +131,23 @@ codeunit 333 "Req. Wksh.-Make Order"
         ReqLine2 := ReqLine;
 
         OnAfterCarryOutBatchAction(ReqLine2);
+    end;
+
+    procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
+    var
+        TargetRequisitionLine: Record "Requisition Line";
+    begin
+        TargetRequisitionLine.Copy(RequisitionLine);
+        TargetRequisitionLine.SetRange("Accept Action Message", true);
+        TargetRequisitionLine.SetRange("Ref. Order Type", TargetRequisitionLine."Ref. Order Type"::Purchase);
+        TargetRequisitionLine.SetRange("Action Message", TargetRequisitionLine."Action Message"::New);
+        TargetRequisitionLine.SetFilter("Replenishment System", '%1|%2',
+            TargetRequisitionLine."Replenishment System"::Purchase, TargetRequisitionLine."Replenishment System"::"Prod. Order");
+        if TargetRequisitionLine.FindSet() then
+            repeat
+                if TargetRequisitionLine.HasPurchaseOrderTarget() then
+                    TargetRequisitionLine.CheckPurchaseOrderTarget();
+            until TargetRequisitionLine.Next() = 0;
     end;
 
     procedure Set(NewPurchOrderHeader: Record "Purchase Header"; NewEndingOrderDate: Date; NewPrintPurchOrder: Boolean)
@@ -156,16 +173,15 @@ codeunit 333 "Req. Wksh.-Make Order"
 
         InitShipReceiveDetails();
         Clear(PurchOrderHeader);
+        UsingPurchaseOrderTarget := false;
 
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
         ReqLine.SetRange("Journal Batch Name", ReqLine."Journal Batch Name");
         if not PlanningResiliency then
             ReqLine.LockTable();
-
         if not SimulationMode then
             if ReqLine."Planning Line Origin" <> ReqLine."Planning Line Origin"::"Order Planning" then
                 GetReqTemplate(ReqLine, ReqTemplate);
-
         if not SimulationMode then
             if ReqTemplate.Recurring then begin
                 ReqLine.SetRange("Order Date", 0D, EndOrderDate);
@@ -174,6 +190,7 @@ codeunit 333 "Req. Wksh.-Make Order"
 
         OnCodeOnAfterFilterReqLine(ReqLine, PlanningResiliency, SuppressCommit, PrintPurchOrders);
 
+        CheckPurchaseOrderTargets(ReqLine);
         if not ReqLine.Find('=><') then begin
             ReqLine."Line No." := 0;
             if not SuppressCommit then
@@ -184,7 +201,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnCodeOnBeforeInitProgressWindow(ReqTemplate, HideProgressWindow);
         if not HideProgressWindow then
             InitProgressWindow();
-
         if not HideProgressWindow then
             Window.Update(1, ReqLine."Journal Batch Name");
         // Check lines
@@ -206,21 +222,18 @@ codeunit 333 "Req. Wksh.-Make Order"
         IsHandled := false;
         OnCodeOnBeforeFinalizeOrderHeader(PurchOrderHeader, ReqLine, IsHandled);
         if not IsHandled then
-            if PurchOrderHeader."Buy-from Vendor No." <> '' then
+            if (PurchOrderHeader."Buy-from Vendor No." <> '') and not UsingPurchaseOrderTarget then
                 FinalizeOrderHeader(PurchOrderHeader, ReqLine);
 
         CheckRunPrintPurchOrders();
-
         if PrevChangedDocOrderNo <> '' then
             PrintChangedDocument(PrevChangedDocOrderType, PrevChangedDocOrderNo);
-
         if OrderCounter <> 0 then
             MoveRequisitionWkshBatch(ReqLine);
 
         // Copy number of created orders and current journal batch name to requisition worksheet
         ReqLine.Init();
         ReqLine."Line No." := OrderCounter;
-
         if OrderCounter <> 0 then
             if not ReqTemplate.Recurring then begin
                 // Not a recurring journal
@@ -268,7 +281,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeCheckRunPrintPurchOrders(TransHeader, PurchOrderHeader, TempPurchaseOrderToPrint, PrintPurchOrders, IsHandled);
         if IsHandled then
             exit;
-
         if PrintPurchOrders then begin
             PrintTransOrder(TransHeader);
             PrintMultiplePurchaseOrders();
@@ -324,7 +336,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeCheckRequisitionLine(ReqLine2, SuppressCommit, IsHandled);
         if IsHandled then
             exit;
-
         if (ReqLine2."No." <> '') or (ReqLine2."Vendor No." <> '') or (ReqLine2.Quantity <> 0) then begin
             ReqLine2.TestField("No.");
             IsHandled := false;
@@ -349,7 +360,6 @@ codeunit 333 "Req. Wksh.-Make Order"
                         end else
                             OnCheckFurtherReplenishmentSystems(ReqLine2);
         end;
-
         if not DimMgt.CheckDimIDComb(ReqLine2."Dimension Set ID") then
             Error(
               Text008,
@@ -383,17 +393,14 @@ codeunit 333 "Req. Wksh.-Make Order"
                         SalesLine.FieldCaption("Unit of Measure Code"),
                         SalesLine."Document No.",
                         SalesLine."Line No."));
-
         if ReqLine2.Type = ReqLine2.Type::Item then begin
             Item.SetLoadFields("Variant Mandatory if Exists");
             if Item.Get(ReqLine2."No.") then
                 if Item.IsVariantMandatory() then
                     ReqLine2.TestField("Variant Code");
         end;
-
         if ReqLine2.IsDropShipment() then
             CheckLocation(ReqLine2);
-
         if Purchasing.Get(ReqLine2."Purchasing Code") then
             if Purchasing."Drop Shipment" or Purchasing."Special Order" then begin
                 SalesLine.Get(SalesLine."Document Type"::Order, ReqLine2."Sales Order No.", ReqLine2."Sales Order Line No.");
@@ -440,10 +447,8 @@ codeunit 333 "Req. Wksh.-Make Order"
             SetFailedReqLine(ReqLine);
             exit;
         end;
-
         if IsHandled then
             exit;
-
         case ReqLine."Replenishment System" of
             ReqLine."Replenishment System"::Transfer:
                 case ReqLine."Action Message" of
@@ -495,7 +500,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                         end;
                     ReqLine."Action Message"::New, ReqLine."Action Message"::" ":
                         begin
-                            if (PurchOrderHeader."Buy-from Vendor No." <> '') and
+                            if (PurchOrderHeader."Buy-from Vendor No." <> '') and not UsingPurchaseOrderTarget and
                                CheckInsertFinalizePurchaseOrderHeader(ReqLine, PurchOrderHeader, false)
                             then begin
                                 FinalizeOrderHeader(PurchOrderHeader, ReqLine);
@@ -511,6 +516,12 @@ codeunit 333 "Req. Wksh.-Make Order"
                             end;
                             MakeRecurringTexts(ReqLine);
                             InsertPurchOrderLine(ReqLine, PurchOrderHeader);
+                            if UsingPurchaseOrderTarget then begin
+                                // Include appended lines in the batch cleanup even when no new header was created.
+                                OrderCounter := OrderCounter + 1;
+                                OrderLineCounter := OrderLineCounter + 1;
+                                LineCount := 0;
+                            end;
                         end;
                 end;
             else
@@ -550,14 +561,12 @@ codeunit 333 "Req. Wksh.-Make Order"
               OrderCounter,
               OrderLineCounter);
             OnTryCarryOutReqLineActionOnAfterGetTryParam(ReqLine, PurchOrderHeader, LineCount, NextLineNo, PrevPurchCode, PrevShipToCode, PrevLocationCode, OrderCounter, OrderLineCounter);
-
             if PrintPurchOrders and PlanningResiliency then
                 if PurchOrderHeader."No." <> '' then
                     if not TempPurchaseOrderToPrint.Get(PurchOrderHeader."Document Type", PurchOrderHeader."No.") then begin
                         TempPurchaseOrderToPrint := PurchOrderHeader;
                         TempPurchaseOrderToPrint.Insert();
                     end;
-
             if not HideProgressWindow then begin
                 Window.Update(3, OrderCounter);
                 Window.Update(4, LineCount);
@@ -574,7 +583,6 @@ codeunit 333 "Req. Wksh.-Make Order"
             ReqWkshMakeOrders.Run(ReqLine);
             exit(true);
         end;
-
         if ReqWkshMakeOrders.Run(ReqLine) then
             exit(true);
     end;
@@ -680,22 +688,29 @@ codeunit 333 "Req. Wksh.-Make Order"
             PostingDateReq, ReferenceReq, OrderDateReq, ReceiveDateReq, OrderCounter, HideProgressWindow, PrevLocationCode, LineCount, PurchOrderHeader, PurchasingCode, PurchOrderLine);
         if IsHandled then
             exit;
-
         if (ReqLine2."No." = '') or (ReqLine2."Vendor No." = '') or (ReqLine2.Quantity = 0) then
             exit;
-
-        if CheckInsertFinalizePurchaseOrderHeader(ReqLine2, PurchOrderHeader, true) then begin
-            IsHandled := false;
-            OnInsertPurchOrderLineOnBeforeInsertHeader(ReqLine2, PurchOrderHeader, PurchOrderLine, LineCount, NextLineNo, IsHandled, OrderCounter);
-            if not IsHandled then begin
-                InsertHeader(ReqLine2);
-                LineCount := 0;
-                NextLineNo := 0;
+        if ReqLine2.HasPurchaseOrderTarget() then
+            SelectPurchaseOrderTarget(ReqLine2, PurchOrderHeader, PurchOrderLine2)
+        else begin
+            if UsingPurchaseOrderTarget then begin
+                Clear(PurchOrderHeader);
+                InitShipReceiveDetails();
+                UsingPurchaseOrderTarget := false;
             end;
-            PrevPurchCode := ReqLine2."Purchasing Code";
-            PrevShipToCode := ReqLine2."Ship-to Code";
-            PrevLocationCode := ReqLine2."Location Code";
+            if CheckInsertFinalizePurchaseOrderHeader(ReqLine2, PurchOrderHeader, true) then begin
+                IsHandled := false;
+                OnInsertPurchOrderLineOnBeforeInsertHeader(ReqLine2, PurchOrderHeader, PurchOrderLine, LineCount, NextLineNo, IsHandled, OrderCounter);
+                if not IsHandled then begin
+                    InsertHeader(ReqLine2);
+                    LineCount := 0;
+                    NextLineNo := 0;
+                end;
+                PrevLocationCode := ReqLine2."Location Code";
+            end;
         end;
+        PrevPurchCode := ReqLine2."Purchasing Code";
+        PrevShipToCode := ReqLine2."Ship-to Code";
 
         OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader(ReqLine2, PurchOrderHeader, NextLineNo);
 
@@ -712,12 +727,10 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(PurchOrderLine, ReqLine2);
 
         PurchOrderLine."Drop Shipment" := (ReqLine2."Sales Order Line No." <> 0) or ((ReqLine2."Drop Shipment") and (ReqLine2."Demand Type" = Database::"Sales Line"));
-
         if (ReqLine2."Drop Shipment") and (ReqLine2."Sales Order Line No." = 0) then begin
             PurchOrderLine.Validate("Sales Order No.", ReqLine2."Demand Order No.");
             PurchOrderLine.Validate("Sales Order Line No.", ReqLine2."Demand Line No.");
         end;
-
         if PurchasingCode.Get(ReqLine2."Purchasing Code") then
             if PurchasingCode."Special Order" then begin
                 PurchOrderLine."Special Order Sales No." := ReqLine2."Sales Order No.";
@@ -753,7 +766,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforePurchOrderLineInsert(PurchOrderHeader, PurchOrderLine, ReqLine2, SuppressCommit);
         PurchOrderLine.Insert();
         OnAfterPurchOrderLineInsert(PurchOrderLine, ReqLine2, NextLineNo);
-
         if ReqLine2.Reserve then
             ReserveBindingOrderToPurch(PurchOrderLine, ReqLine2);
 
@@ -784,7 +796,6 @@ codeunit 333 "Req. Wksh.-Make Order"
                 ReqLine2.TestField("Qty. per Unit of Measure", ReqLine2."Qty. per Unit of Measure");
                 OnInsertPurchOrderLineOnBeforeSalesOrderLineValidateUnitCostLCY(PurchOrderLine, SalesOrderLine);
                 SalesOrderLine.Validate("Unit Cost (LCY)");
-
                 if SalesOrderLine."Special Order" then begin
                     SalesOrderLine."Special Order Purchase No." := PurchOrderLine."Document No.";
                     SalesOrderLine."Special Order Purch. Line No." := PurchOrderLine."Line No.";
@@ -795,7 +806,6 @@ codeunit 333 "Req. Wksh.-Make Order"
                 OnInsertPurchOrderLineOnBeforeSalesOrderLineModify(SalesOrderLine, ReqLine2, PurchOrderLine);
                 SalesOrderLine.Modify();
             end;
-
         if TransferExtendedText.PurchCheckIfAnyExtText(PurchOrderLine, false) then begin
             TransferExtendedText.InsertPurchExtText(PurchOrderLine);
             PurchOrderLine2.SetRange("Document Type", PurchOrderHeader."Document Type");
@@ -805,6 +815,23 @@ codeunit 333 "Req. Wksh.-Make Order"
         end;
 
         OnAfterInsertPurchOrderLine(PurchOrderLine, NextLineNo, ReqLine2, PurchOrderHeader);
+    end;
+
+    local procedure SelectPurchaseOrderTarget(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; var LastPurchaseLine: Record "Purchase Line")
+    begin
+        if (PurchaseHeader."Buy-from Vendor No." <> '') and not UsingPurchaseOrderTarget then
+            FinalizeOrderHeader(PurchaseHeader, RequisitionLine);
+
+        RequisitionLine.CheckPurchaseOrderTarget();
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, RequisitionLine."Ref. Order No.");
+        LastPurchaseLine.Reset();
+        LastPurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        LastPurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        NextLineNo := 0;
+        if LastPurchaseLine.FindLast() then
+            NextLineNo := LastPurchaseLine."Line No.";
+        UsingPurchaseOrderTarget := true;
+        LineCount := 0;
     end;
 
     local procedure TransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; ReqLine: Record "Requisition Line")
@@ -836,7 +863,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeCheckPurchOrderLineShipToCode(RequisitionLine, PurchOrderLine, SalesOrderHeader, IsHandled);
         if IsHandled then
             exit;
-
         if not PurchOrderLine."Special Order" then
             RequisitionLine.TestField("Ship-to Code", SalesOrderHeader."Ship-to Code");
     end;
@@ -855,7 +881,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         if not PlanningResiliency then
             if not HideProgressWindow then
                 Window.Update(3, OrderCounter);
-
         if ReqLine2.IsProdOrder() and (OrderDateReq = 0D) then
             OrderDateReq := ReqLine2."Order Date";
 
@@ -882,11 +907,9 @@ codeunit 333 "Req. Wksh.-Make Order"
             PurchOrderHeader.Validate("Sell-to Customer No.", ReqLine2."Sell-to Customer No.");
 
         PurchOrderHeader.Validate("Currency Code", ReqLine2."Currency Code");
-
         if PurchasingCode.Get(ReqLine2."Purchasing Code") then
             if PurchasingCode."Special Order" then
                 SpecialOrder := true;
-
         if not SpecialOrder then
             UpdateShipToOrLocationCode(ReqLine2, PurchOrderHeader)
         else begin
@@ -945,7 +968,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeUpdateShipToOrLocationCode(PurchaseHeader, RequisitionLine, IsHandled);
         if IsHandled then
             exit;
-
         if RequisitionLine."Ship-to Code" <> '' then
             PurchaseHeader.Validate("Ship-to Code", RequisitionLine."Ship-to Code")
         else
@@ -1013,7 +1035,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                     ReservEntry.SetCurrentKey(
                         "Source ID", "Source Ref. No.", "Source Type", "Source Subtype", "Source Batch Name", "Source Prod. Order Line");
                     repeat
-                        if PurchaseOrderLineMatchReqLine(ReqLine2) then begin
+                        if not ReqLine2.HasPurchaseOrderTarget() and PurchaseOrderLineMatchReqLine(ReqLine2) then begin
                             TempFailedReqLine := ReqLine2;
                             if not TempFailedReqLine.Find() then begin
                                 ReqLine2.SetReservationFilters(ReservEntry);
@@ -1099,7 +1121,6 @@ codeunit 333 "Req. Wksh.-Make Order"
             ReservQty := PurchLine.Quantity - PurchLine."Reserved Quantity";
             ReservQtyBase := PurchLine."Quantity (Base)" - PurchLine."Reserved Qty. (Base)";
         end;
-
         case ReqLine."Demand Type" of
             Database::"Sales Line":
                 begin
@@ -1225,7 +1246,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforePrintPurchOrder(PurchHeader, PrintPurchOrders, IsHandled);
         if IsHandled then
             exit;
-
         if PurchHeader."No." <> '' then begin
             CarryOutAction.SetPrintOrder(PrintPurchOrders);
             CarryOutAction.PrintPurchaseOrder(PurchHeader);
@@ -1250,10 +1270,13 @@ codeunit 333 "Req. Wksh.-Make Order"
     local procedure ProcessReqLineActions(var ReqLine: Record "Requisition Line")
     begin
         OnBeforeProcessReqLineActions(ReqLine, SuppressCommit, PlanningResiliency);
-
         if ReqLine.Find('-') then
             repeat
                 OnProcessReqLineActionsOnBeforeReqLineLoop(ReqLine);
+                if ReqLine.HasPurchaseOrderTarget() and
+                   (ReqLine."Replenishment System" in [ReqLine."Replenishment System"::Purchase, ReqLine."Replenishment System"::"Prod. Order"])
+                then
+                    ReqLine.CheckPurchaseOrderTarget();
                 if not PlanningResiliency then
                     CarryOutReqLineAction(ReqLine)
                 else
@@ -1300,7 +1323,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeCheckAddressDetails(SalesOrderNo, SalesLineNo, UpdateAddressDetails, Result, IsHandled);
         if IsHandled then
             exit;
-
         if SalesLine.Get(SalesLine."Document Type"::Order, SalesOrderNo, SalesLineNo) then
             if Purchasing.Get(SalesLine."Purchasing Code") then
                 case true of
@@ -1367,7 +1389,6 @@ codeunit 333 "Req. Wksh.-Make Order"
             NameAddressDetails := DropShptNameAddressDetails;
         if NameAddressDetails = DropShptNameAddressDetails then
             exit(true);
-
         if UpdateAddressDetails then
             NameAddressDetails := DropShptNameAddressDetails;
         exit(false);
@@ -1384,7 +1405,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnBeforeCheckSpecOrderAddressDetails(LocationCode, UpdateAddressDetails, NameAddressDetails, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if Location.Get(LocationCode) then
             SpecOrderNameAddressDetails :=
               Location.Name + Location."Name 2" +
@@ -1403,7 +1423,6 @@ codeunit 333 "Req. Wksh.-Make Order"
             NameAddressDetails := SpecOrderNameAddressDetails;
         if NameAddressDetails = SpecOrderNameAddressDetails then
             exit(true);
-
         if UpdateAddressDetails then
             NameAddressDetails := SpecOrderNameAddressDetails;
         exit(false);
@@ -1428,7 +1447,6 @@ codeunit 333 "Req. Wksh.-Make Order"
             exit(
               (ReqLine."Sales Order No." = PurchOrderLine."Sales Order No.") and
               (ReqLine."Sales Order Line No." = PurchOrderLine."Sales Order Line No."));
-
         if PurchOrderLine."Special Order" then
             exit(
               (ReqLine."Sales Order No." = PurchOrderLine."Special Order Sales No.") and
@@ -1480,7 +1498,6 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
         if RequisitionLine.Reserve then  //if reserve not set job link
             exit;
-
         if (RequisitionLine."Planning Line Origin" = RequisitionLine."Planning Line Origin"::"Order Planning") and
            (RequisitionLine."Demand Type" = Database::"Job Planning Line")
         then begin

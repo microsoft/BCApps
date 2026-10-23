@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -12,6 +13,7 @@ using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
@@ -436,23 +438,126 @@ codeunit 139983 "Subc. Management Library"
     /// <param name="ProdOrderNo">The production order number to find.</param>
     /// <param name="RequisitionLine">Returns the calculated requisition line.</param>
     procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    begin
+        CalculateSubcontracts(RequisitionWkshName, '');
+        FindRequisitionLineForProdOrder(RequisitionWkshName, ProdOrderNo, RequisitionLine);
+    end;
+
+    /// <summary>
+    /// Calculates subcontracts for a worksheet, optionally for one work center only.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The subcontracting worksheet to calculate.</param>
+    /// <param name="WorkCenterNo">The work center to calculate; blank calculates all work centers.</param>
+    procedure CalculateSubcontracts(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenterNo: Code[20])
     var
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: Record "Work Center";
         SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
     begin
-        Clear(RequisitionLine);
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
 
         SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        if WorkCenterNo <> '' then begin
+            WorkCenter.SetRange("No.", WorkCenterNo);
+            SubcCalculateSubContract.SetTableView(WorkCenter);
+        end;
         SubcCalculateSubContract.UseRequestPage(false);
         SubcCalculateSubContract.RunModal();
+    end;
 
+    /// <summary>
+    /// Finds the first requisition line of a worksheet for a production order and keeps its filters.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The worksheet to search.</param>
+    /// <param name="ProdOrderNo">The production order number to find.</param>
+    /// <param name="RequisitionLine">Returns the filtered requisition line.</param>
+    procedure FindRequisitionLineForProdOrder(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    begin
+        Clear(RequisitionLine);
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
 #pragma warning disable AA0210
         RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning restore AA0210
         RequisitionLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates a released production order for a new item whose routing has one subcontracting operation.
+    /// </summary>
+    /// <param name="ProductionOrder">Returns the refreshed released production order.</param>
+    /// <param name="WorkCenter">Returns the subcontracting work center with its subcontractor.</param>
+    procedure CreateReleasedProdOrderWithSubcontractingOperation(var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center")
+    var
+        Item: Record Item;
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+    begin
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", CreateCertifiedSingleOperationRouting(WorkCenter."No."));
+        Item.Modify(true);
+
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+    end;
+
+    local procedure CreateCertifiedSingleOperationRouting(WorkCenterNo: Code[20]): Code[20]
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+    begin
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenterNo, '10', 0, 1);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    /// <summary>
+    /// Adds a new dimension that exists in no default dimension to every line of a production order.
+    /// </summary>
+    /// <param name="ProductionOrder">The production order whose lines receive the dimension.</param>
+    /// <param name="DimensionValue">Returns the new dimension value.</param>
+    procedure AddNewDimensionToProdOrderLines(ProductionOrder: Record "Production Order"; var DimensionValue: Record "Dimension Value")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        ProdOrderLine.SetLoadFields("Dimension Set ID");
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindSet(true);
+        repeat
+            ProdOrderLine."Dimension Set ID" :=
+                LibraryDimension.CreateDimSet(ProdOrderLine."Dimension Set ID", DimensionValue."Dimension Code", DimensionValue.Code);
+            ProdOrderLine.Modify(false);
+        until ProdOrderLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Changes the vendor of a requisition line to another subcontractor and back, which rebuilds its dimensions twice.
+    /// </summary>
+    /// <param name="RequisitionLine">The requisition line whose vendor is changed and restored.</param>
+    procedure ChangeVendorAndBack(var RequisitionLine: Record "Requisition Line")
+    var
+        OtherVendor: Record Vendor;
+        OriginalVendorNo: Code[20];
+    begin
+        OriginalVendorNo := RequisitionLine."Vendor No.";
+        CreateSubcontractor(OtherVendor);
+        RequisitionLine.Validate("Vendor No.", OtherVendor."No.");
+        RequisitionLine.Validate("Vendor No.", OriginalVendorNo);
+        RequisitionLine.Modify(true);
     end;
 
     /// <summary>

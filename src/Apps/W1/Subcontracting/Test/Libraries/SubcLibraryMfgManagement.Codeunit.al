@@ -139,21 +139,27 @@ codeunit 139984 "Subc. Library Mfg. Management"
 
     procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20])
     var
-        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
         OperationNo: Code[10];
     begin
+        // Random used such that the Next Operation No is greater than the Previous Operation No.
+        OperationNo := FindLastOperationNo(RoutingHeader."No.") + Format(LibraryRandom.RandInt(5));
+
+        // Random is used, values not important for test.
+        CreateRoutingLine(RoutingLine, RoutingHeader, CenterNo, OperationNo, LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+    end;
+
+    procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20]; OperationNo: Code[10]; SetupTime: Decimal; RunTime: Decimal)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+    begin
         // Create Routing Lines with required fields.
+        CapacityUnitOfMeasure.SetLoadFields(Code);
 #pragma warning disable AA0210
         CapacityUnitOfMeasure.SetRange(Type, CapacityUnitOfMeasure.Type::Minutes);
 #pragma warning restore AA0210
         CapacityUnitOfMeasure.FindFirst();
 
-        // Random used such that the Next Operation No is greater than the Previous Operation No.
-        OperationNo := FindLastOperationNo(RoutingHeader."No.") + Format(LibraryRandom.RandInt(5));
-
-        // Random is used, values not important for test.
-        LibraryManufacturing.CreateRoutingLineSetup(
-          RoutingLine, RoutingHeader, CenterNo, OperationNo, LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, CenterNo, OperationNo, SetupTime, RunTime);
 
         RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
         RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);

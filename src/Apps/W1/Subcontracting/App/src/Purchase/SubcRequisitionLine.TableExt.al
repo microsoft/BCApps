@@ -10,6 +10,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Purchases.Document;
 
 tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
 {
@@ -132,6 +133,32 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
+
+    procedure AssignPurchaseOrderTarget()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseOrderList: Page "Purchase Order List";
+    begin
+        TestField("Action Message", "Action Message"::New);
+        TestField("Vendor No.");
+        TestField("Prod. Order No.");
+        TestField("Prod. Order Line No.");
+        TestField("Operation No.");
+
+        SetCompatiblePurchaseOrderFilters(PurchaseHeader);
+        PurchaseOrderList.SetTableView(PurchaseHeader);
+        PurchaseOrderList.LookupMode(true);
+        if PurchaseOrderList.RunModal() <> Action::LookupOK then
+            exit;
+
+        PurchaseOrderList.GetRecord(PurchaseHeader);
+        "Ref. Order Type" := "Ref. Order Type"::Purchase;
+        Clear("Ref. Order Status");
+        "Ref. Line No." := 0;
+        "Ref. Order No." := PurchaseHeader."No.";
+        CheckPurchaseOrderTarget();
+        Modify(true);
+    end;
 
     procedure GetQuantityForUOM(): Decimal
     var

@@ -737,15 +737,14 @@ codeunit 20557 "Subc. Purchase Order Creator"
             RequisitionLine."Accept Action Message" := true;
         end else begin
             RequisitionLine."Replenishment System" := "Replenishment System"::"Prod. Order";
-            RequisitionLine."Ref. Order No." := ProdOrderLine."Prod. Order No.";
-            RequisitionLine."Ref. Order Type" := RequisitionLine."Ref. Order Type"::"Prod. Order";
-            RequisitionLine."Ref. Order Status" := ProdOrderLine.Status;
-            RequisitionLine."Ref. Line No." := ProdOrderLine."Line No.";
+            RequisitionLine."Ref. Order Type" := RequisitionLine."Ref. Order Type"::Purchase;
             RequisitionLine."Action Message" := "Action Message Type"::New;
             RequisitionLine."Accept Action Message" := true;
         end;
 
-        if RequisitionLine."Ref. Order No." <> '' then
+        if RequisitionLine."Action Message" = "Action Message Type"::New then
+            RequisitionLine.GetDimFromProdOrderLine(ProdOrderLine, true)
+        else
             RequisitionLine.GetDimFromRefOrderLine(true);
 
         RequisitionLine.Insert();
