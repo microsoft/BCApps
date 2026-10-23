@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Service.Document;
 
 tableextension 31318 "Service Line CZ" extends "Service Line"
@@ -28,6 +29,12 @@ tableextension 31318 "Service Line CZ" extends "Service Line"
                         FieldError("Document Type");
                 end;
             end;
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
         modify("Tariff No. CZL")
         {

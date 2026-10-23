@@ -868,8 +868,7 @@ codeunit 139912 "Customer Deferrals Test"
         // [GIVEN] All deferral amounts are set to 0 (simulating zero-amount service commitments)
         CustomerContractDeferral.Reset();
         CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        CustomerContractDeferral.ModifyAll(Amount, 0, false);
-        CustomerContractDeferral.ModifyAll("Discount Amount", 0, false);
+        CustomerContractDeferral.ModifyAll(Amount, 0, "Discount Amount", 0, false);
         CustomerContractDeferral.FindFirst();
 
         // [WHEN] Release deferrals is run

@@ -12,9 +12,13 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
+using Microsoft.Utilities;
+using System.Privacy;
 
 codeunit 10838 "PaymentMgt Subscribers FR"
 {
@@ -22,9 +26,173 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     InherentPermissions = X;
 
     var
-        UnrealCVLedgEntryBuffer: Record "Unreal. CV Ledg. Entry Buffer";
+        UnrealCVLedgEntryBuffer: Record "Unreal. CV Ledg. Buffer FR";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Check Line", 'OnBeforeCheckAppliesToDocNo', '', false, false)]
+    local procedure OnBeforeCheckAppliesToDocNo(GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        if IsHandled or not IsPaymentEnabled() then
+            exit;
+
+        if not GenJnlLine."Realize Delayed VAT" then
+            GenJnlLine.TestField("Applies-to Doc. No.", '', ErrorInfo.Create());
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnApplyCustLedgEntryOnBeforeCopyFromCVLedgEntryBuffer', '', false, false)]
+    local procedure BufferCustomerApplication(var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        if not IsPaymentEnabled() then
+            exit;
+        if GenJournalLine."Delayed Unreal. VAT" then
+            BufferDelayedVATApplication(GenJournalLine, OldCVLedgEntryBuf, AppliedAmount, true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeCopyFromCVLedgEntryBuffer', '', false, false)]
+    local procedure BufferVendorApplication(var GenJnlLine: Record "Gen. Journal Line"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal)
+    begin
+        if not IsPaymentEnabled() then
+            exit;
+        if GenJnlLine."Delayed Unreal. VAT" then
+            BufferDelayedVATApplication(GenJnlLine, OldCVLedgEntryBuf, AppliedAmount, false);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT', '', false, false)]
+    local procedure DeferAppliedCustomerVAT(var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        if IsPaymentEnabled() and GenJournalLine."Delayed Unreal. VAT" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnApplyCustLedgEntryOnBeforeUnrealizedVAT', '', false, false)]
+    local procedure DeferApplyingCustomerVAT(var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        if IsPaymentEnabled() and GenJournalLine."Delayed Unreal. VAT" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT', '', false, false)]
+    local procedure DeferAppliedVendorVAT(var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        if IsPaymentEnabled() and GenJournalLine."Delayed Unreal. VAT" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnApplyVendLedgEntryOnBeforeUnrealizedVAT', '', false, false)]
+    local procedure DeferApplyingVendorVAT(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        if IsPaymentEnabled() and GenJournalLine."Delayed Unreal. VAT" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnCustUnrealizedVATOnAfterCalcPaidAmount', '', false, false)]
+    local procedure CalculateCustomerPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
+    begin
+        if not IsPaymentEnabled() then
+            exit;
+        if GenJnlLine."Delayed Unreal. VAT" and GenJnlLine."Realize Delayed VAT" then
+            PaidAmount := CalcPaidAmount(GenJnlLine, CustLedgEntry2."Entry No.") - SettledAmount;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnVendUnrealizedVATOnAfterCalcPaidAmount', '', false, false)]
+    local procedure CalculateVendorPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry2: Record "Vendor Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
+    begin
+        if not IsPaymentEnabled() then
+            exit;
+        if GenJnlLine."Delayed Unreal. VAT" and GenJnlLine."Realize Delayed VAT" then
+            PaidAmount := CalcPaidAmount(GenJnlLine, VendLedgEntry2."Entry No.") + SettledAmount;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart', '', false, false)]
+    local procedure CalculateCustomerUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
+    begin
+        if IsHandled or not IsPaymentEnabled() then
+            exit;
+
+        VATPart := GetPaymentUnrealizedVATPart(
+            VATEntry2,
+            Round(SettledAmount / CustLedgerEntry.GetAdjustedCurrencyFactor()),
+            PaidAmount, CustLedgerEntry."Amount (LCY)", TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast,
+            GenJournalLine."Delayed Unreal. VAT", GenJournalLine."Realize Delayed VAT");
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnVendUnrealizedVATOnBeforeGetUnrealizedVATPart', '', false, false)]
+    local procedure CalculateVendorUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
+    begin
+        if IsHandled or not IsPaymentEnabled() then
+            exit;
+
+        VATPart := GetPaymentUnrealizedVATPart(
+            VATEntry2,
+            Round(SettledAmount / VendorLedgerEntry.GetAdjustedCurrencyFactor()),
+            PaidAmount, VendorLedgerEntry."Amount (LCY)", TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast,
+            GenJournalLine."Delayed Unreal. VAT", GenJournalLine."Realize Delayed VAT");
+        IsHandled := true;
+    end;
+
+    internal procedure GetPaymentUnrealizedVATPart(VATEntry: Record "VAT Entry"; SettledAmount: Decimal; PaidAmount: Decimal; FullAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; DelayedUnrealizedVAT: Boolean; RealizeVAT: Boolean): Decimal
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+    begin
+        // Match the engine's eligibility checks before applying the payment-specific validation.
+        if DelayedUnrealizedVAT and RealizeVAT and
+           (VATEntry.Type <> VATEntry.Type::" ") and (VATEntry.Amount = 0) and (VATEntry.Base = 0) and
+           ((VATEntry."Remaining Unrealized Amount" <> 0) or (VATEntry."Remaining Unrealized Base" <> 0))
+        then
+            if VATEntry.GetUnrealizedVATType() <> 0 then
+                if VATEntry."VAT Calculation Type" = VATEntry."VAT Calculation Type"::"Sales Tax" then begin
+                    TaxJurisdiction.Get(VATEntry."Tax Jurisdiction Code");
+                    TaxJurisdiction.TestField("Unrealized VAT Type", TaxJurisdiction."Unrealized VAT Type"::Percentage);
+                end else begin
+                    VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+                    VATPostingSetup.TestField("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
+                end;
+
+        exit(VATEntry.GetUnrealizedVATPart(
+            SettledAmount, PaidAmount, FullAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
+    local procedure ClassifyPaymentVATBuffer()
+    var
+        DataClassificationMgt: Codeunit "Data Classification Mgt.";
+    begin
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Unreal. CV Ledg. Buffer FR");
+    end;
+
+    local procedure IsPaymentEnabled(): Boolean
+#if not CLEAN28
+    var
+        PaymentFeatureFR: Codeunit "Payment Management Feature FR";
+#endif
+    begin
+#if not CLEAN28
+        exit(PaymentFeatureFR.IsEnabled());
+#else
+        exit(true);
+#endif
+    end;
+
+    local procedure BufferDelayedVATApplication(GenJournalLine: Record "Gen. Journal Line"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal; CustomerApplication: Boolean)
+    var
+        ApplicationBuffer: Record "Unreal. CV Ledg. Buffer FR";
+    begin
+        ApplicationBuffer.Init();
+        if CustomerApplication then
+            ApplicationBuffer."Account Type" := ApplicationBuffer."Account Type"::Customer
+        else
+            ApplicationBuffer."Account Type" := ApplicationBuffer."Account Type"::Vendor;
+        ApplicationBuffer."Account No." := CVLedgerEntryBuffer."CV No.";
+        ApplicationBuffer."Payment Slip No." := GenJournalLine."Document No.";
+        ApplicationBuffer."Applies-to ID" := CVLedgerEntryBuffer."Applies-to ID";
+        ApplicationBuffer."Entry No." := CVLedgerEntryBuffer."Entry No.";
+        ApplicationBuffer."Applied Amount" := AppliedAmount;
+        ApplicationBuffer.Insert();
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Prepare Source", 'OnBeforeCreateTempJnlLines', '', false, false)]
     local procedure OnBeforeCreateTempJnlLines(var FromGenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
@@ -84,27 +252,56 @@ codeunit 10838 "PaymentMgt Subscribers FR"
             until PaymentLine.Next() = 0;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Direct Debit Collection", 'OnBeforeHasPaymentFileErrors', '', false, false)]
+    local procedure CheckCollectionPaymentFileErrors(DirectDebitCollection: Record "Direct Debit Collection"; var DirectDebit: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        if IsHandled or not IsPaymentEnabled() or (DirectDebitCollection."Source Table ID FR" = 0) then
+            exit;
+
+        DirectDebitCollection.SetPaymentErrorLink(DirectDebit);
+        Result := DirectDebit.HasPaymentFileErrorsInBatch();
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Direct Debit Collection Entry", 'OnBeforeTransferPKToGenJnlLine', '', false, false)]
+    local procedure SetCollectionEntryPaymentErrorLink(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+    begin
+        if IsHandled or not IsPaymentEnabled() then
+            exit;
+        if not DirectDebitCollection.Get(DirectDebitCollectionEntry."Direct Debit Collection No.") then
+            exit;
+        if DirectDebitCollection."Source Table ID FR" = 0 then
+            exit;
+
+        DirectDebitCollection.SetPaymentErrorLink(GenJnlLine);
+        GenJnlLine."Line No." := DirectDebitCollectionEntry."Entry No.";
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA DD-Prepare Source", 'OnBeforeCreateTempCollectionEntries', '', false, false)]
     local procedure OnBeforeCreateTempCollectionEntries(var FromDirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var ToDirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var isHandled: Boolean)
     var
         DirectDebitCollection: Record "Direct Debit Collection";
         PaymentHeader: Record "Payment Header FR";
         PaymentLine: Record "Payment Line FR";
-#if not CLEAN28
-        Payment: Codeunit "Payment Management Feature FR";
-#endif
         SEPADDCheckLine: Codeunit "SEPA DD-Check Line";
         AppliesToEntryNo: Integer;
         HasErrorsErr: Label 'The file export has one or more errors. For each of the lines to be exported, resolve any errors that are displayed in the File Export Errors FactBox.';
     begin
-#if not CLEAN28
-        if not Payment.IsEnabled() then
+        if IsHandled or not IsPaymentEnabled() then
             exit;
-#endif
+        if FromDirectDebitCollectionEntry.GetFilter("Direct Debit Collection No.") = '' then
+            exit;
+
+        DirectDebitCollection.Get(FromDirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
+        if DirectDebitCollection."Source Table ID FR" <> Database::"Payment Header FR" then
+            exit;
+
         IsHandled := true;
 
         ToDirectDebitCollectionEntry.Reset();
-        DirectDebitCollection.Get(FromDirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
         PaymentHeader.Get(DirectDebitCollection.Identifier);
         PaymentLine.SetRange("No.", PaymentHeader."No.");
         if PaymentLine.FindSet() then
@@ -172,7 +369,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     AppliedCustLedgEntry.Reset();
                     AppliedCustLedgEntry.SetCurrentKey("Document No.");
                     if CheckHeaderNo(GenJnlLine."Document No.") then
-                        AppliedCustLedgEntry.SetRange("Document No.", GenJnlLine."Created from No.")
+                        AppliedCustLedgEntry.SetRange("Document No.", GenJnlLine."Created From Pmt. Slip No.")
                     else
                         AppliedCustLedgEntry.SetRange("Document No.", GenJnlLine."Document No.");
                     AppliedCustLedgEntry.SetRange("Document Type", AppliedCustLedgEntry."Document Type"::" ");
@@ -183,7 +380,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     AppliedVendLedgEntry.Reset();
                     AppliedVendLedgEntry.SetCurrentKey("Document No.");
                     if CheckHeaderNo(GenJnlLine."Document No.") then
-                        AppliedVendLedgEntry.SetRange("Document No.", GenJnlLine."Created from No.")
+                        AppliedVendLedgEntry.SetRange("Document No.", GenJnlLine."Created From Pmt. Slip No.")
                     else
                         AppliedVendLedgEntry.SetRange("Document No.", GenJnlLine."Document No.");
                     AppliedVendLedgEntry.SetRange("Document Type", AppliedVendLedgEntry."Document Type"::" ");
@@ -375,7 +572,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     UnrealCVLedgEntryBuffer.SetRange("Account Type", UnrealCVLedgEntryBuffer."Account Type"::Customer);
                     UnrealCVLedgEntryBuffer.SetRange("Account No.", GenJnlLine."Source No.");
                     if CheckHeaderNo(GenJnlLine."Document No.") then
-                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created from No.")
+                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created From Pmt. Slip No.")
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.FindFirst();
@@ -389,7 +586,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     UnrealCVLedgEntryBuffer.SetRange("Account Type", UnrealCVLedgEntryBuffer."Account Type"::Customer);
                     UnrealCVLedgEntryBuffer.SetRange("Account No.", GenJnlLine."Source No.");
                     if CheckHeaderNo(GenJnlLine."Document No.") then
-                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created from No.")
+                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created From Pmt. Slip No.")
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
@@ -425,7 +622,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     UnrealCVLedgEntryBuffer.SetRange("Account Type", UnrealCVLedgEntryBuffer."Account Type"::Vendor);
                     UnrealCVLedgEntryBuffer.SetRange("Account No.", GenJnlLine."Source No.");
                     if CheckHeaderNo(GenJnlLine."Document No.") then
-                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created from No.")
+                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created From Pmt. Slip No.")
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.FindFirst();
@@ -439,7 +636,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     UnrealCVLedgEntryBuffer.SetRange("Account Type", UnrealCVLedgEntryBuffer."Account Type"::Vendor);
                     UnrealCVLedgEntryBuffer.SetRange("Account No.", GenJnlLine."Source No.");
                     if CheckHeaderNo(GenJnlLine."Document No.") then
-                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created from No.")
+                        UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Created From Pmt. Slip No.")
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
@@ -464,7 +661,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     local procedure UpdateUnrealCVLedgEntryBuffer(GenJnlLine: Record "Gen. Journal Line"; TransactionNo: Integer)
     var
         VATEntry2: Record "VAT Entry";
-        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Entry Buffer";
+        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Buffer FR";
         TotalUnrealVATAmount: Decimal;
     begin
         VATEntry2.Reset();
@@ -487,8 +684,13 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     end;
 
     procedure CalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"): Decimal
+    begin
+        exit(CalcPaidAmount(GenJnlLine, UnrealCVLedgEntryBuffer."Entry No."));
+    end;
+
+    local procedure CalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; EntryNo: Integer): Decimal
     var
-        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Entry Buffer";
+        UnrealCVLedgEntryBuffer2: Record "Unreal. CV Ledg. Buffer FR";
         PaidAmount: Decimal;
     begin
         UnrealCVLedgEntryBuffer2.Reset();
@@ -496,7 +698,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
             UnrealCVLedgEntryBuffer2.SetRange("Account Type", UnrealCVLedgEntryBuffer2."Account Type"::Customer)
         else
             UnrealCVLedgEntryBuffer2.SetRange("Account Type", UnrealCVLedgEntryBuffer2."Account Type"::Vendor);
-        UnrealCVLedgEntryBuffer2.SetRange("Entry No.", UnrealCVLedgEntryBuffer."Entry No.");
+        UnrealCVLedgEntryBuffer2.SetRange("Entry No.", EntryNo);
         UnrealCVLedgEntryBuffer2.SetRange(Realized, true);
         if UnrealCVLedgEntryBuffer2.FindSet() then
             repeat
@@ -507,7 +709,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
 
     local procedure RealizeDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line")
     begin
-        if GenJnlLine."Delayed Unrealized VAT" and GenJnlLine."Realize VAT" then
+        if GenJnlLine."Delayed Unreal. VAT" and GenJnlLine."Realize Delayed VAT" then
             if (GenJnlLine."Applies-to Doc. No." <> '') or (GenJnlLine."Applies-to ID" <> '') then
                 PostDelayedUnrealizedVAT(GenJnlLine);
     end;
@@ -527,4 +729,3 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     begin
     end;
 }
-

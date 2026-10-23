@@ -312,12 +312,13 @@ codeunit 10552 "Reverse Charge VAT Subscribers"
             exit;
 #endif
 
-        if not (SalesLine.Quantity = 0) then
+        if SalesLine.Quantity = 0 then
             exit;
 
         SalesSetup.Get();
         Currency.Initialize(SalesHeader."Currency Code");
-        if SalesHeader.GetReverseChargeApplies() and SalesLine."Reverse Charge Item GB" then begin
+        // The event receives the header by value, so use the posting state on the line passed by reference.
+        if SalesLine.GetReverseChargeApplies() and SalesLine."Reverse Charge Item GB" then begin
             SalesLine."Reverse Charge GB" :=
               Round((SalesLine."Amount Including VAT" - SalesLine.Amount) *
                 SalesLine."Qty. to Invoice" / SalesLine.Quantity, Currency."Amount Rounding Precision");
