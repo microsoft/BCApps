@@ -7814,8 +7814,12 @@ codeunit 80 "Sales-Post"
     procedure CheckIfReverseChargeApplies(SalesHeader: Record "Sales Header"): Boolean
     var
         SalesLine2: Record "Sales Line";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         TotalAmount: Decimal;
     begin
+        if FeatureKeyManagement.IsVATReverseChargeEnabled() then
+            exit(false);
+
         GLSetup.Get();
         SalesSetup.Get();
         if not GLSetup."Threshold applies" or (SalesHeader."VAT Registration No." = '') or
@@ -12080,8 +12084,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-        ReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]

@@ -132,6 +132,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SourceCodeSetup: Record "Source Code Setup";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         WHTManagement: Codeunit WHTManagement;
         TaxManagement: Codeunit TaxInvoiceManagement;
         DeferralUtilities: Codeunit "Deferral Utilities";
@@ -1219,7 +1220,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure PostFAJnlLineWithGLEntryBufUpdate(GenJnlLine: Record "Gen. Journal Line"; VATPostingParameters: Record "VAT Posting Parameters"; LastNextEntryNo: Integer)
     var
         TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         GLBalanceAmount: Decimal;
         IsLastDepreciationEntry: Boolean;
     begin
@@ -1876,7 +1876,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
         ShortcutDim1Code: Code[20];
         ShortcutDim2Code: Code[20];
@@ -1903,6 +1902,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not IsHandled then
                 FAJnlPostLine.GenJnlPostLine(
                     GenJnlLine, GLEntry2.Amount, GLEntry2."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            CreateAndPostDerogEntry(GenJnlLine);
             ShortcutDim1Code := GenJnlLine."Shortcut Dimension 1 Code";
             ShortcutDim2Code := GenJnlLine."Shortcut Dimension 2 Code";
             DimensionSetID := GenJnlLine."Dimension Set ID";
@@ -4157,7 +4157,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterOldCustLedgEntryModify(OldCustLedgEntry, GenJnlLine);
 
             IsHandled := false;
-            OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(TempOldCustLedgEntry, IsHandled);
+            OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(TempOldCustLedgEntry, IsHandled, GenJnlLine);
             if not IsHandled then
                 if GLSetup."Unrealized VAT" or
                    (GLSetup."Prepayment Unrealized VAT" and TempOldCustLedgEntry.Prepayment)
@@ -4235,7 +4235,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             UpdateCalcInterest(NewCVLedgEntryBuf);
 
         IsHandled := false;
-        OnApplyCustLedgEntryOnBeforeUnrealizedVAT(NewCVLedgEntryBuf, IsHandled);
+        OnApplyCustLedgEntryOnBeforeUnrealizedVAT(NewCVLedgEntryBuf, IsHandled, GenJnlLine);
         if not IsHandled then
             if GLSetup."Unrealized VAT" or
                (GLSetup."Prepayment Unrealized VAT" and NewCVLedgEntryBuf.Prepayment)
@@ -4787,16 +4787,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     LastConnectionNo := VATEntry2."Sales Tax Connection No.";
                 end;
 
-                VATPart :=
-                  VATEntry2.GetCustUnrealizedVATPart(
-                    Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
-                    PaidAmount,
-                    CustLedgEntry2."Amount (LCY)",
-                    TotalUnrealVATAmountFirst,
-                    TotalUnrealVATAmountLast,
-                    CustLedgEntry2,
-                    GenJnlLine,
-                    WHTAmount);
+                IsHandled := false;
+                OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2, VATPart, IsHandled);
+                if not IsHandled then
+                    VATPart :=
+                      VATEntry2.GetCustUnrealizedVATPart(
+                        Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                        PaidAmount,
+                        CustLedgEntry2."Amount (LCY)",
+                        TotalUnrealVATAmountFirst,
+                        TotalUnrealVATAmountLast,
+                        CustLedgEntry2,
+                        GenJnlLine,
+                        WHTAmount);
 
                 OnCustUnrealizedVATOnAfterVATPartCalculation(
                   GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2);
@@ -5029,7 +5032,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
 
             IsHandled := false;
-            OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(TempOldVendLedgEntry, IsHandled);
+            OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(TempOldVendLedgEntry, IsHandled, GenJnlLine);
             if not IsHandled then
                 if GLSetup."Unrealized VAT" or
                    (GLSetup."Prepayment Unrealized VAT" and TempOldVendLedgEntry.Prepayment)
@@ -6230,6 +6233,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         VendLedgEntry2.CalcFields("Amount (LCY)", "Original Amt. (LCY)");
         PaidAmount := -VendLedgEntry2."Amount (LCY)" + VendLedgEntry2."Remaining Amt. (LCY)";
+        OnVendUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine, VendLedgEntry2, SettledAmount, PaidAmount);
         if VATEntry2.FindSet() then
             repeat
                 VATPostingSetup.Get(VATEntry2."VAT Bus. Posting Group", VATEntry2."VAT Prod. Posting Group");
@@ -8697,6 +8701,40 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
 
         InsertGLEntry(GenJnlLine, GLEntry, true);
+    end;
+
+    /// <summary>
+    /// Posts the extra derogatory depreciation created when acquisition cost is depreciated.
+    /// FAJnlPostLine.PostDerogatoryCounterpart() copies the acquisition cost to the linked derogatory book.
+    /// This extra amount must be calculated because the acquisition line contains cost, not depreciation.
+    /// </summary>
+    /// <param name="SourceGenJournalLine">The acquisition-cost general journal line used to prepare the adjustment.</param>
+    local procedure CreateAndPostDerogEntry(SourceGenJournalLine: Record "Gen. Journal Line")
+    var
+        GenJnlLine: Record "Gen. Journal Line";
+        FAJnlLine: Record "FA Journal Line";
+        DerogFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        IntegrationGLDerogatory: Boolean;
+    begin
+        if not DerogatoryPostingMgt.PrepareAcquisitionCostAdjustment(
+             GenJnlLine, SourceGenJournalLine, IntegrationGLDerogatory)
+        then
+            exit;
+
+        // Post through the general journal so the adjustment creates G/L entries in the current transaction.
+        if IntegrationGLDerogatory then begin
+            FAJnlPostLine.GenJnlPostLineContinue(
+              GenJnlLine, GenJnlLine.Amount, GenJnlLine."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            DerogFALedgerEntry := FAJnlPostLine.GetLastSourceFALedgerEntry();
+            DerogFALedgerEntry.TestField("Entry No.");
+            DerogFALedgerEntry."Automatic Entry" := true;
+            FAJnlPostLine.InsertBalAcc(DerogFALedgerEntry);
+        end else begin
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(FAJnlLine, GenJnlLine, Enum::"Derogatory Posting Role"::Source);
+            FAJnlLine.Validate("Depreciation Book Code", SourceGenJournalLine."Depreciation Book Code");
+            FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+        end;
     end;
 
     [Scope('OnPrem')]
@@ -11684,12 +11722,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeUnrealizedVAT(CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean)
+    local procedure OnApplyCustLedgEntryOnBeforeUnrealizedVAT(CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -12344,7 +12382,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(VendLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(VendLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -12990,6 +13028,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCustUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnVendUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry2: Record "Vendor Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
     begin
     end;
 
@@ -13748,6 +13791,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnVendUnrealizedVATOnBeforeGetUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
     begin
     end;
 

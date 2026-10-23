@@ -18,6 +18,12 @@ pageextension 31305 "Job Journal CZ" extends "Job Journal"
                 ToolTip = 'Specifies the Statistic indication for Intrastat reporting purposes.';
                 Visible = false;
             }
+            field("Country/Reg. of Orig. Code CZ"; Rec."Country/Reg. of Orig. Code CZ")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
+                Visible = false;
+            }
         }
     }
 }
