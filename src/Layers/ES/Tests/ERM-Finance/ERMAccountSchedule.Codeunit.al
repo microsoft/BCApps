@@ -75,7 +75,6 @@ codeunit 134902 "ERM Account Schedule"
         AlreadyExistsFinRepErr: Label 'Financial report %1 will be overwritten.', Comment = '%1 - name of the financial report.';
         ColDefinitionAlreadyExistsErr: Label 'Column definition %1 will be overwritten.', Comment = '%1 - name of the column definition.';
         NoTablesAndErrorsMsg: Label '%1 tables are processed.\%2 errors found.\%3 records inserted.\%4 records modified.', Comment = '%1 = number of tables processed, %2 = number of errors, %3 = number of records inserted, %4 = number of records modified';
-        RoundingFormatTxt: Label '<Precision,2:2><Standard Format,0>', Locked = true;
         GLAccountFilterErr: Label 'G/L Account Filter should not be empty';
 
     [Test]
