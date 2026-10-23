@@ -11,7 +11,6 @@ using Microsoft.CostAccounting.Ledger;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.FixedAssets.Insurance;
@@ -1925,6 +1924,7 @@ page 344 Navigate
         ItemTrackingFilters.SetFilter("Package No. Filter", PackageNoFilter);
 
         OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(ItemTrackingFilters);
+        OnFindTrackingRecordsOnAfterSetTrackingFilters(ItemTrackingFilters);
 
         Clear(ItemTrackingNavigateMgt);
         ItemTrackingNavigateMgt.FindTrackingRecords(ItemTrackingFilters);
@@ -2390,6 +2390,11 @@ page 344 Navigate
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(var ItemTrackingFilters: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnFindTrackingRecordsOnAfterSetTrackingFilters(var ItemTrackingFilters: Record Item)
     begin
     end;
 
