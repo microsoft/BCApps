@@ -4134,6 +4134,15 @@
         AllocAccountDistribution.Insert();
     end;
 
+    local procedure SetJournalTemplNameMandatoryFalse()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Journal Templ. Name Mandatory" := false;
+        GeneralLedgerSetup.Modify();
+    end;
+
     local procedure GeneratePostingDate(var PostingDate: array[3] of Date)
     begin
         PostingDate[1] := WorkDate();
