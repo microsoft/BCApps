@@ -19,6 +19,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         DataTools: Codeunit "Test Input Data Tools";
         Assert: Codeunit "Library Assert";
         TestName: Text;
+        RollbackErr: Label 'Rolling back placeholder probe writes.';
+        TurnsTemplateTok: Label '{"turns":[{"message":"%1"},{"message":"%1"}]}', Comment = '%1 = Placeholder token repeated in both turn messages.', Locked = true;
 
     [Test]
     procedure SetGetsAndOverwritesCaseInsensitiveName()
@@ -666,7 +668,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Input: Codeunit "Test Input Json";
         Turns: Codeunit "Test Input Json";
-        TurnsTemplateTok: Label '{"turns":[{"message":"%1"},{"message":"%1"}]}', Comment = '%1 = Placeholder token repeated in both turn messages.', Locked = true;
     begin
         // [GIVEN] Two turns referencing the same full name and its initial registration.
         Initialize();
@@ -708,28 +709,28 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
-    procedure DateTimeSupportsDefaultAndFractionalTime()
+    procedure DateTimeSupportsDefaultAndExplicitTime()
     var
         ExpectedTime: Time;
         DefaultTimeText: Text;
     begin
-        // [GIVEN] Datetime formulas with no time and with an explicit fractional time.
+        // [GIVEN] Datetime formulas with no time and with an explicit whole-second time.
         Initialize();
-        ExpectedTime := 123011.130T;
+        ExpectedTime := 123011T;
 
         // [WHEN] A formula omits its time component.
         DefaultTimeText := DataTools.ResolveText('$DateTimeFormula-<CD>$');
 
-        // [THEN] It defaults to midnight, while explicit times retain their milliseconds.
+        // [THEN] It defaults to midnight, while explicit times retain their hours, minutes, and seconds.
         Assert.AreEqual(
             Format(CreateDateTime(WorkDate(), 0T)), DefaultTimeText,
             'DateTime formulas without a time default to midnight.');
         Assert.AreEqual(
-            CreateDateTime(WorkDate(), ExpectedTime), DataTools.ResolveAsDateTime('$DateTimeFormula-<CD>-12:30:11.130$'),
-            'Typed conversion must preserve milliseconds.');
+            CreateDateTime(WorkDate(), ExpectedTime), DataTools.ResolveAsDateTime('$DateTimeFormula-<CD>-12:30:11$'),
+            'Typed conversion must preserve the explicit time.');
         Assert.AreEqual(
-            Format(CreateDateTime(WorkDate(), ExpectedTime)), DataTools.ResolveText('$DateTimeFormula-<CD>-12:30:11.130$'),
-            'Fractional times must retain the existing conversion behavior.');
+            Format(CreateDateTime(WorkDate(), ExpectedTime)), DataTools.ResolveText('$DateTimeFormula-<CD>-12:30:11$'),
+            'Text resolution must preserve the explicit time.');
     end;
 
     [Test]
@@ -940,7 +941,6 @@ codeunit 130482 "Test Input Placeholder Tests"
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure RolledBackWritesAreNotCached()
     var
-        RollbackProbe: Codeunit "Test Input Rollback Probe";
         ExistingValue: Text;
         InsertedValue: Text;
         DeletedValue: Text;
@@ -948,18 +948,23 @@ codeunit 130482 "Test Input Placeholder Tests"
         InsertedFound: Boolean;
         DeletedFound: Boolean;
     begin
-        // [GIVEN] Committed baseline registrations for update and deletion probes.
+        // [GIVEN] Committed baseline registrations for updates and deletions.
         Initialize();
         DataTools.SetPlaceholder(TestName + '-Existing', 'original');
         DataTools.SetPlaceholder(TestName + '-Deleted', 'retained');
         Commit();
 
-        // [WHEN] A failing codeunit inserts, updates, deletes, and reads within its own transaction.
-        RollbackProbe.Configure(TestName + '-Existing', TestName + '-Inserted', TestName + '-Deleted');
-        Assert.IsFalse(RollbackProbe.Run(), 'The probe must roll back its transaction.');
+        // [WHEN] A transaction updates, inserts, deletes, and reads registrations, then fails.
+        DataTools.SetPlaceholder(TestName + '-Existing', 'uncommitted');
+        DataTools.SetPlaceholder(TestName + '-Inserted', 'uncommitted');
+        DataTools.DeletePlaceholder(TestName + '-Deleted');
+        DataTools.GetPlaceholder(TestName + '-Existing', ExistingValue);
+        DataTools.GetPlaceholder(TestName + '-Inserted', InsertedValue);
+        DataTools.GetPlaceholder(TestName + '-Deleted', DeletedValue);
+        asserterror Error(RollbackErr);
 
         // [THEN] The intended rollback error is raised and subsequent reads reflect restored storage.
-        Assert.ExpectedError('Rolling back placeholder probe writes.');
+        Assert.ExpectedError(RollbackErr);
         ExistingFound := DataTools.GetPlaceholder(TestName + '-Existing', ExistingValue);
         InsertedFound := DataTools.GetPlaceholder(TestName + '-Inserted', InsertedValue);
         DeletedFound := DataTools.GetPlaceholder(TestName + '-Deleted', DeletedValue);

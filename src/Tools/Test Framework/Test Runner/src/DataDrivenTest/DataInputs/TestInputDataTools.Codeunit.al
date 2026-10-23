@@ -21,6 +21,8 @@ codeunit 130465 "Test Input Data Tools"
     /// Reads the raw scalar without resolving an existing registration.
     /// Raises an error if the definition is not a complete named token with a valid name.
     /// </summary>
+    /// <param name="Definition">A raw scalar containing exactly one complete named-placeholder token.</param>
+    /// <returns>The validated bare name, preserving its authored casing.</returns>
     procedure GetPlaceholderName(Definition: Codeunit "Test Input Json"): Text
     begin
         exit(TestInputPlaceholderImpl.GetPlaceholderName(Definition));
@@ -30,6 +32,8 @@ codeunit 130465 "Test Input Data Tools"
     /// Reports whether text contains the named-placeholder marker, including incomplete references.
     /// Does not resolve text or look up registrations.
     /// </summary>
+    /// <param name="InputText">The text to inspect without resolving placeholders.</param>
+    /// <returns>True if the exact named-placeholder marker occurs, even in an incomplete token; otherwise false.</returns>
     procedure ContainsNamedPlaceholderMarker(InputText: Text): Boolean
     begin
         exit(TestInputPlaceholderImpl.ContainsNamedPlaceholderMarker(InputText));
@@ -38,6 +42,8 @@ codeunit 130465 "Test Input Data Tools"
     /// <summary>
     /// Inserts or replaces a value using its full name and the current company.
     /// </summary>
+    /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
+    /// <param name="Value">Literal replacement text. Complete supported placeholder tokens are not allowed.</param>
     procedure SetPlaceholder(Name: Text; Value: Text)
     begin
         TestInputPlaceholderImpl.SetPlaceholder(Name, Value);
@@ -47,6 +53,9 @@ codeunit 130465 "Test Input Data Tools"
     /// Inserts or replaces the exact full name and company key without committing.
     /// A blank company registers a shared fallback. Values must not contain supported placeholder tokens.
     /// </summary>
+    /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
+    /// <param name="Value">Literal replacement text. Complete supported placeholder tokens are not allowed.</param>
+    /// <param name="Company">A company key of at most 30 characters. Blank registers the shared fallback.</param>
     procedure SetPlaceholderForCompany(Name: Text; Value: Text; Company: Text)
     begin
         TestInputPlaceholderImpl.SetPlaceholderForCompany(Name, Value, Company);
@@ -56,6 +65,9 @@ codeunit 130465 "Test Input Data Tools"
     /// Gets a value using its full name and the current company, then the shared-company fallback.
     /// Returns false and clears Value when no registration exists.
     /// </summary>
+    /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
+    /// <param name="Value">The literal registered value, or an empty string when no registration exists.</param>
+    /// <returns>True if a current-company or shared registration exists, including one with an empty value; otherwise false.</returns>
     procedure GetPlaceholder(Name: Text; var Value: Text): Boolean
     begin
         exit(TestInputPlaceholderImpl.GetPlaceholder(Name, Value));
@@ -66,6 +78,10 @@ codeunit 130465 "Test Input Data Tools"
     /// An explicitly blank company reads only the shared row. An empty registered value is a match.
     /// Returns false and clears Value when no registration exists.
     /// </summary>
+    /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
+    /// <param name="Value">The literal registered value, or an empty string when no registration exists.</param>
+    /// <param name="Company">A company key of at most 30 characters. Blank reads only the shared registration.</param>
+    /// <returns>True if the requested company or its shared fallback has a registration, including an empty value; otherwise false.</returns>
     procedure GetPlaceholderForCompany(Name: Text; var Value: Text; Company: Text): Boolean
     begin
         exit(TestInputPlaceholderImpl.GetPlaceholderForCompany(Name, Value, Company));
@@ -74,6 +90,8 @@ codeunit 130465 "Test Input Data Tools"
     /// <summary>
     /// Deletes the exact full-name/current-company registration, without following shared fallback.
     /// </summary>
+    /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
+    /// <returns>True if the current-company registration was deleted; false if that exact key did not exist.</returns>
     procedure DeletePlaceholder(Name: Text): Boolean
     begin
         exit(TestInputPlaceholderImpl.DeletePlaceholder(Name));
@@ -83,6 +101,9 @@ codeunit 130465 "Test Input Data Tools"
     /// Deletes only the exact key. Blank company targets the shared row, not all companies.
     /// Returns false if that key does not exist.
     /// </summary>
+    /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
+    /// <param name="Company">A company key of at most 30 characters. Blank deletes only the shared registration.</param>
+    /// <returns>True if the exact registration was deleted; false if it did not exist. Shared fallback is never followed.</returns>
     procedure DeletePlaceholderForCompany(Name: Text; Company: Text): Boolean
     begin
         exit(TestInputPlaceholderImpl.DeletePlaceholderForCompany(Name, Company));

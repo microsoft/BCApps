@@ -57,7 +57,7 @@ codeunit 130466 "Test Input Placeholder Impl."
     /// </summary>
     procedure SetPlaceholder(Name: Text; Value: Text)
     begin
-        SetPlaceholderForCompany(Name, Value, CompanyName());
+        this.SetPlaceholderForCompany(Name, Value, CompanyName());
     end;
 
     /// <summary>

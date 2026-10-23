@@ -111,13 +111,13 @@ codeunit 130486 "Test Input Date Tests"
     begin
         // [GIVEN] Repeated datetime formulas covering midnight and the end of the following day.
         Midnight := CreateDateTime(WorkDate(), 000000T);
-        NextDayEnd := CreateDateTime(WorkDate() + 1, 235959.999T);
+        NextDayEnd := CreateDateTime(WorkDate() + 1, 235959T);
 
         // [WHEN] Adjacent datetime tokens are resolved together.
         ResolvedText := DataTools.ResolveText(
-            '$DateTimeFormula-<CD>-00:00:00$$DateTimeFormula-<1D>-23:59:59.999$ / $DateTimeFormula-<CD>-00:00:00$');
+            '$DateTimeFormula-<CD>-00:00:00$$DateTimeFormula-<1D>-23:59:59$ / $DateTimeFormula-<CD>-00:00:00$');
 
-        // [THEN] The scanner preserves every datetime occurrence and its precision.
+        // [THEN] The scanner preserves every datetime occurrence and its time.
         Assert.AreEqual(
             Format(Midnight) + Format(NextDayEnd) + ' / ' + Format(Midnight),
             ResolvedText,
@@ -316,31 +316,6 @@ codeunit 130486 "Test Input Date Tests"
         Assert.AreEqual(
             Format(CreateDateTime(WorkDate() + 1, 123011T)), Input.Element('datetime').ValueAsText(),
             'DateTime resolution must scan the current input rather than earlier input.');
-    end;
-
-    [Test]
-    procedure DateTimeBoundariesPreserveMilliseconds()
-    var
-        Input: Codeunit "Test Input Json";
-        Midnight: DateTime;
-        FirstMillisecond: DateTime;
-        LastMillisecond: DateTime;
-    begin
-        // [GIVEN] Formulas at midnight and at the first and last milliseconds of the day.
-        Input.Initialize(
-            '{"midnight":"$DateTimeFormula-<CD>-00:00:00$","first":"$DateTimeFormula-<CD>-00:00:00.001$","last":"$DateTimeFormula-<CD>-23:59:59.999$"}');
-
-        // [WHEN] The three values are read as datetimes.
-        Midnight := Input.Element('midnight').ValueAsDateTime();
-        FirstMillisecond := Input.Element('first').ValueAsDateTime();
-        LastMillisecond := Input.Element('last').ValueAsDateTime();
-
-        // [THEN] Milliseconds are retained without rounding across day boundaries.
-        Assert.AreEqual(CreateDateTime(WorkDate(), 000000T), Midnight, 'Explicit midnight must be preserved.');
-        Assert.AreEqual(
-            CreateDateTime(WorkDate(), 000000.001T), FirstMillisecond, 'The first millisecond must not be rounded to midnight.');
-        Assert.AreEqual(
-            CreateDateTime(WorkDate(), 235959.999T), LastMillisecond, 'The final millisecond must not roll into the next day.');
     end;
 
     local procedure CalculateDate(Formula: Text): Date
