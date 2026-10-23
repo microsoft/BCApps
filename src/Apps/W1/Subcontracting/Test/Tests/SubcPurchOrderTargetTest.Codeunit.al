@@ -4,11 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.TestLibraries.Utilities;
@@ -424,6 +430,198 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
     end;
 
     [Test]
+    procedure FailingLaterLineKeepsAppendedLineAndConsumedSuggestionCommittedWithOrdinaryOrder()
+    var
+        TargetHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TargetedLine: Record "Requisition Line";
+        OrdinaryLine: Record "Requisition Line";
+        BlockedLine: Record "Requisition Line";
+        OrdinaryItem: Record Item;
+        BlockedItem: Record Item;
+        OrdinaryVendor: Record Vendor;
+    begin
+        // [SCENARIO] A failing line after an ordinary order was finalized keeps the appended line and the consumed suggestion.
+        Initialize();
+
+        // [GIVEN] A targeted suggestion, an untargeted suggestion of a second vendor, and an untargeted suggestion of a third vendor whose item was blocked after the suggestion was created.
+        CreateTargetedAndBlockedSuggestions(TargetedLine, TargetHeader, BlockedLine, BlockedItem, OrdinaryVendor);
+        LibraryInventory.CreateItem(OrdinaryItem);
+        CreateSuggestion(OrdinaryLine, TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name", OrdinaryVendor."No.", OrdinaryItem."No.");
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] Carry Out runs and fails on the blocked item.
+        asserterror RunCarryOut(TargetedLine);
+
+        // [THEN] The error names the blocked item.
+        Assert.ExpectedTestFieldError(BlockedItem.FieldCaption(Blocked), Format(false));
+
+        // [THEN] The target holds exactly one line from the targeted suggestion, and that suggestion is gone.
+        VerifyTargetHoldsSingleLine(TargetHeader, TargetedLine."No.");
+        Assert.IsFalse(IsRequisitionLinePresent(TargetedLine), 'The appended suggestion must be consumed.');
+
+        // [THEN] The ordinary order exists and its suggestion is gone.
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Buy-from Vendor No.", OrdinaryVendor."No.");
+        PurchaseLine.SetRange("No.", OrdinaryItem."No.");
+        Assert.AreEqual(1, PurchaseLine.Count(), 'The ordinary suggestion must create its own order.');
+        Assert.IsFalse(IsRequisitionLinePresent(OrdinaryLine), 'The ordinary suggestion must be consumed.');
+
+        // [THEN] The failing suggestion remains and has no order.
+        BlockedLine.SetLoadFields("Vendor No.");
+        Assert.IsTrue(BlockedLine.Get(BlockedLine."Worksheet Template Name", BlockedLine."Journal Batch Name", BlockedLine."Line No."),
+            'The failing suggestion must remain.');
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", BlockedLine."Vendor No.");
+        Assert.IsTrue(PurchaseHeader.IsEmpty(), 'The failing suggestion must not create an order.');
+    end;
+
+    [Test]
+    procedure RetryAfterFailingLaterLineDoesNotAppendTargetedLineTwice()
+    var
+        TargetHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TargetedLine: Record "Requisition Line";
+        OrdinaryLine: Record "Requisition Line";
+        BlockedLine: Record "Requisition Line";
+        OrdinaryItem: Record Item;
+        BlockedItem: Record Item;
+        OrdinaryVendor: Record Vendor;
+    begin
+        // [SCENARIO] Retrying Carry Out after a failure on a later line never appends the targeted line twice.
+        Initialize();
+
+        // [GIVEN] A batch whose Carry Out failed on a blocked item after the targeted line was appended and an ordinary order was finalized.
+        CreateTargetedAndBlockedSuggestions(TargetedLine, TargetHeader, BlockedLine, BlockedItem, OrdinaryVendor);
+        LibraryInventory.CreateItem(OrdinaryItem);
+        CreateSuggestion(OrdinaryLine, TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name", OrdinaryVendor."No.", OrdinaryItem."No.");
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+        asserterror RunCarryOut(TargetedLine);
+        Assert.ExpectedTestFieldError(BlockedItem.FieldCaption(Blocked), Format(false));
+
+        // [GIVEN] The item is unblocked.
+        BlockedItem.Get(BlockedItem."No.");
+        BlockedItem.Validate(Blocked, false);
+        BlockedItem.Modify(true);
+
+        // [WHEN] Carry Out runs again for the batch.
+        RunCarryOut(BlockedLine);
+
+        // [THEN] The target still holds a single line from the targeted suggestion.
+        VerifyTargetHoldsSingleLine(TargetHeader, TargetedLine."No.");
+
+        // [THEN] The previously failing suggestion creates its own order and is consumed.
+        PurchaseLine.SetCurrentKey("Document Type", Type, "No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", BlockedItem."No.");
+        Assert.AreEqual(1, PurchaseLine.Count(), 'The previously failing suggestion must create exactly one line.');
+        PurchaseLine.SetLoadFields("Document No.");
+        PurchaseLine.FindFirst();
+        Assert.AreNotEqual(TargetHeader."No.", PurchaseLine."Document No.", 'The previously failing suggestion must not use the target.');
+        PurchaseHeader.SetLoadFields("Buy-from Vendor No.");
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        Assert.AreEqual(BlockedLine."Vendor No.", PurchaseHeader."Buy-from Vendor No.", 'The new order must belong to the line''s vendor.');
+        Assert.IsFalse(IsRequisitionLinePresent(BlockedLine), 'The previously failing suggestion must be consumed.');
+    end;
+
+    [Test]
+    procedure FailingLaterLineWithoutFinalizedOrderRollsBackAppendAndConsumption()
+    var
+        TargetHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TargetedLine: Record "Requisition Line";
+        BlockedLine: Record "Requisition Line";
+        BlockedItem: Record Item;
+        UnusedVendor: Record Vendor;
+    begin
+        // [SCENARIO] A failing line with no ordinary order finalized before it rolls back both the append and the consumption.
+        Initialize();
+
+        // [GIVEN] A targeted suggestion and an untargeted suggestion of another vendor whose item was blocked after the suggestion was created.
+        CreateTargetedAndBlockedSuggestions(TargetedLine, TargetHeader, BlockedLine, BlockedItem, UnusedVendor);
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] Carry Out runs and fails on the blocked item.
+        asserterror RunCarryOut(TargetedLine);
+
+        // [THEN] The error names the blocked item.
+        Assert.ExpectedTestFieldError(BlockedItem.FieldCaption(Blocked), Format(false));
+
+        // [THEN] The target has no line and the targeted suggestion remains with its target.
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", TargetHeader."No.");
+        Assert.IsTrue(PurchaseLine.IsEmpty(), 'The append must be rolled back.');
+        TargetedLine.SetLoadFields("Ref. Order No.");
+        Assert.IsTrue(TargetedLine.Get(TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name", TargetedLine."Line No."),
+            'The consumption must be rolled back.');
+        Assert.AreEqual(TargetHeader."No.", TargetedLine."Ref. Order No.", 'The target assignment must remain.');
+
+        // [THEN] The failing suggestion remains and has no order.
+        BlockedLine.SetLoadFields("Vendor No.");
+        Assert.IsTrue(BlockedLine.Get(BlockedLine."Worksheet Template Name", BlockedLine."Journal Batch Name", BlockedLine."Line No."),
+            'The failing suggestion must remain.');
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", BlockedLine."Vendor No.");
+        Assert.IsTrue(PurchaseHeader.IsEmpty(), 'The failing suggestion must not create an order.');
+    end;
+
+    [Test]
+    procedure HandledBeforeDeleteEventKeepsTargetedSuggestionLikeOrdinaryOne()
+    var
+        TargetHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TargetedLine: Record "Requisition Line";
+        OrdinaryLine: Record "Requisition Line";
+        TargetedItem: Record Item;
+        OrdinaryItem: Record Item;
+        TargetVendor: Record Vendor;
+        OrdinaryVendor: Record Vendor;
+        UnusedVendor: Record Vendor;
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcKeepCarriedOutReqLine: Codeunit "Subc. Keep Carried Out ReqLine";
+    begin
+        // [SCENARIO] A subscriber that handles the before-delete event for carried-out suggestions keeps a targeted suggestion as it keeps an ordinary one.
+        Initialize();
+
+        // [GIVEN] A targeted suggestion processed first and an untargeted suggestion of the next vendor.
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CreateVendorsInProcessingOrder(TargetVendor, OrdinaryVendor, UnusedVendor);
+        LibraryInventory.CreateItem(TargetedItem);
+        LibraryInventory.CreateItem(OrdinaryItem);
+        CreateOpenOrder(TargetHeader, TargetVendor."No.");
+        CreateSuggestion(TargetedLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, TargetVendor."No.", TargetedItem."No.");
+        TargetedLine."Ref. Order No." := TargetHeader."No.";
+        TargetedLine.Modify(true);
+        CreateSuggestion(OrdinaryLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, OrdinaryVendor."No.", OrdinaryItem."No.");
+
+        // [WHEN] Carry Out runs with a manually bound subscriber that sets IsHandled on the before-delete events.
+        BindSubscription(SubcKeepCarriedOutReqLine);
+        RunCarryOut(TargetedLine);
+        UnbindSubscription(SubcKeepCarriedOutReqLine);
+
+        // [THEN] The targeted suggestion is appended, passed to the before-delete event, and kept.
+        VerifyTargetHoldsSingleLine(TargetHeader, TargetedItem."No.");
+        Assert.IsTrue(SubcKeepCarriedOutReqLine.WasKept(TargetedLine), 'The before-delete event must be raised for the targeted suggestion.');
+        Assert.IsTrue(IsRequisitionLinePresent(TargetedLine), 'The handled targeted suggestion must be kept.');
+
+        // [THEN] The ordinary suggestion creates its order, is passed to the same event, and is kept as well.
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Buy-from Vendor No.", OrdinaryVendor."No.");
+        PurchaseLine.SetRange("No.", OrdinaryItem."No.");
+        Assert.AreEqual(1, PurchaseLine.Count(), 'The ordinary suggestion must create its own order.');
+        Assert.IsTrue(SubcKeepCarriedOutReqLine.WasKept(OrdinaryLine), 'The before-delete event must be raised for the ordinary suggestion.');
+        Assert.IsTrue(IsRequisitionLinePresent(OrdinaryLine), 'The handled ordinary suggestion must be kept.');
+    end;
+
+    [Test]
     [HandlerFunctions('SelectPurchaseOrderHandler')]
     procedure AssignStoresNewPurchaseReferenceWithoutRequiringAcceptance()
     var
@@ -672,6 +870,405 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure UnassignedSuggestionKeepsProductionDimensionAfterVendorChangeAndCarryOut()
+    var
+        DimensionValue: Record "Dimension Value";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] A suggestion without an assigned order keeps the production-only dimension after its vendor is changed and changed back.
+        InitializeProduction();
+
+        // [GIVEN] A calculated suggestion for a released production order line with a dimension that no default dimension provides.
+        CreateCalculatedSuggestionWithProductionDimension(RequisitionLine, ProductionOrder, DimensionValue);
+
+        // [GIVEN] The vendor is changed and changed back, which rebuilds the dimensions from the defaults.
+        SubcontractingMgmtLibrary.ChangeVendorAndBack(RequisitionLine);
+
+        // [WHEN] Carry Out runs without an assigned order.
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The purchase line of the new order carries the production dimension.
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, RequisitionLine."No.", ProductionOrder."No.");
+        VerifyDimensionValueInSet(PurchaseLine."Dimension Set ID", DimensionValue);
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectPurchaseOrderHandler')]
+    procedure AssignedSuggestionKeepsProductionDimensionAfterVendorChange()
+    var
+        DimensionValue: Record "Dimension Value";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] A suggestion with an assigned order keeps the production-only dimension after its vendor is changed and changed back.
+        InitializeProduction();
+
+        // [GIVEN] A calculated suggestion for a released production order line with a dimension that no default dimension provides.
+        CreateCalculatedSuggestionWithProductionDimension(RequisitionLine, ProductionOrder, DimensionValue);
+
+        // [GIVEN] An open order of the suggestion's vendor is assigned.
+        CreateOpenOrder(PurchaseHeader, RequisitionLine."Vendor No.");
+        LibraryVariableStorage.Enqueue(PurchaseHeader."No.");
+        RequisitionLine.AssignPurchaseOrderTarget();
+
+        // [WHEN] The vendor is changed and changed back, which rebuilds the dimensions from the defaults.
+        SubcontractingMgmtLibrary.ChangeVendorAndBack(RequisitionLine);
+
+        // [THEN] The worksheet line keeps its assignment and still carries the production dimension.
+        RequisitionLine.SetLoadFields("Ref. Order No.", "Dimension Set ID");
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        Assert.AreEqual(PurchaseHeader."No.", RequisitionLine."Ref. Order No.", 'The assignment must remain.');
+        VerifyDimensionValueInSet(RequisitionLine."Dimension Set ID", DimensionValue);
+
+        // [THEN] SelectPurchaseOrderHandler selected the enqueued order in the purchase order lookup of the assignment and consumed it.
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectPurchaseOrderHandler')]
+    procedure SuggestionsOfTwoProductionOrdersConsolidateIntoOneExistingOrder()
+    var
+        FirstDimensionValue: Record "Dimension Value";
+        SecondDimensionValue: Record "Dimension Value";
+        FirstItem: Record Item;
+        SecondItem: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        FirstProductionOrder: Record "Production Order";
+        SecondProductionOrder: Record "Production Order";
+        HeaderBefore: Record "Purchase Header";
+        TargetHeader: Record "Purchase Header";
+        FirstPurchaseLine: Record "Purchase Line";
+        SecondPurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        FirstSuggestion: Record "Requisition Line";
+        SecondSuggestion: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+        FirstDirectUnitCost: Decimal;
+        SecondDirectUnitCost: Decimal;
+    begin
+        // [SCENARIO] Suggestions of two real released production orders, assigned to one existing open order, are appended to it by Carry Out.
+        InitializeProduction();
+
+        // [GIVEN] A subcontracting work center and two production items, each with a subcontractor price and a vendor-supplied component linked to the subcontracting operation.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true, "Unit Cost Calculation Type"::Units);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateSubcontractedItemWithPrice(FirstItem, WorkCenter, MachineCenter, FirstDirectUnitCost);
+        CreateSubcontractedItemWithPrice(SecondItem, WorkCenter, MachineCenter, SecondDirectUnitCost);
+
+        // [GIVEN] A released production order per item whose line carries a dimension that no default dimension provides.
+        CreateReleasedProdOrderWithProductionDimension(FirstProductionOrder, FirstItem, FirstDimensionValue);
+        CreateReleasedProdOrderWithProductionDimension(SecondProductionOrder, SecondItem, SecondDimensionValue);
+
+        // [GIVEN] Subcontracts are calculated for the subcontracting work center.
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontracts(RequisitionWkshName, WorkCenter[2]."No.");
+        FindSuggestion(FirstSuggestion, RequisitionWkshName, FirstProductionOrder."No.");
+        FindSuggestion(SecondSuggestion, RequisitionWkshName, SecondProductionOrder."No.");
+
+        // [GIVEN] An existing open order of the subcontractor with a reference on its header.
+        CreateOpenOrder(TargetHeader, FirstSuggestion."Vendor No.");
+        TargetHeader.Validate("Your Reference", LibraryUtility.GenerateGUID());
+        TargetHeader.Modify(true);
+        LoadComparedHeaderFields(HeaderBefore);
+        HeaderBefore.Get(TargetHeader."Document Type", TargetHeader."No.");
+
+        // [GIVEN] The first suggestion's vendor is changed and changed back before it is assigned to the order.
+        SubcontractingMgmtLibrary.ChangeVendorAndBack(FirstSuggestion);
+        AssignPurchaseOrder(FirstSuggestion, TargetHeader."No.");
+
+        // [GIVEN] The second suggestion is assigned to the order before its vendor is changed and changed back.
+        AssignPurchaseOrder(SecondSuggestion, TargetHeader."No.");
+        SubcontractingMgmtLibrary.ChangeVendorAndBack(SecondSuggestion);
+
+        // [WHEN] Carry Out runs for the worksheet.
+        RunCarryOut(FirstSuggestion);
+
+        // [THEN] The order holds one appended line per suggestion with its own production order, line, routing and operation.
+        FindAppendedSubcontractingLine(FirstPurchaseLine, TargetHeader, FirstSuggestion);
+        FindAppendedSubcontractingLine(SecondPurchaseLine, TargetHeader, SecondSuggestion);
+        Assert.AreNotEqual(FirstPurchaseLine."Prod. Order No.", SecondPurchaseLine."Prod. Order No.", 'Each line must reference its own production order.');
+        Assert.AreNotEqual(FirstPurchaseLine."Routing No.", SecondPurchaseLine."Routing No.", 'Each line must reference its own routing.');
+
+        // [THEN] Both lines carry their production dimension and the subcontractor price.
+        VerifyDimensionValueInSet(FirstPurchaseLine."Dimension Set ID", FirstDimensionValue);
+        VerifyDimensionValueInSet(SecondPurchaseLine."Dimension Set ID", SecondDimensionValue);
+        Assert.AreEqual(FirstDirectUnitCost, FirstPurchaseLine."Direct Unit Cost", 'The first line must use the subcontractor price.');
+        Assert.AreEqual(SecondDirectUnitCost, SecondPurchaseLine."Direct Unit Cost", 'The second line must use the subcontractor price.');
+
+        // [THEN] The vendor-supplied component of each production order is added to the order, as on a new order.
+        VerifyVendorSuppliedComponentLine(TargetHeader."No.", FirstItem."Production BOM No.", FirstSuggestion);
+        VerifyVendorSuppliedComponentLine(TargetHeader."No.", SecondItem."Production BOM No.", SecondSuggestion);
+
+        // [THEN] The header is unchanged and both suggestions are consumed.
+        VerifyHeaderUnchanged(HeaderBefore);
+        Assert.IsFalse(IsRequisitionLinePresent(FirstSuggestion), 'The first suggestion must be consumed.');
+        Assert.IsFalse(IsRequisitionLinePresent(SecondSuggestion), 'The second suggestion must be consumed.');
+
+        // [THEN] SelectPurchaseOrderHandler selected each enqueued order in the purchase order lookup of its assignment and consumed it.
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectPurchaseOrderHandler')]
+    procedure AssignOnRecurringTemplateIsRejected()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        // [SCENARIO] A purchase order can't be assigned to a suggestion on a recurring worksheet template.
+        Initialize();
+
+        // [GIVEN] An assignable suggestion on a recurring template and a compatible open order.
+        CreateRecurringBatch(RequisitionWkshName);
+        CreateAssignableSuggestionInBatch(RequisitionLine, PurchaseHeader, RequisitionWkshName);
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] The order is assigned; the handler selects it in the lookup.
+        LibraryVariableStorage.Enqueue(PurchaseHeader."No.");
+        asserterror RequisitionLine.AssignPurchaseOrderTarget();
+
+        // [THEN] The assignment is rejected with an error naming the worksheet line, the order and the recurring template.
+        Assert.ExpectedError(StrSubstNo(TargetErr, RequisitionLine."Line No.", RequisitionLine."Worksheet Template Name",
+            RequisitionLine."Journal Batch Name", PurchaseHeader."No.", 'the worksheet template is recurring'));
+        RequisitionLine.SetLoadFields("Ref. Order No.");
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        Assert.AreEqual('', RequisitionLine."Ref. Order No.", 'The rejected order must not be stored on the line.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure TargetOnRecurringTemplateBlocksCarryOutBeforeChangingOrders()
+    var
+        Item: Record Item;
+        NewOrderVendor: Record Vendor;
+        TargetVendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        TargetHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        TargetedLine: Record "Requisition Line";
+        UntargetedLine: Record "Requisition Line";
+        TargetHeaderModifiedAt: DateTime;
+    begin
+        // [SCENARIO] An accepted line on a recurring template whose target is set by code stops Carry Out in its pre-run check.
+        Initialize();
+
+        // [GIVEN] A recurring batch whose first accepted line, of its own vendor, would create a new order.
+        CreateRecurringBatch(RequisitionWkshName);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(NewOrderVendor);
+        CreateRecurringSuggestion(UntargetedLine, RequisitionWkshName, NewOrderVendor."No.", Item."No.");
+
+        // [GIVEN] A following accepted line whose target is set by code.
+        LibraryPurchase.CreateVendor(TargetVendor);
+        CreateOpenOrder(TargetHeader, TargetVendor."No.");
+        TargetHeader.SetLoadFields(SystemModifiedAt);
+        TargetHeader.Get(TargetHeader."Document Type", TargetHeader."No.");
+        TargetHeaderModifiedAt := TargetHeader.SystemModifiedAt;
+        CreateRecurringSuggestion(TargetedLine, RequisitionWkshName, TargetVendor."No.", Item."No.");
+        TargetedLine."Ref. Order No." := TargetHeader."No.";
+        TargetedLine.Modify(true);
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] Carry Out runs for the recurring batch.
+        asserterror RunRecurringCarryOut(UntargetedLine);
+
+        // [THEN] The pre-run check names the targeted line, the order and the recurring template.
+        Assert.ExpectedError(StrSubstNo(TargetErr, TargetedLine."Line No.", TargetedLine."Worksheet Template Name",
+            TargetedLine."Journal Batch Name", TargetHeader."No.", 'the worksheet template is recurring'));
+
+        // [THEN] No purchase order or line is created or changed.
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", NewOrderVendor."No.");
+        Assert.IsTrue(PurchaseHeader.IsEmpty(), 'The untargeted line must not create an order.');
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", TargetHeader."No.");
+        Assert.IsTrue(PurchaseLine.IsEmpty(), 'The target must not receive a line.');
+        TargetHeader.Get(TargetHeader."Document Type", TargetHeader."No.");
+        Assert.AreEqual(TargetHeaderModifiedAt, TargetHeader.SystemModifiedAt, 'The target header must not change.');
+
+        // [THEN] Both worksheet lines and the target remain.
+        Assert.IsTrue(IsRequisitionLinePresent(UntargetedLine), 'The untargeted suggestion must remain.');
+        TargetedLine.SetLoadFields("Ref. Order No.");
+        Assert.IsTrue(TargetedLine.Get(TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name", TargetedLine."Line No."),
+            'The targeted suggestion must remain.');
+        Assert.AreEqual(TargetHeader."No.", TargetedLine."Ref. Order No.", 'The target assignment must remain visible.');
+    end;
+
+    local procedure CreateCalculatedSuggestionWithProductionDimension(var RequisitionLine: Record "Requisition Line"; var ProductionOrder: Record "Production Order"; var DimensionValue: Record "Dimension Value")
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: Record "Work Center";
+    begin
+        SubcontractingMgmtLibrary.CreateReleasedProdOrderWithSubcontractingOperation(ProductionOrder, WorkCenter);
+        SubcontractingMgmtLibrary.AddNewDimensionToProdOrderLines(ProductionOrder, DimensionValue);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        Assert.AreEqual(RequisitionLine."Action Message"::New, RequisitionLine."Action Message", 'The suggestion must be New.');
+        Assert.AreEqual(RequisitionLine."Ref. Order Type"::Purchase, RequisitionLine."Ref. Order Type", 'The suggestion must use a Purchase reference.');
+        VerifyDimensionValueInSet(RequisitionLine."Dimension Set ID", DimensionValue);
+    end;
+
+    local procedure VerifyDimensionValueInSet(DimensionSetID: Integer; DimensionValue: Record "Dimension Value")
+    var
+        DimensionSetEntry: Record "Dimension Set Entry";
+    begin
+        DimensionSetEntry.SetLoadFields("Dimension Value Code");
+        Assert.IsTrue(DimensionSetEntry.Get(DimensionSetID, DimensionValue."Dimension Code"), 'The production dimension must be in the dimension set.');
+        Assert.AreEqual(DimensionValue.Code, DimensionSetEntry."Dimension Value Code", 'The production dimension value must be kept.');
+    end;
+
+    local procedure CreateSubcontractedItemWithPrice(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; var DirectUnitCost: Decimal)
+    var
+        SubcontractorPrice: Record "Subcontractor Price";
+    begin
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+
+        DirectUnitCost := LibraryRandom.RandIntInRange(10, 100);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter[2]."No.", WorkCenter[2]."Subcontractor No.", Item."No.", '', '',
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", DirectUnitCost);
+        SubcontractorPrice.Modify(true);
+    end;
+
+    local procedure CreateReleasedProdOrderWithProductionDimension(var ProductionOrder: Record "Production Order"; Item: Record Item; var DimensionValue: Record "Dimension Value")
+    begin
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(2, 10));
+        SubcontractingMgmtLibrary.AddNewDimensionToProdOrderLines(ProductionOrder, DimensionValue);
+    end;
+
+    local procedure FindSuggestion(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20])
+    begin
+        SubcontractingMgmtLibrary.FindRequisitionLineForProdOrder(RequisitionWkshName, ProdOrderNo, RequisitionLine);
+        Assert.AreEqual(1, RequisitionLine.Count(), 'Each production order must produce exactly one suggestion.');
+        RequisitionLine.Reset();
+        Assert.AreEqual(RequisitionLine."Action Message"::New, RequisitionLine."Action Message", 'The suggestion must be New.');
+    end;
+
+    local procedure AssignPurchaseOrder(var RequisitionLine: Record "Requisition Line"; PurchaseOrderNo: Code[20])
+    begin
+        LibraryVariableStorage.Enqueue(PurchaseOrderNo);
+        RequisitionLine.AssignPurchaseOrderTarget();
+        Assert.AreEqual(PurchaseOrderNo, RequisitionLine."Ref. Order No.", 'The order must be assigned.');
+    end;
+
+    local procedure FindAppendedSubcontractingLine(var PurchaseLine: Record "Purchase Line"; TargetHeader: Record "Purchase Header"; RequisitionLine: Record "Requisition Line")
+    begin
+        PurchaseLine.SetCurrentKey("Document Type", "Document No.");
+        PurchaseLine.SetRange("Document Type", TargetHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", TargetHeader."No.");
+        PurchaseLine.SetRange("Prod. Order No.", RequisitionLine."Prod. Order No.");
+        Assert.AreEqual(1, PurchaseLine.Count(), 'The order must receive exactly one subcontracting line per suggestion.');
+        PurchaseLine.SetLoadFields("No.", "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.", "Dimension Set ID", "Direct Unit Cost");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(RequisitionLine."No.", PurchaseLine."No.", 'The line must purchase the item of its production order.');
+        Assert.AreEqual(RequisitionLine."Prod. Order Line No.", PurchaseLine."Prod. Order Line No.", 'The line must keep its production order line.');
+        Assert.AreEqual(RequisitionLine."Routing No.", PurchaseLine."Routing No.", 'The line must keep its routing.');
+        Assert.AreEqual(RequisitionLine."Operation No.", PurchaseLine."Operation No.", 'The line must keep its operation.');
+    end;
+
+    local procedure VerifyVendorSuppliedComponentLine(PurchaseOrderNo: Code[20]; ProductionBOMNo: Code[20]; RequisitionLine: Record "Requisition Line")
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        ProductionBOMLine.SetLoadFields("No.", "Component Supply Method");
+        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMNo);
+        ProductionBOMLine.FindLast();
+        Assert.AreEqual("Component Supply Method"::"Vendor-Supplied", ProductionBOMLine."Component Supply Method", 'The last BOM line must be vendor-supplied.');
+
+        ProdOrderComponent.SetCurrentKey(Status, "Prod. Order No.", "Prod. Order Line No.", "Item No.");
+        ProdOrderComponent.SetLoadFields("Remaining Quantity", "Component Supply Method");
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", RequisitionLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
+        ProdOrderComponent.SetRange("Item No.", ProductionBOMLine."No.");
+        ProdOrderComponent.FindFirst();
+        Assert.AreEqual("Component Supply Method"::"Vendor-Supplied", ProdOrderComponent."Component Supply Method", 'The component must be vendor-supplied.');
+
+        SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLine, PurchaseOrderNo, ProductionBOMLine."No.");
+        PurchaseLine.SetCurrentKey("Document Type", "Document No.", Type, "No.");
+        Assert.AreEqual(1, PurchaseLine.Count(), 'The vendor-supplied component must be added to the order once.');
+        PurchaseLine.SetLoadFields(Quantity, "Subc. Prod. Order No.", "Subc. Operation No.");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(RequisitionLine."Prod. Order No.", PurchaseLine."Subc. Prod. Order No.", 'The component line must reference the production order of its suggestion.');
+        Assert.AreEqual(RequisitionLine."Operation No.", PurchaseLine."Subc. Operation No.", 'The component line must reference the operation of its suggestion.');
+        Assert.AreEqual(ProdOrderComponent."Remaining Quantity", PurchaseLine.Quantity, 'The component line must cover the remaining component quantity.');
+    end;
+
+    local procedure LoadComparedHeaderFields(var PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.SetLoadFields(
+            "Buy-from Vendor No.", "Pay-to Vendor No.", "Currency Code", "Order Date", "Posting Date", "Expected Receipt Date",
+            "Location Code", "Ship-to Code", "Your Reference", "Dimension Set ID", Status);
+    end;
+
+    local procedure IsRequisitionLinePresent(RequisitionLine: Record "Requisition Line"): Boolean
+    var
+        ExistingRequisitionLine: Record "Requisition Line";
+    begin
+        ExistingRequisitionLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        ExistingRequisitionLine.SetRange("Journal Batch Name", RequisitionLine."Journal Batch Name");
+        ExistingRequisitionLine.SetRange("Line No.", RequisitionLine."Line No.");
+        exit(not ExistingRequisitionLine.IsEmpty());
+    end;
+
+    local procedure VerifyHeaderUnchanged(HeaderBefore: Record "Purchase Header")
+    var
+        HeaderAfter: Record "Purchase Header";
+    begin
+        LoadComparedHeaderFields(HeaderAfter);
+        HeaderAfter.Get(HeaderBefore."Document Type", HeaderBefore."No.");
+        Assert.AreEqual(HeaderBefore."Buy-from Vendor No.", HeaderAfter."Buy-from Vendor No.", 'Vendor must not change.');
+        Assert.AreEqual(HeaderBefore."Pay-to Vendor No.", HeaderAfter."Pay-to Vendor No.", 'Pay-to vendor must not change.');
+        Assert.AreEqual(HeaderBefore."Currency Code", HeaderAfter."Currency Code", 'Currency must not change.');
+        Assert.AreEqual(HeaderBefore."Order Date", HeaderAfter."Order Date", 'Order date must not change.');
+        Assert.AreEqual(HeaderBefore."Posting Date", HeaderAfter."Posting Date", 'Posting date must not change.');
+        Assert.AreEqual(HeaderBefore."Expected Receipt Date", HeaderAfter."Expected Receipt Date", 'Receipt date must not change.');
+        Assert.AreEqual(HeaderBefore."Location Code", HeaderAfter."Location Code", 'Location must not change.');
+        Assert.AreEqual(HeaderBefore."Ship-to Code", HeaderAfter."Ship-to Code", 'Ship-to code must not change.');
+        Assert.AreEqual(HeaderBefore."Your Reference", HeaderAfter."Your Reference", 'Reference must not change.');
+        Assert.AreEqual(HeaderBefore."Dimension Set ID", HeaderAfter."Dimension Set ID", 'Header dimensions must not change.');
+        Assert.AreEqual(HeaderBefore.Status, HeaderAfter.Status, 'Status must not change.');
+    end;
+
+    local procedure InitializeProduction()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. PurchOrderTargetTest");
+        LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
+        SubcontractingMgmtLibrary.Initialize();
+        SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+        LibraryMfgManagement.Initialize();
+
+        if IsProductionInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. PurchOrderTargetTest");
+
+        SubSetupLibrary.InitSetupFields();
+        LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+
+        IsProductionInitialized := true;
+        Commit();
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. PurchOrderTargetTest");
+    end;
+
     local procedure CreateTargetedSuggestion(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header")
     var
         Item: Record Item;
@@ -707,6 +1304,59 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         LibraryVariableStorage.Clear();
     end;
 
+    local procedure CreateTargetedAndBlockedSuggestions(var TargetedLine: Record "Requisition Line"; var TargetHeader: Record "Purchase Header"; var BlockedLine: Record "Requisition Line"; var BlockedItem: Record Item; var MiddleVendor: Record Vendor)
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        TargetedItem: Record Item;
+        TargetVendor: Record Vendor;
+        BlockedVendor: Record Vendor;
+    begin
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CreateVendorsInProcessingOrder(TargetVendor, MiddleVendor, BlockedVendor);
+        LibraryInventory.CreateItem(TargetedItem);
+        CreateOpenOrder(TargetHeader, TargetVendor."No.");
+        CreateSuggestion(TargetedLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, TargetVendor."No.", TargetedItem."No.");
+        TargetedLine."Ref. Order No." := TargetHeader."No.";
+        TargetedLine.Modify(true);
+        LibraryInventory.CreateItem(BlockedItem);
+        CreateSuggestion(BlockedLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, BlockedVendor."No.", BlockedItem."No.");
+        BlockedItem.Validate(Blocked, true);
+        BlockedItem.Modify(true);
+    end;
+
+    local procedure CreateVendorsInProcessingOrder(var FirstVendor: Record Vendor; var SecondVendor: Record Vendor; var ThirdVendor: Record Vendor)
+    begin
+        LibraryPurchase.CreateVendor(FirstVendor);
+        LibraryPurchase.CreateVendor(SecondVendor);
+        LibraryPurchase.CreateVendor(ThirdVendor);
+        SortVendorPair(FirstVendor, SecondVendor);
+        SortVendorPair(SecondVendor, ThirdVendor);
+        SortVendorPair(FirstVendor, SecondVendor);
+    end;
+
+    local procedure SortVendorPair(var LowerVendor: Record Vendor; var HigherVendor: Record Vendor)
+    var
+        Vendor: Record Vendor;
+    begin
+        if LowerVendor."No." < HigherVendor."No." then
+            exit;
+        Vendor := LowerVendor;
+        LowerVendor := HigherVendor;
+        HigherVendor := Vendor;
+    end;
+
+    local procedure VerifyTargetHoldsSingleLine(TargetHeader: Record "Purchase Header"; ItemNo: Code[20])
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", TargetHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", TargetHeader."No.");
+        Assert.AreEqual(1, PurchaseLine.Count(), 'The target must hold exactly one appended line.');
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(ItemNo, PurchaseLine."No.", 'The appended line must come from the targeted suggestion.');
+    end;
+
     local procedure CreateOpenOrder(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20])
     begin
         Clear(PurchaseHeader);
@@ -715,20 +1365,50 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
 
     local procedure CreateAssignableSuggestion(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header")
     var
-        Item: Record Item;
-        Vendor: Record Vendor;
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CreateAssignableSuggestionInBatch(RequisitionLine, PurchaseHeader, RequisitionWkshName);
+    end;
+
+    local procedure CreateAssignableSuggestionInBatch(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+    begin
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         CreateOpenOrder(PurchaseHeader, Vendor."No.");
-        CreateSuggestion(RequisitionLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, Vendor."No.", Item."No.");
+        CreateSuggestion(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, Vendor."No.", Item."No.");
         RequisitionLine."Prod. Order No." := 'PRODTGT';
         RequisitionLine."Prod. Order Line No." := 10000;
         RequisitionLine."Operation No." := '10';
         RequisitionLine.Modify();
+    end;
+
+    local procedure CreateRecurringBatch(var RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        LibraryMfgManagement.CreateReqWkshTemplate(ReqWkshTemplate, true);
+        LibraryMfgManagement.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+    end;
+
+    local procedure CreateRecurringSuggestion(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; VendorNo: Code[20]; ItemNo: Code[20])
+    begin
+        CreateSuggestion(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, VendorNo, ItemNo);
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine."Recurring Method" := RequisitionLine."Recurring Method"::Fixed;
+        Evaluate(RequisitionLine."Recurring Frequency", '<1M>');
+        RequisitionLine.Modify(true);
+    end;
+
+    local procedure RunRecurringCarryOut(RequisitionLine: Record "Requisition Line")
+    begin
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionLine."Journal Batch Name");
+        LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
     end;
 
     local procedure CreateLineTargetingNewOrder(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; FirstLine: Record "Requisition Line")
@@ -824,14 +1504,22 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
 
     var
         Assert: Codeunit Assert;
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPlanning: Codeunit "Library - Planning";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
+        IsProductionInitialized: Boolean;
         TargetErr: Label 'Worksheet line %1 in %2/%3 cannot use purchase order %4: %5.', Comment = '%1 = line number, %2 = template, %3 = batch, %4 = order number, %5 = failed condition';
         MissingOrderErr: Label 'Purchase order %1 referenced by worksheet line %2 no longer exists.', Comment = '%1 = purchase order number, %2 = worksheet line number';
 }

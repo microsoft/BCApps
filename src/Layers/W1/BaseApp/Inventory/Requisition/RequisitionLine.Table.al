@@ -1643,6 +1643,16 @@ table 246 "Requisition Line"
             Error(TargetErr, "Line No.", "Worksheet Template Name", "Journal Batch Name", "Ref. Order No.", Failure);
     end;
 
+    local procedure IsRecurringWorksheetTemplate(): Boolean
+    var
+        RecurringReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        RecurringReqWkshTemplate.SetLoadFields(Recurring);
+        if not RecurringReqWkshTemplate.Get("Worksheet Template Name") then
+            exit(false);
+        exit(RecurringReqWkshTemplate.Recurring);
+    end;
+
     var
         ReqWkshName: Record "Requisition Wksh. Name";
         ReqLine: Record "Requisition Line";
