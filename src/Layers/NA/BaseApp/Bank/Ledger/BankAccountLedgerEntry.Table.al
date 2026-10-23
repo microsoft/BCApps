@@ -12,6 +12,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.HumanResources.Employee;
@@ -245,7 +246,8 @@ table 271 "Bank Account Ledger Entry"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -665,7 +667,6 @@ table 271 "Bank Account Ledger Entry"
         if ((Rec."Statement Status" = Rec."Statement Status"::"Bank Acc. Entry Applied") and
            (Rec."Statement No." <> '') and (Rec."Statement Line No." <> 0)) then
             exit(Rec."Statement No.");
-
         CheckLedgerEntry.SetLoadFields("Statement No.");
         CheckLedgerEntry.SetCurrentKey("Bank Account Ledger Entry No.");
         CheckLedgerEntry.SetRange("Bank Account Ledger Entry No.", Rec."Entry No.");
@@ -676,10 +677,12 @@ table 271 "Bank Account Ledger Entry"
         CheckLedgerEntry.SetFilter("Statement Line No.", '<>%1', 0);
         if CheckLedgerEntry.FindFirst() then
             exit(CheckLedgerEntry."Statement No.");
-
         exit('');
     end;
+
+    /// <summary>
     /// Determines whether this bank account ledger entry has been applied to a bank statement.
+    /// </summary>
     /// <returns>True if the entry is applied to a statement, false otherwise.</returns>
     procedure IsApplied(): Boolean
     begin
