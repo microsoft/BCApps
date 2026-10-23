@@ -1849,6 +1849,7 @@ page 43 "Sales Invoice"
         SellToContact.GetOrClear(Rec."Sell-to Contact No.");
         BillToContact.GetOrClear(Rec."Bill-to Contact No.");
         CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
+
         OnAfterOnAfterGetRecord(Rec);
     end;
 
@@ -1898,7 +1899,6 @@ page 43 "Sales Invoice"
         PaymentServiceSetup: Record "Payment Service Setup";
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
-        SIIManagement: Codeunit "SII Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
         Rec.SetSecurityFilterOnRespCenter();
@@ -1915,7 +1915,6 @@ page 43 "Sales Invoice"
         IsSaaS := EnvironmentInfo.IsSaaS();
         if (Rec."No." <> '') and (Rec."Sell-to Customer No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
-
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
 
         SetPostingGroupEditable();
@@ -1982,11 +1981,6 @@ page 43 "Sales Invoice"
         ShouldSearchForCustByName: Boolean;
         CanRequestApprovalForFlow: Boolean;
         CanCancelApprovalForFlow: Boolean;
-        OperationDescription: Text[500];
-        DocHasMultipleRegimeCode: Boolean;
-        MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
-        SIIFirstSummaryDocNo: Text[35];
-        SIILastSummaryDocNo: Text[35];
         VATDateEnabled: Boolean;
 
     protected var
@@ -2209,13 +2203,6 @@ page 43 "Sales Invoice"
     local procedure UpdateShipToBillToGroupVisibility()
     begin
         CustomerMgt.CalculateShipBillToOptions(ShipToOptions, BillToOptions, Rec);
-    end;
-
-    local procedure UpdateDocHasRegimeCode()
-    var
-        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-    begin
-        DocHasMultipleRegimeCode := SIISchemeCodeMgt.SalesDocHasRegimeCodes(Rec);
     end;
 
     [IntegrationEvent(false, false)]

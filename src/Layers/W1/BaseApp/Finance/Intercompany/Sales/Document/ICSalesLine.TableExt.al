@@ -285,7 +285,7 @@ tableextension 8481 ICSalesLine extends "Sales Line"
     /// Raised for the else case when looking up IC partner reference type.
     /// </summary>
     /// <param name="SalesLine">The sales line being processed.</param>
-    [IntegrationEvent(false, false)]
+    [IntegrationEvent(true, false)]
     local procedure OnLookUpICPartnerReferenceTypeCaseElse(var SalesLine: Record "Sales Line")
     begin
     end;

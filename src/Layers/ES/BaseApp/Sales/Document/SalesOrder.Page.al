@@ -2556,7 +2556,6 @@ page 42 "Sales Order"
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
-        SIIManagement: Codeunit "SII Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
@@ -2576,7 +2575,6 @@ page 42 "Sales Order"
 
         if (Rec."No." <> '') and (Rec."Sell-to Customer No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
-
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
 
         if GuiAllowed() then
@@ -2664,8 +2662,6 @@ page 42 "Sales Order"
         IsSalesLinesEditable: Boolean;
         ShouldSearchForCustByName: Boolean;
         IsBidirectionalSyncEnabled: Boolean;
-        DocHasMultipleRegimeCode: Boolean;
-        MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
         VATDateEnabled: Boolean;
         BasicEUEnabled: Boolean;
 
