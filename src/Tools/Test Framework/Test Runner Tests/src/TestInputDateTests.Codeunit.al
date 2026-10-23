@@ -25,6 +25,8 @@ codeunit 130486 "Test Input Date Tests"
         FutureDate: Date;
         PastDate: Date;
     begin
+        // [SCENARIO] Typed and text date resolution use the work date for both positive and negative offsets.
+
         // [GIVEN] Date formulas with positive and negative offsets from the work date.
         Input.Initialize('{"future":"$DateFormula-<1W>$","past":"$DateFormula-<-1W>$"}');
 
@@ -47,6 +49,8 @@ codeunit 130486 "Test Input Date Tests"
         Month: Integer;
         Year: Integer;
     begin
+        // [SCENARIO] Current-month and current-year formulas resolve to the correct first and last calendar days.
+
         // [GIVEN] Calendar boundaries calculated independently from the placeholder resolver.
         Month := Date2DMY(WorkDate(), 2);
         Year := Date2DMY(WorkDate(), 3);
@@ -71,6 +75,8 @@ codeunit 130486 "Test Input Date Tests"
         Input: Codeunit "Test Input Json";
         ActualDateTime: DateTime;
     begin
+        // [SCENARIO] Reading a date-only formula as a datetime supplies midnight on the calculated date.
+
         // [GIVEN] A date formula without a time component.
         Input.Initialize('{"date":"$DateFormula-<1D>$"}');
 
@@ -89,6 +95,8 @@ codeunit 130486 "Test Input Date Tests"
         Template: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Text resolution handles every adjacent and repeated date token without skipping an occurrence.
+
         // [GIVEN] Adjacent and repeated date tokens in one input.
         Template := 'Dates: $DateFormula-<CD>$$DateFormula-<1D>$ / $DateFormula-<CD>$';
 
@@ -109,6 +117,8 @@ codeunit 130486 "Test Input Date Tests"
         NextDayEnd: DateTime;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Adjacent and repeated datetime tokens retain their independently calculated dates and times.
+
         // [GIVEN] Repeated datetime formulas covering midnight and the end of the following day.
         Midnight := CreateDateTime(WorkDate(), 000000T);
         NextDayEnd := CreateDateTime(WorkDate() + 1, 235959T);
@@ -133,6 +143,8 @@ codeunit 130486 "Test Input Date Tests"
         Serialized: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Resolving date values leaves raw JSON exports, scalar templates, and property names unchanged.
+
         // [GIVEN] Date tokens used as a property name and within its value.
         Template := '$DateFormula-<CD>$ / $DateTimeFormula-<CD>-12:30:11$';
         InputObject.Add('$DateFormula-<CD>$', Template);
@@ -159,6 +171,8 @@ codeunit 130486 "Test Input Date Tests"
         Template: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Date and datetime references without a closing delimiter remain literal text.
+
         // [GIVEN] Date and datetime prefixes without a complete closing delimiter.
         Templates.Add('$DateFormula-');
         Templates.Add('$DateFormula-<CD>');
@@ -180,6 +194,8 @@ codeunit 130486 "Test Input Date Tests"
         Template: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Date and datetime token recognition requires the exact case-sensitive prefix spelling.
+
         // [GIVEN] Date and datetime references with incorrect prefix casing.
         Template := '$dateformula-<CD>$ / $DATETIMEFORMULA-<CD>$';
 
@@ -196,6 +212,8 @@ codeunit 130486 "Test Input Date Tests"
         ExpectedErrorText: Text;
         ExpectedErrorCode: Text;
     begin
+        // [SCENARIO] Invalid date formulas propagate the native calculation diagnostic rather than another failure.
+
         // [GIVEN] The native diagnostic for this invalid formula, independent of the resolver.
         asserterror CalculateDate('<not-a-formula>');
         ExpectedErrorText := GetLastErrorText();
@@ -215,6 +233,8 @@ codeunit 130486 "Test Input Date Tests"
         ExpectedErrorText: Text;
         ExpectedErrorCode: Text;
     begin
+        // [SCENARIO] A datetime token with a valid time and invalid date formula propagates the native formula error.
+
         // [GIVEN] The native diagnostic for an invalid formula with a valid base date.
         asserterror CalculateDate('<not-a-formula>');
         ExpectedErrorText := GetLastErrorText();
@@ -234,6 +254,8 @@ codeunit 130486 "Test Input Date Tests"
         ExpectedErrorText: Text;
         ExpectedErrorCode: Text;
     begin
+        // [SCENARIO] Invalid explicit times propagate the native conversion error instead of defaulting to midnight.
+
         // [GIVEN] The native time-conversion diagnostic for an hour outside the supported range.
         asserterror EvaluateTime('25:00:00');
         ExpectedErrorText := GetLastErrorText();
@@ -261,6 +283,8 @@ codeunit 130486 "Test Input Date Tests"
         RawDate: Text;
         RawDateTime: Text;
     begin
+        // [SCENARIO] Raw reads bypass invalid formulas while resolving and typed reads still propagate their native errors.
+
         // [GIVEN] Invalid date/time templates and the native diagnostics for their invalid components.
         DateTemplate := '$DateFormula-<not-a-formula>$';
         DateTimeTemplate := '$DateTimeFormula-<CD>-not-a-time$';
@@ -304,6 +328,8 @@ codeunit 130486 "Test Input Date Tests"
     var
         Input: Codeunit "Test Input Json";
     begin
+        // [SCENARIO] An earlier plain-text read cannot cache the absence of date or datetime tokens in later input.
+
         // [GIVEN] The same wrapper has already returned text containing no placeholders.
         Input.Initialize('{"message":"No placeholders"}');
         Assert.AreEqual('No placeholders', Input.Element('message').ValueAsText(), 'Plain input must remain unchanged.');

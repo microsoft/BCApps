@@ -892,9 +892,6 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
-      },
-      {
-        "name": "System Solution"
       }
     ]
   },

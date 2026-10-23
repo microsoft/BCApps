@@ -12,6 +12,10 @@ namespace System.TestTools.TestRunner;
 /// </summary>
 codeunit 130465 "Test Input Data Tools"
 {
+    SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         TestInputPlaceholderImpl: Codeunit "Test Input Placeholder Impl.";
         TestInputDateImpl: Codeunit "Test Input Date Impl.";
@@ -66,7 +70,7 @@ codeunit 130465 "Test Input Data Tools"
     /// Returns false and clears Value when no registration exists.
     /// </summary>
     /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
-    /// <param name="Value">The literal registered value, or an empty string when no registration exists.</param>
+    /// <param name="Value">The registered value with platform-standard line breaks, or an empty string when no registration exists.</param>
     /// <returns>True if a current-company or shared registration exists, including one with an empty value; otherwise false.</returns>
     procedure GetPlaceholder(Name: Text; var Value: Text): Boolean
     begin
@@ -79,7 +83,7 @@ codeunit 130465 "Test Input Data Tools"
     /// Returns false and clears Value when no registration exists.
     /// </summary>
     /// <param name="Name">A bare, case-insensitive name of 1 to 250 ASCII letters, digits, underscores, or hyphens.</param>
-    /// <param name="Value">The literal registered value, or an empty string when no registration exists.</param>
+    /// <param name="Value">The registered value with platform-standard line breaks, or an empty string when no registration exists.</param>
     /// <param name="Company">A company key of at most 30 characters. Blank reads only the shared registration.</param>
     /// <returns>True if the requested company or its shared fallback has a registration, including an empty value; otherwise false.</returns>
     procedure GetPlaceholderForCompany(Name: Text; var Value: Text; Company: Text): Boolean

@@ -28,6 +28,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Name: Text;
         Value: Text;
     begin
+        // [SCENARIO] Registering the same name with different casing overwrites one value without changing its text.
+
         // [GIVEN] A full placeholder name with mixed casing.
         Initialize();
         Name := TestName + '-Customer1No';
@@ -55,6 +57,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputObject: JsonObject;
         Name: Text;
     begin
+        // [SCENARIO] A raw definition identifies the same name before registration and after its value is overwritten.
+
         // [GIVEN] An unregistered full-token definition.
         Initialize();
         Name := TestName + '-Customer1No';
@@ -85,6 +89,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Definitions: List of [Text];
         Definition: Text;
     begin
+        // [SCENARIO] A placeholder definition must contain exactly one complete named token with a valid name.
+
         // [GIVEN] Invalid scalar shapes, token syntax, and names beyond the supported boundary.
         Definitions.Add('null');
         Definitions.Add('{}');
@@ -119,6 +125,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Found: Boolean;
     begin
+        // [SCENARIO] Reading an absent registration returns false and cannot leave a stale output value.
+
         // [GIVEN] An unregistered name and a previously populated output variable.
         Initialize();
         Value := 'stale';
@@ -136,6 +144,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Value: Text;
     begin
+        // [SCENARIO] Explicit company operations do not change the current company used by default reads.
+
         // [GIVEN] A current-company registration.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -160,6 +170,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Found: Boolean;
     begin
+        // [SCENARIO] Name prefixes and suffixes are literal key components rather than implicit lookup scopes.
+
         // [GIVEN] Registrations whose full names have different affixes.
         Initialize();
         DataTools.SetPlaceholderForCompany('PREFIX-' + TestName, 'prefixed', '');
@@ -183,6 +195,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         SuffixedName: Text;
         Value: Text;
     begin
+        // [SCENARIO] Case-insensitive lookup preserves the distinct identity of prefixed and suffixed names.
+
         // [GIVEN] Different full names containing a prefix and a suffix.
         Initialize();
         PrefixedName := 'Scope-' + TestName;
@@ -204,6 +218,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Value: Text;
     begin
+        // [SCENARIO] An exact company registration takes precedence over the same name's shared fallback.
+
         // [GIVEN] A shared registration.
         Initialize();
         DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
@@ -222,6 +238,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     [Test]
     procedure CompanyFallbackDoesNotCrossNames()
     begin
+        // [SCENARIO] Shared-company fallback cannot select a local registration belonging to a different name.
+
         // [GIVEN] A name registered only as a shared value.
         Initialize();
         DataTools.SetPlaceholderForCompany(TestName, 'selected-shared', '');
@@ -238,6 +256,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Value: Text;
     begin
+        // [SCENARIO] An empty local registration is a successful match that suppresses a nonempty shared fallback.
+
         // [GIVEN] A nonempty shared value.
         Initialize();
         DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
@@ -259,6 +279,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         UnicodeCharacter: Char;
     begin
+        // [SCENARIO] Long multiline Unicode values round-trip, and shorter overwrites leave no old BLOB suffix.
+
         // [GIVEN] Long text containing Unicode, line breaks, quotes, and significant whitespace.
         Initialize();
         UnicodeCharacter := 9731;
@@ -287,12 +309,48 @@ codeunit 130482 "Test Input Placeholder Tests"
     end;
 
     [Test]
+    procedure BlobNormalizesLineEndingsAndPreservesEmptyLines()
+    var
+        ExpectedBuilder: TextBuilder;
+        RegisteredValue: Text;
+        Value: Text;
+        LineFeed: Char;
+        CarriageReturn: Char;
+    begin
+        // [SCENARIO] Multiline reads normalize mixed line endings without losing empty lines or significant spaces.
+
+        // [GIVEN] Mixed LF/CRLF text with leading, consecutive, and trailing empty lines.
+        Initialize();
+        LineFeed := 10;
+        CarriageReturn := 13;
+        RegisteredValue := Format(LineFeed) + '  first  ' + Format(LineFeed) + Format(LineFeed) +
+            'second' + Format(CarriageReturn) + Format(LineFeed) + Format(LineFeed);
+        ExpectedBuilder.AppendLine();
+        ExpectedBuilder.AppendLine('  first  ');
+        ExpectedBuilder.AppendLine();
+        ExpectedBuilder.AppendLine('second');
+        ExpectedBuilder.AppendLine();
+
+        // [WHEN] The multiline value is registered and then read.
+        DataTools.SetPlaceholder(TestName, RegisteredValue);
+        Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'The multiline registration must exist.');
+
+        // [THEN] Direct and resolving reads use standard separators and preserve every empty line.
+        Assert.AreEqual(ExpectedBuilder.ToText(), Value, 'Line reading must preserve empty lines and spaces while normalizing separators.');
+        Assert.AreEqual(
+            ExpectedBuilder.ToText(), DataTools.ResolveText(Token(TestName)),
+            'Resolution must use the same multiline value as direct lookup.');
+    end;
+
+    [Test]
     procedure MaximumKeyLengthsAreAccepted()
     var
         Name: Text;
         Company: Text;
         Value: Text;
     begin
+        // [SCENARIO] Names and company keys at their maximum supported lengths round-trip without truncation.
+
         // [GIVEN] A 250-character name and a maximum-length company.
         Initialize();
         Name := PadStr(TestName, 250, 'N');
@@ -313,6 +371,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         SecondName: Text;
         Value: Text;
     begin
+        // [SCENARIO] Updating or deleting one maximum-length name cannot affect another that differs only at its end.
+
         // [GIVEN] Two 250-character names that differ only in their final character.
         Initialize();
         FirstName := PadStr(TestName, 249, 'N') + 'A';
@@ -347,6 +407,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Names: List of [Text];
         Name: Text;
     begin
+        // [SCENARIO] Registration rejects blank, malformed, and overlong names before writing any value.
+
         // [GIVEN] Blank names, unsupported characters, and a 251-character name.
         Initialize();
         Names.Add('');
@@ -373,6 +435,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Value: Text;
     begin
+        // [SCENARIO] Affixed names and company keys beyond their limits fail without truncation or partial insertion.
+
         // [GIVEN] Affixes count toward the full-name limit, and company names have their own limit.
         Initialize();
 
@@ -394,6 +458,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Values: List of [Text];
         Value: Text;
     begin
+        // [SCENARIO] Registered values cannot contain complete named, date, or datetime tokens for recursive expansion.
+
         // [GIVEN] Replacement values containing each supported kind of complete token.
         Initialize();
         Values.Add('$Placeholder-Unknown$');
@@ -416,6 +482,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Found: Boolean;
     begin
+        // [SCENARIO] Rejecting an overwrite containing a token preserves the previously committed registration.
+
         // [GIVEN] A committed registration that must survive a rejected overwrite.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'original');
@@ -437,6 +505,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     [Test]
     procedure LiteralDollarsAreAllowed()
     begin
+        // [SCENARIO] Dollar signs and unsupported token prefixes are allowed as literal replacement text.
+
         // [GIVEN] A fresh name for text containing ordinary dollar signs and an unknown token prefix.
         Initialize();
 
@@ -456,6 +526,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         CustomerName: Text;
         ItemName: Text;
     begin
+        // [SCENARIO] One resolution pass replaces whole, embedded, repeated, and adjacent registered names.
+
         // [GIVEN] Two distinct full names referenced in whole and embedded input values.
         Initialize();
         CustomerName := TestName + '-Customer1No';
@@ -479,6 +551,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         MissingToken: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Missing registrations remain literal without preventing other tokens from resolving.
+
         // [GIVEN] Missing references surrounding a known registration.
         Initialize();
         MissingToken := Token(TestName + '-Missing');
@@ -500,6 +574,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Prefix: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Malformed or incomplete tokens remain literal and cannot consume a later valid reference.
+
         // [GIVEN] Malformed named references preceding a valid registered token.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'known');
@@ -524,6 +600,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputText: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] An overlong token name remains literal instead of resolving through a truncated key.
+
         // [GIVEN] A 251-character input name followed by a registered name.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'known');
@@ -541,6 +619,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         ResolvedText: Text;
     begin
+        // [SCENARIO] Concatenated replacement values that form a named token are not recursively resolved.
+
         // [GIVEN] Two replacement values that form another registered token when concatenated.
         Initialize();
         DataTools.SetPlaceholder(TestName + '-Left', '$Place');
@@ -562,6 +642,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Template: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Case-insensitive placeholder names do not make the fixed token prefix case-insensitive.
+
         // [GIVEN] A registered name referenced with the wrong prefix casing.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'value');
@@ -582,6 +664,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputObject: JsonObject;
         FirstRead: Text;
     begin
+        // [SCENARIO] A retained wrapper observes late registration and overwrite while previously returned text stays unchanged.
+
         // [GIVEN] An input wrapper created before its name is registered.
         Initialize();
         InputObject.Add('message', Token(TestName));
@@ -617,6 +701,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Serialized: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Resolving a scalar value never rewrites raw exports or JSON property names.
+
         // [GIVEN] A registered name used as both a property name and its value.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'resolved');
@@ -648,6 +734,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         DecimalValue: Decimal;
         BooleanValue: Boolean;
     begin
+        // [SCENARIO] Placeholder support leaves native numeric and Boolean input readers unchanged.
+
         // [GIVEN] Native JSON numeric and Boolean values.
         Initialize();
         Input.Initialize('{"integer":42,"decimal":12.5,"boolean":true}');
@@ -669,6 +757,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Input: Codeunit "Test Input Json";
         Turns: Codeunit "Test Input Json";
     begin
+        // [SCENARIO] Successive turns resolve the current value of a shared full name without rebuilding the input wrapper.
+
         // [GIVEN] Two turns referencing the same full name and its initial registration.
         Initialize();
         Input.Initialize(StrSubstNo(TurnsTemplateTok, Token(TestName)));
@@ -693,6 +783,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Expected: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Named values and date/datetime formulas can be resolved together in the same input.
+
         // [GIVEN] A runtime name combined with date and datetime formulas.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'customer');
@@ -714,6 +806,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         ExpectedTime: Time;
         DefaultTimeText: Text;
     begin
+        // [SCENARIO] Datetime formulas default to midnight or retain the explicitly supplied hours, minutes, and seconds.
+
         // [GIVEN] Datetime formulas with no time and with an explicit whole-second time.
         Initialize();
         ExpectedTime := 123011T;
@@ -739,6 +833,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Input: Codeunit "Test Input Json";
         ResolvedDate: Text;
     begin
+        // [SCENARIO] Raw reads do not disable later text or typed date/datetime resolution or mutate the templates.
+
         // [GIVEN] Raw date and datetime templates in an input wrapper.
         Initialize();
         Input.Initialize('{"date":"$DateFormula-<CD>$","datetime":"$DateTimeFormula-<CD>-12:30:11$"}');
@@ -763,6 +859,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputObject: JsonObject;
         ResolvedDate: Date;
     begin
+        // [SCENARIO] Typed date readers resolve named values and immediately observe subsequent overwrites.
+
         // [GIVEN] A named definition whose registered value is ordinary date text.
         Initialize();
         DataTools.SetPlaceholder(TestName, Format(WorkDate()));
@@ -795,6 +893,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Deleted: Boolean;
     begin
+        // [SCENARIO] Deleting a local value exposes shared fallback without deleting it or another name's value.
+
         // [GIVEN] Local, shared, and unrelated-name registrations.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -819,6 +919,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Deleted: Boolean;
     begin
+        // [SCENARIO] Deletion with an explicitly blank company removes only the shared registration.
+
         // [GIVEN] Local and shared registrations for the same name.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -840,6 +942,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Deleted: Boolean;
     begin
+        // [SCENARIO] Deleting local and shared values separately preserves other companies and unrelated names.
+
         // [GIVEN] The same name in multiple companies and a separate local name.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -873,6 +977,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Deleted: Boolean;
     begin
+        // [SCENARIO] Filter-like characters in a company key are treated literally during exact deletion.
+
         // [GIVEN] A company containing filter characters and another similarly named company.
         Initialize();
         LiteralCompany := 'Company*|?';
@@ -895,6 +1001,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Deleted: Boolean;
     begin
+        // [SCENARIO] Deleting another company's exact row preserves all remaining rows and exposes its shared fallback.
+
         // [GIVEN] Local, shared, other-company, and other-name registrations.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -921,6 +1029,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Value: Text;
     begin
+        // [SCENARIO] Explicit delete-all clears registrations across all names and companies within the current transaction.
+
         // [GIVEN] Registrations spanning names and companies in the test transaction.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -948,6 +1058,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         InsertedFound: Boolean;
         DeletedFound: Boolean;
     begin
+        // [SCENARIO] After rollback, reads reflect restored rows rather than cached insertions, updates, deletions, or misses.
+
         // [GIVEN] Committed baseline registrations for updates and deletions.
         Initialize();
         DataTools.SetPlaceholder(TestName + '-Existing', 'original');
@@ -984,6 +1096,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     [Test]
     procedure AllowedNameCharactersResolve()
     begin
+        // [SCENARIO] Names containing supported digits, underscores, and hyphens resolve independently of letter casing.
+
         // [GIVEN] A full name containing digits, an underscore, and a hyphen.
         Initialize();
 
@@ -1003,6 +1117,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         InputObject: JsonObject;
         Name: Text;
     begin
+        // [SCENARIO] Maximum-length names work consistently in definitions, registration, and resolving reads.
+
         // [GIVEN] A full-token definition containing a 250-character name.
         Initialize();
         Name := PadStr(TestName, 250, 'N');
@@ -1027,6 +1143,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         SuffixedElement: Codeunit "Test Input Json";
         InputObject: JsonObject;
     begin
+        // [SCENARIO] Retained wrappers keep independent full-name identities when one affixed registration changes.
+
         // [GIVEN] Input elements for separately registered prefixed and suffixed names.
         Initialize();
         DataTools.SetPlaceholder('PREFIX-' + TestName, 'first');
@@ -1058,6 +1176,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Element: Codeunit "Test Input Json";
         InputObject: JsonObject;
     begin
+        // [SCENARIO] A retained wrapper observes local deletion, shared fallback, and then the unresolved token.
+
         // [GIVEN] A retained wrapper with both current-company and shared registrations.
         Initialize();
         DataTools.SetPlaceholderForCompany(TestName, 'shared', '');
@@ -1086,6 +1206,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         ResolvedText: Text;
     begin
+        // [SCENARIO] Date and datetime tokens assembled from replacement fragments are not evaluated in a second pass.
+
         // [GIVEN] Replacement fragments that form date and datetime tokens when joined.
         Initialize();
         DataTools.SetPlaceholder(TestName + '-Left', '$Date');
@@ -1113,6 +1235,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         RawText: Text;
         ResolvedText: Text;
     begin
+        // [SCENARIO] Alternating raw and resolved reads preserves each accessor's contract without an enable/disable switch.
+
         // [GIVEN] A retained wrapper containing both a registered name and a date formula.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'customer');
@@ -1142,6 +1266,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         Value: Text;
         Deleted: Boolean;
     begin
+        // [SCENARIO] Explicit deletion in another company does not change the company used by default resolution.
+
         // [GIVEN] Current-company and other-company values for the same name.
         Initialize();
         DataTools.SetPlaceholder(TestName, 'local');
@@ -1161,6 +1287,8 @@ codeunit 130482 "Test Input Placeholder Tests"
     var
         Value: Text;
     begin
+        // [SCENARIO] Read and delete operations reject invalid keys using the same boundaries as registration.
+
         // [GIVEN] Invalid names and company keys supplied to non-writing API operations.
         Initialize();
 
@@ -1189,6 +1317,8 @@ codeunit 130482 "Test Input Placeholder Tests"
         PermissionsMock: Codeunit "Permissions Mock";
         Value: Text;
     begin
+        // [SCENARIO] Public placeholder operations work without assigning registry table-data permissions to the caller.
+
         // [GIVEN] Only object execution rights, with no assigned registry table-data permissions.
         PermissionsMock.Stop();
         Initialize();

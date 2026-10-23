@@ -47,20 +47,30 @@ table 130455 "Test Input Placeholder"
     begin
         Clear("Placeholder Value");
         "Placeholder Value".CreateOutStream(ValueOutStream, TextEncoding::UTF8);
+        // The terminator lets the line reader retain trailing empty lines.
         ValueOutStream.Write(NewValue);
     end;
 
     internal procedure GetValue(): Text
     var
+        ValueBuilder: TextBuilder;
         ValueInStream: InStream;
-        ValueText: Text;
+        ValueLine: Text;
+        FirstLine: Boolean;
     begin
         CalcFields("Placeholder Value");
         if not "Placeholder Value".HasValue() then
             exit('');
 
         "Placeholder Value".CreateInStream(ValueInStream, TextEncoding::UTF8);
-        ValueInStream.Read(ValueText);
-        exit(ValueText);
+        FirstLine := true;
+        while not ValueInStream.EOS() do begin
+            ValueInStream.ReadText(ValueLine);
+            if not FirstLine then
+                ValueBuilder.AppendLine();
+            ValueBuilder.Append(ValueLine);
+            FirstLine := false;
+        end;
+        exit(ValueBuilder.ToText());
     end;
 }

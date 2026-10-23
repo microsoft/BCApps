@@ -18,25 +18,25 @@ codeunit 130466 "Test Input Placeholder Impl."
     /// Reads the raw scalar without resolving an existing registration.
     /// Raises an error if the definition is not a complete named token with a valid name.
     /// </summary>
-    procedure GetPlaceholderName(Definition: Codeunit "Test Input Json"): Text
+    procedure GetPlaceholderName(PlaceholderDefinition: Codeunit "Test Input Json"): Text
     var
-        DefinitionText: Text;
-        Name: Text;
-        Prefix: Text;
-        TokenEnd: Integer;
+        PlaceholderDefinitionText: Text;
+        PlaceholderName: Text;
+        TokenPrefix: Text;
+        TokenEndPosition: Integer;
     begin
-        if not Definition.AsJsonToken().IsValue() then
+        if not PlaceholderDefinition.AsJsonToken().IsValue() then
             Error(InvalidPlaceholderDefinitionErr);
-        if Definition.ElementValue().IsNull() then
-            Error(InvalidPlaceholderDefinitionErr);
-
-        DefinitionText := Definition.ElementValue().AsText();
-        if not TryReadToken(DefinitionText, 1, TokenEnd, Prefix, Name) then
-            Error(InvalidPlaceholderDefinitionErr);
-        if (Prefix <> PlaceholderPrefixTok) or (TokenEnd <> StrLen(DefinitionText)) then
+        if PlaceholderDefinition.ElementValue().IsNull() then
             Error(InvalidPlaceholderDefinitionErr);
 
-        exit(Name);
+        PlaceholderDefinitionText := PlaceholderDefinition.ElementValue().AsText();
+        if not TryReadToken(PlaceholderDefinitionText, 1, TokenEndPosition, TokenPrefix, PlaceholderName) then
+            Error(InvalidPlaceholderDefinitionErr);
+        if (TokenPrefix <> PlaceholderPrefixTok) or (TokenEndPosition <> StrLen(PlaceholderDefinitionText)) then
+            Error(InvalidPlaceholderDefinitionErr);
+
+        exit(PlaceholderName);
     end;
 
     /// <summary>
@@ -55,36 +55,36 @@ codeunit 130466 "Test Input Placeholder Impl."
     /// <summary>
     /// Inserts or replaces a value using its full name and the current company.
     /// </summary>
-    procedure SetPlaceholder(Name: Text; Value: Text)
+    procedure SetPlaceholder(PlaceholderName: Text; PlaceholderValue: Text)
     begin
-        this.SetPlaceholderForCompany(Name, Value, CompanyName());
+        this.SetPlaceholderForCompany(PlaceholderName, PlaceholderValue, CompanyName());
     end;
 
     /// <summary>
     /// Inserts or replaces the exact full name and company key without committing.
     /// A blank company registers a shared fallback. Values must not contain supported placeholder tokens.
     /// </summary>
-    procedure SetPlaceholderForCompany(Name: Text; Value: Text; Company: Text)
+    procedure SetPlaceholderForCompany(PlaceholderName: Text; PlaceholderValue: Text; PlaceholderCompany: Text)
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
-        NormalizedName: Code[250];
-        NormalizedCompany: Text[30];
-        EntryExists: Boolean;
+        NormalizedPlaceholderName: Code[250];
+        NormalizedPlaceholderCompany: Text[30];
+        PlaceholderExists: Boolean;
     begin
-        NormalizedName := NormalizeName(Name);
-        NormalizedCompany := NormalizeCompany(Company);
-        ValidatePlaceholderValue(Name, Value);
+        NormalizedPlaceholderName := NormalizeName(PlaceholderName);
+        NormalizedPlaceholderCompany := NormalizeCompany(PlaceholderCompany);
+        ValidatePlaceholderValue(PlaceholderName, PlaceholderValue);
 
         TestInputPlaceholder.ReadIsolation := IsolationLevel::UpdLock;
-        EntryExists := TestInputPlaceholder.Get(NormalizedName, NormalizedCompany);
-        if not EntryExists then begin
-            TestInputPlaceholder.Init();
-            TestInputPlaceholder.Name := NormalizedName;
-            TestInputPlaceholder.Company := NormalizedCompany;
+        PlaceholderExists := TestInputPlaceholder.Get(NormalizedPlaceholderName, NormalizedPlaceholderCompany);
+        if not PlaceholderExists then begin
+            Clear(TestInputPlaceholder);
+            TestInputPlaceholder.Name := NormalizedPlaceholderName;
+            TestInputPlaceholder.Company := NormalizedPlaceholderCompany;
         end;
 
-        TestInputPlaceholder.SetValue(Value);
-        if EntryExists then
+        TestInputPlaceholder.SetValue(PlaceholderValue);
+        if PlaceholderExists then
             TestInputPlaceholder.Modify(true)
         else
             TestInputPlaceholder.Insert(true);
@@ -92,56 +92,56 @@ codeunit 130466 "Test Input Placeholder Impl."
 
     /// <summary>
     /// Gets a value using its full name and the current company, then the shared-company fallback.
-    /// Returns false and clears Value when no registration exists.
+    /// Returns false and clears PlaceholderValue when no registration exists.
     /// </summary>
-    procedure GetPlaceholder(Name: Text; var Value: Text): Boolean
+    procedure GetPlaceholder(PlaceholderName: Text; var PlaceholderValue: Text): Boolean
     begin
-        exit(GetPlaceholderForCompany(Name, Value, CompanyName()));
+        exit(GetPlaceholderForCompany(PlaceholderName, PlaceholderValue, CompanyName()));
     end;
 
     /// <summary>
     /// Gets the exact company value before its shared fallback, using the same full name.
     /// An explicitly blank company reads only the shared row. An empty registered value is a match.
-    /// Returns false and clears Value when no registration exists.
+    /// Returns false and clears PlaceholderValue when no registration exists.
     /// </summary>
-    procedure GetPlaceholderForCompany(Name: Text; var Value: Text; Company: Text): Boolean
+    procedure GetPlaceholderForCompany(PlaceholderName: Text; var PlaceholderValue: Text; PlaceholderCompany: Text): Boolean
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
-        NormalizedName: Code[250];
-        NormalizedCompany: Text[30];
+        NormalizedPlaceholderName: Code[250];
+        NormalizedPlaceholderCompany: Text[30];
     begin
-        Clear(Value);
-        NormalizedName := NormalizeName(Name);
-        NormalizedCompany := NormalizeCompany(Company);
+        Clear(PlaceholderValue);
+        NormalizedPlaceholderName := NormalizeName(PlaceholderName);
+        NormalizedPlaceholderCompany := NormalizeCompany(PlaceholderCompany);
 
-        if not TestInputPlaceholder.Get(NormalizedName, NormalizedCompany) then begin
-            if NormalizedCompany = '' then
+        if not TestInputPlaceholder.Get(NormalizedPlaceholderName, NormalizedPlaceholderCompany) then begin
+            if NormalizedPlaceholderCompany = '' then
                 exit(false);
-            if not TestInputPlaceholder.Get(NormalizedName, '') then
+            if not TestInputPlaceholder.Get(NormalizedPlaceholderName, '') then
                 exit(false);
         end;
 
-        Value := TestInputPlaceholder.GetValue();
+        PlaceholderValue := TestInputPlaceholder.GetValue();
         exit(true);
     end;
 
     /// <summary>
     /// Deletes the exact full-name/current-company registration, without following shared fallback.
     /// </summary>
-    procedure DeletePlaceholder(Name: Text): Boolean
+    procedure DeletePlaceholder(PlaceholderName: Text): Boolean
     begin
-        exit(DeletePlaceholderForCompany(Name, CompanyName()));
+        exit(DeletePlaceholderForCompany(PlaceholderName, CompanyName()));
     end;
 
     /// <summary>
     /// Deletes only the exact key. Blank company targets the shared row, not all companies.
     /// Returns false if that key does not exist.
     /// </summary>
-    procedure DeletePlaceholderForCompany(Name: Text; Company: Text): Boolean
+    procedure DeletePlaceholderForCompany(PlaceholderName: Text; PlaceholderCompany: Text): Boolean
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
     begin
-        if not TestInputPlaceholder.Get(NormalizeName(Name), NormalizeCompany(Company)) then
+        if not TestInputPlaceholder.Get(NormalizeName(PlaceholderName), NormalizeCompany(PlaceholderCompany)) then
             exit(false);
 
         TestInputPlaceholder.Delete(true);
@@ -172,53 +172,53 @@ codeunit 130466 "Test Input Placeholder Impl."
     procedure ResolveText(InputText: Text): Text
     var
         TestInputDateImpl: Codeunit "Test Input Date Impl.";
-        Output: TextBuilder;
-        Prefix: Text;
-        Content: Text;
-        Token: Text;
-        Value: Text;
-        Position: Integer;
-        TokenStart: Integer;
-        TokenEnd: Integer;
+        ResolvedTextBuilder: TextBuilder;
+        TokenPrefix: Text;
+        TokenContent: Text;
+        TokenText: Text;
+        PlaceholderValue: Text;
+        SearchPosition: Integer;
+        TokenStartPosition: Integer;
+        TokenEndPosition: Integer;
     begin
-        Position := 1;
-        if not FindNextToken(InputText, Position, TokenStart, TokenEnd, Prefix, Content) then
+        SearchPosition := 1;
+        if not FindNextToken(InputText, SearchPosition, TokenStartPosition, TokenEndPosition, TokenPrefix, TokenContent) then
             exit(InputText);
 
         repeat
-            Output.Append(CopyStr(InputText, Position, TokenStart - Position));
-            Token := CopyStr(InputText, TokenStart, TokenEnd - TokenStart + 1);
-            case Prefix of
+            ResolvedTextBuilder.Append(CopyStr(InputText, SearchPosition, TokenStartPosition - SearchPosition));
+            TokenText := CopyStr(InputText, TokenStartPosition, TokenEndPosition - TokenStartPosition + 1);
+            case TokenPrefix of
                 PlaceholderPrefixTok:
-                    if GetPlaceholder(Content, Value) then
-                        Output.Append(Value)
+                    if GetPlaceholder(TokenContent, PlaceholderValue) then
+                        ResolvedTextBuilder.Append(PlaceholderValue)
                     else
-                        Output.Append(Token);
+                        ResolvedTextBuilder.Append(TokenText);
                 DateFormulaPrefixTok:
-                    Output.Append(Format(TestInputDateImpl.ResolveAsDate(Token)));
+                    ResolvedTextBuilder.Append(Format(TestInputDateImpl.ResolveAsDate(TokenText)));
                 DateTimeFormulaPrefixTok:
-                    Output.Append(Format(TestInputDateImpl.ResolveAsDateTime(Token)));
+                    ResolvedTextBuilder.Append(Format(TestInputDateImpl.ResolveAsDateTime(TokenText)));
             end;
 
-            Position := TokenEnd + 1;
-        until not FindNextToken(InputText, Position, TokenStart, TokenEnd, Prefix, Content);
+            SearchPosition := TokenEndPosition + 1;
+        until not FindNextToken(InputText, SearchPosition, TokenStartPosition, TokenEndPosition, TokenPrefix, TokenContent);
 
-        Output.Append(CopyStr(InputText, Position));
-        exit(Output.ToText());
+        ResolvedTextBuilder.Append(CopyStr(InputText, SearchPosition));
+        exit(ResolvedTextBuilder.ToText());
     end;
 
     #endregion
 
     #region Date Tokens
 
-    procedure TryExtractDateFormula(InputText: Text; var Formula: Text): Boolean
+    procedure TryExtractDateFormula(InputText: Text; var DateFormulaText: Text): Boolean
     begin
-        exit(TryExtractSingleToken(InputText, DateFormulaPrefixTok, Formula));
+        exit(TryExtractSingleToken(InputText, DateFormulaPrefixTok, DateFormulaText));
     end;
 
-    procedure TryExtractDateTimeFormula(InputText: Text; var Content: Text): Boolean
+    procedure TryExtractDateTimeFormula(InputText: Text; var DateTimeFormulaText: Text): Boolean
     begin
-        exit(TryExtractSingleToken(InputText, DateTimeFormulaPrefixTok, Content));
+        exit(TryExtractSingleToken(InputText, DateTimeFormulaPrefixTok, DateTimeFormulaText));
     end;
 
     #endregion
@@ -230,55 +230,55 @@ codeunit 130466 "Test Input Placeholder Impl."
     /// Token format: prefix + content + $
     /// Returns the content portion if matched.
     /// </summary>
-    local procedure TryExtractSingleToken(InputText: Text; Prefix: Text; var Content: Text): Boolean
+    local procedure TryExtractSingleToken(InputText: Text; TokenPrefix: Text; var TokenContent: Text): Boolean
     begin
-        if not InputText.StartsWith(Prefix) then
+        if not InputText.StartsWith(TokenPrefix) then
             exit(false);
         if not InputText.EndsWith(TokenSuffixTok) then
             exit(false);
 
-        Content := CopyStr(InputText, StrLen(Prefix) + 1, StrLen(InputText) - StrLen(Prefix) - StrLen(TokenSuffixTok));
+        TokenContent := CopyStr(InputText, StrLen(TokenPrefix) + 1, StrLen(InputText) - StrLen(TokenPrefix) - StrLen(TokenSuffixTok));
         exit(true);
     end;
 
-    local procedure FindNextToken(InputText: Text; Position: Integer; var TokenStart: Integer; var TokenEnd: Integer; var Prefix: Text; var Content: Text): Boolean
+    local procedure FindNextToken(InputText: Text; SearchPosition: Integer; var TokenStartPosition: Integer; var TokenEndPosition: Integer; var TokenPrefix: Text; var TokenContent: Text): Boolean
     begin
-        while Position <= StrLen(InputText) do begin
-            TokenStart := InputText.IndexOf(TokenSuffixTok, Position);
-            if TokenStart = 0 then
+        while SearchPosition <= StrLen(InputText) do begin
+            TokenStartPosition := InputText.IndexOf(TokenSuffixTok, SearchPosition);
+            if TokenStartPosition = 0 then
                 exit(false);
 
-            if TryReadToken(InputText, TokenStart, TokenEnd, Prefix, Content) then
+            if TryReadToken(InputText, TokenStartPosition, TokenEndPosition, TokenPrefix, TokenContent) then
                 exit(true);
 
-            Position := TokenStart + 1;
+            SearchPosition := TokenStartPosition + 1;
         end;
         exit(false);
     end;
 
-    local procedure TryReadToken(InputText: Text; TokenStart: Integer; var TokenEnd: Integer; var Prefix: Text; var Content: Text): Boolean
+    local procedure TryReadToken(InputText: Text; TokenStartPosition: Integer; var TokenEndPosition: Integer; var TokenPrefix: Text; var TokenContent: Text): Boolean
     begin
-        if CopyStr(InputText, TokenStart, StrLen(PlaceholderPrefixTok)) = PlaceholderPrefixTok then
-            Prefix := PlaceholderPrefixTok
+        if CopyStr(InputText, TokenStartPosition, StrLen(PlaceholderPrefixTok)) = PlaceholderPrefixTok then
+            TokenPrefix := PlaceholderPrefixTok
         else
-            if CopyStr(InputText, TokenStart, StrLen(DateTimeFormulaPrefixTok)) = DateTimeFormulaPrefixTok then
-                Prefix := DateTimeFormulaPrefixTok
+            if CopyStr(InputText, TokenStartPosition, StrLen(DateTimeFormulaPrefixTok)) = DateTimeFormulaPrefixTok then
+                TokenPrefix := DateTimeFormulaPrefixTok
             else
-                if CopyStr(InputText, TokenStart, StrLen(DateFormulaPrefixTok)) = DateFormulaPrefixTok then
-                    Prefix := DateFormulaPrefixTok
+                if CopyStr(InputText, TokenStartPosition, StrLen(DateFormulaPrefixTok)) = DateFormulaPrefixTok then
+                    TokenPrefix := DateFormulaPrefixTok
                 else
                     exit(false);
 
-        if TokenStart + StrLen(Prefix) > StrLen(InputText) then
+        if TokenStartPosition + StrLen(TokenPrefix) > StrLen(InputText) then
             exit(false);
 
-        TokenEnd := InputText.IndexOf(TokenSuffixTok, TokenStart + StrLen(Prefix));
-        if TokenEnd = 0 then
+        TokenEndPosition := InputText.IndexOf(TokenSuffixTok, TokenStartPosition + StrLen(TokenPrefix));
+        if TokenEndPosition = 0 then
             exit(false);
 
-        Content := CopyStr(InputText, TokenStart + StrLen(Prefix), TokenEnd - TokenStart - StrLen(Prefix));
-        if Prefix = PlaceholderPrefixTok then
-            exit(IsValidName(Content));
+        TokenContent := CopyStr(InputText, TokenStartPosition + StrLen(TokenPrefix), TokenEndPosition - TokenStartPosition - StrLen(TokenPrefix));
+        if TokenPrefix = PlaceholderPrefixTok then
+            exit(IsValidName(TokenContent));
 
         exit(true);
     end;
@@ -287,46 +287,46 @@ codeunit 130466 "Test Input Placeholder Impl."
 
     #region Validation
 
-    local procedure NormalizeName(Name: Text): Code[250]
+    local procedure NormalizeName(PlaceholderName: Text): Code[250]
     var
-        NormalizedName: Code[250];
+        NormalizedPlaceholderName: Code[250];
     begin
-        if not IsValidName(Name) then
-            Error(InvalidNameErr, MaxStrLen(NormalizedName));
+        if not IsValidName(PlaceholderName) then
+            Error(InvalidNameErr, MaxStrLen(NormalizedPlaceholderName));
 
-        NormalizedName := CopyStr(UpperCase(Name), 1, MaxStrLen(NormalizedName));
-        exit(NormalizedName);
+        NormalizedPlaceholderName := CopyStr(UpperCase(PlaceholderName), 1, MaxStrLen(NormalizedPlaceholderName));
+        exit(NormalizedPlaceholderName);
     end;
 
-    local procedure IsValidName(Name: Text): Boolean
+    local procedure IsValidName(PlaceholderName: Text): Boolean
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
     begin
-        exit((Name <> '') and (StrLen(Name) <= MaxStrLen(TestInputPlaceholder.Name)) and
-            (DelChr(Name, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-') = ''));
+        exit((PlaceholderName <> '') and (StrLen(PlaceholderName) <= MaxStrLen(TestInputPlaceholder.Name)) and
+            (DelChr(PlaceholderName, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-') = ''));
     end;
 
-    local procedure NormalizeCompany(Company: Text): Text[30]
+    local procedure NormalizeCompany(PlaceholderCompany: Text): Text[30]
     var
         TestInputPlaceholder: Record "Test Input Placeholder";
-        NormalizedCompany: Text[30];
+        NormalizedPlaceholderCompany: Text[30];
     begin
-        if StrLen(Company) > MaxStrLen(NormalizedCompany) then
-            Error(KeyTooLongErr, TestInputPlaceholder.FieldCaption(Company), MaxStrLen(NormalizedCompany));
+        if StrLen(PlaceholderCompany) > MaxStrLen(NormalizedPlaceholderCompany) then
+            Error(KeyTooLongErr, TestInputPlaceholder.FieldCaption(Company), MaxStrLen(NormalizedPlaceholderCompany));
 
-        NormalizedCompany := CopyStr(Company, 1, MaxStrLen(NormalizedCompany));
-        exit(NormalizedCompany);
+        NormalizedPlaceholderCompany := CopyStr(PlaceholderCompany, 1, MaxStrLen(NormalizedPlaceholderCompany));
+        exit(NormalizedPlaceholderCompany);
     end;
 
-    local procedure ValidatePlaceholderValue(Name: Text; Value: Text)
+    local procedure ValidatePlaceholderValue(PlaceholderName: Text; PlaceholderValue: Text)
     var
-        Prefix: Text;
-        Content: Text;
-        TokenStart: Integer;
-        TokenEnd: Integer;
+        TokenPrefix: Text;
+        TokenContent: Text;
+        TokenStartPosition: Integer;
+        TokenEndPosition: Integer;
     begin
-        if FindNextToken(Value, 1, TokenStart, TokenEnd, Prefix, Content) then
-            Error(ValueContainsPlaceholderErr, Name);
+        if FindNextToken(PlaceholderValue, 1, TokenStartPosition, TokenEndPosition, TokenPrefix, TokenContent) then
+            Error(ValueContainsPlaceholderErr, PlaceholderName);
     end;
 
     #endregion

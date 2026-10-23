@@ -306,7 +306,7 @@ DataTools.SetPlaceholder(PlaceholderName, Customer."No.");
 
 `GetPlaceholderName` validates a single complete named token and reads the definition raw, even when that name already has a registered value. Invalid definitions raise an error before record creation. Normal reads of the same element resolve the current registered value.
 
-Values are stored as UTF-8 text in a BLOB and preserve multiline text, Unicode, whitespace, and leading zeros. An empty registered value is valid and replaces its token with empty text. `GetPlaceholder` returns `false` and clears its output argument when no value exists; unresolved tokens in input text remain unchanged. Malformed generic tokens also remain literal.
+Values are stored as UTF-8 text in a BLOB. Reading a multiline value normalizes line endings to the platform-standard separator while preserving empty lines, Unicode, whitespace within lines, and leading zeros. An empty registered value is valid and replaces its token with empty text. `GetPlaceholder` returns `false` and clears its output argument when no value exists; unresolved tokens in input text remain unchanged. Malformed generic tokens also remain literal.
 
 Registration rejects values containing complete supported named/date/datetime tokens, even if the referenced name is unknown. Replacement is non-recursive, and there is no escape syntax.
 
@@ -472,6 +472,6 @@ See [Placeholders](#9-placeholders) for full-name and company-scope rules.
 | `GetPlaceholderName(Definition)` | Validate a raw input element and extract its bare placeholder name. |
 | `ContainsNamedPlaceholderMarker(InputText)` | Detect a remaining named marker, including incomplete references, without parsing syntax in consumer AL. |
 | `SetPlaceholder(Name, Value)` / `SetPlaceholderForCompany(Name, Value, Company)` | Register or overwrite the exact key with literal text. |
-| `GetPlaceholder(Name, var Value)` / `GetPlaceholderForCompany(Name, var Value, Company)` | Read literal text, returning whether the registration exists. |
+| `GetPlaceholder(Name, var Value)` / `GetPlaceholderForCompany(Name, var Value, Company)` | Read registered text with platform-standard line breaks, returning whether the registration exists. |
 | `DeletePlaceholder(Name)` / `DeletePlaceholderForCompany(Name, Company)` | Delete the exact key without following shared fallback. |
 | `DeleteAllPlaceholders()` | Delete all registrations. |
