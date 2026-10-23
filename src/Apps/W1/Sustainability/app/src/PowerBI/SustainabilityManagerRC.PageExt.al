@@ -6,7 +6,7 @@ pageextension 6252 "Sustainability Manager RC" extends "Sustainability Manager R
 {
     actions
     {
-        addlast(Reporting)
+        addfirst(Sections)
         {
             group("PBI Reports")
             {
