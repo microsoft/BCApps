@@ -6,6 +6,7 @@ codeunit 134907 "ERM Invoice and Reminder"
                   TableData "Detailed Cust. Ledg. Entry" = rimd;
     Subtype = Test;
     TestPermissions = NonRestrictive;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -26,6 +27,10 @@ codeunit 134907 "ERM Invoice and Reminder"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        PrintInvocationCount: Integer;
+        PrintedReminderCount: Integer;
+        PrintedAsEmail: Boolean;
+        PrintedReminderCustomerNos: List of [Code[20]];
         DueDateLbl: Label '<-%1D>', Locked = true;
         ReminderLineError: Label 'The %1 on the %2 and the %3 must be the same.';
         AmountError: Label 'Amount must be %1 in %2.';
@@ -292,7 +297,7 @@ codeunit 134907 "ERM Invoice and Reminder"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('SuggestLinesReportHandler')]
+    [HandlerFunctions('SuggestLinesWithDefaultFiltersReportHandler')]
     procedure IssueReminderForMultipleInvoicesWithDifferentReminderLevels()
     var
         ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry";
@@ -874,11 +879,57 @@ codeunit 134907 "ERM Invoice and Reminder"
         Assert.RecordIsEmpty(ReminderLine);
     end;
 
+    [Test]
+    [HandlerFunctions('SuggestLinesWithDefaultFiltersReportHandler,IssueRemindersPrintRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure IssueMultipleRemindersWithPrintUsesSingleBatch()
+    var
+        Customer: Record Customer;
+        SecondCustomer: Record Customer;
+        ReminderHeader: Record "Reminder Header";
+        FirstReminderHeader: Record "Reminder Header";
+        SecondReminderHeader: Record "Reminder Header";
+        PrintCaptureSubscriber: Codeunit "ERM Invoice and Reminder";
+        WeekDateFormula: DateFormula;
+        ReminderPostingDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Printing multiple issued reminders uses one print call containing both reminders
+        Initialize();
+
+        // [GIVEN] Two customers with overdue invoices and separate reminders
+        Evaluate(WeekDateFormula, '<1W>');
+        CreateCustomerWithPaymentAndReminderTerms(Customer, WeekDateFormula);
+        CreateCustomerWithPaymentAndReminderTerms(SecondCustomer, WeekDateFormula);
+        PostSalesInvoice(Customer."No.", WorkDate());
+        PostSalesInvoice(SecondCustomer."No.", WorkDate());
+        ReminderPostingDate := CalcDate('<3W+1D>', WorkDate());
+        CreateReminderForDate(FirstReminderHeader, Customer."No.", ReminderPostingDate);
+        CreateReminderForDate(SecondReminderHeader, SecondCustomer."No.", ReminderPostingDate);
+        ReminderHeader.SetFilter("No.", '%1|%2', FirstReminderHeader."No.", SecondReminderHeader."No.");
+
+        // [WHEN] Issue both reminders with Print selected
+        PrintCaptureSubscriber.ResetPrintCapture();
+        BindSubscription(PrintCaptureSubscriber);
+        Report.RunModal(Report::"Issue Reminders", true, true, ReminderHeader);
+        UnbindSubscription(PrintCaptureSubscriber);
+
+        // [THEN] One print call contains both issued reminders and is not an email send
+        Assert.AreEqual(1, PrintCaptureSubscriber.GetPrintInvocationCount(), 'The reminders should be printed in one report invocation.');
+        Assert.AreEqual(2, PrintCaptureSubscriber.GetPrintedReminderCount(), 'The print record filter should contain both issued reminders.');
+        Assert.IsTrue(PrintCaptureSubscriber.ContainsPrintedReminderCustomer(Customer."No."), 'The first customer reminder should be included in the print batch.');
+        Assert.IsTrue(PrintCaptureSubscriber.ContainsPrintedReminderCustomer(SecondCustomer."No."), 'The second customer reminder should be included in the print batch.');
+        Assert.IsFalse(PrintCaptureSubscriber.WasPrintedAsEmail(), 'The report should use the print path, not the email path.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Invoice and Reminder");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
         // Lazy Setup.
         if IsInitialized then
@@ -1081,7 +1132,6 @@ codeunit 134907 "ERM Invoice and Reminder"
         ReminderHeader.Modify(true);
 
         Commit();
-        LibraryVariableStorage.Enqueue('');
         Report.RunModal(Report::"Suggest Reminder Lines", true, false, ReminderHeader);
 
         ReminderHeader.SetRecFilter();
@@ -1415,9 +1465,25 @@ codeunit 134907 "ERM Invoice and Reminder"
     end;
 
     [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure IssueRemindersPrintRequestPageHandler(var IssueReminders: TestRequestPage "Issue Reminders")
+    begin
+        IssueReminders.PrintDoc.SetValue(1);
+        IssueReminders.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
     procedure SuggestLinesReportHandler(var SuggestReminderLines: TestRequestPage "Suggest Reminder Lines")
     begin
         SuggestReminderLines.CustLedgEntry2.SetFilter("Due Date", LibraryVariableStorage.DequeueText());
+        SuggestReminderLines.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SuggestLinesWithDefaultFiltersReportHandler(var SuggestReminderLines: TestRequestPage "Suggest Reminder Lines")
+    begin
+        // Request page values are saved, so reset the Due Date filter that other tests may have set.
+        SuggestReminderLines.CustLedgEntry2.SetFilter("Due Date", '');
         SuggestReminderLines.OK().Invoke();
     end;
 
@@ -1445,5 +1511,46 @@ codeunit 134907 "ERM Invoice and Reminder"
     begin
         Languages.Filter.SetFilter("Code", 'NLD');
         Languages.OK().Invoke();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Issued Reminder Header", 'OnBeforePrintRecords', '', false, false)]
+    local procedure CaptureIssuedReminderPrint(var IssuedReminderHeader: Record "Issued Reminder Header"; ShowRequestForm: Boolean; SendAsEmail: Boolean; HideDialog: Boolean; var IsHandled: Boolean)
+    begin
+        PrintInvocationCount += 1;
+        PrintedReminderCount := IssuedReminderHeader.Count();
+        PrintedAsEmail := SendAsEmail;
+        if IssuedReminderHeader.FindSet() then
+            repeat
+                PrintedReminderCustomerNos.Add(IssuedReminderHeader."Customer No.");
+            until IssuedReminderHeader.Next() = 0;
+        IsHandled := true;
+    end;
+
+    procedure ResetPrintCapture()
+    begin
+        Clear(PrintedReminderCustomerNos);
+        Clear(PrintInvocationCount);
+        Clear(PrintedReminderCount);
+        PrintedAsEmail := false;
+    end;
+
+    procedure GetPrintInvocationCount(): Integer
+    begin
+        exit(PrintInvocationCount);
+    end;
+
+    procedure GetPrintedReminderCount(): Integer
+    begin
+        exit(PrintedReminderCount);
+    end;
+
+    procedure ContainsPrintedReminderCustomer(CustomerNo: Code[20]): Boolean
+    begin
+        exit(PrintedReminderCustomerNos.Contains(CustomerNo));
+    end;
+
+    procedure WasPrintedAsEmail(): Boolean
+    begin
+        exit(PrintedAsEmail);
     end;
 }

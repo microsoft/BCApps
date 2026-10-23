@@ -317,9 +317,7 @@ codeunit 8060 "Create Billing Documents"
         BillingLine.SetRange(Rebilling, TempBillingLine.Rebilling);
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
-        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), false);
-        BillingLine.ModifyAll("Document No.", SalesLine."Document No.", false);
-        BillingLine.ModifyAll("Document Line No.", SalesLine."Line No.", false);
+        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), "Document No.", SalesLine."Document No.", "Document Line No.", SalesLine."Line No.", false);
 
         if ServiceCommitment."Usage Based Billing" then begin
             UsageDataBilling.SetRange(Partner, Enum::"Service Partner"::Customer);
@@ -455,9 +453,7 @@ codeunit 8060 "Create Billing Documents"
         BillingLine.SetRange("Subscription Line Entry No.", TempBillingLine."Subscription Line Entry No.");
         BillingLine.SetRange(Rebilling, TempBillingLine.Rebilling);
 
-        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(PurchaseLine."Document Type"), false);
-        BillingLine.ModifyAll("Document No.", PurchaseLine."Document No.", false);
-        BillingLine.ModifyAll("Document Line No.", PurchaseLine."Line No.", false);
+        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(PurchaseLine."Document Type"), "Document No.", PurchaseLine."Document No.", "Document Line No.", PurchaseLine."Line No.", false);
 
         UsageDataBilling.SetRange(Partner, Enum::"Service Partner"::Vendor);
         UsageDataBilling.SetRange("Subscription Contract No.", ServiceCommitment."Subscription Contract No.");
@@ -725,7 +721,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
         CustomerContract.SetLoadFields("External Document No.");
         if CustomerContract.Get(TempBillingLine."Subscription Contract No.") then
             if CustomerContract."External Document No." <> '' then
