@@ -141,7 +141,9 @@ codeunit 13689 "Xml Data Handling SAF-T DK" implements XmlDataHandlingSAFT
     begin
     end;
 
+#pragma warning disable AA0150
     procedure SetCurrXmlElementNameValue(var Name: Text; var Content: Text; var EmptyContentAllowed: Boolean; RecRef: RecordRef; XPath: Text; var Params: Dictionary of [Text, Text])
+#pragma warning restore AA0150
     begin
         case XPath of
             '/AuditFile/MasterFiles/Customers/Customer/RegistrationNumber',
