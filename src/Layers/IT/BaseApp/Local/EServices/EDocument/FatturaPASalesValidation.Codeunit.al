@@ -70,9 +70,6 @@ codeunit 12180 "FatturaPA Sales Validation"
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if Customer."PA Code" = '' then
-            exit;
-
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.TestField("Fattura PA Electronic Format");
 
@@ -95,7 +92,8 @@ codeunit 12180 "FatturaPA Sales Validation"
             exit;
         end;
 
-        AutoValidateDocument(SalesHeader, SalesHeader."Sell-to Customer No.", DummyElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
+        if SalesHeader.Invoice then
+            AutoValidateDocument(SalesHeader, SalesHeader."Sell-to Customer No.", DummyElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
         FatturaDocHelper.AssignFatturaDocTypeFromVATPostingSetupToSalesHeader(SalesHeader, true);
     end;
 

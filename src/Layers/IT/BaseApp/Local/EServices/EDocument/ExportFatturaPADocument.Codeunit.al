@@ -73,6 +73,8 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer: Record "XML Buffer" temporary;
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
         YesTok: Label 'SI', Locked = true;
+        DefaultRecipientCodeTok: Label '0000000', Locked = true;
+        ForeignRecipientCodeTok: Label 'XXXXXXX', Locked = true;
         // fault model labels
         FatturaTok: Label 'FatturaTelemetryCategoryTok', Locked = true;
         ExportFatturaMsg: Label 'Exporting FatturaPA document', Locked = true;
@@ -278,6 +280,7 @@ codeunit 12179 "Export FatturaPA Document"
     local procedure PopulateTransmissionData(TempFatturaHeader: Record "Fattura Header" temporary; Customer: Record Customer)
     var
         TransmissionIntermediaryVendor: Record Vendor;
+        RecipientCode: Code[7];
     begin
         // Section 1.1 DatiTrasmissione
         if CompanyInformation."Transmission Intermediary No." <> '' then
@@ -300,11 +303,37 @@ codeunit 12179 "Export FatturaPA Document"
 
         TempXMLBuffer.AddNonEmptyElement('ProgressivoInvio', TempFatturaHeader."Progressive No.");
         TempXMLBuffer.AddNonEmptyElement('FormatoTrasmissione', TempFatturaHeader."Transmission Type");
-        TempXMLBuffer.AddNonEmptyElement('CodiceDestinatario', Customer."PA Code");
-        if Customer."PA Code" = '0000000' then
+        RecipientCode := GetRecipientCode(Customer);
+        TempXMLBuffer.AddNonEmptyElement('CodiceDestinatario', RecipientCode);
+        if RecipientCode = DefaultRecipientCodeTok then
             TempXMLBuffer.AddNonEmptyElement('PECDestinatario', Customer."PEC E-Mail Address");
         TempXMLBuffer.GetParent();
     end;
+
+    local procedure GetRecipientCode(Customer: Record Customer): Code[7]
+    begin
+        if IsForeignCustomer(Customer) then
+            exit(ForeignRecipientCodeTok);
+
+        if Customer."PA Code" <> '' then
+            exit(Customer."PA Code");
+
+        exit(DefaultRecipientCodeTok);
+    end;
+
+    local procedure IsForeignCustomer(Customer: Record Customer): Boolean
+    begin
+        exit(Customer."Country/Region Code" <> CompanyInformation."Country/Region Code");
+    end;
+
+    local procedure GetForeignFiscalIdentifier(Customer: Record Customer): Text[20]
+    begin
+        if Customer."VAT Registration No." <> '' then
+            exit(Customer."VAT Registration No.");
+
+        exit(Customer."Fiscal Code");
+    end;
+
 
     local procedure PopulateCompanyInformation(Customer: Record Customer)
     begin
@@ -384,14 +413,24 @@ codeunit 12179 "Export FatturaPA Document"
     end;
 
     local procedure PopulateCustomerData(Customer: Record Customer)
+    var
+        ForeignFiscalIdentifier: Text[20];
     begin
         // 1.4 CessionarioCommittente
         TempXMLBuffer.AddGroupElement('DatiAnagrafici');
-        if (Customer."VAT Registration No." <> '') and (not Customer."Individual Person") then begin
-            TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-            TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
-            TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
-        end;
+        if IsForeignCustomer(Customer) then begin
+            ForeignFiscalIdentifier := GetForeignFiscalIdentifier(Customer);
+            if ForeignFiscalIdentifier <> '' then begin
+                TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
+                TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
+                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', ForeignFiscalIdentifier);
+            end;
+        end else
+            if (Customer."VAT Registration No." <> '') and (not Customer."Individual Person") then begin
+                TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
+                TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
+                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
+            end;
         if CompanyInformation."Country/Region Code" = Customer."Country/Region Code" then
             TempXMLBuffer.AddNonEmptyElement('CodiceFiscale', Customer."Fiscal Code");
         // 1.4.1.3 Anagrafica
