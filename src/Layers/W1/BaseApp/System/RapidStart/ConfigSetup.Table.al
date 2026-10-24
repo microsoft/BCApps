@@ -4,12 +4,10 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Setup;
-using System;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 table 8627 "Config. Setup"
 {
@@ -355,11 +353,17 @@ table 8627 "Config. Setup"
     [Scope('OnPrem')]
     procedure ReadPackageHeader(DecompressedFileName: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        PackageXML: DotNet XmlDocument;
+        FileManagement: Codeunit "File Management";
+        PackageFile: File;
+        PackageInStream: InStream;
+        PackageXML: XmlDocument;
     begin
         if "Package File Name" <> '' then begin
-            XMLDOMManagement.LoadXMLDocumentFromFile(DecompressedFileName, PackageXML);
+            FileManagement.IsAllowedPath(DecompressedFileName, false);
+            PackageFile.Open(DecompressedFileName);
+            PackageFile.CreateInStream(PackageInStream);
+            XmlDocument.ReadFrom(PackageInStream, PackageXML);
+            PackageFile.Close();
             ReadPackageHeaderCommon(PackageXML);
         end else begin
             "Package Code" := '';
@@ -371,11 +375,10 @@ table 8627 "Config. Setup"
 
     procedure ReadPackageHeaderFromStream(InStream: InStream)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        PackageXML: DotNet XmlDocument;
+        PackageXML: XmlDocument;
     begin
         if "Package File Name" <> '' then begin
-            XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, PackageXML);
+            XmlDocument.ReadFrom(InStream, PackageXML);
             ReadPackageHeaderCommon(PackageXML);
         end else begin
             "Package Code" := '';
@@ -385,14 +388,14 @@ table 8627 "Config. Setup"
         end;
     end;
 
-    local procedure ReadPackageHeaderCommon(PackageXML: DotNet XmlDocument)
+    local procedure ReadPackageHeaderCommon(PackageXML: XmlDocument)
     var
         ConfigPackage: Record "Config. Package";
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        DocumentElement: DotNet XmlElement;
+        DocumentElement: XmlElement;
         LanguageID: Text;
     begin
-        DocumentElement := PackageXML.DocumentElement;
+        PackageXML.GetRoot(DocumentElement);
         "Package Code" :=
           CopyStr(
             ConfigXMLExchange.GetAttribute(

@@ -409,12 +409,11 @@ codeunit 136604 "ERM RS Package Dimensions"
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        PackageXML: DotNet XmlDocument;
+        PackageXML: XmlDocument;
     begin
         ConfigPackage.Get(ConfigPackageCode);
         ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
 
-        PackageXML := PackageXML.XmlDocument();
         ConfigXMLExchange.SetExcelMode(true);
         ConfigXMLExchange.ExportPackageXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
         ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
