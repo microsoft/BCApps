@@ -34,9 +34,13 @@ codeunit 134776 "Document Attachment Tests"
         AttachedDateInvalidErr: Label 'Attached date is invalid';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
+        AttachmentDeletedErr: Label 'Attachment must not be deleted';
+        DeleteCancelledErr: Label 'The delete operation must not be cancelled.';
+        DeleteNotCancelledErr: Label 'The delete operation must be cancelled with a silent error.';
         ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
         ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
+        DeleteFromUnfilteredListQst: Label 'The list of attachments is not filtered to the current document. If you continue, the selected attachments will be deleted even if they belong to other documents in the company.\\Do you want to continue?';
         DuplicateErr: Label 'This file is already attached to the document. Please choose another file.';
         ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
         ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
@@ -3709,6 +3713,234 @@ codeunit 134776 "Document Attachment Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListConfirmedDeletesAttachments()
+    var
+        Customer: array[3] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting several attachments from an unfiltered attachment list asks once and deletes the selected attachments when confirmed
+        Initialize();
+
+        // [GIVEN] Customers "C1", "C2" and "C3" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+        CreateCustomerWithAttachments(Customer[3]);
+
+        // [WHEN] The four attachments of "C1" and "C2" are selected in an attachment list without any filters and deleted, and the user confirms
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] The confirmation is shown only once and the attachments of "C1" and "C2" are deleted
+        LibraryVariableStorage.AssertEmpty();
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+        Assert.IsFalse(CustomerAttachmentExists(Customer[2]), AttachmentNotDeletedErr);
+
+        // [THEN] The attachments of "C3", which were not selected, are kept
+        Assert.IsTrue(CustomerAttachmentExists(Customer[3]), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListDeclinedKeepsAttachments()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting several attachments from an unfiltered attachment list deletes nothing when the user declines the confirmation
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+
+        // [WHEN] The four attachments are selected in an attachment list without any filters and deleted, and the user declines
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+        LibraryVariableStorage.Enqueue(false);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
+
+        // [THEN] The confirmation is shown only once, the delete operation is cancelled with a silent error and none of the selected attachments are deleted
+        Assert.AreEqual('', GetLastErrorText(), DeleteNotCancelledErr);
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(4, SelectedDocumentAttachment.Count(), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListAsksAgainForNextDelete()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] A declined delete from an unfiltered attachment list does not prevent the user from being asked again for the next delete
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+
+        // [GIVEN] The selected attachments were deleted from an attachment list without any filters and the user declined
+        LibraryVariableStorage.Enqueue(false);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
+        Assert.AreEqual(4, SelectedDocumentAttachment.Count(), AttachmentDeletedErr);
+
+        // [WHEN] Only the attachments of "C2", which were not the first records of the declined delete, are deleted from the same attachment list and the user confirms
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[2], Customer[2]);
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] The confirmation is shown again, the attachments of "C2" are deleted and the attachments of "C1" are kept
+        LibraryVariableStorage.AssertEmpty();
+        Assert.IsFalse(CustomerAttachmentExists(Customer[2]), AttachmentNotDeletedErr);
+        Assert.IsTrue(CustomerAttachmentExists(Customer[1]), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    procedure DeleteFromFilteredAttachmentListDoesNotAskForConfirmation()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting from an attachment list filtered to a document does not ask for an additional confirmation
+        Initialize();
+
+        // [GIVEN] Customer "C1" with two attachments
+        CreateCustomerWithAttachments(Customer[1]);
+        Customer[2] := Customer[1];
+
+        // [GIVEN] Attachment list filtered to "C1" with link filters, as when the FactBox is linked to the customer
+        FactboxDocumentAttachment.FilterGroup(4);
+        FactboxDocumentAttachment.SetRange("Table ID", Database::Customer);
+        FactboxDocumentAttachment.SetRange("No.", Customer[1]."No.");
+        FactboxDocumentAttachment.FilterGroup(0);
+
+        // [WHEN] Both attachments of "C1" are selected and deleted from the attachment list
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] No confirmation is shown (no ConfirmHandler) and the attachments of "C1" are deleted
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+
+        // [THEN] A list linked only by fields other than "No." (e.g. E-Document pages) is also treated as filtered
+        FactboxDocumentAttachment.Reset();
+        FactboxDocumentAttachment.FilterGroup(4);
+        FactboxDocumentAttachment.SetRange("Table ID", Database::Customer);
+        FactboxDocumentAttachment.FilterGroup(0);
+        Assert.IsFalse(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(FactboxDocumentAttachment), 'A list with link filters must be treated as filtered.');
+        Assert.AreEqual(0, FactboxDocumentAttachment.FilterGroup(), 'The filter group must be restored.');
+
+        // [THEN] A list without any filters is treated as unfiltered
+        FactboxDocumentAttachment.Reset();
+        Assert.IsTrue(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(FactboxDocumentAttachment), 'A list without filters must be treated as unfiltered.');
+
+        // [THEN] A list filtered only by the cross-column search (filter group -1) is treated as filtered
+        FactboxDocumentAttachment.FilterGroup(-1);
+        FactboxDocumentAttachment.SetFilter("File Name", '@*Cust*');
+        FactboxDocumentAttachment.FilterGroup(0);
+        Assert.IsFalse(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(FactboxDocumentAttachment), 'A list with a cross-column search filter must be treated as filtered.');
+        Assert.AreEqual(0, FactboxDocumentAttachment.FilterGroup(), 'The filter group must be restored.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListAsksAgainAfterInterruptedDelete()
+    var
+        Customer: Record Customer;
+        FirstDocumentAttachment: Record "Document Attachment";
+        SecondDocumentAttachment: Record "Document Attachment";
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] A confirmed delete from an unfiltered attachment list that is interrupted does not authorize a later delete
+        Initialize();
+
+        // [GIVEN] Customer "C1" with attachments "A1" and "A2"
+        CreateCustomerWithAttachments(Customer);
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer, Customer);
+        SelectedDocumentAttachment.FindSet();
+        FirstDocumentAttachment := SelectedDocumentAttachment;
+        SelectedDocumentAttachment.Next();
+        SecondDocumentAttachment := SelectedDocumentAttachment;
+
+        // [GIVEN] "A1" and "A2" are selected in an attachment list without any filters, deleted and the user confirmed for "A1"
+        LibraryVariableStorage.Enqueue(true);
+        FactboxDocumentAttachment.GetBySystemId(FirstDocumentAttachment.SystemId);
+        DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList(FactboxDocumentAttachment, SelectedDocumentAttachment);
+
+        // [GIVEN] The delete operation was interrupted before "A1" was deleted, for example by an error in a delete trigger
+        Assert.IsTrue(AttachmentExistsBySystemId(FirstDocumentAttachment.SystemId), AttachmentDeletedErr);
+
+        // [WHEN] "A2", which was part of the interrupted selection, is deleted on its own from the same attachment list and the user confirms
+        SelectedDocumentAttachment.SetRange(SystemId, SecondDocumentAttachment.SystemId);
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] The confirmation is shown again for the new delete operation, "A2" is deleted and "A1" is kept
+        LibraryVariableStorage.AssertEmpty();
+        Assert.IsFalse(AttachmentExistsBySystemId(SecondDocumentAttachment.SystemId), AttachmentNotDeletedErr);
+        Assert.IsTrue(AttachmentExistsBySystemId(FirstDocumentAttachment.SystemId), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListOnlyRemembersMarkedSelection()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        UnselectedAttachmentSystemId: Guid;
+    begin
+        // [SCENARIO 653614] A confirmed delete from an unfiltered attachment list only remembers the records that were selected
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+
+        // [GIVEN] The attachments of "C1" are selected with marks, as CurrPage.SetSelectionFilter does for a multi-row selection
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[1]);
+        if SelectedDocumentAttachment.FindSet() then
+            repeat
+                SelectedDocumentAttachment.Mark(true);
+            until SelectedDocumentAttachment.Next() = 0;
+        SelectedDocumentAttachment.SetRange("Table ID");
+        SelectedDocumentAttachment.SetRange("No.");
+        SelectedDocumentAttachment.MarkedOnly(true);
+        Assert.AreEqual(2, SelectedDocumentAttachment.Count(), 'Only the marked attachments must be selected.');
+
+        // [WHEN] The selected attachments are deleted from an attachment list without any filters and the user confirms
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+
+        // [WHEN] An attachment of "C2", which was not selected, is deleted on its own from the same attachment list and the user declines
+        SelectedDocumentAttachment.ClearMarks();
+        SelectedDocumentAttachment.MarkedOnly(false);
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[2], Customer[2]);
+        SelectedDocumentAttachment.FindFirst();
+        UnselectedAttachmentSystemId := SelectedDocumentAttachment.SystemId;
+        SelectedDocumentAttachment.SetRange(SystemId, UnselectedAttachmentSystemId);
+        LibraryVariableStorage.Enqueue(false);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
+
+        // [THEN] The confirmation is shown for the new delete operation and the attachment of "C2" is kept
+        LibraryVariableStorage.AssertEmpty();
+        Assert.IsTrue(AttachmentExistsBySystemId(UnselectedAttachmentSystemId), AttachmentDeletedErr);
+    end;
+
+    [Test]
     [HandlerFunctions('ListProductionFlow')]
     [Scope('OnPrem')]
     procedure TestDocAttachPageInRoutingHeader()
@@ -4841,6 +5073,68 @@ codeunit 134776 "Document Attachment Tests"
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
     end;
 
+    local procedure CreateCustomerWithAttachments(var Customer: Record Customer)
+    var
+        RecRef: RecordRef;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.GetTable(Customer);
+        CreateDocAttach(RecRef, 'Cust1.jpeg', false, false);
+        CreateDocAttach(RecRef, 'Cust2.jpeg', false, false);
+    end;
+
+    local procedure CustomerAttachmentExists(Customer: Record Customer): Boolean
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::Customer);
+        DocumentAttachment.SetRange("No.", Customer."No.");
+        exit(not DocumentAttachment.IsEmpty());
+    end;
+
+    local procedure AttachmentExistsBySystemId(AttachmentSystemId: Guid): Boolean
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange(SystemId, AttachmentSystemId);
+        exit(not DocumentAttachment.IsEmpty());
+    end;
+
+    local procedure SetCustomerAttachmentSelection(var SelectedDocumentAttachment: Record "Document Attachment"; Customer1: Record Customer; Customer2: Record Customer)
+    begin
+        SelectedDocumentAttachment.SetRange("Table ID", Database::Customer);
+        SelectedDocumentAttachment.SetFilter("No.", '%1|%2', Customer1."No.", Customer2."No.");
+    end;
+
+    local procedure DeleteSelectedAttachmentsFromFactbox(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        SelectedIds: List of [Guid];
+        SelectedId: Guid;
+    begin
+        // A TestPage cannot delete records, so this calls the page's delete guard the way the platform runs
+        // OnDeleteRecord of page "Doc. Attachment List Factbox": once per selected record, with the page's selection.
+        // An error in the guard cancels the remaining deletes, like it cancels the page's delete action. Returns false then.
+        ClearLastError();
+        if SelectedDocumentAttachment.FindSet() then
+            repeat
+                SelectedIds.Add(SelectedDocumentAttachment.SystemId);
+            until SelectedDocumentAttachment.Next() = 0;
+
+        foreach SelectedId in SelectedIds do begin
+            FactboxDocumentAttachment.GetBySystemId(SelectedId);
+            if not TryConfirmDeleteFromUnfilteredList(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment) then
+                exit(false);
+            FactboxDocumentAttachment.Delete(true);
+        end;
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure TryConfirmDeleteFromUnfilteredList(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList(FactboxDocumentAttachment, SelectedDocumentAttachment);
+    end;
+
     [Scope('OnPrem')]
     procedure CreateDocAttach(RecRef: RecordRef; FileName: Text[250]; FlowPurch: Boolean; FlowSales: Boolean)
     var
@@ -5556,6 +5850,14 @@ codeunit 134776 "Document Attachment Tests"
     procedure MessageHandler(Message: Text[1024])
     begin
         LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerDeleteFromUnfilteredList(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(DeleteFromUnfilteredListQst, Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 
     [ConfirmHandler]
