@@ -984,6 +984,68 @@ codeunit 134979 "Reminder Automation Tests"
     end;
 
     [Test]
+    procedure ReminderCommunicationMigrationPreservesExistingData()
+    var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderEmailText: Record "Reminder Email Text";
+        ReminderLevel: Record "Reminder Level";
+        ReminderTerms: Record "Reminder Terms";
+        ReminderText: Record "Reminder Text";
+        ReminderCommunication: Codeunit "Reminder Communication";
+        Language: Codeunit Language;
+        EmailTextOutStream: OutStream;
+        EmailTextId: Guid;
+        LanguageCode: Code[10];
+        LineCount: Integer;
+    begin
+        Initialize();
+        LanguageCode := Language.GetLanguageCode(Language.GetDefaultApplicationLanguageId());
+        CreateReminderTerm(ReminderTerms);
+        ReminderLevel.SetRange("Reminder Terms Code", ReminderTerms.Code);
+        ReminderLevel.FindFirst();
+        LibraryERM.CreateReminderText(
+            ReminderText, ReminderTerms.Code, ReminderLevel."No.",
+            ReminderText.Position::Ending, 'Legacy ending');
+        LibraryERM.CreateReminderText(
+            ReminderText, ReminderTerms.Code, ReminderLevel."No.",
+            ReminderText.Position::"Email Body", '');
+        ReminderText."Email Text".CreateOutStream(EmailTextOutStream, TextEncoding::UTF8);
+        EmailTextOutStream.WriteText('Legacy email body');
+        ReminderText.Modify();
+
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, LanguageCode);
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText,
+            ReminderAttachmentTextLine.Position::"Beginning Line", 'Permanent beginning');
+        EmailTextId := CreateGuid();
+        ReminderEmailText.SetDefaultContentForNewLanguage(
+            EmailTextId, LanguageCode, Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevel.SystemId);
+        ReminderEmailText.Get(EmailTextId, LanguageCode);
+        ReminderEmailText.SetBodyText('Permanent email body');
+
+        ReminderCommunication.MigrateLegacyCommunicationData();
+
+        ReminderLevel.Get(ReminderTerms.Code, ReminderLevel."No.");
+        ReminderAttachmentTextLine.Get(
+            ReminderLevel."Reminder Attachment Text", LanguageCode,
+            ReminderAttachmentTextLine.Position::"Beginning Line", 10000);
+        Assert.AreEqual('Permanent beginning', ReminderAttachmentTextLine.Text, 'Existing beginning text was overwritten.');
+        ReminderAttachmentTextLine.Get(
+            ReminderLevel."Reminder Attachment Text", LanguageCode,
+            ReminderAttachmentTextLine.Position::"Ending Line", 10000);
+        Assert.AreEqual('Legacy ending', ReminderAttachmentTextLine.Text, 'Missing ending text was not migrated.');
+        ReminderEmailText.Get(ReminderLevel."Reminder Email Text", LanguageCode);
+        Assert.AreEqual('Permanent email body', ReminderEmailText.GetBodyText(), 'Existing email body was overwritten.');
+
+        ReminderAttachmentTextLine.SetRange(Id, ReminderLevel."Reminder Attachment Text");
+        ReminderAttachmentTextLine.SetRange("Language Code", LanguageCode);
+        LineCount := ReminderAttachmentTextLine.Count();
+        ReminderCommunication.MigrateLegacyCommunicationData();
+        Assert.AreEqual(LineCount, ReminderAttachmentTextLine.Count(), 'Rerunning migration inserted duplicate attachment lines.');
+    end;
+
+    [Test]
     [HandlerFunctions('NewReminderActionModalPageHandler,IssueRemindersSetupModalPageHandlerWithFilterSaveCheck,IssueReminderSetupPageReminderFilterHandler')]
     procedure ReminderFilterAppliedInTheIssueRemindersSetupPageShouldBeSaved()
     var
