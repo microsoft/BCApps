@@ -60,7 +60,7 @@ page 7429 "EA Corp Card Stmt. FactBox"
     trigger OnAfterGetCurrRecord()
     var
         CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
-        SettlementStatus: Enum "EA Corp Card Settle Status";
+        SettlementStatus2: Enum "EA Corp Card Settle Status";
     begin
         Clear(ReconciledTransactions);
         Clear(ReconciledAmount);
@@ -72,10 +72,10 @@ page 7429 "EA Corp Card Stmt. FactBox"
 
         CorpCardStatementMgt.GetReconciliationSummary(
             Rec, ReconciledTransactions, ReconciledAmount,
-            UnreconciledTransactions, UnreconciledAmount, SettlementStatus);
+            UnreconciledTransactions, UnreconciledAmount, SettlementStatus2);
         Rec.CalcFields("Settlement Entry No.");
         if Rec."Settlement Entry No." <> 0 then
-            SettlementStatusText := Format(SettlementStatus);
+            SettlementStatusText := Format(SettlementStatus2);
     end;
 
     var
