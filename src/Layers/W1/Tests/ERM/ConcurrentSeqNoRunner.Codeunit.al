@@ -6,7 +6,7 @@ namespace Microsoft.Finance.Test;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-codeunit 134085 "Concurrent Seq. No. Runner"
+codeunit 134083 "Concurrent Seq. No. Runner"
 {
     TableNo = "Concurrent Seq. Test Buffer";
 
