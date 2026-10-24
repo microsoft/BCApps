@@ -16,27 +16,27 @@ page 14104 "Customs Declarations"
             repeater(Control1210002)
             {
                 ShowCaption = false;
-                field("No."; "No.")
+                field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
-                field("Declaration Date"; "Declaration Date")
+                field("Declaration Date"; Rec."Declaration Date")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the declaration date associated with this custom declaration header.';
                 }
-                field("Source Type"; "Source Type")
+                field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the source type that applies to the source number that is shown in the Source No. field.';
                 }
-                field("Source No."; "Source No.")
+                field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
-                field("Country/Region of Origin Code"; "Country/Region of Origin Code")
+                field("Country/Region of Origin Code"; Rec."Country/Region of Origin Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
