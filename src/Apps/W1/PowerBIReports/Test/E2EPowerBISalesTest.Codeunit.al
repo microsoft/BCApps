@@ -27,7 +27,7 @@ using System.Utilities;
 codeunit 139881 "E2E PowerBI Sales Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     Access = Internal;
     EventSubscriberInstance = Manual;
@@ -59,6 +59,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemBudget()
     var
         ItemBudgetName: Record "Item Budget Name";
@@ -95,6 +96,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOutstandingSalesOrderLine()
     var
         SalesHeader: Record "Sales Header";
@@ -154,6 +156,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesItemBudgetEntry()
     var
         ItemBudgetName: Record "Item Budget Name";
@@ -204,6 +207,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesValueEntryV2()
     var
         SalesHeader: Record "Sales Header";
@@ -261,6 +265,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetShippedNotInvoiced()
     var
         SalesHeader: Record "Sales Header";
@@ -321,6 +326,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesLineV2()
     var
         SalesHeader: Record "Sales Header";
@@ -415,6 +421,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOpportunity()
     var
         Opportunity: Record Opportunity;
@@ -459,6 +466,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOpportunityEntry()
     var
         OpportunityEntry: Record "Opportunity Entry";
@@ -527,6 +535,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesCycleStage()
     var
         SalesCycle: Record "Sales Cycle";
@@ -575,6 +584,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCloseOpportunityCode()
     var
         CloseOpportunityCode: Record "Close Opportunity Code";
@@ -618,6 +628,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesCreditLines()
     var
         SalesHeader: Record "Sales Header";
@@ -692,6 +703,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesInvoiceLines()
     var
         SalesHeader: Record "Sales Header";
@@ -767,6 +779,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesInvProjectLedgerEntry()
     var
         SalesHeader: Record "Sales Header";
@@ -860,6 +873,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesCrProjectLedgerEntry()
     var
         SalesHeader: Record "Sales Header";
@@ -970,6 +984,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetContact()
     var
         Contact: Record Contact;
@@ -1015,6 +1030,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemCategory()
     var
         ItemCategory: Record "Item Category";
@@ -1058,6 +1074,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReturnReason()
     var
         ReturnReason: Record "Return Reason";
@@ -1094,6 +1111,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetResource()
     var
         Resource: Record Resource;
@@ -1160,5 +1178,12 @@ codeunit 139881 "E2E PowerBI Sales Test"
     procedure ConfirmPostingMessageHandler(Message: Text[1024])
     begin
         Assert.AreEqual(Message, 'The journal lines were successfully posted.', 'The sales resource journal line was not posted.');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

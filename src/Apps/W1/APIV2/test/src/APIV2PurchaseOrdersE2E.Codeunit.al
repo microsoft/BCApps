@@ -3,7 +3,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -37,6 +37,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrders()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -69,6 +70,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrders()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -125,6 +127,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrdersWithEmptyShippingAddress()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -176,6 +179,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderForCustomerWithLocationCode()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -219,6 +223,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderWithCurrency()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -265,18 +270,21 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOrders()
     begin
         TestMultipleModifyOrders(false, false);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyOrders()
     begin
         TestMultipleModifyOrders(true, false);
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyOrders()
     begin
         TestMultipleModifyOrders(false, true);
@@ -342,6 +350,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteOrders()
     var
         SalesHeader: Record "Sales Header";
@@ -380,6 +389,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateOrderThroughPageAndAPI()
     var
         PagePurchaseHeader: Record "Purchase Header";
@@ -457,6 +467,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrdersAppliesDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -483,6 +494,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrdersRedistributesDiscountAmt()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -517,6 +529,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOrderSetManualDiscount()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -557,6 +570,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestClearingManualDiscounts()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -594,6 +608,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionRecieveAndInvoice()
     var
@@ -753,4 +768,11 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         Assert.IsFalse(PurchaseOrderEntityBuffer.Get(OrderNo), 'Purchase Order Entity buffer was supposed to be deleted after posting.');
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

@@ -3,7 +3,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -36,6 +36,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSimpleVendor()
     var
         Vendor: Record "Vendor";
@@ -57,6 +58,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSimpleVendor()
     var
         Vendor: Record "Vendor";
@@ -84,6 +86,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateVendorWithTemplate()
     var
         ConfigTmplSelectionRules: Record "Config. Tmpl. Selection Rules";
@@ -132,6 +135,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyVendor()
     var
         Vendor: Record "Vendor";
@@ -162,6 +166,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteVendor()
     var
         Vendor: Record "Vendor";
@@ -253,5 +258,12 @@ codeunit 139803 "APIV2 - Vendors E2E"
     local procedure VerifyVendorAddress(VendorJSON: Text; var Vendor: Record "Vendor")
     begin
         LibraryGraphMgt.VerifyAddressProperties(VendorJSON, Vendor.Address, Vendor."Address 2", Vendor.City, Vendor.County, Vendor."Country/Region Code", Vendor."Post Code");
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

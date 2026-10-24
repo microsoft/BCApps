@@ -3,7 +3,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -21,6 +21,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
         ReceiptServiceLinesNameTxt: Label 'purchaseReceiptLines';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetLineDirectly()
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -54,6 +55,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReceiptLines()
     var
         PurchRcptHeader: Record "Purch. Rcpt. Header";
@@ -97,6 +99,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReceiptLinesDirectlyWithDocumentIdFilter()
     var
         PurchRcptHeader: Record "Purch. Rcpt. Header";
@@ -135,6 +138,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDimensions()
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -260,6 +264,13 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
         exit(TargetURL);
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

@@ -3,7 +3,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -37,6 +37,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
         PurchaseCreditMemoServiceNameTxt: Label 'purchaseCreditMemos';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJournalLineAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -61,6 +62,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLEntryAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -86,6 +88,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedInvoiceAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -111,6 +114,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftInvoiceAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -135,6 +139,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftOrderAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -160,6 +165,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedPurchaseInvoiceAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -185,6 +191,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftPurchaseInvoiceAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -209,6 +216,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuoteAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -233,6 +241,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJournalLineAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -257,6 +266,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJournalAttachment()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -287,6 +297,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLEntryAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -311,6 +322,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -336,6 +348,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -360,6 +373,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftOrderAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -384,6 +398,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuoteAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -408,6 +423,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftPurchaseOrderAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -432,6 +448,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUpdateGenJournalLineAttachmentBinaryContent()
     var
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
@@ -467,6 +484,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUpdateGLEntryAttachmentBinaryContent()
     var
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
@@ -502,6 +520,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournalLineAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -513,6 +532,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateGLEntryAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -524,6 +544,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePostedInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -536,6 +557,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDraftInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -547,6 +569,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDraftOrderAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -558,6 +581,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePostedPurchaseInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -570,6 +594,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDraftPurchaseInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -581,6 +606,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDraftPurchaseOrderAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -684,6 +710,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateQuoteAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -695,6 +722,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteJournalLineAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -706,6 +734,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteGLEntryAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -717,6 +746,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -729,6 +759,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDraftInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -740,6 +771,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedPurchaseInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -752,6 +784,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDraftPurchaseInvoiceAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -763,6 +796,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteQuoteAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -832,6 +866,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestTransferAttachmentFromDraftToPostedInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -874,6 +909,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestTransferAttachmentFromDraftToPostedPurchaseInvoice()
     var
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -916,6 +952,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestLinkedAttachmentFileNameChangeKeepsOtherFieldsUnchanged()
     var
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
@@ -962,6 +999,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestLinkedAttachmentContentChangeKeepsOtherFieldsUnchanged()
     var
         IncomingDocument: Record "Incoming Document";
@@ -1006,6 +1044,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestLinkedAttachmentDocumentIdChangeNotAllowed()
     var
         DocumentRecordRef: array[2] of RecordRef;
@@ -1039,6 +1078,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedPurchaseCreditMemoAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -1064,6 +1104,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDraftPurchaseCreditMemoAttachments()
     var
         DocumentRecordRef: RecordRef;
@@ -1088,6 +1129,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePostedPurchaseCreditMemoAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -1100,6 +1142,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDraftPurchaseCreditMemoAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -1111,6 +1154,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedPurchaseCreditMemoAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -1123,6 +1167,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDraftPurchaseCreditMemoAttachment()
     var
         DocumentRecordRef: RecordRef;
@@ -1134,6 +1179,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestTransferAttachmentFromDraftToPostedPurchaseCreditMemo()
     var
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
@@ -1685,6 +1731,13 @@ codeunit 139833 "APIV2 - Attachments E2E"
         if Extension <> '' then
             exit(StrSubstNo('%1.%2', Name, Extension));
         exit(Name);
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 
     local procedure Initialize()

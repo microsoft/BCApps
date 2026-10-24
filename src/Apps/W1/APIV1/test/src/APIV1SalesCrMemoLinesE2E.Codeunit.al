@@ -3,7 +3,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -45,6 +45,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestFailsOnIDAbsense()
     var
         ResponseText: Text;
@@ -67,6 +68,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemoLineDirectly()
     var
         SalesLine: Record "Sales Line";
@@ -102,6 +104,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemoLines()
     var
         SalesLine: Record "Sales Line";
@@ -131,6 +134,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemoLinesDirectlyWithDocumentIdFilter()
     var
         SalesLine: Record "Sales Line";
@@ -162,6 +166,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedCreditMemoLines()
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -190,6 +195,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLines()
     var
         Item: Record "Item";
@@ -222,6 +228,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLineWithSequence()
     var
         Item: Record "Item";
@@ -260,6 +267,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemoLines()
     var
         SalesHeader: Record "Sales Header";
@@ -299,6 +307,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemoLineFailsOnSequenceIdOrDocumentIdChange()
     var
         SalesHeader: Record "Sales Header";
@@ -354,6 +363,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCreditMemoLine()
     var
         SalesHeader: Record "Sales Header";
@@ -385,6 +395,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedCreditMemoLine()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -412,6 +423,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateLineThroughPageAndAPI()
     var
         SalesHeader: Record "Sales Header";
@@ -462,6 +474,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineUpdatesCreditMemoDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -494,6 +507,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineUpdatesCreditMemoDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -533,6 +547,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineMovesCreditMemoDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -574,6 +589,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineRemovesCreditMemoDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -609,6 +625,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineKeepsCreditMemoDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -645,6 +662,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineKeepsCreditMemoDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -669,6 +687,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGettingLinesWithDifferentTypes()
     var
         SalesHeader: Record "Sales Header";
@@ -694,6 +713,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingBlankLineDefaultsToItemType()
     var
         SalesHeader: Record "Sales Header";
@@ -730,6 +750,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingCommentLine()
     var
         SalesHeader: Record "Sales Header";
@@ -768,6 +789,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToAccountChangesLineType()
     var
         SalesHeader: Record "Sales Header";
@@ -801,6 +823,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToItemChangesLineType()
     var
         SalesHeader: Record "Sales Header";
@@ -842,6 +865,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheTypeBlanksIds()
     var
         SalesHeader: Record "Sales Header";
@@ -874,6 +898,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLinesWithItemVariant()
     var
         Item: Record "Item";
@@ -914,6 +939,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLinesWithWrongItemVariant()
     var
         Item1: Record "Item";
@@ -1279,6 +1305,13 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
     begin
         NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

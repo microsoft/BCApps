@@ -3,7 +3,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -32,6 +32,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         InvoiceStatusErr: Label 'The invoice status is incorrect.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrders()
     var
         SalesHeader: Record "Sales Header";
@@ -66,6 +67,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrders()
     var
         SalesHeader: Record "Sales Header";
@@ -122,6 +124,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderForCustomerWithLocationCode()
     var
         SalesHeader: Record "Sales Header";
@@ -166,6 +169,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderWithCurrency()
     var
         SalesHeader: Record "Sales Header";
@@ -213,6 +217,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOrders()
     begin
         Initialize();
@@ -221,6 +226,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyOrders()
     begin
         Initialize();
@@ -229,6 +235,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyOrders()
     begin
         Initialize();
@@ -293,6 +300,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteOrders()
     var
         SalesHeader: Record "Sales Header";
@@ -332,6 +340,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateOrderThroughPageAndAPI()
     var
         PageSalesHeader: Record "Sales Header";
@@ -404,6 +413,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrdersAppliesDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -431,6 +441,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrdersRedistributesDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -468,6 +479,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOrderSetManualDiscount()
     var
         SalesHeader: Record "Sales Header";
@@ -507,6 +519,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestClearingManualDiscounts()
     var
         SalesHeader: Record "Sales Header";
@@ -544,6 +557,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionShipAndInvoice()
     var
@@ -677,6 +691,13 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         LibraryGraphMgt.VerifyIDInJson(ResponseText);
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

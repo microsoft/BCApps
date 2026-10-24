@@ -9,7 +9,7 @@ codeunit 139494 "API Test Auth Provider Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 

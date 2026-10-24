@@ -1,7 +1,7 @@
 codeunit 139857 "APIV2 - InventoryPostGroup E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
     trigger OnRun()
@@ -16,6 +16,7 @@ codeunit 139857 "APIV2 - InventoryPostGroup E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInventoryPostGroups()
     var
         InventoryPostingGroup: Record "Inventory Posting Group";
@@ -44,6 +45,12 @@ codeunit 139857 "APIV2 - InventoryPostGroup E2E"
             'Could not find created Inventory Posting Group on the response');
     end;
 
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

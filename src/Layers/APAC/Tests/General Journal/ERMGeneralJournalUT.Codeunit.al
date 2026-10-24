@@ -1,7 +1,7 @@
 codeunit 134920 "ERM General Journal UT"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
@@ -4738,6 +4738,7 @@ codeunit 134920 "ERM General Journal UT"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateGenJnlBatchPostWebService()
     var
@@ -7573,6 +7574,13 @@ codeunit 134920 "ERM General Journal UT"
         OutlookSupported := false;
         Result := true;
         IsHandled := true;
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 
