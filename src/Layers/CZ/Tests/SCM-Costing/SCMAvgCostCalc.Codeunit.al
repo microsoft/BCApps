@@ -2,6 +2,7 @@ codeunit 137070 "SCM Avg. Cost Calc."
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -22,6 +23,7 @@ codeunit 137070 "SCM Avg. Cost Calc."
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
+        OpenInboundEntryNoFilter: Integer;
         IncorrectAverageCostErr: Label 'Average Cost is incorrect.';
         IncorrectAverageCostACYErr: Label 'Average Cost (ACY) is incorrect.';
 
@@ -662,6 +664,52 @@ codeunit 137070 "SCM Avg. Cost Calc."
         Assert.AreNearlyEqual(24.01 / 8.003, AverageCost, LibraryERM.GetUnitAmountRoundingPrecision(), IncorrectAverageCostErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreciseAvgCostRespectsSubscriberFilterOnOpenInboundEntries()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Item: Record Item;
+        FilteredItemLedgerEntry: Record "Item Ledger Entry";
+        PosItemLedgerEntry: Record "Item Ledger Entry";
+        NegItemLedgerEntry: Record "Item Ledger Entry";
+        ItemCostManagement: Codeunit ItemCostManagement;
+        SCMAvgCostCalc: Codeunit "SCM Avg. Cost Calc.";
+        AverageCost: Decimal;
+        AverageCostACY: Decimal;
+    begin
+        // [FEATURE] [Unit Cost] [UT]
+        // [SCENARIO 7611] A subscriber to OnCalculatePreciseCostAmountsOnAfterFilterOpenInboundItemLedgerEntry can add filters on the open inbound item ledger entries included in the precise cost calculation.
+        Initialize();
+        GeneralLedgerSetup.Get();
+
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Open positive item entry "E1". Quantity = 2; Remaining Quantity = 1; Cost Amount = 6.00.
+        // [GIVEN] Open positive item entry "E2". Quantity = 2; Remaining Quantity = 1; Cost Amount = 10.00 + rounding precision of the local currency.
+        // [GIVEN] Closed negative item entry "E3". Quantity = -2; Cost Amount = -16.00. "E3" is applied to "E1" and "E2".
+        // [GIVEN] Sum of Cost Amount for the item is thereby equal to the rounding precision, which triggers the precise cost calculation.
+        MockItemLedgerEntry(FilteredItemLedgerEntry, Item."No.", 2, 1, 6.0, 0);
+        MockItemLedgerEntry(PosItemLedgerEntry, Item."No.", 2, 1, 10.0 + GeneralLedgerSetup."Amount Rounding Precision", 0);
+        MockItemLedgerEntry(NegItemLedgerEntry, Item."No.", -2, 0, -16.0, 0);
+        MockItemApplicationEntry(NegItemLedgerEntry."Entry No.", FilteredItemLedgerEntry."Entry No.", NegItemLedgerEntry."Entry No.", -1);
+        MockItemApplicationEntry(NegItemLedgerEntry."Entry No.", PosItemLedgerEntry."Entry No.", NegItemLedgerEntry."Entry No.", -1);
+
+        // [GIVEN] A bound subscriber that filters the open inbound entries down to "E1".
+        SCMAvgCostCalc.SetOpenInboundEntryNoFilter(FilteredItemLedgerEntry."Entry No.");
+        BindSubscription(SCMAvgCostCalc);
+
+        // [WHEN] Calculate unit cost of the item.
+        ItemCostManagement.SetProperties(true, 0);
+        ItemCostManagement.CalculateAverageCost(Item, AverageCost, AverageCostACY);
+        UnbindSubscription(SCMAvgCostCalc);
+
+        // [THEN] The precise remaining cost is calculated from "E1" only.
+        // [THEN] Average Cost = 6.00 / 2 * 1 / 2 = 1.5, that is the unit cost of "E1" multiplied by its remaining quantity and divided by the remaining quantity on inventory.
+        Assert.AreNearlyEqual(
+          6.0 / 2 * 1 / 2, AverageCost, LibraryERM.GetUnitAmountRoundingPrecision(), IncorrectAverageCostErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1067,6 +1115,18 @@ codeunit 137070 "SCM Avg. Cost Calc."
     procedure EnterQuantityToCreatePageHandler(var EnterQuantitytoCreate: TestPage "Enter Quantity to Create")
     begin
         EnterQuantitytoCreate.OK().Invoke();
+    end;
+
+    procedure SetOpenInboundEntryNoFilter(EntryNo: Integer)
+    begin
+        OpenInboundEntryNoFilter := EntryNo;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ItemCostManagement, 'OnCalculatePreciseCostAmountsOnAfterFilterOpenInboundItemLedgerEntry', '', false, false)]
+    local procedure FilterOpenInboundEntriesOnCalculatePreciseCostAmounts(var OpenInbndItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        if OpenInboundEntryNoFilter <> 0 then
+            OpenInbndItemLedgerEntry.SetRange("Entry No.", OpenInboundEntryNoFilter);
     end;
 }
 
