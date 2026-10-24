@@ -25,7 +25,6 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportLineDoesNotExistErr: Label 'There is no expense report lines with the number %1.', Comment = '%1 - Document No.';
         ApprovalProcessMustBeCancelledErr: Label 'The approval process must be cancelled or completed to reopen this document.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
-        CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
         PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and approve again.';
         PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
         ReimbursementErr: Label 'Reimbursement type must be set to a value in expense report %1, line %2 with description %3.', Comment = '%1 - Expense No. , %2 - Line No., %3 - description';
@@ -84,9 +83,6 @@ codeunit 6984 "Release Exp. Report Document"
 
         CheckBillableVendor(ExpenseReportLine);
         CheckBillableCustomer(ExpenseReportLine);
-
-        if (not ExpenseReportLine.Refundable) and (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Employee Paid") then
-            Error(CannotReleaseDocumentWithNothingToRefundErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Use Rules" then begin
