@@ -17,6 +17,7 @@ using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
 using Microsoft.CRM.Team;
+using Microsoft.EServices.EDocument;
 using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -168,6 +169,7 @@ codeunit 104000 "Upgrade - BaseApp"
         ClearTemporaryTables();
         ClearVATAmountLineTable();
 
+        EnsureStandardFatturaPAFiscalRegimes();
         UpdateGenJournalBatchReferencedIds();
         UpdateJobs();
         UpdateItemTrackingCodes();
@@ -258,6 +260,13 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeDepreciationBooksGLIntegration();
         UpgradePurchaseLineReceiptOnInvoice();
         UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
+    end;
+
+    local procedure EnsureStandardFatturaPAFiscalRegimes()
+    var
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
+    begin
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
     end;
 
     local procedure ClearTemporaryTables()
