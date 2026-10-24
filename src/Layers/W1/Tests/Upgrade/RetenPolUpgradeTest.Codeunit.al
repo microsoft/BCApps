@@ -197,6 +197,141 @@ codeunit 135952 "Reten. Pol. Upgrade Test"
         TableIds.Add(Database::"Integration Synch. Job Errors");
     end;
 
+    [Test]
+    procedure TestPostedInvtPickPutawayRetentionPolicyProtectsBinMandatoryLocations()
+    begin
+        // [SCENARIO 592028] New retention policies for posted inventory picks and put-aways never delete headers at bin mandatory locations
+        Initialize();
+
+        // [GIVEN] The allowed tables are refreshed
+        RefreshAllowedTables();
+
+        // [WHEN] The retention policies for Posted Invt. Pick Header and Posted Invt. Put-away Header are created
+        // [THEN] Each policy applies to a subset of records with a locked "Never Delete" line and an editable "1 Year" line
+        VerifyPostedInvtRetentionPolicyDefaults(Database::"Posted Invt. Pick Header");
+        VerifyPostedInvtRetentionPolicyDefaults(Database::"Posted Invt. Put-away Header");
+    end;
+
+    [Test]
+    procedure TestApplyPostedInvtPickPutawayRetentionPolicyKeepsBinMandatoryLocations()
+    var
+        PostedInvtPickHeader: Record "Posted Invt. Pick Header";
+        PostedInvtPutawayHeader: Record "Posted Invt. Put-away Header";
+        BinLocationCode: Code[10];
+        NoBinLocationCode: Code[10];
+    begin
+        // [SCENARIO 592028] Applying the retention policies on posted inventory picks and put-aways does not fail on bin mandatory locations
+        Initialize();
+
+        // [GIVEN] The allowed tables are refreshed
+        RefreshAllowedTables();
+
+        // [GIVEN] A location with "Bin Mandatory" and a location without bins
+        BinLocationCode := CreateLocation(true);
+        NoBinLocationCode := CreateLocation(false);
+
+        // [GIVEN] Expired posted inventory picks and put-aways at both locations
+        CreateExpiredPostedInvtPickHeader(PostedInvtPickHeader, 'PICKBIN', BinLocationCode);
+        CreateExpiredPostedInvtPickHeader(PostedInvtPickHeader, 'PICKNOBIN', NoBinLocationCode);
+        CreateExpiredPostedInvtPutawayHeader(PostedInvtPutawayHeader, 'PUTBIN', BinLocationCode);
+        CreateExpiredPostedInvtPutawayHeader(PostedInvtPutawayHeader, 'PUTNOBIN', NoBinLocationCode);
+
+        // [WHEN] The enabled default retention policies are applied
+        ApplyDefaultRetentionPolicy(Database::"Posted Invt. Pick Header");
+        ApplyDefaultRetentionPolicy(Database::"Posted Invt. Put-away Header");
+
+        // [THEN] No error occurs, headers at the bin mandatory location are kept and the others are deleted
+        LibraryAssert.IsTrue(PostedInvtPickHeader.Get('PICKBIN'), 'Posted inventory pick at a bin mandatory location must not be deleted');
+        LibraryAssert.IsFalse(PostedInvtPickHeader.Get('PICKNOBIN'), 'Expired posted inventory pick must be deleted');
+        LibraryAssert.IsTrue(PostedInvtPutawayHeader.Get('PUTBIN'), 'Posted inventory put-away at a bin mandatory location must not be deleted');
+        LibraryAssert.IsFalse(PostedInvtPutawayHeader.Get('PUTNOBIN'), 'Expired posted inventory put-away must be deleted');
+    end;
+
+    local procedure RefreshAllowedTables()
+    var
+        RetenPolInstallBaseApp: Codeunit "Reten. Pol. Install - BaseApp";
+    begin
+        RetenPolInstallBaseApp.AddAllowedTables(true);
+    end;
+
+    local procedure CreateDefaultRetentionPolicySetup(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer)
+    begin
+        RetentionPolicySetup.SetRange("Table Id", TableId);
+        RetentionPolicySetup.DeleteAll(true);
+
+        Clear(RetentionPolicySetup);
+        RetentionPolicySetup.Validate("Table Id", TableId);
+        RetentionPolicySetup.Insert(true);
+        RetentionPolicySetup.Get(TableId);
+    end;
+
+    local procedure VerifyPostedInvtRetentionPolicyDefaults(TableId: Integer)
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        RetentionPeriod: Record "Retention Period";
+        LockedLineCount: Integer;
+    begin
+        CreateDefaultRetentionPolicySetup(RetentionPolicySetup, TableId);
+
+        LibraryAssert.IsFalse(RetentionPolicySetup."Apply to all records", 'Retention policy must not apply to all records');
+        RetentionPolicySetupLine.SetRange("Table ID", TableId);
+        LibraryAssert.AreEqual(2, RetentionPolicySetupLine.Count(), 'Incorrect number of retention policy setup lines');
+        RetentionPolicySetupLine.FindSet();
+        repeat
+            RetentionPeriod.Get(RetentionPolicySetupLine."Retention Period");
+            if RetentionPolicySetupLine.IsLocked() then begin
+                LockedLineCount += 1;
+                LibraryAssert.AreEqual(Format(Enum::"Retention Period Enum"::"Never Delete"), Format(RetentionPeriod."Retention Period"), 'Incorrect period for locked retention policy setup line');
+            end else
+                LibraryAssert.AreEqual(Format(Enum::"Retention Period Enum"::"1 Year"), Format(RetentionPeriod."Retention Period"), 'Incorrect period for retention policy setup line');
+        until RetentionPolicySetupLine.Next() = 0;
+        LibraryAssert.AreEqual(1, LockedLineCount, 'Incorrect number of locked retention policy setup lines');
+    end;
+
+    local procedure ApplyDefaultRetentionPolicy(TableId: Integer)
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        CreateDefaultRetentionPolicySetup(RetentionPolicySetup, TableId);
+        RetentionPolicySetup.Validate(Enabled, true);
+        RetentionPolicySetup.Modify(true);
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
+    end;
+
+    local procedure CreateLocation(BinMandatory: Boolean): Code[10]
+    var
+        Location: Record Location;
+    begin
+        Location.Code := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(Location.Code));
+        Location."Bin Mandatory" := BinMandatory;
+        Location.Insert();
+        exit(Location.Code);
+    end;
+
+    local procedure CreateExpiredPostedInvtPickHeader(var PostedInvtPickHeader: Record "Posted Invt. Pick Header"; DocumentNo: Code[20]; LocationCode: Code[10])
+    begin
+        if PostedInvtPickHeader.Get(DocumentNo) then
+            PostedInvtPickHeader.Delete();
+        PostedInvtPickHeader.Init();
+        PostedInvtPickHeader."No." := DocumentNo;
+        PostedInvtPickHeader."Location Code" := LocationCode;
+        PostedInvtPickHeader."Registering Date" := CalcDate('<-2Y>', Today());
+        PostedInvtPickHeader.Insert();
+    end;
+
+    local procedure CreateExpiredPostedInvtPutawayHeader(var PostedInvtPutawayHeader: Record "Posted Invt. Put-away Header"; DocumentNo: Code[20]; LocationCode: Code[10])
+    begin
+        if PostedInvtPutawayHeader.Get(DocumentNo) then
+            PostedInvtPutawayHeader.Delete();
+        PostedInvtPutawayHeader.Init();
+        PostedInvtPutawayHeader."No." := DocumentNo;
+        PostedInvtPutawayHeader."Location Code" := LocationCode;
+        PostedInvtPutawayHeader."Registering Date" := CalcDate('<-2Y>', Today());
+        PostedInvtPutawayHeader.Insert();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
