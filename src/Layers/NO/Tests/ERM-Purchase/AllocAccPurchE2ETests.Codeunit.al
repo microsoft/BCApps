@@ -59,6 +59,107 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         Assert.AreEqual(GetLineAmountToForceRounding(), PostedAmount, 'Total posted amount must equal original amount');
     end;
 
+    [Test]
+    procedure GenerateLinesFromInheritFromParentAllocationRecalculatesVATWithPricesInclVAT()
+    var
+        AllocationAccount: Record "Allocation Account";
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLAccountNo: Code[20];
+        ExpectedLineAmount: array[3] of Decimal;
+        ExpectedAmount: array[3] of Decimal;
+        ExpectedTotalAmount: Decimal;
+        ExpectedTotalAmountInclVAT: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 655888] Generate lines from allocation account line with Inherit from Parent recalculates VAT when Prices Including VAT is enabled
+        Initialize();
+
+        // [GIVEN] G/L Account "G" with a random VAT percentage
+        // [GIVEN] Fixed allocation account "AA" with Split Amount and three Inherit from Parent lines with random shares totaling 100%
+        // [GIVEN] Purchase invoice with Prices Including VAT, line for "G" with a random amount and Selected Alloc. Account No. = "AA"
+        CreatePurchInvoicePricesInclVATWithInheritFromParentAllocation(PurchaseHeader, PurchaseLine, AllocationAccount, GLAccountNo);
+        ExpectedTotalAmount := PurchaseLine.Amount;
+        ExpectedTotalAmountInclVAT := PurchaseLine."Amount Including VAT";
+        AllocAccountDistribution.SetRange("Allocation Account No.", AllocationAccount."No.");
+        AllocAccountDistribution.FindSet();
+        repeat
+            i += 1;
+            ExpectedLineAmount[i] := Round(ExpectedTotalAmountInclVAT * AllocAccountDistribution.Share / 100);
+            ExpectedAmount[i] := Round(ExpectedTotalAmount * AllocAccountDistribution.Share / 100);
+        until AllocAccountDistribution.Next() = 0;
+
+        // [WHEN] Generate lines from allocation account line
+        CreateLinesFromAllocationAccountLine(PurchaseLine);
+        PurchaseLine.Delete();
+
+        // [THEN] Three lines are created with VAT-inclusive and VAT-exclusive amounts matching their allocation shares
+        i := 0;
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::"G/L Account");
+        PurchaseLine.SetRange("No.", GLAccountNo);
+        Assert.RecordCount(PurchaseLine, 3);
+        PurchaseLine.FindSet();
+        repeat
+            i += 1;
+            Assert.AreEqual(ExpectedLineAmount[i], PurchaseLine."Line Amount", PurchaseLine.FieldCaption("Line Amount"));
+            Assert.AreEqual(ExpectedAmount[i], PurchaseLine.Amount, PurchaseLine.FieldCaption(Amount));
+            Assert.AreEqual(ExpectedLineAmount[i], PurchaseLine."Amount Including VAT", PurchaseLine.FieldCaption("Amount Including VAT"));
+        until PurchaseLine.Next() = 0;
+
+        // [THEN] Document totals match the original VAT-exclusive and VAT-inclusive amounts
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreEqual(ExpectedTotalAmount, PurchaseHeader.Amount, PurchaseHeader.FieldCaption(Amount));
+        Assert.AreEqual(ExpectedTotalAmountInclVAT, PurchaseHeader."Amount Including VAT", PurchaseHeader.FieldCaption("Amount Including VAT"));
+    end;
+
+    [Test]
+    procedure PostInvoiceAfterGenerateLinesFromInheritFromParentAllocationWithPricesInclVAT()
+    var
+        AllocationAccount: Record "Allocation Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VATEntry: Record "VAT Entry";
+        GLAccountNo: Code[20];
+        ExpectedAmount: Decimal;
+        ExpectedAmountInclVAT: Decimal;
+    begin
+        // [SCENARIO 655888] Posting a purchase invoice after generating lines from an Inherit from Parent allocation with Prices Including VAT posts correct VAT
+        Initialize();
+
+        // [GIVEN] Purchase invoice with Prices Including VAT, a random VAT percentage and amount, and random Inherit from Parent allocation shares
+        CreatePurchInvoicePricesInclVATWithInheritFromParentAllocation(PurchaseHeader, PurchaseLine, AllocationAccount, GLAccountNo);
+        ExpectedAmount := PurchaseLine.Amount;
+        ExpectedAmountInclVAT := PurchaseLine."Amount Including VAT";
+
+        // [GIVEN] Lines generated from allocation account line
+        CreateLinesFromAllocationAccountLine(PurchaseLine);
+        PurchaseLine.Delete();
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] Post the purchase invoice
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+
+        // [THEN] Posted invoice amounts match the original VAT-exclusive and VAT-inclusive amounts
+        PurchInvHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreEqual(ExpectedAmount, PurchInvHeader.Amount, PurchInvHeader.FieldCaption(Amount));
+        Assert.AreEqual(ExpectedAmountInclVAT, PurchInvHeader."Amount Including VAT", PurchInvHeader.FieldCaption("Amount Including VAT"));
+
+        // [THEN] VAT entries match the original VAT base and VAT amount
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Document No.", PurchInvHeader."No.");
+        VATEntry.SetRange("Posting Date", PurchInvHeader."Posting Date");
+        VATEntry.CalcSums(Base, Amount);
+        Assert.AreEqual(ExpectedAmount, VATEntry.Base, VATEntry.FieldCaption(Base));
+        Assert.AreEqual(ExpectedAmountInclVAT - ExpectedAmount, VATEntry.Amount, VATEntry.FieldCaption(Amount));
+    end;
+
     local procedure Initialize()
     var
         AllocationAccount: Record "Allocation Account";
@@ -2078,6 +2179,61 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
         PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
         PurchaseHeader.Modify(true);
+    end;
+
+    local procedure CreatePurchInvoicePricesInclVATWithInheritFromParentAllocation(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var AllocationAccount: Record "Allocation Account"; var GLAccountNo: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        FirstShare: Decimal;
+        SecondShare: Decimal;
+        UnitCost: Decimal;
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(5, 25));
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+
+        FirstShare := LibraryRandom.RandDecInRange(10, 40, 1);
+        SecondShare := LibraryRandom.RandDecInRange(10, 40, 1);
+        CreateFixedAllocationAccountWithInheritFromParentShares(AllocationAccount, FirstShare, SecondShare, 100 - FirstShare - SecondShare);
+
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithBusPostingGroups(GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        // Keep each randomized split exact so VAT assertions do not depend on rounding residuals.
+        UnitCost := LibraryRandom.RandIntInRange(10, 100) * 1000 * (1 + VATPostingSetup."VAT %" / 100);
+        PurchaseLine.Validate("Direct Unit Cost", UnitCost);
+        PurchaseLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateFixedAllocationAccountWithInheritFromParentShares(var AllocationAccount: Record "Allocation Account"; FirstShare: Decimal; SecondShare: Decimal; ThirdShare: Decimal)
+    begin
+        AllocationAccount."No." := Format(LibraryRandom.RandText(5));
+        AllocationAccount."Account Type" := AllocationAccount."Account Type"::Fixed;
+        AllocationAccount."Document Lines Split" := AllocationAccount."Document Lines Split"::"Split Amount";
+        AllocationAccount.Name := CopyStr(Any.AlphabeticText(MaxStrLen(AllocationAccount.Name)), 1, MaxStrLen(AllocationAccount.Name));
+        AllocationAccount.Insert(true);
+
+        CreateInheritFromParentDistribution(AllocationAccount."No.", 10000, FirstShare);
+        CreateInheritFromParentDistribution(AllocationAccount."No.", 20000, SecondShare);
+        CreateInheritFromParentDistribution(AllocationAccount."No.", 30000, ThirdShare);
+    end;
+
+    local procedure CreateInheritFromParentDistribution(AllocationAccountNo: Code[20]; LineNo: Integer; Share: Decimal)
+    var
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
+    begin
+        AllocAccountDistribution."Allocation Account No." := AllocationAccountNo;
+        AllocAccountDistribution."Line No." := LineNo;
+        AllocAccountDistribution."Destination Account Type" := AllocAccountDistribution."Destination Account Type"::"Inherit from Parent";
+        AllocAccountDistribution.Share := Share;
+        AllocAccountDistribution.Insert(true);
     end;
 }
 #pragma warning restore AA0210
