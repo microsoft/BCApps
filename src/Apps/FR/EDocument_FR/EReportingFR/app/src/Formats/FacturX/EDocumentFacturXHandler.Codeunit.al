@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Utilities;
 
@@ -27,7 +26,6 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     InherentPermissions = X;
 
     var
-        GlobalEmbeddedBlob: Codeunit "Temp Blob";
         StructuredData: Text;
         CrossIndustryInvoiceTok: Label 'CROSSINDUSTRYINVOICE', Locked = true;
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', Locked = true;
@@ -171,27 +169,21 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     end;
 
     /// <summary>
-    /// Returns the embedded CII XML of a PDF/A-3 container. When the blob is not a PDF, or the PDF does
-    /// not embed an attachment, the blob is returned unchanged so that plain CII XML is supported too.
+    /// Returns plain CII XML or the embedded invoice of a PDF/A-3 container.
     /// </summary>
-    local procedure ExtractCIIXml(TempBlob: Codeunit "Temp Blob"): Codeunit "Temp Blob"
-    var
-        PdfInStream: InStream;
-    begin
-        TempBlob.CreateInStream(PdfInStream);
-        if TryGetEmbeddedAttachment(PdfInStream) then
-            exit(GlobalEmbeddedBlob);
-        exit(TempBlob);
-    end;
-
-    [TryFunction]
-    local procedure TryGetEmbeddedAttachment(PdfInStream: InStream)
+    procedure ExtractCIIXml(TempBlob: Codeunit "Temp Blob"): Codeunit "Temp Blob"
     var
         PDFDocument: Codeunit "PDF Document";
+        EmbeddedBlob: Codeunit "Temp Blob";
+        Document: XmlDocument;
+        PdfInStream: InStream;
     begin
-        Clear(GlobalEmbeddedBlob);
-        if not PDFDocument.GetDocumentAttachmentStream(PdfInStream, GlobalEmbeddedBlob) then
+        if XmlDocument.ReadFrom(TempBlob.CreateInStream(TextEncoding::UTF8), Document) then
+            exit(TempBlob);
+        TempBlob.CreateInStream(PdfInStream);
+        if not PDFDocument.GetDocumentAttachmentStream(PdfInStream, EmbeddedBlob) then
             Error(NoEmbeddedInvoiceErr);
+        exit(EmbeddedBlob);
     end;
 
     #endregion CII document access
@@ -234,12 +226,17 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     end;
 
     local procedure PopulateHeader(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    var
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
+        SIREN: Text;
+        SIRET: Text;
     begin
         PopulateDocumentInfo(CIIXml, XmlNamespaces, Header);
         PopulateSupplierInfo(CIIXml, XmlNamespaces, Header);
         PopulateCustomerInfo(CIIXml, XmlNamespaces, Header);
         PopulateAmountsAndDates(CIIXml, XmlNamespaces, Header);
-        Header."[BC] Vendor No." := FindVendor(Header);
+        FRLegalIdentifiers.ReadCIIIdentifiers(CIIXml, XmlNamespaces, AgreementPathTok + '/ram:SellerTradeParty', SIREN, SIRET);
+        Header."[BC] Vendor No." := FRLegalIdentifiers.FindVendor(SIREN, SIRET, Header."Vendor VAT Id", Header."Vendor GLN", Header."Vendor Company Name", Header."Vendor Address", '', '');
     end;
 
     local procedure PopulateDocumentInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
@@ -251,6 +248,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
 
     local procedure PopulateSupplierInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
     var
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         BasePath: Text;
     begin
         BasePath := AgreementPathTok + '/ram:SellerTradeParty';
@@ -259,12 +257,13 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
         Header."Vendor Address Recipient" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:PostalTradeAddress/ram:LineTwo'), 1, MaxStrLen(Header."Vendor Address Recipient"));
         Header."Vendor Contact Name" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:DefinedTradeContact/ram:PersonName'), 1, MaxStrLen(Header."Vendor Contact Name"));
         Header."Vendor VAT Id" := CopyStr(GetVATRegistrationNo(CIIXml, XmlNamespaces, BasePath), 1, MaxStrLen(Header."Vendor VAT Id"));
-        Header."Vendor GLN" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:GlobalID'), 1, MaxStrLen(Header."Vendor GLN"));
+        Header."Vendor GLN" := FRLegalIdentifiers.ValidateGLN(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:GlobalID[@schemeID="0088"]'));
         Header."Vendor External Id" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:ID'), 1, MaxStrLen(Header."Vendor External Id"));
     end;
 
     local procedure PopulateCustomerInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
     var
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         BasePath: Text;
     begin
         BasePath := AgreementPathTok + '/ram:BuyerTradeParty';
@@ -273,7 +272,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
         Header."Customer Address" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:PostalTradeAddress/ram:LineOne'), 1, MaxStrLen(Header."Customer Address"));
         Header."Customer Address Recipient" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:PostalTradeAddress/ram:LineTwo'), 1, MaxStrLen(Header."Customer Address Recipient"));
         Header."Customer VAT Id" := CopyStr(GetVATRegistrationNo(CIIXml, XmlNamespaces, BasePath), 1, MaxStrLen(Header."Customer VAT Id"));
-        Header."Customer GLN" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:GlobalID'), 1, MaxStrLen(Header."Customer GLN"));
+        Header."Customer GLN" := FRLegalIdentifiers.ValidateGLN(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:GlobalID[@schemeID="0088"]'));
     end;
 
     local procedure PopulateAmountsAndDates(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
@@ -297,37 +296,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
 
     local procedure GetVATRegistrationNo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; PartyPath: Text) Value: Text
     begin
-        // Scheme VA identifies the VAT registration number, other schemes identify e.g. the SIRET number (FC)
         Value := GetNodeValue(CIIXml, XmlNamespaces, PartyPath + '/ram:SpecifiedTaxRegistration/ram:ID[@schemeID=''VA'']');
-        if Value = '' then
-            Value := GetNodeValue(CIIXml, XmlNamespaces, PartyPath + '/ram:SpecifiedTaxRegistration/ram:ID');
-    end;
-
-    local procedure FindVendor(Header: Record "E-Document Purchase Header"): Code[20]
-    var
-        Vendor: Record Vendor;
-        EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        VendorGLN: Code[13];
-        VendorVATRegistrationNo: Text[20];
-    begin
-        VendorVATRegistrationNo := CopyStr(Header."Vendor VAT Id", 1, MaxStrLen(VendorVATRegistrationNo));
-        if VendorVATRegistrationNo <> '' then begin
-            Vendor.SetLoadFields("No.");
-            Vendor.SetRange("VAT Registration No.", VendorVATRegistrationNo);
-            if Vendor.FindFirst() then
-                exit(Vendor."No.");
-        end;
-
-        VendorGLN := CopyStr(Header."Vendor GLN", 1, MaxStrLen(VendorGLN));
-        if VendorGLN <> '' then begin
-            Vendor.Reset();
-            Vendor.SetLoadFields("No.");
-            Vendor.SetRange(GLN, VendorGLN);
-            if Vendor.FindFirst() then
-                exit(Vendor."No.");
-        end;
-
-        exit(EDocumentImportHelper.FindVendorByNameAndAddress(Header."Vendor Company Name", Header."Vendor Address"));
     end;
 
     #endregion Header
