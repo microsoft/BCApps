@@ -15,6 +15,12 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "7106d701-c601-4a5f-97c2-b8b323ae2c18",
+      "publisher": "Microsoft",
+      "name": "QR Generator",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "d3c551dd-5903-4194-b153-04ced9d29a2c",
       "publisher": "Microsoft",
       "name": "India Tax Base",
