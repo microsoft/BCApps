@@ -2,7 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 enum 8001 "Contract Invoice Text Type"
 {
-    Extensible = false;
+    Extensible = true;
 
     value(0; " ")
     {
