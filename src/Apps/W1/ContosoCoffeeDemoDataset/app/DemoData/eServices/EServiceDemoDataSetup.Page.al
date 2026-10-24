@@ -27,4 +27,9 @@ page 5296 "EService Demo Data Setup"
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.InitRecord();
+    end;
 }

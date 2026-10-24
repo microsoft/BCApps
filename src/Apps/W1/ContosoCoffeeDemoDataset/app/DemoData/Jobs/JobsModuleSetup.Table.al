@@ -31,41 +31,49 @@ table 4771 "Jobs Module Setup"
         }
         field(2; "Customer No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Customer No.';
             TableRelation = Customer;
         }
         field(3; "Item Machine No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Item Machine No.';
             TableRelation = Item;
         }
         field(4; "Item Consumable No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Item Consumable No.';
             TableRelation = Item;
         }
         field(5; "Item Supply No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Item Supply No.';
             TableRelation = Item;
         }
         field(6; "Item Service No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Item Service No.';
             TableRelation = Item;
         }
         field(7; "Resource Installer No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Resource No.';
             TableRelation = Resource;
         }
         field(8; "Job Posting Group"; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Job Posting Group';
             TableRelation = "Job Posting Group";
         }
         field(9; "Job Location"; Code[10])
         {
+            DataClassification = CustomerContent;
             Caption = 'Project Location';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }

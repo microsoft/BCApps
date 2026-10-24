@@ -39,7 +39,7 @@ page 4764 "Jobs Module Setup"
                 }
                 field("Item 4 No."; Rec."Item Supply No.")
                 {
-                    ToolTip = 'Specifies s item number to use for the scenarios.';
+                    ToolTip = 'Specifies the supply item number to use for the scenarios.';
                 }
                 field("Resource L1 No."; Rec."Resource Installer No.")
                 {
