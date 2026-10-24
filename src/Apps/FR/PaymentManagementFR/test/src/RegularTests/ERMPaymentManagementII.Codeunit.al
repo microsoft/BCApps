@@ -36,6 +36,9 @@ codeunit 144017 "ERM Payment Management II"
     trigger OnRun()
     begin
         // [FEATURE] [Payment Slip]    
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -445,9 +448,15 @@ codeunit 144017 "ERM Payment Management II"
     var
         PaymentClass: Record "Payment Class FR";
         PaymentHeader: Record "Payment Header FR";
+        PaymentStatus: Record "Payment Status FR";
+        PaymentStep: Record "Payment Step FR";
+        PaymentStepLedger: Record "Payment Step Ledger FR";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Payment Management II");
         LibraryERM.SetUnrealizedVAT(true);
+        PaymentStepLedger.DeleteAll();
+        PaymentStep.DeleteAll();
+        PaymentStatus.DeleteAll();
         PaymentClass.DeleteAll();
         PaymentHeader.DeleteAll();
         LibraryVariableStorage.Clear();

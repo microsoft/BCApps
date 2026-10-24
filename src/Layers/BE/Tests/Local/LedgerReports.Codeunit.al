@@ -162,6 +162,104 @@ codeunit 144044 "Ledger Reports"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('PurchaseLedgerReportRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchaseLedgerReportSumsVATLinksAcrossPeriods()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        AdditionalVATEntry: Record "VAT Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+    begin
+        // [SCENARIO] VAT detail sums every linked VAT entry, regardless of the VAT entry's template or dates.
+        Initialize();
+        CreatePurchaseLedgerVATDetail(GLEntry, VATEntry);
+
+        AdditionalVATEntry.Init();
+        AdditionalVATEntry."Entry No." := LibraryUtility.GetNewRecNo(AdditionalVATEntry, AdditionalVATEntry.FieldNo("Entry No."));
+        AdditionalVATEntry."Posting Date" := WorkDate() + 10;
+        AdditionalVATEntry."VAT Reporting Date" := WorkDate() + 10;
+        AdditionalVATEntry.Base := -47;
+        AdditionalVATEntry.Amount := -9.87;
+        AdditionalVATEntry.Insert();
+        GLEntryVATEntryLink.InsertLink(GLEntry."Entry No.", AdditionalVATEntry."Entry No.");
+
+        LibraryVariableStorage.Enqueue('<1D>');
+        LibraryVariableStorage.Enqueue(false);
+        LibraryVariableStorage.Enqueue(false);
+        Commit();
+        Report.Run(Report::"Purchase Ledger", true, false);
+
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('GLAccountNo_GLEntry', GLEntry."G/L Account No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailBase', VATEntry.Base + AdditionalVATEntry.Base);
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailAmount', VATEntry.Amount + AdditionalVATEntry.Amount);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('PurchaseLedgerReportRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchaseLedgerReportWithoutVATLinks()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+    begin
+        // [SCENARIO] A G/L entry without VAT links prints zero VAT detail without a missing-entry error.
+        Initialize();
+        CreatePurchaseLedgerVATDetail(GLEntry, VATEntry);
+        GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
+        GLEntryVATEntryLink.DeleteAll();
+
+        LibraryVariableStorage.Enqueue('<1D>');
+        LibraryVariableStorage.Enqueue(false);
+        LibraryVariableStorage.Enqueue(false);
+        Commit();
+        Report.Run(Report::"Purchase Ledger", true, false);
+
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('GLAccountNo_GLEntry', GLEntry."G/L Account No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailBase', 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailAmount', 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('PurchaseLedgerReportRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchaseLedgerReportFailsOnMissingVATEntry()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        MissingVATEntryNo: Integer;
+    begin
+        // [SCENARIO] A dangling VAT link raises the original record-not-found error instead of printing partial totals.
+        Initialize();
+        CreatePurchaseLedgerVATDetail(GLEntry, VATEntry);
+        MissingVATEntryNo := LibraryUtility.GetNewRecNo(VATEntry, VATEntry.FieldNo("Entry No."));
+        GLEntryVATEntryLink.InsertLink(GLEntry."Entry No.", MissingVATEntryNo);
+
+        LibraryVariableStorage.Enqueue('<1D>');
+        LibraryVariableStorage.Enqueue(false);
+        LibraryVariableStorage.Enqueue(false);
+        Commit();
+        asserterror Report.Run(Report::"Purchase Ledger", true, false);
+        Assert.ExpectedErrorCannotFind(Database::"VAT Entry");
+        LibraryVariableStorage.AssertEmpty();
+
+        GLEntryVATEntryLink.Get(GLEntry."Entry No.", MissingVATEntryNo);
+        GLEntryVATEntryLink.Delete();
+        Commit();
+    end;
+
+    [Test]
     [HandlerFunctions('SalesLedgerReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure SalesLedgerReportTest()
@@ -1064,6 +1162,24 @@ codeunit 144044 "Ledger Reports"
         DocNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
     end;
 
+    local procedure CreatePurchaseLedgerVATDetail(var GLEntry: Record "G/L Entry"; var VATEntry: Record "VAT Entry")
+    var
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        Acc21No: Code[20];
+        Acc0No: Code[20];
+        VATProdGroup21: Code[20];
+        VATProdGroup0: Code[20];
+        DocumentNo: Code[20];
+    begin
+        DocumentNo := CreateAndPostPurchInvoiceWithTwoVATRates(Acc21No, Acc0No, VATProdGroup21, VATProdGroup0);
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", Acc21No);
+        GLEntry.FindFirst();
+        GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
+        GLEntryVATEntryLink.FindFirst();
+        VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
+    end;
+
     local procedure AddPurchLineForGLAccount(PurchHeader: Record "Purchase Header"; GLAccNo: Code[20])
     var
         PurchLine: Record "Purchase Line";
@@ -1478,4 +1594,3 @@ codeunit 144044 "Ledger Reports"
         PurchaseLedger.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
 }
-

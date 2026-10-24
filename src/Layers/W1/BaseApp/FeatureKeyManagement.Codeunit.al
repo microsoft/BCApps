@@ -16,6 +16,9 @@ codeunit 265 "Feature Key Management"
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
+#if not CLEAN27
+        VATReverseChargeTok: Label 'VATReverseCharge', Locked = true;
+#endif
         DocumentReportExperienceTxt: Label 'DocumentReportExperience', Locked = true;
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
         ConcurrentInventoryPosting: Boolean;
@@ -37,6 +40,13 @@ codeunit 265 "Feature Key Management"
     begin
         exit(FeatureManagementFacade.IsEnabled(GetSIEAuditFileExportFeatureKeyId()));
     end;
+
+#if not CLEAN27
+    procedure IsVATReverseChargeEnabled(): Boolean
+    begin
+        exit(FeatureManagementFacade.IsEnabled(VATReverseChargeTok));
+    end;
+#endif
 
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin

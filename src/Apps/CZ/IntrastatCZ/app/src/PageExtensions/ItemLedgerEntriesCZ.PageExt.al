@@ -18,6 +18,12 @@ pageextension 31304 "Item Ledger Entries CZ" extends "Item Ledger Entries"
                 ToolTip = 'Specifies the Statistic indication for Intrastat reporting purposes.';
                 Visible = false;
             }
+            field("Country/Reg. of Orig. Code CZ"; Rec."Country/Reg. of Orig. Code CZ")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
+                Visible = false;
+            }
             field("Physical Transfer CZ"; Rec."Physical Transfer CZ")
             {
                 ApplicationArea = Basic, Suite;
