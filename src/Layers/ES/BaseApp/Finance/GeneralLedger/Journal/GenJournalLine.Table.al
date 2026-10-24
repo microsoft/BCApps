@@ -3854,7 +3854,7 @@ table 81 "Gen. Journal Line"
             begin
                 TestField("Payment Type");
                 if "Payment Type" = "Payment Type"::"01" then begin
-                    PmtTypeOptions := Text1100000;
+                    PmtTypeOptions := PaymentTypeOptionsLbl;
                     Selected := DIALOG.StrMenu(PmtTypeOptions, 1);
                     if Selected = 1 then begin
                         StatisticalCodes.LookupMode(true);
@@ -4103,7 +4103,7 @@ table 81 "Gen. Journal Line"
         WrongJobQueueStatus: Label 'Journal line cannot be modified because it has been scheduled for posting.';
 #pragma warning restore AA0074
         RenumberDocNoQst: Label 'If you have many documents it can take time to sort them, and %1 might perform slowly during the process. In those cases we suggest that you sort them during non-working hours. Do you want to continue?', Comment = '%1= Business Central';
-        Text1100000: Label 'Select the Value from Table Statistical Code,Select the Value from Table Tariff No.';
+        PaymentTypeOptionsLbl: Label 'Select the Value from Table Statistical Code,Select the Value from Table Tariff No.';
         [SecurityFiltering(SecurityFilter::Filtered)]
         GenJnlTemplate: Record "Gen. Journal Template";
         [SecurityFiltering(SecurityFilter::Filtered)]
