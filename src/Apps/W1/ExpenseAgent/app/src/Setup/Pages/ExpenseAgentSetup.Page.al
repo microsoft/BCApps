@@ -279,6 +279,9 @@ page 6996 "Expense Agent Setup"
                 field("Display Anti-Corruption attestation"; Rec."Enable Anti-Corp. Statement")
                 {
                 }
+                field("Allow No Receipt"; Rec."Allow No Receipt")
+                {
+                }
                 field("Management Rules Applied"; Rec."Management Rules Applied")
                 {
                     Importance = Additional;

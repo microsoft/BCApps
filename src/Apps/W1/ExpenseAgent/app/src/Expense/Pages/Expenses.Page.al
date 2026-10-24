@@ -34,35 +34,38 @@ page 6989 Expenses
                 }
                 field("Expense User No."; Rec."Expense User No.")
                 {
-                    ToolTip = 'Specifies the expense user who incurred the expense.';
                 }
                 field("Expense Date"; Rec."Expense Date")
                 {
-                    ToolTip = 'Specifies the date the expense occurred.';
                 }
                 field(Status; Rec.Status)
                 {
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies the current status of the expense.';
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {
-                    ToolTip = 'Specifies the category of the expense.';
                 }
                 field("Merchant Name"; Rec."Merchant Name")
                 {
-                    ToolTip = 'Specifies the name of the merchant where the expense occurred.';
                 }
                 field(CurrencyCode; Rec."Currency Code")
                 {
                 }
                 field(Amount; Rec.Amount)
                 {
-                    ToolTip = 'Specifies the total amount in the expense currency.';
                 }
                 field(AmountLCY; Rec."Amount (LCY)")
                 {
-                    ToolTip = 'Specifies the total amount in local currency.';
+                }
+                field("No Receipt Type"; Rec."No Receipt Type")
+                {
+                    Style = Unfavorable;
+                    StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                }
+                field("Compliance Status"; Rec."Compliance Status")
+                {
+                    Style = Unfavorable;
+                    StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
                 }
             }
         }
@@ -133,6 +136,20 @@ page 6989 Expenses
                     begin
                         CurrPage.SetSelectionFilter(Expenses);
                         CreateExpenseReport.AddExpensesToReport(Expenses);
+                    end;
+                }
+                action("No Receipt")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'No Receipt';
+                    Image = Document;
+                    Enabled = AllowNoReceipt and (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '');
+                    Visible = AllowNoReceipt;
+                    ToolTip = 'Create and attach a non-compliant replacement proof document when the original receipt is unavailable.';
+
+                    trigger OnAction()
+                    begin
+                        Page.Run(Page::Expense, Rec);
                     end;
                 }
             }
@@ -268,6 +285,14 @@ page 6989 Expenses
         StatusStyleTxt := Rec.GetStatusStyleText();
     end;
 
+    trigger OnOpenPage()
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        AllowNoReceipt := ExpenseAgentSetup."Allow No Receipt";
+    end;
+
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         StatusStyleTxt: Text;
+        AllowNoReceipt: Boolean;
 }
