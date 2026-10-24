@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -3721,13 +3722,14 @@ codeunit 148190 "Sust. Value Entry Test"
     end;
 
     [Test]
-    procedure TestSystemMustThrowAnErrorIfTotalCO2eIsZeroWhenItemReclassJournalIsPosted()
+    procedure TestAverageItemReclassJournalCanBePostedWithZeroTotalCO2e()
     var
         Item: Record Item;
         Location: Record Location;
         SustainabilityAccount: Record "Sustainability Account";
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
         ItemReclassJournal: TestPage "Item Reclass. Journal";
         CategoryCode: Code[20];
         SubcategoryCode: Code[20];
@@ -3735,8 +3737,7 @@ codeunit 148190 "Sust. Value Entry Test"
         ExpectedTotalCO2e: Decimal;
         Quantity: Decimal;
     begin
-        // [SCENARIO 580139] Verify System must throw an error If "Total CO2e" is zero in Item Journal Line.
-        // When Item Reclass Journal is posted.
+        // [SCENARIO 651041] An Average carbon tracking item can be reclassified with zero Total CO2e, creating a zero-amount Sustainability Value Entry without changing its CO2e per Unit.
         LibrarySustainability.CleanUpBeforeTesting();
 
         // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
@@ -3753,11 +3754,14 @@ codeunit 148190 "Sust. Value Entry Test"
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
         SustainabilityAccount.Get(AccountCode);
 
-        // [GIVEN] Create Item with Sustainability Account.
+        // [GIVEN] Create an Average carbon tracking item with a Sustainability Account.
         LibraryInventory.CreateItem(Item);
         Item.Validate("Default Sust. Account", AccountCode);
         Item.Validate("CO2e per Unit", ExpectedTotalCO2e);
         Item.Modify();
+
+        // [GIVEN] Ensure the inventory purchase can post without relying on country-specific account setup.
+        EnsureGeneralPostingSetupForItem(Item);
 
         // [GIVEN] Post Inventory for Item.
         PostInventoryForItem(Item."No.");
@@ -3779,13 +3783,27 @@ codeunit 148190 "Sust. Value Entry Test"
         ItemReclassJournal."Item No.".SetValue(Item."No.");
         ItemReclassJournal."New Location Code".SetValue(Location.Code);
         ItemReclassJournal.Quantity.SetValue(Quantity);
+        ItemReclassJournal."Total CO2e".AssertEquals(0);
         ItemReclassJournal.Close();
 
-        // [WHEN] Post Item Journal Batch.
-        asserterror LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+        // [WHEN] Post Item Journal Batch with zero Total CO2e.
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
-        // [THEN] Verify system must throw an error If "Total CO2e" is zero in Item Journal Line.
-        Assert.ExpectedError(CO2eMustNotBeZeroErr);
+        // [THEN] A Sustainability Value Entry is created with zero actual and expected CO2e amounts.
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+#pragma warning disable AA0210
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::Transfer);
+#pragma warning restore AA0210
+        Assert.RecordCount(SustainabilityValueEntry, 1);
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(
+            0,
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), 0, SustainabilityValueEntry.TableCaption()));
+        Assert.AreEqual(
+            0,
+            SustainabilityValueEntry."CO2e Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Expected)"), 0, SustainabilityValueEntry.TableCaption()));
     end;
 
     [Test]
@@ -5070,6 +5088,29 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseLine.Modify();
 
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure PostInventoryForItem(ItemNo: Code[20])
