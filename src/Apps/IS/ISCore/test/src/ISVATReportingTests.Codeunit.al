@@ -325,20 +325,18 @@ codeunit 139644 "IS VAT Reporting - Tests"
         PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
         if PurchInvLine.FindSet() then
             repeat
-                with VATAmtLine do begin
-                    Init();
-                    "VAT Identifier" := PurchInvLine."VAT Identifier";
-                    "VAT Calculation Type" := PurchInvLine."VAT Calculation Type";
-                    "Tax Group Code" := PurchInvLine."Tax Group Code";
-                    "Line Amount" := PurchInvLine."Line Amount";
+                VATAmtLine.Init();
+                VATAmtLine."VAT Identifier" := PurchInvLine."VAT Identifier";
+                VATAmtLine."VAT Calculation Type" := PurchInvLine."VAT Calculation Type";
+                VATAmtLine."Tax Group Code" := PurchInvLine."Tax Group Code";
+                VATAmtLine."Line Amount" := PurchInvLine."Line Amount";
 
-                    "VAT %" := PurchInvLine."VAT %";
-                    "VAT Base" := PurchInvLine.Amount;
-                    "Amount Including VAT" := PurchInvLine."Amount Including VAT";
-                    "Line Amount" := PurchInvLine."Line Amount";
+                VATAmtLine."VAT %" := PurchInvLine."VAT %";
+                VATAmtLine."VAT Base" := PurchInvLine.Amount;
+                VATAmtLine."Amount Including VAT" := PurchInvLine."Amount Including VAT";
+                VATAmtLine."Line Amount" := PurchInvLine."Line Amount";
 
-                    InsertLine();
-                end;
+                VATAmtLine.InsertLine();
             until PurchInvLine.Next() = 0;
     end;
 
