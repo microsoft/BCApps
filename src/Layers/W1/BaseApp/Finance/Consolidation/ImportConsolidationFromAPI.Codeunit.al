@@ -782,12 +782,14 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
     local procedure GetGLEntries(DateFilter: Text; AccountNoFilter: Text): JsonArray
     var
         Response: Text;
+        Filter: Text;
         IsHandled: Boolean;
     begin
-        OnBeforeGetGLEntries(DateFilter, AccountNoFilter, IsHandled, Response);
+        Filter := DateFilter + ' and (' + AccountNoFilter + ')';
+        OnBeforeGetGLEntries(DateFilter, AccountNoFilter, IsHandled, Response, Filter);
         if IsHandled then
             exit(ParseData(Response));
-        exit(HttpGet(BusinessUnitAPIBaseUrl + '/generalLedgerEntries?$filter=' + DateFilter + ' and (' + AccountNoFilter + ')&$expand=dimensionSetLines', true));
+        exit(HttpGet(BusinessUnitAPIBaseUrl + '/generalLedgerEntries?$filter=' + Filter + '&$expand=dimensionSetLines', true));
     end;
 
     local procedure GetDimensions(DimensionFilter: Text): JsonArray
@@ -804,12 +806,14 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
     local procedure GetGLEntriesCountAtDate(GLAccountNo: Code[20]; ClosingDate: Date): Integer
     var
         Response: Text;
+        Filter: Text;
         IsHandled: Boolean;
     begin
-        OnBeforeGetGLEntriesCountAtDate(GLAccountNo, ClosingDate, IsHandled, Response);
+        Filter := GLAccountToFilter(GLAccountNo) + ' and postingDate eq ' + FormatDateForAPICall(ClosingDate);
+        OnBeforeGetGLEntriesCountAtDate(GLAccountNo, ClosingDate, IsHandled, Response, Filter);
         if IsHandled then
             exit(ParseCount(Response));
-        exit(HttpGetCount(BusinessUnitAPIBaseUrl + '/generalLedgerEntries?$filter=' + GLAccountToFilter(GLAccountNo) + ' and postingDate eq ' + FormatDateForAPICall(ClosingDate)));
+        exit(HttpGetCount(BusinessUnitAPIBaseUrl + '/generalLedgerEntries?$filter=' + Filter));
     end;
 
     local procedure GetPostingGLAccounts(): JsonArray
@@ -935,8 +939,9 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
     /// <param name="AccountNoFilter">Account number filter for G/L entries retrieval</param>
     /// <param name="IsHandled">Set to true to bypass standard G/L entries API retrieval</param>
     /// <param name="Response">Custom API response text when IsHandled is true</param>
+    /// <param name="Filter">Filter applied to the G/L entries API request</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetGLEntries(DateFilter: Text; AccountNoFilter: Text; var IsHandled: Boolean; var Response: Text)
+    local procedure OnBeforeGetGLEntries(DateFilter: Text; AccountNoFilter: Text; var IsHandled: Boolean; var Response: Text; var Filter: Text)
     begin
     end;
 
@@ -960,8 +965,9 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
     /// <param name="ClosingDate">Closing date for entry count calculation</param>
     /// <param name="IsHandled">Set to true to bypass standard G/L entry count API retrieval</param>
     /// <param name="Response">Custom API response text when IsHandled is true</param>
+    /// <param name="Filter">Filter applied to the G/L entry count API request</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetGLEntriesCountAtDate(GLAccountNo: Code[20]; ClosingDate: Date; var IsHandled: Boolean; var Response: Text)
+    local procedure OnBeforeGetGLEntriesCountAtDate(GLAccountNo: Code[20]; ClosingDate: Date; var IsHandled: Boolean; var Response: Text; var Filter: Text)
     begin
     end;
 
