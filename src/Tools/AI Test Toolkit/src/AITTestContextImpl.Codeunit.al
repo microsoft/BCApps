@@ -388,6 +388,19 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Reads and clears the accumulated Run Procedure output for the current data-driven case. Because this
+    /// codeunit is SingleInstance, the output is read from the SAME instance the test body wrote it to (via
+    /// SetTestOutput). Used by the language-first per-case log write (AIT Test Handler / AddDataDrivenLogEntry),
+    /// which otherwise would read output from a different, empty "AIT Test Suite Mgt." instance.
+    /// </summary>
+    internal procedure ConsumeRunProcedureOutput(): Text
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+    begin
+        exit(AITTestSuiteMgt.GetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl()));
+    end;
+
+    /// <summary>
     /// Initializes global variables for the iteration.
     /// </summary>
     local procedure InitializeGlobalVariables()
