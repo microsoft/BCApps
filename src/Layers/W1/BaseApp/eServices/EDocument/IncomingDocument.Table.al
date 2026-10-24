@@ -1028,8 +1028,7 @@ table 130 "Incoming Document"
 
         Modify(true);
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", "Entry No.");
-        IncomingDocumentAttachment.ModifyAll("Document No.", "Document No.");
-        IncomingDocumentAttachment.ModifyAll("Posting Date", "Posting Date");
+        IncomingDocumentAttachment.ModifyAll("Document No.", "Document No.", "Posting Date", "Posting Date");
 
         Message(RemovePostedRecordManuallyMsg);
     end;
