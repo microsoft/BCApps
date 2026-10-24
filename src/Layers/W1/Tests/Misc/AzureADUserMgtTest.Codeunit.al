@@ -720,7 +720,7 @@ codeunit 132907 AzureADUserMgtTest
         AADApplicationCard: TestPage "AAD Application Card";
     begin
         // [FEATURE] [AI TEST]
-        // [SCENARIO 615864] When AAD Application State is Enabled, Permission Sets subform should be disabled
+        // [SCENARIO 615864] When AAD Application State is Enabled, Permission Sets subform should be enabled
         // [GIVEN] An AAD Application record with State=Enabled and User initialized
         CreateAADApplicationWithUser(AADApplication, User);
         AADApplication.State := AADApplication.State::Enabled;
@@ -730,8 +730,8 @@ codeunit 132907 AzureADUserMgtTest
         AADApplicationCard.Trap();
         Page.Run(Page::"AAD Application Card", AADApplication);
 
-        // [THEN] Permission Sets subform should be disabled
-        Assert.IsFalse(AADApplicationCard.Permissions.Enabled(), 'Permission Sets should be disabled when State is Enabled');
+        // [THEN] Permission Sets subform should be enabled
+        Assert.IsTrue(AADApplicationCard.Permissions.Enabled(), 'Permission Sets should be enabled when State is Enabled');
 
         AADApplicationCard.Close();
     end;
