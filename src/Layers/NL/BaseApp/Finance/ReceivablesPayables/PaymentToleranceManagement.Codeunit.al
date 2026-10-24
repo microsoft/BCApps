@@ -1722,7 +1722,14 @@ codeunit 426 "Payment Tolerance Management"
         ApplnRoundingPrecision: Decimal;
         CBGStatement: Record "CBG Statement";
         UseDocumentNo: Code[20];
+        Result: Boolean;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforePmtTolCBGJnl(CBGStatementLine, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         MaxPmtTolAmount := 0;
         PmtDiscAmount := 0;
         AppliedAmount := 0;
@@ -2881,6 +2888,18 @@ codeunit 426 "Payment Tolerance Management"
     /// <param name="GenJournalLine">General journal line being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDelPmtTolApllnDocNo(var GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before processing payment tolerance for CBG statement lines.
+    /// Enables custom processing to override the standard payment tolerance logic.
+    /// </summary>
+    /// <param name="CBGStatementLine">CBG statement line being processed</param>
+    /// <param name="Result">Result of payment tolerance processing</param>
+    /// <param name="IsHandled">Set to true to skip standard payment tolerance processing</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePmtTolCBGJnl(var CBGStatementLine: Record "CBG Statement Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
