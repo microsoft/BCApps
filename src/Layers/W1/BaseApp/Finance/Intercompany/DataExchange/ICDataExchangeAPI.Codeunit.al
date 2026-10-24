@@ -1457,7 +1457,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
     /// <param name="ICPartner">Intercompany partner record</param>
     /// <param name="RegisteredPartner">Registered partner information</param>
     [IntegrationEvent(false, false)]
-    local procedure OnPostICPurchaseHeaderToICPartnerInboxOnBeforeBufferICInboxPurchaseHeaderInsert(var BufferICInboxPurchaseHeader: Record "Buffer IC Inbox Purch Header"; TempICPartnerICInboxPurchaseHeader: Record "IC Inbox Purchase Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
+    local procedure OnPostICPurchaseHeaderToICPartnerInboxOnBeforeBufferICInboxPurchaseHeaderInsert(var BufferICInboxPurchaseHeader: Record "Buffer IC Inbox Purch Header"; var TempICPartnerICInboxPurchaseHeader: Record "IC Inbox Purchase Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
     begin
     end;
 
@@ -1469,7 +1469,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
     /// <param name="ICPartner">Intercompany partner record</param>
     /// <param name="RegisteredPartner">Registered partner information</param>
     [IntegrationEvent(false, false)]
-    local procedure OnPostICSalesHeaderToICPartnerInboxOnBeforeBufferICInboxSalesHeaderInsert(var BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header"; TempICPartnerICInboxSalesHeader: Record "IC Inbox Sales Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
+    local procedure OnPostICSalesHeaderToICPartnerInboxOnBeforeBufferICInboxSalesHeaderInsert(var BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header"; var TempICPartnerICInboxSalesHeader: Record "IC Inbox Sales Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
     begin
     end;
 
