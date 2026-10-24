@@ -26,7 +26,7 @@ jobs:
 
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
         with:
           include: "['main', 'releases/*']"
 
@@ -57,7 +57,7 @@ jobs:
       - name: Update AL-Go Project Dependencies
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: microsoft/BCApps/.github/actions/RunAutomation@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
         with:
           automations: UpdateUseProjectDependencies
           targetBranch: ${{ matrix.branch }}
