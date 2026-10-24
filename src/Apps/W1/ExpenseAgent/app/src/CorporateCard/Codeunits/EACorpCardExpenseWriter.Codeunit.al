@@ -18,6 +18,7 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         OpenPaymentMethodsLbl: Label 'Open payment methods';
         RecordNotFoundForCardErr: Label '%1 not found for card %2.', Comment = '%1 = table caption, %2 = card id.';
         ExpenseUserNotSpecifiedForCardErr: Label 'Specify %1 for corporate card %2 before creating expenses.', Comment = '%1 = Expense User No. field caption, %2 = card id.';
+        ShowItLbl: Label 'Show it';
         Level3ReconcileWarnLbl: Label 'Level 3 detail total %1 does not match transaction amount %2.', Comment = '%1 = detail total, %2 = transaction amount';
 
     procedure CreateDraftFromTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20])
@@ -34,7 +35,7 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
 
         ExpenseUserNo := CorpCard."Expense User No.";
         if ExpenseUserNo = '' then
-            Error(ExpenseUserNotSpecifiedForCardErr, CorpCard.FieldCaption("Expense User No."), CorpCard."Card Id");
+            RaiseMissingExpenseUserError(CorpCard);
 
         ExpenseCategory := GetExpenseCategoryFromMCC(CorpCardTrans.MCC);
 
@@ -61,6 +62,21 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
 
         CorpCardTrans."Expense No." := ExpenseNo;
         CorpCardTrans.Status := CorpCardTrans.Status::DraftCreated;
+    end;
+
+    local procedure RaiseMissingExpenseUserError(CorpCard: Record "EA Corp Card")
+    var
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
+        MissingExpenseUserErrorInfo: ErrorInfo;
+    begin
+        MissingExpenseUserErrorInfo.Message := StrSubstNo(ExpenseUserNotSpecifiedForCardErr, CorpCard.FieldCaption("Expense User No."), CorpCard."Card Id");
+        MissingExpenseUserErrorInfo.DataClassification := DataClassification::CustomerContent;
+        MissingExpenseUserErrorInfo.ErrorType := ErrorType::Client;
+        MissingExpenseUserErrorInfo.RecordId := CorpCard.RecordId;
+        MissingExpenseUserErrorInfo.PageNo := Page::"EA Corp Card Cards";
+        MissingExpenseUserErrorInfo.AddNavigationAction(ShowItLbl);
+        CorpCardErrorContext.SetErrorInfo(MissingExpenseUserErrorInfo);
+        Error(MissingExpenseUserErrorInfo);
     end;
 
     local procedure RaiseMissingPaymentMethodError()

@@ -43,17 +43,26 @@ codeunit 148356 EACorpCardImportBasicTests
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
         ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        MissingExpenseUserErrorInfo: ErrorInfo;
         ExpenseNo: Code[20];
     begin
         CorpCard."Card Id" := Format(CreateGuid());
         CorpCard.Insert(true);
         CorpCardTrans."Card Id" := CorpCard."Card Id";
+        CorpCardErrorContext.ClearErrorInfo();
 
         asserterror ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
 
         Assert.ExpectedError(
             StrSubstNo(ExpenseUserNotSpecifiedForCardErr, CorpCard.FieldCaption("Expense User No."), CorpCard."Card Id"));
+        Assert.IsTrue(CorpCardErrorContext.TryGetErrorInfo(MissingExpenseUserErrorInfo), 'Missing expense user setup must retain structured error information.');
+        Assert.AreEqual(
+            StrSubstNo(ExpenseUserNotSpecifiedForCardErr, CorpCard.FieldCaption("Expense User No."), CorpCard."Card Id"),
+            MissingExpenseUserErrorInfo.Message, 'The structured error must identify the missing expense user setup.');
+        Assert.AreEqual(Page::"EA Corp Card Cards", MissingExpenseUserErrorInfo.PageNo, 'The recovery action must open corporate card setup.');
+        Assert.AreEqual(CorpCard.RecordId, MissingExpenseUserErrorInfo.RecordId, 'The recovery action must target the card without an expense user.');
     end;
 
     [Test]
