@@ -2772,11 +2772,36 @@ codeunit 137069 "SCM Production Orders"
         ProdOrderComponent: Record "Prod. Order Component";
     begin
         // [FEATURE] [UT] [Production Order Component]
-        // [SCENARIO 375248] Field "Completely Picked" of Production Order table should not be calculated for supplied Components
+        // [SCENARIO 651757] Field "Completely Picked" of Production Order table should be calculated for supplied Components
 
         // [GIVEN] Production Order with Supplied Completely Picked Component
         CreateRelProdOrder(ProductionOrder);
         CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", LibraryRandom.RandInt(9), true);
+
+        // [WHEN] CALCFIELDS for "Completely Picked" of Production Order
+        ProductionOrder.CalcFields("Completely Picked");
+
+        // [THEN] "Completely Picked" of Production Order is "TRUE"
+        ProductionOrder.TestField("Completely Picked", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ProdOrderNotCompletelyPickedWithUnpickedSuppliedComponent()
+    var
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [FEATURE] [UT] [Production Order Component]
+        // [SCENARIO 651757] An unpicked supplied component makes the Production Order not completely picked
+
+        // [GIVEN] Production Order with a completely picked ordinary component
+        CreateRelProdOrder(ProductionOrder);
+        CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", 0, true);
+
+        // [GIVEN] The Production Order also has an unpicked supplied component
+        ProdOrderComponent."Line No." := 10000;
+        CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", LibraryRandom.RandInt(9), false);
 
         // [WHEN] CALCFIELDS for "Completely Picked" of Production Order
         ProductionOrder.CalcFields("Completely Picked");
@@ -7538,4 +7563,3 @@ codeunit 137069 "SCM Production Orders"
         SalesOrderPlanning."&Create Prod. Order".Invoke();
     end;
 }
-
