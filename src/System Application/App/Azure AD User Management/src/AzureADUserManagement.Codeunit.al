@@ -19,6 +19,8 @@ codeunit 9010 "Azure AD User Management"
     var
         [NonDebuggable]
         AzureADUserMgmtImpl: Codeunit "Azure AD User Mgmt. Impl.";
+        [NonDebuggable]
+        AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
 
     trigger OnRun()
     begin
@@ -67,6 +69,16 @@ codeunit 9010 "Azure AD User Management"
     procedure SynchronizeAllLicensedUsersFromDirectory()
     begin
         AzureADUserMgmtImpl.SynchronizeAllLicensedUsersFromDirectory();
+    end;
+
+    /// <summary>
+    /// Retrieves synchronization updates for Microsoft Entra users, honoring the configured environment security group.
+    /// </summary>
+    /// <param name="AzureADUserUpdate">The buffer that contains the synchronization updates.</param>
+    [NonDebuggable]
+    procedure FetchSynchronizationUpdatesFromDirectory(var AzureADUserUpdate: Record "Azure AD User Update Buffer")
+    begin
+        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(AzureADUserUpdate);
     end;
 
     /// <summary>
