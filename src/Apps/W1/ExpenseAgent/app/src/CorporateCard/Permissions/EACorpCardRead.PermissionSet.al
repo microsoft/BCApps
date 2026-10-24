@@ -16,6 +16,7 @@ permissionset 7422 EACorpCardRead
         page "EA Corp Card JQ Schedule Sub" = X,
         page "EA Corp Card Statement" = X,
         page "EA Corp Card Statement Trans" = X,
+        page "EA Corp Card Stmt. FactBox" = X,
         page "EA Corp Card Statements" = X,
         page "EA Corp Card Settlement" = X,
         page "EA Corp Card Settlement Lines" = X,

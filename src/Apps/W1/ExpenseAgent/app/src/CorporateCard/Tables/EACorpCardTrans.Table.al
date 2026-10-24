@@ -197,7 +197,7 @@ table 7428 "EA Corp Card Trans"
         {
             Unique = true;
         }
-        key(Statement; "Statement Entry No.")
+        key(Statement; "Statement Entry No.", "Expense No.")
         {
             SumIndexFields = Amount;
         }

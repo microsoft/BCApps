@@ -75,6 +75,45 @@ codeunit 148359 EACorpCardStatementTests
     end;
 
     [Test]
+    procedure StatementListSummaryFollowsCurrentStatement()
+    var
+        FirstStatement: Record "EA Corp Card Statement";
+        SecondStatement: Record "EA Corp Card Statement";
+        EmptyStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Statements: TestPage "EA Corp Card Statements";
+    begin
+        Initialize();
+        CreateStatement(FirstStatement, 'STMT-SUMMARY-A', 1000, 1);
+        CreateTransaction(CorpCardTrans, FirstStatement, 'SUMMARY-A', 1000, 'EXP-SUMMARY-A');
+        CreateStatement(SecondStatement, 'STMT-SUMMARY-B', 3000, 2);
+        CreateTransaction(CorpCardTrans, SecondStatement, 'SUMMARY-B1', 1000, 'EXP-SUMMARY-B1');
+        CreateTransaction(CorpCardTrans, SecondStatement, 'SUMMARY-B2', 2000, 'EXP-SUMMARY-B2');
+        CreateStatement(EmptyStatement, 'STMT-SUMMARY-EMPTY', 0, 0);
+
+        Statements.OpenView();
+        Statements.GoToRecord(FirstStatement);
+        Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(1);
+        Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(1000);
+
+        Statements.GoToRecord(SecondStatement);
+        Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(2);
+        Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(3000);
+
+        Statements.GoToRecord(EmptyStatement);
+        Statements.ReconciliationSummary.ReconciledTransactions.AssertEquals(0);
+        Statements.ReconciliationSummary.ReconciledAmount.AssertEquals(0);
+        Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(0);
+        Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(0);
+        Statements.ReconciliationSummary.SettlementStatus.AssertEquals('');
+
+        Statements.GoToRecord(FirstStatement);
+        Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(1);
+        Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(1000);
+        Statements.Close();
+    end;
+
+    [Test]
     procedure ValidateStatementIncludesAllTransactionsWithPartialRecords()
     var
         CorpCardStatement: Record "EA Corp Card Statement";

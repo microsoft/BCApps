@@ -35,7 +35,7 @@ codeunit 8223 "Create Corp Card Bank Account"
         CreateCorpCardSetup.CreateDefaults();
     end;
 
-    procedure CorpCardBankAccount(): Code[20]
+    local procedure CorpCardBankAccount(): Code[20]
     begin
         exit(CorpCardBankAccountTok);
     end;
