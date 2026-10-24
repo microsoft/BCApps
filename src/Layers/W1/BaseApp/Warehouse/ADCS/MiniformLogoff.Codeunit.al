@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.ADCS;
 
-using System;
-using System.Xml;
-
 codeunit 7706 "Miniform Logoff"
 {
     TableNo = "Miniform Header";
@@ -17,7 +14,7 @@ codeunit 7706 "Miniform Logoff"
     begin
         MiniformMgt.Initialize(
           MiniformHeader, Rec, DOMxmlin, ReturnedNode,
-          RootNode, XMLDOMMgt, ADCSCommunication, ADCSUserId,
+          RootNode, ADCSCommunication, ADCSUserId,
           CurrentCode, StackCode, WhseEmpId, LocationFilter);
 
         if Rec.Code <> CurrentCode then
@@ -31,12 +28,11 @@ codeunit 7706 "Miniform Logoff"
     var
         MiniformHeader: Record "Miniform Header";
         MiniformHeader2: Record "Miniform Header";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         ADCSCommunication: Codeunit "ADCS Communication";
         ADCSMgt: Codeunit "ADCS Management";
-        ReturnedNode: DotNet XmlNode;
-        RootNode: DotNet XmlNode;
-        DOMxmlin: DotNet XmlDocument;
+        ReturnedNode: XmlNode;
+        RootNode: XmlNode;
+        DOMxmlin: XmlDocument;
         TextValue: Text[250];
         ADCSUserId: Text[250];
         WhseEmpId: Text[250];
@@ -47,8 +43,8 @@ codeunit 7706 "Miniform Logoff"
 
     local procedure Process()
     begin
-        if XMLDOMMgt.FindNode(RootNode, 'Header/Input', ReturnedNode) then
-            TextValue := ReturnedNode.InnerText
+        if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
+            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
         else
             Error(NoInputNodeErr);
 

@@ -5,8 +5,6 @@
 namespace Microsoft.Warehouse.ADCS;
 
 using Microsoft.Warehouse.Activity;
-using System;
-using System.Xml;
 
 codeunit 7709 "Miniform Put Activity List"
 {
@@ -18,7 +16,7 @@ codeunit 7709 "Miniform Put Activity List"
     begin
         MiniformMgmt.Initialize(
           MiniformHeader, Rec, DOMxmlin, ReturnedNode,
-          RootNode, XMLDOMMgt, ADCSCommunication, ADCSUserId,
+          RootNode, ADCSCommunication, ADCSUserId,
           CurrentCode, StackCode, WhseEmpId, LocationFilter);
 
         if Rec.Code <> CurrentCode then
@@ -32,16 +30,15 @@ codeunit 7709 "Miniform Put Activity List"
     var
         MiniformHeader: Record "Miniform Header";
         MiniformHeader2: Record "Miniform Header";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         ADCSCommunication: Codeunit "ADCS Communication";
         ADCSMgt: Codeunit "ADCS Management";
-        DOMxmlin: DotNet XmlDocument;
-        RootNode: DotNet XmlNode;
+        DOMxmlin: XmlDocument;
+        RootNode: XmlNode;
 #pragma warning disable AA0074
         Text000: Label 'Function not Found.';
         Text006: Label 'No input Node found.';
 #pragma warning restore AA0074
-        ReturnedNode: DotNet XmlNode;
+        ReturnedNode: XmlNode;
         RecRef: RecordRef;
         TextValue: Text[250];
         ADCSUserId: Text[250];
@@ -63,8 +60,8 @@ codeunit 7709 "Miniform Put Activity List"
         RecId: RecordID;
         TableNo: Integer;
     begin
-        if XMLDOMMgt.FindNode(RootNode, 'Header/Input', ReturnedNode) then
-            TextValue := ReturnedNode.InnerText
+        if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
+            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
         else
             Error(Text006);
 

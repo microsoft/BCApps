@@ -4,9 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.ADCS;
 
+#if not CLEAN30
 using System;
+#endif
 using System.Reflection;
-using System.Xml;
 
 table 7700 "Miniform Header"
 {
@@ -117,6 +118,30 @@ table 7700 "Miniform Header"
 #pragma warning restore AA0074
 
     [Scope('OnPrem')]
+    procedure SaveXMLin(DOMxmlin: XmlDocument)
+    var
+        XmlWriteOptions: XmlWriteOptions;
+        OutStrm: OutStream;
+    begin
+        XMLin.CreateOutStream(OutStrm);
+        XmlWriteOptions.PreserveWhitespace(true);
+        DOMxmlin.WriteTo(XmlWriteOptions, OutStrm);
+    end;
+
+    [Scope('OnPrem')]
+    procedure LoadXMLin(var DOMxmlin: XmlDocument)
+    var
+        XmlReadOptions: XmlReadOptions;
+        InStrm: InStream;
+    begin
+        XMLin.CreateInStream(InStrm);
+        XmlReadOptions.PreserveWhitespace(true);
+        XmlDocument.ReadFrom(InStrm, XmlReadOptions, DOMxmlin);
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by SaveXMLin with a parameter of the native XmlDocument type.', '30.0')]
     procedure SaveXMLin(DOMxmlin: DotNet XmlDocument)
     var
         InStrm: InStream;
@@ -126,13 +151,15 @@ table 7700 "Miniform Header"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Replaced by LoadXMLin with a parameter of the native XmlDocument type.', '30.0')]
     procedure LoadXMLin(var DOMxmlin: DotNet XmlDocument)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         OutStrm: OutStream;
     begin
         XMLin.CreateOutStream(OutStrm);
-        XMLDOMManagement.LoadXMLDocumentFromOutStream(OutStrm, DOMxmlin);
+        DOMxmlin := DOMxmlin.XmlDocument();
+        DOMxmlin.Load(OutStrm);
     end;
+#endif
 }
 
