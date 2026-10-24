@@ -9,5 +9,5 @@ entitlement "EA - Delegated BC Admin agent - Partner"
     Type = Role;
     RoleType = Delegated;
     Id = '00000000-0000-0000-0000-000000000010';
-    ObjectEntitlements = "Expense Mgmt. Read";
+    ObjectEntitlements = "Expense Mgmt. Admin";
 }
