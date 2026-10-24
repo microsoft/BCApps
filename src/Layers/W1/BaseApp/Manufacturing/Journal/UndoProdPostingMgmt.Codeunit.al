@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Journal;
 
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
@@ -89,6 +90,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ItemJnlLine: Record "Item Journal Line";
         ProductionOrder: Record "Production Order";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
+        UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
         OperationNo: Code[20];
         SetupTime: Decimal;
         RunTime: Decimal;
@@ -115,6 +117,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ItemJnlLine.Validate("Document No.", ItemLedgerEntry."Document No.");
         ItemJnlLine.Validate("Location Code", ItemLedgerEntry."Location Code");
         ItemJnlLine.Validate("Unit of Measure Code", ItemLedgerEntry."Unit of Measure Code");
+        ItemJnlLine."Qty. per Unit of Measure" := ItemLedgerEntry."Qty. per Unit of Measure";
         ItemJnlLine."Dimension Set ID" := ItemLedgerEntry."Dimension Set ID";
         ItemJnlLine."Shortcut Dimension 1 Code" := ItemLedgerEntry."Global Dimension 1 Code";
         ItemJnlLine."Shortcut Dimension 2 Code" := ItemLedgerEntry."Global Dimension 2 Code";
@@ -131,7 +134,10 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         IsHandled := false;
         OnReverseOutputItemLedgerEntryOnBeforeValidateOutputQuantity(ItemJnlLine, ItemLedgerEntry, IsHandled);
         if not IsHandled then
-            ItemJnlLine.Validate("Output Quantity", -Abs(ItemLedgerEntry.Quantity));
+            ItemJnlLine.Validate(
+                "Output Quantity", -Abs(UnitOfMeasureManagement.CalcQtyFromBase(
+                    ItemLedgerEntry."Item No.", ItemLedgerEntry."Variant Code", ItemLedgerEntry."Unit of Measure Code",
+                    ItemLedgerEntry.Quantity, ItemLedgerEntry."Qty. per Unit of Measure")));
 
         ItemJnlLine.Validate(Description, ItemLedgerEntry.Description);
 
