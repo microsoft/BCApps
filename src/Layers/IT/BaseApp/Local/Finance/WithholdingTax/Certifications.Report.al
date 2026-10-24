@@ -863,25 +863,6 @@ report 12106 Certifications
     end;
 
     var
-        Text1033: Label 'Please select at least a certification.';
-        Text1034: Label 'Please enter both From Payment Date and To Payment Date.';
-        Text1035: Label 'Please enter both From Related Date and To Related Date.';
-        Text1038: Label 'According to the law article 7-bis of the D.P.R. 29 September 1973 ';
-        Text1039: Label 'and to any of its subsequent change or integration, it is certified that the following compensation';
-        Text1040: Label ', referring to period from ';
-        Text1041: Label ' to ';
-        Text1042: Label ' has been paid and the corresponding withholding taxes have been withheld during period from ';
-        Text1043: Label 'Amounts liable to In Advance Withholding Tax.';
-        Text1044: Label 'Amounts liable to Source-Withholding Tax that should not be included in income-tax return';
-        Text1045: Label 'Amounts liable to Source-Withholding Tax that recipient may ask to contribute to ';
-        Text1046: Label 'included in total income.';
-        Text1047: Label 'IN ADVANCE WITHHOLDING TAX TOTAL';
-        Text1048: Label 'SOURCE-WITHHOLDING TAX TOTAL THAT RECIPIENT MAY REPORT';
-        Text1049: Label 'SOURCE-WITHHOLDING TAX TOTAL THAT RECIPIENT CAN NOT REPORT';
-        Text1050: Label 'Total ';
-        Text1051: Label 'It is certified that compensation referring to period from ';
-        Text1052: Label ' has been subject to Social Security contribution charged to ';
-        Text1053: Label 'the recipient as per the following rate.';
         CompanyInfo: Record "Company Information";
         Country: Record "Country/Region";
         WithholdTaxCode: Record "Withhold Code";
@@ -911,6 +892,28 @@ report 12106 Certifications
         SrcWithHoldTax: Boolean;
         PageGroupNo: Integer;
         WithholdTaxPercent: Decimal;
+        VendorName: Text;
+        VendorAddress: Text;
+
+        Text1033: Label 'Please select at least a certification.';
+        Text1034: Label 'Please enter both From Payment Date and To Payment Date.';
+        Text1035: Label 'Please enter both From Related Date and To Related Date.';
+        Text1038: Label 'According to the law article 7-bis of the D.P.R. 29 September 1973 ';
+        Text1039: Label 'and to any of its subsequent change or integration, it is certified that the following compensation';
+        Text1040: Label ', referring to period from ';
+        Text1041: Label ' to ';
+        Text1042: Label ' has been paid and the corresponding withholding taxes have been withheld during period from ';
+        Text1043: Label 'Amounts liable to In Advance Withholding Tax.';
+        Text1044: Label 'Amounts liable to Source-Withholding Tax that should not be included in income-tax return';
+        Text1045: Label 'Amounts liable to Source-Withholding Tax that recipient may ask to contribute to ';
+        Text1046: Label 'included in total income.';
+        Text1047: Label 'IN ADVANCE WITHHOLDING TAX TOTAL';
+        Text1048: Label 'SOURCE-WITHHOLDING TAX TOTAL THAT RECIPIENT MAY REPORT';
+        Text1049: Label 'SOURCE-WITHHOLDING TAX TOTAL THAT RECIPIENT CAN NOT REPORT';
+        Text1050: Label 'Total ';
+        Text1051: Label 'It is certified that compensation referring to period from ';
+        Text1052: Label ' has been subject to Social Security contribution charged to ';
+        Text1053: Label 'the recipient as per the following rate.';
         Text1054: Label '%1 %2 per mil', Comment = '%1 - ContribCode Description,%2 - "INAIL Per Mil"';
         Vendor__Birth_City_CaptionLbl: Label 'Birth City';
         CompanyInfo__REA_No__CaptionLbl: Label 'REA No.';
@@ -937,7 +940,5 @@ report 12106 Certifications
         INAIL__INAIL_Total_Amount_CaptionLbl: Label 'INAIL Contribution Total Amount';
         INAIL__INAIL_Gross_Amount_CaptionLbl: Label 'INAIL Taxable Gross Amount';
         INAILCaptionLbl: Label 'INAIL';
-        VendorName: Text;
-        VendorAddress: Text;
 }
 
