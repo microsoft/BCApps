@@ -31,7 +31,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 221621] XML has value "Customer No." in node "NIF" when post Sales Invoice with local customer registered in AEAT
@@ -58,7 +58,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Invoice with local customer not registered in AEAT
@@ -81,7 +81,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 221621] XML has value "06" in node "IDType" when post Sales Invoice with foreign customer registered in AEAT
@@ -104,7 +104,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Invoice with foreign customer not registered in AEAT
@@ -127,7 +127,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "Customer No." in node "NIF" when post Sales Credit Memo with type "Removal" with local customer registered in AEAT
@@ -156,7 +156,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Credit Memo with type "Removal" with local customer not registered in AEAT
@@ -180,7 +180,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "06" in node "IDType" when post Sales Credit Memo with type "Removal" with foreign customer registered in AEAT
@@ -205,7 +205,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Credit Memo with type "Removal" with foreign customer not registered in AEAT
@@ -230,7 +230,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "Customer No." in node "NIF" when post Sales Credit Memo with type "Replacement" with local customer registered in AEAT
@@ -255,7 +255,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Credit Memo with type "Replacement" with local customer not registered in AEAT
@@ -279,7 +279,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "06" in node "IDType" when post Sales Credit Memo with type "Replacement" with foreign customer registered in AEAT
@@ -304,7 +304,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Credit Memo with type "Replacement" with foreign customer not registered in AEAT
@@ -329,7 +329,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "Customer No." in node "NIF" when post Sales Credit Memo with type "Difference" with local customer registered in AEAT
@@ -357,7 +357,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Credit Memo with type "Difference" with local customer not registered in AEAT
@@ -381,7 +381,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "06" in node "IDType" when post Sales Credit Memo with type "Difference" with foreign customer registered in AEAT
@@ -406,7 +406,7 @@ codeunit 147550 "SII AEAT"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 221621] XML has value "07" in node "IDType" when post Sales Credit Memo with type "Difference" with foreign customer not registered in AEAT

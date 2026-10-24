@@ -30,7 +30,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted sales invoice is less than "Invoice Amount Treshold" of SII Setup
@@ -60,7 +60,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted sales invoice is greater than "Invoice Amount Treshold" of SII Setup
@@ -90,7 +90,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node does not exist for sales invoice with "Invoice Type" = "F1 Invoice"
@@ -120,7 +120,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted sales credit memo is less than "Invoice Amount Treshold" of SII Setup
@@ -150,7 +150,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted sales credit memo is greater than "Invoice Amount Treshold" of SII Setup
@@ -180,7 +180,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted sales replacement credit memo is less than "Invoice Amount Treshold" of SII Setup
@@ -210,7 +210,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted sales replacement credit memo is greater than "Invoice Amount Treshold" of SII Setup
@@ -240,7 +240,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted purchase invoice is less than "Invoice Amount Treshold" of SII Setup
@@ -270,7 +270,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted invoice is greater than "Invoice Amount Treshold" of SII Setup
@@ -300,7 +300,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node does not exist for invoice with "Invoice Type" = "F1 Invoice"
@@ -330,7 +330,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted credit memo is less than "Invoice Amount Treshold" of SII Setup
@@ -360,7 +360,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted credit memo is greater than "Invoice Amount Treshold" of SII Setup
@@ -390,7 +390,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted replacement credit memo is less than "Invoice Amount Treshold" of SII Setup
@@ -420,7 +420,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted replacement credit memo is greater than "Invoice Amount Treshold" of SII Setup
@@ -450,7 +450,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted service invoice is less than "Invoice Amount Treshold" of SII Setup
@@ -482,7 +482,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted service invoice is greater than "Invoice Amount Treshold" of SII Setup
@@ -514,7 +514,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node does not exist for service invoice with "Invoice Type" = "F1 Invoice"
@@ -546,7 +546,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted service credit memo is less than "Invoice Amount Treshold" of SII Setup
@@ -578,7 +578,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted service credit memo is greater than "Invoice Amount Treshold" of SII Setup
@@ -610,7 +610,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node has value "N" if amount of posted service replacement credit memo is less than "Invoice Amount Treshold" of SII Setup
@@ -642,7 +642,7 @@ codeunit 147557 "SII Invoice Amount Treshold"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 263060] Macrodate node has value "y" if amount of posted service replacement credit memo is greater than "Invoice Amount Treshold" of SII Setup
