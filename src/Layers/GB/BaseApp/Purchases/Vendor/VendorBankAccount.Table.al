@@ -135,8 +135,8 @@ table 288 "Vendor Bank Account"
         field(14; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
-            MaskType = Concealed;
             ToolTip = 'Specifies the number used by the bank for the bank account.';
+            MaskType = Concealed;
 
             trigger OnValidate()
             begin
@@ -199,13 +199,7 @@ table 288 "Vendor Bank Account"
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(23; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies the bank web site.';
@@ -214,8 +208,8 @@ table 288 "Vendor Bank Account"
         field(24; IBAN; Code[50])
         {
             Caption = 'IBAN';
-            MaskType = Concealed;
             ToolTip = 'Specifies the bank account''s international bank account number.';
+            MaskType = Concealed;
 
             trigger OnValidate()
             var
