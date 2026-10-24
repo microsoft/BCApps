@@ -220,6 +220,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine."Amount without VAT" := ExpenseReportLine.Amount - ExpenseReportLine."VAT Amount";
         ExpenseReportLine."Applied Rule Id" := Expense."Applied Rule Id";
         ExpenseReportLine."Expense Ext. Doc. No." := Expense."Expense Ext. Doc. No.";
+        ExpenseReportLine."Original Amount" := Expense."Original Amount";
     end;
 
     /// <summary>

@@ -79,6 +79,15 @@ page 6993 "Posted Expense Report SubP."
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the line amount in the transaction currency.';
                 }
+                field("Original Amount"; Rec."Original Amount")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Split from Line No."; Rec."Split from Line No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
