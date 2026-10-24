@@ -1,7 +1,12 @@
+#if not CLEAN30
+#pragma warning disable AL0432
 codeunit 144020 "Depr. Diff. Calculation"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
 
     trigger OnRun()
     begin
@@ -896,4 +901,5 @@ codeunit 144020 "Depr. Diff. Calculation"
         LibraryVariableStorage.Enqueue(Message);
     end;
 }
-
+#pragma warning restore AL0432
+#endif
