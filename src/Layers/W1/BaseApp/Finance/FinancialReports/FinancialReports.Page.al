@@ -142,7 +142,7 @@ page 108 "Financial Reports"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Last Run by User"; Rec."Last Run by User")
+                field("Last Run by User"; Rec."Last Run by Current User")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -447,12 +447,12 @@ page 108 "Financial Reports"
         FinancialReportStatus: Record "Financial Report Status";
         LastFilterGroup: Integer;
     begin
-        if not FinancialReportStatus.WritePermission() then begin
-            LastFilterGroup := Rec.FilterGroup();
-            Rec.FilterGroup(4);
+        LastFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        Rec.SetRange("User Security ID Filter", UserSecurityId());
+        if not FinancialReportStatus.WritePermission() then
             Rec.SetRange("Status Blocked", false);
-            Rec.FilterGroup(LastFilterGroup);
-        end;
+        Rec.FilterGroup(LastFilterGroup);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
