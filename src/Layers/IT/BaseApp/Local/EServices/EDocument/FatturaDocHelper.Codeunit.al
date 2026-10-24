@@ -96,6 +96,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FixedAssetTransferTxt: Label 'Fixed assed transfer or internal  transfer  (ex art.36 DPR 633/72)';
         SelfConsumingInvoiceTxt: Label 'Invoice for self-consuming or free gift without VAT Compensation';
         FatturaDocTypeDiffQst: Label 'There are one or more different values of Fattura document type coming from the VAT posting setup of lines. As it''''s not possible to identify the value, %1 from the header will be used.\\Do you want to continue?', Comment = '%1 = the value of Fattura Document type from the header';
+        InvalidProvinciaErr: Label 'The County must contain exactly two uppercase alphabetic characters for FatturaPA Provincia.';
 
     [Scope('OnPrem')]
     procedure CollectDocumentInformation(var TempFatturaHeader: Record "Fattura Header" temporary; var TempFatturaLine: Record "Fattura Line" temporary; HeaderRecRef: RecordRef)
@@ -430,6 +431,10 @@ codeunit 12184 "Fattura Doc. Helper"
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(City), ErrorMessage."Message Type"::Error);
+        if (Customer."Country/Region Code" = CompanyInformation."Country/Region Code") and
+           (Customer.County <> '') and not IsValidFatturaPAProvincia(Customer.County)
+        then
+            ErrorMessage.LogMessage(Customer, Customer.FieldNo(County), ErrorMessage."Message Type"::Error, InvalidProvinciaErr);
         if Customer."Individual Person" then begin
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
@@ -478,9 +483,16 @@ codeunit 12184 "Fattura Doc. Helper"
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(City), ErrorMessage."Message Type"::Error);
+        if (CompanyInformation.County <> '') and not IsValidFatturaPAProvincia(CompanyInformation.County) then
+            ErrorMessage.LogMessage(CompanyInformation, CompanyInformation.FieldNo(County), ErrorMessage."Message Type"::Error, InvalidProvinciaErr);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("REA No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("Registry Office Province"), ErrorMessage."Message Type"::Error);
+    end;
+
+    local procedure IsValidFatturaPAProvincia(County: Text): Boolean
+    begin
+        exit((StrLen(County) = 2) and (County = UpperCase(County)) and (DelChr(County, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') = ''));
     end;
 
     local procedure CheckFatturaPANos(var ErrorMessage: Record "Error Message")
