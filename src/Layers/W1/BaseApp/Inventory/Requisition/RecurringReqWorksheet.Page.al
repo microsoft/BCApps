@@ -9,6 +9,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using System.Automation;
 using System.Security.User;
 
 page 296 "Recurring Req. Worksheet"
@@ -27,6 +28,9 @@ page 296 "Recurring Req. Worksheet"
     {
         area(content)
         {
+             group(Control120)
+            {
+                ShowCaption = false;
             field(CurrentJnlBatchName; CurrentJnlBatchName)
             {
                 ApplicationArea = Planning;
@@ -38,6 +42,7 @@ page 296 "Recurring Req. Worksheet"
                 begin
                     CurrPage.SaveRecord();
                     ReqJnlManagement.LookupName(CurrentJnlBatchName, Rec);
+                    SetControlAppearanceFromWkshBatch();
                     CurrPage.Update(false);
                 end;
 
@@ -47,6 +52,16 @@ page 296 "Recurring Req. Worksheet"
                     CurrentJnlBatchNameOnAfterVali();
                 end;
             }
+            field(RequisitionWkshBatchApprovalStatus; RequisitionWkshBatchApprovalStatus)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approval Status';
+                Editable = false;
+                Visible = EnabledWkshBatchWorkflowsExist;
+                ToolTip = 'Specifies the approval status for requisition worksheet batch.';
+            }
+        }
+
             repeater(Control1)
             {
                 ShowCaption = false;
@@ -302,6 +317,15 @@ page 296 "Recurring Req. Worksheet"
         }
         area(factboxes)
         {
+            part(WorkflowStatusBatch; "Workflow Status FactBox")
+            {
+                ApplicationArea = Suite;
+                Caption = 'Batch Workflows';
+                Editable = false;
+                Enabled = false;
+                ShowFilter = false;
+                Visible = ShowWorkflowStatusOnBatch;
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -450,6 +474,21 @@ page 296 "Recurring Req. Worksheet"
                         Rec.OpenItemTrackingLines();
                     end;
                 }
+                action(Approvals)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ShowWorksheetApprovalEntries(Rec);
+                    end;
+                }
             }
         }
         area(processing)
@@ -510,6 +549,119 @@ page 296 "Recurring Req. Worksheet"
                     end;
                 }
             }
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+                group(SendApprovalRequest)
+                {
+                    Caption = 'Send Approval Request';
+                    Image = SendApprovalRequest;
+                    action(SendApprovalRequestWkshBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Worksheet Batch';
+                        Enabled = not OpenApprovalEntriesOnWkshBatchExist and CanRequestFlowApprovalForWkshBatch and EnabledWkshBatchWorkflowsExist;
+                        Image = SendApprovalRequest;
+                        ToolTip = 'Send all worksheet lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TrySendWorksheetBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromWkshBatch();
+                        end;
+                    }
+                }
+                group(CancelApprovalRequest)
+                {
+                    Caption = 'Cancel Approval Request';
+                    Image = Cancel;
+                    action(CancelApprovalRequestWkshBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Worksheet Batch';
+                        Enabled = CanCancelApprovalForWkshBatch or CanCancelFlowApprovalForWkshBatch;
+                        Image = CancelApprovalRequest;
+                        ToolTip = 'Cancel sending all worksheet lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TryCancelWorksheetBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromWkshBatch();
+                        end;
+                    }
+                }
+            }
+            group(Approval)
+            {
+                Caption = 'Approval';
+                action(Approve)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Approve';
+                    Image = Approve;
+                    ToolTip = 'Approve the requested changes.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ApproveRequisitionWkshRequest(Rec);
+                    end;
+                }
+                action(Reject)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reject';
+                    Image = Reject;
+                    ToolTip = 'Reject the approval request.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.RejectRequisitionWkshRequest(Rec);
+                    end;
+                }
+                action(Delegate)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Delegate';
+                    Image = Delegate;
+                    ToolTip = 'Delegate the approval to a substitute approver.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.DelegateRequisitionWkshRequest(Rec);
+                    end;
+                }
+                action(Comments)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Comments';
+                    Image = ViewComments;
+                    ToolTip = 'View or add comments for the record.';
+                    Visible = OpenApprovalEntriesExistForCurrUser or ApprovalEntriesExistSentByCurrentUser;
+
+                    trigger OnAction()
+                    var
+                        RequisitionWkshName: Record "Requisition Wksh. Name";
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if OpenApprovalEntriesOnWkshBatchExist then
+                            if RequisitionWkshName.Get(Rec."Worksheet Template Name", Rec."Journal Batch Name") then
+                                ApprovalsMgmt.GetApprovalComment(RequisitionWkshName);
+                    end;
+                }
+            }
         }
         area(Promoted)
         {
@@ -541,6 +693,44 @@ page 296 "Recurring Req. Worksheet"
                 {
                 }
             }
+            group(Category_Category8)
+            {
+                Caption = 'Approve', Comment = 'Generated from the PromotedActionCategories property index 7.';
+
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+                actionref(Comments_Promoted; Comments)
+                {
+                }
+                actionref(Delegate_Promoted; Delegate)
+                {
+                }
+            }
+            group("Category_Request Approval")
+            {
+                Caption = 'Request Approval';
+
+                group("Category_Send Approval Request")
+                {
+                    Caption = 'Send Approval Request';
+
+                    actionref(SendApprovalRequestWkshBatch_Promoted; SendApprovalRequestWkshBatch)
+                    {
+                    }
+                }
+                group("Category_Cancel Approval Request")
+                {
+                    Caption = 'Cancel Approval Request';
+
+                    actionref(CancelApprovalRequestWkshBatch_Promoted; CancelApprovalRequestWkshBatch)
+                    {
+                    }
+                }
+            }
             group("Category_Item Availability by")
             {
                 Caption = 'Item Availability by';
@@ -568,8 +758,18 @@ page 296 "Recurring Req. Worksheet"
     }
 
     trigger OnAfterGetCurrRecord()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
         ReqJnlManagement.GetDescriptionAndRcptName(Rec, Description2, BuyFromVendorName);
+
+        if Rec.GetFilter("Worksheet Template Name") <> '' then
+            if RequisitionWkshName.Get(Rec.GetRangeMax("Worksheet Template Name"), CurrentJnlBatchName) then begin
+                RequisitionWkshName.SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
+                ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(RequisitionWkshName.RecordId());
+            end;
+
+        ApprovalMgmt.GetRequisitionWkshBatchApprovalStatus(Rec, RequisitionWkshBatchApprovalStatus, EnabledWkshBatchWorkflowsExist);
     end;
 
     trigger OnAfterGetRecord()
@@ -583,6 +783,11 @@ page 296 "Recurring Req. Worksheet"
         Clear(ShortcutDimCode);
     end;
 
+    trigger OnModifyRecord(): Boolean
+    begin
+        ApprovalMgmt.CleanRequisitionWkshApprovalStatus(Rec, RequisitionWkshBatchApprovalStatus);
+    end;
+
     trigger OnOpenPage()
     var
         JnlSelected: Boolean;
@@ -591,6 +796,7 @@ page 296 "Recurring Req. Worksheet"
         if OpenedFromBatch then begin
             CurrentJnlBatchName := Rec."Journal Batch Name";
             ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+            SetControlAppearanceFromWkshBatch();
             exit;
         end;
         ReqJnlManagement.WkshTemplateSelection(
@@ -598,13 +804,24 @@ page 296 "Recurring Req. Worksheet"
         if not JnlSelected then
             Error('');
         ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromWkshBatch();
     end;
 
     var
         ReorderItems: Report "Calculate Plan - Req. Wksh.";
         ReqJnlManagement: Codeunit ReqJnlManagement;
         ReqLineAvailabilityMgt: Codeunit "Req. Line Availability Mgt.";
+        ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        RequisitionWkshBatchApprovalStatus: Text[20];
+        ApprovalEntriesExistSentByCurrentUser: Boolean;
+        OpenApprovalEntriesExistForCurrUser: Boolean;
+        OpenApprovalEntriesOnWkshBatchExist: Boolean;
+        EnabledWkshBatchWorkflowsExist: Boolean;
+        ShowWorkflowStatusOnBatch: Boolean;
+        CanCancelApprovalForWkshBatch: Boolean;
+        CanRequestFlowApprovalForWkshBatch: Boolean;
+        CanCancelFlowApprovalForWkshBatch: Boolean;
 
     protected var
         ShortcutDimCode: array[8] of Code[20];
@@ -632,7 +849,19 @@ page 296 "Recurring Req. Worksheet"
     begin
         CurrPage.SaveRecord();
         ReqJnlManagement.SetName(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromWkshBatch();
         CurrPage.Update(false);
+    end;
+
+    local procedure SetControlAppearanceFromWkshBatch()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        if not RequisitionWkshName.Get(Rec.GetRangeMax("Worksheet Template Name"), CurrentJnlBatchName) then
+            exit;
+
+        ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(RequisitionWkshName.RecordId());
+        RequisitionWkshName.SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
     end;
 
     [IntegrationEvent(false, false)]
