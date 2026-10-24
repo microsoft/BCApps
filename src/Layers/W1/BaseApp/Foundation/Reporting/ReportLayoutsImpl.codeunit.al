@@ -81,7 +81,6 @@ codeunit 9660 "Report Layouts Impl."
             UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
             exit(true);
         end;
-
         if TenantReportLayout.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", EmptyGuid) then begin
             TenantReportLayout."Layout Status" := NewStatus;
             TenantReportLayout.Modify(true);
@@ -109,7 +108,6 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayoutSelectionLocal.SetRange("App ID", ReportLayoutList."Application ID");
         if not TenantReportLayoutSelectionLocal.FindSet() then
             exit;
-
         repeat
             if TenantReportLayoutSelectionLocal."Company Name" = OverrideCompany() then
                 Error(CannotChangeStatusOfDefaultErr, ReportLayoutList.Caption, Format(NewStatus), ReportLayoutList."Report Name");
@@ -201,12 +199,10 @@ codeunit 9660 "Report Layouts Impl."
             TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
             TenantReportLayoutOverride."Company Name" := OverrideCompanyName;
         end;
-
         if ApplyDescription then begin
             TenantReportLayoutOverride.Description := NewDescription;
             TenantReportLayoutOverride."Override Description" := true;
         end;
-
         if ApplyStatus then begin
             TenantReportLayoutOverride."Layout Status" := NewStatus;
             TenantReportLayoutOverride."Override Layout Status" := true;
@@ -217,7 +213,6 @@ codeunit 9660 "Report Layouts Impl."
             TenantReportLayoutOverride.IsObsolete := true;
             TenantReportLayoutOverride."Override IsObsolete" := true;
         end;
-
         if OverrideExists then
             TenantReportLayoutOverride.Modify(true)
         else
@@ -246,17 +241,14 @@ codeunit 9660 "Report Layouts Impl."
         // First pass: classify scope. User-defined layouts update in place and do not affect it.
         repeat
             ErrorIfLayoutIsDefault(ReportLayoutList, NewStatus);
-
             if IsMetadataDefaultLayout(ReportLayoutList, NewStatus) then
                 FallbackMessages.Add(StrSubstNo(DefaultFallbackTxt, ReportLayoutList.Caption, ReportLayoutList."Report Name"));
-
             if not ReportLayoutList."User Defined" then
                 if LayoutStatusIsGlobalScope(ReportLayoutList) then
                     HasGlobalScope := true
                 else
                     HasCompanyScope := true;
         until ReportLayoutList.Next() = 0;
-
         if HasGlobalScope and HasCompanyScope then
             Error(MixedScopeErr);
 
@@ -265,7 +257,6 @@ codeunit 9660 "Report Layouts Impl."
             if SetLayoutStatus(ReportLayoutList, NewStatus) then
                 UpdateCount += 1;
         until ReportLayoutList.Next() = 0;
-
         if UpdateCount > 0 then begin
             CustomDimensions.Add('NewStatus', Format(NewStatus));
             CustomDimensions.Add('UpdateCount', Format(UpdateCount));
@@ -296,13 +287,10 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if NewStatus = Enum::"Report Layout Status"::Approved then
             exit(false);
-
         if TenantReportLayoutSelectionLocal.Get(ReportLayoutList."Report ID", OverrideCompany(), EmptyGuid) then
             exit(false);
-
         if not GetDefaultReportLayoutSelection(ReportLayoutList."Report ID", DefaultReportLayoutList) then
             exit(false);
-
         if DefaultReportLayoutList.Name <> ReportLayoutList.Name then
             exit(false);
         exit(DefaultReportLayoutList."Application ID" = ReportLayoutList."Application ID");
@@ -339,7 +327,6 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayoutSelection."Layout Name" := SelectedReportLayoutList."Name";
         TenantReportLayoutSelection."Report ID" := SelectedReportLayoutList."Report ID";
         TenantReportLayoutSelection."User ID" := UserId;
-
         if not TenantReportLayoutSelection.Insert(true) then
             TenantReportLayoutSelection.Modify(true);
     end;
@@ -426,7 +413,6 @@ codeunit 9660 "Report Layouts Impl."
         InitReportLayoutListDimensions(SelectedReportLayoutList, CustomDimensions);
         AddReportLayoutDimensionsAction('SetDefault', CustomDimensions);
         Log('0000N0D', 'Report layout default changed by user', CustomDimensions);
-
         if ShowMessage then
             Message(DefaultLayoutSetTxt, SelectedReportLayoutList."Caption", SelectedReportLayoutList."Report Name");
     end;
@@ -437,7 +423,6 @@ codeunit 9660 "Report Layouts Impl."
     begin
         TenantReportLayoutSelection.Init();
         DefaultReportLayoutList.Init();
-
         if TenantReportLayoutSelection.Get(ReportId, OverrideCompany(), EmptyGuid) then begin
             // Filter Default Report Layout List by the layout name and application id and report id
             DefaultReportLayoutList.SetRange("Name", TenantReportLayoutSelection."Layout Name");
@@ -452,7 +437,6 @@ codeunit 9660 "Report Layouts Impl."
                 DefaultReportLayoutList.SetRange("Name", ReportMetadata."DefaultLayoutName");
                 DefaultReportLayoutList.SetFilter("Application ID", '<>%1', EmptyGuid);
                 DefaultReportLayoutList.SetRange("Report ID", ReportId);
-
                 if DefaultReportLayoutList.FindFirst() then
                     exit(true);
             end;
@@ -530,12 +514,10 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if ReportID = 0 then
             exit;
-
         if LayoutName = '' then begin
             Message(EmptyLayoutNameTxt);
             exit;
         end;
-
         if not ReplaceExisting then
             if TenantReportLayout.Get(ReportID, LayoutName, EmptyGuid) then
                 Error(LayoutAlreadyExistsErr, LayoutName);
@@ -543,7 +525,6 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayout.Init();
         TenantReportLayout."Report ID" := ReportID;
         TenantReportLayout."Name" := LayoutName;
-
         if LayoutIsGlobal then
             TenantReportLayout."Company Name" := ''
         else
@@ -554,7 +535,6 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayout."Layout Subtype" := LayoutSubtype;
         TenantReportLayout.ExcelLayoutMultipleDataSheets := ExcelSheetConfiguration;
         TenantReportLayout."Layout Status" := Enum::"Report Layout Status"::Draft;
-
         if CreateEmptyLayout then begin
             EmptyLayoutCreated := false;
             // RDLC documents are created with UTF8 encoding.
@@ -588,12 +568,10 @@ codeunit 9660 "Report Layouts Impl."
                         UploadFileName := 'EmptyLayout.xlsx';
                     end;
             end;
-
             if EmptyLayoutCreated then
                 if TempBlob.Length() = 0 then
                     Error(EmptyGeneratedLayoutErr);
         end;
-
         if (not EmptyLayoutCreated) then begin
             case TenantReportLayout."Layout Format" of
                 TenantReportLayout."Layout Format"::Word:
@@ -632,12 +610,10 @@ codeunit 9660 "Report Layouts Impl."
 
             UploadFileName := TenantReportLayout."Name";
             OnBeforeUpload(UploadResult, UploadFileName, NVInStream);
-
             if (not UploadResult) then begin
                 ClearLastError();
                 UploadResult := UploadIntoStream(DialogCaption, '', FileFilterTxt, UploadFileName, NVInStream);
             end;
-
             if not UploadResult then begin
                 ErrorMessage := GetLastErrorText();
                 //When upload is cancelled by user, don't emit an error.
@@ -655,7 +631,6 @@ codeunit 9660 "Report Layouts Impl."
                 Error(EmptyLayoutFileErr, UploadFileName);
             NVInStream := UploadedBlob.CreateInStream();
         end;
-
         if ReplaceExisting then
             if TenantReportLayout.Get(TenantReportLayout."Report ID", TenantReportLayout."Name", TenantReportLayout."App ID") then
                 TenantReportLayout.Delete(true);
@@ -706,7 +681,6 @@ codeunit 9660 "Report Layouts Impl."
     begin
         TenantReportLayout."Report ID" := ReportID;
         TenantReportLayout."Name" := LayoutName;
-
         if TenantReportLayout.Get(ReportID, LayoutName, TenantReportLayout."App ID") then begin
             InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, TenantReportLayout."Company Name" = '', false, TenantReportLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout."Layout Subtype", true, ReturnReportID, ReturnLayoutName);
 
@@ -742,7 +716,6 @@ codeunit 9660 "Report Layouts Impl."
                 ErrorMessage := LayoutFormatNotSupportedLbl;
             end;
         end;
-
         if IsValid then begin
             CompositeWarnings := ValidateCompositePartReferences(SelectedReportLayoutList);
             if CompositeWarnings <> '' then
@@ -768,7 +741,6 @@ codeunit 9660 "Report Layouts Impl."
             if not TenantReportLayoutCfg.FindSet() then
                 exit('');
         end;
-
         repeat
             if TenantReportLayoutCfg."Header Part Name" <> '' then
                 ValidatePartReference(
@@ -806,7 +778,6 @@ codeunit 9660 "Report Layouts Impl."
             Warnings.Append(StrSubstNo(NotFoundFormat, LayoutName));
             exit;
         end;
-
         if ReportLayoutList.IsObsolete then begin
             if Warnings.Length > 0 then
                 Warnings.Append('\');
@@ -857,7 +828,6 @@ codeunit 9660 "Report Layouts Impl."
             CreateCopy := ReportLayoutEditDialog.CopyOperationEnabled();
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
-
             if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
                 // All companies, which is what the read-only Yes in the dialog states.
                 AvailableInAllCompanies := true;
@@ -888,7 +858,6 @@ codeunit 9660 "Report Layouts Impl."
             // Check if the layout should be made available for all companies
             if AvailableInAllCompanies then
                 CompanyName := AllCompaniesTxt;
-
             if CreateCopy then begin
                 // If create-copy is used to create a layout bound to the current company
                 if SelectedReportLayoutList."User Defined" and (not AvailableInAllCompanies) and (CompanyName = '') then
@@ -954,7 +923,6 @@ codeunit 9660 "Report Layouts Impl."
         MediaOutStream := SourceTempBlob.CreateOutStream(TextEncoding::UTF8);
         SelectedReportLayoutList."Layout".ExportStream(MediaOutStream);
         FileName := GetFileName(SelectedReportLayoutList);
-
         if UpdateOnOnexport then begin
             LayoutSourceStream := SourceTempBlob.CreateInStream(TextEncoding::UTF8);
             LayoutTargetStream := TargetTempBlob.CreateInStream(TextEncoding::UTF8);
@@ -1003,7 +971,6 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if not User.ReadPermission() then
             exit('');
-
         if (UserGuid <> EmptyGuid) and User.Get(UserGuid) then
             exit(User."User Name");
 
@@ -1074,12 +1041,10 @@ codeunit 9660 "Report Layouts Impl."
 
         MediaOutStream := TempBlob.CreateOutStream();
         TenantReportLayout."Layout".ExportStream(MediaOutStream);
-
         if DocumentServiceMgt.EditInOneDrive(FileName, FileExtension, TempBlob) then begin
 
             MediaInStream := TempBlob.CreateInStream();
             TenantReportLayout."Layout".ImportStream(MediaInStream, TenantReportLayout."Description");
-
             if not TenantReportLayout.Insert(true) then
                 TenantReportLayout.Modify(true);
         end;
@@ -1124,10 +1089,12 @@ codeunit 9660 "Report Layouts Impl."
             FileExt := SelectedReportLayoutList."MIME Type".Split('/').Get(2);
             exit;
         end;
-
         case SelectedReportLayoutList."Layout Format" of
             SelectedReportLayoutList."Layout Format"::Word:
-                FileExt := 'docx';
+                if SelectedReportLayoutList."Layout Subtype" = "Report Layout Subtype"::Theme then
+                    FileExt := 'dotx'
+                else
+                    FileExt := 'docx';
             SelectedReportLayoutList."Layout Format"::RDLC:
                 FileExt := 'rdl';
             SelectedReportLayoutList."Layout Format"::Excel:
@@ -1192,7 +1159,6 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if Handled = true then
             exit;
-
         if Page.RunModal(Page::"Report Layouts", ReportLayoutList) = ACTION::LookupOK then
             Handled := true;
     end;

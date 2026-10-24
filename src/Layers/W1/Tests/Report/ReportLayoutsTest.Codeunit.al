@@ -127,10 +127,10 @@ codeunit 139595 "Report Layouts Test"
         // Assert - Layout exists and contains new contents
         ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
 
-        TempBlob.CreateOutStream(ReplacedLayoutOutStream);
+        TempBlob.CreateOutStream(ReplacedLayoutOutStream, TextEncoding::UTF8);
         ReportLayoutList.Layout.ExportStream(ReplacedLayoutOutStream);
 
-        TempBlob.CreateInStream().ReadText(ReplacedLayoutText, StrLen(AlternateLayoutTextTxt));
+        TempBlob.CreateInStream(TextEncoding::UTF8).ReadText(ReplacedLayoutText, StrLen(AlternateLayoutTextTxt));
         Assert.AreEqual(AlternateLayoutTextTxt, ReplacedLayoutText, 'The contents of the layout were not replaced.');
     end;
 
@@ -214,6 +214,783 @@ codeunit 139595 "Report Layouts Test"
 
         // Act -  Validate the layout
         ReportLayoutsPage.ValidateLayout.Invoke();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportWordLayout()
+    begin
+        ImportLayoutTestCore('Word', 'TestLayout.docx', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportRDLCLayout()
+    begin
+        ImportLayoutTestCore('RDLC', 'TestLayout.rdlc', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportRDLLayout()
+    begin
+        ImportLayoutTestCore('RDLC', 'TestLayout.rdl', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportExcelLayout()
+    begin
+        ImportLayoutTestCore('Excel', 'TestLayout.xlsx', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportExternalLayout()
+    begin
+        ImportLayoutTestCore('External', 'TestLayout.xml', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportExternalLayoutWithoutExtension()
+    begin
+        ImportLayoutTestCore('External', 'TestLayout', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportLayoutForCurrentCompany()
+    begin
+        ImportLayoutTestCore('Word', 'TestLayout.docx', false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportLayoutWithUppercaseExtension()
+    begin
+        ImportLayoutTestCore('Word', 'TestLayout.DOCX', true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestCreateBlankWordLayout()
+    begin
+        ImportLayoutTestCore('Word', 'EmptyLayout.docx', true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestCreateBlankRDLCLayout()
+    begin
+        ImportLayoutTestCore('RDLC', 'EmptyLayout.rdlc', true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestCreateBlankExcelLayout()
+    begin
+        ImportLayoutTestCore('Excel', 'EmptyLayout.xlsx', true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestExternalBlankLayoutStillUploadsFile()
+    begin
+        ImportLayoutTestCore('External', 'TestLayout.xml', true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportWordLayoutRejectsEmptyFile()
+    begin
+        ImportLayoutErrorTestCore('Word', 'TestLayout.docx', true, 'is empty. Choose a file that contains a layout');
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportRDLCLayoutRejectsEmptyFile()
+    begin
+        ImportLayoutErrorTestCore('RDLC', 'TestLayout.rdlc', true, 'is empty. Choose a file that contains a layout');
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportExcelLayoutRejectsEmptyFile()
+    begin
+        ImportLayoutErrorTestCore('Excel', 'TestLayout.xlsx', true, 'is empty. Choose a file that contains a layout');
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportLayoutModalHandler')]
+    procedure TestImportExternalLayoutRejectsEmptyFile()
+    begin
+        ImportLayoutErrorTestCore('External', 'TestLayout.xml', true, 'is empty. Choose a file that contains a layout');
+    end;
+
+    [Test]
+    [HandlerFunctions('CancelNewLayoutModalHandler')]
+    procedure TestCancelNewLayoutDoesNotUpload()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
+        Assert.IsTrue(TenantReportLayout.IsEmpty(), 'Cancelling the dialog must not create a layout.');
+        Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'Cancelling the dialog must not upload a file.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceWordLayout()
+    begin
+        ReplaceLayoutTestCore('Word', 'Replacement.docx', true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceRDLCLayout()
+    begin
+        ReplaceLayoutTestCore('RDLC', 'Replacement.rdlc', true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceRDLCLayoutFromRDLFile()
+    begin
+        ReplaceLayoutTestCore('RDLC', 'Replacement.rdl', true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceExcelLayout()
+    begin
+        ReplaceLayoutTestCore('Excel', 'Replacement.xlsx', true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceExternalLayout()
+    begin
+        ReplaceLayoutTestCore('External', 'Replacement.json', true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceLayoutPreservesCurrentCompany()
+    begin
+        ReplaceLayoutTestCore('Word', 'Replacement.docx', false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestReplaceLayoutRejectsEmptyFile()
+    begin
+        ReplaceLayoutErrorTestCore('Word', 'Replacement.docx', true, 'is empty. Choose a file that contains a layout');
+        ReplaceLayoutErrorTestCore('RDLC', 'Replacement.rdlc', true, 'is empty. Choose a file that contains a layout');
+        ReplaceLayoutErrorTestCore('Excel', 'Replacement.xlsx', true, 'is empty. Choose a file that contains a layout');
+        ReplaceLayoutErrorTestCore('External', 'Replacement.xml', true, 'is empty. Choose a file that contains a layout');
+    end;
+
+    [Test]
+    [HandlerFunctions('DeclineReplaceConfirmHandler')]
+    procedure TestCancelReplaceLayoutDoesNotUpload()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        EnsureNewLayoutsAreCleaned();
+        CreateLayoutBlob('Word', OriginalBlob);
+        InsertLayoutForFileTest('Word', NewLayoutNameTxt, '', true, OriginalBlob, TenantReportLayout);
+        BindSubscription(ReportLayoutsTest);
+
+        OpenFileTestLayout(ReportLayoutsPage, ReportLayoutList);
+        ReportLayoutsPage.ReplaceLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        AssertLayoutUnchanged(TenantReportLayout, OriginalBlob);
+        Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'Declining replacement must not upload a file.');
+    end;
+
+    [Test]
+    procedure TestCannotReplaceExtensionLayout()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ActualBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        EnsureNewLayoutsAreCleaned();
+        FindExtensionLayout(ReportLayoutList, RDLCLayoutNameLbl);
+        ReportLayoutList.Layout.ExportStream(OriginalBlob.CreateOutStream(TextEncoding::UTF8));
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        asserterror ReportLayoutsPage.ReplaceLayout.Invoke();
+        Assert.ExpectedError('Only user-defined layouts can be modified or removed.');
+        ReportLayoutsPage.Close();
+
+        ReportLayoutList.Get(ReportLayoutList."Report ID", ReportLayoutList.Name, ReportLayoutList."Runtime Package ID");
+        ReportLayoutList.Layout.ExportStream(ActualBlob.CreateOutStream(TextEncoding::UTF8));
+        AssertBlobEquals(OriginalBlob, ActualBlob);
+        Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'An extension layout must not be replaced.');
+    end;
+
+    [Test]
+    procedure TestExportWordLayout()
+    begin
+        ExportLayoutTestCore('Word', NewLayoutNameTxt, '', 'NewLayout.docx', false);
+        ExportLayoutTestCore('Word', 'NewLayout.docx', '', 'NewLayout.docx', false);
+    end;
+
+    [Test]
+    procedure TestExportRDLCLayout()
+    begin
+        ExportLayoutTestCore('RDLC', NewLayoutNameTxt, '', 'NewLayout.rdl', false);
+        ExportLayoutTestCore('RDLC', 'NewLayout.rdl', '', 'NewLayout.rdl', false);
+    end;
+
+    [Test]
+    procedure TestExportExcelLayout()
+    begin
+        ExportLayoutTestCore('Excel', NewLayoutNameTxt, '', 'NewLayout.xlsx', false);
+        ExportLayoutTestCore('Excel', 'NewLayout.xlsx', '', 'NewLayout.xlsx', false);
+    end;
+
+    [Test]
+    procedure TestExportExternalLayout()
+    begin
+        ExportLayoutTestCore('External', NewLayoutNameTxt, 'reportlayout/xml', 'NewLayout.xml', false);
+        ExportLayoutTestCore('External', 'NewLayout.json', 'reportlayout/json', 'NewLayout.json', false);
+        ExportLayoutTestCore('External', NewLayoutNameTxt, 'reportlayout/', 'NewLayout.', false);
+    end;
+
+    [Test]
+    procedure TestExportExtensionLayout()
+    begin
+        ExportExtensionLayoutTestCore(false);
+    end;
+
+    [Test]
+    procedure TestUpdateAndExportExtensionLayout()
+    begin
+        ExportExtensionLayoutTestCore(true);
+    end;
+
+    local procedure ExportExtensionLayoutTestCore(UpdateLayout: Boolean)
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ExportedBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        ExportedFileName: Text;
+        WithEncoding: Boolean;
+    begin
+        EnsureNewLayoutsAreCleaned();
+        FindExtensionLayout(ReportLayoutList, RDLCLayoutNameLbl);
+        ReportLayoutList.Layout.ExportStream(OriginalBlob.CreateOutStream(TextEncoding::UTF8));
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.EnableExportCapture();
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        if UpdateLayout then
+            ReportLayoutsPage.UpdateAndExportLayout.Invoke()
+        else
+            ReportLayoutsPage.ExportLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
+        Assert.AreEqual(ReportLayoutList.Name + '.rdl', ExportedFileName, 'Incorrect extension layout export file name.');
+        Assert.AreEqual(UpdateLayout, WithEncoding, 'Only an updated export must use the UTF8 export path.');
+        if UpdateLayout then
+            AssertLayoutCanBePrepared('RDLC', ExportedBlob)
+        else
+            AssertBlobEquals(OriginalBlob, ExportedBlob);
+    end;
+
+    [Test]
+    procedure TestUpdateAndExportWordLayout()
+    begin
+        ExportLayoutTestCore('Word', NewLayoutNameTxt, '', 'NewLayout.docx', true);
+    end;
+
+    [Test]
+    procedure TestUpdateAndExportRDLCLayout()
+    begin
+        ExportLayoutTestCore('RDLC', NewLayoutNameTxt, '', 'NewLayout.rdl', true);
+    end;
+
+    [Test]
+    procedure TestUpdateAndExportExcelLayout()
+    begin
+        ExportLayoutTestCore('Excel', NewLayoutNameTxt, '', 'NewLayout.xlsx', true);
+    end;
+
+    [Test]
+    procedure TestExportReportSchema()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ExportedBlob: Codeunit "Temp Blob";
+        ExpectedBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        ExportedFileName: Text;
+        WithEncoding: Boolean;
+    begin
+        EnsureNewLayoutsAreCleaned();
+        FindExtensionLayout(ReportLayoutList, RDLCLayoutNameLbl);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.EnableExportCapture();
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.ExportReportSchema.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
+        Assert.AreEqual('*.xml', ExportedFileName, 'Incorrect report schema export file filter.');
+        Assert.IsFalse(WithEncoding, 'The schema must be exported without changing its UTF16 encoding.');
+        ExpectedBlob.CreateOutStream(TextEncoding::UTF16).WriteText(Report.WordXmlPart(Report::TestReportLayoutsReport));
+        AssertBlobEquals(ExpectedBlob, ExportedBlob);
+    end;
+
+    local procedure ImportLayoutTestCore(LayoutFormat: Text; FileName: Text; AvailableInAllCompanies: Boolean; CreateBlankLayout: Boolean)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        FileManagement: Codeunit "File Management";
+        UploadBlob: Codeunit "Temp Blob";
+        ActualBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+        ExpectedCompany: Text;
+    begin
+        EnsureNewLayoutsAreCleaned();
+        if (not CreateBlankLayout) or (LayoutFormat = 'External') then
+            CreateLayoutBlob(LayoutFormat, UploadBlob);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.SetLayoutUpload(UploadBlob, FileName);
+
+        OpenImportLayoutPage(ReportLayoutsPage, LayoutFormat, CreateBlankLayout, AvailableInAllCompanies);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'The imported layout must exist.');
+        Assert.AreEqual(LayoutFormat, GetLayoutFormatCaption(TenantReportLayout), 'Incorrect imported layout format.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Description, 'Incorrect imported layout description.');
+        if LayoutFormat = 'External' then
+            Assert.AreEqual('reportlayout/' + FileManagement.GetExtension(FileName), TenantReportLayout."MIME Type", 'The custom MIME type must preserve the uploaded file extension.');
+        if not AvailableInAllCompanies then
+            ExpectedCompany := CompanyName();
+        Assert.AreEqual(ExpectedCompany, TenantReportLayout."Company Name", 'Incorrect imported layout company scope.');
+        TenantReportLayout.Layout.ExportStream(ActualBlob.CreateOutStream(TextEncoding::UTF8));
+        if CreateBlankLayout and (LayoutFormat <> 'External') then begin
+            Assert.IsTrue(ActualBlob.HasValue(), 'The generated blank layout must not be empty.');
+            Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'Generating a blank layout must not upload a file.');
+            AssertLayoutCanBePrepared(LayoutFormat, ActualBlob);
+        end else begin
+            Assert.AreEqual(1, ReportLayoutsTest.GetUploadCount(), 'Creating a layout must upload exactly one file.');
+        end;
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure ImportLayoutErrorTestCore(LayoutFormat: Text; FileName: Text; EmptyFile: Boolean; ExpectedError: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        UploadBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        EnsureNewLayoutsAreCleaned();
+        if not EmptyFile then
+            CreateLayoutBlob(LayoutFormat, UploadBlob);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.SetLayoutUpload(UploadBlob, FileName);
+
+        OpenImportLayoutPage(ReportLayoutsPage, LayoutFormat, false, true);
+        asserterror ReportLayoutsPage.NewLayout.Invoke();
+        Assert.ExpectedError(ExpectedError);
+        ReportLayoutsPage.Close();
+
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure ReplaceLayoutTestCore(LayoutFormat: Text; FileName: Text; AvailableInAllCompanies: Boolean)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        FileManagement: Codeunit "File Management";
+        OriginalBlob: Codeunit "Temp Blob";
+        ReplacementBlob: Codeunit "Temp Blob";
+        ActualBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        OriginalCompany: Text;
+    begin
+        EnsureNewLayoutsAreCleaned();
+        CreateLayoutBlob(LayoutFormat, OriginalBlob);
+        InsertLayoutForFileTest(LayoutFormat, NewLayoutNameTxt, '', AvailableInAllCompanies, OriginalBlob, TenantReportLayout);
+        if LayoutFormat = 'Word' then begin
+            TenantReportLayout."Layout Subtype" := TenantReportLayout."Layout Subtype"::Body;
+            TenantReportLayout.Modify(true);
+        end;
+        OriginalCompany := TenantReportLayout."Company Name";
+        CreateLayoutBlob(LayoutFormat, ReplacementBlob);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.SetLayoutUpload(ReplacementBlob, FileName);
+
+        OpenFileTestLayout(ReportLayoutsPage, ReportLayoutList);
+        ReportLayoutsPage.ReplaceLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        TenantReportLayout.Get(TenantReportLayout."Report ID", TenantReportLayout.Name, TenantReportLayout."App ID");
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Replacement must preserve the layout name.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Description, 'Replacement must preserve the description.');
+        Assert.AreEqual(OriginalCompany, TenantReportLayout."Company Name", 'Replacement must preserve company scope.');
+        Assert.AreEqual(LayoutFormat, GetLayoutFormatCaption(TenantReportLayout), 'Replacement must preserve the layout format.');
+        Assert.AreEqual(ReportLayoutList."Layout Subtype", TenantReportLayout."Layout Subtype", 'Replacement must preserve the layout subtype.');
+        Assert.AreEqual(ReportLayoutList.ExcelLayoutMultipleDataSheets, TenantReportLayout.ExcelLayoutMultipleDataSheets, 'Replacement must preserve the Excel sheet configuration.');
+        if LayoutFormat = 'External' then
+            Assert.AreEqual('reportlayout/' + FileManagement.GetExtension(FileName), TenantReportLayout."MIME Type", 'Replacement must update the custom MIME type.');
+        TenantReportLayout.Layout.ExportStream(ActualBlob.CreateOutStream(TextEncoding::UTF8));
+        if LayoutFormat = 'Excel' then
+            AssertLayoutCanBePrepared(LayoutFormat, ActualBlob)
+        else
+            AssertBlobEquals(ReplacementBlob, ActualBlob);
+        Assert.AreEqual(1, ReportLayoutsTest.GetUploadCount(), 'Replacement must upload exactly one file.');
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
+        Assert.AreEqual(1, TenantReportLayout.Count(), 'Replacement must not insert an additional layout.');
+    end;
+
+    local procedure ReplaceLayoutErrorTestCore(LayoutFormat: Text; FileName: Text; EmptyFile: Boolean; ExpectedError: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        UploadBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        EnsureNewLayoutsAreCleaned();
+        CreateLayoutBlob(LayoutFormat, OriginalBlob);
+        InsertLayoutForFileTest(LayoutFormat, NewLayoutNameTxt, '', false, OriginalBlob, TenantReportLayout);
+        if not EmptyFile then
+            CreateLayoutBlob(LayoutFormat, UploadBlob);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.SetLayoutUpload(UploadBlob, FileName);
+
+        OpenFileTestLayout(ReportLayoutsPage, ReportLayoutList);
+        asserterror ReportLayoutsPage.ReplaceLayout.Invoke();
+        Assert.ExpectedError(ExpectedError);
+        ReportLayoutsPage.Close();
+
+        UnbindSubscription(ReportLayoutsTest);
+    end;
+
+    local procedure ExportLayoutTestCore(LayoutFormat: Text; LayoutName: Text[250]; MimeType: Text[255]; ExpectedFileName: Text; UpdateLayout: Boolean)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ExportedBlob: Codeunit "Temp Blob";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        ExportedFileName: Text;
+        WithEncoding: Boolean;
+    begin
+        EnsureNewLayoutsAreCleaned();
+        CreateLayoutBlob(LayoutFormat, OriginalBlob);
+        InsertLayoutForFileTest(LayoutFormat, LayoutName, MimeType, true, OriginalBlob, TenantReportLayout);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.EnableExportCapture();
+
+        ReportLayoutList.Get(TenantReportLayout."Report ID", TenantReportLayout.Name, TenantReportLayout."App ID");
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        if UpdateLayout then
+            ReportLayoutsPage.UpdateAndExportLayout.Invoke()
+        else
+            ReportLayoutsPage.ExportLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
+        Assert.AreEqual(ExpectedFileName, ExportedFileName, 'Incorrect exported file name or extension.');
+        Assert.AreEqual(UpdateLayout, WithEncoding, 'Only a successful update must use the UTF8 export path.');
+        if UpdateLayout then begin
+            Assert.IsTrue(ExportedBlob.HasValue(), 'The updated export must contain a layout.');
+            AssertLayoutCanBePrepared(LayoutFormat, ExportedBlob);
+        end;
+
+        UnbindSubscription(ReportLayoutsTest);
+    end;
+
+    local procedure OpenImportLayoutPage(var ReportLayoutsPage: TestPage "Report Layouts"; LayoutFormat: Text; CreateBlankLayout: Boolean; AvailableInAllCompanies: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(LayoutFormat);
+        LibraryVariableStorage.Enqueue(CreateBlankLayout);
+        LibraryVariableStorage.Enqueue(AvailableInAllCompanies);
+        ReportLayoutsPage.OpenView();
+    end;
+
+    local procedure OpenFileTestLayout(var ReportLayoutsPage: TestPage "Report Layouts"; var ReportLayoutList: Record "Report Layout List")
+    var
+        EmptyGuid: Guid;
+    begin
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+    end;
+
+    local procedure FindExtensionLayout(var ReportLayoutList: Record "Report Layout List"; LayoutName: Text)
+    begin
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
+        ReportLayoutList.SetRange("User Defined", false);
+        ReportLayoutList.SetRange(Name, LayoutName);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo('The extension-installed test layout %1 must exist.', LayoutName));
+    end;
+
+    local procedure SetExtensionRDLCLayoutsFilter(var ReportLayoutList: Record "Report Layout List")
+    begin
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
+        ReportLayoutList.SetRange("User Defined", false);
+        ReportLayoutList.SetFilter(Name, '%1|%2', RDLCLayoutNameLbl, SecondRDLCLayoutNameLbl);
+    end;
+
+    local procedure CreateLayoutBlob(LayoutFormat: Text; var LayoutBlob: Codeunit "Temp Blob")
+    var
+        ReportLayoutList: Record "Report Layout List";
+        LayoutOutStream: OutStream;
+    begin
+        Clear(LayoutBlob);
+        LayoutOutStream := LayoutBlob.CreateOutStream(TextEncoding::UTF8);
+        if LayoutFormat = 'External' then
+            LayoutOutStream.WriteText(AlternateLayoutTextTxt)
+        else begin
+            ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
+            ReportLayoutList.SetRange("User Defined", false);
+            case LayoutFormat of
+                'Word':
+                    begin
+                        ReportLayoutList.SetRange(Name, WordLayoutNameLbl);
+                        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+                    end;
+                'RDLC':
+                    begin
+                        ReportLayoutList.SetRange(Name, RDLCLayoutNameLbl);
+                        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::RDLC);
+                    end;
+                'Excel':
+                    begin
+                        ReportLayoutList.SetRange(Name, ExcelLayoutNameLbl);
+                        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Excel);
+                    end;
+                else
+                    Error('Unsupported test layout format: %1.', LayoutFormat);
+            end;
+            Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo('The test report must provide a built-in %1 layout.', LayoutFormat));
+            ReportLayoutList.Layout.ExportStream(LayoutOutStream);
+        end;
+        Assert.IsTrue(LayoutBlob.HasValue(), 'The test layout fixture must not be empty.');
+    end;
+
+    local procedure InsertLayoutForFileTest(LayoutFormat: Text; LayoutName: Text[250]; MimeType: Text[255]; AvailableInAllCompanies: Boolean; LayoutBlob: Codeunit "Temp Blob"; var TenantReportLayout: Record "Tenant Report Layout")
+    begin
+        TenantReportLayout.Init();
+        TenantReportLayout."Report ID" := Report::TestReportLayoutsReport;
+        TenantReportLayout.Name := LayoutName;
+        TenantReportLayout.Description := NewLayoutNameTxt;
+        case LayoutFormat of
+            'Word':
+                TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
+            'RDLC':
+                TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::RDLC;
+            'Excel':
+                TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Excel;
+            'External':
+                TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Custom;
+            else
+                Error('Unsupported test layout format: %1.', LayoutFormat);
+        end;
+        if not AvailableInAllCompanies then
+            TenantReportLayout."Company Name" := CompanyName();
+        TenantReportLayout."MIME Type" := MimeType;
+        TenantReportLayout.Layout.ImportStream(LayoutBlob.CreateInStream(TextEncoding::UTF8), TenantReportLayout.Description);
+        TenantReportLayout.Insert(true);
+    end;
+
+    local procedure GetLayoutFormatCaption(TenantReportLayout: Record "Tenant Report Layout"): Text
+    begin
+        if TenantReportLayout."Layout Format" = TenantReportLayout."Layout Format"::Custom then
+            exit('External');
+        exit(Format(TenantReportLayout."Layout Format"));
+    end;
+
+    local procedure GetFileTestLayoutType(LayoutFormat: Text): ReportLayoutType
+    begin
+        case LayoutFormat of
+            'Word':
+                exit(ReportLayoutType::Word);
+            'RDLC':
+                exit(ReportLayoutType::RDLC);
+            'Excel':
+                exit(ReportLayoutType::Excel);
+            else
+                Error('Unsupported test layout format: %1.', LayoutFormat);
+        end;
+    end;
+
+    local procedure AssertLayoutCanBePrepared(LayoutFormat: Text; LayoutBlob: Codeunit "Temp Blob")
+    var
+        PreparedStream: InStream;
+        ValidationResult: Boolean;
+    begin
+        ValidationResult := Report.ValidateAndPrepareLayout(Report::TestReportLayoutsReport, LayoutBlob.CreateInStream(TextEncoding::UTF8), PreparedStream, GetFileTestLayoutType(LayoutFormat));
+        //   'The layout must be valid for the current report dataset.');
+        if not ValidationResult then
+            Error('The layout could not be prepared. ' + GetLastErrorText());
+    end;
+
+    local procedure AssertBlobEquals(ExpectedBlob: Codeunit "Temp Blob"; ActualBlob: Codeunit "Temp Blob")
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+    begin
+        Assert.AreEqual(ExpectedBlob.Length(), ActualBlob.Length(), 'Incorrect layout file length.');
+        Assert.AreEqual(
+            Base64Convert.ToBase64(ExpectedBlob.CreateInStream(TextEncoding::UTF8)),
+            Base64Convert.ToBase64(ActualBlob.CreateInStream(TextEncoding::UTF8)),
+            'The complete layout file contents must match.');
+    end;
+
+    local procedure AssertLayoutUnchanged(OriginalLayout: Record "Tenant Report Layout"; OriginalBlob: Codeunit "Temp Blob")
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ActualBlob: Codeunit "Temp Blob";
+    begin
+        Assert.IsTrue(
+            TenantReportLayout.Get(OriginalLayout."Report ID", OriginalLayout.Name, OriginalLayout."App ID"),
+            'The original layout must still exist.');
+        Assert.AreEqual(OriginalLayout.SystemId, TenantReportLayout.SystemId, 'The original layout record must not be replaced.');
+        Assert.AreEqual(OriginalLayout.Description, TenantReportLayout.Description, 'The description must not change.');
+        Assert.AreEqual(OriginalLayout."Company Name", TenantReportLayout."Company Name", 'The company scope must not change.');
+        Assert.AreEqual(OriginalLayout."Layout Format", TenantReportLayout."Layout Format", 'The layout format must not change.');
+        Assert.AreEqual(OriginalLayout."Layout Subtype", TenantReportLayout."Layout Subtype", 'The layout subtype must not change.');
+        Assert.AreEqual(OriginalLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout.ExcelLayoutMultipleDataSheets, 'The Excel sheet configuration must not change.');
+        Assert.AreEqual(OriginalLayout."MIME Type", TenantReportLayout."MIME Type", 'The MIME type must not change.');
+        TenantReportLayout.Layout.ExportStream(ActualBlob.CreateOutStream(TextEncoding::UTF8));
+    end;
+
+    [ModalPageHandler]
+    procedure ImportLayoutModalHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    var
+        LayoutFormat: Text;
+        CreateBlankLayout: Boolean;
+        AvailableInAllCompanies: Boolean;
+    begin
+        LayoutFormat := LibraryVariableStorage.DequeueText();
+        CreateBlankLayout := LibraryVariableStorage.DequeueBoolean();
+        AvailableInAllCompanies := LibraryVariableStorage.DequeueBoolean();
+        ReportLayoutNewDialog.ReportID.SetValue(Report::TestReportLayoutsReport);
+        ReportLayoutNewDialog.LayoutName.SetValue(NewLayoutNameTxt);
+        ReportLayoutNewDialog.Description.SetValue(NewLayoutNameTxt);
+        ReportLayoutNewDialog."Format Options".SetValue(LayoutFormat);
+        ReportLayoutNewDialog.CreateEmptyLayout.SetValue(CreateBlankLayout);
+        ReportLayoutNewDialog.AvailableInAllCompanies.SetValue(AvailableInAllCompanies);
+        ReportLayoutNewDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure CancelNewLayoutModalHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    begin
+        ReportLayoutNewDialog.Cancel().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure DeclineReplaceConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [MessageHandler]
+    procedure CannotUpdateLayoutMessageHandler(Message: Text[1024])
+    begin
+        LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    procedure SetLayoutUpload(LayoutBlob: Codeunit "Temp Blob"; FileName: Text)
+    begin
+        Clear(UploadedLayoutBlob);
+        CopyStream(UploadedLayoutBlob.CreateOutStream(TextEncoding::UTF8), LayoutBlob.CreateInStream(TextEncoding::UTF8));
+        UploadedLayoutFileName := FileName;
+        UseLayoutUpload := true;
+    end;
+
+    procedure GetUploadCount(): Integer
+    begin
+        exit(UploadCount);
+    end;
+
+    procedure EnableExportCapture()
+    begin
+        CaptureExport := true;
+    end;
+
+    procedure GetExportedLayout(var LayoutBlob: Codeunit "Temp Blob"; var FileName: Text; var WithEncoding: Boolean)
+    begin
+        Assert.AreEqual(1, ExportCount, 'The page action must export exactly one file.');
+        Clear(LayoutBlob);
+        CopyStream(LayoutBlob.CreateOutStream(TextEncoding::UTF8), ExportedLayoutBlob.CreateInStream(TextEncoding::UTF8));
+        FileName := ExportedLayoutFileName;
+        WithEncoding := ExportedWithEncoding;
+        if WithEncoding then begin
+            if (ExportedEncoding <> TextEncoding::UTF8) then
+                Assert.Fail('An updated layout must be exported with UTF8 encoding.');
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"File Management", 'OnBeforeBlobExport', '', false, false)]
+    local procedure CaptureLayoutExport(var TempBlob: Codeunit "Temp Blob"; Name: Text; CommonDialog: Boolean; var IsHandled: Boolean; var Result: Text)
+    begin
+        if (not CaptureExport) or IsHandled then
+            exit;
+        StoreLayoutExport(TempBlob, Name, false);
+        Result := Name;
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"File Management", 'OnBeforeBlobExportWithEncoding', '', false, false)]
+    local procedure CaptureLayoutExportWithEncoding(var TempBlob: Codeunit "Temp Blob"; Name: Text; CommonDialog: Boolean; Encoding: TextEncoding; var Result: Text; var IsHandled: Boolean)
+    begin
+        if (not CaptureExport) or IsHandled then
+            exit;
+        StoreLayoutExport(TempBlob, Name, true);
+        ExportedEncoding := Encoding;
+        Result := Name;
+        IsHandled := true;
+    end;
+
+    local procedure StoreLayoutExport(LayoutBlob: Codeunit "Temp Blob"; FileName: Text; WithEncoding: Boolean)
+    begin
+        Clear(ExportedLayoutBlob);
+        CopyStream(ExportedLayoutBlob.CreateOutStream(TextEncoding::UTF8), LayoutBlob.CreateInStream(TextEncoding::UTF8));
+        ExportedLayoutFileName := FileName;
+        ExportedWithEncoding := WithEncoding;
+        ExportCount += 1;
     end;
 
     local procedure EditLayoutTestCore(InitialCompanyName: Text; EditedCompanyName: Text)
@@ -341,6 +1118,7 @@ codeunit 139595 "Report Layouts Test"
     procedure SetLayoutContents(WhatToInsert: Text)
     begin
         InsertedLayoutContextTxt := WhatToInsert;
+        UseLayoutUpload := false;
     end;
 
     [ModalPageHandler]
@@ -512,10 +1290,18 @@ codeunit 139595 "Report Layouts Test"
         if AlreadyUploaded then
             exit;
 
-        TempBlob.CreateOutStream(TempOutStream);
+        UploadCount += 1;
+        if UseLayoutUpload then begin
+            UploadedLayoutBlob.CreateInStream(FileInStream, TextEncoding::UTF8);
+            UploadFileName := UploadedLayoutFileName;
+            AlreadyUploaded := true;
+            exit;
+        end;
+
+        TempBlob.CreateOutStream(TempOutStream, TextEncoding::UTF8);
         TempOutStream.WriteText(InsertedLayoutContextTxt, StrLen(InsertedLayoutContextTxt));
 
-        TempBlob.CreateInStream(FileInStream);
+        TempBlob.CreateInStream(FileInStream, TextEncoding::UTF8);
 
         UploadFileName := 'TestLayout';
         AlreadyUploaded := true;
@@ -943,13 +1729,12 @@ codeunit 139595 "Report Layouts Test"
         // because a TestPage cannot multi-select records for CurrPage.SetSelectionFilter.
         EnsureNewLayoutsAreCleaned();
 
-        // Report 139595 ships two extension layouts. All-companies is now the DEFAULT scope, so mixing
+        // Report 139595 ships two RDLC extension layouts. All-companies is now the DEFAULT scope, so mixing
         // requires giving one layout a COMPANY-SPECIFIC status override; the untouched second layout
         // resolves to global. (Seeding a global override on one would no longer create a mix — both
         // sides would be global.)
-        ReportLayoutList.SetRange("Report ID", 139595);
-        ReportLayoutList.SetRange("User Defined", false);
-        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+        SetExtensionRDLCLayoutsFilter(ReportLayoutList);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two RDLC extension layouts.');
         ReportLayoutList.FindFirst();
 
         TenantReportLayoutOverride.Init();
@@ -963,8 +1748,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Act - batch over BOTH extension layouts (mixed scope)
         ReportLayoutList.Reset();
-        ReportLayoutList.SetRange("Report ID", 139595);
-        ReportLayoutList.SetRange("User Defined", false);
+        SetExtensionRDLCLayoutsFilter(ReportLayoutList);
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
         asserterror ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, Enum::"Report Layout Status"::Approved);
 
@@ -989,9 +1773,8 @@ codeunit 139595 "Report Layouts Test"
         // Note this test deliberately does NOT call SetSelectedCompany.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
-        ReportLayoutList.SetRange("User Defined", false);
-        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+        SetExtensionRDLCLayoutsFilter(ReportLayoutList);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two RDLC extension layouts.');
         ReportLayoutList.FindFirst();
 
         // One layout already carries a GLOBAL status override; the other has none. Both are global scope.
@@ -1006,8 +1789,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Act - batch over BOTH, with SelectedCompany never set
         ReportLayoutList.Reset();
-        ReportLayoutList.SetRange("Report ID", 139595);
-        ReportLayoutList.SetRange("User Defined", false);
+        SetExtensionRDLCLayoutsFilter(ReportLayoutList);
         UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, Enum::"Report Layout Status"::Approved);
 
         // Assert - no spurious mixed-scope error, and both layouts updated globally
@@ -1040,9 +1822,8 @@ codeunit 139595 "Report Layouts Test"
         // Driven through the internal impl codeunit because a TestPage cannot multi-select.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
-        ReportLayoutList.SetRange("User Defined", false);
-        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+        SetExtensionRDLCLayoutsFilter(ReportLayoutList);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two RDLC extension layouts.');
 
         // Act - batch over BOTH layouts, neither of which has any override yet
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
@@ -1397,14 +2178,28 @@ codeunit 139595 "Report Layouts Test"
     var
         Assert: Codeunit Assert;
         TempBlob: Codeunit "Temp Blob";
+        UploadedLayoutBlob: Codeunit "Temp Blob";
+        ExportedLayoutBlob: Codeunit "Temp Blob";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NewLayoutNameTxt: Label 'NewLayout';
         EditedLayoutNameTxt: Label 'EditedLayout';
         SampleTextTxt: Label 'ATAKLOA, TINWTABSBATF.';
         AlternateLayoutTextTxt: Label 'IWATSTGIFLBOTG.';
+        RDLCLayoutNameLbl: Label 'MYLAYOUT', Locked = true;
+        SecondRDLCLayoutNameLbl: Label 'MYLAYOUT2', Locked = true;
+        WordLayoutNameLbl: Label 'WordLayout', Locked = true;
+        ExcelLayoutNameLbl: Label 'ExcelLayout', Locked = true;
         GlobalOverrideMissingErr: Label 'A global override should exist for layout %1.', Comment = '%1 = layout name';
         GlobalOverrideApprovedErr: Label 'The global override for %1 should carry the Approved status.', Comment = '%1 = layout name';
         GlobalOverrideRetiredErr: Label 'The global override for %1 should carry the Retired status.', Comment = '%1 = layout name';
         CompanyOverrideUnexpectedErr: Label 'No company-specific override should exist for layout %1.', Comment = '%1 = layout name';
         InsertedLayoutContextTxt: Text;
+        UploadedLayoutFileName: Text;
+        ExportedLayoutFileName: Text;
+        UseLayoutUpload: Boolean;
+        CaptureExport: Boolean;
+        ExportedWithEncoding: Boolean;
+        ExportedEncoding: TextEncoding;
+        UploadCount: Integer;
+        ExportCount: Integer;
 }
