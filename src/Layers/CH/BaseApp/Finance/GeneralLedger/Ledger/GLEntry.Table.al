@@ -784,7 +784,7 @@ table 17 "G/L Entry"
             Caption = 'Last Modified DateTime';
             Editable = false;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA27
         field(3010536; "Amount (FCY)"; Decimal)
         {
             Caption = 'Amount (FCY)';
