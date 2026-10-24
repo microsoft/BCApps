@@ -10,6 +10,7 @@ using Microsoft.FixedAssets.Setup;
 report 5689 "Create FA Depreciation Books"
 {
     Caption = 'Create FA Depreciation Books';
+    ToolTip = 'Create depreciation books for the fixed asset. You can create empty fixed asset depreciation books, for example for all fixed assets, when you have set up a new depreciation book. You can also use an existing fixed asset depreciation book as the basis for new book.';
     ProcessingOnly = true;
 
     dataset
