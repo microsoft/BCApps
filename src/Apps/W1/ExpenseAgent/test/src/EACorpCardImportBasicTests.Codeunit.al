@@ -72,6 +72,44 @@ codeunit 148356 EACorpCardImportBasicTests
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
+    procedure SourceInjectionIsScopedToBoundHelper()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        DataExch: Record "Data Exch.";
+        CorpCardDataExchProv: Codeunit "EA Corp Card Data Exch Prov";
+        UnboundCorpCardTestLib: Codeunit EACorpCardTestLib;
+    begin
+        Initialize();
+        Assert.IsFalse(UnboundCorpCardTestLib.HasSourcePayload(CorpCardCsvProviderCodeTok), 'Source payloads must not be shared between helper instances.');
+        CorpCardTestLib.CreateStatement(CorpCardStatement, CorpCardCsvProviderCodeTok, 'SUBSCRIPTION-TEST', 19.63, CorpCardStatement.Status::Importing);
+        Commit();
+
+        asserterror CorpCardDataExchProv.Download(CorpCardStatement);
+
+        Assert.ExpectedError('Select a statement file using Import statement for provider');
+        Assert.IsTrue(CorpCardTestLib.HasSourcePayload(CorpCardCsvProviderCodeTok), 'An unbound helper must not supply or consume source content.');
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+
+        BindSubscription(CorpCardTestLib);
+        CorpCardDataExchProv.Download(CorpCardStatement);
+        UnbindSubscription(CorpCardTestLib);
+
+        Assert.IsFalse(CorpCardTestLib.HasSourcePayload(CorpCardCsvProviderCodeTok), 'The bound helper must supply its source content.');
+        DataExch.Get(CorpCardStatement."Data Exch Entry No.");
+        DataExch.Delete(true);
+        CorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
+        CorpCardTestLib.SetCsvProviderSourcePayload();
+        CorpCardTestLib.CreateStatement(CorpCardStatement, CorpCardCsvProviderCodeTok, 'AFTER-UNBIND', 19.63, CorpCardStatement.Status::Importing);
+        Commit();
+
+        asserterror CorpCardDataExchProv.Download(CorpCardStatement);
+
+        Assert.ExpectedError('Select a statement file using Import statement for provider');
+        Assert.IsTrue(CorpCardTestLib.HasSourcePayload(CorpCardCsvProviderCodeTok), 'Unbinding must stop source injection for later downloads.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CsvImportCreatesCompletedStatementAndTransactions()
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -79,7 +117,9 @@ codeunit 148356 EACorpCardImportBasicTests
     begin
         Initialize();
 
+        BindSubscription(CorpCardTestLib);
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
+        UnbindSubscription(CorpCardTestLib);
         ImportedTransCount := CorpCardTestLib.CountTransForStatement(CorpCardStatement."Statement Entry No.", CorpCardCsvProviderCodeTok);
 
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'CSV statement import must complete successfully.');
@@ -97,11 +137,15 @@ codeunit 148356 EACorpCardImportBasicTests
     begin
         Initialize();
 
+        BindSubscription(CorpCardTestLib);
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, FirstStatement);
+        UnbindSubscription(CorpCardTestLib);
         Assert.IsTrue(FirstStatement.Imported > 0, 'First CSV import must import transactions before duplicate rerun is tested.');
 
         CorpCardTestLib.SetCsvProviderSourcePayload();
+        BindSubscription(CorpCardTestLib);
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, SecondStatement);
+        UnbindSubscription(CorpCardTestLib);
 
         Assert.IsTrue(SecondStatement.Duplicates > 0, 'Second CSV import must count the previously imported transactions as duplicates.');
         Assert.AreEqual(0, SecondStatement.Imported, 'Second CSV import must not import duplicate transactions.');
@@ -125,7 +169,9 @@ codeunit 148356 EACorpCardImportBasicTests
         CorpCardStatement.Insert(true);
         Commit();
 
+        BindSubscription(CorpCardTestLib);
         Assert.IsTrue(CorpCardImportOrch.Run(CorpCardStatement), 'Staging import must succeed without post-import processing.');
+        UnbindSubscription(CorpCardTestLib);
 
         CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         Assert.AreEqual(60, CorpCardTrans.Count(), 'Staging import must retain every parsed transaction.');
@@ -157,7 +203,9 @@ codeunit 148356 EACorpCardImportBasicTests
         CorpCard.Modify(true);
         ExpenseCount := Expense.Count();
 
+        BindSubscription(CorpCardTestLib);
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
+        UnbindSubscription(CorpCardTestLib);
 
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'A draft failure must not fail the import.');
         Assert.AreEqual(60, CorpCardStatement.Imported, 'A draft failure must not roll back staged transactions.');
@@ -214,7 +262,9 @@ codeunit 148356 EACorpCardImportBasicTests
         ExpensePaymentMethod.SetRange("Reimbursement Type", ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         ExpensePaymentMethod.DeleteAll(false);
 
+        BindSubscription(CorpCardTestLib);
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
+        UnbindSubscription(CorpCardTestLib);
 
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'Missing draft setup must not fail the import.');
         Assert.AreEqual(60, CorpCardStatement.Imported, 'Every transaction must be imported even if no draft can be created.');
@@ -247,7 +297,9 @@ codeunit 148356 EACorpCardImportBasicTests
         FailureLibraryExpense.SetCorpCardDraftFailureEnabled(true);
         BindSubscription(FailureLibraryExpense);
 
+        BindSubscription(CorpCardTestLib);
         CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
+        UnbindSubscription(CorpCardTestLib);
 
         UnbindSubscription(FailureLibraryExpense);
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'Errors after expense insertion must not fail the import.');
@@ -381,6 +433,7 @@ codeunit 148356 EACorpCardImportBasicTests
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::EACorpCardImportBasicTests);
+        Clear(CorpCardTestLib);
         CorpCardTestLib.InitializeCorpCardData();
 
         if IsInitialized then

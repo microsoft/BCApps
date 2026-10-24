@@ -13,7 +13,7 @@ using System.Utilities;
 
 codeunit 148357 EACorpCardTestLib
 {
-    SingleInstance = true;
+    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit "Assert";

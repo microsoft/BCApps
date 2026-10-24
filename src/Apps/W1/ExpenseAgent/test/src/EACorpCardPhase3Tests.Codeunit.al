@@ -35,7 +35,9 @@ codeunit 148353 EACorpCardPhase3Tests
         Initialize();
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, GetMalformedXmlPayload(), MalformedXmlFileNameTok);
 
+        BindSubscription(EACorpCardTestLib);
         asserterror EACorpCardTestLib.RunFileImport(CorpCardXmlProviderCodeTok);
+        UnbindSubscription(EACorpCardTestLib);
         Assert.ExpectedError(MalformedXmlRootElementTok);
 
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
@@ -60,7 +62,9 @@ codeunit 148353 EACorpCardPhase3Tests
         Initialize();
         SetAllRejectedCsvPayload();
 
+        BindSubscription(EACorpCardTestLib);
         asserterror EACorpCardTestLib.RunFileImport(CorpCardCsvProviderCodeTok);
+        UnbindSubscription(EACorpCardTestLib);
 
         Assert.ExpectedError('All 2 transaction lines');
         AssertRejectedCsvStatement(CorpCardStatement);
@@ -85,9 +89,11 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardProvider."Last Import DT" := LastSuccessfulImport;
         CorpCardProvider.Modify(true);
 
+        BindSubscription(EACorpCardTestLib);
         Assert.IsFalse(
             CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo),
             'All-rejected CSV input must return a failed import outcome.');
+        UnbindSubscription(EACorpCardTestLib);
 
         AssertRejectedCsvStatement(CorpCardStatement);
         Assert.IsTrue(HasStructuredErrorInfo, 'The validation failure must retain structured error information.');
@@ -115,7 +121,9 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardErrorContext.ClearErrorInfo();
         Commit();
 
+        BindSubscription(EACorpCardTestLib);
         Assert.IsTrue(CorpCardImportOrch.Run(CorpCardStatement), 'Row validation failures must return without rolling back their diagnostics.');
+        UnbindSubscription(EACorpCardTestLib);
 
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
         Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'The committed staging outcome must indicate validation failure.');
@@ -198,15 +206,19 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, EmptyXmlPayloadTok, EmptyXmlFileNameTok);
 
+        BindSubscription(EACorpCardTestLib);
         Assert.IsFalse(
             CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo),
             'XML with no transaction rows must produce a provider setup error.');
+        UnbindSubscription(EACorpCardTestLib);
         Assert.IsTrue(HasStructuredErrorInfo, 'The failed import must retain structured error information.');
         Assert.AreEqual(Page::"EA Corp Card Providers", ImportErrorInfo.PageNo, 'The recovery action must open provider setup.');
         Assert.AreEqual(CorpCardProvider.RecordId, ImportErrorInfo.RecordId, 'The recovery action must target the failing provider.');
 
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, EmptyXmlPayloadTok, EmptyXmlFileNameTok);
+        BindSubscription(EACorpCardTestLib);
         asserterror CorpCardFeedMgt.RunImport(CorpCardXmlProviderCodeTok);
+        UnbindSubscription(EACorpCardTestLib);
         Assert.AreEqual(ImportErrorInfo.Message, GetLastErrorText(), 'Provider import must surface the actionable provider error without a plain-text wrapper.');
     end;
 
@@ -218,10 +230,14 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardStatement: Record "EA Corp Card Statement";
     begin
         Initialize();
+        BindSubscription(EACorpCardTestLib);
         EACorpCardTestLib.RunFileImport(CorpCardXmlProviderCodeTok);
+        UnbindSubscription(EACorpCardTestLib);
         SetProviderSourcePayload(CorpCardCsvProviderCodeTok, 'invalid', InvalidCsvFileNameTok);
 
+        BindSubscription(EACorpCardTestLib);
         asserterror EACorpCardTestLib.RunFileImport(CorpCardCsvProviderCodeTok);
+        UnbindSubscription(EACorpCardTestLib);
 
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
         Assert.AreNotEqual(0DT, CorpCardProvider."Last Import DT", 'The successful provider import must retain its completion time.');
@@ -244,6 +260,7 @@ codeunit 148353 EACorpCardPhase3Tests
         Initialize();
         StatementCount := CorpCardStatement.Count();
 
+        BindSubscription(EACorpCardTestLib);
         CorpCardFeedMgt.RunAllEnabledProviders();
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
         CreateScheduleTestEntry(JobQueueEntry, 'CORP-FILE-CSV', CorpCardProvider.RecordId);
@@ -258,6 +275,7 @@ codeunit 148353 EACorpCardPhase3Tests
         CreateScheduleTestEntry(JobQueueEntry, 'CORP-FILE-DATAEXCH', CorpCardProvider.RecordId);
         CorpCardJQRunner.Run(JobQueueEntry);
 
+        UnbindSubscription(EACorpCardTestLib);
         Assert.AreEqual(StatementCount, CorpCardStatement.Count(), 'Batch and existing scheduled jobs must skip all built-in file feeds without creating statements.');
         Assert.IsTrue(EACorpCardTestLib.HasSourcePayload(CorpCardCsvProviderCodeTok), 'Scheduled jobs must not request or consume a CSV source file.');
         Assert.IsTrue(EACorpCardTestLib.HasSourcePayload(CorpCardXmlProviderCodeTok), 'Scheduled jobs must not request or consume an XML source file.');
@@ -335,7 +353,9 @@ codeunit 148353 EACorpCardPhase3Tests
         TempBlob.CreateInStream(SourceInStream);
         Commit();
 
+        BindSubscription(EACorpCardTestLib);
         asserterror CorpCardImportOrch.RunFileImport(CorpCardProvider, SourceInStream, 'Empty.csv');
+        UnbindSubscription(EACorpCardTestLib);
 
         Assert.ExpectedError('The selected statement file is empty.');
         Assert.AreEqual(StatementCount, CorpCardStatement.Count(), 'An empty file must not leave a statement or reach the import worker.');
@@ -795,6 +815,7 @@ codeunit 148353 EACorpCardPhase3Tests
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::EACorpCardPhase3Tests);
+        Clear(EACorpCardTestLib);
         EACorpCardTestLib.InitializeCorpCardData();
         DeleteCorpCardTransactionalData();
 
@@ -963,7 +984,9 @@ codeunit 148353 EACorpCardPhase3Tests
 
     local procedure RunImportAndGetLastStatement(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
     begin
+        BindSubscription(EACorpCardTestLib);
         EACorpCardTestLib.RunImportAndGetLastStatement(ProviderCode, CorpCardStatement);
+        UnbindSubscription(EACorpCardTestLib);
     end;
 
     local procedure SetProviderSourcePayload(ProviderCode: Code[20]; SourcePayload: Text; SourceFileName: Text[250])

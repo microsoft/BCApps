@@ -438,7 +438,9 @@ codeunit 148362 EACorpCardResolutionTests
         SetCsvPayload('', false);
         CorpCardProvider.Get(CsvProviderCodeTok);
         CorpCardTestLib.CreateStatement(CorpCardStatement, CsvProviderCodeTok, 'STALE-MATCH', 19.63, CorpCardStatement.Status::Importing);
+        BindSubscription(CorpCardTestLib);
         CorpCardDataExchProv.Download(CorpCardStatement);
+        UnbindSubscription(CorpCardTestLib);
         CorpCardDataExchProv.ParseToStaging(CorpCardStatement."Statement Entry No.");
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
         CorpCardStatement.Status := CorpCardStatement.Status::Imported;
@@ -461,6 +463,7 @@ codeunit 148362 EACorpCardResolutionTests
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
+        Clear(CorpCardTestLib);
         CorpCardTestLib.InitializeCorpCardData();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         GeneralLedgerSetup.Get();
@@ -522,7 +525,9 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
     begin
         CorpCardProvider.Get(ProviderCode);
+        BindSubscription(CorpCardTestLib);
         CorpCardImportOrch.RunProvider(CorpCardProvider, false);
+        UnbindSubscription(CorpCardTestLib);
         CorpCardProvider.Get(ProviderCode);
         CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No.");
         if CorpCardStatement.Status = CorpCardStatement.Status::Failed then begin
