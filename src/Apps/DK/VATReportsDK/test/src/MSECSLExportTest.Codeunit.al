@@ -120,18 +120,78 @@ codeunit 148040 "MS - ECSL Export Test"
         AssertSequenceInFile(ReportTxt, VATReportHeader."No.");
     END;
 
+    [Test]
+    procedure ECSLDownloadMatchesGeneratedContent()
+    begin
+        VerifyDownloadedReport('7777777', 55);
+    end;
+
+    [Test]
+    procedure ECSLDownloadPreservesMSDosEncoding()
+    var
+        VATRegNo: Text[20];
+    begin
+        VATRegNo := '777777?';
+        VATRegNo[7] := 233;
+        VerifyDownloadedReport(VATRegNo, 130);
+    end;
+
+    local procedure VerifyDownloadedReport(VATRegNo: Text[20]; ExpectedLastVATByte: Byte)
+    var
+        CompanyInformation: Record "Company Information";
+        VATReportHeader: Record "VAT Report Header";
+        ECSalesListSuggestLines: Codeunit "EC Sales List Suggest Lines";
+        MSECSLReportExportFile: Codeunit "MS - ECSL Report Export File";
+        LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
+        TempBlob: Codeunit "Temp Blob";
+        InStrm: InStream;
+        ReportTxt: Text;
+        DownloadedText: Text;
+        DownloadedByte: Byte;
+        ByteIndex: Integer;
+    begin
+        InitPrerequisites();
+        CompanyInformation.Get();
+        CompanyInformation."VAT Registration No." := VATRegNo;
+        CompanyInformation.Modify();
+        InitReportHeader(VATReportHeader, DMY2Date(1, 1, 2017), DMY2Date(31, 1, 2017));
+        GenerateData(1, VATReportHeader."Start Date");
+        ECSalesListSuggestLines.Run(VATReportHeader);
+
+        LibraryFileMgtHandler.SetBeforeDownloadFromStreamHandlerActivated(true);
+        BindSubscription(LibraryFileMgtHandler);
+        MSECSLReportExportFile.Run(VATReportHeader);
+
+        LibraryFileMgtHandler.GetTempBlob(TempBlob);
+        ReportTxt := MSECSLReportExportFile.GetOutputContent();
+        Assert.AreEqual(VATReportHeader."No." + '.txt', LibraryFileMgtHandler.GetDownloadFromSreamToFileName(), 'The download filename must be preserved.');
+        Assert.AreEqual(StrLen(ReportTxt), TempBlob.Length(), 'The download must use one-byte characters without a null terminator.');
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
+        InStrm.Read(DownloadedText);
+        Assert.AreEqual(ReportTxt, DownloadedText, 'The complete report, including line breaks, must be downloaded.');
+        AssertFile(DownloadedText, VATReportHeader."No.");
+
+        TempBlob.CreateInStream(InStrm);
+        for ByteIndex := 1 to 9 do
+            InStrm.Read(DownloadedByte);
+        Assert.AreEqual(ExpectedLastVATByte, DownloadedByte, 'The last VAT registration character must retain its MS-DOS byte encoding.');
+        while not InStrm.EOS() do
+            InStrm.Read(DownloadedByte);
+        Assert.AreEqual(10, DownloadedByte, 'The download must end with the final report line feed, not a null terminator.');
+        UnbindSubscription(LibraryFileMgtHandler);
+    end;
+
     local procedure AssertFile(ReportTxt: Text; VatReportNo: Code[20]);
     var
+        TempBlob: Codeunit "Temp Blob";
         InStrm: InStream;
         OutStrm: OutStream;
         LineCounter: Integer;
-        FileObj: File;
         Linetxt: Text;
     begin
-        FileObj.CreateTempFile();
-        FileObj.CREATEOUTSTREAM(OutStrm);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::MSDos);
         OutStrm.WRITETEXT(ReportTxt);
-        FileObj.CreateInStream(InStrm);
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
 
         while InStrm.ReadText(Linetxt) <> 0 do
             case SelectStr(1, Linetxt) of
@@ -149,16 +209,15 @@ codeunit 148040 "MS - ECSL Export Test"
 
     local procedure AssertSequenceInFile(ReportTxt: Text; VatReportNo: Code[20]);
     var
+        TempBlob: Codeunit "Temp Blob";
         InStrm: InStream;
         OutStrm: OutStream;
         LineNo: Integer;
-        FileObj: File;
         Linetxt: Text;
     begin
-        FileObj.CreateTempFile();
-        FileObj.CREATEOUTSTREAM(OutStrm);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::MSDos);
         OutStrm.WRITETEXT(ReportTxt);
-        FileObj.CreateInStream(InStrm);
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
         LineNo := 0;
 
         while InStrm.ReadText(Linetxt) <> 0 do
