@@ -234,12 +234,14 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     end;
 
     local procedure PopulateHeader(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    var
+        VendorSIREN: Text[9];
     begin
         PopulateDocumentInfo(CIIXml, XmlNamespaces, Header);
-        PopulateSupplierInfo(CIIXml, XmlNamespaces, Header);
+        PopulateSupplierInfo(CIIXml, XmlNamespaces, Header, VendorSIREN);
         PopulateCustomerInfo(CIIXml, XmlNamespaces, Header);
         PopulateAmountsAndDates(CIIXml, XmlNamespaces, Header);
-        Header."[BC] Vendor No." := FindVendor(Header);
+        Header."[BC] Vendor No." := FindVendor(Header, VendorSIREN);
     end;
 
     local procedure PopulateDocumentInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
@@ -249,7 +251,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
         Header."Vendor Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, SettlementPathTok + '/ram:InvoiceReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Vendor Invoice No."));
     end;
 
-    local procedure PopulateSupplierInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    local procedure PopulateSupplierInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header"; var VendorSIREN: Text[9])
     var
         BasePath: Text;
     begin
@@ -261,6 +263,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
         Header."Vendor VAT Id" := CopyStr(GetVATRegistrationNo(CIIXml, XmlNamespaces, BasePath), 1, MaxStrLen(Header."Vendor VAT Id"));
         Header."Vendor GLN" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:GlobalID'), 1, MaxStrLen(Header."Vendor GLN"));
         Header."Vendor External Id" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:ID'), 1, MaxStrLen(Header."Vendor External Id"));
+        VendorSIREN := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, BasePath + '/ram:SpecifiedLegalOrganization/ram:ID[@schemeID=''0002'']'), 1, MaxStrLen(VendorSIREN));
     end;
 
     local procedure PopulateCustomerInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
@@ -303,13 +306,18 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
             Value := GetNodeValue(CIIXml, XmlNamespaces, PartyPath + '/ram:SpecifiedTaxRegistration/ram:ID');
     end;
 
-    local procedure FindVendor(Header: Record "E-Document Purchase Header"): Code[20]
+    local procedure FindVendor(Header: Record "E-Document Purchase Header"; VendorSIREN: Text[9]): Code[20]
     var
         Vendor: Record Vendor;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         VendorGLN: Code[13];
         VendorVATRegistrationNo: Text[20];
+        VendorNo: Code[20];
     begin
+        if FREDocHelpers.FindVendorByLegalIdentifiers(Header."Vendor External Id", VendorSIREN, VendorNo) then
+            exit(VendorNo);
+
         VendorVATRegistrationNo := CopyStr(Header."Vendor VAT Id", 1, MaxStrLen(VendorVATRegistrationNo));
         if VendorVATRegistrationNo <> '' then begin
             Vendor.SetLoadFields("No.");

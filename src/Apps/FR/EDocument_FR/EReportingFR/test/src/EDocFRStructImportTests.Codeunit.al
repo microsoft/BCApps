@@ -8,12 +8,14 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
 codeunit 148149 "E-Doc. FR Struct. Import Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    Permissions = tabledata Vendor = rimd;
 
     var
         Assert: Codeunit Assert;
@@ -141,6 +143,30 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         Assert.AreEqual(1, EDocumentPurchaseLine.Count(), 'Re-reading the document should not duplicate the draft lines.');
     end;
+
+    [Test]
+    procedure FacturXInvoiceMatchesVendorBySIRENWhenSIRETIsUnknown()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        Vendor: Record Vendor;
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X import matches Vendor "V" by SIREN when no Vendor has the incoming SIRET
+        Initialize();
+
+        // [GIVEN] Vendor "V" with the incoming SIREN only
+        CreateVendor(Vendor, 'FX-SIREN', '123456789', '');
+        CreateEDocument(EDocument);
+
+        // [WHEN] The Factur-X document is read into draft
+        EDocumentFacturXHandler.ReadIntoDraft(EDocument, GetResourceBlob(FacturXInvoiceTok));
+
+        // [THEN] Vendor "V" is selected by SIREN
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        Assert.AreEqual(Vendor."No.", EDocumentPurchaseHeader."[BC] Vendor No.", 'The Vendor should be matched by SIREN.');
+    end;
     #endregion
 
     #region Peppol BIS 3.0 FR
@@ -210,6 +236,32 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         // [THEN] The reader rejects the document
         Assert.ExpectedError('Unsupported XML root element');
     end;
+
+    [Test]
+    procedure PeppolBIS30FRInvoiceMatchesVendorBySIRETBeforeSIREN()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        SIRENVendor: Record Vendor;
+        SIRETVendor: Record Vendor;
+        EDocPeppolBIS30FRHandler: Codeunit "E-Doc. Peppol BIS 3.0 FR Hdlr";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] PEPPOL import prefers an exact SIRET Vendor over another Vendor with the same SIREN
+        Initialize();
+
+        // [GIVEN] Vendor "V1" with the incoming SIREN and Vendor "V2" with the incoming SIRET
+        CreateVendor(SIRENVendor, 'PEP-SIREN', '123456789', '');
+        CreateVendor(SIRETVendor, 'PEP-SIRET', '123456789', '12345678901234');
+        CreateEDocument(EDocument);
+
+        // [WHEN] The PEPPOL document is read into draft
+        EDocPeppolBIS30FRHandler.ReadIntoDraft(EDocument, GetResourceBlob(PeppolBIS30FRInvoiceTok));
+
+        // [THEN] Vendor "V2" is selected by SIRET
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        Assert.AreEqual(SIRETVendor."No.", EDocumentPurchaseHeader."[BC] Vendor No.", 'The Vendor should be matched by SIRET before SIREN.');
+    end;
     #endregion
 
     local procedure Initialize()
@@ -229,6 +281,20 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         Clear(EDocument);
         EDocument.Direction := EDocument.Direction::Incoming;
         EDocument.Insert(true);
+    end;
+
+    local procedure CreateVendor(var Vendor: Record Vendor; VendorNo: Code[20]; SIREN: Text[9]; SIRET: Text[14])
+    begin
+        Vendor.Init();
+        Vendor."No." := VendorNo;
+        Vendor.Name := VendorNo;
+        Vendor."Registration Number" := SIREN;
+        Vendor.Insert(true);
+        if SIRET <> '' then begin
+            Vendor."FR Electronic Address" := SIRET;
+            Vendor."FR Elec. Address Scheme" := Vendor."FR Elec. Address Scheme"::"0009";
+            Vendor.Modify(true);
+        end;
     end;
 
     local procedure GetResourceBlob(FilePath: Text): Codeunit "Temp Blob"
