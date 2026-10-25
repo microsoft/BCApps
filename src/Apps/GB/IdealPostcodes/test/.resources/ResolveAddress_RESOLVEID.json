@@ -1,0 +1,15 @@
+{
+  "result": {
+    "id": "paf_RESOLVEID",
+    "line_1": "RESOLVED ADDRESS",
+    "line_2": "RESOLVED ADDRESS 2",
+    "line_3": "",
+    "organisation_name": "",
+    "post_town": "RESOLVED CITY",
+    "postcode": "RESOLVEPOSTCODE",
+    "county": "RESOLVED COUNTY",
+    "country_iso_2": "GB"
+  },
+  "code": 2000,
+  "message": "Success"
+}
