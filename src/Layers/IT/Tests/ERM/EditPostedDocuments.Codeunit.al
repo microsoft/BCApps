@@ -28,6 +28,7 @@ codeunit 134658 "Edit Posted Documents"
         UnexpectedGrossWeightErr: Label 'Unexpected Gross Weight shown.';
         UnexpectedVolumeErr: Label 'Unexpected Volume shown.';
         CashFlowWorkSheetLineMustNotBeFoundErr: Label 'Cash Flow Worksheet Line must not be found.';
+        MarkedAsOnHoldLbl: label 'X', Locked = true;
 
     [Test]
     [HandlerFunctions('PostedSalesShipmentUpdateGetEditablelModalPageHandler')]
@@ -1033,6 +1034,95 @@ codeunit 134658 "Edit Posted Documents"
         LibraryLowerPermissions.SetOutsideO365Scope();
     end;
 
+    [Test]
+    procedure SetDisputeStatusWithOverwriteOnHoldOnVendorLedgerEntrySetsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Setting a dispute status with "Overwrite on hold" on a vendor ledger entry puts the entry on hold and updates the posted purchase invoice.
+        Initialize();
+
+        // [GIVEN] Posted purchase invoice and a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        DisputeStatus := CreateDisputeStatusCode(true);
+
+        // [WHEN] Set the dispute status on the vendor ledger entry.
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The vendor ledger entry is on hold.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [THEN] The posted purchase invoice has the dispute status.
+        PurchInvHeader.Find();
+        PurchInvHeader.TestField("Dispute Status", DisputeStatus);
+    end;
+
+    [Test]
+    procedure RemoveDisputeStatusWithOverwriteOnHoldFromVendorLedgerEntryClearsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        // [SCENARIO 651756] Removing a dispute status with "Overwrite on hold" from a vendor ledger entry clears On Hold and the posted purchase invoice dispute status.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Remove the dispute status from the vendor ledger entry.
+        VendorLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] On Hold is cleared on the vendor ledger entry.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", '');
+
+        // [THEN] The posted purchase invoice dispute status is cleared.
+        PurchInvHeader.Find();
+        PurchInvHeader.TestField("Dispute Status", '');
+    end;
+
+    [Test]
+    procedure RemoveDisputeStatusWithOverwriteOnHoldFromCustLedgerEntryClearsOnHold()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        // [SCENARIO 651756] Removing a dispute status with "Overwrite on hold" from a customer ledger entry clears On Hold and the posted sales invoice dispute status.
+        Initialize();
+
+        // [GIVEN] Customer ledger entry of a posted sales invoice with a dispute status with "Overwrite on hold" = true.
+        SalesInvoiceHeader.Get(CreateAndPostSalesOrderGetInvoiceNo());
+        CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
+        CustLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Cust. Entry-Edit", CustLedgerEntry);
+        CustLedgerEntry.Find();
+        CustLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Remove the dispute status from the customer ledger entry.
+        CustLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Cust. Entry-Edit", CustLedgerEntry);
+
+        // [THEN] On Hold is cleared on the customer ledger entry.
+        CustLedgerEntry.Find();
+        CustLedgerEntry.TestField("On Hold", '');
+
+        // [THEN] The posted sales invoice dispute status is cleared.
+        SalesInvoiceHeader.Find();
+        SalesInvoiceHeader.TestField("Dispute Status", '');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Edit Posted Documents");
@@ -1073,6 +1163,15 @@ codeunit 134658 "Edit Posted Documents"
     begin
         LibrarySales.CreateSalesOrder(SalesHeader);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+    end;
+
+    local procedure CreateAndPostSalesOrderGetInvoiceNo(): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        LibrarySales.CreateSalesOrder(SalesHeader);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, false, true));
     end;
 
     local procedure CreateAndPostSalesCreditMemo(): Code[20]
@@ -1401,12 +1500,18 @@ codeunit 134658 "Edit Posted Documents"
     end;
 
     local procedure CreateDisputeStatusCode(): Code[10]
+    begin
+        exit(CreateDisputeStatusCode(false));
+    end;
+
+    local procedure CreateDisputeStatusCode(OverwriteOnHold: Boolean): Code[10]
     var
         DisputeStatus: Record "Dispute Status";
     begin
         DisputeStatus.Init();
         DisputeStatus.Validate(Code, LibraryUtility.GenerateRandomCode(DisputeStatus.FieldNo(Code), Database::"Dispute Status"));
         DisputeStatus.Validate(Description, DisputeStatus.Code);
+        DisputeStatus.Validate("Overwrite on hold", OverwriteOnHold);
         DisputeStatus.Insert(true);
 
         exit(DisputeStatus.Code);
