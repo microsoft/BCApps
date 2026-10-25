@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Journal;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
@@ -14,7 +15,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Inventory.Item;
 
 codeunit 99000843 "Undo Prod. Posting Mgmt."
 {
