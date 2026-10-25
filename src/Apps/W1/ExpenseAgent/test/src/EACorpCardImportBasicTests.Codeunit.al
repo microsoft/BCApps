@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.IO;
 
 codeunit 148356 EACorpCardImportBasicTests
 {
@@ -444,7 +445,6 @@ codeunit 148356 EACorpCardImportBasicTests
         LibraryTestInitialize.OnTestInitialize(Codeunit::EACorpCardImportBasicTests);
         Clear(CorpCardTestLib);
         CorpCardTestLib.InitializeCorpCardData();
-
         if IsInitialized then
             exit;
 
