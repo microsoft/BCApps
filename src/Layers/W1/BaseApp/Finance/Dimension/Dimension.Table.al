@@ -19,6 +19,7 @@ using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using System.Globalization;
+using Microsoft.Finance.Dimension;
 
 /// <summary>
 /// Table Dimension (ID 348).
@@ -119,6 +120,19 @@ table 348 Dimension
             Caption = 'Consolidation Code';
             ToolTip = 'Specifies the code that is used for consolidation.';
         }
+#if not CLEANSCHEMA30
+        field(8; "Map-to IC Dimension Code"; Code[20])
+        {
+            Caption = 'Map-to IC Dimension Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies which intercompany dimension corresponds to the dimension on the line.';
+            TableRelation = "IC Dimension";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// System field that tracks when the dimension record was last modified.
         /// Used for synchronization and audit purposes.

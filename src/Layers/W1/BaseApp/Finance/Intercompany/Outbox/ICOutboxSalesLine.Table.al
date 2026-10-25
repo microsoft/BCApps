@@ -15,6 +15,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores sales document line details for intercompany outbox transactions pending transmission to partner companies.
 /// Manages line-level data including items, pricing, quantities, and dimensions for intercompany sales processes.
@@ -28,6 +29,10 @@ table 427 "IC Outbox Sales Line"
 {
     Caption = 'IC Outbox Sales Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -323,27 +328,5 @@ table 427 "IC Outbox Sales Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDocDim: Record "IC Document Dimension";
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDocDim.LockTable();
-        ICDimMgt.DeleteICDocDim(DATABASE::"IC Outbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
-
-    /// <summary>
-    /// Opens the dimensions page to view or edit dimension values for the sales line.
-    /// Displays intercompany document dimensions associated with this outbox sales line.
-    /// </summary>
-    procedure ShowDimensions()
-    var
-        ICDocDim: Record "IC Document Dimension";
-    begin
-        TestField("IC Transaction No.");
-        TestField("Line No.");
-        ICDocDim.ShowDimensions(
-          DATABASE::"IC Outbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

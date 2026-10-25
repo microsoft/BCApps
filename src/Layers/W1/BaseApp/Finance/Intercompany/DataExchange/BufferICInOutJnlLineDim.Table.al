@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Temporary buffer table for staging intercompany journal line dimension data during API-based data exchange.
 /// Stores dimension-specific information associated with journal lines for cross-company dimension validation and mapping.
@@ -12,6 +13,10 @@ table 611 "Buffer IC InOut Jnl. Line Dim."
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -84,3 +89,4 @@ table 611 "Buffer IC InOut Jnl. Line Dim."
         }
     }
 }
+#endif

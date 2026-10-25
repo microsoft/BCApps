@@ -7,6 +7,7 @@ namespace Microsoft.Intercompany.BankAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Company;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores bank account information for intercompany transactions between partner companies.
 /// Enables partner company bank account tracking and validation for cross-company payments.
@@ -14,9 +15,12 @@ using Microsoft.Foundation.Company;
 table 422 "IC Bank Account"
 {
     Caption = 'IC Bank Account';
-    LookupPageID = "IC Bank Account List";
     ReplicateData = false;
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -71,13 +75,6 @@ table 422 "IC Bank Account"
         {
             Caption = 'IBAN';
             MaskType = Concealed;
-
-            trigger OnValidate()
-            var
-                CompanyInfo: Record "Company Information";
-            begin
-                CompanyInfo.CheckIBAN(IBAN);
-            end;
         }
     }
 
@@ -89,4 +86,4 @@ table 422 "IC Bank Account"
         }
     }
 }
-
+#endif

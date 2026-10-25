@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "version": "30.0.0.0",
   "brief": "Provides standard local functionality in Business Central for the Czech Republic.",
-  "description": "This extension provides features that help companies meet regulatory requirements for accounting and tax legislation in the Czech Republic. It also offers support for best practices, and reports for areas such as finance, VAT, receivables, payables, and inventory. The following are some of the key features in this extension: Statutory company information and company officials; Financial documents; Statutory statement; VAT features, including VAT statements, VAT Control and other reports, unreliable payer, reverse charges, and more; Year closing operations; Exchange rate updating (ÄŒNB); Customer/Vendor reconciliations; Contacts actualization from ARES; Czech legal layout for output documents; Inventory documents; Advanced features of the physical inventory; Multi-circuit accounting; Small regulatory features and best practices",
+  "description": "This extension provides features that help companies meet regulatory requirements for accounting and tax legislation in the Czech Republic. It also offers support for best practices, and reports for areas such as finance, VAT, receivables, payables, and inventory. The following are some of the key features in this extension: Statutory company information and company officials; Financial documents; Statutory statement; VAT features, including VAT statements, VAT Control and other reports, unreliable payer, reverse charges, and more; Year closing operations; Exchange rate updating (\u00c4\u0152NB); Customer/Vendor reconciliations; Contacts actualization from ARES; Czech legal layout for output documents; Inventory documents; Advanced features of the physical inventory; Multi-circuit accounting; Small regulatory features and best practices",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2118088",
@@ -15,6 +15,12 @@
     {
       "id": "0a9a9ce1-6f98-4cf0-82e2-0b3e7cabb32a",
       "name": "EU 3-Party Trade Purchase",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     }

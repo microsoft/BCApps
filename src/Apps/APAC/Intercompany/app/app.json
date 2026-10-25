@@ -1,0 +1,44 @@
+{
+  "id": "4b17823f-4842-48c5-9673-78b1ddf047d4",
+  "name": "Intercompany APAC",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "brief": "Intercompany localization for Australia and New Zealand.",
+  "description": "Provides BAS GST settlement and localized intercompany journal posting for Australia and New Zealand.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/en-us/dynamics365/business-central/intercompany-manage",
+  "dependencies": [
+    {
+      "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
+      "name": "Base Application",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "platform": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 8557,
+      "to": 8558
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

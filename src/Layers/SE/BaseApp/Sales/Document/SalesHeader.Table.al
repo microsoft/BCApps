@@ -74,6 +74,9 @@ using System.Reflection;
 using System.Security.User;
 using System.Threading;
 using System.Utilities;
+using Microsoft.Intercompany.Partner;
+using Microsoft.Intercompany.Setup;
+using Microsoft.Intercompany;
 
 /// <summary>
 /// Stores document-level information for sales quotes, orders, invoices, credit memos, blanket orders, and return orders.
@@ -2347,6 +2350,77 @@ table 36 "Sales Header"
             Caption = 'Invoice Discount Value';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(123; "Send IC Document"; Boolean)
+        {
+            Caption = 'Send IC Document';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Sales Document IC Status")
+        {
+            Caption = 'IC Status';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(125; "Sell-to IC Partner Code"; Code[20])
+        {
+            Caption = 'Sell-to IC Partner Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(126; "Bill-to IC Partner Code"; Code[20])
+        {
+            Caption = 'Bill-to IC Partner Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(127; "IC Reference Document No."; Code[20])
+        {
+            Caption = 'IC Reference Document No.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(129; "IC Direction"; Enum "IC Direction Type")
+        {
+            Caption = 'IC Direction';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the prepayment percentage required before delivery.
         /// </summary>

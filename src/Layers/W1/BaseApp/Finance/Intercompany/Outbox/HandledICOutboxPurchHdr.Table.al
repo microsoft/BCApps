@@ -11,6 +11,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores handled intercompany outbox purchase document headers that have been processed and archived.
 /// Contains purchase header information sent to intercompany partners through the outbox process.
@@ -23,6 +24,10 @@ table 432 "Handled IC Outbox Purch. Hdr"
 {
     Caption = 'Handled IC Outbox Purch. Hdr';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -276,18 +281,5 @@ table 432 "Handled IC Outbox Purch. Hdr"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        HndlICOutboxPurchLine: Record "Handled IC Outbox Purch. Line";
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        HndlICOutboxPurchLine.SetRange("IC Partner Code", "IC Partner Code");
-        HndlICOutboxPurchLine.SetRange("IC Transaction No.", "IC Transaction No.");
-        HndlICOutboxPurchLine.SetRange("Transaction Source", "Transaction Source");
-        if HndlICOutboxPurchLine.FindFirst() then
-            HndlICOutboxPurchLine.DeleteAll(true);
-        ICDimMgt.DeleteICDocDim(
-          DATABASE::"Handled IC Outbox Purch. Hdr", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
-    end;
 }
+#endif

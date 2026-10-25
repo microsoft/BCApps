@@ -36,6 +36,7 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.Security.User;
+using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores line-level details for posted sales invoices including items, quantities, prices, and amounts.
@@ -607,6 +608,28 @@ table 113 "Sales Invoice Line"
             Caption = 'VAT Identifier';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(107; "IC Partner Ref. Type"; Enum Microsoft.Intercompany.Partner."IC Partner Reference Type")
+        {
+            Caption = 'IC Partner Ref. Type';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(108; "IC Partner Reference"; Code[20])
+        {
+            Caption = 'IC Partner Reference';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Indicates whether this is a prepayment line.
         /// </summary>
@@ -615,6 +638,19 @@ table 113 "Sales Invoice Line"
             Caption = 'Prepayment Line';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(130; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            TableRelation = "IC Partner";
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the date when the line was posted.
         /// </summary>
@@ -622,6 +658,18 @@ table 113 "Sales Invoice Line"
         {
             Caption = 'Posting Date';
         }
+#if not CLEANSCHEMA30
+        field(138; "IC Item Reference No."; Code[50])
+        {
+            AccessByPermission = TableData "Item Reference" = R;
+            Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the payment discount amount for the line.
         /// </summary>

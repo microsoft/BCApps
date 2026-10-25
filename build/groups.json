@@ -110,6 +110,99 @@
     ]
   },
   {
+    "name": "Intercompany APAC",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "ApplicationModules"
+      },
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": false
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": false
+      }
+    ]
+  },
+  {
+    "name": "Intercompany Norway",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "ApplicationModules"
+      },
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": false
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": false
+      }
+    ]
+  },
+  {
+    "name": "Intercompany North America",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "ApplicationModules"
+      },
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": false
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": false
+      }
+    ]
+  },
+  {
     "name": "Intercompany",
     "groups": [
       {

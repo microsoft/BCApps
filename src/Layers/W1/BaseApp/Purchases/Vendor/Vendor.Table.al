@@ -54,6 +54,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.User;
 using System.Utilities;
+using Microsoft.Foundation.Period;
+using Microsoft.Intercompany.Partner;
 
 table 23 Vendor
 {
@@ -1062,6 +1064,19 @@ table 23 Vendor
             Editable = false;
             FieldClass = FlowField;
         }
+#if not CLEANSCHEMA30
+        field(119; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the vendor''s intercompany partner code.';
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         field(120; Refunds; Decimal)
         {
             AutoFormatType = 1;

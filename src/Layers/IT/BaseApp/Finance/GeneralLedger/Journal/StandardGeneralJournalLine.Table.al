@@ -23,6 +23,10 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Utilities;
+using Microsoft.Intercompany.BankAccount;
+using Microsoft.Intercompany.GLAccount;
+using Microsoft.Intercompany.Journal;
+using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Table storing detailed line information for standard general journal templates enabling reusable journal entry patterns.
@@ -1405,6 +1409,33 @@ table 751 "Standard General Journal Line"
             ToolTip = 'Specifies the difference between the calculate VAT amount and the VAT amount that you have entered manually.';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(113; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+#if not CLEANSCHEMA25
+        field(116; "IC Partner G/L Acc. No."; Code[20])
+        {
+            Caption = 'IC Partner G/L Acc. No.';
+            DataClassification = CustomerContent;
+            TableRelation = "IC G/L Account";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#endif
         /// <summary>
         /// Sell-to customer or buy-from vendor number for document reference in the standard journal line.
         /// </summary>
@@ -1419,6 +1450,42 @@ table 751 "Standard General Journal Line"
             else
             if ("Bal. Account Type" = const(Vendor)) Vendor;
         }
+#if not CLEANSCHEMA30
+        field(130; "IC Account Type"; Enum "IC Journal Account Type")
+        {
+            Caption = 'IC Account Type';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(131; "IC Account No."; Code[20])
+        {
+            Caption = 'IC Account No.';
+            DataClassification = CustomerContent;
+            TableRelation =
+            if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
+            else
+            if ("Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Account No."), Blocked = const(false))
+            else
+            if ("Bal. Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Dimension set ID linking to dimension combinations for analytical tracking of the standard journal line.
         /// </summary>

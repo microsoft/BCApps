@@ -12,6 +12,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores journal line details for intercompany transactions received from partner companies.
 /// Contains account information, amounts, and posting details for journal-based IC transactions.
@@ -20,6 +21,10 @@ table 419 "IC Inbox Jnl. Line"
 {
     Caption = 'IC Inbox Jnl. Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -56,12 +61,6 @@ table 419 "IC Inbox Jnl. Line"
             Caption = 'Account Type';
             OptionCaption = 'G/L Account,Customer,Vendor,IC Partner,Bank Account';
             OptionMembers = "G/L Account",Customer,Vendor,"IC Partner","Bank Account";
-
-            trigger OnValidate()
-            begin
-                if "Account Type" <> xRec."Account Type" then
-                    "Account No." := '';
-            end;
         }
         /// <summary>
         /// Account number corresponding to the specified account type for posting this journal line.
@@ -78,28 +77,6 @@ table 419 "IC Inbox Jnl. Line"
             if ("Account Type" = const("IC Partner")) "IC Partner"
             else
             if ("Account Type" = const("Bank Account")) "Bank Account";
-
-            trigger OnValidate()
-            var
-                Customer: Record Customer;
-                Vendor: Record Vendor;
-            begin
-                if ("Account No." <> xRec."Account No.") and ("Account No." <> '') then
-                    case "Account Type" of
-                        "Account Type"::"IC Partner":
-                            TestField("Account No.", "IC Partner Code");
-                        "Account Type"::Customer:
-                            begin
-                                Customer.Get("Account No.");
-                                Customer.TestField("IC Partner Code", "IC Partner Code");
-                            end;
-                        "Account Type"::Vendor:
-                            begin
-                                Vendor.Get("Account No.");
-                                Vendor.TestField("IC Partner Code", "IC Partner Code");
-                            end;
-                    end;
-            end;
         }
         /// <summary>
         /// Transaction amount for this journal line in the specified currency.
@@ -202,12 +179,5 @@ table 419 "IC Inbox Jnl. Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDimMgt.DeleteICJnlDim(
-          DATABASE::"IC Inbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

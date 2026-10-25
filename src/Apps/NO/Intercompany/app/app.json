@@ -1,0 +1,44 @@
+{
+  "id": "09f84270-8a2e-443d-990d-3f3f01674549",
+  "name": "Intercompany Norway",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "brief": "Intercompany localization for Norway.",
+  "description": "Provides Norwegian payment information on intercompany journals.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/en-us/dynamics365/business-central/intercompany-manage",
+  "dependencies": [
+    {
+      "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
+      "name": "Base Application",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "platform": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 8558,
+      "to": 8558
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

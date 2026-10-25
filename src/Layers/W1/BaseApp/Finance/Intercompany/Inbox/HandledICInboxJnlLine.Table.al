@@ -12,6 +12,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Archives journal line details for processed intercompany inbox transactions.
 /// Stores G/L account postings, amounts, and transaction details for handled intercompany journal entries with full audit trail.
@@ -20,6 +21,10 @@ table 421 "Handled IC Inbox Jnl. Line"
 {
     Caption = 'Handled IC Inbox Jnl. Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -176,12 +181,5 @@ table 421 "Handled IC Inbox Jnl. Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDimMgt.DeleteICJnlDim(
-          DATABASE::"Handled IC Inbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

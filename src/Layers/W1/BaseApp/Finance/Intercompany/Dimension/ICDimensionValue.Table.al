@@ -8,6 +8,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using System.Telemetry;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany dimension values for cross-company dimension value mapping and synchronization.
 /// Enables consistent dimension value structure across multiple intercompany partners.
@@ -15,8 +16,11 @@ using System.Telemetry;
 table 412 "IC Dimension Value"
 {
     Caption = 'IC Dimension Value';
-    LookupPageID = "IC Dimension Value List";
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -28,11 +32,6 @@ table 412 "IC Dimension Value"
             Caption = 'Dimension Code';
             NotBlank = true;
             TableRelation = "IC Dimension";
-
-            trigger OnValidate()
-            begin
-                UpdateMapToDimensionCode();
-            end;
         }
         /// <summary>
         /// Unique code identifying the intercompany dimension value.
@@ -73,12 +72,6 @@ table 412 "IC Dimension Value"
         {
             Caption = 'Map-to Dimension Code';
             TableRelation = Dimension.Code;
-
-            trigger OnValidate()
-            begin
-                if "Map-to Dimension Code" <> xRec."Map-to Dimension Code" then
-                    Validate("Map-to Dimension Value Code", '');
-            end;
         }
         /// <summary>
         /// Local dimension value code that this intercompany dimension value maps to for transaction processing.
@@ -108,35 +101,5 @@ table 412 "IC Dimension Value"
     fieldgroups
     {
     }
-
-    trigger OnInsert()
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        ICMapping: Codeunit "IC Mapping";
-    begin
-        ICDimension.Get("Dimension Code");
-        "Map-to Dimension Code" := ICDimension."Map-to Dimension Code";
-        FeatureTelemetry.LogUptake('0000ILB', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
-    end;
-
-    trigger OnDelete()
-    var
-        DimensionValue: Record "Dimension Value";
-    begin
-        DimensionValue.SetRange("Map-to IC Dimension Value Code", Rec."Code");
-        if not DimensionValue.IsEmpty() then
-            DimensionValue.ModifyAll("Map-to IC Dimension Value Code", '');
-    end;
-
-    var
-        ICDimension: Record "IC Dimension";
-
-    local procedure UpdateMapToDimensionCode()
-    var
-        ICDimension: Record "IC Dimension";
-    begin
-        ICDimension.Get("Dimension Code");
-        Validate("Map-to Dimension Code", ICDimension."Map-to Dimension Code");
-    end;
 }
-
+#endif

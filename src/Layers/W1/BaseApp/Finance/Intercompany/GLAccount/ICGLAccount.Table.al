@@ -7,6 +7,7 @@ namespace Microsoft.Intercompany.GLAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using System.Telemetry;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores shared intercompany general ledger account structure for cross-company transaction mapping.
 /// Provides standardized chart of accounts that can be mapped to local G/L accounts for intercompany operations.
@@ -14,8 +15,11 @@ using System.Telemetry;
 table 410 "IC G/L Account"
 {
     Caption = 'IC G/L Account';
-    LookupPageID = "IC G/L Account List";
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -70,12 +74,6 @@ table 410 "IC G/L Account"
         {
             Caption = 'Indentation';
             MinValue = 0;
-
-            trigger OnValidate()
-            begin
-                if Indentation < 0 then
-                    Indentation := 0;
-            end;
         }
     }
 
@@ -93,36 +91,5 @@ table 410 "IC G/L Account"
         {
         }
     }
-
-    trigger OnInsert()
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        ICMapping: Codeunit "IC Mapping";
-    begin
-        if Indentation < 0 then
-            Indentation := 0;
-
-        FeatureTelemetry.LogUptake('0000IKM', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
-    end;
-
-    trigger OnModify()
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        ICMapping: Codeunit "IC Mapping";
-    begin
-        if Indentation < 0 then
-            Indentation := 0;
-
-        FeatureTelemetry.LogUptake('0000IKN', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
-    end;
-
-    trigger OnDelete()
-    var
-        GLAccount: Record "G/L Account";
-    begin
-        GLAccount.SetRange("Default IC Partner G/L Acc. No", Rec."No.");
-        if not GLAccount.IsEmpty() then
-            GLAccount.ModifyAll("Default IC Partner G/L Acc. No", '');
-    end;
 }
-
+#endif

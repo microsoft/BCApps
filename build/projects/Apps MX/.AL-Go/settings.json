@@ -6,6 +6,7 @@
     "../../../src/Apps/MX/ContosoCoffeeDemoDatasetMX/app",
     "../../../src/Apps/MX/HybridBCLast_MX/app",
     "../../../src/Apps/NA/ExtendedBankDepositNA/app",
+    "../../../src/Apps/NA/Intercompany/app",
     "../../../src/Apps/NA/MX_DIOT/app",
     "../../../src/Apps/NA/Onprem Permissions NA/app",
     "../../../src/Apps/NA/PEPPOLNA/app",

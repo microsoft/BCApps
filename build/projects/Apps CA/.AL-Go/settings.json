@@ -9,6 +9,7 @@
     "../../../src/Apps/NA/Ceridian/app",
     "../../../src/Apps/NA/EnvestnetYodleeBankFeeds/app",
     "../../../src/Apps/NA/ExtendedBankDepositNA/app",
+    "../../../src/Apps/NA/Intercompany/app",
     "../../../src/Apps/NA/MX_DIOT/app",
     "../../../src/Apps/NA/Onprem Permissions NA/app",
     "../../../src/Apps/NA/PEPPOLNA/app",

@@ -68,6 +68,9 @@ using System.Environment.Configuration;
 using System.IO;
 using System.Threading;
 using System.Utilities;
+using Microsoft.Intercompany.BankAccount;
+using Microsoft.Intercompany.GLAccount;
+using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores general journal line transactions for all journal types including general, sales, purchase, cash receipt, and payment journals.
@@ -2358,6 +2361,30 @@ table 81 "Gen. Journal Line"
             ToolTip = 'Specifies the difference between the calculate VAT amount and the VAT amount that you have entered manually.';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(113; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(114; "IC Direction"; Enum Microsoft.Intercompany.Setup."IC Direction Type")
+        {
+            Caption = 'IC Direction';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
 #if not CLEANSCHEMA25
         /// <summary>
         /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
@@ -2368,6 +2395,18 @@ table 81 "Gen. Journal Line"
             ObsoleteReason = 'Replaced by IC Account No.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(117; "IC Partner Transaction No."; Integer)
+        {
+            Caption = 'IC Partner Transaction No.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
 #endif
         /// <summary>
@@ -2489,6 +2528,44 @@ table 81 "Gen. Journal Line"
             Caption = 'Zero Source Currency Amount';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(130; "IC Account Type"; Enum Microsoft.Intercompany.Journal."IC Journal Account Type")
+        {
+            Caption = 'IC Account Type';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the type of the account that you want to use for the transaction with your IC partner.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(131; "IC Account No."; Code[20])
+        {
+            Caption = 'IC Account No.';
+            ToolTip = 'Specifies the number of the general ledger or bank account that the IC transaction is posted to.';
+            DataClassification = CustomerContent;
+            TableRelation =
+            if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
+            else
+            if ("Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Account No."), Blocked = const(false))
+            else
+            if ("Bal. Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
+            else
+            if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the spend request that this journal line relates to.
         /// </summary>

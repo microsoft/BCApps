@@ -7,6 +7,7 @@ namespace Microsoft.Intercompany.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Intercompany.Partner;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany configuration settings for company-to-company transaction processing.
 /// Manages inbox setup, partner identification, and default journal templates for intercompany operations.
@@ -15,6 +16,10 @@ table 443 "IC Setup"
 {
     Caption = 'IC Setup';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -42,12 +47,6 @@ table 443 "IC Setup"
             InitValue = Database;
             OptionCaption = 'File Location,Database';
             OptionMembers = "File Location",Database;
-
-            trigger OnValidate()
-            begin
-                if "IC Inbox Type" = "IC Inbox Type"::Database then
-                    "IC Inbox Details" := '';
-            end;
         }
         /// <summary>
         /// Storage location details for intercompany inbox transactions.
@@ -110,3 +109,4 @@ table 443 "IC Setup"
         }
     }
 }
+#endif

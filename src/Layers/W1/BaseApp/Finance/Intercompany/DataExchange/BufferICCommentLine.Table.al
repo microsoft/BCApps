@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Temporary buffer table for staging intercompany comment line data during API-based data exchange.
 /// Facilitates comment validation and transformation before posting to target partner systems.
@@ -12,6 +13,10 @@ table 603 "Buffer IC Comment Line"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -93,3 +98,4 @@ table 603 "Buffer IC Comment Line"
         }
     }
 }
+#endif

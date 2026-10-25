@@ -15,6 +15,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores sales document line details for intercompany inbox transactions awaiting processing.
 /// Contains item information, quantities, prices, and IC partner references for sales transactions received from partner companies.
@@ -23,6 +24,10 @@ table 435 "IC Inbox Sales Line"
 {
     Caption = 'IC Inbox Sales Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -296,25 +301,5 @@ table 435 "IC Inbox Sales Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDimMgt.DeleteICDocDim(
-          DATABASE::"IC Inbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
-
-    /// <summary>
-    /// Opens the dimensions page to display IC document dimensions for this inbox sales line.
-    /// </summary>
-    procedure ShowDimensions()
-    var
-        ICDocDim: Record "IC Document Dimension";
-    begin
-        TestField("IC Transaction No.");
-        TestField("Line No.");
-        ICDocDim.ShowDimensions(
-          DATABASE::"IC Inbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

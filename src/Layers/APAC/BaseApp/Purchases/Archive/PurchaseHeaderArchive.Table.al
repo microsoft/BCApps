@@ -36,6 +36,8 @@ using Microsoft.Sales.History;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Security.User;
+using Microsoft.Intercompany.Partner;
+using Microsoft.Intercompany.Setup;
 
 table 5109 "Purchase Header Archive"
 {
@@ -599,6 +601,77 @@ table 5109 "Purchase Header Archive"
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Invoice Discount Value';
         }
+#if not CLEANSCHEMA30
+        field(123; "Send IC Document"; Boolean)
+        {
+            Caption = 'Send IC Document';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(124; "IC Status"; Enum "Purchase Document IC Status")
+        {
+            Caption = 'IC Status';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(125; "Buy-from IC Partner Code"; Code[20])
+        {
+            Caption = 'Buy-from IC Partner Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(126; "Pay-to IC Partner Code"; Code[20])
+        {
+            Caption = 'Pay-to IC Partner Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(127; "IC Reference Document No."; Code[20])
+        {
+            Caption = 'IC Reference Document No.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(129; "IC Direction"; Enum "IC Direction Type")
+        {
+            Caption = 'IC Direction';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         field(130; "Prepayment No."; Code[20])
         {
             Caption = 'Prepayment No.';

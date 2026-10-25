@@ -35,6 +35,7 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
+using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores archived versions of sales document lines for historical reference and audit trails.
@@ -771,6 +772,28 @@ table 5108 "Sales Line Archive"
         {
             Caption = 'VAT Identifier';
         }
+#if not CLEANSCHEMA30
+        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+        {
+            Caption = 'IC Partner Ref. Type';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(108; "IC Partner Reference"; Code[20])
+        {
+            Caption = 'IC Partner Reference';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the prepayment percentage required for this line.
         /// </summary>
@@ -924,6 +947,30 @@ table 5108 "Sales Line Archive"
             Caption = 'Prepmt. Amount Inv. Incl. VAT';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(130; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(138; "IC Item Reference No."; Code[50])
+        {
+            AccessByPermission = TableData "Item Reference" = R;
+            Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the payment discount amount applicable to this line.
         /// </summary>

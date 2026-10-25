@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Temporary buffer table for staging intercompany document dimension data during API-based data exchange.
 /// Facilitates dimension validation and transformation before posting to target partner systems.
@@ -12,6 +13,10 @@ table 604 "Buffer IC Document Dimension"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -87,3 +92,4 @@ table 604 "Buffer IC Document Dimension"
         }
     }
 }
+#endif

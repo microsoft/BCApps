@@ -12,6 +12,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Historical archive for completed intercompany outbox journal line transactions.
 /// Stores processed journal line records for audit trails and transaction history after successful transmission to IC partners.
@@ -25,6 +26,10 @@ table 417 "Handled IC Outbox Jnl. Line"
 {
     Caption = 'Handled IC Outbox Jnl. Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -181,12 +186,5 @@ table 417 "Handled IC Outbox Jnl. Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDimMgt.DeleteICJnlDim(
-          DATABASE::"Handled IC Outbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

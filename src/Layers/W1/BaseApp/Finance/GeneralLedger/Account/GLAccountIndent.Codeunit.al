@@ -93,20 +93,6 @@ codeunit 3 "G/L Account-Indent"
         OnAfterIndent();
     end;
 
-#if not CLEAN30
-    /// <summary>
-    /// Runs the indentation process for Intercompany G/L Accounts with user confirmation.
-    /// Updates the indentation levels based on account hierarchy structure.
-    /// </summary>
-    [Obsolete('Moved to codeunit ICGLAccountIndent', '30.0')]
-    procedure RunICAccountIndent()
-    var
-        ICGLAccountIndent: Codeunit "IC G/L Account-Indent";
-    begin
-        ICGLAccountIndent.RunICAccountIndent();
-    end;
-#endif
-
     /// <summary>
     /// Integration event raised after completing the chart of accounts indentation process.
     /// Allows extensions to perform additional processing after indentation is complete.
@@ -146,4 +132,3 @@ codeunit 3 "G/L Account-Indent"
     end;
 #endif
 }
-

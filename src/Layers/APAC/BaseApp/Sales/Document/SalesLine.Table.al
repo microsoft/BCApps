@@ -61,6 +61,8 @@ using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.Utilities;
+using Microsoft.Intercompany.GLAccount;
+using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores line-level details for sales documents including items, quantities, prices, and discounts.
@@ -2114,6 +2116,30 @@ table 37 "Sales Line"
             Caption = 'VAT Identifier';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+        {
+            Caption = 'IC Partner Ref. Type';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the item or account in your IC partner''s company that corresponds to the item or account on the line.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(108; "IC Partner Reference"; Code[20])
+        {
+            Caption = 'IC Partner Reference';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the IC partner. If the line is being sent to one of your intercompany partners, this field is used together with the IC Partner Ref. Type field to indicate the item or account in your partner''s company that corresponds to the line.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the prepayment percentage required for this line before shipping.
         /// </summary>
@@ -2366,6 +2392,19 @@ table 37 "Sales Line"
             Caption = 'Prepmt. Amount Inv. (LCY)';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(130; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
+            TableRelation = "IC Partner";
+            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the invoiced prepayment VAT amount in local currency.
         /// </summary>
@@ -2406,6 +2445,19 @@ table 37 "Sales Line"
             Caption = 'Prepmt VAT Diff. Deducted';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(138; "IC Item Reference No."; Code[50])
+        {
+            AccessByPermission = TableData "Item Reference" = R;
+            Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the IC item reference. If the line is being sent to one of your intercompany partners, this field is used together with the IC Partner Ref. Type field to indicate the item or account in your partner''s company that corresponds to the line.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Specifies the payment discount amount that applies to this line.
         /// </summary>

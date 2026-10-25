@@ -7,6 +7,7 @@ namespace Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Temporary buffer table for staging intercompany sales line data during API-based data exchange.
 /// Facilitates sales line validation and transformation before posting to target partner systems.
@@ -15,6 +16,10 @@ table 609 "Buffer IC Inbox Sales Line"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -271,3 +276,4 @@ table 609 "Buffer IC Inbox Sales Line"
         }
     }
 }
+#endif

@@ -82,9 +82,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         PostingSetupMgt: Codeunit PostingSetupManagement;
-#if not CLEAN30
-        ICGenJnlPostBatch: Codeunit "IC Gen. Jnl.-Post Batch";
-#endif
         Window: Dialog;
         GLRegNo: Integer;
         StartLineNo: Integer;
@@ -289,9 +286,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                     PostGenJournalLine(WHTGenJournalLine, GenJnlLine);
                 until WHTGenJournalLine.Next() = 0;
 
-#if not CLEAN30
-            OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, ICGenJnlPostBatch.GetICPartnerCode(), ICGenJnlPostBatch.GetICTransactionNo(), LastTaxLineNo);
-#endif
             OnProcessLinesOnAfterPostGenJournalLine2(GenJnlLine3, LastTaxLineNo);
             ErrorMessageMgt.PopContext(ErrorContextElement);
         until GenJnlLine.Next() = 0;
@@ -2376,18 +2370,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN30
-    internal procedure RunOnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
-    begin
-        OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '30.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAllocationsOnAfterCalcShowAllocationsRecurringError(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var GenJournalLine: Record "Gen. Journal Line"; var ShowAllocationsRecurringError: Boolean)
@@ -2547,13 +2529,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN30
-    [Obsolete('Replaced by event OnProcessLinesOnAfterPostGenJournalLine2', '30.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnProcessLinesOnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnProcessLinesOnAfterPostGenJournalLine2(var GenJournalLine: Record "Gen. Journal Line"; var LastTaxLineNo: Integer)

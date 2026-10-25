@@ -287,17 +287,6 @@ codeunit 46 SelectionFilterManagement
         exit(GetSelectionFilter(RecRef, BusinessUnit.FieldNo(Code)));
     end;
 
-#if not CLEAN30
-    [Obsolete('Moved to codeunit IC Selection Filter Mgt.', '30.0')]
-    procedure GetSelectionFilterForICPartner(var ICPartner: Record Microsoft.Intercompany.Partner."IC Partner"): Text
-    var
-        RecRef: RecordRef;
-    begin
-        RecRef.GetTable(ICPartner);
-        exit(GetSelectionFilter(RecRef, ICPartner.FieldNo(Code)));
-    end;
-#endif
-
     procedure GetSelectionFilterForCashFlow(var CashFlowForecast: Record "Cash Flow Forecast"): Text
     var
         RecRef: RecordRef;

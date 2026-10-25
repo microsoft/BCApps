@@ -8,7 +8,7 @@ namespace Microsoft.Intercompany.DataExchange;
 /// Defines the available data exchange mechanisms for intercompany communication.
 /// Determines how intercompany data is transmitted and synchronized between partner companies.
 /// </summary>
-enum 532 "IC Data Exchange Type" implements "IC Data Exchange"
+enum 532 "IC Data Exchange Type"
 {
     Extensible = false;
     /// <summary>
@@ -16,13 +16,11 @@ enum 532 "IC Data Exchange Type" implements "IC Data Exchange"
     /// </summary>
     value(0; Database)
     {
-        Implementation = "IC Data Exchange" = "IC Data Exchange Database";
     }
     /// <summary>
     /// API-based data exchange for intercompany communication across different systems and databases.
     /// </summary>
     value(1; API)
     {
-        Implementation = "IC Data Exchange" = "IC Data Exchange API";
     }
 }

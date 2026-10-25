@@ -2544,7 +2544,7 @@ page 50 "Purchase Order"
     var
         DocumentNoVisibility: Codeunit DocumentNoVisibility;
     begin
-        DocNoVisible := DocumentNoVisibility.PurchaseDocumentNoIsVisible(Enum::"Purchase Document Type"::Order.AsInteger(), Rec."No.");
+        DocNoVisible := DocumentNoVisibility.PurchaseDocumentNoIsVisible("Purchase Document Type"::Order.AsInteger(), Rec."No.");
     end;
 
     local procedure SetExtDocNoMandatoryCondition()

@@ -8,6 +8,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.Partner;
 using System.Reflection;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores dimension data for intercompany documents to enable dimension tracking across company transactions.
 /// Links dimension values to specific intercompany transactions and document lines.
@@ -16,6 +17,10 @@ table 442 "IC Document Dimension"
 {
     Caption = 'IC Document Dimension';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -67,13 +72,6 @@ table 442 "IC Document Dimension"
             Caption = 'Dimension Code';
             NotBlank = true;
             TableRelation = "IC Dimension";
-
-            trigger OnValidate()
-            begin
-                if not ICDimMgt.CheckICDim("Dimension Code") then
-                    Error(ICDimMgt.GetDimErr());
-                "Dimension Value Code" := '';
-            end;
         }
         /// <summary>
         /// Intercompany dimension value code specifying the actual dimension value for this document dimension entry.
@@ -83,12 +81,6 @@ table 442 "IC Document Dimension"
             Caption = 'Dimension Value Code';
             NotBlank = true;
             TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
-
-            trigger OnValidate()
-            begin
-                if not ICDimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
-                    Error(ICDimMgt.GetDimErr());
-            end;
         }
     }
 
@@ -103,30 +95,5 @@ table 442 "IC Document Dimension"
     fieldgroups
     {
     }
-
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-
-    /// <summary>
-    /// Opens the IC Document Dimensions page to view dimensions for a specific intercompany transaction.
-    /// </summary>
-    /// <param name="TableID">Table identifier for the document type</param>
-    /// <param name="TransactionNo">Transaction number for filtering</param>
-    /// <param name="PartnerCode">Intercompany partner code for filtering</param>
-    /// <param name="TransactionSource">Transaction source for filtering</param>
-    /// <param name="LineNo">Line number for filtering</param>
-    procedure ShowDimensions(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
-    var
-        ICDocDimensions: Page "IC Document Dimensions";
-    begin
-        SetRange("Table ID", TableID);
-        SetRange("Transaction No.", TransactionNo);
-        SetRange("IC Partner Code", PartnerCode);
-        SetRange("Transaction Source", TransactionSource);
-        SetRange("Line No.", LineNo);
-        Clear(ICDocDimensions);
-        ICDocDimensions.SetTableView(Rec);
-        ICDocDimensions.RunModal();
-    end;
 }
-
+#endif

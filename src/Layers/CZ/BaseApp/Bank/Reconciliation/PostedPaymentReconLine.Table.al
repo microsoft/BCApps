@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
@@ -190,7 +191,9 @@ table 1296 "Posted Payment Recon. Line"
             else
             if ("Account Type" = const("Bank Account")) "Bank Account"
             else
-            if ("Account Type" = const("Fixed Asset")) "Fixed Asset";
+            if ("Account Type" = const("Fixed Asset")) "Fixed Asset"
+            else
+            if ("Account Type" = const(Employee)) Employee;
         }
         /// <summary>
         /// Contains the document numbers of all applied entries, concatenated as text.

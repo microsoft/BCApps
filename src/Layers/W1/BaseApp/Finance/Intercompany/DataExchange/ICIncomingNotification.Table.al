@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores incoming notification records for intercompany transaction processing via API data exchange.
 /// Tracks notification status, error handling, and operation progress for cross-partner communication.
@@ -12,6 +13,10 @@ table 613 "IC Incoming Notification"
 {
     DataClassification = SystemMetadata;
     ReplicateData = false;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -68,35 +73,5 @@ table 613 "IC Incoming Notification"
             Clustered = true;
         }
     }
-
-    /// <summary>
-    /// Stores error message text in the BLOB field for detailed error tracking.
-    /// Handles extended error messages that exceed standard text field limits.
-    /// </summary>
-    /// <param name="value">Error message text to store in the notification record</param>
-    procedure SetErrorMessage(value: Text)
-    var
-        outStr: OutStream;
-    begin
-        Rec."Error Message".CreateOutStream(outStr);
-        outStr.WriteText(value);
-    end;
-
-    /// <summary>
-    /// Retrieves error message text from the BLOB field for display or processing.
-    /// Returns empty string if no error message is stored.
-    /// </summary>
-    /// <param name="value">Variable to receive the error message text</param>
-    procedure GetErrorMessage(value: Text)
-    var
-        inStr: InStream;
-    begin
-        CalcFields(Rec."Error Message");
-        if Rec."Error Message".HasValue() then begin
-            Rec."Error Message".CreateInStream(inStr);
-            inStr.ReadText(value);
-        end
-        else
-            value := '';
-    end;
 }
+#endif

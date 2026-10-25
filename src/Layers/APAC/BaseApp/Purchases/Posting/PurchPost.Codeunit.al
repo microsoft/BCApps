@@ -5924,10 +5924,15 @@ codeunit 90 "Purch.-Post"
         GenJnlLine."Source No." := PurchHeader."Pay-to Vendor No.";
         GenJnlLine."Source Code" := SrcCode;
         GenJnlLine."Posting No. Series" := PurchHeader."Posting No. Series";
-        GenJnlLine."IC Partner Code" := PurchHeader."Pay-to IC Partner Code";
         GenJnlLine.Adjustment := PurchHeader.Adjustment;
         GenJnlLine."BAS Adjustment" := PurchHeader."BAS Adjustment";
         GenJnlLine."Adjustment Applies-to" := PurchHeader."Adjustment Applies-to";
+        OnAfterInsertGenJournalWHT(PurchHeader, GenJnlLine);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertGenJournalWHT(PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line")
+    begin
     end;
 
     local procedure AdjustInvLineWith100PctPrepmt(var PurchInvoiceLine: Record "Purchase Line"; var TempTotalPurchLine: Record "Purchase Line" temporary)

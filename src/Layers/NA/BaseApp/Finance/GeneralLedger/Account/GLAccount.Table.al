@@ -31,6 +31,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Utilities;
+using Microsoft.Intercompany.GLAccount;
 
 /// <summary>
 /// Central master data table for general ledger accounts containing the chart of accounts structure.
@@ -916,6 +917,20 @@ table 15 "G/L Account"
         /// <summary>
         /// Excludes default account name description from journal entries when posting transactions.
         /// </summary>
+#pragma warning disable AS0136
+#if not CLEANSCHEMA30
+        field(66; "Default IC Partner G/L Acc. No"; Code[20])
+        {
+            Caption = 'Default IC Partner G/L Acc. No';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies accounts that you often enter in the Bal. Account No. field on intercompany journal or document lines.';
+            TableRelation = "IC G/L Account"."No.";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         field(70; "Omit Default Descr. in Jnl."; Boolean)
         {
             Caption = 'Omit Default Descr. in Jnl.';

@@ -11,6 +11,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Sales.Customer;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Archives sales document header information for processed intercompany inbox transactions.
 /// Stores customer details, shipping addresses, payment terms, and transaction metadata for historical tracking and audit purposes.
@@ -19,6 +20,10 @@ table 438 "Handled IC Inbox Sales Header"
 {
     Caption = 'Handled IC Inbox Sales Header';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -240,18 +245,5 @@ table 438 "Handled IC Inbox Sales Header"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICHndlInboxSalesLine: Record "Handled IC Inbox Sales Line";
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICHndlInboxSalesLine.SetRange("IC Partner Code", "IC Partner Code");
-        ICHndlInboxSalesLine.SetRange("IC Transaction No.", "IC Transaction No.");
-        ICHndlInboxSalesLine.SetRange("Transaction Source", "Transaction Source");
-        if ICHndlInboxSalesLine.FindFirst() then
-            ICHndlInboxSalesLine.DeleteAll(true);
-        ICDimMgt.DeleteICDocDim(
-          DATABASE::"Handled IC Inbox Sales Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
-    end;
 }
+#endif

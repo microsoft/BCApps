@@ -15,7 +15,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
@@ -667,13 +666,6 @@ report 11603 "Calculate GST Settlement"
                         Caption = 'Inter Company';
                         ToolTip = 'Specifies that the settlement includes intercompany transactions.';
                     }
-                    field(ICPartnerCode; ICPartnerCode)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'IC Partner Code';
-                        TableRelation = "IC Partner";
-                        ToolTip = 'Specifies the intercompany partner.';
-                    }
                 }
             }
         }
@@ -777,6 +769,8 @@ report 11603 "Calculate GST Settlement"
         GenJnlLine1__Account_No__CaptionLbl: Label 'Account No.';
         GenJnlLine1__Account_Type_CaptionLbl: Label 'Account Type';
         GenJnlLine1__Posting_Date_CaptionLbl: Label 'Posting Date';
+
+    protected var
         ICPartnerCode: Code[20];
 
     local procedure SetBASDataForGenJnlLine(var GenJournalLine: Record "Gen. Journal Line")
@@ -812,8 +806,7 @@ report 11603 "Calculate GST Settlement"
             end;
         end;
         NewGenJnlLine.Init();
-        if ICPartner then
-            NewGenJnlLine.Validate("IC Account No.", '');
+        OnAfterInitGenJnlLine(NewGenJnlLine, ICPartner);
         NewGenJnlLine.Validate("Posting Date", PostDate);
         NewGenJnlLine.Validate("Document Date", PostDate);
         NewGenJnlLine.Validate("Document No.", DocNo);
@@ -843,9 +836,17 @@ report 11603 "Calculate GST Settlement"
             end;
         end;
 
-        if (GenJournalLine."IC Account Type" = "IC Journal Account Type"::"G/L Account") then
-            GenJournalLine.Validate("IC Account No.", ICPartnerGLAccount);
-        GenJournalLine."IC Partner Code" := ICPartnerCode;
+        OnAfterInitializeGenJournalLineForInterCompany(GenJournalLine, ICPartnerGLAccount, ICPartnerCode);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; IsICPartner: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitializeGenJournalLineForInterCompany(var GenJournalLine: Record "Gen. Journal Line"; ICPartnerGLAccount: Code[20]; PartnerCode: Code[20])
+    begin
     end;
 
     local procedure SetSettlementAmount(var GenJournalLine: Record "Gen. Journal Line")
@@ -856,4 +857,3 @@ report 11603 "Calculate GST Settlement"
             GenJournalLine.Validate(Amount, CurrAmt);
     end;
 }
-

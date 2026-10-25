@@ -12,6 +12,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores general journal line details for intercompany outbox transactions pending transmission to partner companies.
 /// Manages journal-specific data including accounts, amounts, payment terms, and transaction details for intercompany journal operations.
@@ -25,6 +26,10 @@ table 415 "IC Outbox Jnl. Line"
 {
     Caption = 'IC Outbox Jnl. Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -77,28 +82,6 @@ table 415 "IC Outbox Jnl. Line"
             if ("Account Type" = const("IC Partner")) "IC Partner"
             else
             if ("Account Type" = const("Bank Account")) "IC Bank Account";
-
-            trigger OnValidate()
-            var
-                Customer: Record Customer;
-                Vendor: Record Vendor;
-            begin
-                if ("Account No." <> xRec."Account No.") and ("Account No." <> '') then
-                    case "Account Type" of
-                        "Account Type"::"IC Partner":
-                            TestField("Account No.", "IC Partner Code");
-                        "Account Type"::Customer:
-                            begin
-                                Customer.Get("Account No.");
-                                Customer.TestField("IC Partner Code", "IC Partner Code");
-                            end;
-                        "Account Type"::Vendor:
-                            begin
-                                Vendor.Get("Account No.");
-                                Vendor.TestField("IC Partner Code", "IC Partner Code");
-                            end;
-                    end;
-            end;
         }
         /// <summary>
         /// Transaction amount for the journal line.
@@ -204,12 +187,5 @@ table 415 "IC Outbox Jnl. Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDimMgt.DeleteICJnlDim(
-          DATABASE::"IC Outbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

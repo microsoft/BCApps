@@ -7,6 +7,7 @@
     "../../../src/Apps/NO/EDocument_NO/demo data",
     "../../../src/Apps/NO/ElectronicVATSubmission/app",
     "../../../src/Apps/NO/ImportNOPayroll/app",
+    "../../../src/Apps/NO/Intercompany/app",
     "../../../src/Apps/NO/NorwegianSAFT/app",
     "../../../src/Apps/NO/PEPPOLNO/app",
     "../../../src/Apps/NO/SustainabilityContosoCoffeeDemoDatasetNO/app",

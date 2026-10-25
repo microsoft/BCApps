@@ -11,6 +11,7 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Archives purchase document header information for processed intercompany inbox transactions.
 /// Stores vendor details, shipping addresses, payment terms, and transaction metadata for historical tracking and audit purposes.
@@ -19,6 +20,10 @@ table 440 "Handled IC Inbox Purch. Header"
 {
     Caption = 'Handled IC Inbox Purch. Header';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -279,18 +284,5 @@ table 440 "Handled IC Inbox Purch. Header"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        HndlICInboxPurchLine: Record "Handled IC Inbox Purch. Line";
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        HndlICInboxPurchLine.SetRange("IC Partner Code", "IC Partner Code");
-        HndlICInboxPurchLine.SetRange("IC Transaction No.", "IC Transaction No.");
-        HndlICInboxPurchLine.SetRange("Transaction Source", "Transaction Source");
-        if HndlICInboxPurchLine.FindFirst() then
-            HndlICInboxPurchLine.DeleteAll(true);
-        ICDimMgt.DeleteICDocDim(
-          DATABASE::"Handled IC Inbox Purch. Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
-    end;
 }
+#endif

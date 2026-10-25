@@ -15,6 +15,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores purchase document line details for outbound intercompany transactions.
 /// Contains line-level purchase information including items, costs, discounts, and delivery details for IC partner communication.
@@ -27,6 +28,10 @@ table 429 "IC Outbox Purchase Line"
 {
     Caption = 'IC Outbox Purchase Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -310,26 +315,5 @@ table 429 "IC Outbox Purchase Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
-    begin
-        ICDimMgt.DeleteICDocDim(
-          DATABASE::"IC Outbox Purchase Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
-
-    /// <summary>
-    /// Opens the dimension management interface for viewing and editing dimensions associated with this purchase line.
-    /// Enables dimension analysis and financial reporting for intercompany purchase transactions.
-    /// </summary>
-    procedure ShowDimensions()
-    var
-        ICDocDim: Record "IC Document Dimension";
-    begin
-        TestField("IC Transaction No.");
-        TestField("Line No.");
-        ICDocDim.ShowDimensions(
-          DATABASE::"IC Outbox Purchase Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

@@ -17,6 +17,7 @@ using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Analysis;
+using Microsoft.Finance.Dimension;
 
 /// <summary>
 /// Table Dimension Value (ID 349).
@@ -147,6 +148,31 @@ table 349 "Dimension Value"
         {
             Caption = 'Global Dimension No.';
         }
+#if not CLEANSCHEMA30
+        field(10; "Map-to IC Dimension Code"; Code[20])
+        {
+            Caption = 'Map-to IC Dimension Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the intercompany''s dimension code associated with the dimension of the current company.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
+#if not CLEANSCHEMA30
+        field(11; "Map-to IC Dimension Value Code"; Code[20])
+        {
+            Caption = 'Map-to IC Dimension Value Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies which intercompany dimension value corresponds to the dimension value on the line.';
+            TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Map-to IC Dimension Code"));
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Unique system-generated identifier for the dimension value.
         /// Used internally for performance optimization in dimension set operations.

@@ -142,30 +142,6 @@ codeunit 3 "G/L Account-Indent"
         OnAfterIndent();
     end;
 
-#if not CLEAN30
-    /// <summary>
-    /// Runs the indentation process for Intercompany G/L Accounts with user confirmation.
-    /// Updates the indentation levels based on account hierarchy structure.
-    /// </summary>
-    [Obsolete('Moved to codeunit ICGLAccountIndent', '30.0')]
-    procedure RunICAccountIndent()
-    var
-        ICGLAccountIndent: Codeunit "IC G/L Account-Indent";
-    begin
-        if not
-          Confirm(
-            Text1100000 +
-            Text1100001 +
-            Text1100002 +
-            Text1100003 +
-            Text1100004 +
-            Text1100005, true)
-        then
-            exit;
-
-        ICGLAccountIndent.RunICAccountIndent();
-    end;
-#endif
 
     procedure SetHidePrintDialog(NewHidePrintDialog: Boolean)
     begin
@@ -211,4 +187,3 @@ codeunit 3 "G/L Account-Indent"
     end;
 #endif
 }
-

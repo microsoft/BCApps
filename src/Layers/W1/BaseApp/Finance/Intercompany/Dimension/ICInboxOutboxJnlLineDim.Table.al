@@ -7,6 +7,7 @@ namespace Microsoft.Intercompany.Dimension;
 using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.Partner;
 
+#if not CLEANSCHEMA30
 /// <summary>
 /// Stores dimension data for intercompany journal lines in both inbox and outbox transactions.
 /// Enables dimension tracking for intercompany general journal entries.
@@ -15,6 +16,10 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
 {
     Caption = 'IC Inbox/Outbox Jnl. Line Dim.';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -54,13 +59,6 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
         {
             Caption = 'Dimension Code';
             TableRelation = "IC Dimension";
-
-            trigger OnValidate()
-            begin
-                if not ICDimMgt.CheckICDim("Dimension Code") then
-                    Error(ICDimMgt.GetDimErr());
-                "Dimension Value Code" := '';
-            end;
         }
         /// <summary>
         /// Intercompany dimension value code specifying the actual dimension value for this journal line dimension entry.
@@ -69,12 +67,6 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
         {
             Caption = 'Dimension Value Code';
             TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
-
-            trigger OnValidate()
-            begin
-                if not ICDimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
-                    Error(ICDimMgt.GetDimErr());
-            end;
         }
         /// <summary>
         /// Source of the transaction indicating whether rejected or created by the partner.
@@ -98,8 +90,5 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
     fieldgroups
     {
     }
-
-    var
-        ICDimMgt: Codeunit "IC Dimension Management";
 }
-
+#endif

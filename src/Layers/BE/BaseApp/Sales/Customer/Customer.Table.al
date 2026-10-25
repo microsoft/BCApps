@@ -59,6 +59,7 @@ using System.Reflection;
 using System.Security.User;
 using System.Telemetry;
 using System.Utilities;
+using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores customer master data including contact information, financial settings, and sales preferences.
@@ -1534,6 +1535,19 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
+#if not CLEANSCHEMA30
+        field(119; "IC Partner Code"; Code[20])
+        {
+            Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the customer''s intercompany partner code.';
+            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         /// <summary>
         /// Contains the total refund amounts for this customer within the date filter.
         /// </summary>

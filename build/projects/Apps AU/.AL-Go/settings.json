@@ -4,6 +4,7 @@
   "country": "AU",
   "appFolders": [
     "../../../src/Apps/APAC/EDocumentFormats/PINT A-NZ/app",
+    "../../../src/Apps/APAC/Intercompany/app",
     "../../../src/Apps/AU/ContosoCoffeeDemoDatasetAU/app",
     "../../../src/Apps/AU/EDocument_AU/demo data",
     "../../../src/Apps/AU/HybridBCLast_AU/app",
