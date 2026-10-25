@@ -24,6 +24,7 @@ codeunit 31116 "EET Service Management CZL"
         ResponseContentError: Text;
         ResponseContentErrorCode: Text;
         VerificationMode: Boolean;
+        CommunicationFailed: Boolean;
         EETNamespaceTxt: Label 'http://fs.gov.cz/eet/schema/v4', Locked = true;
         SoapActionTxt: Label 'http://fs.gov.cz/eet/OdeslaniTrzby', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
@@ -296,6 +297,7 @@ codeunit 31116 "EET Service Management CZL"
         GlobalHttpRequestMessage := SOAPWSRequestManagementCZL.GetHttpRequestMessage();
         GlobalHttpResponseMessage := SOAPWSRequestManagementCZL.GetHttpResponseMessage();
         if not IsOk then begin
+            CommunicationFailed := true;
             SOAPWSRequestManagementCZL.ProcessFaultResponse();
             exit;
         end;
@@ -545,6 +547,7 @@ codeunit 31116 "EET Service Management CZL"
         POKControlCode := '';
         ResponseContentError := '';
         ResponseContentErrorCode := '';
+        CommunicationFailed := false;
         Clear(GlobalHttpRequestMessage);
         Clear(GlobalHttpResponseMessage);
 
@@ -626,6 +629,16 @@ codeunit 31116 "EET Service Management CZL"
         exit(CopyStr(POKControlCode, 1, 39));
     end;
 
+    procedure IsRetryableFailure() RetryableFailure: Boolean
+    var
+        EETManagement: Codeunit "EET Management CZL";
+    begin
+        // The EET service recommends sending the message again only after the error codes -1 (temporary error) and 8.
+        // A failed communication is also temporary. Other errors, for example incorrect data or a missing certificate, are not solved by sending again.
+        RetryableFailure := CommunicationFailed or (ResponseContentErrorCode in [TemporaryTechnicalErrorCode(), TechnicalErrorCode()]);
+        EETManagement.OnIsRetryableFailure(CommunicationFailed, ResponseContentErrorCode, GlobalHttpResponseMessage, RetryableFailure);
+    end;
+
     procedure GetHttpRequestMessage(): HttpRequestMessage
     begin
         exit(GlobalHttpRequestMessage);
@@ -675,6 +688,16 @@ codeunit 31116 "EET Service Management CZL"
     local procedure GetMaxSoapMessageSize(): Integer
     begin
         exit(12288);
+    end;
+
+    local procedure TemporaryTechnicalErrorCode(): Text
+    begin
+        exit('-1'); // Temporary technical error in processing - please re-send the data message later
+    end;
+
+    local procedure TechnicalErrorCode(): Text
+    begin
+        exit('8'); // The data message was not processed because of a technical error or a data error
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Connection", OnRegisterServiceConnection, '', false, false)]

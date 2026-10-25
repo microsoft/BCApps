@@ -171,6 +171,10 @@ page 31146 "EET Entry Card CZL"
                 field("Message UUID"; Rec."Message UUID")
                 {
                 }
+                field("Failed Send Attempts"; Rec."Failed Send Attempts")
+                {
+                    Importance = Additional;
+                }
                 field("Acknowledgement Code"; Rec."Acknowledgement Code")
                 {
                 }

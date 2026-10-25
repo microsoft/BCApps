@@ -8,7 +8,8 @@ using System.Utilities;
 
 codeunit 31118 "EET Management CZL"
 {
-    Permissions = tabledata "EET Entry CZL" = rimd;
+    Permissions = tabledata "EET Entry CZL" = rimd,
+                  tabledata "EET Service Setup CZL" = r;
 
     var
         TempErrorMessage: Record "Error Message" temporary;
@@ -72,12 +73,30 @@ codeunit 31118 "EET Management CZL"
             end;
         end else begin
             EETEntryCZL."Status" := EETEntryCZL."Status"::Failure;
+            EETEntryCZL."Failed Send Attempts" += 1;
             NewDescription := EETServiceManagementCZL.GetResponseText();
         end;
 
         EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
         EETEntryCZL.ChangeStatus(EETEntryCZL."Status", NewDescription, TempErrorMessage,
             EETServiceManagementCZL.GetHttpRequestMessage(), EETServiceManagementCZL.GetHttpResponseMessage());
+        if (EETEntryCZL."Status" = EETEntryCZL."Status"::Failure) and EETServiceManagementCZL.IsRetryableFailure() then
+            UpdateSendRetryState(EETEntryCZL);
+    end;
+
+    local procedure UpdateSendRetryState(var EETEntryCZL: Record "EET Entry CZL")
+    var
+        EETServiceSetupCZL: Record "EET Service Setup CZL";
+        RetryDescriptionTxt: Label 'Repeated attempt to send the entry (retry %1 of %2).', Comment = '%1 = number of the retry, %2 = maximum number of retries';
+    begin
+        if not EETServiceSetupCZL.Get() then
+            EETServiceSetupCZL.Init();
+        if EETEntryCZL."Failed Send Attempts" > EETServiceSetupCZL."Maximum Send Retries" then
+            exit;
+
+        EETEntryCZL.ChangeStatus(
+            EETEntryCZL."Status"::"Send Pending",
+            StrSubstNo(RetryDescriptionTxt, EETEntryCZL."Failed Send Attempts", EETServiceSetupCZL."Maximum Send Retries"));
     end;
 
     local procedure SendEntryToVerification(EETEntryCZL: Record "EET Entry CZL")
@@ -161,6 +180,11 @@ codeunit 31118 "EET Management CZL"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateSimpleEETEntryOnBeforeInsertEETEntry(var EETEntryCZL: Record "EET Entry CZL")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnIsRetryableFailure(CommunicationFailed: Boolean; ResponseContentErrorCode: Text; GlobalHttpResponseMessage: HttpResponseMessage; var RetryableFailure: Boolean)
     begin
     end;
 }

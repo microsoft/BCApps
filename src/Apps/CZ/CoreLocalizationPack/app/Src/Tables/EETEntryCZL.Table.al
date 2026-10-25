@@ -269,6 +269,12 @@ table 31128 "EET Entry CZL"
             Caption = 'Simple Registration';
             ToolTip = 'Specifies whether the entry was created directly, without a source document, for example by the simple registration or as a cancellation of another entry.';
         }
+        field(215; "Failed Send Attempts"; Integer)
+        {
+            Caption = 'Failed Send Attempts';
+            Editable = false;
+            ToolTip = 'Specifies how many times the sending of the entry to the EET service failed. The first sending is counted as well. The value is informative, it is not reset after the entry is successfully sent or sent manually. The job queue entry sends the entry again only until the maximum number of retries set up in the EET service setup is reached.';
+        }
     }
 
     keys
@@ -787,11 +793,7 @@ table 31128 "EET Entry CZL"
 
     procedure SetFilterToSending()
     begin
-        SetFilter("Status", '%1|%2|%3|%4',
-            "Status"::"Send Pending",
-            "Status"::Failure,
-            "Status"::Verified,
-            "Status"::"Verified with Warnings");
+        SetRange("Status", "Status"::"Send Pending");
 
         OnAfterSetFilterToSending(Rec);
     end;

@@ -133,6 +133,13 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Response Log Level';
             ToolTip = 'Specifies when the response that is received from the EET service is saved to the status log of the EET entry. Errors and Warnings saves it only if the sending ended with an error or with a warning. All saves it every time.';
         }
+        field(50; "Maximum Send Retries"; Integer)
+        {
+            Caption = 'Maximum Send Retries';
+            InitValue = 5;
+            MinValue = 0;
+            ToolTip = 'Specifies how many times the job queue entry sends an EET entry to the EET service again after the first sending failed because of a temporary error. The entry stays in the Send Pending status until the number of retries is reached. After that, or when the error cannot be solved by sending again, the entry stays in the Failure status and it is no longer sent automatically, you can send it manually. Enter 0 if the entries should not be sent again automatically.';
+        }
     }
 
     keys

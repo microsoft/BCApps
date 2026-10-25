@@ -239,19 +239,19 @@ codeunit 31083 "EET Management CZP"
         exit(PostedCashDocumentHdrCZP."EET Entry No." <> 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnBeforePostCashDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnBeforePostCashDoc, '', false, false)]
     local procedure CheckCashDocumentOnBeforePostCashDoc(var CashDocumentHeaderCZP: Record "Cash Document Header CZP")
     begin
         CheckCashDocument(CashDocumentHeaderCZP);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnBeforeDeleteAfterPosting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnBeforeDeleteAfterPosting, '', false, false)]
     local procedure CreateEETEntryOnBeforeDeleteAfterPosting(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP")
     begin
         TryCreateEETEntry(CashDocumentHeaderCZP, PostedCashDocumentHdrCZP);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnAfterFinalizePosting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnAfterFinalizePosting, '', false, false)]
     local procedure SendEntryToServiceOnAfterFinalizePosting(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         EETEntryCZL: Record "EET Entry CZL";
@@ -262,7 +262,7 @@ codeunit 31083 "EET Management CZP"
         EETManagementCZL.TrySendEntryToService(EETEntryCZL);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnAfterFinalizePostingPreview', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnAfterFinalizePostingPreview, '', false, false)]
     local procedure SendEntryToVerificationOnAfterFinalizePostingPreview(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         EETEntryCZL: Record "EET Entry CZL";

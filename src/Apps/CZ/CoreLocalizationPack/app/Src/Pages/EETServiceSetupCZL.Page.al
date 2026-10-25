@@ -36,6 +36,11 @@ page 31142 "EET Service Setup CZL"
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
                 }
+                field("Maximum Send Retries"; Rec."Maximum Send Retries")
+                {
+                    Editable = EditableByNotEnabled;
+                    Importance = Additional;
+                }
                 field("Request Log Level"; Rec."Request Log Level")
                 {
                     Editable = EditableByNotEnabled;
