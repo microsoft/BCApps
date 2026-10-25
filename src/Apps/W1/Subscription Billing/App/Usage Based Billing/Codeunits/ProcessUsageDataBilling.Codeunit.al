@@ -32,6 +32,7 @@ codeunit 8026 "Process Usage Data Billing"
     local procedure Code()
     var
         UsageDataBilling: Record "Usage Data Billing";
+        SubscriptionQuantityBeforeProcessing: Dictionary of [Code[20], Decimal];
         SubscriptionLineEntryNoList: List of [Integer];
         Counter: Integer;
         DetailText: Text;
@@ -60,7 +61,7 @@ codeunit 8026 "Process Usage Data Billing"
                     this.ProgressTracker.UpdateProgress(Counter, DetailText);
                     if SubscriptionLineEntryNoList.IndexOf(UsageDataBilling."Subscription Line Entry No.") = 0 then begin
                         SubscriptionLineEntryNoList.Add(UsageDataBilling."Subscription Line Entry No.");
-                        ProcessServiceCommitment(UsageDataBilling);
+                        ProcessServiceCommitment(UsageDataBilling, SubscriptionQuantityBeforeProcessing);
                     end;
                 until UsageDataBilling.Next() = 0;
             this.ProgressTracker.Finish();
@@ -174,7 +175,7 @@ codeunit 8026 "Process Usage Data Billing"
         end;
     end;
 
-    local procedure ProcessServiceCommitment(var UsageDataBilling: Record "Usage Data Billing")
+    local procedure ProcessServiceCommitment(var UsageDataBilling: Record "Usage Data Billing"; var SubscriptionQuantityBeforeProcessing: Dictionary of [Code[20], Decimal])
     var
         ServiceObject: Record "Subscription Header";
         ServiceCommitment: Record "Subscription Line";
@@ -197,6 +198,8 @@ codeunit 8026 "Process Usage Data Billing"
 
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
         ServiceObject.TestField(Type, ServiceObject.Type::Item);
+        if not SubscriptionQuantityBeforeProcessing.ContainsKey(ServiceObject."No.") then
+            SubscriptionQuantityBeforeProcessing.Add(ServiceObject."No.", ServiceObject.Quantity);
         NewServiceObjectQuantity := ServiceObject.Quantity;
         UnitPrice := ServiceCommitment.Price;
         UnitCost := ServiceCommitment."Unit Cost";
@@ -217,8 +220,9 @@ codeunit 8026 "Process Usage Data Billing"
                         UnitCost := 0;
                         UnitPrice := 0;
                     end;
+                    // Every usage-based line of the subscription passes here; adding to the quantity from before this import counts the correction once per subscription.
                     if LastUsageDataBilling.Rebilling then
-                        NewServiceObjectQuantity += ServiceObject."Quantity";
+                        NewServiceObjectQuantity += SubscriptionQuantityBeforeProcessing.Get(ServiceObject."No.");
                 end;
             "Usage Based Pricing"::"Fixed Quantity":
                 ;

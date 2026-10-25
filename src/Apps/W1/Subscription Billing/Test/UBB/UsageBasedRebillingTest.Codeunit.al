@@ -247,6 +247,101 @@ codeunit 139694 "Usage Based Rebilling Test"
         Assert.AreEqual(2, BillingLine.Count(), 'Expected two billing lines to be created, but found a different count.');
     end;
 
+    [Test]
+    procedure RebillingAddsQuantityOnceForCustomerAndVendorLines()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        InitialUsageDataImport: Record "Usage Data Import";
+        RebillingUsageDataImport: Record "Usage Data Import";
+        RebillingStartDate: Date;
+    begin
+        // [SCENARIO] A rebilling import adds the corrected quantity to the subscription once, even if the subscription has a usage-based line for the customer and one for the vendor
+        ResetAll();
+        Initialize();
+
+        // [GIVEN] A subscription with a usage-based customer line and a usage-based vendor line, and an invoiced import with quantity 5
+        SetupServiceObjectAndContracts(SubscriptionStartingDate);
+        CreateImportForPeriod(InitialUsageDataImport, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()), 5);
+        ProcessData(InitialUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        AssertSubscriptionQuantity(5, 'The initial import should set the subscription quantity.');
+        MarkImportAsInvoicedAndClose(InitialUsageDataImport);
+
+        // [WHEN] A rebilling import with quantity 3 for the same charge period is processed
+        RebillingStartDate := CalcDate('<-CY+1M>', WorkDate());
+        CreateImportForPeriod(RebillingUsageDataImport, RebillingStartDate, CalcDate('<CY>', WorkDate()), 3);
+        ProcessData(RebillingUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        AssertRebillingUsageDataBillingCount(RebillingUsageDataImport, 2);
+
+        // [THEN] The subscription quantity is 5 + 3, not 5 + 3 + 3
+        AssertSubscriptionQuantity(8, 'The rebilling quantity must be added to the subscription once.');
+
+        // [THEN] The Next Billing Date of both subscription lines is reset to the start of the rebilling period
+        SubscriptionLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        Assert.AreEqual(2, SubscriptionLine.Count(), 'Expected a customer and a vendor subscription line.');
+        SubscriptionLine.FindSet();
+        repeat
+            Assert.AreEqual(RebillingStartDate, SubscriptionLine."Next Billing Date", 'The Next Billing Date of every usage-based subscription line should be reset to the rebilling start date.');
+        until SubscriptionLine.Next() = 0;
+    end;
+
+    [Test]
+    procedure RebillingAddsQuantityForCustomerOnlyUsageBasedLine()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        InitialUsageDataImport: Record "Usage Data Import";
+        RebillingUsageDataImport: Record "Usage Data Import";
+    begin
+        // [SCENARIO] A rebilling import adds the corrected quantity to the subscription when only the customer line is usage-based
+        ResetAll();
+        Initialize();
+
+        // [GIVEN] A subscription whose vendor line is not usage-based, and an invoiced import with quantity 5
+        SetupServiceObjectAndContracts(SubscriptionStartingDate);
+        SubscriptionLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        SubscriptionLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
+        SubscriptionLine.FindFirst();
+        SubscriptionLine."Usage Based Billing" := false;
+        SubscriptionLine.Modify(false);
+        CreateImportForPeriod(InitialUsageDataImport, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()), 5);
+        ProcessData(InitialUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        AssertSubscriptionQuantity(5, 'The initial import should set the subscription quantity.');
+        MarkImportAsInvoicedAndClose(InitialUsageDataImport);
+
+        // [WHEN] A rebilling import with quantity 3 for the same charge period is processed
+        CreateImportForPeriod(RebillingUsageDataImport, CalcDate('<-CY+1M>', WorkDate()), CalcDate('<CY>', WorkDate()), 3);
+        ProcessData(RebillingUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        AssertRebillingUsageDataBillingCount(RebillingUsageDataImport, 1);
+
+        // [THEN] The subscription quantity is 5 + 3
+        AssertSubscriptionQuantity(8, 'The rebilling quantity must be added to the subscription quantity.');
+    end;
+
+    [Test]
+    procedure ImportForNewPeriodReplacesSubscriptionQuantity()
+    var
+        InitialUsageDataImport: Record "Usage Data Import";
+        NextPeriodUsageDataImport: Record "Usage Data Import";
+    begin
+        // [SCENARIO] An import for a new charge period replaces the subscription quantity instead of adding to it
+        ResetAll();
+        Initialize();
+
+        // [GIVEN] A subscription with a usage-based customer line and a usage-based vendor line, and an invoiced import with quantity 5
+        SetupServiceObjectAndContracts(SubscriptionStartingDate);
+        CreateImportForPeriod(InitialUsageDataImport, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()), 5);
+        ProcessData(InitialUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        AssertSubscriptionQuantity(5, 'The initial import should set the subscription quantity.');
+        MarkImportAsInvoicedAndClose(InitialUsageDataImport);
+
+        // [WHEN] An import with quantity 3 for the next charge period is processed
+        CreateImportForPeriod(NextPeriodUsageDataImport, CalcDate('<CY+1D>', WorkDate()), CalcDate('<CY+1Y>', WorkDate()), 3);
+        ProcessData(NextPeriodUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        AssertRebillingUsageDataBillingCount(NextPeriodUsageDataImport, 0);
+
+        // [THEN] The subscription quantity is replaced by 3
+        AssertSubscriptionQuantity(3, 'An import for a new period must replace the subscription quantity.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Usage Based Rebilling Test");
@@ -317,6 +412,58 @@ codeunit 139694 "Usage Based Rebilling Test"
             SubscriptionStartingDate,
             SubscriptionEndingDate,
             10);
+    end;
+
+    local procedure CreateImportForPeriod(var UsageDataImport: Record "Usage Data Import"; BillingPeriodStartingDate: Date; BillingPeriodEndingDate: Date; Quantity: Decimal)
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+    begin
+        UBBTestLibrary.CreateUsageDataImport(UsageDataImport, UsageDataSupplier."No.");
+        RRef.GetTable(UsageDataGenericImport);
+        UsageDataBlob.InsertFromUsageDataImport(UsageDataImport);
+        UBBTestLibrary.CreateUsageDataCSVFileBasedOnRecordAndImportToUsageDataBlob(
+            UsageDataBlob,
+            RRef,
+            GetCustomerId(),
+            GetSubscriptionId(),
+            ServiceObject."No.",
+            ServiceCommitmentGlobal."Entry No.",
+            BillingPeriodStartingDate,
+            BillingPeriodEndingDate,
+            SubscriptionStartingDate,
+            SubscriptionEndingDate,
+            Quantity);
+    end;
+
+    local procedure MarkImportAsInvoicedAndClose(var UsageDataImport: Record "Usage Data Import")
+    var
+        UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
+        UsageDataBillingOfImport: Record "Usage Data Billing";
+    begin
+        UsageDataBillingOfImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataBillingOfImport.FindSet();
+        repeat
+            UsageDataBillingMetadata.SetRange("Usage Data Billing Entry No.", UsageDataBillingOfImport."Entry No.");
+            UsageDataBillingMetadata.ModifyAll(Invoiced, true, false);
+        until UsageDataBillingOfImport.Next() = 0;
+        UsageDataImport.SetStatus("Processing Status"::Closed);
+    end;
+
+    local procedure AssertRebillingUsageDataBillingCount(UsageDataImport: Record "Usage Data Import"; ExpectedCount: Integer)
+    var
+        UsageDataBillingOfImport: Record "Usage Data Billing";
+    begin
+        UsageDataBillingOfImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataBillingOfImport.SetRange(Rebilling, true);
+        Assert.AreEqual(ExpectedCount, UsageDataBillingOfImport.Count(), 'Unexpected number of rebilling usage data billing records.');
+    end;
+
+    local procedure AssertSubscriptionQuantity(ExpectedQuantity: Decimal; AssertMessage: Text)
+    var
+        SubscriptionHeader: Record "Subscription Header";
+    begin
+        SubscriptionHeader.Get(ServiceObject."No.");
+        Assert.AreEqual(ExpectedQuantity, SubscriptionHeader.Quantity, AssertMessage);
     end;
 
     local procedure CreateRebillingImportWithFollowupLine(var UsageDataImport: Record "Usage Data Import")
