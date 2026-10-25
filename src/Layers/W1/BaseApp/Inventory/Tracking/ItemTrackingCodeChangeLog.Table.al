@@ -6,7 +6,7 @@ namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Item;
 
-table 6534 "Item Tracking Code Change Log"
+table 7047 "Item Tracking Code Change Log"
 {
     Caption = 'Item Tracking Code Change Log';
     DataClassification = CustomerContent;

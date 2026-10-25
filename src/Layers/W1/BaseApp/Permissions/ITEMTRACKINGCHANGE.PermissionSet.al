@@ -6,7 +6,7 @@ namespace System.Security.AccessControl;
 
 using Microsoft.Inventory.Tracking;
 
-permissionset 6534 "ITEM TRACKING CHANGE"
+permissionset 7047 "ITEM TRACKING CHANGE"
 {
     Access = Public;
     Assignable = true;

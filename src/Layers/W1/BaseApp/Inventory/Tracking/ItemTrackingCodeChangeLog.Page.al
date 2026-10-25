@@ -6,7 +6,7 @@ namespace Microsoft.Inventory.Tracking;
 
 using System.Security.AccessControl;
 
-page 6534 "Item Tracking Code Change Log"
+page 7047 "Item Tracking Code Change Log"
 {
     ApplicationArea = ItemTracking;
     Caption = 'Item Tracking Code Change Log';
