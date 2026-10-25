@@ -24,7 +24,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Projects.Project.Planning;
-using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 
@@ -1460,7 +1459,8 @@ codeunit 22 "Item Jnl.-Post Line"
                     ReservEntry2.SetLoadFields("Source Type", "Source Ref. No.", "Item No.", "Quantity (Base)");
                     OnApplyItemLedgEntryOnAfterSetLoadFieldsOnReservEntry(ReservEntry2);
                     ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
-                    if (ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Transfer) and (ReservEntry2."Source Type" = DATABASE::"Purchase Line") and (ItemLedgEntry.Quantity < 0) then begin
+                    if (ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Transfer) and (ReservEntry2."Source Type" = 39) and (ItemLedgEntry.Quantity < 0) then begin
+                        ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
                         UseReservationApplication := false;
                         StartApplication := true;
                     end else begin

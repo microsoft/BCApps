@@ -20,7 +20,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -394,24 +393,9 @@ table 121 "Purch. Rcpt. Line"
             ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             Editable = false;
         }
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
-        {
-            Caption = 'IC Partner Ref. Type';
-            DataClassification = CustomerContent;
-        }
-        field(108; "IC Partner Reference"; Code[20])
-        {
-            Caption = 'IC Partner Reference';
-            DataClassification = CustomerContent;
-        }
         field(131; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
-        }
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
         }
         field(480; "Dimension Set ID"; Integer)
         {

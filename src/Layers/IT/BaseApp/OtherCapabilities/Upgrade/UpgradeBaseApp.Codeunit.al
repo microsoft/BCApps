@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,9 +44,6 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -215,24 +212,17 @@ codeunit 104000 "Upgrade - BaseApp"
         UpdatePurchaserOnRequisitionLines();
         SendCloudMigrationUsageTelemetry();
         UpdateCustLedgerEntrySetYourReference();
-        UpgradeICPartnerGLAccountNo();
-        UpgradeICInboxTransactionAccountNo();
-        UpgradeHandledICInboxTransactionAccountNo();
-        UpgradeICOutboxTransactionAccountNo();
-        UpgradeHandledICOutboxTransactionAccountNo();
         UpdateCheckWhseClassOnLocation();
         UpdateDeferralSourceCode();
         UpgradeMapCurrencySymbol();
         UpgradeOptionMapping();
         UpdateProductionSourceCode();
-        UpgradeICGLAccountNoInPostedGenJournalLine();
-        UpgradeICGLAccountNoInStandardGeneralJournalLine();
         UpgradeBankExportImportSetup();
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
         UpgradeNoSeriesIT();
-#if not CLEAN29
+#if not CLEAN30
         UpgradeDirectTransferPostingToEnum();
 #endif
         UpgradeDirectTransferOnTransferRoute();
@@ -246,8 +236,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeCountryVATSchemeDK();
         UpgradeJobConsumpWhseHandlingForDirectedPutAwayAndPickLocation();
         UpgradeIntegrationTableMappingTemplates();
-        UpgradeICOutboxTransactionSourceType();
-        UpgradeICTransactionSourceType();
         SetShowCurrencySymbolPosition();
         UpgradeABCAnalysisSetup();
         UpgradePurchRcptLineFields();
@@ -3064,126 +3052,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCustLedgerEntryYourReferenceUpdateTag());
     end;
 
-    local procedure UpgradeICPartnerGLAccountNo()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        GenJournalLine.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if GenJournalLine.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"Gen. Journal Line", Database::"Gen. Journal Line");
-        GenJournalLineDataTransfer.AddSourceFilter(GenJournalLine.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", GenJournalLine.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(GenJournalLine.FieldNo("IC Partner G/L Acc. No."), GenJournalLine.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeICInboxTransactionAccountNo()
-    var
-        ICInboxTransaction: Record "IC Inbox Transaction";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        ICInboxTransaction.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if ICInboxTransaction.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"IC Inbox Transaction", Database::"IC Inbox Transaction");
-        GenJournalLineDataTransfer.AddSourceFilter(ICInboxTransaction.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", ICInboxTransaction.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(ICInboxTransaction.FieldNo("IC Partner G/L Acc. No."), ICInboxTransaction.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeHandledICInboxTransactionAccountNo()
-    var
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        HandledICInboxTrans.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if HandledICInboxTrans.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"Handled IC Inbox Trans.", Database::"Handled IC Inbox Trans.");
-        GenJournalLineDataTransfer.AddSourceFilter(HandledICInboxTrans.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", HandledICInboxTrans.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(HandledICInboxTrans.FieldNo("IC Partner G/L Acc. No."), HandledICInboxTrans.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeICOutboxTransactionAccountNo()
-    var
-        ICOutboxTransaction: Record "IC Outbox Transaction";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        ICOutboxTransaction.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if ICOutboxTransaction.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"IC Outbox Transaction", Database::"IC Outbox Transaction");
-        GenJournalLineDataTransfer.AddSourceFilter(ICOutboxTransaction.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", ICOutboxTransaction.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(ICOutboxTransaction.FieldNo("IC Partner G/L Acc. No."), ICOutboxTransaction.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeHandledICOutboxTransactionAccountNo()
-    var
-        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        HandledICOutboxTrans.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if HandledICOutboxTrans.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"Handled IC Outbox Trans.", Database::"Handled IC Outbox Trans.");
-        GenJournalLineDataTransfer.AddSourceFilter(HandledICOutboxTrans.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", HandledICOutboxTrans.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(HandledICOutboxTrans.FieldNo("IC Partner G/L Acc. No."), HandledICOutboxTrans.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
     local procedure UpdateCheckWhseClassOnLocation()
     var
         Location: Record Location;
@@ -3358,54 +3226,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetOptionMappingUpgradeTag());
     end;
 
-    local procedure UpgradeICGLAccountNoInPostedGenJournalLine()
-    var
-        PostedGenJournalLine: Record "Posted Gen. Journal Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        PostedGenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        PostedGenJournalLine.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if PostedGenJournalLine.IsEmpty() then
-            exit;
-
-        PostedGenJournalLineDataTransfer.SetTables(Database::"Posted Gen. Journal Line", Database::"Posted Gen. Journal Line");
-        PostedGenJournalLineDataTransfer.AddSourceFilter(PostedGenJournalLine.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        PostedGenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", PostedGenJournalLine.FieldNo("IC Account Type"));
-        PostedGenJournalLineDataTransfer.AddFieldValue(PostedGenJournalLine.FieldNo("IC Partner G/L Acc. No."), PostedGenJournalLine.FieldNo("IC Account No."));
-        PostedGenJournalLineDataTransfer.CopyFields();
-        Clear(PostedGenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeICGLAccountNoInStandardGeneralJournalLine()
-    var
-        StandardGeneralJournalLine: Record "Standard General Journal Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        StandardGeneralJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        StandardGeneralJournalLine.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if StandardGeneralJournalLine.IsEmpty() then
-            exit;
-
-        StandardGeneralJournalLineDataTransfer.SetTables(Database::"Standard General Journal Line", Database::"Standard General Journal Line");
-        StandardGeneralJournalLineDataTransfer.AddSourceFilter(StandardGeneralJournalLine.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        StandardGeneralJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", StandardGeneralJournalLine.FieldNo("IC Account Type"));
-        StandardGeneralJournalLineDataTransfer.AddFieldValue(StandardGeneralJournalLine.FieldNo("IC Partner G/L Acc. No."), StandardGeneralJournalLine.FieldNo("IC Account No."));
-        StandardGeneralJournalLineDataTransfer.CopyFields();
-        Clear(StandardGeneralJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
     local procedure UpgradePurchasesPayablesAndSalesReceivablesSetups()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -3567,9 +3387,7 @@ codeunit 104000 "Upgrade - BaseApp"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefCountry.GetNoSeriesITUpgradeTag()) then
             exit;
 
-
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series");
-
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series Line");
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series Line Sales");
         SyncLoopingHelper.SkipFieldSynchronization(SyncLoopingHelper, Database::"No. Series Line Purchase");
@@ -3985,65 +3803,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetIntegrationTableMappingTemplatesUpgradeTag());
     end;
 
-    local procedure UpgradeICOutboxTransactionSourceType()
-    var
-        ICOutboxTransaction: Record "IC Outbox Transaction";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        ICOutboxTransactionDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICOutboxTransactionSourceTypeUpgradeTag()) then
-            exit;
-
-        ICOutboxTransactionDataTransfer.SetTables(Database::"IC Outbox Transaction", Database::"IC Outbox Transaction");
-        ICOutboxTransactionDataTransfer.AddFieldValue(ICOutboxTransaction.FieldNo("Source Type"), ICOutboxTransaction.FieldNo("IC Source Type"));
-        ICOutboxTransactionDataTransfer.CopyFields();
-        Clear(ICOutboxTransactionDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICOutboxTransactionSourceTypeUpgradeTag());
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFieldsFromNoSeriesLineSales(FromNoSeriesLineSales: Record "No. Series Line Sales"; ToNoSeriesLine: Record "No. Series Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFieldsFromNoSeriesLinePurchase(FromNoSeriesLinePurchase: Record "No. Series Line Purchase"; ToNoSeriesLine: Record "No. Series Line")
-    begin
-    end;
-
-    local procedure UpgradeICTransactionSourceType()
-    var
-        ICInboxTransaction: Record "IC Inbox Transaction";
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        ICTransactionDataTransfer: DataTransfer;
-
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag()) then
-            exit;
-
-        ICTransactionDataTransfer.SetTables(Database::"IC Inbox Transaction", Database::"IC Inbox Transaction");
-        ICTransactionDataTransfer.AddFieldValue(ICInboxTransaction.FieldNo("Source Type"), ICInboxTransaction.FieldNo("IC Source Type"));
-        ICTransactionDataTransfer.CopyFields();
-        Clear(ICTransactionDataTransfer);
-
-        ICTransactionDataTransfer.SetTables(Database::"Handled IC Inbox Trans.", Database::"Handled IC Inbox Trans.");
-        ICTransactionDataTransfer.AddFieldValue(HandledICInboxTrans.FieldNo("Source Type"), HandledICInboxTrans.FieldNo("IC Source Type"));
-        ICTransactionDataTransfer.CopyFields();
-        Clear(ICTransactionDataTransfer);
-
-        ICTransactionDataTransfer.SetTables(Database::"Handled IC Outbox Trans.", Database::"Handled IC Outbox Trans.");
-        ICTransactionDataTransfer.AddFieldValue(HandledICOutboxTrans.FieldNo("Source Type"), HandledICOutboxTrans.FieldNo("IC Source Type"));
-        ICTransactionDataTransfer.CopyFields();
-        Clear(ICTransactionDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag());
-    end;
-
     local procedure SetShowCurrencySymbolPosition()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -4080,6 +3839,16 @@ codeunit 104000 "Upgrade - BaseApp"
             until Currency.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTransferFieldsFromNoSeriesLineSales(FromNoSeriesLineSales: Record "No. Series Line Sales"; ToNoSeriesLine: Record "No. Series Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTransferFieldsFromNoSeriesLinePurchase(FromNoSeriesLinePurchase: Record "No. Series Line Purchase"; ToNoSeriesLine: Record "No. Series Line")
+    begin
     end;
 
     local procedure UpgradePurchRcptLineFields()

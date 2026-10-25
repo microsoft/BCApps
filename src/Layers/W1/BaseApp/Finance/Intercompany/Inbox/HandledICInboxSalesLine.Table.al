@@ -302,9 +302,9 @@ table 439 "Handled IC Inbox Sales Line"
 
     trigger OnDelete()
     var
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"Handled IC Inbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
     end;
 

@@ -9,7 +9,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Navigate;
-using Microsoft.Intercompany;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -43,10 +42,6 @@ page 9045 "Acc. Payable Administrator RC"
             part(ApprovalsActivities; "Approvals Activities")
             {
                 ApplicationArea = Suite;
-            }
-            part("Intercompany Activities"; "Intercompany Activities")
-            {
-                ApplicationArea = Intercompany;
             }
             part(JobQueueActivities; "Job Queue Activities")
             {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -145,11 +145,6 @@ page 370 "Bank Account Card"
                 field("Use as Default for Currency"; Rec."Use as Default for Currency")
                 {
                     ApplicationArea = Basic, Suite;
-                    Importance = Additional;
-                }
-                field(IntercompanyEnable; Rec.IntercompanyEnable)
-                {
-                    ApplicationArea = Intercompany;
                     Importance = Additional;
                 }
                 group(Control45)

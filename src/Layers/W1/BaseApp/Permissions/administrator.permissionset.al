@@ -14,7 +14,6 @@ permissionset 2914 "Administrator"
                              "D365 COSTACC, SETUP",
                              "D365 FA, SETUP",
                              "D365 HR, SETUP",
-                             "D365 IC, SETUP",
                              "D365 INV, SETUP",
                              "D365 JOBS, EDIT",
                              "D365 RM SETUP",

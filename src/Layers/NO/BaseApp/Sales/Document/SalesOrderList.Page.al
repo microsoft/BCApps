@@ -13,7 +13,6 @@ using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Inventory.Availability;
 using Microsoft.Sales.Analysis;
 using Microsoft.Sales.Comment;
@@ -369,7 +368,7 @@ page 9305 "Sales Order List"
                         Rec.ShowDocDim();
                     end;
                 }
-               action(SalesOrderStatistics)
+                action(SalesOrderStatistics)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Statistics';
@@ -707,22 +706,6 @@ page 9305 "Sales Order List"
                         TempOrderPromisingLine.SetRange("Source Type", Rec."Document Type");
                         TempOrderPromisingLine.SetRange("Source ID", Rec."No.");
                         PAGE.RunModal(PAGE::"Order Promising Lines", TempOrderPromisingLine);
-                    end;
-                }
-                action("Send IC Sales Order Cnfmn.")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Sales Order Cnfmn.';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Send the document to the intercompany outbox or directly to the intercompany partner if automatic transaction sending is enabled.';
-
-                    trigger OnAction()
-                    var
-                        SalesHeader: Record "Sales Header";
-                    begin
-                        CurrPage.SetSelectionFilter(SalesHeader);
-                        Rec.SendICSalesDoc(SalesHeader);
                     end;
                 }
                 action("Delete Invoiced")

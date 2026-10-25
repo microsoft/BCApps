@@ -2140,14 +2140,18 @@ codeunit 134151 "ERM Intercompany"
 
         // [THEN] The two G/L Account entries are not mapped.
         GLAccount.Reset();
+#pragma warning disable AA0210
         GLAccount.SetRange("Default IC Partner G/L Acc. No", ICGLAccountNo);
+#pragma warning restore AA0210
         Assert.IsTrue(GLAccount.IsEmpty(), StrSubstNo(UnexpectedEntryErr, GLAccount.FieldCaption("Default IC Partner G/L Acc. No"), ICGLAccountNo, GLAccount.TableCaption));
 
         // [GIVEN] Bind to the integration event to avoid checks on GLEntries
         BindSubscription(ERMIntercompany);
 
         // [WHEN] The G/L Account is deleted
+#pragma warning disable AA0210
         GLAccount.SetRange("Default IC Partner G/L Acc. No");
+#pragma warning restore AA0210
         GLAccount.SetRange("Account Type", "G/L Account Type"::Heading);
         GLAccount.FindFirst();
         GLAccount.Delete(true);
@@ -2267,14 +2271,18 @@ codeunit 134151 "ERM Intercompany"
 
         // [THEN] The two Dimension entries are not mapped.
         Dimension.Reset();
+#pragma warning disable AA0210
         Dimension.SetRange("Map-to IC Dimension Code", ICDimensionCode);
+#pragma warning restore AA0210
         Assert.IsTrue(Dimension.IsEmpty(), StrSubstNo(UnexpectedEntryErr, Dimension.FieldCaption("Map-to IC Dimension Code"), ICDimensionCode, Dimension.TableCaption));
 
         // [GIVEN] Bind to the integration event to avoid unnnecesary checks.
         BindSubscription(ERMIntercompany);
 
         // [WHEN] The Dimension is deleted
+#pragma warning disable AA0210
         Dimension.SetRange("Map-to IC Dimension Code");
+#pragma warning restore AA0210
         Dimension.SetRange("Code", DimensionCode);
         Dimension.FindFirst();
         Dimension.Delete(true);

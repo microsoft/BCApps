@@ -527,15 +527,6 @@ page 9001 "Accounting Manager Role Center"
                                         Recurring = const(false));
                     ToolTip = 'Register payments to vendors. A payment journal is a type of general journal that is used to post outgoing payment transactions to G/L, bank, customer, vendor, employee, and fixed assets accounts. The Suggest Vendor Payments functions automatically fills the journal with payments that are due. When payments are posted, you can export the payments to a bank file for upload to your bank if your system is set up for electronic banking. You can also issue computer checks from the payment journal.';
                 }
-                action(ICGeneralJournals)
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'IC General Journals';
-                    RunObject = Page "General Journal Batches";
-                    RunPageView = where("Template Type" = const(Intercompany),
-                                        Recurring = const(false));
-                    ToolTip = 'Post intercompany transactions. IC general journal lines must contain either an IC partner account or a customer or vendor account that has been assigned an intercompany partner code.';
-                }
                 action(GeneralJournals)
                 {
                     ApplicationArea = Basic, Suite;

@@ -208,8 +208,8 @@ page 600 "IC Dimensions"
         ICDimIO: XMLport "IC Dimension Import/Export";
         IFile: File;
         IStr: InStream;
-        FileName: Text[1024];
-        StartFileName: Text[1024];
+        FileName: Text;
+        StartFileName: Text;
     begin
         ICSetup.Get();
 

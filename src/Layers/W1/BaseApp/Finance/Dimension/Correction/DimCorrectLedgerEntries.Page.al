@@ -91,12 +91,6 @@ page 2583 "Dim. Correct Ledger Entries"
                     Editable = false;
                     Visible = false;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Editable = false;
-                    Visible = false;
-                }
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;

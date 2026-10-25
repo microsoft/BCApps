@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -409,18 +409,6 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Purch. Prep. Cr. Memo Template Name';
             ToolTip = 'Specifies which general journal template to use for purchase prepayment credit memos.';
             TableRelation = "Gen. Journal Template" where(Type = filter(Purchases));
-        }
-        field(204; "IC Purch. Invoice Templ. Name"; Code[10])
-        {
-            Caption = 'IC Jnl. Templ. Purch. Invoice';
-            ToolTip = 'Specifies the intercompany journal template to use for purchase invoices.';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
-        }
-        field(205; "IC Purch. Cr. Memo Templ. Name"; Code[10])
-        {
-            Caption = 'IC Jnl. Templ. Purch. Cr. Memo';
-            ToolTip = 'Specifies the intercompany journal template to use for posting purchase credit memos.';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
         }
         field(210; "Copy Line Descr. to G/L Entry"; Boolean)
         {

@@ -890,13 +890,6 @@ table 98 "General Ledger Setup"
             ToolTip = 'Specifies whether to display a message when a payment differs from the invoice amount within the specified tolerance, so you can choose how to process it. If you do not enable the message, and a tolerance level is specified, invoices with amounts that are within tolerance will be automatically closed and you cannot choose to leave the remaining amount. Default tolerance levels are specified in the Payment Tolerance % and Max. Payment Tolerance fields, but can also be specified for each customer ledger entry.';
         }
         /// <summary>
-        /// Tracks the last transaction number used for intercompany transactions to ensure unique numbering.
-        /// </summary>
-        field(102; "Last IC Transaction No."; Integer)
-        {
-            Caption = 'Last IC Transaction No.';
-        }
-        /// <summary>
         /// Specifies whether VAT calculation is based on bill-to/sell-to customer address or ship-to address for determining tax jurisdiction.
         /// </summary>
         field(103; "Bill-to/Sell-to VAT Calc."; Enum "G/L Setup VAT Calculation")
