@@ -9,6 +9,7 @@ using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
 using Microsoft.Assembly.Setup;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
