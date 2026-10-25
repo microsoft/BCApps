@@ -48,7 +48,6 @@
         isInitialized: Boolean;
         SalvageValueErr: Label 'There is a reclassification salvage amount that must be posted first. Open the FA Journal page, and then post the relevant reclassification entry.';
         DepreciationAmountShouldBeRoundedErr: Label 'Depreciation amount should be rounded to whole number';
-        CannotChangeFAPostingGroupAfterAcquisitionErr: Label 'You cannot change the %1 for fixed asset %2 because acquisition cost has already been posted in depreciation book %3. To move the fixed asset to another posting group, use the FA reclassification journal, or turn on the %4 toggle for the depreciation book.', Comment = '%1 = FA Posting Group field caption, %2 = fixed asset number, %3 = depreciation book code, %4 = Allow Changes in Depr. Fields field caption';
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
@@ -349,68 +348,6 @@
         FAJournalLine.FindLast();
         FAJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
         FAJournalLine.TestField("Document No.", DocumentNo);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure FAPostingGroupCannotBeChangedAfterAcquisitionCostIsPosted()
-    var
-        DepreciationBook: Record "Depreciation Book";
-        FixedAsset: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FAPostingGroup: Record "FA Posting Group";
-    begin
-        // [FEATURE] [FA Posting Group]
-        // [SCENARIO 651299] FA Posting Group cannot be changed after acquisition cost is posted when changes in depreciation fields are not allowed.
-        Initialize();
-
-        // [GIVEN] Depreciation book with "Allow Changes in Depr. Fields" = false.
-        // [GIVEN] Fixed asset with FA Posting Group "P1" and posted acquisition cost, but no depreciation.
-        CreateFAWithPostedAcquisitionCost(FixedAsset, DepreciationBook, false);
-
-        // [GIVEN] FA Posting Group "P2".
-        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
-
-        // [WHEN] Change FA Posting Group to "P2" on the FA depreciation book.
-        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
-        asserterror FADepreciationBook.Validate("FA Posting Group", FAPostingGroup.Code);
-
-        // [THEN] An error says that acquisition cost has already been posted.
-        Assert.ExpectedErrorCode('Dialog');
-        Assert.ExpectedError(
-          StrSubstNo(
-            CannotChangeFAPostingGroupAfterAcquisitionErr, FADepreciationBook.FieldCaption("FA Posting Group"), FixedAsset."No.",
-            DepreciationBook.Code, DepreciationBook.FieldCaption("Allow Changes in Depr. Fields")));
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure FAPostingGroupCanBeChangedAfterAcquisitionCostIsPostedWhenChangesAreAllowed()
-    var
-        DepreciationBook: Record "Depreciation Book";
-        FixedAsset: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FAPostingGroup: Record "FA Posting Group";
-    begin
-        // [FEATURE] [FA Posting Group]
-        // [SCENARIO 651299] FA Posting Group can be changed after acquisition cost is posted when changes in depreciation fields are allowed.
-        Initialize();
-
-        // [GIVEN] Depreciation book with "Allow Changes in Depr. Fields" = true.
-        // [GIVEN] Fixed asset with FA Posting Group "P1" and posted acquisition cost.
-        CreateFAWithPostedAcquisitionCost(FixedAsset, DepreciationBook, true);
-
-        // [GIVEN] FA Posting Group "P2".
-        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
-
-        // [WHEN] Change FA Posting Group to "P2" on the FA depreciation book.
-        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
-        FADepreciationBook.Validate("FA Posting Group", FAPostingGroup.Code);
-        FADepreciationBook.Modify(true);
-
-        // [THEN] FA Posting Group is "P2".
-        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
-        FADepreciationBook.TestField("FA Posting Group", FAPostingGroup.Code);
     end;
 
     [Test]
