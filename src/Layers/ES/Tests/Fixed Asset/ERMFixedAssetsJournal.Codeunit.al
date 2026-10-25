@@ -288,12 +288,12 @@
         FALedgerEntry.FindLast();
         CancelFALedgEntries.TransferLine(FALedgerEntry, false, 0D);
 
-        // [THEN] The cancellation line has Document No. = "D".
+        // [THEN] The cancellation line is added as the last line of the batch with Document No. = "D".
         GenJournalLine.Reset();
         GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
-        GenJournalLine.SetRange("FA Error Entry No.", FALedgerEntry."Entry No.");
-        GenJournalLine.FindFirst();
+        GenJournalLine.FindLast();
+        GenJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
         GenJournalLine.TestField("Document No.", DocumentNo);
     end;
 
@@ -330,12 +330,12 @@
         FALedgerEntry.FindLast();
         CancelFALedgEntries.TransferLine(FALedgerEntry, false, 0D);
 
-        // [THEN] The cancellation line has Document No. = "D".
+        // [THEN] The cancellation line is added as the last line of the batch with Document No. = "D".
         FAJournalLine.Reset();
         FAJournalLine.SetRange("Journal Template Name", FAJournalBatch."Journal Template Name");
         FAJournalLine.SetRange("Journal Batch Name", FAJournalBatch.Name);
-        FAJournalLine.SetRange("FA Error Entry No.", FALedgerEntry."Entry No.");
-        FAJournalLine.FindFirst();
+        FAJournalLine.FindLast();
+        FAJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
         FAJournalLine.TestField("Document No.", DocumentNo);
     end;
 
