@@ -1043,6 +1043,10 @@ table 21 "Cust. Ledger Entry"
                 DisputeStatus: Record "Dispute Status";
                 MarkedAsOnHoldLbl: label 'X', Locked = true;
             begin
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and ("On Hold" = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            "On Hold" := '';
                 if Rec."Dispute Status" = '' then
                     exit;
                 if DisputeStatus.get(Rec."Dispute Status") then
