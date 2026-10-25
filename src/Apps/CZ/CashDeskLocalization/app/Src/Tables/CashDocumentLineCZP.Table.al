@@ -146,6 +146,7 @@ table 11733 "Cash Document Line CZP"
                 "Account Type" := TempCashDocumentLineCZP."Account Type";
                 "Account No." := TempCashDocumentLineCZP."Account No.";
                 "Gen. Document Type" := TempCashDocumentLineCZP."Gen. Document Type";
+                "Amount Type" := TempCashDocumentLineCZP."Amount Type";
 
                 IsHandled := false;
                 BreakValidation := false;
@@ -1434,8 +1435,6 @@ table 11733 "Cash Document Line CZP"
         OnBeforeApplyEntries(Rec);
 
         CashDocumentHeaderCZP.Get("Cash Desk No.", "Cash Document No.");
-        if "Account Type" = "Account Type"::Customer then
-            CashDocumentHeaderCZP.TestNotEETCashRegister();
         CashDocumentPostCZP.InitGenJnlLine(CashDocumentHeaderCZP, Rec);
         CashDocumentPostCZP.GetGenJnlLine(GenJournalLine);
         BindSubscription(ManualCrossAppHandlerCZP);
