@@ -1078,7 +1078,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         end;
     end;
 
-    local procedure ExchRateAdjmtBufferUpdate(CurrencyCode2: Code[10]; PostingGroup2: Code[20]; AccountNo2: Code[20]; AdjBase2: Decimal; AdjBaseLCY2: Decimal; AdjAmount2: Decimal; GainsAmount2: Decimal; LossesAmount2: Decimal; DimEntryNo2: Integer; PostingDate2: Date; ICCode2: Code[20]; EntryNo2: Integer): Integer
+    local procedure ExchRateAdjmtBufferUpdate(CurrencyCode2: Code[10]; PostingGroup2: Code[20]; AccountNo2: Code[20]; AdjBase2: Decimal; AdjBaseLCY2: Decimal; AdjAmount2: Decimal; GainsAmount2: Decimal; LossesAmount2: Decimal; DimEntryNo2: Integer; PostingDate2: Date; PartnerCode2: Code[20]; EntryNo2: Integer): Integer
     var
         Found: Boolean;
     begin
@@ -1087,7 +1087,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         TempExchRateAdjmtBuffer.SetRange("Posting Group", PostingGroup2);
         TempExchRateAdjmtBuffer.SetRange("Account No.", AccountNo2);
         TempExchRateAdjmtBuffer.SetRange("Dimension Entry No.", DimEntryNo2);
-        TempExchRateAdjmtBuffer.SetRange("IC Partner Code", ICCode2);
+        TempExchRateAdjmtBuffer.SetRange("IC Partner Code", PartnerCode2);
         TempExchRateAdjmtBuffer.SetRange("Posting Date", PostingDate2);
         if ExchRateAdjmtParameters."Adjust Per Entry" then
             TempExchRateAdjmtBuffer.SetRange("Entry No.", EntryNo2);
@@ -1100,7 +1100,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
             TempExchRateAdjmtBuffer."Posting Group" := PostingGroup2;
             TempExchRateAdjmtBuffer."Account No." := AccountNo2;
             TempExchRateAdjmtBuffer."Dimension Entry No." := DimEntryNo2;
-            TempExchRateAdjmtBuffer."IC Partner Code" := ICCode2;
+            TempExchRateAdjmtBuffer."IC Partner Code" := PartnerCode2;
             TempExchRateAdjmtBuffer."Posting Date" := PostingDate2;
             TempExchRateAdjmtBuffer."Adjmt. Base" := AdjBase2;
             TempExchRateAdjmtBuffer."Adjmt. Base (LCY)" := AdjBaseLCY2;

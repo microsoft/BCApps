@@ -1018,7 +1018,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         end;
     end;
 
-    local procedure ExchRateAdjmtBufferUpdate(CurrencyCode2: Code[10]; PostingGroup2: Code[20]; AccountNo2: Code[20]; AdjBase2: Decimal; AdjBaseLCY2: Decimal; AdjAmount2: Decimal; GainsAmount2: Decimal; LossesAmount2: Decimal; DimEntryNo2: Integer; PostingDate2: Date; PatnerCode2: Code[20]; EntryNo2: Integer): Integer
+    local procedure ExchRateAdjmtBufferUpdate(CurrencyCode2: Code[10]; PostingGroup2: Code[20]; AccountNo2: Code[20]; AdjBase2: Decimal; AdjBaseLCY2: Decimal; AdjAmount2: Decimal; GainsAmount2: Decimal; LossesAmount2: Decimal; DimEntryNo2: Integer; PostingDate2: Date; PartnerCode2: Code[20]; EntryNo2: Integer): Integer
     var
         Found: Boolean;
     begin
