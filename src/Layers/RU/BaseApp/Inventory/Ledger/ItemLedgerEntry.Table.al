@@ -1085,6 +1085,18 @@ table 32 "Item Ledger Entry"
             SourceItemNo, ApplicationEntryNo));
     end;
 
+    procedure IsRedStorno() RedStorno: Boolean
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Entry Type");
+        ValueEntry.SetRange("Item Ledger Entry No.", "Entry No.");
+        if ValueEntry.FindFirst() then
+            exit(ValueEntry."Red Storno");
+
+        exit(false);
+    end;
+
     procedure CopyTrackingFromItemJnlLine(ItemJnlLine: Record "Item Journal Line")
     begin
         "Serial No." := ItemJnlLine."Serial No.";
