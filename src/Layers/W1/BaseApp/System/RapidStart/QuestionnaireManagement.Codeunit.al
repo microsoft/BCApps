@@ -568,19 +568,41 @@ codeunit 8610 "Questionnaire Management"
             end;
     end;
 
+    // The file is read as text and then parsed, so the encoding in the XML declaration is ignored, as it was with XML DOM Management.
+    // Files edited outside Business Central are often saved as UTF-8 while still declaring UTF-16.
     local procedure LoadXMLDocumentFromFile(FileName: Text; var LoadedXML: XmlDocument)
     var
-        XMLFile: File;
+        TempBlob: Codeunit "Temp Blob";
         XMLInStream: InStream;
+        XMLText: Text;
+        ByteOrderMark: Char;
     begin
-        FileMgt.IsAllowedPath(FileName, false);
-        XMLFile.Open(FileName);
-        XMLFile.CreateInStream(XMLInStream);
-        XmlDocument.ReadFrom(XMLInStream, LoadedXML);
-        XMLFile.Close();
+        FileMgt.BLOBImportFromServerFile(TempBlob, FileName);
+        TempBlob.CreateInStream(XMLInStream, GetTextEncoding(TempBlob));
+        XMLText := TypeHelper.ReadAsTextWithSeparator(XMLInStream, TypeHelper.LFSeparator());
+        ByteOrderMark := 65279;
+        if XMLText <> '' then
+            if XMLText[1] = ByteOrderMark then
+                XMLText := CopyStr(XMLText, 2);
+        XmlDocument.ReadFrom(XMLText, LoadedXML);
         RemoveWhitespaceTextNodes(LoadedXML.AsXmlNode());
     end;
 
+    local procedure GetTextEncoding(var TempBlob: Codeunit "Temp Blob"): TextEncoding
+    var
+        XMLInStream: InStream;
+        FirstByte: Byte;
+        SecondByte: Byte;
+    begin
+        if TempBlob.Length() >= 2 then begin
+            TempBlob.CreateInStream(XMLInStream);
+            XMLInStream.Read(FirstByte);
+            XMLInStream.Read(SecondByte);
+        end;
+        if (FirstByte = 255) and (SecondByte = 254) then
+            exit(TextEncoding::UTF16);
+        exit(TextEncoding::UTF8);
+    end;
     // XmlDocument.ReadFrom keeps whitespace-only text nodes, which the DotNet XmlDocument dropped when loading.
     local procedure RemoveWhitespaceTextNodes(RootNode: XmlNode)
     var

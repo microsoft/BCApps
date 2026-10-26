@@ -448,6 +448,38 @@ codeunit 136600 "ERM RS Questionnaire"
 
     [Test]
     [Scope('OnPrem')]
+    procedure XMLImport_UTF8FileDeclaringUTF16_Ok()
+    var
+        ConfigQuestionnaire: Record "Config. Questionnaire";
+        QuestionnaireCode: Code[10];
+        XMLText: Text[1024];
+        FilePath: Text;
+        CRLF: Text[2];
+    begin
+        // [SCENARIO] A questionnaire file saved as UTF-8 without a byte order mark is imported even though its XML declaration says UTF-16.
+        Initialize();
+
+        // [GIVEN] A questionnaire XML file written as UTF-8 without a BOM, whose declaration says encoding="UTF-16"
+        LibraryRapidStart.CreateQuestionnaire(ConfigQuestionnaire);
+        QuestionnaireCode := ConfigQuestionnaire.Code;
+        CreateQuestionnaireXML(XMLText, ConfigQuestionnaire);
+        CRLF[1] := 13;
+        CRLF[2] := 10;
+        FilePath := FileMgt.ServerTempFileName('xml');
+        WriteBytesToFile(FilePath, '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + CRLF + XMLText + CRLF);
+        ConfigQuestionnaire.Delete();
+
+        // [WHEN] The file is imported
+        QuestionnaireManagement.ImportQuestionnaireAsXML(FilePath);
+
+        // [THEN] The questionnaire is imported
+        Assert.IsTrue(ConfigQuestionnaire.Get(QuestionnaireCode), SimpleXMLNotImportedError);
+
+        Erase(FilePath);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure XMLImport_QuestionnaireWithQuestion_Ok()
     var
         ConfigQuestionArea: Record "Config. Question Area";
@@ -857,6 +889,22 @@ codeunit 136600 "ERM RS Questionnaire"
           '<Description fieldlength="50">' + ConfigQuestionnaire.Description + '</Description>';
 
         CreateXMLNode(XMLText, 'Questionnaire', XMLNodeText, true);
+    end;
+
+    local procedure WriteBytesToFile(FilePath: Text; Content: Text)
+    var
+        TargetFile: File;
+        FileOutStream: OutStream;
+        ContentByte: Byte;
+        i: Integer;
+    begin
+        TargetFile.Create(FilePath);
+        TargetFile.CreateOutStream(FileOutStream);
+        for i := 1 to StrLen(Content) do begin
+            ContentByte := Content[i];
+            FileOutStream.Write(ContentByte);
+        end;
+        TargetFile.Close();
     end;
 
     local procedure CreateXMLNode(var XMLText: Text[1024]; XMLNodeName: Text[50]; XMLNodeText: Text[1024]; InsertXMLText: Boolean)
