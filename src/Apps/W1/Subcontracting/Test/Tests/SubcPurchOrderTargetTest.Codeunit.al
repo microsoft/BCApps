@@ -1012,6 +1012,7 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         // [THEN] SelectPurchaseOrderHandler selected each enqueued order in the purchase order lookup of its assignment and consumed it.
         LibraryVariableStorage.AssertEmpty();
     end;
+
     local procedure CreateCalculatedSuggestionWithProductionDimension(var RequisitionLine: Record "Requisition Line"; var ProductionOrder: Record "Production Order"; var DimensionValue: Record "Dimension Value")
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
@@ -1164,7 +1165,6 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
         LibraryMfgManagement.Initialize();
-
         if IsProductionInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. PurchOrderTargetTest");
@@ -1294,30 +1294,6 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         RequisitionLine."Prod. Order Line No." := 10000;
         RequisitionLine."Operation No." := '10';
         RequisitionLine.Modify();
-    end;
-
-    local procedure CreateRecurringBatch(var RequisitionWkshName: Record "Requisition Wksh. Name")
-    var
-        ReqWkshTemplate: Record "Req. Wksh. Template";
-    begin
-        LibraryMfgManagement.CreateReqWkshTemplate(ReqWkshTemplate, true);
-        LibraryMfgManagement.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
-    end;
-
-    local procedure CreateRecurringSuggestion(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; VendorNo: Code[20]; ItemNo: Code[20])
-    begin
-        CreateSuggestion(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, VendorNo, ItemNo);
-        RequisitionLine."Order Date" := WorkDate();
-        RequisitionLine."Recurring Method" := RequisitionLine."Recurring Method"::Fixed;
-        Evaluate(RequisitionLine."Recurring Frequency", '<1M>');
-        RequisitionLine.Modify(true);
-    end;
-
-    local procedure RunRecurringCarryOut(RequisitionLine: Record "Requisition Line")
-    begin
-        RequisitionLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
-        RequisitionLine.SetRange("Journal Batch Name", RequisitionLine."Journal Batch Name");
-        LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
     end;
 
     local procedure CreateLineTargetingNewOrder(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; FirstLine: Record "Requisition Line")
