@@ -1058,6 +1058,13 @@ codeunit 7313 "Create Put-away"
             AddToFilterText(BinCodeFilterText, '&', '<>', CurrLocation."Shipment Bin Code");
         if PostedWhseReceiptLine."Bin Code" <> '' then
             AddToFilterText(BinCodeFilterText, '&', '<>', PostedWhseReceiptLine."Bin Code");
+
+        OnAfterGetExcludedPutAwayBinFilter(PostedWhseReceiptLine, CurrLocation, BinCodeFilterText);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetExcludedPutAwayBinFilter(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; CurrLocation: Record Location; var BinCodeFilterText: Text[250]);
+    begin
     end;
 
     [IntegrationEvent(false, false)]
