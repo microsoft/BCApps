@@ -159,7 +159,7 @@ report 14900 "Import Currency Exch. Rate"
         Text009: Label 'You must specify the End Date.';
 #pragma warning restore AA0074
         ExchRatesUrlTxt: Label 'http://www.cbr.ru/scripts/XML_daily.asp?date_req=%1%2', Locked = true;
-        DownloadFailedErr: Label 'The currency exchange rates could not be downloaded. The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, %2 = reason phrase';
+        RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, %2 = reason phrase';
 
     [Scope('OnPrem')]
     procedure LoadXML(DateReq: Date; var ValCursXmlElement: XmlElement; var LoadedDate: Date; MonthlyRates: Boolean)
@@ -189,14 +189,16 @@ report 14900 "Import Currency Exch. Rate"
     var
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
-        XmlText: Text;
+        ResponseInStream: InStream;
     begin
         if not HttpClient.Get(Uri, HttpResponseMessage) then
             Error(GetLastErrorText());
         if not HttpResponseMessage.IsSuccessStatusCode() then
-            Error(DownloadFailedErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
-        HttpResponseMessage.Content().ReadAs(XmlText);
-        XmlDocument.ReadFrom(XmlText, XmlDoc);
+            Error(RemoteServerErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
+        if not HttpResponseMessage.Content().ReadAs(ResponseInStream) then
+            Error(GetLastErrorText());
+        // Read the raw bytes so the encoding declared by the XML (windows-1251) decides the decoding.
+        XmlDocument.ReadFrom(ResponseInStream, XmlDoc);
     end;
 
     [Scope('OnPrem')]
