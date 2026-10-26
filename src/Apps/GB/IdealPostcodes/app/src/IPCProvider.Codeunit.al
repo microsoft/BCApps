@@ -11,7 +11,7 @@ codeunit 9403 "IPC Provider"
 
     var
         MyServiceKeyTok: Label 'IDEAL_POSTCODE_POSTCODE_SERVICE', Locked = true;
-        MyServiceNameLbl: Label 'IdealPostcodes';
+        MyServiceNameLbl: Label 'IdealPostcodes', Locked = true; // product name; also accepted as service key - see IsMyServiceKey
         ServiceConnectionNameLbl: Label 'Postcode Service';
         RetrieveAddressDetailsErr: Label 'Failed to retrieve address details.';
 
@@ -33,7 +33,7 @@ codeunit 9403 "IPC Provider"
         if IsConfigured then
             exit;
 
-        if ServiceKey <> MyServiceKeyTok then
+        if not IsMyServiceKey(ServiceKey) then
             exit;
 
         if not IdealPostcodesConfig.Get() then begin
@@ -65,7 +65,7 @@ codeunit 9403 "IPC Provider"
         IPCConfig: Record "IPC Config";
         IPCConfigPage: Page "IPC Config";
     begin
-        if ServiceKey <> MyServiceKeyTok then
+        if not IsMyServiceKey(ServiceKey) then
             exit;
 
         Successful := IPCConfigPage.RunModal() = ACTION::OK;
@@ -77,11 +77,12 @@ codeunit 9403 "IPC Provider"
     local procedure OnRetrieveAddressList(ServiceKey: Text; TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; var TempAddressListNameValueBuffer: Record "Name/Value Buffer" temporary; var IsSuccessful: Boolean; var ErrorMsg: Text)
     var
         TempIPCAddressLookup: Record "IPC Address Lookup" temporary;
+        IPCAddressCache: Codeunit "IPC Address Cache";
         IPCManagement: Codeunit "IPC Management";
         SearchText, ReasonPhrase : Text;
         LastId, StatusCode : Integer;
     begin
-        if ServiceKey <> MyServiceKeyTok then
+        if not IsMyServiceKey(ServiceKey) then
             exit;
 
         LastId := 0;
@@ -98,6 +99,9 @@ codeunit 9403 "IPC Provider"
 
         if not IPCManagement.SearchAddress(SearchText, TempIPCAddressLookup, StatusCode, ReasonPhrase) then
             exit;
+
+        // The search returns full addresses; keep them so that OnRetrieveAddress does not pay for the selection again.
+        IPCAddressCache.Store(TempIPCAddressLookup);
 
         TempIPCAddressLookup.Reset();
         if TempIPCAddressLookup.FindSet() then
@@ -117,15 +121,21 @@ codeunit 9403 "IPC Provider"
     local procedure OnRetrieveAddress(ServiceKey: Text; TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; TempSelectedAddressNameValueBuffer: Record "Name/Value Buffer" temporary; var TempAutocompleteAddress: Record "Autocomplete Address" temporary; var IsSuccessful: Boolean; var ErrorMsg: Text)
     var
         TempIPCAddressLookup: Record "IPC Address Lookup" temporary;
+        IPCAddressCache: Codeunit "IPC Address Cache";
         IPCManagement: Codeunit "IPC Management";
-        StatusCode: Integer;
         ReasonPhrase: Text;
+        StatusCode: Integer;
     begin
-        if ServiceKey <> MyServiceKeyTok then
+        if not IsMyServiceKey(ServiceKey) then
             exit;
 
-        IPCManagement.GetAddressDetails(TempSelectedAddressNameValueBuffer.Name, TempIPCAddressLookup, StatusCode, ReasonPhrase);
-        IsSuccessful := TempIPCAddressLookup."Display Text" <> '';
+        // The selected entry normally comes from the search OnRetrieveAddressList just ran, which already
+        // returned (and billed) the full address with the "Remove Organisation Name" setting applied.
+        // Retrieve it by ID, a billed lookup, only when it did not come from that search.
+        IsSuccessful := IPCAddressCache.TryGet(TempSelectedAddressNameValueBuffer.Name, TempSelectedAddressNameValueBuffer.Value, TempIPCAddressLookup);
+        if not IsSuccessful and (TempSelectedAddressNameValueBuffer.Name <> '') then
+            IsSuccessful := IPCManagement.ResolveAddress(TempSelectedAddressNameValueBuffer.Name, TempIPCAddressLookup, StatusCode, ReasonPhrase);
+
         if not IsSuccessful then begin
             ErrorMsg := RetrieveAddressDetailsErr;
             exit;
@@ -167,5 +177,12 @@ codeunit 9403 "IPC Provider"
     procedure GetServiceKey(): Text
     begin
         exit(MyServiceKeyTok);
+    end;
+
+    local procedure IsMyServiceKey(ServiceKey: Text): Boolean
+    begin
+        // The Postcode Configuration Page W1 stores the selected row's Name - our display name - as
+        // the service key, while internal callers pass the token from GetServiceKey(). Accept both.
+        exit(ServiceKey in [MyServiceKeyTok, MyServiceNameLbl]);
     end;
 }

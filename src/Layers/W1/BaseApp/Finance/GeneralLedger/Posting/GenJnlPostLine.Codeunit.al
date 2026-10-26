@@ -3842,7 +3842,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterOldCustLedgEntryModify(OldCustLedgEntry, GenJnlLine, TempCustLedgEntry, DtldCVLedgEntryBuf);
 
             IsHandled := false;
-            OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(TempOldCustLedgEntry, IsHandled);
+            OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(TempOldCustLedgEntry, IsHandled, GenJnlLine);
             if not IsHandled then
                 if GLSetup."Unrealized VAT" or
                    (GLSetup."Prepayment Unrealized VAT" and TempOldCustLedgEntry.Prepayment)
@@ -3888,7 +3888,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             UpdateCalcInterest(NewCVLedgEntryBuf);
 
         IsHandled := false;
-        OnApplyCustLedgEntryOnBeforeUnrealizedVAT(NewCVLedgEntryBuf, IsHandled);
+        OnApplyCustLedgEntryOnBeforeUnrealizedVAT(NewCVLedgEntryBuf, IsHandled, GenJnlLine);
         if not IsHandled then
             if GLSetup."Unrealized VAT" or
                (GLSetup."Prepayment Unrealized VAT" and NewCVLedgEntryBuf.Prepayment)
@@ -4389,7 +4389,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2, VATPart, IsHandled);
                 if not IsHandled then
                     VATPart :=
-                    VATEntry2.GetUnrealizedVATPart(
+                      VATEntry2.GetUnrealizedVATPart(
                         Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
                         PaidAmount,
                         CustLedgEntry2."Amount (LCY)",
@@ -4543,7 +4543,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterOldVendLedgEntryModify(OldVendLedgEntry, GenJnlLine, TempVendorLedgerEntry, DtldCVLedgEntryBuf, AppliedAmount, NextTaxEntryNo, NextEntryNo, NextCheckEntryNo, NextTransactionNo);
 
             IsHandled := false;
-            OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(TempOldVendLedgEntry, IsHandled);
+            OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(TempOldVendLedgEntry, IsHandled, GenJnlLine);
             if not IsHandled then
                 if GLSetup."Unrealized VAT" or
                    (GLSetup."Prepayment Unrealized VAT" and TempOldVendLedgEntry.Prepayment)
@@ -5703,6 +5703,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnVendUnrealizedVATOnAfterSetFilterForVATEntry2(VATEntry2);
 
         PaidAmount := -VendLedgEntry2."Amount (LCY)" + VendLedgEntry2."Remaining Amt. (LCY)";
+        OnVendUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine, VendLedgEntry2, SettledAmount, PaidAmount);
         if VATEntry2.FindSet() then
             repeat
                 VATPostingSetup.Get(VATEntry2."VAT Bus. Posting Group", VATEntry2."VAT Prod. Posting Group");
@@ -9065,12 +9066,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeUnrealizedVAT(CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean)
+    local procedure OnApplyCustLedgEntryOnBeforeUnrealizedVAT(CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -9725,7 +9726,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(VendLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(VendLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -10371,6 +10372,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCustUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnVendUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry2: Record "Vendor Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
     begin
     end;
 
