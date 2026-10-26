@@ -940,7 +940,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ExportImportPackages_ExportOneOfTwoPackage_ImpordDoNotSpoiledExistingDataWithDotNet()
+    procedure ExportImportPackages_ExportOneOfTwoPackage_ImportDoNotSpoiledExistingDataWithDotNet()
     var
         ConfigPackage1: Record "Config. Package";
         ConfigPackage2: Record "Config. Package";
@@ -1427,7 +1427,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ExportImportPackages_ExportOneOfTwoPackage_ImpordDoNotSpoiledExistingData()
+    procedure ExportImportPackages_ExportOneOfTwoPackage_ImportDoNotSpoiledExistingData()
     var
         ConfigPackage1: Record "Config. Package";
         ConfigPackage2: Record "Config. Package";

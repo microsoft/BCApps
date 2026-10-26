@@ -537,6 +537,11 @@ codeunit 6224 "XML DOM Management"
         LoadXMLDocumentFromText(File.ReadAllText(FileName), XmlDocument);
     end;
 
+    /// <summary>
+    /// Loads an XML document from a file on the server.
+    /// </summary>
+    /// <param name="FileName">The path of the XML file.</param>
+    /// <param name="OutXmlDocument">The XML document that receives the file content.</param>
     [Scope('OnPrem')]
     procedure LoadXMLDocumentFromFile(FileName: Text; var OutXmlDocument: XmlDocument)
     var

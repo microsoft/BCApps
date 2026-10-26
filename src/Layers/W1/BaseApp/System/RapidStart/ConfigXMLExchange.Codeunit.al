@@ -891,6 +891,13 @@ codeunit 8614 "Config. XML Exchange"
     end;
 #endif
 
+    /// <summary>
+    /// Builds the XML representation of a configuration package, including the package attributes, the selected tables and their records.
+    /// </summary>
+    /// <param name="PackageXML">The XML document that receives the package content.</param>
+    /// <param name="ConfigPackageTable">The package tables to export.</param>
+    /// <param name="ConfigPackage">The configuration package to export.</param>
+    /// <param name="AdvancedMode">Specifies whether localization metadata is added to the exported XML.</param>
     procedure ExportPackageToXMLDocument(var PackageXML: XmlDocument; var ConfigPackageTable: Record "Config. Package Table"; ConfigPackage: Record "Config. Package"; AdvancedMode: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -1047,6 +1054,11 @@ codeunit 8614 "Config. XML Exchange"
     end;
 #endif
 
+    /// <summary>
+    /// Imports a configuration package from an XML file on the server.
+    /// </summary>
+    /// <param name="XMLDataFile">The path of the XML file that contains the package.</param>
+    /// <returns>True if the package was imported; otherwise, false.</returns>
     [Scope('OnPrem')]
     procedure ImportPackageXMLFromFile(XMLDataFile: Text): Boolean
     var
@@ -1057,6 +1069,11 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, ''));
     end;
 
+    /// <summary>
+    /// Imports a configuration package from a stream that contains the package XML.
+    /// </summary>
+    /// <param name="InStream">The stream that contains the package XML.</param>
+    /// <returns>True if the package was imported; otherwise, false.</returns>
     procedure ImportPackageXML(InStream: InStream): Boolean
     var
         PackageXML: XmlDocument;
@@ -1065,6 +1082,12 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, ''));
     end;
 
+    /// <summary>
+    /// Imports a configuration package from a stream into an existing configuration package.
+    /// </summary>
+    /// <param name="InStream">The stream that contains the package XML.</param>
+    /// <param name="PackageCode">The code of the configuration package to import into. When specified, it must match the package code in the XML.</param>
+    /// <returns>True if the package was imported; otherwise, false.</returns>
     procedure ImportPackageXMLWithCode(InStream: InStream; PackageCode: Code[20]): Boolean
     var
         PackageXML: XmlDocument;
@@ -1248,6 +1271,12 @@ codeunit 8614 "Config. XML Exchange"
     end;
 #endif
 
+    /// <summary>
+    /// Imports a configuration package from an XML document.
+    /// </summary>
+    /// <param name="PackageXML">The XML document that contains the package.</param>
+    /// <param name="PackageCode">The code of the configuration package to import into. When blank, the package code is read from the XML.</param>
+    /// <returns>True if the package was imported; otherwise, false.</returns>
     procedure ImportPackageXMLDocument(PackageXML: XmlDocument; PackageCode: Code[20]) Result: Boolean
     var
         ConfigPackage: Record "Config. Package";
@@ -1928,6 +1957,12 @@ codeunit 8614 "Config. XML Exchange"
     end;
 #endif
 
+    /// <summary>
+    /// Gets the value of an attribute on an XML node.
+    /// </summary>
+    /// <param name="AttributeName">The name of the attribute.</param>
+    /// <param name="XMLNode">The XML node that contains the attribute.</param>
+    /// <returns>The attribute value, or an empty string if the attribute does not exist.</returns>
     procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: XmlNode) AttributeValue: Text[1000]
     begin
         AttributeValue := CopyStr(XMLDOMMgt.GetAttributeValue(XMLNode, AttributeName), 1, MaxStrLen(AttributeValue));
@@ -2048,6 +2083,12 @@ codeunit 8614 "Config. XML Exchange"
         exit(CopyStr(GetAttribute(GetElementName(ConfigPackage.FieldName(Code)), DocumentElement), 1, MaxStrLen(ConfigPackage.Code)));
     end;
 #endif
+
+    /// <summary>
+    /// Gets the configuration package code from the root element of a package XML document.
+    /// </summary>
+    /// <param name="PackageXML">The XML document that contains the package.</param>
+    /// <returns>The package code.</returns>
     procedure GetPackageCode(PackageXML: XmlDocument): Code[20]
     var
         ConfigPackage: Record "Config. Package";
