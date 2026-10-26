@@ -92,8 +92,7 @@ codeunit 10675 "SAF-T Export Mgt."
         SAFTExportHeader."Total G/L Entry Debit" := GLEntry."Debit Amount";
         SAFTExportHeader."Total G/L Entry Credit" := GLEntry."Credit Amount";
         SAFTExportHeader."Number of G/L Entries" := 0;
-
-        if SAFTExportHeader.Version = SAFTExportHeader.Version::"1.30" then
+        if SAFTExportHeader.Version in [SAFTExportHeader.Version::"1.30", SAFTExportHeader.Version::"1.40"] then
             SAFTExportHeader."Number of G/L Entries" := GenerateSAFT13File.CountTransactions(SAFTExportHeader)
         else begin
             SAFTGLEntryByTrans.SetRange(Posting_Date, SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
@@ -356,7 +355,6 @@ codeunit 10675 "SAF-T Export Mgt."
             ErrorMessageHandler.ShowErrors();
             exit(false);
         end;
-
         if SAFTExportHeader.Status = SAFTExportHeader.Status::"In Progress" then
             if HandleConfirm(StrSubstNo('%1%2', ExportIsInProgressMsg, CancelExportIsInProgressQst)) then
                 RemoveExportLines(SAFTExportHeader)
@@ -365,7 +363,6 @@ codeunit 10675 "SAF-T Export Mgt."
         if SAFTExportHeader.Status = SAFTExportHeader.Status::Completed then
             if not HandleConfirm(StrSubstNo('%1%2', ExportIsCompletedQst, RestartExportQst)) then
                 exit(false);
-
         if (SAFTExportHeader."Parallel Processing") and (SAFTExportHeader."Earliest Start Date/Time" = 0DT) then begin
             if not HandleConfirm(SetStartDateTimeAsCurrentQst) then
                 exit(false);
@@ -452,7 +449,6 @@ codeunit 10675 "SAF-T Export Mgt."
         SAFTExportLine.SetRange(ID, SAFTExportHeader.ID);
         if not SAFTExportLine.FindSet() then
             exit;
-
         repeat
             RemoveExportLine(SAFTExportLine);
         until SAFTExportLine.Next() = 0;
@@ -496,7 +492,6 @@ codeunit 10675 "SAF-T Export Mgt."
                 exit;
 
             ClearExportFiles(SAFTExportHeader);
-
             if AllowedToExportIntoFolder() then begin
                 if not "Disable Zip File Generation" then
                     GenerateZipFileFromSavedFiles(SAFTExportHeader);
@@ -857,6 +852,8 @@ codeunit 10675 "SAF-T Export Mgt."
                 exit(Codeunit::"Generate SAF-T File");
             SAFTExportHeader.Version::"1.30":
                 exit(Codeunit::"Generate SAF-T 1.3 File");
+            SAFTExportHeader.Version::"1.40":
+                exit(Codeunit::"Generate SAF-T 1.4 File");
             else
                 OnGetContentCodeunitOnElse(CodeunitId, SAFTExportHeader);
         end;
