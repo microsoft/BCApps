@@ -20,7 +20,6 @@ codeunit 66 "Purch - Calc Disc. By Type"
         PurchLine: Record "Purchase Line";
     begin
         PurchLine.Copy(Rec);
-
         if PurchHeader.Get(Rec."Document Type", Rec."Document No.") then begin
             ApplyDefaultInvoiceDiscount(PurchHeader."Invoice Discount Value", PurchHeader);
             // on new order might be no line
@@ -68,7 +67,6 @@ codeunit 66 "Purch - Calc Disc. By Type"
         PurchLine.CalcVATAmountLines(0, PurchHeader, PurchLine, TempVATAmountLine);
 
         InvDiscBaseAmount := TempVATAmountLine.GetTotalInvDiscBaseAmount(false, PurchHeader."Currency Code");
-
         if (InvDiscBaseAmount = 0) and (InvoiceDiscountAmount > 0) then
             Error(InvDiscBaseAmountIsZeroErr);
 
@@ -110,7 +108,6 @@ codeunit 66 "Purch - Calc Disc. By Type"
         PurchHeader.CalcFields("Invoice Discount Amount");
         if PurchHeader."Invoice Discount Amount" = 0 then
             exit(0);
-
         case PurchHeader."Invoice Discount Calculation" of
             PurchHeader."Invoice Discount Calculation"::"%":
                 begin
@@ -126,10 +123,8 @@ codeunit 66 "Purch - Calc Disc. By Type"
                     InvoiceDiscountValue := PurchHeader."Invoice Discount Amount";
 
                     CalcAmountWithDiscountAllowed(PurchHeader, AmountIncludingVATDiscountAllowed, AmountDiscountAllowed);
-
                     if AmountDiscountAllowed + InvoiceDiscountValue = 0 then
                         exit(0);
-
                     if PurchHeader."Prices Including VAT" then
                         exit(Round(InvoiceDiscountValue / (AmountIncludingVATDiscountAllowed + InvoiceDiscountValue) * 100, 0.01));
 
@@ -154,16 +149,15 @@ codeunit 66 "Purch - Calc Disc. By Type"
         PurchHeader.CalcFields("Recalculate Invoice Disc.");
         if not PurchHeader."Recalculate Invoice Disc." then
             exit(false);
-
         if (PurchHeader."Invoice Discount Calculation" = PurchHeader."Invoice Discount Calculation"::Amount) and
            (PurchHeader."Invoice Discount Value" = 0)
         then
             exit(false);
-
+        if not ApplicationAreaMgmtFacade.IsFoundationEnabled() then
+            exit(false);
         PurchPayablesSetup.Get();
-        if (not ApplicationAreaMgmtFacade.IsFoundationEnabled() and
-            (not PurchPayablesSetup."Calc. Inv. Discount" and
-             (PurchHeader."Invoice Discount Calculation" = PurchHeader."Invoice Discount Calculation"::None)))
+        if not PurchPayablesSetup."Calc. Inv. Discount" and
+           (PurchHeader."Invoice Discount Calculation" = PurchHeader."Invoice Discount Calculation"::None)
         then
             exit(false);
 
@@ -241,4 +235,3 @@ codeunit 66 "Purch - Calc Disc. By Type"
     begin
     end;
 }
-
