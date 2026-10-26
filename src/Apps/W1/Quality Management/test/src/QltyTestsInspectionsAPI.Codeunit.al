@@ -16,6 +16,7 @@ using System.TestLibraries.Utilities;
 codeunit 139972 "Qlty. Tests - Inspections API"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
