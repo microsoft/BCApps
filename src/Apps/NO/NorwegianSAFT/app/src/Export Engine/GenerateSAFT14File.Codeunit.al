@@ -546,6 +546,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         if not HasExportableDimensionValues() then
             exit;
 
+        LastDimensionCode := '';
         DimensionValue.FindSet();
         if GuiAllowed() then
             Window.Update(1, ExportingDimensionsTxt);
@@ -792,7 +793,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         SAFTXMLHelper.AppendXMLNode('PeriodYear', format(Date2DMY(GLEntry."Posting Date", 3)));
         SAFTXMLHelper.AppendXMLNode('TransactionDate', FormatDate(GLEntry."Document Date"));
         SAFTXMLHelper.AppendXMLNode('SourceID', GetSAFTMiddle1Text(GLEntry."User ID"));
-        if GLEntry."Document Type" = 0 then
+        if GLEntry."Document Type" = GLEntry."Document Type"::" " then
             TransactionTypeValue := BlankTxt
         else
             TransactionTypeValue := Format(GLEntry."Document Type");
