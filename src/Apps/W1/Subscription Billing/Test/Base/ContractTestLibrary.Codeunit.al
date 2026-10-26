@@ -11,10 +11,12 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -1183,6 +1185,21 @@ codeunit 139685 "Contract Test Library"
         VendSubContractDeferral.Insert(false);
     end;
 
+    procedure ResetPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        PurchasesPayablesSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2|%3|%4',
+            SalesReceivablesSetup."Posted Invoice Nos.", SalesReceivablesSetup."Posted Credit Memo Nos.",
+            PurchasesPayablesSetup."Posted Invoice Nos.", PurchasesPayablesSetup."Posted Credit Memo Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
+    end;
+
     procedure SetAutomaticDimensions(NewValue: Boolean)
     var
         ServiceContractSetup: Record "Subscription Contract Setup";
@@ -1220,6 +1237,24 @@ codeunit 139685 "Contract Test Library"
             end;
             GeneralPostingSetup.Modify(false);
         end;
+    end;
+
+    procedure SetReasonCode(var PurchaseHeader: Record "Purchase Header")
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        LibraryERM.CreateReasonCode(ReasonCode);
+        PurchaseHeader.Validate("Reason Code", ReasonCode.Code);
+        PurchaseHeader.Modify(false);
+    end;
+
+    procedure SetReasonCode(var SalesHeader: Record "Sales Header")
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        LibraryERM.CreateReasonCode(ReasonCode);
+        SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesHeader.Modify(false);
     end;
 
     procedure SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(var NewItem: Record Item; ItemServiceCommitmentType: Enum "Item Service Commitment Type"; ServiceCommitmentPackageCode: Code[20])
