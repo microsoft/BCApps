@@ -189,6 +189,11 @@ page 31166 "Posted Cash Document Subf. CZP"
                     ToolTip = 'Specifies the unit price of the project line.';
                     Visible = false;
                 }
+                field("Amount Type"; Rec."Amount Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
             group(Control2)
             {
