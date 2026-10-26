@@ -692,8 +692,8 @@ codeunit 144050 "UT TAB EVAT"
     [Test]
     procedure RunCheckCompanyInfoOnNonNLVatInNonNLCompany()
     var
-        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         CountryRegion: Record "Country/Region";
+        VATRegNoFormatNL: Codeunit "VAT Reg. No. Format NL";
         VATRegNo: Text[20];
     begin
         // [SCENARIO 425345] Run CheckCompanyInfo function of table VAT Registration No. Format on VAT number with first chars "AB".
