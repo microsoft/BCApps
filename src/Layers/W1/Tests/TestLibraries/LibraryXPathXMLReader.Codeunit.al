@@ -29,6 +29,7 @@ codeunit 131337 "Library - XPath XML Reader"
         DeclarationStandaloneErr: Label 'XMLDeclaration: Wrong Standalone property.';
         DeclarationVersionErr: Label 'XMLDeclaration: Wrong Version property.';
         UnexpectedElementValueErr: Label 'Unexpected value in xml file for element <%1>', Comment = '%1 - element name';
+        DtdProhibitedErr: Label 'For security reasons DTD is prohibited in this XML document.';
 
     procedure Initialize(FullFilePath: Text; NameSpace: Text)
     begin
@@ -68,12 +69,14 @@ codeunit 131337 "Library - XPath XML Reader"
     local procedure LoadXMLDocumentFromFile(FullFilePath: Text)
     var
         FileManagement: Codeunit "File Management";
+        TypeHelper: Codeunit "Type Helper";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
     begin
+        // Read as UTF-8 text first, so the encoding in the XML declaration is ignored
         FileManagement.BLOBImportFromServerFile(TempBlob, FullFilePath);
-        TempBlob.CreateInStream(InStream);
-        LoadXMLDocumentFromInStream(InStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        LoadXMLDocumentFromText(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
     end;
 
     local procedure LoadXMLDocumentFromInStream(var InStream: InStream)
@@ -92,7 +95,40 @@ codeunit 131337 "Library - XPath XML Reader"
         ByteOrderMark := 65279;
         if Content[1] = ByteOrderMark then
             Content := CopyStr(Content, 2);
+        CheckNoDocumentTypeDeclaration(Content);
         XMLDocOut.LoadXml(Content);
+    end;
+
+    local procedure CheckNoDocumentTypeDeclaration(Content: Text)
+    var
+        Position: Integer;
+        EndPosition: Integer;
+    begin
+        // DTD processing is prohibited, as with the default XmlReaderSettings. A DOCTYPE can only appear in the prolog.
+        Position := 1;
+        while Position <= StrLen(Content) do
+            case true of
+                Content[Position] in [9, 10, 13, 32]:
+                    Position += 1;
+                CopyStr(Content, Position, 2) = '<?':
+                    begin
+                        EndPosition := StrPos(CopyStr(Content, Position), '?>');
+                        if EndPosition = 0 then
+                            exit;
+                        Position += EndPosition + 1;
+                    end;
+                CopyStr(Content, Position, 4) = '<!--':
+                    begin
+                        EndPosition := StrPos(CopyStr(Content, Position), '-->');
+                        if EndPosition = 0 then
+                            exit;
+                        Position += EndPosition + 2;
+                    end;
+                CopyStr(Content, Position, 9) = '<!DOCTYPE':
+                    Error(DtdProhibitedErr);
+                else
+                    exit;
+            end;
     end;
 
     #region NativeXmlTypes

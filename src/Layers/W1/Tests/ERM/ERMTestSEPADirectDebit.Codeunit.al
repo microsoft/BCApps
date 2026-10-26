@@ -955,7 +955,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         DirectDebitCollectionEntry.FindLast();
         foreach XMLNode in CstmrDrctDbtInitnNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, DirectDebitCollection, DirectDebitCollectionEntry);
                 'PmtInf':
@@ -965,7 +965,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
                       DirectDebitCollectionEntry."Transfer Date",
                       GetCreditorNo(DirectDebitCollection."To Bank Account No."), UstrdText);
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -1017,9 +1017,9 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         // [THEN] Total number of payments exported as 20, number of payments in each group exported as 5
         // [THEN] Ustrd tag is exported with Description and Document No. of each Direct Debit Collection Entry (TFS 257781)
         CstmrDrctDbtInitnNode := GetFirstChildNode(XMLDocNode);
-        Assert.AreEqual('CstmrDrctDbtInitn', CstmrDrctDbtInitnNode.AsXmlElement().Name, 'CstmrDrctDbtInitn');
+        Assert.AreEqual('CstmrDrctDbtInitn', CstmrDrctDbtInitnNode.AsXmlElement().LocalName, 'CstmrDrctDbtInitn');
         foreach XMLNode in CstmrDrctDbtInitnNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, DirectDebitCollection, DirectDebitCollectionEntry);
                 'PmtInf':
@@ -1032,7 +1032,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
                         TransferDate += 1;
                     end;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
         Assert.AreEqual(ExpectedNoOfGroups, NoOfPmtInf, 'Wrong number of PmtInf nodes.');
     end;
@@ -1939,7 +1939,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         dt: DateTime;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'MsgId':
                     Assert.AreEqual(DirectDebitCollection."Message ID", XMLNode.AsXmlElement().InnerXml, 'Wrong MsgID.');
                 'CreDtTm':
@@ -1962,7 +1962,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
                 'InitgPty':
                     ValidatePartyElement(XMLNode);
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -1973,13 +1973,13 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
     begin
         CompanyInfo.Get();
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'Nm':
                     Assert.AreEqual(StringConversionMgt.WindowsToASCII(CompanyInfo.Name), XMLNode.AsXmlElement().InnerXml, '');
                 'Id':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -1989,20 +1989,20 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         XMLNode: XmlNode;
     begin
         XMLNode := GetFirstChildNode(XMLParentNode);
-        Assert.AreEqual('Id', XMLNode.AsXmlElement().Name, '<SchmeId><Id>');
+        Assert.AreEqual('Id', XMLNode.AsXmlElement().LocalName, '<SchmeId><Id>');
         XMLNode := GetFirstChildNode(XMLNode);
-        Assert.AreEqual('PrvtId', XMLNode.AsXmlElement().Name, '<SchmeId><Id><PrvtId>');
+        Assert.AreEqual('PrvtId', XMLNode.AsXmlElement().LocalName, '<SchmeId><Id><PrvtId>');
         XMLNode := GetFirstChildNode(XMLNode);
-        Assert.AreEqual('Othr', XMLNode.AsXmlElement().Name, '<SchmeId><Id><PrvtId><Othr>');
+        Assert.AreEqual('Othr', XMLNode.AsXmlElement().LocalName, '<SchmeId><Id><PrvtId><Othr>');
         XMLNode := GetFirstChildNode(XMLNode);
-        Assert.AreEqual('Id', XMLNode.AsXmlElement().Name, '<SchmeId><Id><PrvtId><Othr><Id>');
+        Assert.AreEqual('Id', XMLNode.AsXmlElement().LocalName, '<SchmeId><Id><PrvtId><Othr><Id>');
         Assert.AreEqual(CreditorNo, XMLNode.AsXmlElement().InnerXml, '<SchmeId><Id><PrvtId><Othr><Id>');
 
         XMLNode.GetParent(ParentElement);
         XMLNode := GetLastChildNode(ParentElement.AsXmlNode());
-        Assert.AreEqual('SchmeNm', XMLNode.AsXmlElement().Name, '<SchmeId><Id><PrvtId><Othr><SchmeNm>');
+        Assert.AreEqual('SchmeNm', XMLNode.AsXmlElement().LocalName, '<SchmeId><Id><PrvtId><Othr><SchmeNm>');
         XMLNode := GetFirstChildNode(XMLNode);
-        Assert.AreEqual('Prtry', XMLNode.AsXmlElement().Name, '<SchmeId><Id><PrvtId><Othr><SchmeNm><Prtry>');
+        Assert.AreEqual('Prtry', XMLNode.AsXmlElement().LocalName, '<SchmeId><Id><PrvtId><Othr><SchmeNm><Prtry>');
         Assert.AreEqual('SEPA', XMLNode.AsXmlElement().InnerXml, '<SchmeId><Id><PrvtId><Othr><SchmeNm><Prtry>');
     end;
 
@@ -2015,7 +2015,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         NbOfTxs: Integer;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'PmtTpInf':
                     ValidatePmtTpInf(XMLNode);
                 'PmtInfId', 'BtchBookg', 'CdtrAcct', 'CdtrAgt':
@@ -2050,7 +2050,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
                         ValidateDrctDbtTxInf(XMLNode, UstrdText[NoOfPmt]);
                     end;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
         Assert.AreEqual(ExpectedNoOfDrctDbtTxInf, NoOfDrctDbtTxInf, 'Wrong number of DrctDbtTxInf nodes.');
     end;
@@ -2060,12 +2060,12 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         XMLNode: XmlNode;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do begin
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'RmtInf':
                     ValidateRmtInf(XMLNode, UstrdText);
             end;
-            Assert.AreNotEqual('ChrgBr', XMLNode.AsXmlElement().Name, DrctDbtChrgBrErr);
-            Assert.AreNotEqual('PmtTpInf', XMLNode.AsXmlElement().Name, DrctDbtPmtTpInfErr);
+            Assert.AreNotEqual('ChrgBr', XMLNode.AsXmlElement().LocalName, DrctDbtChrgBrErr);
+            Assert.AreNotEqual('PmtTpInf', XMLNode.AsXmlElement().LocalName, DrctDbtPmtTpInfErr);
         end;
     end;
 
@@ -2074,7 +2074,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         XMLNode: XmlNode;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            Assert.AreNotEqual('InstrPrty', XMLNode.AsXmlElement().Name, PmtTpInfInstrPrtyErr);
+            Assert.AreNotEqual('InstrPrty', XMLNode.AsXmlElement().LocalName, PmtTpInfInstrPrtyErr);
     end;
 
     local procedure ValidateRmtInf(XMLParentNode: XmlNode; UstrdText: Text)
@@ -2082,7 +2082,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         XMLNode: XmlNode;
     begin
         XMLNode := GetFirstChildNode(XMLParentNode);
-        Assert.AreEqual('Ustrd', XMLNode.AsXmlElement().Name, '');
+        Assert.AreEqual('Ustrd', XMLNode.AsXmlElement().LocalName, '');
         Assert.AreEqual(UstrdText, XMLNode.AsXmlElement().InnerXml, '');
     end;
 
@@ -2091,7 +2091,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         XMLNode: XmlNode;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'Nm':
                     Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
                 'PstlAdr':
@@ -2099,7 +2099,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
                 'Id':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -2108,11 +2108,11 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
         XMLNode: XmlNode;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'StrtNm', 'PstCd', 'TwnNm', 'Ctry':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 

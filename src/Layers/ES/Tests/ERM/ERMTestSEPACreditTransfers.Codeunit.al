@@ -756,9 +756,9 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
             Error(XMLNoChildrenErr);
 
         CstmrCdtTrfInitnNode := GetFirstChildNode(XMLDocElement.AsXmlNode());
-        Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().Name, 'CstmrCdtTrfInitn');
+        Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().LocalName, 'CstmrCdtTrfInitn');
         foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, GenJnlLine);
                 'PmtInf':
@@ -768,7 +768,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                         TransferDate += 1;
                     end;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
 
         Assert.AreEqual(ExpectedNoOfGroups, NoOfPmtInf, 'Wrong number of PmtInf nodes.');
@@ -1836,9 +1836,9 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
 
         // [THEN] Verify Grouping of payments in XML document.
         CstmrCdtTrfInitnNode := GetFirstChildNode(XMLDocElement.AsXmlNode());
-        Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().Name, 'CstmrCdtTrfInitn');
+        Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().LocalName, 'CstmrCdtTrfInitn');
         foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, GenJnlLine);
                 'PmtInf':
@@ -1848,7 +1848,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                         TransferDate += 1;
                     end;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
 
         // [THEN] Verify number of 'PmtInf' nodes are as expected.
@@ -2285,7 +2285,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         dt: DateTime;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'MsgId':
                     ;
                 'CreDtTm':
@@ -2305,7 +2305,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                 'InitgPty':
                     ValidatePartyElement(XMLNode);
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -2314,11 +2314,11 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         XMLNode: XmlNode;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'StrtNm', 'PstCd', 'TwnNm', 'Ctry':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -2327,7 +2327,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         XMLNode: XmlNode;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'Nm':
                     Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
                 'PstlAdr':
@@ -2335,7 +2335,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                 'Id':
                     ;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
     end;
 
@@ -2349,7 +2349,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         NbOfTxs: Integer;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'PmtInfId', 'BtchBookg', 'PmtTpInf', 'Dbtr', 'DbtrAcct', 'DbtrAgt', 'CdtrAgt', 'FinInstnId', 'BICFI', 'AnyBIC':
                     ;
                 'PmtMtd':
@@ -2375,7 +2375,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                 'CdtTrfTxInf':
                     NoOfCdtTrfTxInf += 1;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NoOfCdtTrfTxInf, 'Wrong number of DrctDbtTxInf nodes.');
     end;
@@ -2451,7 +2451,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         NbOfTxs: Integer;
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
-            case XMLNode.AsXmlElement().Name of
+            case XMLNode.AsXmlElement().LocalName of
                 'PmtInfId', 'BtchBookg', 'PmtTpInf', 'Dbtr', 'DbtrAcct', 'DbtrAgt', 'CdtrAgt', 'FinInstnId', 'BICFI', 'AnyBIC':
                     ;
                 'PmtMtd':
@@ -2477,7 +2477,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
                 'CdtTrfTxInf':
                     NoOfCdtTrfTxInf += 1;
                 else
-                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().LocalName);
             end;
         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NoOfCdtTrfTxInf, 'Wrong number of DrctDbtTxInf nodes.');
     end;
