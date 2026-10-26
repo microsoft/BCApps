@@ -20,6 +20,9 @@ pageextension 11433 "Company Information NL" extends "Company Information"
         {
             Visible = true;
         }
+        modify("Giro No.")
+        {
+            MaskType = Concealed;
+        }
     }
 }
-

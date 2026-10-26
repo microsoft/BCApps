@@ -10,10 +10,6 @@ tableextension 11415 "Company Information NL" extends "Company Information"
 {
     fields
     {
-        modify("Giro No.")
-        {
-            MaskType = Concealed;
-        }
         field(11400; "Fiscal Entity No."; Text[20])
         {
             Caption = 'Fiscal Entity No.';
@@ -39,4 +35,3 @@ tableextension 11415 "Company Information NL" extends "Company Information"
             Result := DelStr(Result, 1, 2);
     end;
 }
-
