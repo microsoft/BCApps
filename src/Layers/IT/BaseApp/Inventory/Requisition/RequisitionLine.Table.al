@@ -1594,11 +1594,14 @@ table 246 "Requisition Line"
         PurchasingErr: Label 'the purchasing code does not match the existing lines';
         SpecialOrderErr: Label 'the special-order location does not match';
         DropShipmentErr: Label 'the drop-shipment address does not match the sales order';
+        RecurringTemplateErr: Label 'the worksheet template is recurring';
     begin
         if not HasPurchaseOrderTarget() then
             exit;
 
         case true of
+            IsRecurringWorksheetTemplate():
+                Failure := RecurringTemplateErr;
             not PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, "Ref. Order No."):
                 Failure := MissingErr;
             PurchaseHeader.Status <> PurchaseHeader.Status::Open:
@@ -1646,6 +1649,16 @@ table 246 "Requisition Line"
 
         if Failure <> '' then
             Error(TargetErr, "Line No.", "Worksheet Template Name", "Journal Batch Name", "Ref. Order No.", Failure);
+    end;
+
+    local procedure IsRecurringWorksheetTemplate(): Boolean
+    var
+        RecurringReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        RecurringReqWkshTemplate.SetLoadFields(Recurring);
+        if not RecurringReqWkshTemplate.Get("Worksheet Template Name") then
+            exit(false);
+        exit(RecurringReqWkshTemplate.Recurring);
     end;
 
     var

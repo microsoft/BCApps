@@ -1013,6 +1013,96 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('SelectPurchaseOrderHandler')]
+    procedure AssignOnRecurringTemplateIsRejected()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        // [SCENARIO] A purchase order can't be assigned to a suggestion on a recurring worksheet template.
+        Initialize();
+
+        // [GIVEN] An assignable suggestion on a recurring template and a compatible open order.
+        CreateRecurringBatch(RequisitionWkshName);
+        CreateAssignableSuggestionInBatch(RequisitionLine, PurchaseHeader, RequisitionWkshName);
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] The order is assigned; the handler selects it in the lookup.
+        LibraryVariableStorage.Enqueue(PurchaseHeader."No.");
+        asserterror RequisitionLine.AssignPurchaseOrderTarget();
+
+        // [THEN] The assignment is rejected with an error naming the worksheet line, the order and the recurring template.
+        Assert.ExpectedError(StrSubstNo(TargetErr, RequisitionLine."Line No.", RequisitionLine."Worksheet Template Name",
+            RequisitionLine."Journal Batch Name", PurchaseHeader."No.", 'the worksheet template is recurring'));
+        RequisitionLine.SetLoadFields("Ref. Order No.");
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        Assert.AreEqual('', RequisitionLine."Ref. Order No.", 'The rejected order must not be stored on the line.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure TargetOnRecurringTemplateBlocksCarryOutBeforeChangingOrders()
+    var
+        Item: Record Item;
+        NewOrderVendor: Record Vendor;
+        TargetVendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        TargetHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        TargetedLine: Record "Requisition Line";
+        UntargetedLine: Record "Requisition Line";
+        TargetHeaderModifiedAt: DateTime;
+    begin
+        // [SCENARIO] An accepted line on a recurring template whose target is set by code stops Carry Out in its pre-run check.
+        Initialize();
+
+        // [GIVEN] A recurring batch whose first accepted line, of its own vendor, would create a new order.
+        CreateRecurringBatch(RequisitionWkshName);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(NewOrderVendor);
+        CreateRecurringSuggestion(UntargetedLine, RequisitionWkshName, NewOrderVendor."No.", Item."No.");
+
+        // [GIVEN] A following accepted line whose target is set by code.
+        LibraryPurchase.CreateVendor(TargetVendor);
+        CreateOpenOrder(TargetHeader, TargetVendor."No.");
+        TargetHeader.SetLoadFields(SystemModifiedAt);
+        TargetHeader.Get(TargetHeader."Document Type", TargetHeader."No.");
+        TargetHeaderModifiedAt := TargetHeader.SystemModifiedAt;
+        CreateRecurringSuggestion(TargetedLine, RequisitionWkshName, TargetVendor."No.", Item."No.");
+        TargetedLine."Ref. Order No." := TargetHeader."No.";
+        TargetedLine.Modify(true);
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] Carry Out runs for the recurring batch.
+        asserterror RunRecurringCarryOut(UntargetedLine);
+
+        // [THEN] The pre-run check names the targeted line, the order and the recurring template.
+        Assert.ExpectedError(StrSubstNo(TargetErr, TargetedLine."Line No.", TargetedLine."Worksheet Template Name",
+            TargetedLine."Journal Batch Name", TargetHeader."No.", 'the worksheet template is recurring'));
+
+        // [THEN] No purchase order or line is created or changed.
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", NewOrderVendor."No.");
+        Assert.IsTrue(PurchaseHeader.IsEmpty(), 'The untargeted line must not create an order.');
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", TargetHeader."No.");
+        Assert.IsTrue(PurchaseLine.IsEmpty(), 'The target must not receive a line.');
+        TargetHeader.Get(TargetHeader."Document Type", TargetHeader."No.");
+        Assert.AreEqual(TargetHeaderModifiedAt, TargetHeader.SystemModifiedAt, 'The target header must not change.');
+
+        // [THEN] Both worksheet lines and the target remain.
+        Assert.IsTrue(IsRequisitionLinePresent(UntargetedLine), 'The untargeted suggestion must remain.');
+        TargetedLine.SetLoadFields("Ref. Order No.");
+        Assert.IsTrue(TargetedLine.Get(TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name", TargetedLine."Line No."),
+            'The targeted suggestion must remain.');
+        Assert.AreEqual(TargetHeader."No.", TargetedLine."Ref. Order No.", 'The target assignment must remain visible.');
+    end;
+
     local procedure CreateCalculatedSuggestionWithProductionDimension(var RequisitionLine: Record "Requisition Line"; var ProductionOrder: Record "Production Order"; var DimensionValue: Record "Dimension Value")
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
@@ -1294,6 +1384,30 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         RequisitionLine."Prod. Order Line No." := 10000;
         RequisitionLine."Operation No." := '10';
         RequisitionLine.Modify();
+    end;
+
+    local procedure CreateRecurringBatch(var RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        LibraryMfgManagement.CreateReqWkshTemplate(ReqWkshTemplate, true);
+        LibraryMfgManagement.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+    end;
+
+    local procedure CreateRecurringSuggestion(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; VendorNo: Code[20]; ItemNo: Code[20])
+    begin
+        CreateSuggestion(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, VendorNo, ItemNo);
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine."Recurring Method" := RequisitionLine."Recurring Method"::Fixed;
+        Evaluate(RequisitionLine."Recurring Frequency", '<1M>');
+        RequisitionLine.Modify(true);
+    end;
+
+    local procedure RunRecurringCarryOut(RequisitionLine: Record "Requisition Line")
+    begin
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionLine."Journal Batch Name");
+        LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
     end;
 
     local procedure CreateLineTargetingNewOrder(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; FirstLine: Record "Requisition Line")
