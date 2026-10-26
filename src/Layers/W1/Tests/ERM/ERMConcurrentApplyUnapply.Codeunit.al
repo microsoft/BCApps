@@ -973,16 +973,21 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     local procedure VerifyUnappliedDtldEmplLedgEntry(DocumentNo: Code[20]; EmployeeNo: Code[20])
     var
         DetailedEmployeeLedgEntry: Record "Detailed Employee Ledger Entry";
+        HasDocumentEntries: Boolean;
     begin
         DetailedEmployeeLedgEntry.SetRange("Entry Type", DetailedEmployeeLedgEntry."Entry Type"::Application);
-        DetailedEmployeeLedgEntry.SetRange("Document No.", DocumentNo);
         DetailedEmployeeLedgEntry.SetRange("Employee No.", EmployeeNo);
+        HasDocumentEntries := false;
         DetailedEmployeeLedgEntry.FindSet();
         repeat
-            Assert.IsTrue(
-                DetailedEmployeeLedgEntry.Unapplied,
-                StrSubstNo(UnappliedErr, DetailedEmployeeLedgEntry.TableCaption(), DetailedEmployeeLedgEntry.Unapplied));
+            if DetailedEmployeeLedgEntry."Document No." = DocumentNo then begin
+                HasDocumentEntries := true;
+                Assert.IsTrue(
+                    DetailedEmployeeLedgEntry.Unapplied,
+                    StrSubstNo(UnappliedErr, DetailedEmployeeLedgEntry.TableCaption(), DetailedEmployeeLedgEntry.Unapplied));
+            end;
         until DetailedEmployeeLedgEntry.Next() = 0;
+        Assert.IsTrue(HasDocumentEntries, 'Application entries must exist for the employee and document.');
     end;
 
     local procedure VerifyRemainingAmountEmployee(DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20])
@@ -1000,14 +1005,19 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     var
         DetailedEmployeeLedgEntry: Record "Detailed Employee Ledger Entry";
         TotalAmount: Decimal;
+        HasDocumentEntries: Boolean;
     begin
         DetailedEmployeeLedgEntry.SetRange("Entry Type", DetailedEmployeeLedgEntry."Entry Type"::Application);
-        DetailedEmployeeLedgEntry.SetRange("Document No.", DocumentNo);
         DetailedEmployeeLedgEntry.SetRange("Employee No.", EmployeeNo);
+        HasDocumentEntries := false;
         DetailedEmployeeLedgEntry.FindSet();
         repeat
-            TotalAmount += DetailedEmployeeLedgEntry.Amount;
+            if DetailedEmployeeLedgEntry."Document No." = DocumentNo then begin
+                HasDocumentEntries := true;
+                TotalAmount += DetailedEmployeeLedgEntry.Amount;
+            end;
         until DetailedEmployeeLedgEntry.Next() = 0;
+        Assert.IsTrue(HasDocumentEntries, 'Application entries must exist for the employee and document.');
         Assert.AreEqual(
             0, TotalAmount,
             StrSubstNo(TotalAmountErr, 0, DetailedEmployeeLedgEntry.TableCaption(),

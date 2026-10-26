@@ -334,7 +334,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         PreviousEntryNo: Integer;
         ExpectedResultCount: Integer;
         TimeoutAt: DateTime;
-        IsFirstEntry: Boolean;
     begin
         // [FEATURE] [G/L Register] [Sequence] [Concurrent Posting]
         // [SCENARIO] Overlapping G/L Register entry number allocations from separate sessions are unique and gap-free.
@@ -369,15 +368,12 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         ConcurrentSeqTestBuffer.SetFilter("Allocation Index", '>0');
         Assert.AreEqual(ExpectedResultCount, ConcurrentSeqTestBuffer.Count(), 'Both sessions must persist every allocated G/L Register number');
         ConcurrentSeqTestBuffer.SetCurrentKey("Run ID", "Entry No.");
-        IsFirstEntry := true;
         ConcurrentSeqTestBuffer.FindSet();
-        repeat
-            if IsFirstEntry then
-                IsFirstEntry := false
-            else
-                Assert.AreEqual(PreviousEntryNo + 1, ConcurrentSeqTestBuffer."Entry No.", 'Concurrent G/L Register numbers must be unique and gap-free');
+        PreviousEntryNo := ConcurrentSeqTestBuffer."Entry No.";
+        while ConcurrentSeqTestBuffer.Next() <> 0 do begin
+            Assert.AreEqual(PreviousEntryNo + 1, ConcurrentSeqTestBuffer."Entry No.", 'Concurrent G/L Register numbers must be unique and gap-free');
             PreviousEntryNo := ConcurrentSeqTestBuffer."Entry No.";
-        until ConcurrentSeqTestBuffer.Next() = 0;
+        end;
 
         ConcurrentSeqTestBuffer.DeleteAll();
         Commit();
@@ -560,7 +556,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         // [THEN] Two registers are created and each has its own non-empty set of G/L Entries within its entry range
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
         Assert.AreEqual(2, GLRegister.Count(), 'Two G/L Registers should have been created');
-        GLRegister.FindFirst();
+        GLRegister.FindSet();
         FirstRegisterNo := GLRegister."No.";
         GLRegister.Next();
         SecondRegisterNo := GLRegister."No.";

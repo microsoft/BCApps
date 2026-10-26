@@ -62,9 +62,9 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     end;
 
     var
-        ReversalGLRegisterNo: Integer;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        ReversalGLRegisterNo: Integer;
         ReversalMismatchErr: Label 'Reversal found a %1 without a matching general ledger entry.', Comment = '%1 - table caption';
         CannotReverseErr: Label 'You cannot reverse the transaction, because it has already been reversed.';
         DimCombBlockedErr: Label 'The combination of dimensions used in general ledger entry %1 is blocked. %2.', Comment = '%1 - entry no, %2 - error text';

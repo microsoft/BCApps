@@ -1,3 +1,13 @@
+namespace Microsoft.Finance.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Receivables;
+
 codeunit 134194 "ERM Reverse Concurrent Post"
 {
     Subtype = Test;
@@ -18,8 +28,8 @@ codeunit 134194 "ERM Reverse Concurrent Post"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
-        ReverseSignErr: Label 'Reversed must be TRUE in G/L Entry for Document No. %1.';
-        ReversalErr: Label 'You cannot reverse G/L Register No. %1 because the register has already been involved in a reversal.';
+        ReverseSignErr: Label 'Reversed must be TRUE in G/L Entry for Document No. %1.', Comment = '%1 = document number';
+        ReversalErr: Label 'You cannot reverse G/L Register No. %1 because the register has already been involved in a reversal.', Comment = '%1 = G/L register number';
 
     [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
