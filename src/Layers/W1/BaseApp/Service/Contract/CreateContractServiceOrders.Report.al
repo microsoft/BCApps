@@ -77,7 +77,6 @@ report 6036 "Create Contract Service Orders"
                         Error(Text002);
                     if EndDate < StartDate then
                         Error(Text003);
-
                     if StartDate <> 0D then
                         if EndDate - StartDate + 1 > ServMgtSetup."Contract Serv. Ord.  Max. Days" then
                             Error(
@@ -174,7 +173,6 @@ report 6036 "Create Contract Service Orders"
             ServMgtSetup.Get();
             ServMgtSetup."Last Contract Service Date" := EndDate;
             ServMgtSetup.Modify();
-
             if not HideDialog then
                 if ServOrderCreated > 1 then
                     Message(Text000, ServOrderCreated)
@@ -219,7 +217,6 @@ report 6036 "Create Contract Service Orders"
         CreateHeader := ServMgtSetup."One Service Item Line/Order";
         if not CreateHeader then
             CreateHeader := not FindPendingServiceOrderFromContract();
-
         if CreateHeader then begin
             CreateServiceHeader(ServHeader, "Service Contract Header");
             ServOrderCreated := ServOrderCreated + 1;
@@ -280,7 +277,7 @@ report 6036 "Create Contract Service Orders"
         ServiceHeader."Shortcut Dimension 1 Code" := ServiceContractHeader."Shortcut Dimension 1 Code";
         ServiceHeader."Shortcut Dimension 2 Code" := ServiceContractHeader."Shortcut Dimension 2 Code";
         ServiceHeader.Validate("Service Order Type", ServiceContractHeader."Service Order Type");
-        ServiceHeader."Dimension Set ID" := ServiceContractHeader."Dimension Set ID";
+        ServiceHeader.Validate("Dimension Set ID", ServiceContractHeader."Dimension Set ID");
         OnBeforeModifyServiceHeader(ServHeader, "Service Contract Header", "Service Contract Line");
         ServiceHeader.Modify(true);
         OnAfterCreateServiceHeader(ServiceHeader, ServiceContractHeader);
@@ -349,7 +346,6 @@ report 6036 "Create Contract Service Orders"
         OnBeforeSetSalespersonCode(SalesPersonCodeToCheck, SalesPersonCodeToAssign, IsHandled);
         if IsHandled then
             exit;
-
         if SalesPersonCodeToCheck <> '' then
             if Salesperson.Get(SalesPersonCodeToCheck) then
                 if Salesperson.VerifySalesPersonPurchaserPrivacyBlocked(Salesperson) then

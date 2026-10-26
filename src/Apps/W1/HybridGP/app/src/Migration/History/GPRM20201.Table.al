@@ -289,5 +289,8 @@ table 40144 "GP RM20201"
         {
             Clustered = true;
         }
+        key(Key2; CUSTNMBR, APTODCTY, APTODCNM)
+        {
+        }
     }
 }

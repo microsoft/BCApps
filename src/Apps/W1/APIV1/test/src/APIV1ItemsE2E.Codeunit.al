@@ -3,6 +3,7 @@ codeunit 139700 "APIV1 - Items E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -33,6 +34,7 @@ codeunit 139700 "APIV1 - Items E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

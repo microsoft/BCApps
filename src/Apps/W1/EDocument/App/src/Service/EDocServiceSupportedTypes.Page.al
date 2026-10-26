@@ -21,7 +21,12 @@ page 6129 "E-Doc Service Supported Types"
                 field("Document Type"; Rec."Source Document Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the supported source document type.';
+                    ToolTip = 'Specifies the supported source document type. A document type without a row is not permitted for incoming or outgoing processing.';
+                }
+                field(Direction; Rec.Direction)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether this document type is permitted for outgoing, incoming, or both directions.';
                 }
             }
         }

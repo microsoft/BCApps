@@ -122,7 +122,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         this.ProgressTracker.Finish();
 
         if ErrorCount <> 0 then
-            ImportAndProcessUsageData.SetError(UsageDataImport, UsageDataLinesProcessingErr);
+            UsageDataImport.SetErrorReason(UsageDataLinesProcessingErr);
     end;
 
     local procedure CreateUsageDataCustomers(GenericImportSettings: Record "Generic Import Settings"; UsageDataGenericImport: Record "Usage Data Generic Import";
@@ -256,10 +256,9 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
     begin
         UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
         UsageDataGenericImport.SetRange("Processing Status", UsageDataGenericImport."Processing Status"::Error);
-        if UsageDataGenericImport.IsEmpty() then begin
-            UsageDataImport."Processing Status" := UsageDataImport."Processing Status"::Ok;
-            UsageDataImport.SetReason('');
-        end else
+        if UsageDataGenericImport.IsEmpty() then
+            UsageDataImport.Validate("Processing Status", Enum::"Processing Status"::Ok)
+        else
             UsageDataImport.SetErrorReason(UsageDataGenericImportProcessingErr);
         UsageDataImport.Modify(false);
     end;
@@ -310,8 +309,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
     begin
         UsageDataGenericImport.SetFilter("Processing Status", '<>%1', "Processing Status"::Ok);
         UsageDataGenericImport.SetRange("Supp. Subscription ID", SupplierReference);
-        UsageDataGenericImport.ModifyAll("Subscription Header No.", SubscriptionHeaderNo);
-        UsageDataGenericImport.ModifyAll("Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
+        UsageDataGenericImport.ModifyAll("Subscription Header No.", SubscriptionHeaderNo, "Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
     end;
 
     procedure OpenSupplierSettings(var UsageDataSupplier: Record "Usage Data Supplier")
