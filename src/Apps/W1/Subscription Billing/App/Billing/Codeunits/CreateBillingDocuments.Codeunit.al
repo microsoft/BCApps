@@ -645,7 +645,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader."No. Printed" := 0;
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
         SalesHeader.Validate("External Document No.");
         if SalesHeader."Payment Terms Code" <> OldSalesHeader."Payment Terms Code" then begin
             SalesHeader."Payment Terms Code" := OldSalesHeader."Payment Terms Code";
