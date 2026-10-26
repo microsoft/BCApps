@@ -24,6 +24,8 @@ codeunit 139544 "Trial Balance Excel Reports"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
+        CombinationNotExportedErr: Label 'Combination %1 should be exported.', Comment = '%1 = account and dimension combination', Locked = true;
+        UnexpectedNetChangeErr: Label 'Unexpected net change for combination %1.', Comment = '%1 = account and dimension combination', Locked = true;
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -272,6 +274,49 @@ codeunit 139544 "Trial Balance Excel Reports"
 
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
         Assert.AreEqual(18, LibraryReportDataset.RowCount(), 'All dimension combinations should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodHideZeroValuesHandler')]
+    procedure TrialBalanceByPeriodAggregatesNetChangePerDimensionCombination()
+    var
+        PostingGLAccount: Record "G/L Account";
+        TotalGLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        Dimension2: Record Dimension;
+        DimensionValueA1: Record "Dimension Value";
+        DimensionValueA2: Record "Dimension Value";
+        DimensionValueB1: Record "Dimension Value";
+        DimensionValueB2: Record "Dimension Value";
+        NetChangePerCombination: Dictionary of [Text, Decimal];
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO] Trial Balance by Period calculates the net change per account for the total, each global dimension value and each combination
+        Initialize();
+        // [GIVEN] A posting account and an End-Total account totaling it
+        CreateGLAccount(PostingGLAccount);
+        CreateGLAccount(TotalGLAccount, Enum::"G/L Account Type"::"End-Total", PostingGLAccount."No.");
+        // [GIVEN] Global dimension 1 values A1, A2 and global dimension 2 values B1, B2
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA1, 1);
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA2, 1);
+        CreateGlobalDimensionValue(Dimension2, DimensionValueB1, 2);
+        CreateGlobalDimensionValue(Dimension2, DimensionValueB2, 2);
+        // [GIVEN] Entries (A1, B1, 100), (A1, B2, -30), (A2, B1, 50) and (blank, B2, 7)
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueB1.Code, '', WorkDate(), 100);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueB2.Code, '', WorkDate(), -30);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA2.Code, DimensionValueB1.Code, '', WorkDate(), 50);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", '', DimensionValueB2.Code, '', WorkDate(), 7);
+        Commit();
+
+        // [WHEN] Running the report hiding zero lines
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+        CollectNetChangePerCombination(NetChangePerCombination);
+
+        // [THEN] Both the posting and the total account show the same net change per dimension combination
+        VerifyNetChangePerCombination(NetChangePerCombination, PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueA2.Code, DimensionValueB1.Code, DimensionValueB2.Code);
+        VerifyNetChangePerCombination(NetChangePerCombination, TotalGLAccount."No.", DimensionValueA1.Code, DimensionValueA2.Code, DimensionValueB1.Code, DimensionValueB2.Code);
     end;
 
     [Test]
@@ -1220,6 +1265,62 @@ codeunit 139544 "Trial Balance Excel Reports"
         DimensionValue2."Global Dimension No." := 2;
         DimensionValue2.Modify();
         CreateGLEntryWithAmount(GLAccount."No.", DimensionValue1.Code, DimensionValue2.Code, '', WorkDate(), 100);
+    end;
+
+    local procedure CollectNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal])
+    var
+        Variant: Variant;
+        CombinationKey: Text;
+        AccountNo, Dimension1Code, Dimension2Code, NetChangeText : Text;
+        NetChange: Decimal;
+    begin
+        // Net change of every period is summed per combination; only the first period has entries in these scenarios.
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        while LibraryReportDataset.GetNextRow() do begin
+            LibraryReportDataset.FindCurrentRowValue('Account', Variant);
+            AccountNo := Variant;
+            LibraryReportDataset.FindCurrentRowValue('Dimension1Code', Variant);
+            Dimension1Code := Variant;
+            LibraryReportDataset.FindCurrentRowValue('Dimension2Code', Variant);
+            Dimension2Code := Variant;
+            LibraryReportDataset.FindCurrentRowValue('NetChange', Variant);
+            NetChangeText := Variant;
+            Evaluate(NetChange, NetChangeText, 9);
+            CombinationKey := GetCombinationKey(AccountNo, Dimension1Code, Dimension2Code);
+            if NetChangePerCombination.ContainsKey(CombinationKey) then
+                NetChangePerCombination.Set(CombinationKey, NetChangePerCombination.Get(CombinationKey) + NetChange)
+            else
+                NetChangePerCombination.Add(CombinationKey, NetChange);
+        end;
+    end;
+
+    local procedure VerifyNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Code[20]; DimensionA1Code: Code[20]; DimensionA2Code: Code[20]; DimensionB1Code: Code[20]; DimensionB2Code: Code[20])
+    begin
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, '', '', 127);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, DimensionA1Code, '', 70);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, DimensionA2Code, '', 50);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, DimensionA1Code, DimensionB1Code, 100);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, DimensionA1Code, DimensionB2Code, -30);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, DimensionA2Code, DimensionB1Code, 50);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, '', DimensionB1Code, 150);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, '', DimensionB2Code, -23);
+        Assert.IsFalse(
+            NetChangePerCombination.ContainsKey(GetCombinationKey(AccountNo, DimensionA2Code, DimensionB2Code)),
+            'Combinations without entries should not be exported');
+    end;
+
+    local procedure VerifyNetChangeForCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Text; Dimension1Code: Text; Dimension2Code: Text; ExpectedNetChange: Decimal)
+    var
+        CombinationKey: Text;
+    begin
+        CombinationKey := GetCombinationKey(AccountNo, Dimension1Code, Dimension2Code);
+        Assert.IsTrue(NetChangePerCombination.ContainsKey(CombinationKey), StrSubstNo(CombinationNotExportedErr, CombinationKey));
+        Assert.AreEqual(ExpectedNetChange, NetChangePerCombination.Get(CombinationKey), StrSubstNo(UnexpectedNetChangeErr, CombinationKey));
+    end;
+
+    local procedure GetCombinationKey(AccountNo: Text; Dimension1Code: Text; Dimension2Code: Text): Text
+    begin
+        exit(AccountNo + '|' + Dimension1Code + '|' + Dimension2Code);
     end;
 
     local procedure CreateGLEntry(GLAccountNo: Code[20]; DimensionValue2Code: Code[20])
