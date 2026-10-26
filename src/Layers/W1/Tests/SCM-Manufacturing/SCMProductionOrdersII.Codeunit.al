@@ -8241,6 +8241,18 @@ codeunit 137072 "SCM Production Orders II"
     [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandlerNoText')]
     procedure ReverseSplitLotProductionOutputPostedInNonBaseUnitOfMeasure()
+    begin
+        ReverseSplitLotProductionOutput(1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseSplitLotProductionOutputWithZeroRoundedQuantity()
+    begin
+        ReverseSplitLotProductionOutput(0.001);
+    end;
+
+    local procedure ReverseSplitLotProductionOutput(SmallLotBaseQuantity: Decimal)
     var
         Item: Record Item;
         ItemJournalLine: Record "Item Journal Line";
@@ -8260,7 +8272,7 @@ codeunit 137072 "SCM Production Orders II"
         // [SCENARIO 651623] Split-lot output retains exact base quantities when reversed in a non-base unit of measure.
         Initialize();
         QtyPerUnitOfMeasure := 900;
-        BaseQuantity[1] := 1;
+        BaseQuantity[1] := SmallLotBaseQuantity;
         BaseQuantity[2] := QtyPerUnitOfMeasure - BaseQuantity[1];
 
         // [GIVEN] A released production order for one alternate unit representing 900 base units.
@@ -8274,7 +8286,7 @@ codeunit 137072 "SCM Production Orders II"
         ProdOrderLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
         ProdOrderLine.Modify(true);
 
-        // [GIVEN] One alternate unit is posted with tracking split into lots of 1 and 899 base units.
+        // [GIVEN] One alternate unit is posted with tracking split into two lots.
         CreateOutputJournalWithExlpodeRouting(ItemJournalLine, ProductionOrder."No.");
         ItemJournalLine.Validate("Output Quantity", 1);
         ItemJournalLine.Modify(true);
@@ -8300,13 +8312,18 @@ codeunit 137072 "SCM Production Orders II"
             ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
             UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
 
-            // [THEN] The reversing entry has the exact opposite base quantity and the same unit and lot.
+            // [THEN] The reversing entry has the exact opposite base quantity and lot, using the base unit if conversion rounds to zero.
             ItemLedgerEntry.SetRange("Entry No.");
             Assert.RecordCount(ItemLedgerEntry, 2);
             ItemLedgerEntry.FindLast();
             ItemLedgerEntry.TestField(Quantity, -BaseQuantity[LotIndex]);
-            ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
-            ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+            if Round(BaseQuantity[LotIndex] / QtyPerUnitOfMeasure, 0.00001) = 0 then begin
+                ItemLedgerEntry.TestField("Unit of Measure Code", Item."Base Unit of Measure");
+                ItemLedgerEntry.TestField("Qty. per Unit of Measure", 1);
+            end else begin
+                ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
+                ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+            end;
             ItemLedgerEntry.TestField("Lot No.", LotNo[LotIndex]);
             ItemLedgerEntry.TestField("Remaining Quantity", 0);
             OriginalItemLedgerEntry.Get(OriginalItemLedgerEntry."Entry No.");
