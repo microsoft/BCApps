@@ -5,9 +5,7 @@
 namespace Microsoft.Finance.VAT.GovTalk;
 
 using Microsoft.Finance.VAT.Reporting;
-using System;
 using System.Threading;
-using System.Xml;
 
 codeunit 10511 "HMRC GovTalk Msg. Scheduler"
 {
@@ -25,7 +23,7 @@ codeunit 10511 "HMRC GovTalk Msg. Scheduler"
 
     var
         GovTalkMessageManagement: Codeunit "GovTalk Message Management";
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        GovTalkXMLHelper: Codeunit "GovTalk XML Helper";
         GovTalkNameSpaceTxt: Label 'http://www.govtalk.gov.uk/CM/envelope', Locked = true;
         XMLPartMissingErr: Label 'A section of the XML document is missing.';
 
@@ -33,16 +31,16 @@ codeunit 10511 "HMRC GovTalk Msg. Scheduler"
     var
         GovTalkMessage: Record "GovTalk Message";
         GovTalkMessageParts: Record "GovTalk Msg. Parts";
-        GovTalkMessageXMLNode: DotNet XmlNode;
-        CorrelationXMLNode: DotNet XmlNode;
+        GovTalkMessageXmlElement: XmlElement;
+        CorrelationXmlElement: XmlElement;
         PartIDGuid: Guid;
     begin
-        GovTalkMessageManagement.CreateGovTalkPollMessage(GovTalkMessageXMLNode, VATReportHeader);
+        GovTalkMessageManagement.CreateGovTalkPollMessage(GovTalkMessageXmlElement, VATReportHeader);
         if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"EC Sales List" then begin
             if not GovTalkMessageParts.Get(XMLPartID) then
                 Error('');
-            if XMLDOMManagement.FindNodeWithNamespace(GovTalkMessageXMLNode, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXMLNode) then
-                CorrelationXMLNode.InnerText := GovTalkMessageParts."Correlation Id"
+            if GovTalkXMLHelper.FindElement(GovTalkMessageXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXmlElement) then
+                GovTalkXMLHelper.SetInnerText(CorrelationXmlElement, GovTalkMessageParts."Correlation Id")
             else
                 Error(XMLPartMissingErr);
         end;
@@ -50,7 +48,7 @@ codeunit 10511 "HMRC GovTalk Msg. Scheduler"
         Evaluate(PartIDGuid, XMLPartID);
         if GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.") then
             if not GovTalkMessageManagement.ProcessGovTalkSubmission(
-                 VATReportHeader, GovTalkMessage.ResponseEndPoint, GovTalkMessageXMLNode, true, true, PartIDGuid)
+                 VATReportHeader, GovTalkMessage.ResponseEndPoint, GovTalkMessageXmlElement, true, true, PartIDGuid)
             then
                 GovTalkMessageManagement.RegisterGovTalkPolling(VATReportHeader, XMLPartID);
     end;

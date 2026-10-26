@@ -12,8 +12,27 @@ codeunit 10547 "HMRC Submission Helpers"
     begin
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use CreateIRMark with an XmlDocument parameter instead.', '30.0')]
     procedure CreateIRMark(XMLDocument: DotNet XmlDocument; GovTalkNameSpace: Text; TaxNameSpace: Text): Text
+    begin
+        XMLDocument.PreserveWhitespace := true;
+        exit(CreateIRMark(XMLDocument.OuterXml, GovTalkNameSpace, TaxNameSpace));
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure CreateIRMark(GovTalkXmlDocument: XmlDocument; GovTalkNameSpace: Text; TaxNameSpace: Text): Text
+    var
+        GovTalkXMLHelper: Codeunit "GovTalk XML Helper";
+        RootXmlElement: XmlElement;
+    begin
+        GovTalkXmlDocument.GetRoot(RootXmlElement);
+        exit(CreateIRMark(GovTalkXMLHelper.GetXmlAsText(RootXmlElement), GovTalkNameSpace, TaxNameSpace));
+    end;
+
+    local procedure CreateIRMark(XmlText: Text; GovTalkNameSpace: Text; TaxNameSpace: Text): Text
     var
         XMLNSMgr: DotNet XmlNamespaceManager;
         XMLDummyNode: DotNet XmlNode;
@@ -23,17 +42,16 @@ codeunit 10547 "HMRC Submission Helpers"
         TempXMLDocument: DotNet XmlDocument;
         CRCharacter: Char;
     begin
-        XMLDocument.PreserveWhitespace := true;
-        XMLNSMgr := XMLNSMgr.XmlNamespaceManager(XMLDocument.NameTable);
-        XMLNSMgr.AddNamespace('GovTalk', GovTalkNameSpace);
-        XMLNSMgr.AddNamespace('Tax', TaxNameSpace);
-
         CRCharacter := 13;
         TempXMLDocument := TempXMLDocument.XmlDocument();
         TempXMLDocument.PreserveWhitespace := true;
-        TempXMLDocument.LoadXml(XMLDocument.OuterXml);
+        TempXMLDocument.LoadXml(XmlText);
         TempXMLDocument.PreserveWhitespace := true;
         TempXMLDocument.InnerXml := DelChr(TempXMLDocument.InnerXml, '=', Format(CRCharacter));
+
+        XMLNSMgr := XMLNSMgr.XmlNamespaceManager(TempXMLDocument.NameTable);
+        XMLNSMgr.AddNamespace('GovTalk', GovTalkNameSpace);
+        XMLNSMgr.AddNamespace('Tax', TaxNameSpace);
 
         XMLDummyNode := TempXMLDocument.SelectSingleNode('//GovTalk:Body', XMLNSMgr);
         TempXMLDocument.LoadXml(XMLDummyNode.OuterXml);
@@ -61,4 +79,3 @@ codeunit 10547 "HMRC Submission Helpers"
         exit(Convert.ToBase64String(HashingAlgorithm.ComputeHash(Encoding.GetEncoding(0).GetBytes(Password))));
     end;
 }
-

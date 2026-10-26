@@ -7,8 +7,9 @@ namespace Microsoft.Finance.VAT.GovTalk;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
+#if not CLEAN30
 using System;
-using System.Xml;
+#endif
 
 codeunit 10525 "EC Sales List XML"
 {
@@ -17,7 +18,7 @@ codeunit 10525 "EC Sales List XML"
     end;
 
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        GovTalkXMLHelper: Codeunit "GovTalk XML Helper";
         GovTalkMessageManagement: Codeunit "GovTalk Message Management";
         ECSLDeclarationNameSpaceTok: Label 'http://www.govtalk.gov.uk/taxation/vat/europeansalesdeclaration/1', Locked = true;
         ECSLSchemaLocationTok: Label 'http://www.govtalk.gov.uk/taxation/vat/europeansalesdeclaration/1 EuropeanSalesDeclarationRequest.xsd', Locked = true;
@@ -30,13 +31,13 @@ codeunit 10525 "EC Sales List XML"
         ContactPersonEmptyErr: Label 'A contact person is not specified for your company. This is the person the tax authority will contact. To continue, go to the Company Information page and choose a contact person, and then submit the report again.';
         LCYEmptyErr: Label 'The local currency (LCY) is not specified. To continue, go to the General Ledger Setup page, enter a currency in the LCY Code field, and then submit the report again.';
 
-    local procedure PopulateXMLHeader(var GovTalkMessageBodyXMLNode: DotNet XmlNode; var BodyNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header")
+    local procedure PopulateXMLHeader(var GovTalkMessageBodyXmlElement: XmlElement; var BodyXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInformation: Record "Company Information";
-        ECSLDeclarationRequestXMLNode: DotNet XmlNode;
-        ECSLDeclarationHeaderXMLNode: DotNet XmlNode;
-        DummyXMLNode: DotNet XmlNode;
+        ECSLDeclarationRequestXmlElement: XmlElement;
+        ECSLDeclarationHeaderXmlElement: XmlElement;
+        DummyXmlElement: XmlElement;
     begin
         if not (CompanyInformation.Get() and GeneralLedgerSetup.Get()) then
             exit;
@@ -47,54 +48,54 @@ codeunit 10525 "EC Sales List XML"
         if CompanyInformation."Contact Person" = '' then
             Error(ContactPersonEmptyErr);
 
-        XMLDOMManagement.AddElement(GovTalkMessageBodyXMLNode, 'EuropeanSalesDeclarationRequest', '', '', ECSLDeclarationRequestXMLNode);
-        AddGovTalkNamespaces(ECSLDeclarationRequestXMLNode);
+        GovTalkXMLHelper.AddElement(GovTalkMessageBodyXmlElement, 'EuropeanSalesDeclarationRequest', '', ECSLDeclarationNameSpaceTok, ECSLDeclarationRequestXmlElement);
+        AddGovTalkNamespaces(ECSLDeclarationRequestXmlElement);
 
-        XMLDOMManagement.AddElement(ECSLDeclarationRequestXMLNode, 'Header', '', '', ECSLDeclarationHeaderXMLNode);
-        XMLDOMManagement.AddElement(ECSLDeclarationRequestXMLNode, 'Body', '', '', BodyNode);
+        GovTalkXMLHelper.AddElement(ECSLDeclarationRequestXmlElement, 'Header', '', ECSLDeclarationNameSpaceTok, ECSLDeclarationHeaderXmlElement);
+        GovTalkXMLHelper.AddElement(ECSLDeclarationRequestXmlElement, 'Body', '', ECSLDeclarationNameSpaceTok, BodyXmlElement);
 
-        XMLDOMManagement.AddElementWithPrefix(ECSLDeclarationHeaderXMLNode, 'SubmittersContactName',
-          CompanyInformation."Contact Person", 'VATCore', ECSLVATCoreNameSpaceTok, DummyXMLNode);
-        AddCurrencyElement(ECSLDeclarationHeaderXMLNode, GeneralLedgerSetup."LCY Code");
-        AddPeriodElement(ECSLDeclarationHeaderXMLNode, VATReportHeader);
+        GovTalkXMLHelper.AddElement(ECSLDeclarationHeaderXmlElement, 'SubmittersContactName',
+          CompanyInformation."Contact Person", ECSLVATCoreNameSpaceTok, DummyXmlElement);
+        AddCurrencyElement(ECSLDeclarationHeaderXmlElement, GeneralLedgerSetup."LCY Code");
+        AddPeriodElement(ECSLDeclarationHeaderXmlElement, VATReportHeader);
 
-        XMLDOMManagement.AddElementWithPrefix(ECSLDeclarationHeaderXMLNode, 'ApplyStrictEuropeanSaleValidation',
-          'true', 'VATCore', ECSLVATCoreNameSpaceTok, DummyXMLNode);
+        GovTalkXMLHelper.AddElement(ECSLDeclarationHeaderXmlElement, 'ApplyStrictEuropeanSaleValidation',
+          'true', ECSLVATCoreNameSpaceTok, DummyXmlElement);
     end;
 
-    local procedure InsertECSLDeclarationRequestDetails(var EuropeanSalesListBodyNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header"; PartId: Guid)
+    local procedure InsertECSLDeclarationRequestDetails(var EuropeanSalesListBodyXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header"; PartId: Guid)
     var
         ECSLVATReportLine: Record "ECSL VAT Report Line";
-        SaleElement: DotNet XmlNode;
-        DummyElement: DotNet XmlNode;
+        SaleXmlElement: XmlElement;
+        DummyXmlElement: XmlElement;
         IndicatorVar: Integer;
     begin
         ECSLVATReportLine.SetRange("Report No.", VATReportHeader."No.");
         ECSLVATReportLine.SetRange("XML Part Id GB", PartId);
         if ECSLVATReportLine.FindSet() then
             repeat
-                XMLDOMManagement.AddElement(EuropeanSalesListBodyNode, 'EuropeanSale', '', '', SaleElement);
-                XMLDOMManagement.AddElementWithPrefix(SaleElement, 'SubmittersReference', Format(ECSLVATReportLine."Line No."),
-                  'VATCore', ECSLVATCoreNameSpaceTok, DummyElement);
-                XMLDOMManagement.AddElementWithPrefix(SaleElement, 'CountryCode', ECSLVATReportLine."Country Code", 'VATCore',
-                  ECSLVATCoreNameSpaceTok, DummyElement);
-                XMLDOMManagement.AddElementWithPrefix(SaleElement, 'CustomerVATRegistrationNumber',
+                GovTalkXMLHelper.AddElement(EuropeanSalesListBodyXmlElement, 'EuropeanSale', '', ECSLDeclarationNameSpaceTok, SaleXmlElement);
+                GovTalkXMLHelper.AddElement(SaleXmlElement, 'SubmittersReference', Format(ECSLVATReportLine."Line No."),
+                  ECSLVATCoreNameSpaceTok, DummyXmlElement);
+                GovTalkXMLHelper.AddElement(SaleXmlElement, 'CountryCode', ECSLVATReportLine."Country Code",
+                  ECSLVATCoreNameSpaceTok, DummyXmlElement);
+                GovTalkXMLHelper.AddElement(SaleXmlElement, 'CustomerVATRegistrationNumber',
                   GovTalkMessageManagement.FormatVATRegNo(ECSLVATReportLine."Country Code", ECSLVATReportLine."Customer VAT Reg. No."),
-                  'VATCore', ECSLVATCoreNameSpaceTok, DummyElement);
-                XMLDOMManagement.AddElementWithPrefix(SaleElement, 'TotalValueOfSupplies',
-                  Format(ECSLVATReportLine."Total Value Of Supplies", 0, '<Sign><Integer>'), 'VATCore', ECSLVATCoreNameSpaceTok, DummyElement);
+                  ECSLVATCoreNameSpaceTok, DummyXmlElement);
+                GovTalkXMLHelper.AddElement(SaleXmlElement, 'TotalValueOfSupplies',
+                  Format(ECSLVATReportLine."Total Value Of Supplies", 0, '<Sign><Integer>'), ECSLVATCoreNameSpaceTok, DummyXmlElement);
                 IndicatorVar := ECSLVATReportLine."Transaction Indicator";
-                XMLDOMManagement.AddElementWithPrefix(SaleElement, 'TransactionIndicator', Format(IndicatorVar),
-                  'VATCore', ECSLVATCoreNameSpaceTok, DummyElement);
+                GovTalkXMLHelper.AddElement(SaleXmlElement, 'TransactionIndicator', Format(IndicatorVar),
+                  ECSLVATCoreNameSpaceTok, DummyXmlElement);
             until ECSLVATReportLine.Next() = 0;
     end;
 
-    local procedure GenerateEuropeanSalesDeclarationRequest(var EuropeanSalesListXML: DotNet XmlNode; VATReportHeader: Record "VAT Report Header"; PartId: Guid)
+    local procedure GenerateEuropeanSalesDeclarationRequest(var EuropeanSalesListXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header"; PartId: Guid)
     var
-        BodyNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
     begin
-        PopulateXMLHeader(EuropeanSalesListXML, BodyNode, VATReportHeader);
-        InsertECSLDeclarationRequestDetails(BodyNode, VATReportHeader, PartId);
+        PopulateXMLHeader(EuropeanSalesListXmlElement, BodyXmlElement, VATReportHeader);
+        InsertECSLDeclarationRequestDetails(BodyXmlElement, VATReportHeader, PartId);
     end;
 
     local procedure GetMonthCode(MonthNo: Integer): Text
@@ -102,69 +103,85 @@ codeunit 10525 "EC Sales List XML"
         exit(SelectStr(MonthNo, MonthsTok));
     end;
 
-    local procedure AddGovTalkNamespaces(var ECSLDeclarationRequestXMLNode: DotNet XmlNode)
+    local procedure AddGovTalkNamespaces(var ECSLDeclarationRequestXmlElement: XmlElement)
     begin
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'SchemaVersion', '1.0');
-        XMLDOMManagement.AddAttributeWithPrefix(ECSLDeclarationRequestXMLNode, 'schemaLocation', 'xsi', XMLSchemaInstanceTok, ECSLSchemaLocationTok);
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'xmlns:ccts', ECSLCoreComponentParamTok);
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'xmlns:VATCore', ECSLVATCoreNameSpaceTok);
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'xmlns', ECSLDeclarationNameSpaceTok);
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'xmlns:xsi', XMLSchemaInstanceTok);
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'xmlns:n1', GMSNameSpaceTok);
-        XMLDOMManagement.AddAttribute(ECSLDeclarationRequestXMLNode, 'xmlns:UBLCurrencyCodelist', ECSLCurrencyCodeListTok);
+        ECSLDeclarationRequestXmlElement.SetAttribute('SchemaVersion', '1.0');
+        ECSLDeclarationRequestXmlElement.Add(XmlAttribute.Create('schemaLocation', XMLSchemaInstanceTok, ECSLSchemaLocationTok));
+        GovTalkXMLHelper.AddNamespaceDeclaration(ECSLDeclarationRequestXmlElement, 'ccts', ECSLCoreComponentParamTok);
+        GovTalkXMLHelper.AddNamespaceDeclaration(ECSLDeclarationRequestXmlElement, 'VATCore', ECSLVATCoreNameSpaceTok);
+        ECSLDeclarationRequestXmlElement.Add(XmlAttribute.Create('xmlns', ECSLDeclarationNameSpaceTok));
+        GovTalkXMLHelper.AddNamespaceDeclaration(ECSLDeclarationRequestXmlElement, 'xsi', XMLSchemaInstanceTok);
+        GovTalkXMLHelper.AddNamespaceDeclaration(ECSLDeclarationRequestXmlElement, 'n1', GMSNameSpaceTok);
+        GovTalkXMLHelper.AddNamespaceDeclaration(ECSLDeclarationRequestXmlElement, 'UBLCurrencyCodelist', ECSLCurrencyCodeListTok);
     end;
 
-    local procedure AddCurrencyElement(var ECSLDeclarationHeaderXMLNode: DotNet XmlNode; CurrencyCode: Code[10])
+    local procedure AddCurrencyElement(var ECSLDeclarationHeaderXmlElement: XmlElement; CurrencyCode: Code[10])
     var
-        DummyXMLNode: DotNet XmlNode;
+        CurrencyXmlElement: XmlElement;
     begin
-        XMLDOMManagement.AddElementWithPrefix(ECSLDeclarationHeaderXMLNode, 'CurrencyCode', CurrencyCode, 'VATCore', ECSLVATCoreNameSpaceTok, DummyXMLNode);
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListName', 'Currency');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListID', 'ISO 4217 Alpha');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListAgencyName', 'United Nations Economic Commission for Europe');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListSchemeURI', 'urn:oasis:names:specification:ubl:schema:xsd:CurrencyCode-1.0');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListURI',
+        GovTalkXMLHelper.AddElement(ECSLDeclarationHeaderXmlElement, 'CurrencyCode', CurrencyCode, ECSLVATCoreNameSpaceTok, CurrencyXmlElement);
+        CurrencyXmlElement.SetAttribute('codeListName', 'Currency');
+        CurrencyXmlElement.SetAttribute('codeListID', 'ISO 4217 Alpha');
+        CurrencyXmlElement.SetAttribute('codeListAgencyName', 'United Nations Economic Commission for Europe');
+        CurrencyXmlElement.SetAttribute('codeListSchemeURI', 'urn:oasis:names:specification:ubl:schema:xsd:CurrencyCode-1.0');
+        CurrencyXmlElement.SetAttribute('codeListURI',
           'http://www.bsi-global.com/Technical%2BInformation/Publications/_Publications/tig90x.doc');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'name', 'String');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListAgencyID', '6');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'codeListVersionID', '0.3');
-        XMLDOMManagement.AddAttribute(DummyXMLNode, 'languageID', 'en');
+        CurrencyXmlElement.SetAttribute('name', 'String');
+        CurrencyXmlElement.SetAttribute('codeListAgencyID', '6');
+        CurrencyXmlElement.SetAttribute('codeListVersionID', '0.3');
+        CurrencyXmlElement.SetAttribute('languageID', 'en');
     end;
 
-    local procedure AddPeriodElement(var ECSLDeclarationHeaderXMLNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header")
+    local procedure AddPeriodElement(var ECSLDeclarationHeaderXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header")
     var
-        DummyXMLNode: DotNet XmlNode;
-        ECSLPeriodXMLNode: DotNet XmlNode;
+        DummyXmlElement: XmlElement;
+        ECSLPeriodXmlElement: XmlElement;
     begin
         if VATReportHeader."Period Type" = VATReportHeader."Period Type"::Month then begin
-            XMLDOMManagement.AddElementWithPrefix(ECSLDeclarationHeaderXMLNode, 'TaxMonthlyPeriod', '', 'VATCore', ECSLVATCoreNameSpaceTok, ECSLPeriodXMLNode);
-            XMLDOMManagement.AddElementWithPrefix(ECSLPeriodXMLNode, 'TaxMonth', GetMonthCode(VATReportHeader."Period No."),
-              'VATCore', ECSLVATCoreNameSpaceTok, DummyXMLNode);
-            XMLDOMManagement.AddElementWithPrefix(ECSLPeriodXMLNode, 'TaxMonthPeriodYear', Format(VATReportHeader."Period Year"),
-              'VATCore', ECSLVATCoreNameSpaceTok, DummyXMLNode);
+            GovTalkXMLHelper.AddElement(ECSLDeclarationHeaderXmlElement, 'TaxMonthlyPeriod', '', ECSLVATCoreNameSpaceTok, ECSLPeriodXmlElement);
+            GovTalkXMLHelper.AddElement(ECSLPeriodXmlElement, 'TaxMonth', GetMonthCode(VATReportHeader."Period No."),
+              ECSLVATCoreNameSpaceTok, DummyXmlElement);
+            GovTalkXMLHelper.AddElement(ECSLPeriodXmlElement, 'TaxMonthPeriodYear', Format(VATReportHeader."Period Year"),
+              ECSLVATCoreNameSpaceTok, DummyXmlElement);
             exit;
         end;
         if VATReportHeader."Period Type" = VATReportHeader."Period Type"::Quarter then begin
-            XMLDOMManagement.AddElementWithPrefix(ECSLDeclarationHeaderXMLNode, 'TaxQuarter', '', 'VATCore', ECSLVATCoreNameSpaceTok, ECSLPeriodXMLNode);
-            XMLDOMManagement.AddElementWithPrefix(ECSLPeriodXMLNode, 'TaxQuarterNumber', Format(VATReportHeader."Period No."), 'VATCore',
-              ECSLVATCoreNameSpaceTok, DummyXMLNode);
-            XMLDOMManagement.AddElementWithPrefix(ECSLPeriodXMLNode, 'TaxQuarterYear', Format(VATReportHeader."Period Year"), 'VATCore',
-              ECSLVATCoreNameSpaceTok, DummyXMLNode);
+            GovTalkXMLHelper.AddElement(ECSLDeclarationHeaderXmlElement, 'TaxQuarter', '', ECSLVATCoreNameSpaceTok, ECSLPeriodXmlElement);
+            GovTalkXMLHelper.AddElement(ECSLPeriodXmlElement, 'TaxQuarterNumber', Format(VATReportHeader."Period No."),
+              ECSLVATCoreNameSpaceTok, DummyXmlElement);
+            GovTalkXMLHelper.AddElement(ECSLPeriodXmlElement, 'TaxQuarterYear', Format(VATReportHeader."Period Year"),
+              ECSLVATCoreNameSpaceTok, DummyXmlElement);
         end;
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use GetECSLDeclarationRequestMessage with an XmlElement parameter instead.', '30.0')]
     procedure GetECSLDeclarationRequestMessage(var GovTalkRequestXMLNode: DotNet XmlNode; VATReportHeader: Record "VAT Report Header"; PartId: Guid): Boolean
     var
+        GovTalkRequestXmlElement: XmlElement;
+        XmlDoc: DotNet XmlDocument;
+    begin
+        if not GetECSLDeclarationRequestMessage(GovTalkRequestXmlElement, VATReportHeader, PartId) then
+            exit(false);
+        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc.LoadXml(GovTalkXMLHelper.GetXmlAsText(GovTalkRequestXmlElement));
+        GovTalkRequestXMLNode := XmlDoc.DocumentElement;
+        exit(true);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure GetECSLDeclarationRequestMessage(var GovTalkRequestXmlElement: XmlElement; VATReportHeader: Record "VAT Report Header"; PartId: Guid): Boolean
+    var
         GovTalkMsgManagement: Codeunit "GovTalk Message Management";
-        BodyXMLNode: DotNet XmlNode;
+        BodyXmlElement: XmlElement;
     begin
         if not GovTalkMsgManagement.CreateBlankGovTalkXmlMessage(
-             GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true)
+             GovTalkRequestXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true)
         then
             exit(false);
-        GenerateEuropeanSalesDeclarationRequest(BodyXMLNode, VATReportHeader, PartId);
+        GenerateEuropeanSalesDeclarationRequest(BodyXmlElement, VATReportHeader, PartId);
         exit(true);
     end;
 }
-

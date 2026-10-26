@@ -6,25 +6,18 @@ namespace Microsoft.Finance.VAT.GovTalk;
 
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
-using System;
 using System.IO;
-using System.Xml;
 
 codeunit 10586 "Submit VAT Declaration Req."
 {
     TableNo = "VAT Report Header";
     trigger OnRun()
     var
-        GovTalkMessage: Record "GovTalk Message";
-        BodyXMLNode: DotNet XmlNode;
-        GovTalkRequestXMLNode: DotNet XmlNode;
-        IRMarkXMLNode: DotNet XmlNode;
+        GovTalkMessageXmlElement: XmlElement;
     begin
-        GovTalkMessage.Get(Rec."VAT Report Config. Code", Rec."No.");
-        if GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkMessageXMLNode, BodyXMLNode, Rec, 'request', 'submit', true) then begin
-            InsertVATDeclarationRequestIRHeader(GovTalkMessage, BodyXMLNode, GovTalkRequestXMLNode, IRMarkXMLNode);
-            InsertVATDeclarationRequestDetails(GovTalkMessage, GovTalkRequestXMLNode, IRMarkXMLNode);
-            if not GovTalkMessageManagement.SubmitGovTalkRequest(Rec, GovTalkMessageXMLNode) then
+        if CreateVATDeclarationRequestMessage(Rec, GovTalkMessageXmlElement) then begin
+            // The IRmark is calculated over the unindented message, so it must be submitted without indentation.
+            if not GovTalkMessageManagement.SubmitGovTalkRequest(Rec, GovTalkMessageXmlElement, true) then
                 Error(SubmissionFailedErr);
             Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditVATSubmittedTxt, Rec."No."), AuditCategory::CustomerFacing);
         end;
@@ -32,58 +25,71 @@ codeunit 10586 "Submit VAT Declaration Req."
 
     var
         GovTalkMessageManagement: Codeunit "GovTalk Message Management";
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        GovTalkXMLHelper: Codeunit "GovTalk XML Helper";
         VATDeclarationNameSpaceTxt: Label 'http://www.govtalk.gov.uk/taxation/vat/vatdeclaration/2', Locked = true;
-        GovTalkMessageXMLNode: DotNet XmlNode;
         GovTalkNameSpaceTxt: Label 'http://www.govtalk.gov.uk/CM/envelope', Locked = true;
         SubmissionFailedErr: Label 'Could not submit the report to the GovTalk service. This might be because the URL to the service is incorrect, or the service is unavailable right now.';
         GovTalkServiceNameTxt: Label 'GovTalk', Locked = true;
         SecurityAuditVATSubmittedTxt: Label 'VAT Declaration %1 was submitted to HMRC via the GovTalk service.', Locked = true, Comment = '%1 - VAT Report No.';
 
-    local procedure InsertVATDeclarationRequestIRHeader(GovTalkMessage: Record "GovTalk Message"; var BodyXMLNode: DotNet XmlNode; var GovTalkRequestXMLNode: DotNet XmlNode; var IRmarkXMLNode: DotNet XmlNode)
+    internal procedure CreateVATDeclarationRequestMessage(VATReportHeader: Record "VAT Report Header"; var GovTalkMessageXmlElement: XmlElement): Boolean
     var
-        CompanyInformation: Record "Company Information";
-        IREnvelopeXMLNode: DotNet XmlNode;
-        IRHeaderXMLNode: DotNet XmlNode;
-        KeysXMLNode: DotNet XmlNode;
-        VATRegNoXMLNode: DotNet XmlNode;
-        DummyXMLNode: DotNet XmlNode;
+        GovTalkMessage: Record "GovTalk Message";
+        BodyXmlElement: XmlElement;
+        GovTalkRequestXmlElement: XmlElement;
+        IRMarkXmlElement: XmlElement;
     begin
-        CompanyInformation.FindFirst();
-        XMLDOMManagement.AddElementWithPrefix(BodyXMLNode, 'IRenvelope', '', 'vat', VATDeclarationNameSpaceTxt, IREnvelopeXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(IREnvelopeXMLNode, 'IRheader', '', 'vat', VATDeclarationNameSpaceTxt, IRHeaderXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(IRHeaderXMLNode, 'Keys', '', 'vat', VATDeclarationNameSpaceTxt, KeysXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(KeysXMLNode, 'Key',
-          GovTalkMessageManagement.FormatVATRegNo(CompanyInformation."Country/Region Code", CompanyInformation."VAT Registration No."),
-          'vat', VATDeclarationNameSpaceTxt, VATRegNoXMLNode);
-        XMLDOMManagement.AddAttribute(VATRegNoXMLNode, 'Type', 'VATRegNo');
-        XMLDOMManagement.AddElementWithPrefix(IRHeaderXMLNode, 'PeriodID', GovTalkMessage.PeriodID, 'vat', VATDeclarationNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(IRHeaderXMLNode, 'PeriodStart',
-          Format(GovTalkMessage.PeriodStart, 0, 9), 'vat', VATDeclarationNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(IRHeaderXMLNode, 'PeriodEnd',
-          Format(GovTalkMessage.PeriodEnd, 0, 9), 'vat', VATDeclarationNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(IRHeaderXMLNode, 'IRmark', '', 'vat', VATDeclarationNameSpaceTxt, IRmarkXMLNode);
-        XMLDOMManagement.AddAttribute(IRmarkXMLNode, 'Type', 'generic');
-        XMLDOMManagement.AddElementWithPrefix(IRHeaderXMLNode, 'Sender', 'Individual', 'vat', VATDeclarationNameSpaceTxt, DummyXMLNode);
-        XMLDOMManagement.AddElementWithPrefix(IREnvelopeXMLNode, 'VATDeclarationRequest', '', 'vat', VATDeclarationNameSpaceTxt, GovTalkRequestXMLNode);
+        GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.");
+        if not GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkMessageXmlElement, BodyXmlElement, VATReportHeader, 'request', 'submit', true) then
+            exit(false);
+        InsertVATDeclarationRequestIRHeader(GovTalkMessage, BodyXmlElement, GovTalkRequestXmlElement, IRMarkXmlElement);
+        InsertVATDeclarationRequestDetails(GovTalkMessage, GovTalkMessageXmlElement, GovTalkRequestXmlElement, IRMarkXmlElement);
+        exit(true);
     end;
 
-    local procedure InsertVATDeclarationRequestDetails(GovTalkMessage: Record "GovTalk Message"; var GovTalkRequestXMLNode: DotNet XmlNode; var IRmarkXMLNode: DotNet XmlNode)
+    local procedure InsertVATDeclarationRequestIRHeader(GovTalkMessage: Record "GovTalk Message"; var BodyXmlElement: XmlElement; var GovTalkRequestXmlElement: XmlElement; var IRmarkXmlElement: XmlElement)
+    var
+        CompanyInformation: Record "Company Information";
+        IREnvelopeXmlElement: XmlElement;
+        IRHeaderXmlElement: XmlElement;
+        KeysXmlElement: XmlElement;
+        VATRegNoXmlElement: XmlElement;
+        DummyXmlElement: XmlElement;
+    begin
+        CompanyInformation.FindFirst();
+        GovTalkXMLHelper.AddElement(BodyXmlElement, 'IRenvelope', '', VATDeclarationNameSpaceTxt, IREnvelopeXmlElement);
+        GovTalkXMLHelper.AddNamespaceDeclaration(IREnvelopeXmlElement, 'vat', VATDeclarationNameSpaceTxt);
+        GovTalkXMLHelper.AddElement(IREnvelopeXmlElement, 'IRheader', '', VATDeclarationNameSpaceTxt, IRHeaderXmlElement);
+        GovTalkXMLHelper.AddElement(IRHeaderXmlElement, 'Keys', '', VATDeclarationNameSpaceTxt, KeysXmlElement);
+        GovTalkXMLHelper.AddElement(KeysXmlElement, 'Key',
+          GovTalkMessageManagement.FormatVATRegNo(CompanyInformation."Country/Region Code", CompanyInformation."VAT Registration No."),
+          VATDeclarationNameSpaceTxt, VATRegNoXmlElement);
+        VATRegNoXmlElement.SetAttribute('Type', 'VATRegNo');
+        GovTalkXMLHelper.AddElement(IRHeaderXmlElement, 'PeriodID', GovTalkMessage.PeriodID, VATDeclarationNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(IRHeaderXmlElement, 'PeriodStart',
+          Format(GovTalkMessage.PeriodStart, 0, 9), VATDeclarationNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(IRHeaderXmlElement, 'PeriodEnd',
+          Format(GovTalkMessage.PeriodEnd, 0, 9), VATDeclarationNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(IRHeaderXmlElement, 'IRmark', '', VATDeclarationNameSpaceTxt, IRmarkXmlElement);
+        IRmarkXmlElement.SetAttribute('Type', 'generic');
+        GovTalkXMLHelper.AddElement(IRHeaderXmlElement, 'Sender', 'Individual', VATDeclarationNameSpaceTxt, DummyXmlElement);
+        GovTalkXMLHelper.AddElement(IREnvelopeXmlElement, 'VATDeclarationRequest', '', VATDeclarationNameSpaceTxt, GovTalkRequestXmlElement);
+    end;
+
+    local procedure InsertVATDeclarationRequestDetails(GovTalkMessage: Record "GovTalk Message"; GovTalkMessageXmlElement: XmlElement; var GovTalkRequestXmlElement: XmlElement; var IRmarkXmlElement: XmlElement)
     var
         ChildXMLBuffer: Record "XML Buffer";
         HMRCSubmissionHelpers: Codeunit "HMRC Submission Helpers";
-        DummyXMLNode: DotNet XmlNode;
-        XmlDoc: DotNet XmlDocument;
+        DummyXmlElement: XmlElement;
+        GovTalkXmlDocument: XmlDocument;
     begin
         ChildXMLBuffer.SetRange("Parent Entry No.", GovTalkMessage.RootXMLBuffer);
         if ChildXMLBuffer.FindSet() then
             repeat
-                XMLDOMManagement.AddElementWithPrefix(GovTalkRequestXMLNode,
-                  ChildXMLBuffer.Name, ChildXMLBuffer.Value, 'vat', VATDeclarationNameSpaceTxt, DummyXMLNode);
+                GovTalkXMLHelper.AddElement(GovTalkRequestXmlElement,
+                  ChildXMLBuffer.Name, ChildXMLBuffer.Value, VATDeclarationNameSpaceTxt, DummyXmlElement);
             until ChildXMLBuffer.Next() = 0;
-        XmlDoc := GovTalkMessageXMLNode.ParentNode;
-        XmlDoc.PreserveWhitespace := true;
-        IRmarkXMLNode.InnerText := HMRCSubmissionHelpers.CreateIRMark(XmlDoc, GovTalkNameSpaceTxt, VATDeclarationNameSpaceTxt);
+        GovTalkMessageXmlElement.GetDocument(GovTalkXmlDocument);
+        GovTalkXMLHelper.SetInnerText(IRmarkXmlElement, HMRCSubmissionHelpers.CreateIRMark(GovTalkXmlDocument, GovTalkNameSpaceTxt, VATDeclarationNameSpaceTxt));
     end;
 }
-

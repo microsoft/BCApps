@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.GovTalk;
 
-using System;
-
 codeunit 144033 TestIRMark
 {
     Subtype = Test;
@@ -27,8 +25,9 @@ codeunit 144033 TestIRMark
     var
         HMRCSubmissionHelpers: Codeunit "HMRC Submission Helpers";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-        XMLDocument: DotNet XmlDocument;
-        XMLNSMgr: DotNet XmlNamespaceManager;
+        GovTalkXmlDocument: XmlDocument;
+        XmlNamespaceManager: XmlNamespaceManager;
+        IRMarkXmlNode: XmlNode;
         CorrectIRMark: Text;
     begin
         // [SCENARIO] Online submission XML that has the correct IRMark.
@@ -36,17 +35,16 @@ codeunit 144033 TestIRMark
         LibraryLowerPermissions.SetO365Basic();
 
         // [WHEN] XML is loaded and function CreateIRMark is called
-        XMLDocument := XMLDocument.XmlDocument();
-        XMLDocument.PreserveWhitespace := true;
-        XMLDocument.LoadXml(SampleXMLTxt);
+        XmlDocument.ReadFrom(SampleXMLTxt, GovTalkXmlDocument);
 
         // [WHEN] Extract the correct IRMark provided in the online example.
-        XMLNSMgr := XMLNSMgr.XmlNamespaceManager(XMLDocument.NameTable);
-        XMLNSMgr.AddNamespace('Tax', TaxNameSpaceTxt);
-        CorrectIRMark := XMLDocument.SelectSingleNode('//Tax:IRmark', XMLNSMgr).InnerText;
+        XmlNamespaceManager.NameTable(GovTalkXmlDocument.NameTable());
+        XmlNamespaceManager.AddNamespace('Tax', TaxNameSpaceTxt);
+        GovTalkXmlDocument.SelectSingleNode('//Tax:IRmark', XmlNamespaceManager, IRMarkXmlNode);
+        CorrectIRMark := IRMarkXmlNode.AsXmlElement().InnerText();
 
         // [THEN] The calculated IRMark should be equal to the correct IRMark that exists in the document already.
-        Assert.AreEqual(CorrectIRMark, HMRCSubmissionHelpers.CreateIRMark(XMLDocument, GovTalkNameSpaceTxt, TaxNameSpaceTxt),
+        Assert.AreEqual(CorrectIRMark, HMRCSubmissionHelpers.CreateIRMark(GovTalkXmlDocument, GovTalkNameSpaceTxt, TaxNameSpaceTxt),
           'IRMark is not correct');
     end;
 
