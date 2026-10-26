@@ -30,7 +30,7 @@ Order response messages are stored in `E-Document Message` records and shown on 
 
 - Fields 42-44 (`Structure Data Impl.`, `Read into Draft Impl.`, `Process Draft Impl.`) are enum-based strategy selectors for the import processing pipeline, allowing different implementations per document. `E-Document Type` now routes Purchase Credit Memo and Sales Order to finish-draft implementations in addition to Purchase Invoice.
 
-- PEPPOL basic-info parsing sets `Order No.` from `OrderReference` for both purchase invoices and purchase credit memos before full draft processing. Credit memo finish draft also keeps apply-to references: `EDocCreatePurchCrMemo` copies the purchase order reference to `Vendor Order No.` and can resolve the apply-to invoice either from `Applies-to Doc. No.` or from the external invoice number.
+- PEPPOL basic-info parsing sets `Order No.` from `OrderReference` for both purchase invoices and purchase credit memos before full draft processing. Credit memo finish draft also keeps apply-to references: `EDocCreatePurchCrMemo` copies the purchase order reference to `Vendor Order No.` and applies the credit memo only to the invoice in `Applies-to Doc. No.` on the reviewed draft, after checking it is still the only open match.
 
 - Inbound page actions that continue processing (`Analyze PDF`, `Prepare Draft`, and `Open draft document`) call `ThrowIfHasErrors` after running import steps, so processing errors are surfaced to the user instead of only changing status.
 
