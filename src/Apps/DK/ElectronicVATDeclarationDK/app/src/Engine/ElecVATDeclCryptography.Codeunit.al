@@ -2,14 +2,12 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Security.Encryption;
 using System.Telemetry;
-using System.Xml;
 
 codeunit 13607 "Elec. VAT Decl. Cryptography"
 {
     Access = Internal;
 
     var
-        XMLDomManagement: Codeunit "XML DOM Management";
         ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureNameTxt: Label 'Electronic VAT Declaration DK', Locked = true;
@@ -45,7 +43,7 @@ codeunit 13607 "Elec. VAT Decl. Cryptography"
         SignedXml.ComputeSignature();
         SignatureXmlElement := SignedXml.GetXml();
         SignedXmlDocument := InputXmlDocument;
-        XMLDOMManagement.FindNodeWithNamespace(SignedXmlDocument.AsXmlNode(), SecurityXPathTok, 'wsse', ElecVATDeclXml.GetWsseNamespace(), SecurityXmlNode);
+        ElecVATDeclXml.FindNodeWithNamespace(SignedXmlDocument.AsXmlNode(), SecurityXPathTok, 'wsse', ElecVATDeclXml.GetWsseNamespace(), SecurityXmlNode);
         SecurityXmlNode.AsXmlElement().Add(SignatureXmlElement);
     end;
 
@@ -116,10 +114,10 @@ codeunit 13607 "Elec. VAT Decl. Cryptography"
         RootXmlDocument: XmlDocument;
     begin
         RootXmlDocument := XmlDocument.Create();
-        XMLDOMManagement.AddRootElementWithPrefix(RootXmlDocument, 'SecurityTokenReference', 'wsse', ElecVATDeclXml.GetWsseNamespace(), SecurityTokenReferenceXmlNode);
-        XMLDOMManagement.AddElement(SecurityTokenReferenceXmlNode, 'Reference', '', ElecVATDeclXml.GetWsseNamespace(), ReferenceXmlNode);
-        XMLDOMManagement.AddAttribute(ReferenceXmlNode, 'URI', FormatURI(BinarySecurityTokenId));
-        XMLDOMManagement.AddAttribute(ReferenceXmlNode, 'ValueType', ElecVATDeclXml.GetX509TokenType());
+        ElecVATDeclXml.AddRootElementWithPrefix(RootXmlDocument, 'SecurityTokenReference', 'wsse', ElecVATDeclXml.GetWsseNamespace(), SecurityTokenReferenceXmlNode);
+        ElecVATDeclXml.AddElement(SecurityTokenReferenceXmlNode, 'Reference', '', ElecVATDeclXml.GetWsseNamespace(), ReferenceXmlNode);
+        ElecVATDeclXml.AddAttribute(ReferenceXmlNode, 'URI', FormatURI(BinarySecurityTokenId));
+        ElecVATDeclXml.AddAttribute(ReferenceXmlNode, 'ValueType', ElecVATDeclXml.GetX509TokenType());
         exit(SecurityTokenReferenceXmlNode.AsXmlElement());
     end;
 

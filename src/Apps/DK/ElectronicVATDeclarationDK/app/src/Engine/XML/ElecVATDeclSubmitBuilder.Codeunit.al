@@ -1,13 +1,10 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
-using System.Xml;
-
 codeunit 13616 "Elec. VAT Decl. Submit Builder" implements "Elec. VAT Decl. Payload Builder"
 {
     Access = Internal;
 
     var
-        XMLDomManagement: Codeunit "XML DOM Management";
         ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
         VATReportErrNotFoundErr: Label 'VAT Report Header No. %1 does not exist', Comment = '%1 = VAT Report Header Number.';
 
@@ -33,39 +30,39 @@ codeunit 13616 "Elec. VAT Decl. Submit Builder" implements "Elec. VAT Decl. Payl
         // Body
         Body := XmlElement.Create('Body', ElecVATDeclXml.GetSoapNamespace()).AsXmlNode();
         BodyTokenId := ElecVATDeclXml.GetBodyIdTok();
-        XMLDomManagement.AddAttribute(Body, 'Id', BodyTokenId);
+        ElecVATDeclXml.AddAttribute(Body, 'Id', BodyTokenId);
         ReferenceList.Add(BodyTokenId);
 
-        XMLDomManagement.AddNamespaceDeclaration(Body, 'ns1', ElecVATDeclXml.GetSkatNamespace1());
-        XMLDomManagement.AddNamespaceDeclaration(Body, 'ns2', ElecVATDeclXml.GetSkatNamespace2());
-        XMLDomManagement.AddNamespaceDeclaration(Body, 'ns3', ElecVATDeclXml.GetSkatNamespace3());
-        XMLDomManagement.AddNamespaceDeclaration(Body, 'ns4', ElecVATDeclXml.GetSkatNamespace4());
+        ElecVATDeclXml.AddNamespaceDeclaration(Body, 'ns1', ElecVATDeclXml.GetSkatNamespace1());
+        ElecVATDeclXml.AddNamespaceDeclaration(Body, 'ns2', ElecVATDeclXml.GetSkatNamespace2());
+        ElecVATDeclXml.AddNamespaceDeclaration(Body, 'ns3', ElecVATDeclXml.GetSkatNamespace3());
+        ElecVATDeclXml.AddNamespaceDeclaration(Body, 'ns4', ElecVATDeclXml.GetSkatNamespace4());
         // -ModtagMomsangivelseForeloebig_I
-        XMLDomManagement.AddElement(Body, 'ModtagMomsangivelseForeloebig_I', '', ElecVATDeclXml.GetSkatNamespace1(), ModtagMomsangivelseForeloebig_I);
+        ElecVATDeclXml.AddElement(Body, 'ModtagMomsangivelseForeloebig_I', '', ElecVATDeclXml.GetSkatNamespace1(), ModtagMomsangivelseForeloebig_I);
         // --HovedOplysninger
-        XMLDomManagement.AddElement(ModtagMomsangivelseForeloebig_I, 'HovedOplysninger', '', ElecVATDeclXml.GetSkatNamespace2(), HovedOplysninger);
+        ElecVATDeclXml.AddElement(ModtagMomsangivelseForeloebig_I, 'HovedOplysninger', '', ElecVATDeclXml.GetSkatNamespace2(), HovedOplysninger);
         // ---TransaktionIdentifikator
         TransactionID := ElecVATDeclXml.GetTransactionID();
-        XMLDomManagement.AddElement(HovedOplysninger, 'TransaktionIdentifikator', TransactionID, ElecVATDeclXml.GetSkatNamespace2(), TransaktionIdentifikator);
+        ElecVATDeclXml.AddElement(HovedOplysninger, 'TransaktionIdentifikator', TransactionID, ElecVATDeclXml.GetSkatNamespace2(), TransaktionIdentifikator);
         // ---TransaktionTid
-        XMLDomManagement.AddElement(HovedOplysninger, 'TransaktionTid', ElecVATDeclXml.GetTimeStamp(0), ElecVATDeclXml.GetSkatNamespace2(), TransaktionTid);
+        ElecVATDeclXml.AddElement(HovedOplysninger, 'TransaktionTid', ElecVATDeclXml.GetTimeStamp(0), ElecVATDeclXml.GetSkatNamespace2(), TransaktionTid);
         // --HovedOplysninger end
         // --Angivelse
-        XMLDomManagement.AddElement(ModtagMomsangivelseForeloebig_I, 'Angivelse', '', ElecVATDeclXml.GetSkatNamespace1(), Angivelse);
+        ElecVATDeclXml.AddElement(ModtagMomsangivelseForeloebig_I, 'Angivelse', '', ElecVATDeclXml.GetSkatNamespace1(), Angivelse);
         // ---AngiverVirksomhedSENummer
-        XMLDomManagement.AddElement(Angivelse, 'AngiverVirksomhedSENummer', '', ElecVATDeclXml.GetSkatNamespace1(), AngiverVirksomhedSENummer);
+        ElecVATDeclXml.AddElement(Angivelse, 'AngiverVirksomhedSENummer', '', ElecVATDeclXml.GetSkatNamespace1(), AngiverVirksomhedSENummer);
         // ----VirksomhedSENummerIdentifikator start-end
-        XMLDomManagement.AddElement(AngiverVirksomhedSENummer, 'VirksomhedSENummerIdentifikator', ElecVATDeclXml.GetCompanyID(), ElecVATDeclXml.GetSkatNamespace3(), VirksomhedSENummerIdentifikator);
+        ElecVATDeclXml.AddElement(AngiverVirksomhedSENummer, 'VirksomhedSENummerIdentifikator', ElecVATDeclXml.GetCompanyID(), ElecVATDeclXml.GetSkatNamespace3(), VirksomhedSENummerIdentifikator);
         // ---AngiverVirksomhedSENummer end
         // ---Angivelsesoplysninger
-        XMLDomManagement.AddElement(Angivelse, 'Angivelsesoplysninger', '', ElecVATDeclXml.GetSkatNamespace1(), Angivelsesoplysninger);
+        ElecVATDeclXml.AddElement(Angivelse, 'Angivelsesoplysninger', '', ElecVATDeclXml.GetSkatNamespace1(), Angivelsesoplysninger);
         // ----AngivelsePeriodeFraDato
-        XMLDomManagement.AddElement(Angivelsesoplysninger, 'AngivelsePeriodeFraDato', ElecVATDeclXml.Date_AsXMLText(VATReportHeader."Start Date"), ElecVATDeclXml.GetSkatNamespace4(), AngivelsePeriodeFraDato);
+        ElecVATDeclXml.AddElement(Angivelsesoplysninger, 'AngivelsePeriodeFraDato', ElecVATDeclXml.Date_AsXMLText(VATReportHeader."Start Date"), ElecVATDeclXml.GetSkatNamespace4(), AngivelsePeriodeFraDato);
         // ----AngivelsePeriodeTilDato
-        XMLDomManagement.AddElement(Angivelsesoplysninger, 'AngivelsePeriodeTilDato', ElecVATDeclXml.Date_AsXMLText(VATReportHeader."End Date"), ElecVATDeclXml.GetSkatNamespace4(), AngivelsePeriodeTilDato);
+        ElecVATDeclXml.AddElement(Angivelsesoplysninger, 'AngivelsePeriodeTilDato', ElecVATDeclXml.Date_AsXMLText(VATReportHeader."End Date"), ElecVATDeclXml.GetSkatNamespace4(), AngivelsePeriodeTilDato);
         // ---Angivelsesoplysninger end
         // ---Angivelsesafgifter
-        XMLDomManagement.AddElement(Angivelse, 'Angivelsesafgifter', '', ElecVATDeclXml.GetSkatNamespace1(), Angivelsesafgifter);
+        ElecVATDeclXml.AddElement(Angivelse, 'Angivelsesafgifter', '', ElecVATDeclXml.GetSkatNamespace1(), Angivelsesafgifter);
         FillDataRows(VATReportHeader, Angivelsesafgifter);
         // ---Angivelsesafgifter end
         // --Angivelse end
@@ -92,7 +89,7 @@ codeunit 13616 "Elec. VAT Decl. Submit Builder" implements "Elec. VAT Decl. Payl
                 RowAmount := RowData.Get(RowNoText)
             else
                 RowAmount := 0;
-            XMLDomManagement.AddElement(ParentNode, NodeName, Format(Round(RowAmount, 1), 0, 9), ElecVATDeclXml.GetSkatNamespace4(), RowNode);
+            ElecVATDeclXml.AddElement(ParentNode, NodeName, Format(Round(RowAmount, 1), 0, 9), ElecVATDeclXml.GetSkatNamespace4(), RowNode);
         end;
     end;
 
