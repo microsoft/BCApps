@@ -56,7 +56,6 @@ codeunit 333 "Req. Wksh.-Make Order"
         Text008: Label 'The combination of dimensions used in %1 %2, %3, %4 is blocked. %5', Comment = '%1 = table caption, %2 = worksheet template name, %3 = journal batch name, %4 = number of line, %5 = error of dimension combination';
         Text009: Label 'A dimension used in %1 %2, %3, %4 has caused an error. %5', Comment = '%1 = table caption, %2 = worksheet template name, %3 = journal batch name, %4 = number of line, %5 = error of dimension posting value';
 #pragma warning restore AA0074
-        ReservEntry: Record "Reservation Entry";
         PurchSetup: Record "Purchases & Payables Setup";
         ReqTemplate: Record "Req. Wksh. Template";
         ReqWkshName: Record "Requisition Wksh. Name";
@@ -444,6 +443,7 @@ codeunit 333 "Req. Wksh.-Make Order"
     local procedure CarryOutReqLineAction(var ReqLine: Record "Requisition Line")
     var
         CarryOutAction: Codeunit "Carry Out Action";
+        IsAppendedToPurchaseOrderTarget: Boolean;
         Failed: Boolean;
         IsHandled: Boolean;
     begin
@@ -535,6 +535,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                                 OrderCounter := OrderCounter + 1;
                                 OrderLineCounter := OrderLineCounter + 1;
                                 LineCount := 0;
+                                IsAppendedToPurchaseOrderTarget := ReqLine.HasPurchaseOrderTarget();
                             end;
                         end;
                 end;
@@ -543,6 +544,16 @@ codeunit 333 "Req. Wksh.-Make Order"
         end;
 
         OnAfterCarryOutReqLineAction(ReqLine, PurchOrderHeader, SuppressCommit, OrderCounter, LineCount);
+
+        if IsAppendedToPurchaseOrderTarget then
+            DeletePurchaseOrderTargetRequisitionLine(ReqLine);
+    end;
+
+    local procedure DeletePurchaseOrderTargetRequisitionLine(RequisitionLine: Record "Requisition Line")
+    begin
+        RequisitionLine.BlockDynamicTracking(true);
+        DeleteCarriedOutRequisitionLine(RequisitionLine);
+        RequisitionLine.BlockDynamicTracking(false);
     end;
 
     local procedure TryCarryOutReqLineAction(var ReqLine: Record "Requisition Line"): Boolean
@@ -702,7 +713,6 @@ codeunit 333 "Req. Wksh.-Make Order"
             exit;
         if (ReqLine2."No." = '') or (ReqLine2."Vendor No." = '') or (ReqLine2.Quantity = 0) then
             exit;
-
         if not PurchasingCode.Get(ReqLine2."Purchasing Code") then
             PurchasingCode."Special Order" := false;
         if ReqLine2.HasPurchaseOrderTarget() then begin
@@ -741,6 +751,8 @@ codeunit 333 "Req. Wksh.-Make Order"
             then
                 InsertHeader(ReqLine2);
         end;
+        PrevPurchCode := ReqLine2."Purchasing Code";
+        PrevShipToCode := ReqLine2."Ship-to Code";
 
         OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader(ReqLine2, PurchOrderHeader, NextLineNo);
 
@@ -1062,19 +1074,11 @@ codeunit 333 "Req. Wksh.-Make Order"
             if not IsHandled then
                 if ReqLine2.FindSet() then begin
                     ReqLine2.BlockDynamicTracking(true);
-                    ReservEntry.SetCurrentKey(
-                        "Source ID", "Source Ref. No.", "Source Type", "Source Subtype", "Source Batch Name", "Source Prod. Order Line");
                     repeat
                         if not ReqLine2.HasPurchaseOrderTarget() and PurchaseOrderLineMatchReqLine(ReqLine2) then begin
                             TempFailedReqLine := ReqLine2;
-                            if not TempFailedReqLine.Find() then begin
-                                ReqLine2.SetReservationFilters(ReservEntry);
-                                ReservEntry.DeleteAll(true);
-                                IsHandled := false;
-                                OnFinalizeOrderHeaderOnBeforeReqLine2Delete(ReqLine2, IsHandled);
-                                if not IsHandled then
-                                    ReqLine2.Delete(true);
-                            end;
+                            if not TempFailedReqLine.Find() then
+                                DeleteCarriedOutRequisitionLine(ReqLine2);
                         end;
                     until ReqLine2.Next() = 0;
                 end;
@@ -1094,6 +1098,21 @@ codeunit 333 "Req. Wksh.-Make Order"
                     end;
 
         OnAfterFinalizeOrderHeaderProcedure(PurchOrderHeader, ReqLine);
+    end;
+
+    local procedure DeleteCarriedOutRequisitionLine(var RequisitionLine: Record "Requisition Line")
+    var
+        ReservationEntry: Record "Reservation Entry";
+        IsHandled: Boolean;
+    begin
+        ReservationEntry.SetCurrentKey(
+            "Source ID", "Source Ref. No.", "Source Type", "Source Subtype", "Source Batch Name", "Source Prod. Order Line");
+        RequisitionLine.SetReservationFilters(ReservationEntry);
+        ReservationEntry.DeleteAll(true);
+        IsHandled := false;
+        OnFinalizeOrderHeaderOnBeforeReqLine2Delete(RequisitionLine, IsHandled);
+        if not IsHandled then
+            RequisitionLine.Delete(true);
     end;
 
     procedure CheckRecurringReqLine(var ReqLine2: Record "Requisition Line")

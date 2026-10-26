@@ -735,6 +735,7 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         "Dimension Set ID" := DimensionManagement.GetCombinedDimensionSetID(
             DimensionSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
+
     procedure ValidateProdOrderOnReqLine(var ReqLine: Record "Requisition Line")
     var
         Item: Record Item;
