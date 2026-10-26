@@ -425,6 +425,201 @@ codeunit 145403 "AU Feature Bugs"
         SetEnableGSTAustralia(OldEnableGSTAustralia);
     end;
 
+    [Test]
+    procedure PurchaseInvoiceVendorACYOnlyVATCorrectionIsPosted()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        DocumentNo: Code[20];
+        OldAdditionalReportingCurrency: Code[10];
+        OldEnableGSTAustralia: Boolean;
+        OldEnableVendorGSTAmountACY: Boolean;
+    begin
+        // [FEATURE] [GST] [Purchase] [ACY]
+        // [SCENARIO 650979] A manual correction of VAT Amount (ACY) that leaves the LCY VAT unchanged is posted with the vendor exchange rate.
+
+        // [GIVEN] GST (Australia), an Additional Reporting Currency and Vendor GST Amount (ACY) are enabled
+        OldEnableGSTAustralia := SetEnableGSTAustralia(true);
+        OldAdditionalReportingCurrency := SetAdditionalReportingCurrency(CreateCurrencyWithACYExchangeRate());
+        OldEnableVendorGSTAmountACY := SetEnableVendorGSTAmountACY(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+          VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 15);
+
+        // [GIVEN] A Purchase Invoice in LCY with Vendor Exchange Rate (ACY) 2, base 100 and VAT 15
+        CreatePurchaseInvoiceWithVendorExchangeRateACY(PurchaseHeader, VATPostingSetup, 2, 0);
+
+        // [GIVEN] VAT Amount (ACY) is changed from 30.00 to 30.02 in the VAT specification
+        AdjustVATAmountACYOnPurchaseDocument(PurchaseHeader, 0.02);
+
+        // [WHEN] The Purchase Invoice is posted
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The VAT entry has Base 100, Amount 15, ACY Amount 30.02 and ACY VAT Difference 0.02
+        VerifyACYOnlyVATCorrectionPostedOnce(DocumentNo, 30.02, 100, 15, 30.02, 0.02);
+
+        // Tear down
+        SetEnableVendorGSTAmountACY(OldEnableVendorGSTAmountACY);
+        SetAdditionalReportingCurrency(OldAdditionalReportingCurrency);
+        SetEnableGSTAustralia(OldEnableGSTAustralia);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceWithDiscountsVendorACYOnlyVATCorrectionIsPostedOnce()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
+        DocumentNo: Code[20];
+        OldAdditionalReportingCurrency: Code[10];
+        OldEnableGSTAustralia: Boolean;
+        OldEnableVendorGSTAmountACY: Boolean;
+        OldDiscountPosting: Option;
+    begin
+        // [FEATURE] [GST] [Purchase] [ACY] [Discount]
+        // [SCENARIO 650979] A manual VAT Amount (ACY) correction on a discounted invoice is posted once, on the purchase account entry only.
+
+        // [GIVEN] GST (Australia), an Additional Reporting Currency and Vendor GST Amount (ACY) are enabled, all discounts are posted
+        OldEnableGSTAustralia := SetEnableGSTAustralia(true);
+        OldAdditionalReportingCurrency := SetAdditionalReportingCurrency(CreateCurrencyWithACYExchangeRate());
+        OldEnableVendorGSTAmountACY := SetEnableVendorGSTAmountACY(true);
+        OldDiscountPosting := SetPurchDiscountPosting(PurchasesPayablesSetup."Discount Posting"::"All Discounts");
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+          VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 15);
+
+        // [GIVEN] A Purchase Invoice in LCY with Vendor Exchange Rate (ACY) 2, line amount 100, 5% line discount and invoice discount 10
+        CreatePurchaseInvoiceWithVendorExchangeRateACY(PurchaseHeader, VATPostingSetup, 2, 5);
+        PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(10, PurchaseHeader);
+
+        // [GIVEN] VAT Amount (ACY) is changed from 25.50 to 25.52 in the VAT specification
+        AdjustVATAmountACYOnPurchaseDocument(PurchaseHeader, 0.02);
+
+        // [WHEN] The Purchase Invoice is posted
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Purchase account entry has ACY Amount 30.02; all entries total Base 85, Amount 12.75, ACY Amount 25.52 and ACY VAT Difference 0.02
+        VerifyACYOnlyVATCorrectionPostedOnce(DocumentNo, 30.02, 85, 12.75, 25.52, 0.02);
+
+        // Tear down
+        SetPurchDiscountPosting(OldDiscountPosting);
+        SetEnableVendorGSTAmountACY(OldEnableVendorGSTAmountACY);
+        SetAdditionalReportingCurrency(OldAdditionalReportingCurrency);
+        SetEnableGSTAustralia(OldEnableGSTAustralia);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceWithLineDiscountACYOnlyVATCorrectionIsPostedOnce()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        DocumentNo: Code[20];
+        OldAdditionalReportingCurrency: Code[10];
+        OldEnableGSTAustralia: Boolean;
+        OldDiscountPosting: Option;
+    begin
+        // [FEATURE] [GST] [Purchase] [ACY] [Discount]
+        // [SCENARIO 650979] Without a vendor exchange rate, a manual VAT Amount (ACY) correction on a discounted invoice is posted once.
+
+        // [GIVEN] GST (Australia) and an Additional Reporting Currency (100 = 189.1478 LCY) are enabled, line discounts are posted
+        OldEnableGSTAustralia := SetEnableGSTAustralia(true);
+        OldAdditionalReportingCurrency := SetAdditionalReportingCurrency(CreateCurrencyWithACYExchangeRate());
+        OldDiscountPosting := SetPurchDiscountPosting(PurchasesPayablesSetup."Discount Posting"::"Line Discounts");
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+          VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 15);
+
+        // [GIVEN] A Purchase Invoice in LCY with line amount 100 and a 5% line discount
+        CreatePurchaseInvoiceWithVendorExchangeRateACY(PurchaseHeader, VATPostingSetup, 0, 5);
+
+        // [GIVEN] VAT Amount (ACY) is increased by 0.02 in the VAT specification
+        AdjustVATAmountACYOnPurchaseDocument(PurchaseHeader, 0.02);
+
+        // [WHEN] The Purchase Invoice is posted
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Purchase account entry has ACY Amount 7.93 + 0.02; discount entry keeps -0.40, so the total ACY Amount is 7.55
+        VerifyACYOnlyVATCorrectionPostedOnce(DocumentNo, 7.95, 95, 14.25, 7.55, 0.02);
+
+        // Tear down
+        SetPurchDiscountPosting(OldDiscountPosting);
+        SetAdditionalReportingCurrency(OldAdditionalReportingCurrency);
+        SetEnableGSTAustralia(OldEnableGSTAustralia);
+    end;
+
+    local procedure SetEnableVendorGSTAmountACY(NewEnableVendorGSTAmountACY: Boolean) OldEnableVendorGSTAmountACY: Boolean
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        OldEnableVendorGSTAmountACY := PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)";
+        PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := NewEnableVendorGSTAmountACY;
+        PurchasesPayablesSetup.Modify();
+    end;
+
+    local procedure SetPurchDiscountPosting(NewDiscountPosting: Option) OldDiscountPosting: Option
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        OldDiscountPosting := PurchasesPayablesSetup."Discount Posting";
+        PurchasesPayablesSetup."Discount Posting" := NewDiscountPosting;
+        PurchasesPayablesSetup.Modify();
+    end;
+
+    local procedure CreatePurchaseInvoiceWithVendorExchangeRateACY(var PurchaseHeader: Record "Purchase Header"; VATPostingSetup: Record "VAT Posting Setup"; VendorExchangeRateACY: Decimal; LineDiscountPct: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Invoice, CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.TestField("Currency Code", '');
+        PurchaseHeader."Vendor Exchange Rate (ACY)" := VendorExchangeRateACY;
+        PurchaseHeader.Modify();
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group", 0), 1);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Validate("Line Discount %", LineDiscountPct);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure AdjustVATAmountACYOnPurchaseDocument(var PurchaseHeader: Record "Purchase Header"; ACYVATDifference: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+    begin
+        // Mirrors editing VAT Amount (ACY) on the VAT specification of the purchase statistics
+        PurchaseLine.CalcVATAmountLines(0, PurchaseHeader, PurchaseLine, TempVATAmountLine);
+        TempVATAmountLine.FindFirst();
+        TempVATAmountLine.Validate("VAT Amount (ACY)", TempVATAmountLine."VAT Amount (ACY)" + ACYVATDifference);
+        TempVATAmountLine.Modified := true;
+        TempVATAmountLine.Modify();
+        PurchaseLine.UpdateVATOnLines(0, PurchaseHeader, PurchaseLine, TempVATAmountLine);
+        PurchaseLine.UpdateVATOnLines(1, PurchaseHeader, PurchaseLine, TempVATAmountLine);
+    end;
+
+    local procedure VerifyACYOnlyVATCorrectionPostedOnce(DocumentNo: Code[20]; MainACYAmount: Decimal; TotalBase: Decimal; TotalAmount: Decimal; TotalACYAmount: Decimal; ACYVATDifference: Decimal)
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.CalcSums(Base, Amount, "Additional-Currency Amount", "VAT Difference", "Add.-Curr. VAT Difference");
+        Assert.AreEqual(TotalBase, VATEntry.Base, VATEntry.FieldCaption(Base));
+        Assert.AreEqual(TotalAmount, VATEntry.Amount, VATEntry.FieldCaption(Amount));
+        Assert.AreEqual(TotalACYAmount, VATEntry."Additional-Currency Amount", ACYAmountErr);
+        Assert.AreEqual(0, VATEntry."VAT Difference", VATEntry.FieldCaption("VAT Difference"));
+        Assert.AreEqual(ACYVATDifference, VATEntry."Add.-Curr. VAT Difference", VATEntry.FieldCaption("Add.-Curr. VAT Difference"));
+
+        VATEntry.SetRange(Base, 100);
+        VATEntry.FindFirst();
+        Assert.AreEqual(MainACYAmount, VATEntry."Additional-Currency Amount", ACYAmountErr);
+        Assert.AreEqual(ACYVATDifference, VATEntry."Add.-Curr. VAT Difference", VATEntry.FieldCaption("Add.-Curr. VAT Difference"));
+
+        VATEntry.SetRange(Base);
+        VATEntry.SetFilter("Add.-Curr. VAT Difference", '<>0');
+        Assert.RecordCount(VATEntry, 1);
+    end;
+
     local procedure SetEnableGSTAustralia(NewEnableGSTAustralia: Boolean) OldEnableGSTAustralia: Boolean
     var
         GeneralLedgerSetup: Record "General Ledger Setup";

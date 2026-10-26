@@ -152,6 +152,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPrepareLineOnBeforePreparePurchase(PurchHeader, PurchLine, GenPostingSetup);
         PrepareInvoicePostingBuffer(PurchLine, InvoicePostingBuffer);
+        InvoicePostingBuffer."VAT Difference (ACY)" := 0;
 
         InitTotalAmounts(
             PurchLine, PurchLineACY, TotalVAT, TotalVATACY, TotalAmount, TotalAmountACY,
@@ -280,6 +281,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
               PurchLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, PurchLine."Inv. Discount Amount" + PurchLine."Line Discount Amount", PurchLineACY."Inv. Discount Amount" + PurchLineACY."Line Discount Amount");
 
+        InvoicePostingBuffer."VAT Difference (ACY)" := PurchLine."VAT Difference (ACY)";
         IsHandled := false;
         PurchPostInvoiceEvents.RunOnPrepareLineOnBeforeSetAmounts(
             PurchLine, PurchLineACY, InvoicePostingBuffer,
@@ -653,8 +655,10 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                 SetVendorExchangeRateACYAmounts(PurchHeader, InvoicePostingBuffer, GenJnlLine)
             else begin
                 GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
-                GenJnlLine."VAT Amount (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount");
-                GenJnlLine."VAT Difference (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference");
+                GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
+                GenJnlLine."VAT Amount (ACY)" :=
+                    VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount" - InvoicePostingBuffer."VAT Difference") +
+                    GenJnlLine."VAT Difference (ACY)";
                 GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
             end;
         PurchPostInvoiceEvents.RunOnPrepareGenJnlLineOnAfterCopyToGenJnlLine(GenJnlLine, PurchHeader, InvoicePostingBuffer);
@@ -1030,7 +1034,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         Factor := CurrExchRate.ExchangeRateFactorFRS21(GenJnlLine."Posting Date", ACYCurrency.Code, PurchHeader."Vendor Exchange Rate (ACY)");
         AmountACY := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer.Amount, Factor);
         GenJnlLine."VAT Base (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount", Factor);
-        GenJnlLine."VAT Difference (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference", Factor);
+        GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
         GenJnlLine."Amount Including VAT (ACY)" :=
             Round(
                 AmountACY + GenJnlLine."VAT Base (ACY)" * InvoicePostingBuffer."VAT %" / 100,
