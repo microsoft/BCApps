@@ -107,7 +107,6 @@ codeunit 31031 "SOAP WS Request Management CZL"
 
     local procedure CreateEnvelope(var EnvelopeXmlDocument: XmlDocument; var BodyXmlNode: XmlNode; Username: Text; Password: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         EnvelopeXmlNode: XmlNode;
         HeaderXmlNode: XmlNode;
         SecurityXmlNode: XmlNode;
@@ -116,25 +115,25 @@ codeunit 31031 "SOAP WS Request Management CZL"
         PasswordXmlNode: XmlNode;
     begin
         EnvelopeXmlDocument := XmlDocument.Create();
-        XMLDOMManagement.AddRootElementWithPrefix(EnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
+        AddRootElementWithPrefix(EnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
+        AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
 
         if (Username <> '') or (Password <> '') then begin
-            XMLDOMManagement.AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
-            XMLDOMManagement.AddNamespaceDeclaration(SecurityXmlNode, 'wsu', SecurityUtilityNamespaceTxt);
-            XMLDOMManagement.AddAttributeWithPrefix(SecurityXmlNode, 'mustUnderstand', 'soap', SoapNamespaceTxt, '1');
+            AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
+            AddNamespaceDeclaration(SecurityXmlNode, 'wsu', SecurityUtilityNamespaceTxt);
+            AddAttributeWithPrefix(SecurityXmlNode, 'mustUnderstand', 'soap', SoapNamespaceTxt, '1');
 
-            XMLDOMManagement.AddElementWithPrefix(SecurityXmlNode, 'UsernameToken', '', 'wsse', SecurityExtensionNamespaceTxt, UsernameTokenXmlNode);
-            XMLDOMManagement.AddAttributeWithPrefix(UsernameTokenXmlNode, 'Id', 'wsu', SecurityUtilityNamespaceTxt, CreateUUID());
+            AddElementWithPrefix(SecurityXmlNode, 'UsernameToken', '', 'wsse', SecurityExtensionNamespaceTxt, UsernameTokenXmlNode);
+            AddAttributeWithPrefix(UsernameTokenXmlNode, 'Id', 'wsu', SecurityUtilityNamespaceTxt, CreateUUID());
 
-            XMLDOMManagement.AddElementWithPrefix(UsernameTokenXmlNode, 'Username', Username, 'wsse', SecurityExtensionNamespaceTxt, UsernameXmlNode);
-            XMLDOMManagement.AddElementWithPrefix(UsernameTokenXmlNode, 'Password', Password, 'wsse', SecurityExtensionNamespaceTxt, PasswordXmlNode);
-            XMLDOMManagement.AddAttribute(PasswordXmlNode, 'Type', UsernameTokenNamepsaceTxt);
+            AddElementWithPrefix(UsernameTokenXmlNode, 'Username', Username, 'wsse', SecurityExtensionNamespaceTxt, UsernameXmlNode);
+            AddElementWithPrefix(UsernameTokenXmlNode, 'Password', Password, 'wsse', SecurityExtensionNamespaceTxt, PasswordXmlNode);
+            PasswordXmlNode.AsXmlElement().SetAttribute('Type', UsernameTokenNamepsaceTxt);
         end;
 
-        XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Body', '', 'soap', SoapNamespaceTxt, BodyXmlNode);
-        XMLDOMManagement.AddNamespaceDeclaration(BodyXmlNode, 'xsi', SchemaInstanceNamespaceTxt);
-        XMLDOMManagement.AddNamespaceDeclaration(BodyXmlNode, 'xsd', SchemaNamespaceTxt);
+        AddElementWithPrefix(EnvelopeXmlNode, 'Body', '', 'soap', SoapNamespaceTxt, BodyXmlNode);
+        AddNamespaceDeclaration(BodyXmlNode, 'xsi', SchemaInstanceNamespaceTxt);
+        AddNamespaceDeclaration(BodyXmlNode, 'xsd', SchemaNamespaceTxt);
     end;
 
     local procedure CreateUUID(): Text
@@ -183,12 +182,50 @@ codeunit 31031 "SOAP WS Request Management CZL"
 
     local procedure HasEnvelope(ContentXmlDocument: XmlDocument): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ContentXmlElement: XmlElement;
         EnvelopeXmlNode: XmlNode;
     begin
         ContentXmlDocument.GetRoot(ContentXmlElement);
-        exit(XMLDOMManagement.FindNodeWithNamespace(ContentXmlElement.AsXmlNode(), EnvelopePathTxt, 'soap', SoapNamespaceTxt, EnvelopeXmlNode));
+        exit(FindNodeWithNamespace(ContentXmlElement.AsXmlNode(), EnvelopePathTxt, 'soap', SoapNamespaceTxt, EnvelopeXmlNode));
+    end;
+
+    local procedure AddRootElementWithPrefix(var RootXmlDocument: XmlDocument; NodeName: Text; Prefix: Text; Namespace: Text; var CreatedXmlNode: XmlNode): Boolean
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace).AsXmlNode();
+        CreatedXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace));
+        exit(RootXmlDocument.Add(CreatedXmlNode));
+    end;
+
+    local procedure AddElementWithPrefix(var ParentXmlNode: XmlNode; NodeName: Text; NodeText: Text; Prefix: Text; Namespace: Text; var CreatedXmlNode: XmlNode): Boolean
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace, NodeText).AsXmlNode();
+        CreatedXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace));
+        exit(ParentXmlNode.AsXmlElement().Add(CreatedXmlNode));
+    end;
+
+    local procedure AddAttributeWithPrefix(var ParentXmlNode: XmlNode; Name: Text; Prefix: Text; Namespace: Text; NodeValue: Text): Boolean
+    begin
+        exit(ParentXmlNode.AsXmlElement().Add(XmlAttribute.Create(Name, Namespace, NodeValue), XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace)));
+    end;
+
+    local procedure AddNamespaceDeclaration(var ParentXmlNode: XmlNode; Prefix: Text; Namespace: Text): Boolean
+    begin
+        exit(ParentXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace)));
+    end;
+
+    local procedure FindNodeWithNamespace(RootXmlNode: XmlNode; NodePath: Text; Prefix: Text; Namespace: Text; var FoundXmlNode: XmlNode): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+        RootXmlDocument: XmlDocument;
+    begin
+        if RootXmlNode.IsXmlDocument() then
+            XmlNamespaceManager.NameTable(RootXmlNode.AsXmlDocument().NameTable())
+        else begin
+            RootXmlNode.GetDocument(RootXmlDocument);
+            XmlNamespaceManager.NameTable(RootXmlDocument.NameTable());
+        end;
+        XmlNamespaceManager.AddNamespace(Prefix, Namespace);
+        exit(RootXmlNode.SelectSingleNode(NodePath, XmlNamespaceManager, FoundXmlNode));
     end;
 
     procedure GetResponseAsText(): Text

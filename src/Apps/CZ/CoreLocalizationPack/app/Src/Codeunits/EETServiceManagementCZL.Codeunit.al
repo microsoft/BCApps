@@ -112,7 +112,6 @@ codeunit 31116 "EET Service Management CZL"
     local procedure CreateXmlDocument(EETEntryCZL: Record "EET Entry CZL"; var RequestXmlDocument: XmlDocument)
     var
         CompanyInformation: Record "Company Information";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         SalesXmlNode: XmlNode;
         HeaderXmlNode: XmlNode;
         DataXmlNode: XmlNode;
@@ -126,13 +125,13 @@ codeunit 31116 "EET Service Management CZL"
         SecurityCodeEncodingTxt: Label 'base16', Locked = true;
     begin
         RequestXmlDocument := XmlDocument.Create();
-        XMLDOMManagement.AddRootElementWithPrefix(RequestXmlDocument, 'Trzba', EETNamespacePrefixTxt, EETNamespaceTxt, SalesXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(SalesXmlNode, 'Hlavicka', '', EETNamespacePrefixTxt, EETNamespaceTxt, HeaderXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(SalesXmlNode, 'Data', '', EETNamespacePrefixTxt, EETNamespaceTxt, DataXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(SalesXmlNode, 'KontrolniKody', '', EETNamespacePrefixTxt, EETNamespaceTxt, ControlCodesXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(ControlCodesXmlNode, 'pkp',
+        AddRootElementWithPrefix(RequestXmlDocument, 'Trzba', EETNamespacePrefixTxt, EETNamespaceTxt, SalesXmlNode);
+        AddElementWithPrefix(SalesXmlNode, 'Hlavicka', '', EETNamespacePrefixTxt, EETNamespaceTxt, HeaderXmlNode);
+        AddElementWithPrefix(SalesXmlNode, 'Data', '', EETNamespacePrefixTxt, EETNamespaceTxt, DataXmlNode);
+        AddElementWithPrefix(SalesXmlNode, 'KontrolniKody', '', EETNamespacePrefixTxt, EETNamespaceTxt, ControlCodesXmlNode);
+        AddElementWithPrefix(ControlCodesXmlNode, 'pkp',
             EETEntryCZL.GetSignatureCode(), EETNamespacePrefixTxt, EETNamespaceTxt, SignatureCodeXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(ControlCodesXmlNode, 'bkp',
+        AddElementWithPrefix(ControlCodesXmlNode, 'bkp',
             EETEntryCZL."Taxpayer's Security Code", EETNamespacePrefixTxt, EETNamespaceTxt, SecurityCodeXmlNode);
 
         AddAttribute(HeaderXmlNode, 'uuid_zpravy', EETEntryCZL."Message UUID");
@@ -172,23 +171,94 @@ codeunit 31116 "EET Service Management CZL"
     end;
 
     local procedure AddAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text): Boolean
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
     begin
         if (NodeValue = '') or (NodeValue = FormatDecimal(0)) then
             exit(false);
 
-        exit(XMLDOMManagement.AddAttribute(ParentXmlNode, Name, NodeValue));
+        exit(TrySetAttribute(ParentXmlNode, Name, NodeValue));
+    end;
+
+    [TryFunction]
+    local procedure TrySetAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text)
+    begin
+        ParentXmlNode.AsXmlElement().SetAttribute(Name, NodeValue);
     end;
 
     local procedure AddAttributeWithPrefix(var ParentXmlNode: XmlNode; Name: Text; Prefix: Text; Namespace: Text; NodeValue: Text): Boolean
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
     begin
         if (NodeValue = '') or (NodeValue = FormatDecimal(0)) then
             exit(false);
 
-        exit(XMLDOMManagement.AddAttributeWithPrefix(ParentXmlNode, Name, Prefix, Namespace, NodeValue));
+        exit(ParentXmlNode.AsXmlElement().Add(XmlAttribute.Create(Name, Namespace, NodeValue), XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace)));
+    end;
+
+    local procedure AddRootElementWithPrefix(var RootXmlDocument: XmlDocument; NodeName: Text; Prefix: Text; Namespace: Text; var CreatedXmlNode: XmlNode): Boolean
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace).AsXmlNode();
+        CreatedXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace));
+        exit(RootXmlDocument.Add(CreatedXmlNode));
+    end;
+
+    local procedure AddElementWithPrefix(var ParentXmlNode: XmlNode; NodeName: Text; NodeText: Text; Prefix: Text; Namespace: Text; var CreatedXmlNode: XmlNode): Boolean
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace, NodeText).AsXmlNode();
+        CreatedXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace));
+        exit(ParentXmlNode.AsXmlElement().Add(CreatedXmlNode));
+    end;
+
+    local procedure AddNamespaceDeclaration(var ParentXmlNode: XmlNode; Prefix: Text; Namespace: Text): Boolean
+    begin
+        exit(ParentXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration(Prefix, Namespace)));
+    end;
+
+    local procedure FindNodeWithNamespace(RootXmlNode: XmlNode; NodePath: Text; Prefix: Text; Namespace: Text; var FoundXmlNode: XmlNode): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+    begin
+        InitNamespaceManager(RootXmlNode, Prefix, Namespace, XmlNamespaceManager);
+        exit(RootXmlNode.SelectSingleNode(NodePath, XmlNamespaceManager, FoundXmlNode));
+    end;
+
+    local procedure FindNodesWithNamespace(RootXmlNode: XmlNode; XPath: Text; Prefix: Text; Namespace: Text; var FoundXmlNodeList: XmlNodeList): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+    begin
+        InitNamespaceManager(RootXmlNode, Prefix, Namespace, XmlNamespaceManager);
+        if not RootXmlNode.SelectNodes(XPath, XmlNamespaceManager, FoundXmlNodeList) then
+            exit(false);
+        exit(FoundXmlNodeList.Count() <> 0);
+    end;
+
+    local procedure InitNamespaceManager(RootXmlNode: XmlNode; Prefix: Text; Namespace: Text; var XmlNamespaceManager: XmlNamespaceManager)
+    var
+        RootXmlDocument: XmlDocument;
+    begin
+        if RootXmlNode.IsXmlDocument() then
+            XmlNamespaceManager.NameTable(RootXmlNode.AsXmlDocument().NameTable())
+        else begin
+            RootXmlNode.GetDocument(RootXmlDocument);
+            XmlNamespaceManager.NameTable(RootXmlDocument.NameTable());
+        end;
+        XmlNamespaceManager.AddNamespace(Prefix, Namespace);
+    end;
+
+    local procedure GetAttributeValue(ParentXmlNode: XmlNode; AttributeName: Text): Text
+    begin
+        exit(GetAttributeValue(ParentXmlNode, AttributeName, ''));
+    end;
+
+    local procedure GetAttributeValue(ParentXmlNode: XmlNode; AttributeName: Text; Namespace: Text): Text
+    var
+        FoundXmlAttribute: XmlAttribute;
+        IsFound: Boolean;
+    begin
+        if Namespace <> '' then
+            IsFound := ParentXmlNode.AsXmlElement().Attributes().Get(AttributeName, Namespace, FoundXmlAttribute)
+        else
+            IsFound := ParentXmlNode.AsXmlElement().Attributes().Get(AttributeName, FoundXmlAttribute);
+
+        if IsFound then
+            exit(FoundXmlAttribute.Value());
     end;
 
     local procedure CreateSoapRequest(SoapBodyContentXmlDocument: XmlDocument; IsolatedCertificate: Record "Isolated Certificate"; var SoapXmlDocument: XmlDocument)
@@ -204,21 +274,20 @@ codeunit 31116 "EET Service Management CZL"
     local procedure CreateSoapEnvelope(var SoapEnvelopeXmlDocument: XmlDocument; var SoapBodyXmlNode: XmlNode; IsolatedCertificate: Record "Isolated Certificate")
     var
         CertificateManagement: Codeunit "Certificate Management";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         EnvelopeXmlNode: XmlNode;
         HeaderXmlNode: XmlNode;
         SecurityXmlNode: XmlNode;
         BinarySecurityTokenXmlNode: XmlNode;
     begin
         SoapEnvelopeXmlDocument := XmlDocument.Create();
-        XMLDOMManagement.AddRootElementWithPrefix(SoapEnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
+        AddRootElementWithPrefix(SoapEnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
+        AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
 
         if IsolatedCertificate.Code <> '' then begin
-            XMLDOMManagement.AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
+            AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
             AddAttributeWithPrefix(SecurityXmlNode, 'mustUnderstand', 'soap', SoapNamespaceTxt, '1');
-            XMLDOMManagement.AddNamespaceDeclaration(SecurityXmlNode, 'wsu', SecurityUtilityNamespaceTxt);
-            XMLDOMManagement.AddElementWithPrefix(
+            AddNamespaceDeclaration(SecurityXmlNode, 'wsu', SecurityUtilityNamespaceTxt);
+            AddElementWithPrefix(
                 SecurityXmlNode, 'BinarySecurityToken', CertificateManagement.GetRawCertDataAsBase64String(IsolatedCertificate),
                 'wsse', SecurityExtensionNamespaceTxt, BinarySecurityTokenXmlNode);
             AddAttributeWithPrefix(BinarySecurityTokenXmlNode, 'Id', 'wsu', SecurityUtilityNamespaceTxt, CreateXmlElementID());
@@ -226,7 +295,7 @@ codeunit 31116 "EET Service Management CZL"
             AddAttribute(BinarySecurityTokenXmlNode, 'ValueType', SecurityValueTypeX509V3Txt);
         end;
 
-        XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Body', '', 'soap', SoapNamespaceTxt, SoapBodyXmlNode);
+        AddElementWithPrefix(EnvelopeXmlNode, 'Body', '', 'soap', SoapNamespaceTxt, SoapBodyXmlNode);
         AddAttribute(SoapBodyXmlNode, 'Id', CreateXmlElementID());
     end;
 
@@ -244,7 +313,6 @@ codeunit 31116 "EET Service Management CZL"
         DataTempBlob: Codeunit "Temp Blob";
         SignatureTempBlob: Codeunit "Temp Blob";
         EETXmlSignProviderCZL: Codeunit "EET Xml Sign. Provider CZL";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         SignatureXmlDocument: XmlDocument;
         SignatureXmlElement: XmlElement;
         SecurityXmlNode: XmlNode;
@@ -258,13 +326,13 @@ codeunit 31116 "EET Service Management CZL"
         SignatureInStream: InStream;
         SignatureOutStream: OutStream;
     begin
-        XMLDOMManagement.FindNodeWithNamespace(
+        FindNodeWithNamespace(
           InputXmlDocument.AsXmlNode(), BinarySecurityTokenPathTxt, 'wsse', SecurityExtensionNamespaceTxt, BinarySecurityTokenXmlNode);
-        BinarySecurityTokenId := XMLDOMManagement.GetAttributeValue(BinarySecurityTokenXmlNode, 'Id', SecurityUtilityNamespaceTxt);
+        BinarySecurityTokenId := GetAttributeValue(BinarySecurityTokenXmlNode, 'Id', SecurityUtilityNamespaceTxt);
 
-        XMLDOMManagement.FindNodeWithNamespace(
+        FindNodeWithNamespace(
           InputXmlDocument.AsXmlNode(), BodyPathTxt, 'soap', SoapNamespaceTxt, SoapBodyXmlNode);
-        SoapBodyId := XMLDOMManagement.GetAttributeValue(SoapBodyXmlNode, 'Id');
+        SoapBodyId := GetAttributeValue(SoapBodyXmlNode, 'Id');
 
         EETXmlSignProviderCZL.SetSoapBodyId(SoapBodyId);
         EETXmlSignProviderCZL.SetBinarySecurityTokenId(BinarySecurityTokenId);
@@ -281,7 +349,7 @@ codeunit 31116 "EET Service Management CZL"
         SignatureXmlDocument.GetRoot(SignatureXmlElement);
         SignedXmlDocument := InputXmlDocument;
 
-        XMLDOMManagement.FindNodeWithNamespace(
+        FindNodeWithNamespace(
           SignedXmlDocument.AsXmlNode(), SecurityPathTxt, 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
         SecurityXmlNode.AsXmlElement().Add(SignatureXmlElement);
     end;
@@ -305,31 +373,29 @@ codeunit 31116 "EET Service Management CZL"
 
     local procedure ProcessResponseContent(ResponseContentXmlDocument: XmlDocument)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ConfirmationXmlNode: XmlNode;
         XMLFormatErr: Label 'XML Format of response is not supported.';
     begin
         if VerificationMode or (ResponseContentErrorCode <> '') then
             exit;
 
-        if not XMLDOMManagement.FindNodeWithNamespace(
+        if not FindNodeWithNamespace(
              ResponseContentXmlDocument.AsXmlNode(), ConfirmationPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, ConfirmationXmlNode)
         then
             LogMessage(TempErrorMessage."Message Type"::Error, '', XMLFormatErr);
 
-        FIKControlCode := XMLDOMManagement.GetAttributeValue(ConfirmationXmlNode, 'fik');
+        FIKControlCode := GetAttributeValue(ConfirmationXmlNode, 'fik');
     end;
 
     local procedure ProcessResponseContentError(ResponseContentXmlDocument: XmlDocument)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ErrorXmlNode: XmlNode;
     begin
-        XMLDOMManagement.FindNodeWithNamespace(
+        FindNodeWithNamespace(
           ResponseContentXmlDocument.AsXmlNode(), ErrorPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, ErrorXmlNode);
 
         ResponseContentError := ErrorXmlNode.AsXmlElement().InnerXml();
-        ResponseContentErrorCode := XMLDOMManagement.GetAttributeValue(ErrorXmlNode, 'kod');
+        ResponseContentErrorCode := GetAttributeValue(ErrorXmlNode, 'kod');
 
         if VerificationMode and (ResponseContentErrorCode = '0') then
             exit;
@@ -339,18 +405,17 @@ codeunit 31116 "EET Service Management CZL"
 
     local procedure ProcessResponseContentWarnings(ResponseContentXmlDocument: XmlDocument)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         WarningXmlNodeList: XmlNodeList;
         WarningXmlNode: XmlNode;
         ResponseContentWarning: Text;
         ResponseContentWarningCode: Text;
     begin
-        XMLDOMManagement.FindNodesWithNamespace(
+        FindNodesWithNamespace(
           ResponseContentXmlDocument.AsXmlNode(), WarningPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, WarningXmlNodeList);
 
         foreach WarningXmlNode in WarningXmlNodeList do begin
             ResponseContentWarning := WarningXmlNode.AsXmlElement().InnerXml();
-            ResponseContentWarningCode := XMLDOMManagement.GetAttributeValue(WarningXmlNode, 'kod_varov');
+            ResponseContentWarningCode := GetAttributeValue(WarningXmlNode, 'kod_varov');
 
             LogMessage(TempErrorMessage."Message Type"::Warning, ResponseContentWarningCode, ResponseContentWarning);
         end;
@@ -358,38 +423,35 @@ codeunit 31116 "EET Service Management CZL"
 
     local procedure HasResponseContentError(ResponseContentXmlDocument: XmlDocument): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ErrorXmlNode: XmlNode;
     begin
         exit(
-          XMLDOMManagement.FindNodeWithNamespace(
+          FindNodeWithNamespace(
             ResponseContentXmlDocument.AsXmlNode(), ErrorPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, ErrorXmlNode));
     end;
 
     local procedure HasResponseContentWarnings(ResponseContentXmlDocument: XmlDocument): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         WarningXmlNode: XmlNode;
     begin
         exit(
-          XMLDOMManagement.FindNodeWithNamespace(
+          FindNodeWithNamespace(
             ResponseContentXmlDocument.AsXmlNode(), WarningPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, WarningXmlNode));
     end;
 
     local procedure CheckResponseContentHeader(ResponseContentXmlDocument: XmlDocument; EETEntryCZL: Record "EET Entry CZL")
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         HeaderXmlNode: XmlNode;
         MessageUUID: Text;
         SecurityCode: Text;
     begin
-        if not XMLDOMManagement.FindNodeWithNamespace(
+        if not FindNodeWithNamespace(
              ResponseContentXmlDocument.AsXmlNode(), HeaderPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, HeaderXmlNode)
         then
             exit;
 
-        MessageUUID := XMLDOMManagement.GetAttributeValue(HeaderXmlNode, 'uuid_zpravy');
-        SecurityCode := XMLDOMManagement.GetAttributeValue(HeaderXmlNode, 'bkp');
+        MessageUUID := GetAttributeValue(HeaderXmlNode, 'uuid_zpravy');
+        SecurityCode := GetAttributeValue(HeaderXmlNode, 'bkp');
 
         if ResponseContentErrorCode = '' then begin
             if MessageUUID <> EETEntryCZL."Message UUID" then
@@ -423,10 +485,9 @@ codeunit 31116 "EET Service Management CZL"
 
     local procedure GetResponseCertificateAsBase64(ResponseXmlDocument: XmlDocument): Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         BinarySecurityTokenXmlNode: XmlNode;
     begin
-        if XMLDOMManagement.FindNodeWithNamespace(
+        if FindNodeWithNamespace(
              ResponseXmlDocument.AsXmlNode(), BinarySecurityTokenPathTxt, 'wsse', SecurityExtensionNamespaceTxt, BinarySecurityTokenXmlNode)
         then
             exit(BinarySecurityTokenXmlNode.AsXmlElement().InnerText());
