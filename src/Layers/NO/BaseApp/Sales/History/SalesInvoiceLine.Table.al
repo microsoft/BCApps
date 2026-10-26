@@ -36,7 +36,6 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.Security.User;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores line-level details for posted sales invoices including items, quantities, prices, and amounts.

@@ -61,7 +61,6 @@ using System.IO;
 using System.Reflection;
 using System.Security.User;
 using System.Utilities;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores customer master data including contact information, financial settings, and sales preferences.

@@ -23,10 +23,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Utilities;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Table storing detailed line information for standard general journal templates enabling reusable journal entry patterns.

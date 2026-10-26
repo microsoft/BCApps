@@ -61,7 +61,6 @@ using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.Utilities;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 
 /// <summary>

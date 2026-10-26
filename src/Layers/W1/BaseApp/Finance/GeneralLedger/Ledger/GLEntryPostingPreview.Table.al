@@ -23,7 +23,6 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Temporary table for previewing G/L entries before posting with same structure as G/L Entry table.

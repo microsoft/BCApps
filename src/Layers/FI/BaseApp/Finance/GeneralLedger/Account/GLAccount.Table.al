@@ -31,7 +31,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Utilities;
-using Microsoft.Intercompany.GLAccount;
 
 /// <summary>
 /// Central master data table for general ledger accounts containing the chart of accounts structure.

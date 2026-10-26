@@ -65,8 +65,6 @@ using System.Reflection;
 using System.Security.User;
 using System.Threading;
 using System.Utilities;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany;
 
 table 38 "Purchase Header"
 {

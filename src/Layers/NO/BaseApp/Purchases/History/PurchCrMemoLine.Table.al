@@ -36,7 +36,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.Security.User;
-using Microsoft.Intercompany.Partner;
 
 table 125 "Purch. Cr. Memo Line"
 {

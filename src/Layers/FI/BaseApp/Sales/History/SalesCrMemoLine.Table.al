@@ -36,7 +36,6 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.Security.User;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores line-level details for posted sales credit memos including credited items, quantities, and amounts.

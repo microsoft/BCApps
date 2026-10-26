@@ -29,7 +29,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Security.User;
-using Microsoft.Intercompany.GLAccount;
 
 table 156 Resource
 {

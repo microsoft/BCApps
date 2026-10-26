@@ -55,7 +55,6 @@ using System.Reflection;
 using System.Security.User;
 using System.Utilities;
 using Microsoft.Foundation.Period;
-using Microsoft.Intercompany.Partner;
 
 table 23 Vendor
 {

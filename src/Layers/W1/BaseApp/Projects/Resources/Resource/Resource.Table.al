@@ -28,7 +28,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Security.User;
-using Microsoft.Intercompany.GLAccount;
 
 table 156 Resource
 {
@@ -54,7 +53,6 @@ table 156 Resource
                 OnBeforeValidateNo(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "No." <> xRec."No." then begin
                     ResSetup.Get();
                     NoSeries.TestManual(ResSetup."Resource Nos.");
@@ -108,7 +106,8 @@ table 156 Resource
             Caption = 'City';
             ToolTip = 'Specifies the city of the resource''s address.';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -166,7 +165,6 @@ table 156 Resource
             begin
                 if "Resource Group No." = xRec."Resource Group No." then
                     exit;
-
                 if xRec."Resource Group No." <> '' then begin
                     IsHandled := false;
                     OnValidateResourceGroupNoOnBeforeConfirm(Rec, xRec, IsHandled);
@@ -176,7 +174,6 @@ table 156 Resource
                             exit;
                         end;
                 end;
-
                 if xRec.GetFilter("Resource Group No.") <> '' then
                     SetFilter("Resource Group No.", "Resource Group No.");
 
@@ -232,10 +229,8 @@ table 156 Resource
                 OnBeforeValidateBaseUnitOfMeasure(Rec, xRec, CurrFieldNo, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Base Unit of Measure" <> xRec."Base Unit of Measure" then begin
                     TestNoEntriesExist(FieldCaption("Base Unit of Measure"));
-
                     if "Base Unit of Measure" <> '' then begin
                         UnitOfMeasure.Get("Base Unit of Measure");
                         if not ResUnitOfMeasure.Get("No.", "Base Unit of Measure") then begin
@@ -516,7 +511,8 @@ table 156 Resource
         {
             Caption = 'Post Code';
             ToolTip = 'Specifies the postal code.';
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -686,7 +682,6 @@ table 156 Resource
                 OnBeforeValidateTimeSheetApproverUserID(Rec, IsHandled, xRec);
                 if IsHandled then
                     exit;
-
                 if "Time Sheet Approver User ID" <> xRec."Time Sheet Approver User ID" then
                     if ExistUnprocessedTimeSheets() then
                         Error(Text005, FieldCaption("Time Sheet Approver User ID"));
@@ -773,7 +768,6 @@ table 156 Resource
         PurchaseLine.SetRange("No.", "No.");
         if PurchaseLine.FindFirst() then
             Error(DocumentExistsErr, "No.", PurchaseLine."Document Type");
-
         if ExistUnprocessedTimeSheets() then
             Error(Text006, TableCaption(), "No.");
 
@@ -791,7 +785,6 @@ table 156 Resource
         OnBeforeOnInsert(Rec, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if "No." = '' then begin
             ResSetup.Get();
             ResSetup.TestField("Resource Nos.");
@@ -804,7 +797,6 @@ table 156 Resource
             while Resource.Get("No.") do
                 "No." := NoSeries.GetNextNo("No. Series");
         end;
-
         if GetFilter("Resource Group No.") <> '' then
             if GetRangeMin("Resource Group No.") = GetRangeMax("Resource Group No.") then
                 Validate("Resource Group No.", GetRangeMin("Resource Group No."));

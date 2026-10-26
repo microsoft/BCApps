@@ -68,9 +68,6 @@ using System.Environment.Configuration;
 using System.IO;
 using System.Threading;
 using System.Utilities;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores general journal line transactions for all journal types including general, sales, purchase, cash receipt, and payment journals.

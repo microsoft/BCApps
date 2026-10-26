@@ -36,7 +36,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.Security.User;
-using Microsoft.Intercompany.Partner;
 
 table 123 "Purch. Inv. Line"
 {

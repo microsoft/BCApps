@@ -75,9 +75,7 @@ using System.Security.AccessControl;
 using System.Security.User;
 using System.Threading;
 using System.Utilities;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
-using Microsoft.Intercompany;
 
 /// <summary>
 /// Stores document-level information for sales quotes, orders, invoices, credit memos, blanket orders, and return orders.

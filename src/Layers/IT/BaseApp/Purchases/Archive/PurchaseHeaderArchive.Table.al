@@ -37,7 +37,6 @@ using Microsoft.Utilities;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Security.User;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 
 table 5109 "Purchase Header Archive"

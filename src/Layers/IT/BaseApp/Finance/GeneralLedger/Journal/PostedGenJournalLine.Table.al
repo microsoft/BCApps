@@ -43,9 +43,6 @@ using Microsoft.Sales.History;
 using Microsoft.Utilities;
 using System.IO;
 using System.Threading;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Table storing historical records of posted general journal lines for audit trail and reference purposes.
