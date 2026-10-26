@@ -233,11 +233,12 @@ codeunit 148353 EACorpCardPhase3Tests
         BindSubscription(EACorpCardTestLib);
         EACorpCardTestLib.RunFileImport(CorpCardXmlProviderCodeTok);
         UnbindSubscription(EACorpCardTestLib);
-        SetProviderSourcePayload(CorpCardCsvProviderCodeTok, 'invalid', InvalidCsvFileNameTok);
+        SetAllRejectedCsvPayload();
 
         BindSubscription(EACorpCardTestLib);
         asserterror EACorpCardTestLib.RunFileImport(CorpCardCsvProviderCodeTok);
         UnbindSubscription(EACorpCardTestLib);
+        Assert.ExpectedError('All 2 transaction lines');
 
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
         Assert.AreNotEqual(0DT, CorpCardProvider."Last Import DT", 'The successful provider import must retain its completion time.');
@@ -1003,6 +1004,5 @@ codeunit 148353 EACorpCardPhase3Tests
         MalformedXmlFileNameTok: Label 'CorpCard-Malformed.xml', Locked = true;
         EmptyXmlPayloadTok: Label '<CorporateCardTransactions />', Locked = true;
         EmptyXmlFileNameTok: Label 'CorpCard-Empty.xml', Locked = true;
-        InvalidCsvFileNameTok: Label 'CorpCard-Invalid.csv', Locked = true;
         MissingCardIdXmlFileNameTok: Label 'CorpCard-Missing-Card-Id.xml', Locked = true;
 }

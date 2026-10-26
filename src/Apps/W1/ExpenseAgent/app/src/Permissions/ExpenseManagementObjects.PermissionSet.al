@@ -268,6 +268,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "EA Corp Card Enh. Match Mgt" = X,
         codeunit "EA Corp Card Expense Writer" = X,
         codeunit "EA Corp Card Stats Calculator" = X,
+        codeunit "EA Corp Card Stmt Summary" = X,
         codeunit "EA Corp Card Map Mgt" = X,
         codeunit "EA Corp Card Match Mgt" = X,
         codeunit "EA Corp Card MCC Mgt" = X,

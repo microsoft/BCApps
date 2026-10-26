@@ -548,6 +548,74 @@ codeunit 148360 EACorpCardSettlementTests
         Assert.AreEqual(-700, UnlinkedAmount, 'The amount of the unlinked bank entry must be reported.');
     end;
 
+    [Test]
+    procedure BackgroundSummaryReportsUnsettledTransactionsAndUnlinkedBankEntries()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        UnlinkedTrans: Record "EA Corp Card Trans";
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+        Results: Dictionary of [Text, Text];
+    begin
+        Initialize();
+        CreateStatement(CorpCardStatement, 'STMT-BACKGROUND', 3000, CorpCardStatement.Status::Validated);
+        CorpCardStatement."Period Start Date" := WorkDate();
+        CorpCardStatement."Period End Date" := WorkDate();
+        CorpCardStatement.Modify();
+        CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 3000);
+        PostCorpCardExpenseBankEntry(CorpCardTrans, -3000);
+        UnlinkedTrans."Currency Code" := CorpCardTrans."Currency Code";
+        PostCorpCardExpenseBankEntry(UnlinkedTrans, -700);
+
+        Results := RunStatementSummary(CorpCardStatement);
+
+        Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetReconciledTransactionsKey()), 'Transactions without a settlement must not be reconciled.');
+        Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()), 'The reconciled amount must be zero without a settlement.');
+        Assert.AreEqual(Format(1), Results.Get(CorpCardStmtSummary.GetUnreconciledTransactionsKey()), 'The background summary must count unsettled transactions.');
+        Assert.AreEqual(Format(3000), Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()), 'The background summary must report the unsettled amount.');
+        Assert.AreEqual(Format(1), Results.Get(CorpCardStmtSummary.GetUnlinkedBankEntriesKey()), 'The background summary must exclude bank entries linked to transactions.');
+        Assert.AreEqual(Format(-700), Results.Get(CorpCardStmtSummary.GetUnlinkedBankAmountKey()), 'The background summary must report the unlinked bank amount.');
+        Assert.AreEqual('', Results.Get(CorpCardStmtSummary.GetSettlementStatusKey()), 'The settlement status must be blank without a settlement.');
+    end;
+
+    [Test]
+    procedure BackgroundSummaryReportsReconciledTransactionsAndSettlementStatus()
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+        Results: Dictionary of [Text, Text];
+    begin
+        Initialize();
+        CreatePostedClosedSettlement(CorpCardSettlement, CorpCardStatement, CorpCardTrans);
+
+        Results := RunStatementSummary(CorpCardStatement);
+
+        Assert.AreEqual(Format(1), Results.Get(CorpCardStmtSummary.GetReconciledTransactionsKey()), 'The background summary must count reconciled transactions.');
+        Assert.AreEqual(Format(3000), Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()), 'The background summary must report the reconciled amount.');
+        Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetUnreconciledTransactionsKey()), 'A fully reconciled statement must have no unreconciled transactions.');
+        Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()), 'A fully reconciled statement must have no unreconciled amount.');
+        Assert.AreEqual(Format(CorpCardSettlement.Status), Results.Get(CorpCardStmtSummary.GetSettlementStatusKey()), 'The background summary must report the settlement status.');
+    end;
+
+    local procedure RunStatementSummary(CorpCardStatement: Record "EA Corp Card Statement"): Dictionary of [Text, Text]
+    var
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+        CorpCardStatementPage: TestPage "EA Corp Card Statement";
+        Parameters: Dictionary of [Text, Text];
+        Results: Dictionary of [Text, Text];
+    begin
+        // The page background task reads the fixture from a separate session.
+        Commit();
+        CorpCardStatementPage.OpenView();
+        CorpCardStatementPage.GotoRecord(CorpCardStatement);
+        Parameters.Add(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(CorpCardStatement."Statement Entry No."));
+        Results := CorpCardStatementPage.RunPageBackgroundTask(Codeunit::"EA Corp Card Stmt Summary", Parameters);
+        CorpCardStatementPage.Close();
+        exit(Results);
+    end;
+
     local procedure Initialize()
     var
         CorpCardBankAccount: Record "Bank Account";

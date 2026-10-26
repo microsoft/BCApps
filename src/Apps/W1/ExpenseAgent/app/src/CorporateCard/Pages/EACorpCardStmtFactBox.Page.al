@@ -16,9 +16,22 @@ page 7429 "EA Corp Card Stmt. FactBox"
     {
         area(Content)
         {
+            group(SummaryProgress)
+            {
+                ShowCaption = false;
+                Visible = not SummaryAvailable;
+
+                field(SummaryStatus; SummaryStatusText)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reconciliation Summary';
+                    ToolTip = 'Specifies whether the reconciliation summary is being calculated or could not be loaded.';
+                }
+            }
             group(General)
             {
                 ShowCaption = false;
+                Visible = SummaryAvailable;
                 field(SettlementStatus; SettlementStatusText)
                 {
                     ApplicationArea = Basic, Suite;
@@ -59,26 +72,71 @@ page 7429 "EA Corp Card Stmt. FactBox"
 
     trigger OnAfterGetCurrRecord()
     var
-        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
-        SettlementStatus2: Enum "EA Corp Card Settle Status";
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+        Parameters: Dictionary of [Text, Text];
+    begin
+        if SummaryTaskId <> 0 then
+            CurrPage.CancelBackgroundTask(SummaryTaskId);
+        Clear(SummaryTaskId);
+        ClearReconciliationSummary();
+        Clear(SummaryStatusText);
+        if Rec."Statement Entry No." = 0 then
+            exit;
+
+        SummaryStatusText := CalculatingSummaryLbl;
+        Parameters.Add(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(Rec."Statement Entry No."));
+        CurrPage.EnqueueBackgroundTask(SummaryTaskId, Codeunit::"EA Corp Card Stmt Summary", Parameters, 60000, PageBackgroundTaskErrorLevel::Warning);
+    end;
+
+    trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
+    var
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+    begin
+        if TaskId <> SummaryTaskId then
+            exit;
+
+        Evaluate(ReconciledTransactions, Results.Get(CorpCardStmtSummary.GetReconciledTransactionsKey()));
+        Evaluate(ReconciledAmount, Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()));
+        Evaluate(UnreconciledTransactions, Results.Get(CorpCardStmtSummary.GetUnreconciledTransactionsKey()));
+        Evaluate(UnreconciledAmount, Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()));
+        SettlementStatusText := CopyStr(Results.Get(CorpCardStmtSummary.GetSettlementStatusKey()), 1, MaxStrLen(SettlementStatusText));
+        SummaryAvailable := true;
+        Clear(SummaryTaskId);
+    end;
+
+    trigger OnPageBackgroundTaskError(TaskId: Integer; ErrorCode: Text; ErrorText: Text; ErrorCallStack: Text; var IsHandled: Boolean)
+    var
+        SummaryErrorNotification: Notification;
+    begin
+        if TaskId <> SummaryTaskId then
+            exit;
+
+        ClearReconciliationSummary();
+        SummaryStatusText := SummaryUnavailableLbl;
+        SummaryErrorNotification.Message(StrSubstNo(SummaryFailedErr, ErrorText));
+        SummaryErrorNotification.Scope(NotificationScope::LocalScope);
+        SummaryErrorNotification.Send();
+        Clear(SummaryTaskId);
+        IsHandled := true;
+    end;
+
+    local procedure ClearReconciliationSummary()
     begin
         Clear(ReconciledTransactions);
         Clear(ReconciledAmount);
         Clear(UnreconciledTransactions);
         Clear(UnreconciledAmount);
         Clear(SettlementStatusText);
-        if Rec."Statement Entry No." = 0 then
-            exit;
-
-        CorpCardStatementMgt.GetReconciliationSummary(
-            Rec, ReconciledTransactions, ReconciledAmount,
-            UnreconciledTransactions, UnreconciledAmount, SettlementStatus2);
-        Rec.CalcFields("Settlement Entry No.");
-        if Rec."Settlement Entry No." <> 0 then
-            SettlementStatusText := Format(SettlementStatus2);
+        SummaryAvailable := false;
     end;
 
     var
+        CalculatingSummaryLbl: Label 'Calculating...';
+        SummaryUnavailableLbl: Label 'Unavailable';
+        SummaryFailedErr: Label 'The reconciliation summary could not be calculated. %1', Comment = '%1 = background task error message';
+        SummaryAvailable: Boolean;
+        SummaryStatusText: Text;
+        SummaryTaskId: Integer;
         ReconciledAmount: Decimal;
         UnreconciledAmount: Decimal;
         ReconciledTransactions: Integer;

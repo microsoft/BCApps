@@ -30,6 +30,8 @@ codeunit 148358 EACorpCardPostTests
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         BankAccReconciliation: Record "Bank Acc. Reconciliation";
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        CorpCard: Record "EA Corp Card";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
@@ -38,17 +40,18 @@ codeunit 148358 EACorpCardPostTests
         BankAccReconciliationCount: Integer;
         BankAccReconciliationLineCount: Integer;
     begin
+        Initialize();
+        CorpCard.FindFirst();
+        CorpCardTestLib.CreateStatement(CorpCardStatement, CorpCard."Provider Code", 'STMT-LINK-POSTED', 2000, CorpCardStatement.Status::Validated);
+        CorpCardTestLib.CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 2000);
+        CorpCardTrans."Card Id" := CorpCard."Card Id";
+        CorpCardTrans."Posted Expense Report No." := '';
+        CorpCardTrans.Status := CorpCardTrans.Status::Submitted;
+        CorpCardTrans.Modify(true);
+
         BankAccountLedgerEntryCount := BankAccountLedgerEntry.Count();
         BankAccReconciliationCount := BankAccReconciliation.Count();
         BankAccReconciliationLineCount := BankAccReconciliationLine.Count();
-
-        CorpCardTrans.Init();
-        CorpCardTrans."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Card Id"));
-        CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-        CorpCardTrans."Trans Date" := WorkDate();
-        CorpCardTrans.Amount := 2000;
-        CorpCardTrans.Status := CorpCardTrans.Status::Submitted;
-        CorpCardTrans.Insert(true);
 
         PostedExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedExpenseReportHeader."No."));
         PostedExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";

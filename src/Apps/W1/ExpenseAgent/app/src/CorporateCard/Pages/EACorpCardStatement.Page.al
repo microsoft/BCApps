@@ -106,69 +106,88 @@ page 7444 "EA Corp Card Statement"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the settlement that includes this statement.';
                 }
-                field(SettlementStatus; SettlementStatusText)
+                group(SummaryProgress)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    Caption = 'Settlement Status';
-                    ToolTip = 'Specifies the current status of the settlement that includes this statement.';
-                }
-                field(ReconciledTransactions; ReconciledTransactions)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    Caption = 'Reconciled Transactions';
-                    ToolTip = 'Specifies the number of statement transactions matched to valid corporate card bank account ledger entries.';
-                }
-                field(UnreconciledTransactions; UnreconciledTransactions)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    Caption = 'Unreconciled Transactions';
-                    ToolTip = 'Specifies the number of statement transactions without a valid corporate card bank account ledger entry.';
-                }
-                field(ReconciledAmount; ReconciledAmount)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    AutoFormatType = 1;
-                    AutoFormatExpression = "Currency Code";
-                    Caption = 'Reconciled Amount';
-                    ToolTip = 'Specifies the amount represented by reconciled statement transactions.';
-                }
-                field(UnreconciledAmount; UnreconciledAmount)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    AutoFormatType = 1;
-                    AutoFormatExpression = "Currency Code";
-                    Caption = 'Unreconciled Amount';
-                    ToolTip = 'Specifies the amount represented by unreconciled statement transactions.';
-                }
-                field(UnlinkedBankEntries; UnlinkedBankEntries)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    Caption = 'Bank Entries Without Transaction';
-                    ToolTip = 'Specifies the number of open bank account ledger entries on the corporate card bank account within the statement period that are not linked to any corporate card transaction or settlement. Choose the field to view them.';
+                    ShowCaption = false;
+                    Visible = not SummaryAvailable;
 
-                    trigger OnDrillDown()
-                    var
-                        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
-                        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
-                    begin
-                        CorpCardStatementMgt.SetUnlinkedBankEntryFilters(Rec, BankAccountLedgerEntry);
-                        Page.Run(Page::"Bank Account Ledger Entries", BankAccountLedgerEntry);
-                    end;
+                    field(SummaryStatus; SummaryStatusText)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        Caption = 'Reconciliation Summary';
+                        ToolTip = 'Specifies whether the reconciliation summary is being calculated or could not be loaded.';
+                    }
                 }
-                field(UnlinkedBankAmount; UnlinkedBankAmount)
+                group(ReconciliationSummary)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    AutoFormatType = 1;
-                    AutoFormatExpression = "Currency Code";
-                    Caption = 'Bank Amount Without Transaction';
-                    ToolTip = 'Specifies the total amount of the bank account ledger entries that are not linked to any corporate card transaction or settlement.';
+                    ShowCaption = false;
+                    Visible = SummaryAvailable;
+
+                    field(SettlementStatus; SettlementStatusText)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        Caption = 'Settlement Status';
+                        ToolTip = 'Specifies the current status of the settlement that includes this statement.';
+                    }
+                    field(ReconciledTransactions; ReconciledTransactions)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        Caption = 'Reconciled Transactions';
+                        ToolTip = 'Specifies the number of statement transactions matched to valid corporate card bank account ledger entries.';
+                    }
+                    field(UnreconciledTransactions; UnreconciledTransactions)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        Caption = 'Unreconciled Transactions';
+                        ToolTip = 'Specifies the number of statement transactions without a valid corporate card bank account ledger entry.';
+                    }
+                    field(ReconciledAmount; ReconciledAmount)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = "Currency Code";
+                        Caption = 'Reconciled Amount';
+                        ToolTip = 'Specifies the amount represented by reconciled statement transactions.';
+                    }
+                    field(UnreconciledAmount; UnreconciledAmount)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = "Currency Code";
+                        Caption = 'Unreconciled Amount';
+                        ToolTip = 'Specifies the amount represented by unreconciled statement transactions.';
+                    }
+                    field(UnlinkedBankEntries; UnlinkedBankEntries)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        Caption = 'Bank Entries Without Transaction';
+                        ToolTip = 'Specifies the number of open bank account ledger entries on the corporate card bank account within the statement period that are not linked to any corporate card transaction or settlement. Choose the field to view them.';
+
+                        trigger OnDrillDown()
+                        var
+                            BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+                            CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+                        begin
+                            CorpCardStatementMgt.SetUnlinkedBankEntryFilters(Rec, BankAccountLedgerEntry);
+                            Page.Run(Page::"Bank Account Ledger Entries", BankAccountLedgerEntry);
+                        end;
+                    }
+                    field(UnlinkedBankAmount; UnlinkedBankAmount)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Editable = false;
+                        AutoFormatType = 1;
+                        AutoFormatExpression = "Currency Code";
+                        Caption = 'Bank Amount Without Transaction';
+                        ToolTip = 'Specifies the total amount of the bank account ledger entries that are not linked to any corporate card transaction or settlement.';
+                    }
                 }
             }
             group(Reconciliation)
@@ -320,7 +339,6 @@ page 7444 "EA Corp Card Statement"
                         exit;
 
                     CorpCardStatementMgt.CloseStatement(Rec);
-                    UpdateReconciliationSummary();
                     CurrPage.Update(false);
                 end;
             }
@@ -363,25 +381,73 @@ page 7444 "EA Corp Card Statement"
 
     trigger OnAfterGetRecord()
     begin
-        UpdateReconciliationSummary();
-    end;
-
-    local procedure UpdateReconciliationSummary()
-    var
-        CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
-        SettlementStatus2: Enum "EA Corp Card Settle Status";
-    begin
-        CorpCardStatementMgt.GetReconciliationSummary(
-            Rec, ReconciledTransactions, ReconciledAmount,
-            UnreconciledTransactions, UnreconciledAmount, SettlementStatus2);
-        CorpCardStatementMgt.GetUnlinkedBankEntrySummary(Rec, UnlinkedBankEntries, UnlinkedBankAmount);
         CanCloseReconciliation := Rec.Status in [Rec.Status::Validated, Rec.Status::ReconciliationRequired];
         Rec.CalcFields("Settlement Entry No.");
         CanReopen := (Rec.Status = Rec.Status::Validated) and (Rec."Settlement Entry No." = 0);
-        if Rec."Settlement Entry No." = 0 then
-            SettlementStatusText := ''
-        else
-            SettlementStatusText := Format(SettlementStatus2);
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    var
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+        Parameters: Dictionary of [Text, Text];
+    begin
+        if SummaryTaskId <> 0 then
+            CurrPage.CancelBackgroundTask(SummaryTaskId);
+        Clear(SummaryTaskId);
+        ClearReconciliationSummary();
+        Clear(SummaryStatusText);
+        if Rec."Statement Entry No." = 0 then
+            exit;
+
+        SummaryStatusText := CalculatingSummaryLbl;
+        Parameters.Add(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(Rec."Statement Entry No."));
+        CurrPage.EnqueueBackgroundTask(SummaryTaskId, Codeunit::"EA Corp Card Stmt Summary", Parameters, 60000, PageBackgroundTaskErrorLevel::Warning);
+    end;
+
+    trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
+    var
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
+    begin
+        if TaskId <> SummaryTaskId then
+            exit;
+
+        Evaluate(ReconciledTransactions, Results.Get(CorpCardStmtSummary.GetReconciledTransactionsKey()));
+        Evaluate(ReconciledAmount, Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()));
+        Evaluate(UnreconciledTransactions, Results.Get(CorpCardStmtSummary.GetUnreconciledTransactionsKey()));
+        Evaluate(UnreconciledAmount, Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()));
+        Evaluate(UnlinkedBankEntries, Results.Get(CorpCardStmtSummary.GetUnlinkedBankEntriesKey()));
+        Evaluate(UnlinkedBankAmount, Results.Get(CorpCardStmtSummary.GetUnlinkedBankAmountKey()));
+        SettlementStatusText := CopyStr(Results.Get(CorpCardStmtSummary.GetSettlementStatusKey()), 1, MaxStrLen(SettlementStatusText));
+        SummaryAvailable := true;
+        Clear(SummaryTaskId);
+    end;
+
+    trigger OnPageBackgroundTaskError(TaskId: Integer; ErrorCode: Text; ErrorText: Text; ErrorCallStack: Text; var IsHandled: Boolean)
+    var
+        SummaryErrorNotification: Notification;
+    begin
+        if TaskId <> SummaryTaskId then
+            exit;
+
+        ClearReconciliationSummary();
+        SummaryStatusText := SummaryUnavailableLbl;
+        SummaryErrorNotification.Message(StrSubstNo(SummaryFailedErr, ErrorText));
+        SummaryErrorNotification.Scope(NotificationScope::LocalScope);
+        SummaryErrorNotification.Send();
+        Clear(SummaryTaskId);
+        IsHandled := true;
+    end;
+
+    local procedure ClearReconciliationSummary()
+    begin
+        Clear(ReconciledTransactions);
+        Clear(ReconciledAmount);
+        Clear(UnreconciledTransactions);
+        Clear(UnreconciledAmount);
+        Clear(UnlinkedBankEntries);
+        Clear(UnlinkedBankAmount);
+        Clear(SettlementStatusText);
+        SummaryAvailable := false;
     end;
 
     var
@@ -389,6 +455,12 @@ page 7444 "EA Corp Card Statement"
         CanCloseReconciliation: Boolean;
         CanReopen: Boolean;
         NoSettlementErr: Label 'The statement is not included in a settlement.';
+        CalculatingSummaryLbl: Label 'Calculating...';
+        SummaryUnavailableLbl: Label 'Unavailable';
+        SummaryFailedErr: Label 'The reconciliation summary could not be calculated. %1', Comment = '%1 = background task error message';
+        SummaryAvailable: Boolean;
+        SummaryStatusText: Text;
+        SummaryTaskId: Integer;
         ReconciledAmount: Decimal;
         UnreconciledAmount: Decimal;
         UnlinkedBankAmount: Decimal;

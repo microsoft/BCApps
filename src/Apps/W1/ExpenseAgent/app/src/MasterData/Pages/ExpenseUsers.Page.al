@@ -162,7 +162,7 @@ page 6951 "Expense Users"
         {
             group(Category_Process)
             {
-                Caption = 'Create Expense Users';
+                Caption = 'Process';
 
                 actionref(AddExistingEmployees_Promo; AddExistingEmployees)
                 {
