@@ -1069,7 +1069,7 @@ codeunit 144044 "UT REP Number To Text"
         // [GIVEN] The platform feature is disabled; its metadata is not modified.
         ClearLayoutSelections();
         ClearCheckLayoutUpgradeTag();
-        FeatureKey.Get('ReportsFR');
+        FeatureKey.Get('FRReports');
         OriginalEnabled := FeatureKey.Enabled;
         FeatureKey.Enabled := FeatureKey.Enabled::None;
         FeatureKey.Modify();
@@ -1113,7 +1113,7 @@ codeunit 144044 "UT REP Number To Text"
         Initialize();
 
         // [GIVEN] A status parameter that does not belong to the current company.
-        TempFeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
+        TempFeatureDataUpdateStatus."Feature Key" := 'FRReports';
         TempFeatureDataUpdateStatus."Company Name" := CopyStr(CreateGuid(), 1, 30);
 
         // [WHEN] It is passed to the company-specific migration.
@@ -1131,15 +1131,15 @@ codeunit 144044 "UT REP Number To Text"
         FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653674] The real framework resolves the ReportsFR enum registration.
+        // [SCENARIO 653674] The real framework resolves the FRReports enum registration.
         Initialize();
 
         // [GIVEN] The exact platform feature token.
-        TempFeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
+        TempFeatureDataUpdateStatus."Feature Key" := 'FRReports';
 
         // [WHEN] The framework resolves its implementation.
         // [THEN] The enum name and implementation are wired correctly.
-        Assert.IsTrue(FeatureManagementFacade.GetImplementation(TempFeatureDataUpdateStatus), 'ReportsFR must resolve through Feature To Update.');
+        Assert.IsTrue(FeatureManagementFacade.GetImplementation(TempFeatureDataUpdateStatus), 'FRReports must resolve through Feature To Update.');
     end;
 
     [Test]
@@ -1152,12 +1152,12 @@ codeunit 144044 "UT REP Number To Text"
         Initialize();
 
         // [GIVEN] Platform-owned metadata, not a mocked feature-enabled event.
-        FeatureKey.Get('ReportsFR');
+        FeatureKey.Get('FRReports');
 
         // [WHEN] The real activation prerequisites are examined.
         // [THEN] Both platform flags must be set before this feature can ship.
-        Assert.IsTrue(FeatureKey."Is One Way", 'RELEASE BLOCKER: ReportsFR must be registered as one-way.');
-        Assert.IsTrue(FeatureKey."Data Update Required", 'RELEASE BLOCKER: ReportsFR must require a per-company data update.');
+        Assert.IsTrue(FeatureKey."Is One Way", 'RELEASE BLOCKER: FRReports must be registered as one-way.');
+        Assert.IsTrue(FeatureKey."Data Update Required", 'RELEASE BLOCKER: FRReports must require a per-company data update.');
     end;
 
     [Test]
@@ -1173,7 +1173,7 @@ codeunit 144044 "UT REP Number To Text"
         Initialize();
 
         // [GIVEN] Compatible platform metadata and a pending current-company status.
-        FeatureKey.Get('ReportsFR');
+        FeatureKey.Get('FRReports');
         ReportLayoutsFR.VerifyFeatureMetadata(FeatureKey);
         ClearLayoutSelections();
         ClearCheckLayoutUpgradeTag();
@@ -1187,7 +1187,7 @@ codeunit 144044 "UT REP Number To Text"
 
         // [THEN] Only the current company completes, with a successfully migrated layout.
         VerifyTaggedLayout('CheckFR', ReportsAppId());
-        FeatureDataUpdateStatus.Get('ReportsFR', CompanyName());
+        FeatureDataUpdateStatus.Get('FRReports', CompanyName());
         Assert.AreEqual("Feature Status"::Complete, FeatureDataUpdateStatus."Feature Status", 'The current company must complete.');
         VerifyOtherCompanyFeatureStatus(OtherFeatureDataUpdateStatus);
     end;
@@ -1206,7 +1206,7 @@ codeunit 144044 "UT REP Number To Text"
         Initialize();
 
         // [GIVEN] A configured feature and a pending company with a historical tag.
-        FeatureKey.Get('ReportsFR');
+        FeatureKey.Get('FRReports');
         ReportLayoutsFR.VerifyFeatureMetadata(FeatureKey);
         OriginalEnabled := FeatureKey.Enabled;
         FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
@@ -1225,7 +1225,7 @@ codeunit 144044 "UT REP Number To Text"
 
         // [THEN] Actual layout initialization precedes company completion.
         VerifyTaggedLayout('CheckFR', ReportsAppId());
-        FeatureDataUpdateStatus.Get('ReportsFR', CompanyName());
+        FeatureDataUpdateStatus.Get('FRReports', CompanyName());
         Assert.AreEqual("Feature Status"::Complete, FeatureDataUpdateStatus."Feature Status", 'The initialized company must complete.');
     end;
 #pragma warning restore AL0432
@@ -1301,12 +1301,12 @@ codeunit 144044 "UT REP Number To Text"
     begin
         ClearLayoutSelections();
         ClearCheckLayoutUpgradeTag();
-        StatusExisted := OriginalFeatureDataUpdateStatus.Get('ReportsFR', CompanyName());
+        StatusExisted := OriginalFeatureDataUpdateStatus.Get('FRReports', CompanyName());
         if StatusExisted then
             FeatureDataUpdateStatus := OriginalFeatureDataUpdateStatus
         else begin
             FeatureDataUpdateStatus.Init();
-            FeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
+            FeatureDataUpdateStatus."Feature Key" := 'FRReports';
             FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
         end;
         FeatureDataUpdateStatus."Data Update Required" := false;
@@ -1318,10 +1318,10 @@ codeunit 144044 "UT REP Number To Text"
             FeatureDataUpdateStatus.Insert();
 
         // Model the new registration without modifying the platform-owned feature metadata.
-        TempFeatureKey.ID := 'ReportsFR';
+        TempFeatureKey.ID := 'FRReports';
         TempFeatureKey."Data Update Required" := true;
         ReportLayoutsFR.PrepareCompanyFeatureStatus(TempFeatureKey, FeatureDataUpdateStatus);
-        FeatureDataUpdateStatus.Get('ReportsFR', CompanyName());
+        FeatureDataUpdateStatus.Get('FRReports', CompanyName());
         UpdatedFeatureDataUpdateStatus := FeatureDataUpdateStatus;
         if StatusExisted then begin
             FeatureDataUpdateStatus := OriginalFeatureDataUpdateStatus;
@@ -1342,9 +1342,9 @@ codeunit 144044 "UT REP Number To Text"
         OtherCompany.SetFilter(Name, '<>%1', CompanyName());
         if not OtherCompany.FindFirst() then
             Error('The multi-company activation test requires a second company.');
-        if not FeatureDataUpdateStatus.Get('ReportsFR', OtherCompany.Name) then begin
+        if not FeatureDataUpdateStatus.Get('FRReports', OtherCompany.Name) then begin
             FeatureDataUpdateStatus.Init();
-            FeatureDataUpdateStatus."Feature Key" := 'ReportsFR';
+            FeatureDataUpdateStatus."Feature Key" := 'FRReports';
             FeatureDataUpdateStatus."Company Name" := OtherCompany.Name;
             FeatureDataUpdateStatus."Data Update Required" := true;
             FeatureDataUpdateStatus."Feature Status" := "Feature Status"::Pending;
@@ -1411,7 +1411,7 @@ codeunit 144044 "UT REP Number To Text"
         FormattingSucceeded: Boolean;
         FormattingError: Text;
     begin
-        FeatureKey.Get('ReportsFR');
+        FeatureKey.Get('FRReports');
         StatusExisted := OriginalFeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName());
         if StatusExisted then
             FeatureDataUpdateStatus := OriginalFeatureDataUpdateStatus

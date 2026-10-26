@@ -9,7 +9,7 @@ using System.Environment.Configuration;
 
 enumextension 10825 "Feature - Reports FR" extends "Feature To Update"
 {
-    value(10825; ReportsFR)
+    value(10825; FRReports)
     {
         Implementation = "Feature Data Update" = "Feature - Reports FR";
         ObsoleteState = Pending;

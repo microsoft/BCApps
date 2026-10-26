@@ -723,8 +723,8 @@ codeunit 148007 "FR Financial Migration Tests"
         LegacyLine."Row No." := 'P1';
         LegacyLine.Description := 'Committed legacy fixture row';
         LegacyLine.Insert(false);
-        if not Status.Get('ReportsFR', CompanyName()) then begin
-            Status."Feature Key" := 'ReportsFR';
+        if not Status.Get('FRReports', CompanyName()) then begin
+            Status."Feature Key" := 'FRReports';
             Status."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(Status."Company Name"));
             Status.Insert();
         end;

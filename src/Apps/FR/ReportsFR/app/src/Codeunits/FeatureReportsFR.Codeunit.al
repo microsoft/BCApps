@@ -23,7 +23,7 @@ codeunit 10825 "Feature - Reports FR" implements "Feature Data Update"
 
     var
         DescriptionTxt: Label 'Migrate French financial schedules and initialize French report layouts. Existing custom, user-specific, and other extension Check layouts are preserved.';
-        FeatureKeyTok: Label 'ReportsFR', Locked = true;
+        FeatureKeyTok: Label 'FRReports', Locked = true;
         CannotDisableErr: Label 'Reports FR cannot be disabled after French financial schedules have been migrated. The replacement schedules remain authoritative.';
 
     procedure IsDataUpdateRequired(): Boolean

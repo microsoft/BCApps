@@ -32,8 +32,8 @@ codeunit 10823 "Install Reports FR"
 
 #if not CLEAN30
     var
-        FeatureKeyTok: Label 'ReportsFR', Locked = true;
-        MissingFeatureKeyErr: Label 'The ReportsFR feature key is unavailable. Install the platform update containing the Reports FR feature before installing this app.';
+        FeatureKeyTok: Label 'FRReports', Locked = true;
+        MissingFeatureKeyErr: Label 'The FRReports feature key is unavailable. Install the platform update containing the Reports FR feature before installing this app.';
 #endif
 
     procedure RegisterFeature()

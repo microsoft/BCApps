@@ -17,7 +17,7 @@ codeunit 10832 "Reports FR"
     ObsoleteTag = '30.0';
 
     var
-        FeatureKeyIdTok: Label 'ReportsFR', Locked = true;
+        FeatureKeyIdTok: Label 'FRReports', Locked = true;
 
     procedure IsEnabled() Enabled: Boolean
     begin
