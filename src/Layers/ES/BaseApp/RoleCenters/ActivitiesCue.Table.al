@@ -8,8 +8,6 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.EServices.EDocument;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
@@ -163,18 +161,6 @@ table 1313 "Activities Cue"
         {
             Caption = 'Uninvoiced Bookings';
             Editable = false;
-        }
-        field(28; "IC Inbox Transactions"; Integer)
-        {
-            CalcFormula = count("IC Inbox Transaction");
-            Caption = 'IC Inbox Transactions';
-            FieldClass = FlowField;
-        }
-        field(29; "IC Outbox Transactions"; Integer)
-        {
-            CalcFormula = count("IC Outbox Transaction");
-            Caption = 'IC Outbox Transactions';
-            FieldClass = FlowField;
         }
         field(31; "Outstanding Vendor Invoices"; Integer)
         {

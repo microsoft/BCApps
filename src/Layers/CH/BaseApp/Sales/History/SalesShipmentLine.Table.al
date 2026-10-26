@@ -19,7 +19,6 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -551,35 +550,11 @@ table 111 "Sales Shipment Line"
             Editable = false;
         }
         /// <summary>
-        /// Specifies the type of intercompany partner reference.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
-        {
-            Caption = 'IC Partner Ref. Type';
-            DataClassification = CustomerContent;
-        }
-        /// <summary>
-        /// Specifies the intercompany partner reference code.
-        /// </summary>
-        field(108; "IC Partner Reference"; Code[20])
-        {
-            Caption = 'IC Partner Reference';
-            DataClassification = CustomerContent;
-        }
-        /// <summary>
         /// Specifies the date when the line was posted.
         /// </summary>
         field(131; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
-        }
-        /// <summary>
-        /// Specifies the item reference number for intercompany transactions.
-        /// </summary>
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
         }
         /// <summary>
         /// Specifies the unique identifier for the dimension set applied to this line.
@@ -1006,9 +981,10 @@ table 111 "Sales Shipment Line"
         DimMgt: Codeunit DimensionManagement;
         UOMMgt: Codeunit "Unit of Measure Management";
         CurrencyRead: Boolean;
+
 #pragma warning disable AA0074
 #pragma warning disable AA0470
-        Text92000: Label 'Shipment No. %1:';
+        Text000: Label 'Shipment No. %1:';
 #pragma warning restore AA0470
         Text001: Label 'The program cannot find this Sales line.';
 #pragma warning restore AA0074
@@ -1059,7 +1035,6 @@ table 111 "Sales Shipment Line"
         SalesInvHeader: Record "Sales Header";
         SalesOrderHeader: Record "Sales Header";
         SalesOrderLine: Record "Sales Line";
-        SalesShptHeader: Record "Sales Shipment Header";
         TempSalesLine: Record "Sales Line" temporary;
         TransferOldExtLines: Codeunit "Transfer Old Ext. Text Lines";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
@@ -1097,9 +1072,8 @@ table 111 "Sales Shipment Line"
             SalesLine."Line No." := NextLineNo;
             SalesLine."Document Type" := TempSalesLine."Document Type";
             SalesLine."Document No." := TempSalesLine."Document No.";
-            SalesShptHeader.Get("Document No.");
             TranslationHelper.SetGlobalLanguageByCode(SalesInvHeader."Language Code");
-            SalesLine.Description := StrSubstNo(Text92000, "Document No.");
+            SalesLine.Description := StrSubstNo(Text000, "Document No.");
             TranslationHelper.RestoreGlobalLanguage();
             IsHandled := false;
             OnBeforeInsertInvLineFromShptLineBeforeInsertTextLine(Rec, SalesLine, NextLineNo, IsHandled, TempSalesLine, SalesInvHeader);

@@ -421,16 +421,6 @@ page 6403 "Sales Document Line Entity"
                     ApplicationArea = All;
                     Caption = 'VAT Identifier', Locked = true;
                 }
-                field(icPartnerRefType; Rec."IC Partner Ref. Type")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Partner Ref. Type', Locked = true;
-                }
-                field(icPartnerReference; Rec."IC Partner Reference")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Partner Reference', Locked = true;
-                }
                 field(prepaymentPercent; Rec."Prepayment %")
                 {
                     ApplicationArea = All;
@@ -515,11 +505,6 @@ page 6403 "Sales Document Line Entity"
                 {
                     ApplicationArea = All;
                     Caption = 'Prepmt. Amount Inv. (LCY)', Locked = true;
-                }
-                field(icPartnerCode; Rec."IC Partner Code")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Partner Code', Locked = true;
                 }
                 field(prepmtVatAmountInvLcy; Rec."Prepmt. VAT Amount Inv. (LCY)")
                 {

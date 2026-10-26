@@ -122,16 +122,6 @@ page 6641 "Purchase Return Order Subform"
                     ApplicationArea = PurchReturnOrder;
                     ToolTip = 'Specifies the time period that is used to process and filter the transactions.';
                 }
-                field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Partner Reference"; Rec."IC Partner Reference")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;

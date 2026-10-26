@@ -57,8 +57,8 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
 
             trigger OnValidate()
             begin
-                if not DimMgt.CheckICDim("Dimension Code") then
-                    Error(DimMgt.GetDimErr());
+                if not ICDimMgt.CheckICDim("Dimension Code") then
+                    Error(ICDimMgt.GetDimErr());
                 "Dimension Value Code" := '';
             end;
         }
@@ -72,8 +72,8 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
 
             trigger OnValidate()
             begin
-                if not DimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
-                    Error(DimMgt.GetDimErr());
+                if not ICDimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
+                    Error(ICDimMgt.GetDimErr());
             end;
         }
         /// <summary>
@@ -100,6 +100,6 @@ table 423 "IC Inbox/Outbox Jnl. Line Dim."
     }
 
     var
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
 }
 

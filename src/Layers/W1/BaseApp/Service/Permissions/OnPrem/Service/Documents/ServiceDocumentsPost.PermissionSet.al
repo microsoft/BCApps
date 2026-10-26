@@ -33,10 +33,6 @@ using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -122,10 +118,6 @@ permissionset 8322 "Service Documents - Post"
                   tabledata "Gen. Journal Template" = R,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = R,
-                  tabledata "IC Bank Account" = R,
-                  tabledata "IC G/L Account" = R,
-                  tabledata "IC Partner" = R,
-                  tabledata "IC Setup" = R,
                   tabledata "Interaction Log Entry" = RIMD,
                   tabledata "Interaction Template" = R,
                   tabledata "Interaction Tmpl. Language" = R,

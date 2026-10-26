@@ -106,9 +106,9 @@ page 605 "IC Chart of Accounts"
 
                     trigger OnAction()
                     var
-                        IndentCOA: Codeunit "G/L Account-Indent";
+                        ICGLAccountIndent: Codeunit "IC G/L Account-Indent";
                     begin
-                        IndentCOA.RunICAccountIndent();
+                        ICGLAccountIndent.RunICAccountIndent();
                     end;
                 }
                 separator(Action21)

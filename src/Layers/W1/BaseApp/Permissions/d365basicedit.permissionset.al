@@ -54,7 +54,6 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.PowerBI;
-using Microsoft.Intercompany.DataExchange;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
@@ -143,18 +142,6 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "All Profile Page Metadata" = imd,
                   tabledata AllObj = imd,
                   tabledata AllObjWithCaption = imd,
-                  tabledata "Buffer IC Comment Line" = IMD,
-                  tabledata "Buffer IC Document Dimension" = IMD,
-                  tabledata "Buffer IC Inbox Jnl. Line" = IMD,
-                  tabledata "Buffer IC Inbox Purchase Line" = IMD,
-                  tabledata "Buffer IC Inbox Purch Header" = IMD,
-                  tabledata "Buffer IC Inbox Sales Header" = IMD,
-                  tabledata "Buffer IC Inbox Sales Line" = IMD,
-                  tabledata "Buffer IC Inbox Transaction" = IMD,
-                  tabledata "Buffer IC InOut Jnl. Line Dim." = IMD,
-                  tabledata "IC API Log" = IMD,
-                  tabledata "IC Incoming Notification" = IMD,
-                  tabledata "IC Outgoing Notification" = IMD,
                   tabledata Chart = imd,
                   tabledata "Code Coverage" = imd,
                   tabledata "CodeUnit Metadata" = imd,

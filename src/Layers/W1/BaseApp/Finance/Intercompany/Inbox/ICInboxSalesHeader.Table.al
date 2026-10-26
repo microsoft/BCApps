@@ -241,14 +241,14 @@ table 434 "IC Inbox Sales Header"
     trigger OnDelete()
     var
         ICInboxSalesLine: Record "IC Inbox Sales Line";
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
         ICInboxSalesLine.SetRange("IC Partner Code", "IC Partner Code");
         ICInboxSalesLine.SetRange("IC Transaction No.", "IC Transaction No.");
         ICInboxSalesLine.SetRange("Transaction Source", "Transaction Source");
         if ICInboxSalesLine.FindFirst() then
             ICInboxSalesLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"IC Inbox Sales Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
     end;
 }

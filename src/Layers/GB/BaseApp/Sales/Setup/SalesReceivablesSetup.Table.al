@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -679,24 +679,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Sales Prep. Cr. Memo Template Name';
             TableRelation = "Gen. Journal Template" where(Type = filter(Sales));
             ToolTip = 'Specifies which general journal template to use for sales credit memos.';
-        }
-        /// <summary>
-        /// Specifies the intercompany journal template used for posting intercompany sales invoices.
-        /// </summary>
-        field(205; "IC Sales Invoice Template Name"; Code[10])
-        {
-            Caption = 'IC Sales Invoice Template Name';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
-            ToolTip = 'Specifies the intercompany journal template to use for sales invoices.';
-        }
-        /// <summary>
-        /// Specifies the intercompany journal template used for posting intercompany sales credit memos.
-        /// </summary>
-        field(206; "IC Sales Cr. Memo Templ. Name"; Code[10])
-        {
-            Caption = 'IC Sales Cr. Memo Template Name';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
-            ToolTip = 'Specifies the intercompany journal template to use for sales credit memos.';
         }
         /// <summary>
         /// Specifies the general journal template used for posting finance charge memos.

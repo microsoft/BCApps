@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,9 +17,6 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Projects.Resources.Resource;
@@ -1405,24 +1402,6 @@ page 43 "Sales Invoice"
                         CurrPage.SalesLines.PAGE.ClearTotalSalesHeader();
                     end;
                 }
-                action("Reject IC Sales Invoice")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Reject IC Sales Invoice';
-                    Enabled = RejectICSalesInvoiceEnabled;
-                    Image = Cancel;
-                    ToolTip = 'Deletes the invoice and sends the rejection to the company that created it.';
-
-                    trigger OnAction()
-                    var
-                        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-                    begin
-                        if not ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec) then
-                            exit;
-                        if Confirm(SureToRejectMsg) then
-                            ICInboxOutboxMgt.RejectAcceptedSalesHeader(Rec);
-                    end;
-                }
             }
             group("F&unctions")
             {
@@ -1960,10 +1939,7 @@ page 43 "Sales Invoice"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
-        RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         WorkDescription := Rec.GetWorkDescription();
         UpdateShipToBillToGroupVisibility();
         SellToContact.GetOrClear(Rec."Sell-to Contact No.");
@@ -2021,7 +1997,6 @@ page 43 "Sales Invoice"
         PaymentServiceSetup: Record "Payment Service Setup";
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
         Rec.SetSecurityFilterOnRespCenter();
@@ -2041,7 +2016,6 @@ page 43 "Sales Invoice"
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
 
         CheckShowBackgrValidationNotification();
-        RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
     end;
 
@@ -2087,7 +2061,6 @@ page 43 "Sales Invoice"
         ShowWorkflowStatus: Boolean;
         PaymentServiceVisible: Boolean;
         PaymentServiceEnabled: Boolean;
-        SureToRejectMsg: Label 'Rejecting this order will remove it from your company and send it back to the partner company.\\Do you want to continue?';
         OpenPostedSalesInvQst: Label 'The invoice is posted as number %1 and moved to the Posted Sales Invoices window.\\Do you want to open the posted invoice?', Comment = '%1 = posted document number';
         IsCustomerOrContactNotEmpty: Boolean;
         ShowQuoteNo: Boolean;
@@ -2105,7 +2078,6 @@ page 43 "Sales Invoice"
         ShouldSearchForCustByName: Boolean;
         CanRequestApprovalForFlow: Boolean;
         CanCancelApprovalForFlow: Boolean;
-        RejectICSalesInvoiceEnabled: Boolean;
         VATDateEnabled: Boolean;
 
     protected var
@@ -2225,7 +2197,6 @@ page 43 "Sales Invoice"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InstructionMgt: Codeunit "Instruction Mgt.";
-        ICFeedback: Codeunit "IC Feedback";
     begin
         if (Rec."Last Posting No." <> '') and (Rec."Last Posting No." <> xLastPostingNo) then
             SalesInvoiceHeader.SetRange("No.", Rec."Last Posting No.")
@@ -2234,7 +2205,7 @@ page 43 "Sales Invoice"
             SalesInvoiceHeader.SetRange("Pre-Assigned No.", PreAssignedNo);
         end;
         if SalesInvoiceHeader.FindFirst() then begin
-            ICFeedback.ShowIntercompanyMessage(Rec, Enum::"IC Transaction Document Type"::Invoice, SalesInvoiceHeader."No.");
+            OnShowPostedConfirmationMessageIC(Rec, SalesInvoiceHeader."No.");
             if InstructionMgt.ShowConfirm(StrSubstNo(OpenPostedSalesInvQst, SalesInvoiceHeader."No."),
                  InstructionMgt.ShowPostedConfirmationMessageCode())
             then
@@ -2343,6 +2314,11 @@ page 43 "Sales Invoice"
     local procedure UpdateShipToBillToGroupVisibility()
     begin
         CustomerMgt.CalculateShipBillToOptions(ShipToOptions, BillToOptions, Rec);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShowPostedConfirmationMessageIC(var SalesHeader: Record "Sales Header"; SalesInvoiceNo: Code[20])
+    begin
     end;
 
     [IntegrationEvent(true, false)]

@@ -104,10 +104,10 @@ report 511 "Complete IC Inbox Action"
                             begin
                                 HandledInboxSalesHeader.TransferFields(InboxSalesHeader2);
                                 HandledInboxSalesHeader.Insert();
-                                DimMgt.SetICDocDimFilters(
+                                ICDimMgt.SetICDocDimFilters(
                                   ICDocDim, DATABASE::"IC Inbox Sales Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
                                 if ICDocDim.FindFirst() then
-                                    DimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Sales Header", "Transaction Source");
+                                    ICDimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Sales Header", "Transaction Source");
                                 InboxSalesLine.SetRange("IC Transaction No.", InboxSalesHeader2."IC Transaction No.");
                                 InboxSalesLine.SetRange("IC Partner Code", InboxSalesHeader2."IC Partner Code");
                                 InboxSalesLine.SetRange("Transaction Source", InboxSalesHeader2."Transaction Source");
@@ -115,10 +115,10 @@ report 511 "Complete IC Inbox Action"
                                     repeat
                                         HandledInboxSalesLine.TransferFields(InboxSalesLine);
                                         HandledInboxSalesLine.Insert();
-                                        DimMgt.SetICDocDimFilters(
+                                        ICDimMgt.SetICDocDimFilters(
                                           ICDocDim, DATABASE::"IC Inbox Sales Line", InboxSalesLine."IC Transaction No.", InboxSalesLine."IC Partner Code", InboxSalesLine."Transaction Source", InboxSalesLine."Line No.");
                                         if ICDocDim.FindFirst() then
-                                            DimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Sales Line", InboxSalesLine."Transaction Source");
+                                            ICDimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Sales Line", InboxSalesLine."Transaction Source");
                                     until InboxSalesLine.Next() = 0;
                                 OnAfterMoveICInboxSalesHeaderToHandled(InboxSalesHeader2, HandledInboxSalesHeader);
                             end;
@@ -152,10 +152,10 @@ report 511 "Complete IC Inbox Action"
                             begin
                                 HandledInboxPurchHeader.TransferFields(InboxPurchHeader2);
                                 HandledInboxPurchHeader.Insert();
-                                DimMgt.SetICDocDimFilters(
+                                ICDimMgt.SetICDocDimFilters(
                                   ICDocDim, DATABASE::"IC Inbox Purchase Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
                                 if ICDocDim.FindFirst() then
-                                    DimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Purch. Header", "Transaction Source");
+                                    ICDimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Purch. Header", "Transaction Source");
                                 InboxPurchLine.SetRange("IC Transaction No.", InboxPurchHeader2."IC Transaction No.");
                                 InboxPurchLine.SetRange("IC Partner Code", InboxPurchHeader2."IC Partner Code");
                                 InboxPurchLine.SetRange("Transaction Source", InboxPurchHeader2."Transaction Source");
@@ -163,11 +163,11 @@ report 511 "Complete IC Inbox Action"
                                     repeat
                                         HandledInboxPurchLine.TransferFields(InboxPurchLine);
                                         HandledInboxPurchLine.Insert();
-                                        DimMgt.SetICDocDimFilters(
+                                        ICDimMgt.SetICDocDimFilters(
                                           ICDocDim, DATABASE::"IC Inbox Purchase Line", InboxPurchLine."IC Transaction No.", InboxPurchLine."IC Partner Code",
                                           InboxPurchLine."Transaction Source", InboxPurchLine."Line No.");
                                         if ICDocDim.FindFirst() then
-                                            DimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Purch. Line", InboxPurchLine."Transaction Source");
+                                            ICDimMgt.MoveICDocDimtoICDocDim(ICDocDim, ICDocDim2, DATABASE::"Handled IC Inbox Purch. Line", InboxPurchLine."Transaction Source");
                                     until InboxPurchLine.Next() = 0;
                                 OnAfterMoveICInboxPurchHeaderToHandled(InboxPurchHeader2, HandledInboxPurchHeader);
                             end;
@@ -458,7 +458,7 @@ report 511 "Complete IC Inbox Action"
         GLAcc: Record "G/L Account";
         Vendor: Record Vendor;
         ICIOMgt: Codeunit ICInboxOutboxMgt;
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
         GLSetupFound: Boolean;
         Forward: Boolean;
 #pragma warning disable AA0074

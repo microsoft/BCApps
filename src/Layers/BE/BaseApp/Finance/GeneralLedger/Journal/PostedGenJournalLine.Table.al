@@ -33,11 +33,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -106,8 +101,6 @@ table 181 "Posted Gen. Journal Line"
             else
             if ("Account Type" = const("Fixed Asset")) "Fixed Asset"
             else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
-            else
             if ("Account Type" = const(Employee)) Employee;
         }
         /// <summary>
@@ -172,8 +165,6 @@ table 181 "Posted Gen. Journal Line"
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner"
             else
             if ("Bal. Account Type" = const(Employee)) Employee;
         }
@@ -962,22 +953,6 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Bal. VAT Difference';
             Editable = false;
         }
-        /// <summary>
-        /// Intercompany partner code for intercompany transaction processing.
-        /// </summary>
-        field(113; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Intercompany transaction direction (Outgoing or Incoming).
-        /// </summary>
-        field(114; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
-        }
 #if not CLEANSCHEMA25
         /// <summary>
         /// Intercompany partner G/L account number used for intercompany transactions (obsolete field replaced by IC Account No.).
@@ -985,20 +960,11 @@ table 181 "Posted Gen. Journal Line"
         field(116; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
             ObsoleteReason = 'Replaced by IC Account No.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';
         }
 #endif
-        /// <summary>
-        /// Intercompany partner transaction number for cross-reference tracking.
-        /// </summary>
-        field(117; "IC Partner Transaction No."; Integer)
-        {
-            Caption = 'IC Partner Transaction No.';
-            Editable = false;
-        }
         /// <summary>
         /// Sell-to customer number or buy-from vendor number for the transaction.
         /// </summary>
@@ -1081,34 +1047,6 @@ table 181 "Posted Gen. Journal Line"
             AutoFormatExpression = '';
             Caption = 'Orig. Pmt. Disc. Possible (LCY)';
             Editable = false;
-        }
-        /// <summary>
-        /// Intercompany account type for intercompany transactions and postings.
-        /// </summary>
-        field(130; "IC Account Type"; Enum "IC Journal Account Type")
-        {
-            Caption = 'IC Account Type';
-        }
-        /// <summary>
-        /// Intercompany account number for intercompany transactions and reconciliation.
-        /// </summary>
-        field(131; "IC Account No."; Code[20])
-        {
-            Caption = 'IC Account No.';
-            TableRelation =
-            if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
-            else
-            if ("Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Account No."), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         /// <summary>
         /// Specifies the spend request that this journal line relates to.
