@@ -41,7 +41,6 @@ using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Task;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Reports;
-using Microsoft.Inventory.Costing;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Reports;

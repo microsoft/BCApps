@@ -54,7 +54,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.User;
 using System.Utilities;
-using Microsoft.Foundation.Period;
 
 table 23 Vendor
 {
@@ -136,7 +135,8 @@ table 23 Vendor
             Caption = 'City';
             ToolTip = 'Specifies the vendor''s city.';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -178,7 +178,6 @@ table 23 Vendor
                     Cont.SetRange("Company No.", ContactBusinessRelation."Contact No.")
                 else
                     Cont.SetRange("Company No.", '');
-
                 if "Primary Contact No." <> '' then
                     if Cont.Get("Primary Contact No.") then;
                 if PAGE.RunModal(0, Cont) = ACTION::LookupOK then begin
@@ -375,7 +374,6 @@ table 23 Vendor
             trigger OnValidate()
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
-
                 if "Country/Region Code" <> xRec."Country/Region Code" then
                     VATRegistrationValidation();
             end;
@@ -815,7 +813,8 @@ table 23 Vendor
         {
             Caption = 'Post Code';
             ToolTip = 'Specifies the postal code.';
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -1306,7 +1305,6 @@ table 23 Vendor
                     Cont.SetRange("Company No.", ContBusRel."Contact No.")
                 else
                     Cont.SetRange("No.", '');
-
                 if "Primary Contact No." <> '' then
                     if Cont.Get("Primary Contact No.") then;
                 if PAGE.RunModal(0, Cont) = ACTION::LookupOK then begin
@@ -1327,15 +1325,12 @@ table 23 Vendor
                     Cont.Get("Primary Contact No.");
 
                     ContBusRel.FindOrRestoreContactBusinessRelation(Cont, Rec, ContBusRel."Link to Table"::Vendor);
-
                     if Cont."Company No." <> ContBusRel."Contact No." then
                         Error(Text004, Cont."No.", Cont.Name, "No.", Name);
-
                     if Cont.Type = Cont.Type::Person then begin
                         Contact := Cont.Name;
                         exit;
                     end;
-
                     if Cont."Phone No." <> '' then begin
                         "Phone No." := Cont."Phone No.";
                         UpdateMyVendor(FieldNo("Phone No."));
@@ -1783,7 +1778,6 @@ table 23 Vendor
         OnBeforeOnInsert(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "No." = '' then begin
             PurchSetup.Get();
             PurchSetup.TestField("Vendor Nos.");
@@ -1796,13 +1790,10 @@ table 23 Vendor
             while Vendor.Get("No.") do
                 "No." := NoSeries.GetNextNo("No. Series");
         end;
-
         if "Invoice Disc. Code" = '' then
             "Invoice Disc. Code" := "No.";
-
         if (not (InsertFromContact or (InsertFromTemplate and (Contact <> '')))) or ForceUpdateContact then
             UpdateContFromVend.OnInsert(Rec);
-
         if "Purchaser Code" = '' then
             SetDefaultPurchaser();
 
@@ -1820,7 +1811,6 @@ table 23 Vendor
     begin
         UpdateReferencedIds();
         SetLastModifiedDateTime();
-
         if IsContactUpdateNeeded() then begin
             Modify();
             UpdateContFromVend.OnModify(Rec);
@@ -1979,10 +1969,8 @@ table 23 Vendor
     begin
         if IsOnBeforeCheckBlockedVendHandled(Vend2, Source::Document, Enum::"Gen. Journal Document Type"::" ", Transaction) then
             exit;
-
         if Vend2."Privacy Blocked" then
             VendPrivacyBlockedErrorMessage(Vend2, Transaction);
-
         if Vend2.Blocked = Vend2.Blocked::All then
             VendBlockedErrorMessage(Vend2, Transaction);
     end;
@@ -1993,10 +1981,8 @@ table 23 Vendor
     begin
         if IsOnBeforeCheckBlockedVendHandled(Vend2, Source::Journal, DocType::" ", Transaction) then
             exit;
-
         if Vend2."Privacy Blocked" then
             Vend2.VendPrivacyBlockedErrorMessage(Vend2, Transaction);
-
         if (Vend2.Blocked = Vend2.Blocked::All) or
            (Vend2.Blocked = Vend2.Blocked::Payment) and (DocType = DocType::Payment)
         then
@@ -2120,7 +2106,6 @@ table 23 Vendor
         VendLedgEntryRemainAmtQuery.SetRange(IsOpen, true);
         VendLedgEntryRemainAmtQuery.SetFilter(Due_Date, '<%1', WorkDate());
         VendLedgEntryRemainAmtQuery.Open();
-
         if VendLedgEntryRemainAmtQuery.Read() then
             OverDueBalance := -VendLedgEntryRemainAmtQuery.Sum_Remaining_Amt_LCY;
     end;
@@ -2224,10 +2209,8 @@ table 23 Vendor
         OnBeforeGetVendorNoOpenCard(VendorText, ShowVendorCard, VendorNo, IsHandled, ShowCreateVendorOption);
         if IsHandled then
             exit(VendorNo);
-
         if VendorText = '' then
             exit('');
-
         if StrLen(VendorText) <= MaxStrLen(Vendor."No.") then
             if Vendor.Get(VendorText) then
                 exit(Vendor."No.");
@@ -2266,15 +2249,12 @@ table 23 Vendor
         Vendor.SetFilter("Phone No.", VendorFilterContains);
         Vendor.SetFilter("Post Code", VendorFilterContains);
         OnGetVendorNoOpenCardonAfterSetvendorFilters(Vendor, VendorFilterContains);
-
         if Vendor.Count() = 0 then
             MarkVendorsWithSimilarName(Vendor, VendorText);
-
         if Vendor.Count() = 1 then begin
             Vendor.FindFirst();
             exit(Vendor."No.");
         end;
-
         if not GuiAllowed() then
             Error(SelectVendorErr);
 
@@ -2295,12 +2275,10 @@ table 23 Vendor
             Vendor.Reset();
             NoFiltersApplied := true;
         end;
-
         if ShowVendorCard then
             VendorNo := PickVendor(Vendor, NoFiltersApplied)
         else
             exit('');
-
         if VendorNo <> '' then
             exit(VendorNo);
 
@@ -2348,7 +2326,6 @@ table 23 Vendor
         OnBeforeCreateNewVendor(VendorName, ShowVendorCard, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if not VendorTemplMgt.InsertVendorFromTemplate(Vendor) then
             Error(SelectVendorErr);
 
@@ -2400,7 +2377,6 @@ table 23 Vendor
         VendorLookup.RunModal();
         VendorLookup.GetRecord(Vendor);
         Result := Vendor."No." <> PreviousVendorCode;
-
         if not Result then
             Clear(Vendor);
 
@@ -2467,10 +2443,8 @@ table 23 Vendor
           (County <> xRec.County) or
           ("E-Mail" <> xRec."E-Mail") or
           ("Home Page" <> xRec."Home Page");
-
         if not UpdateNeeded and not IsTemporary then
             UpdateNeeded := VendContUpdate.ContactNameIsBlank("No.");
-
         if ForceUpdateContact then
             UpdateNeeded := true;
 
@@ -2523,10 +2497,8 @@ table 23 Vendor
         OnBeforeSetDefaultPurchaser(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if not UserSetup.Get(UserId) then
             exit;
-
         if UserSetup."Salespers./Purch. Code" <> '' then
             Validate("Purchaser Code", UserSetup."Salespers./Purch. Code");
     end;
@@ -2562,7 +2534,6 @@ table 23 Vendor
         OnBeforeVATRegistrationValidation(Rec, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
-
         if not VATRegistrationNoFormat.Test("VAT Registration No.", "Country/Region Code", "No.", DATABASE::Vendor) then
             exit;
 
@@ -2578,7 +2549,6 @@ table 23 Vendor
                 ResultRecordRef.SetTable(Rec);
             end;
         end;
-
         if LogNotVerified then
             VATRegistrationLogMgt.LogVendor(Rec);
     end;
@@ -2705,7 +2675,6 @@ table 23 Vendor
     begin
         if IsTemporary then
             exit;
-
         if not GraphMgtGeneralTools.IsApiEnabled() then
             exit;
 
@@ -2788,7 +2757,6 @@ table 23 Vendor
             exit;
 
         VATRegistrationNo := DelChr(VATRegistrationNo);
-
         if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
             if StrPos(VATRegistrationNo, CountryRegion."ISO Code") <> 1 then
                 VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;
