@@ -23,7 +23,10 @@ codeunit 5611 "Calculate Normal Depreciation"
         FALedgEntry: Record "FA Ledger Entry";
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
+        DerogFALedgEntry: Record "FA Ledger Entry";
+        DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DeprBookCode: Code[10];
         DaysInFiscalYear: Integer;
         EntryAmounts: array[4] of Decimal;
@@ -591,6 +594,16 @@ codeunit 5611 "Calculate Normal Depreciation"
             BookValue := FADeprBook."Book Value";
         end else
             BookValue := EntryAmounts[1];
+        if DateFromProjection = 0D then
+            if DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook) then begin
+                DerogFALedgEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date");
+                DerogFALedgEntry.SetRange("FA No.", FADeprBook."FA No.");
+                DerogFALedgEntry.SetRange("Depreciation Book Code", FADeprBook."Depreciation Book Code");
+                DerogFALedgEntry.SetFilter("FA Posting Type", '<>%1&<>%2', DerogFALedgEntry."FA Posting Type"::Derogatory,
+                  DerogFALedgEntry."FA Posting Type"::"Salvage Value");
+                DerogFALedgEntry.CalcSums(Amount);
+                BookValue := DerogFALedgEntry.Amount;
+            end;
         MinusBookValue := DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D) + DepreciationCalc.GetUnpostedBonusDepreciationForCalc(FADeprBook, 0D, 0D);
         FADeprBook.CalcFields("Depreciable Basis", "Salvage Value");
         DeprBasis := FADeprBook."Depreciable Basis";
@@ -1148,4 +1161,3 @@ codeunit 5611 "Calculate Normal Depreciation"
     begin
     end;
 }
-

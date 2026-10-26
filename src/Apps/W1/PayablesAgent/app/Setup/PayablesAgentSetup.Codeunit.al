@@ -183,11 +183,25 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     procedure GetOrCreateAgentEDocumentService() EDocumentService: Record "E-Document Service"
+    var
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
         if not EDocumentService.Get(PayablesAgentEDocServiceTok) then begin
             EDocumentService.Code := PayablesAgentEDocServiceTok;
             EDocumentService.Insert(true);
+
+            EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Invoice", "E-Doc. Supp. Type Direction"::Incoming);
+            EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
         end;
+    end;
+
+    internal procedure AllowCreditMemosOnAgentEDocumentService()
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+    begin
+        if EDocumentService.Get(PayablesAgentEDocServiceTok) then
+            EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
     end;
 
     procedure WasEDocumentCreatedByAgent(EDocument: Record "E-Document"): Boolean
