@@ -1918,10 +1918,8 @@ codeunit 138012 "O365 Templates Test"
         VendorTemplateCard: TestPage "Vendor Templ. Card";
     begin
         Assert.AreEqual(ExpectedVisible, ApplicationAreaMgmtFacade.IsVATEnabled(), 'The VAT application area must match the test scenario.');
+        // Each template is created right before its page check because asserterror rolls back uncommitted data.
         LibraryTemplates.CreateItemTemplate(ItemTemplate);
-        LibraryTemplates.CreateCustomerTemplate(CustomerTemplate);
-        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
-
         ItemTemplateCard.OpenView();
         ItemTemplateCard.GoToRecord(ItemTemplate);
         if ExpectedVisible then
@@ -1933,6 +1931,7 @@ codeunit 138012 "O365 Templates Test"
         end;
         ItemTemplateCard.Close();
 
+        LibraryTemplates.CreateCustomerTemplate(CustomerTemplate);
         CustomerTemplateCard.OpenView();
         CustomerTemplateCard.GoToRecord(CustomerTemplate);
         if ExpectedVisible then
@@ -1944,6 +1943,7 @@ codeunit 138012 "O365 Templates Test"
         end;
         CustomerTemplateCard.Close();
 
+        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
         VendorTemplateCard.OpenView();
         VendorTemplateCard.GoToRecord(VendorTemplate);
         if ExpectedVisible then
