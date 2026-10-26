@@ -61,8 +61,10 @@ report 94 "Close Income Statement"
                     end;
 
                     if GroupSum() then begin
-                        if not IsFirstGroupToSum("G/L Entry") then
+                        if not IsFirstGroupToSum("G/L Entry") then begin
+                            CurrReport.Skip();
                             exit;
+                        end;
                         CalcSumsInFilter("G/L Entry");
                         GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                     end;
@@ -98,10 +100,8 @@ report 94 "Close Income Statement"
                         if TempEntryNoAmountBuffer.Find() then begin
                             TempEntryNoAmountBuffer.Amount := TempEntryNoAmountBuffer.Amount + Amount;
                             TempEntryNoAmountBuffer.Amount2 := TempEntryNoAmountBuffer.Amount2 + "Additional-Currency Amount";
-                            if "Source Currency Code" <> '' then begin
-                                TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
-                                TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
-                            end;
+                            TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
+                            TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
                             TempEntryNoAmountBuffer.Modify();
                         end else begin
                             TempEntryNoAmountBuffer.Amount := Amount;
@@ -178,6 +178,11 @@ report 94 "Close Income Statement"
 
                 trigger OnPreDataItem()
                 begin
+                    AddLoadFields(
+                        Amount, "Additional-Currency Amount", "Dimension Set ID",
+                        "Business Unit Code", "Global Dimension 1 Code", "Global Dimension 2 Code",
+                        "Source Currency Code", "Source Currency Amount", "Source Currency VAT Amount");
+
                     Window.Update(2, Text013);
                     Window.Update(3, 0);
 

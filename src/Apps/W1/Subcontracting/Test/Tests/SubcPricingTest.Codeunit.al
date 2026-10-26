@@ -7,7 +7,9 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
@@ -345,6 +347,7 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractorPrice: Record "Subcontractor Price";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
+        FinalOrderDate: Date;
         FinalDatePrice: Decimal;
     begin
         // [SCENARIO 648535] An automatically calculated worksheet fallback is repriced when
@@ -361,13 +364,11 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
         SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
             RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
-        RequisitionLine.Validate("Order Date", WorkDate());
-        RequisitionLine.Modify(true);
+        FinalOrderDate := RequisitionLine."Order Date";
         FinalDatePrice := LibraryRandom.RandDecInRange(100, 200, 2);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
-            CalcDate('<-1M>', WorkDate()), Item."Base Unit of Measure", 0, '');
-        SubcontractorPrice.Validate("Ending Date", CalcDate('<-1D>', WorkDate()));
+            FinalOrderDate, Item."Base Unit of Measure", 0, '');
         SubcontractorPrice.Validate("Direct Unit Cost", FinalDatePrice);
         SubcontractorPrice.Modify(true);
 
@@ -375,9 +376,9 @@ codeunit 139982 "Subc. Pricing Test"
 
         SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(
             PurchaseLine, Item."No.", ProductionOrder."No.");
-        Assert.IsTrue(
-            PurchaseLine."Order Date" < WorkDate(),
-            'The final purchase-line Order Date must be in the price validity period.');
+        Assert.AreEqual(
+            FinalOrderDate, PurchaseLine."Order Date",
+            'The purchase-line Order Date must equal the final worksheet Order Date.');
         Assert.AreEqual(
             FinalDatePrice, PurchaseLine."Direct Unit Cost",
             'The price valid on the final purchase-line date must replace the automatic worksheet fallback.');
@@ -763,14 +764,14 @@ codeunit 139982 "Subc. Pricing Test"
         Clear(SubcontractorPrice);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", '', '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, Vendor."Currency Code");
         SubcontractorPrice."Direct Unit Cost" := PriceWithoutStdTask;
         SubcontractorPrice.Modify();
 
         Clear(SubcontractorPrice);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
             SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", StandardTask.Code, '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+            CalcDate('<-1Y>', WorkDate()), Item."Base Unit of Measure", 0, Vendor."Currency Code");
         SubcontractorPrice."Direct Unit Cost" := PriceWithStdTask;
         SubcontractorPrice.Modify();
 
@@ -1556,6 +1557,65 @@ codeunit 139982 "Subc. Pricing Test"
         ProdOrderRoutingLine.FindFirst();
     end;
 
+    local procedure CreateSubcontractingOrderDateScenario(var Item: Record Item; var ProductionOrder: Record "Production Order"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ExpectedOrderDate: Date)
+    var
+        ItemVendor: Record "Item Vendor";
+        ProdOrderLine: Record "Prod. Order Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        LeadTimeManagement: Codeunit "Lead-Time Management";
+        ItemVendorLeadTime: DateFormula;
+        VendorLeadTime: DateFormula;
+        RefOrderType: Enum "Requisition Ref. Order Type";
+    begin
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenter.Modify(true);
+
+        Evaluate(VendorLeadTime, '<9D>');
+        Vendor.Validate("Lead Time Calculation", VendorLeadTime);
+        Vendor.Modify(true);
+
+        Evaluate(ItemVendorLeadTime, '<2D>');
+        ItemVendor.Init();
+        ItemVendor.Validate("Vendor No.", Vendor."No.");
+        ItemVendor.Validate("Item No.", Item."No.");
+        ItemVendor.Validate("Lead Time Calculation", ItemVendorLeadTime);
+        ItemVendor.Insert(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Run Time", 2 * 24 * 60);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, CalcDate('<10D>', WorkDate()));
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+        Assert.IsTrue(ProdOrderRoutingLine."Starting Date" < ProdOrderRoutingLine."Ending Date", RoutingOperationSpansMultipleDaysAssertMsg);
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        Assert.AreEqual(
+            Format(ItemVendorLeadTime),
+            LeadTimeManagement.PurchaseLeadTime(Item."No.", ProdOrderLine."Location Code", ProdOrderLine."Variant Code", Vendor."No."),
+            ItemVendorLeadTimePrecedenceAssertMsg);
+        ExpectedOrderDate :=
+            LeadTimeManagement.GetPlannedStartingDate(
+                Item."No.", ProdOrderLine."Location Code", ProdOrderLine."Variant Code", Vendor."No.", Format(ItemVendorLeadTime),
+                RefOrderType::Purchase, ProdOrderRoutingLine."Starting Date");
+    end;
+
     local procedure CreateSubcontractingPurchaseLine(var PurchaseLine: Record "Purchase Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
     var
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
@@ -2338,6 +2398,146 @@ codeunit 139982 "Subc. Pricing Test"
         RequisitionLine."Operation No." := ProdOrderRoutingLine."Operation No.";
     end;
 
+    [Test]
+    procedure SubcontractingWorksheetOrderDateUsesLeadTimeBeforeRoutingStart()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        ExpectedOrderDate: Date;
+    begin
+        // [SCENARIO 653858] Worksheet and purchase order use the purchase lead time before the routing operation starts.
+        Initialize();
+
+        // [GIVEN] A multi-day subcontracting operation with an Item Vendor lead time that overrides the Vendor lead time.
+        CreateSubcontractingOrderDateScenario(Item, ProductionOrder, ProdOrderRoutingLine, ExpectedOrderDate);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+
+        // [WHEN] Subcontracts are calculated and carried out.
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+
+        // [THEN] The worksheet order date is calculated backward from the routing start, while its due date is the routing end.
+        Assert.AreEqual(ExpectedOrderDate, RequisitionLine."Order Date", WorksheetOrderDateAssertMsg);
+        Assert.AreEqual(ProdOrderRoutingLine."Ending Date", RequisitionLine."Due Date", WorksheetDueDateAssertMsg);
+
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The resulting purchase line preserves the worksheet order date and routing end date.
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(RequisitionLine."Order Date", PurchaseLine."Order Date", PurchaseLineOrderDateAssertMsg);
+        Assert.AreEqual(PurchaseLine."Planned Receipt Date", PurchaseLine."Requested Receipt Date", PurchaseLineRequestedReceiptDateAssertMsg);
+        Assert.AreEqual(ProdOrderRoutingLine."Ending Date", PurchaseLine."Expected Receipt Date", PurchaseLineExpectedReceiptDateAssertMsg);
+    end;
+
+    [Test]
+    procedure DirectSubcontractingOrderDateUsesLeadTimeBeforeRoutingStart()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ExpectedOrderDate: Date;
+    begin
+        // [SCENARIO 653858] Direct creation uses the purchase lead time before the routing operation starts.
+        Initialize();
+
+        // [GIVEN] A multi-day subcontracting operation with an Item Vendor lead time that overrides the Vendor lead time.
+        CreateSubcontractingOrderDateScenario(Item, ProductionOrder, ProdOrderRoutingLine, ExpectedOrderDate);
+
+        // [WHEN] The subcontracting purchase order is created directly from the routing line.
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+
+        // [THEN] Its order date is calculated from the routing start and its expected receipt date remains the routing end.
+        Assert.AreEqual(ExpectedOrderDate, PurchaseLine."Order Date", PurchaseLineLeadTimeOrderDateAssertMsg);
+        Assert.AreEqual(PurchaseLine."Planned Receipt Date", PurchaseLine."Requested Receipt Date", PurchaseLineRequestedReceiptDateAssertMsg);
+        Assert.AreEqual(ProdOrderRoutingLine."Ending Date", PurchaseLine."Expected Receipt Date", PurchaseLineExpectedReceiptDateAssertMsg);
+    end;
+
+    [Test]
+    procedure ExistingSubcontractingOrderUsesChangedLeadTimeBeforeRoutingStart()
+    var
+        Item: Record Item;
+        ItemVendor: Record "Item Vendor";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        LeadTimeManagement: Codeunit "Lead-Time Management";
+        ChangedLeadTime: DateFormula;
+        InitialOrderDate: Date;
+        ChangedOrderDate: Date;
+        InitialPrice: Decimal;
+        ChangedPrice: Decimal;
+        RefOrderType: Enum "Requisition Ref. Order Type";
+    begin
+        // [SCENARIO 653858] Rescheduling an existing subcontracting order uses the changed lead time before the routing start.
+        Initialize();
+
+        // [GIVEN] An existing subcontracting order whose initial Order Date selects a date-effective price.
+        CreateSubcontractingOrderDateScenario(Item, ProductionOrder, ProdOrderRoutingLine, InitialOrderDate);
+        ItemVendor.SetRange("Item No.", Item."No.");
+        ItemVendor.FindFirst();
+        Evaluate(ChangedLeadTime, '<4D>');
+        ChangedOrderDate :=
+            LeadTimeManagement.GetPlannedStartingDate(
+                Item."No.", '', '', ItemVendor."Vendor No.", Format(ChangedLeadTime),
+                RefOrderType::Purchase, ProdOrderRoutingLine."Starting Date");
+        Assert.IsTrue(ChangedOrderDate < InitialOrderDate, ChangedLeadTimeOrderDateAssertMsg);
+
+        InitialPrice := 200;
+        ChangedPrice := 100;
+        WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", ItemVendor."Vendor No.", Item."No.", '', '', ChangedOrderDate, Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Ending Date", ChangedOrderDate);
+        SubcontractorPrice.Validate("Direct Unit Cost", ChangedPrice);
+        SubcontractorPrice.Modify(true);
+        Clear(SubcontractorPrice);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", ItemVendor."Vendor No.", Item."No.", '', '', InitialOrderDate, Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", InitialPrice);
+        SubcontractorPrice.Modify(true);
+
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        Assert.AreEqual(InitialPrice, RequisitionLine."Direct Unit Cost", InitialWorksheetPriceAssertMsg);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [WHEN] Item Vendor lead time and the production quantity change, making the existing order eligible for recalculation.
+        ItemVendor.Validate("Lead Time Calculation", ChangedLeadTime);
+        ItemVendor.Modify(true);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, ProdOrderLine.Quantity + 1);
+        ProdOrderLine.Modify(true);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        Assert.IsTrue(
+            RequisitionLine."Action Message" in
+                [RequisitionLine."Action Message"::"Change Qty.",
+                 RequisitionLine."Action Message"::"Resched. & Chg. Qty."],
+            ExistingPurchaseLineActionAssertMsg);
+        Assert.AreEqual(ChangedOrderDate, RequisitionLine."Order Date", RecalculatedWorksheetOrderDateAssertMsg);
+        Assert.AreEqual(ChangedPrice, RequisitionLine."Direct Unit Cost", RecalculatedWorksheetPriceAssertMsg);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The existing purchase line preserves the routing-based dates and the price for the final Order Date.
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(ChangedOrderDate, PurchaseLine."Order Date", ExistingPurchaseLineOrderDateAssertMsg);
+        Assert.AreEqual(PurchaseLine."Planned Receipt Date", PurchaseLine."Requested Receipt Date", ExistingPurchaseLineRequestedReceiptDateAssertMsg);
+        Assert.AreEqual(ProdOrderRoutingLine."Ending Date", PurchaseLine."Expected Receipt Date", ExistingPurchaseLineExpectedReceiptDateAssertMsg);
+        Assert.AreEqual(ChangedPrice, PurchaseLine."Direct Unit Cost", ExistingPurchaseLinePriceAssertMsg);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Pricing Test");
@@ -2571,4 +2771,21 @@ codeunit 139982 "Subc. Pricing Test"
         TimeBasedMinimumAmountErr: Label 'Standard costing and purchase pricing must apply the Minimum Amount before the time factor.';
         TimeBasedCurrencyRoundingErr: Label 'The time-based Direct Unit Cost must be rounded with the purchase-line currency precision.';
         TimeBasedProdLineScrapErr: Label 'The time-based Direct Unit Cost must include production-line scrap.';
+        ChangedLeadTimeOrderDateAssertMsg: Label 'The changed lead time must move the Order Date earlier.';
+        ExistingPurchaseLineActionAssertMsg: Label 'The existing purchase line must be eligible for a change or reschedule action.';
+        ExistingPurchaseLineExpectedReceiptDateAssertMsg: Label 'The existing purchase line Expected Receipt Date must equal the routing operation Ending Date.';
+        ExistingPurchaseLineOrderDateAssertMsg: Label 'The existing purchase line Order Date must use the changed lead time before the routing starts.';
+        ExistingPurchaseLinePriceAssertMsg: Label 'The existing purchase line must use the price valid on its final Order Date.';
+        ExistingPurchaseLineRequestedReceiptDateAssertMsg: Label 'The existing purchase line Requested Receipt Date must equal its Planned Receipt Date.';
+        InitialWorksheetPriceAssertMsg: Label 'The initial worksheet line must use the price valid on its Order Date.';
+        ItemVendorLeadTimePrecedenceAssertMsg: Label 'Item Vendor lead time must take precedence over Vendor lead time.';
+        PurchaseLineExpectedReceiptDateAssertMsg: Label 'The purchase line Expected Receipt Date must equal the routing operation Ending Date.';
+        PurchaseLineLeadTimeOrderDateAssertMsg: Label 'The purchase line Order Date must account for purchase lead time before the routing starts.';
+        PurchaseLineOrderDateAssertMsg: Label 'The purchase line Order Date must equal the worksheet Order Date.';
+        PurchaseLineRequestedReceiptDateAssertMsg: Label 'The purchase line Requested Receipt Date must equal its Planned Receipt Date.';
+        RecalculatedWorksheetOrderDateAssertMsg: Label 'The recalculated worksheet Order Date must use the changed lead time before the routing start.';
+        RecalculatedWorksheetPriceAssertMsg: Label 'The recalculated worksheet line must use the price valid on its changed Order Date.';
+        RoutingOperationSpansMultipleDaysAssertMsg: Label 'The test requires a routing operation that spans multiple days.';
+        WorksheetDueDateAssertMsg: Label 'The worksheet Due Date must equal the routing operation Ending Date.';
+        WorksheetOrderDateAssertMsg: Label 'The worksheet Order Date must account for purchase lead time before the routing starts.';
 }

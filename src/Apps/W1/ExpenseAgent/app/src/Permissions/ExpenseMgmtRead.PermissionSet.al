@@ -50,6 +50,7 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Ledger Entry" = R,
         tabledata "Expense Team" = R,
         tabledata "Expense Approval Setup" = R,
+        tabledata "Expense Alternate Approver" = R,
         tabledata "Expense Rule Violation" = R,
         tabledata "Expense Policy" = R,
         tabledata "Expense Policy Evaluation" = R,
