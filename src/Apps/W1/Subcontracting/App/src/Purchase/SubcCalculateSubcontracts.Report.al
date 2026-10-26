@@ -204,6 +204,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        SubcontractingManagement.SetSubcontractingOrderDate(ReqLine, ProdOrderRoutingLine."Starting Date");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();

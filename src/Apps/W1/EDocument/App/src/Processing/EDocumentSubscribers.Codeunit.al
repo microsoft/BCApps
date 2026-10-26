@@ -54,6 +54,8 @@ codeunit 6103 "E-Document Subscribers"
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocumentProcessingPhase: Enum "E-Document Processing Phase";
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
+        ResendOrderQst: Label 'This purchase order was already sent electronically. The receiver may reject the resend as a duplicate. Do you want to continue?';
+        ResendOrderNotConfirmedErr: Label 'This purchase order was already sent electronically and the resend cannot be confirmed without a user. Release the order from the purchase order page to confirm the resend.';
         RemittanceAdviceCreatedMsg: Label '%1 remittance advice(s) created.', Comment = '%1 - Number of remittance advice e-documents created.';
         RemittanceAdviceAlreadyExistsMsg: Label 'A remittance advice already exists for %1 payment(s).', Comment = '%1 - Number of payments for which a remittance advice already existed.';
 
@@ -74,6 +76,14 @@ codeunit 6103 "E-Document Subscribers"
         NullGuid: Guid;
     begin
         LogAfterValidate(Rec."Entry No", NullGuid, 'Vendor No.');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Applies-to Vendor Inv. No.", false, false)]
+    local procedure OnAfterValidateDraftPageAppliesToVendorInvNo(var Rec: Record "E-Document"; var xRec: Record "E-Document")
+    var
+        NullGuid: Guid;
+    begin
+        LogAfterValidate(Rec."Entry No", NullGuid, 'Applies-to Vendor Inv. No.');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Invoice Discount", false, false)]
@@ -193,6 +203,56 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnBeforeReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var SkipCheckReleaseRestrictions: Boolean; var IsHandled: Boolean)
     begin
         EDocumentProcessing.RunEDocumentCheck(PurchaseHeader, EDocumentProcessingPhase::Release);
+    end;
+
+    // Manual release only, so the reopen-and-release cycles in posting and warehouse flows are never blocked.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnBeforeManualReleasePurchaseDoc', '', false, false)]
+    local procedure OnBeforeManualReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean)
+    var
+        ConfirmDialogMgt: Codeunit "Confirm Management";
+    begin
+        if PreviewMode then
+            exit;
+
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+
+        if PurchaseHeader.Status in [PurchaseHeader.Status::Released, PurchaseHeader.Status::"Pending Approval"] then
+            exit;
+
+        if not OrderWasSentElectronically(PurchaseHeader) then
+            exit;
+
+        if not GuiAllowed() then
+            Error(ResendOrderNotConfirmedErr);
+
+        if not ConfirmDialogMgt.GetResponse(ResendOrderQst, false) then
+            Error('');
+    end;
+
+    local procedure OrderWasSentElectronically(PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        EDocument: Record "E-Document";
+        EDocumentLog: Record "E-Document Log";
+    begin
+        EDocument.SetLoadFields("Entry No");
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
+        EDocument.SetRange(Direction, EDocument.Direction::Outgoing);
+        if not EDocument.FindSet() then
+            exit(false);
+
+        EDocumentLog.SetFilter(Status, '%1|%2|%3|%4',
+            Enum::"E-Document Service Status"::Exported,
+            Enum::"E-Document Service Status"::Sent,
+            Enum::"E-Document Service Status"::"Pending Response",
+            Enum::"E-Document Service Status"::Approved);
+        repeat
+            EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+            if not EDocumentLog.IsEmpty() then
+                exit(true);
+        until EDocument.Next() = 0;
+
+        exit(false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Service Document", 'OnBeforeReleaseServiceDoc', '', false, false)]
@@ -1012,10 +1072,8 @@ codeunit 6103 "E-Document Subscribers"
     var
         EDocument: Record "E-Document";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        ResponseBlob: Codeunit "Temp Blob";
         SalesHeaderRef: RecordRef;
         IResponseProvider: Interface IEDocResponseProvider;
-        IMessageBuilder: Interface IEDocMessageBuilder;
         MessageType: Enum "E-Document Message Type";
     begin
         if PreviewMode then
@@ -1029,8 +1087,7 @@ codeunit 6103 "E-Document Subscribers"
         MessageType := IResponseProvider.GetResponseMessageType(EDocument);
         if MessageType = "E-Document Message Type"::Unknown then
             exit;
-        IMessageBuilder := MessageType;
-        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
-        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
+
+        EDocMessageMgt.CreateResponseMessage(EDocument, MessageType, "E-Doc. Response Type"::Accepted);
     end;
 }
