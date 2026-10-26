@@ -685,7 +685,6 @@ table 311 "Sales & Receivables Setup"
         {
             Caption = 'IC Sales Invoice Template Name';
             DataClassification = SystemMetadata;
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
             ToolTip = 'Specifies the intercompany journal template to use for sales invoices.';
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
@@ -698,7 +697,6 @@ table 311 "Sales & Receivables Setup"
         {
             Caption = 'IC Sales Cr. Memo Template Name';
             DataClassification = SystemMetadata;
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
             ToolTip = 'Specifies the intercompany journal template to use for sales credit memos.';
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;

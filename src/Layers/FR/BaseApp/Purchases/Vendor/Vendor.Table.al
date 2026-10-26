@@ -1073,7 +1073,6 @@ table 23 Vendor
             Caption = 'IC Partner Code';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the vendor''s intercompany partner code.';
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

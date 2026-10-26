@@ -641,7 +641,6 @@ table 113 "Sales Invoice Line"
         field(130; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
             ObsoleteReason = 'Moved to the Intercompany app.';

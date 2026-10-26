@@ -1540,7 +1540,6 @@ table 18 Customer
             Caption = 'IC Partner Code';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the customer''s intercompany partner code.';
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

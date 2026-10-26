@@ -102,7 +102,8 @@ table 349 "Dimension Value"
             Caption = 'Totaling';
             ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Dimension Value Type" = const(Total)) "Dimension Value"."Dimension Code" where("Dimension Code" = field("Dimension Code"));
+            TableRelation =
+            if ("Dimension Value Type" = const(Total)) "Dimension Value"."Dimension Code" where("Dimension Code" = field("Dimension Code"));
             ValidateTableRelation = false;
 
             trigger OnValidate()
@@ -166,7 +167,6 @@ table 349 "Dimension Value"
             Caption = 'Map-to IC Dimension Value Code';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies which intercompany dimension value corresponds to the dimension value on the line.';
-            TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Map-to IC Dimension Code"));
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
@@ -297,7 +297,6 @@ table 349 "Dimension Value"
         DimValuePerAccount: Record "Dim. Value per Account";
     begin
         OnBeforeOnRename(Rec, xRec);
-
         if (xRec."Dimension Code" <> '') and ("Dimension Code" <> xRec."Dimension Code") then
             Error(Text006, FieldCaption("Dimension Code"));
 
@@ -358,7 +357,6 @@ table 349 "Dimension Value"
         OnBeforeUpdateCostAccFromDim(DimensionValue, xDimensionValue, CallingTrigger, IsHandled);
         if IsHandled then
             exit;
-
         if CostAccSetup.Get() then begin
             CostAccMgt.UpdateCostCenterFromDim(DimensionValue, xDimensionValue, CallingTrigger);
             CostAccMgt.UpdateCostObjectFromDim(DimensionValue, xDimensionValue, CallingTrigger);
@@ -378,7 +376,6 @@ table 349 "Dimension Value"
         OnBeforeCheckIfDimValueUsedFromOnDelete(Rec, xRec, IsHandled);
         if IsHandled then
             exit;
-
         if CheckIfDimValueUsed() then
             Error(Text000, GetCheckDimErr());
     end;
@@ -454,7 +451,6 @@ table 349 "Dimension Value"
         if AnalysisView.Find('-') then
             repeat
             until AnalysisView.Next() = 0;
-
         for DimensionNo := 1 to 4 do begin
             case true of
                 DimensionNo = 1:
@@ -542,7 +538,6 @@ table 349 "Dimension Value"
         if ItemBudget.Find('-') then
             repeat
             until ItemBudget.Next() = 0;
-
         for BudgDimNo := 1 to 3 do begin
             case true of
                 BudgDimNo = 1:
@@ -599,7 +594,6 @@ table 349 "Dimension Value"
         if ItemAnalysisView.Find('-') then
             repeat
             until ItemAnalysisView.Next() = 0;
-
         for DimensionNo := 1 to 3 do begin
             case true of
                 DimensionNo = 1:

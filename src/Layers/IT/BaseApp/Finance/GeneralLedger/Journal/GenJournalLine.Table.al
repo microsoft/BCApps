@@ -2385,7 +2385,6 @@ table 81 "Gen. Journal Line"
             Caption = 'IC Partner Code';
             DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
@@ -2565,20 +2564,6 @@ table 81 "Gen. Journal Line"
             Caption = 'IC Account No.';
             ToolTip = 'Specifies the number of the general ledger or bank account that the IC transaction is posted to.';
             DataClassification = CustomerContent;
-            TableRelation =
-            if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
-            else
-            if ("Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Account No."), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

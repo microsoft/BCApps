@@ -2011,7 +2011,6 @@ table 38 "Purchase Header"
             Caption = 'Buy-from IC Partner Code';
             DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
@@ -2024,7 +2023,6 @@ table 38 "Purchase Header"
             Caption = 'Pay-to IC Partner Code';
             DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

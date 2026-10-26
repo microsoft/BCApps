@@ -583,7 +583,6 @@ table 156 Resource
         {
             Caption = 'IC Partner Purch. G/L Acc. No.';
             DataClassification = CustomerContent;
-            TableRelation = "IC G/L Account";
             ToolTip = 'Specifies the intercompany g/l account number in your partner''s company that the amount for this resource is posted to.';
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;

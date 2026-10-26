@@ -126,7 +126,6 @@ table 348 Dimension
             Caption = 'Map-to IC Dimension Code';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies which intercompany dimension corresponds to the dimension on the line.';
-            TableRelation = "IC Dimension";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
@@ -363,7 +362,6 @@ table 348 Dimension
         UsedAsAnalysisViewDim := false;
         UsedAsItemBudgetDim := false;
         UsedAsItemAnalysisViewDim := false;
-
         if CheckAllDim or CheckGlobalDim or CheckShortcutDim or CheckBudgetDim or CheckItemBudgetDim then begin
             GLSetup.Get();
             if (DimTypeChecked <> DimTypeChecked::Global1) and
@@ -375,7 +373,6 @@ table 348 Dimension
             then
                 UsedAsGlobalDim := true;
         end;
-
         if CheckGlobalDim or CheckShortcutDim then begin
             if (DimTypeChecked <> DimTypeChecked::Shortcut3) and
                (DimChecked = GLSetup."Shortcut Dimension 3 Code")
@@ -402,7 +399,6 @@ table 348 Dimension
             then
                 UsedAsShortcutDim := true;
         end;
-
         if CheckAllDim or CheckGlobalDim or CheckBudgetDim then begin
             if BudgetNameChecked <> '' then
                 GLBudgetName.SetRange(Name, BudgetNameChecked);
@@ -426,7 +422,6 @@ table 348 Dimension
                         UsedAsBudgetDim := true;
                 until GLBudgetName.Next() = 0;
         end;
-
         if CheckAllDim or CheckGlobalDim or CheckItemBudgetDim then begin
             if BudgetNameChecked <> '' then begin
                 ItemBudgetName.SetRange("Analysis Area", AnalysisAreaChecked);
@@ -452,7 +447,6 @@ table 348 Dimension
         CheckIfDimUsedAsAnalysisViewDim(AnalysisView, DimChecked, DimTypeChecked, CheckAllDim, CheckAnalysisViewDim, AnalysisViewChecked);
 
         CheckIfDimUsedAsItemAnalysisViewDim(ItemAnalysisView, DimChecked, DimTypeChecked, AnalysisViewChecked, AnalysisAreaChecked, CheckAllDim, CheckItemAnalysisViewDim);
-
         if UsedAsGlobalDim or
            UsedAsShortcutDim or
            UsedAsBudgetDim or
@@ -479,7 +473,6 @@ table 348 Dimension
         OnBeforeCheckIfDimUsedAsAnalysisViewDim(AnalysisView, DimChecked, DimTypeChecked, CheckAllDim, CheckAnalysisViewDim, AnalysisViewChecked, UsedAsAnalysisViewDim, IsHandled);
         if IsHandled then
             exit;
-
         if CheckAllDim or CheckAnalysisViewDim then begin
             if AnalysisViewChecked <> '' then
                 AnalysisView.SetRange(Code, AnalysisViewChecked);
@@ -538,7 +531,6 @@ table 348 Dimension
         OnBeforeCheckIfDimUsedAsItemAnalysisViewDim(ItemAnalysisView, DimChecked, DimTypeChecked, AnalysisViewChecked, AnalysisAreaChecked, CheckAllDim, CheckItemAnalysisViewDim, UsedAsItemAnalysisViewDim, IsHandled);
         if IsHandled then
             exit;
-
         if CheckAllDim or CheckItemAnalysisViewDim then begin
             if AnalysisViewChecked <> '' then begin
                 ItemAnalysisView.SetRange("Analysis Area", AnalysisAreaChecked);

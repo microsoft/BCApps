@@ -414,7 +414,6 @@ table 312 "Purchases & Payables Setup"
             Caption = 'IC Jnl. Templ. Purch. Invoice';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the intercompany journal template to use for purchase invoices.';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
@@ -427,7 +426,6 @@ table 312 "Purchases & Payables Setup"
             Caption = 'IC Jnl. Templ. Purch. Cr. Memo';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the intercompany journal template to use for posting purchase credit memos.';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

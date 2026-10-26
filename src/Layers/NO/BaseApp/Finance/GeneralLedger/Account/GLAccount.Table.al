@@ -924,7 +924,6 @@ table 15 "G/L Account"
             Caption = 'Default IC Partner G/L Acc. No';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies accounts that you often enter in the Bal. Account No. field on intercompany journal or document lines.';
-            TableRelation = "IC G/L Account"."No.";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

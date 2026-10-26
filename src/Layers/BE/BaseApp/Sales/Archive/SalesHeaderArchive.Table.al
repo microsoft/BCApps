@@ -976,7 +976,6 @@ table 5107 "Sales Header Archive"
             Caption = 'Sell-to IC Partner Code';
             DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
@@ -989,7 +988,6 @@ table 5107 "Sales Header Archive"
             Caption = 'Bill-to IC Partner Code';
             DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

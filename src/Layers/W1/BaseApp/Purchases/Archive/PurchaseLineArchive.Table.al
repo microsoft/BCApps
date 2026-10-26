@@ -645,7 +645,6 @@ table 5110 "Purchase Line Archive"
         {
             Caption = 'IC Partner Code';
             DataClassification = CustomerContent;
-            TableRelation = "IC Partner";
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';

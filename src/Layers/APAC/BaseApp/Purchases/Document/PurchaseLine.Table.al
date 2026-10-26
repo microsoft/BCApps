@@ -2026,7 +2026,6 @@ table 39 "Purchase Line"
         {
             Caption = 'IC Partner Code';
             DataClassification = CustomerContent;
-            TableRelation = "IC Partner";
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
             ObsoleteReason = 'Moved to the Intercompany app.';
             ObsoleteState = Moved;
