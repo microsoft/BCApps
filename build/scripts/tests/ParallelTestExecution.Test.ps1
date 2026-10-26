@@ -258,7 +258,7 @@ Describe "Separate RunTests action override contract" {
         }
     }
 
-    It "uses only the original optional coverage-aware override contract" {
+    It "uses only the historical single-parameter override contract" {
         $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
         $projectOverrides = @(
             Get-ChildItem (Join-Path $repositoryRoot "build\projects") `
@@ -276,7 +276,7 @@ Describe "Separate RunTests action override contract" {
             )
             @($errors).Count | Should -Be 0
             @($ast.ParamBlock.Parameters.Name.VariablePath.UserPath) |
-                Should -Be @("parameters", "codeCoverageContext")
+                Should -Be @("parameters")
         }
         @(
             Get-ChildItem (Join-Path $repositoryRoot "build\projects") `
@@ -284,15 +284,18 @@ Describe "Separate RunTests action override contract" {
         ).Count | Should -Be 0
     }
 
-    It "routes an optional context directly to the per-app coverage adapter" {
+    It "routes coverage parameters directly to the per-app coverage adapter" {
         InModuleScope ParallelTestExecution {
-            $suppliedContract = @{ contractVersion = 1; enabled = $true }
+            $parameters = @{
+                containerName = "test"
+                tenant = "default"
+                appName = "Tests"
+                codeCoverageOutputPath = "coverage"
+            }
 
             Mock Invoke-BcAppsCoverageAwareTestRun {
                 $Parameters.containerName | Should -Be "test"
-                $CodeCoverageContext | Should -Be $suppliedContract
-                [System.IO.Path]::GetFileName($FallbackScriptPath) |
-                    Should -Be "RunTestsInBcContainer.ps1"
+                $Parameters.codeCoverageOutputPath | Should -Be "coverage"
                 $true
             }
             Mock Get-CachedTestRunResult {
@@ -302,15 +305,44 @@ Describe "Separate RunTests action override contract" {
                 throw "Coverage-aware per-app calls must bypass bucket discovery."
             }
 
-            Invoke-PerProjectTestRun -parameters @{
-                containerName = "test"
-                tenant = "default"
-                appName = "Tests"
-            } -codeCoverageContext $suppliedContract | Should -BeTrue
+            Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
 
             Should -Invoke Invoke-BcAppsCoverageAwareTestRun -Times 1 -Exactly
             Should -Invoke Get-CachedTestRunResult -Times 0
             Should -Invoke Get-InstalledTestAppNames -Times 0
+        }
+    }
+
+    It "removes stray coverage keys before using the historical path" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{
+                containerName = "coverage-disabled"
+                appName = "Tests"
+                codeCoverageMode = "line"
+                codeCoverageFormats = @("bc-json")
+            }
+
+            $historical = Get-BcAppsHistoricalTestParameters -Parameters $parameters
+
+            $historical.ContainsKey("codeCoverageMode") | Should -BeFalse
+            $historical.ContainsKey("codeCoverageFormats") | Should -BeFalse
+            $historical.containerName | Should -Be "coverage-disabled"
+            $historical.appName | Should -Be "Tests"
+            $parameters.ContainsKey("codeCoverageMode") | Should -BeTrue
+            $parameters.ContainsKey("codeCoverageFormats") | Should -BeTrue
+        }
+    }
+
+    It "preserves the exact historical parameter object when coverage keys are absent" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{
+                containerName = "coverage-disabled"
+                appName = "Tests"
+            }
+
+            $historical = Get-BcAppsHistoricalTestParameters -Parameters $parameters
+
+            [object]::ReferenceEquals($historical, $parameters) | Should -BeTrue
         }
     }
 }
@@ -383,7 +415,7 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
         $parameters.testType | Should -Be $Lane
     }
 
-    It "uses action-supplied disabled tests for the unsupported coverage fallback" {
+    It "uses supplied disabled tests in the explicit single-app BCH path" {
         $suppliedDisabledTests = @(
             [PSCustomObject]@{
                 codeunitName = "Configured Codeunit"
@@ -397,7 +429,7 @@ Describe "RunTestsInBcContainer BCH parameter forwarding" {
             disabledTests = $suppliedDisabledTests
         }
         Mock Get-BcAppsDisabledTestsForApp {
-            throw "The unsupported coverage fallback must not replace supplied exclusions."
+            throw "The explicit single-app path must not replace supplied exclusions."
         }
 
         & $script:runTestsScript `

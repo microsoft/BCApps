@@ -1665,6 +1665,27 @@ function Resolve-TestTypeForRun {
     return $matchingTestType[0]
 }
 
+function Get-BcAppsHistoricalTestParameters {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters
+    )
+
+    $coverageParameterNames = @(
+        $Parameters.Keys |
+            Where-Object { "$_".StartsWith("codeCoverage", [System.StringComparison]::OrdinalIgnoreCase) }
+    )
+    if ($coverageParameterNames.Count -eq 0) {
+        return $Parameters
+    }
+
+    $historicalParameters = $Parameters.Clone()
+    foreach ($coverageParameterName in $coverageParameterNames) {
+        $historicalParameters.Remove($coverageParameterName)
+    }
+    return $historicalParameters
+}
+
 <#
 .SYNOPSIS
     Runs one coverage-aware app or dispatches a coverage-disabled project's apps in parallel.
@@ -1675,26 +1696,20 @@ function Resolve-TestTypeForRun {
     calls in the same job return the cached final result.
 .PARAMETER parameters
     The standard AL-Go test parameters hashtable (containerName, tenant, credential, etc.).
-.PARAMETER codeCoverageContext
-    Optional non-secret AL-Go per-app coverage contract.
 .OUTPUTS
     [bool] $true if all dispatched apps passed; $false otherwise.
 #>
 function Invoke-PerProjectTestRun {
     param(
         [Parameter(Mandatory=$true)]
-        [Hashtable]$parameters,
-        [AllowNull()]
-        [hashtable]$codeCoverageContext
+        [Hashtable]$parameters
     )
 
-    if ($null -ne $codeCoverageContext) {
-        $script = Join-Path $PSScriptRoot "RunTestsInBcContainer.ps1" -Resolve
-        return Invoke-BcAppsCoverageAwareTestRun `
-            -Parameters $parameters `
-            -CodeCoverageContext $codeCoverageContext `
-            -FallbackScriptPath $script
+    if ($parameters.ContainsKey("codeCoverageOutputPath")) {
+        return Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters
     }
+
+    $parameters = Get-BcAppsHistoricalTestParameters -Parameters $parameters
 
     $cached = Get-CachedTestRunResult -ContainerName $parameters.containerName
     if ($null -ne $cached) { return $cached }
