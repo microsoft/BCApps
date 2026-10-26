@@ -61,22 +61,23 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
     }
 
     /// <summary>
-    /// Marks the document attachment as not uploaded to external storage.
-    /// Clears all external storage related fields.
+    /// Retires the local external reference only after confirming current internal content.
+    /// Remote files are retained.
     /// </summary>
-    internal procedure MarkAsNotUploadedToExternal()
+    procedure MarkAsNotUploadedToExternal()
+    var
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
     begin
-        "Stored Externally" := false;
-        "External Upload Date" := 0DT;
-        "External File Path" := '';
-        Modify();
+        if not DAExternalStorageImpl.RetireExternalReference(Rec, FailureReason) then
+            Error(FailureReason);
     end;
 
     /// <summary>
     /// Marks the document attachment as deleted from internal storage.
     /// Clears the Document Reference ID and sets the stored internally flag to false.
     /// </summary>
-    internal procedure MarkAsDeletedInternally()
+    procedure MarkAsDeletedInternally()
     begin
         Clear("Document Reference ID");
         "Stored Internally" := false;

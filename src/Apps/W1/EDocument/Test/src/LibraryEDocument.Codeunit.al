@@ -438,6 +438,13 @@ codeunit 139629 "Library - E-Document"
         Item.Modify();
     end;
 
+    procedure CreateItemWithStandardVAT(var Item: Record Item)
+    begin
+        SetupStandardVAT();
+        VATPostingSetup.TestField("VAT Prod. Posting Group");
+        CreateGenericItem(Item, VATPostingSetup."VAT Prod. Posting Group");
+    end;
+
     procedure CreateGenericItem(var Item: Record Item)
     begin
         CreateItemWithPrice(Item, LibraryRandom.RandInt(10));
