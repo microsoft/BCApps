@@ -6615,6 +6615,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CreateGLEntry(
             GenJnlLine, VATAccNo, -VATEntry.Amount, -AmountAddCurr, false,
             CalcAmountSrcCurr(GenJnlLine, -VATEntry.Amount));
+        if VATEntry."Non-Deductible VAT Amount" <> 0 then begin
+            AmountAddCurr := CalcAddCurrForUnapplication(VATEntry."Posting Date", VATEntry."Non-Deductible VAT Amount");
+            CreateGLEntry(
+                GenJnlLine,
+                GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry, -VATEntry."Non-Deductible VAT Amount"),
+                VATEntry."Non-Deductible VAT Amount", AmountAddCurr, false,
+                CalcAmountSrcCurr(GenJnlLine, VATEntry."Non-Deductible VAT Amount"));
+            CreateGLEntry(
+                GenJnlLine, ReverseChargeVATAccNo, -VATEntry."Non-Deductible VAT Amount", -AmountAddCurr, false,
+                CalcAmountSrcCurr(GenJnlLine, -VATEntry."Non-Deductible VAT Amount"));
+        end;
 
         OnAfterPostPmtDiscountVATByUnapply(GenJnlLine, VATEntry);
     end;
