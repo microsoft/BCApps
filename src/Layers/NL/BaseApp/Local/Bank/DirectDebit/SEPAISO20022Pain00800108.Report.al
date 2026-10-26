@@ -92,6 +92,7 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         StringConversionMgt: Codeunit StringConversionManagement;
         XMLDomDoc: XmlDocument;
         XMLNameSpace: Text;
+        XsiNameSpaceTxt: Label 'http://www.w3.org/2001/XMLSchemainstance', Locked = true;
         ExportFileName: Text[250];
         AlwaysNewFileName: Boolean;
 
@@ -107,7 +108,7 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
     begin
         XMLNameSpace := 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.08';
         XmlDocument.ReadFrom(
-          '<?xml version="1.0" encoding="UTF-8"?><Document xmlns="' + XMLNameSpace + '" xmlns:xsi="http://www.w3.org/2001/XMLSchemainstance"></Document>', XMLDomDoc);
+          '<?xml version="1.0" encoding="UTF-8"?><Document xmlns="' + XMLNameSpace + '" xmlns:xsi="' + XsiNameSpaceTxt + '"></Document>', XMLDomDoc);
         XMLDomDoc.GetRoot(XMLRootElement);
         XMLNodeCurr := XMLRootElement;
         AddElement(XMLNodeCurr, 'CstmrDrctDbtInitn', '', XMLNewChild);
@@ -115,6 +116,9 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         ExportGroupHeader(XMLNewChild);
         ExportPaymentInformation(XMLNewChild);
 
+#if not CLEAN30
+        RaiseOnBeforeXMLDomDocSave();
+#endif
         OnBeforeXmlDocumentSave(XMLDomDoc);
         WriteXmlDocToTempBlob(TempBlob);
 
@@ -523,8 +527,28 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
     end;
 
 #if not CLEAN30
-    [Obsolete('This event is no longer raised. The document is now built with the native XmlDocument type; use OnBeforeXmlDocumentSave instead.', '30.0')]
-    [IntegrationEvent(false, false)]
+    local procedure RaiseOnBeforeXMLDomDocSave()
+    var
+        DotNetXmlDocument: DotNet XmlDocument;
+        WriteOptions: XmlWriteOptions;
+        XMLDocText: Text;
+    begin
+        // Subscribers of the obsolete event get a DotNet copy built the same way as before (root namespace set as attributes), and their changes are read back.
+        WriteOptions.PreserveWhitespace(true);
+        XMLDomDoc.WriteTo(WriteOptions, XMLDocText);
+        XMLDocText := XMLDocText.Replace(' xmlns="' + XMLNameSpace + '"', '').Replace(' xmlns:xsi="' + XsiNameSpaceTxt + '"', '');
+        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
+        DotNetXmlDocument.LoadXml(XMLDocText);
+        DotNetXmlDocument.DocumentElement.SetAttribute('xmlns', XMLNameSpace);
+        DotNetXmlDocument.DocumentElement.SetAttribute('xmlns:xsi', XsiNameSpaceTxt);
+#pragma warning disable AL0432
+        OnBeforeXMLDomDocSave(DotNetXmlDocument);
+#pragma warning restore AL0432
+        Clear(XMLDomDoc);
+        XmlDocument.ReadFrom(DotNetXmlDocument.OuterXml, XMLDomDoc);
+    end;
+
+    [Obsolete('Use OnBeforeXmlDocumentSave instead. The document is now built with the native XmlDocument type; this event receives a DotNet copy and changes to it are written back.', '30.0')]    [IntegrationEvent(false, false)]
     local procedure OnBeforeXMLDomDocSave(var XMLDomDoc: DotNet XmlDocument)
     begin
     end;
