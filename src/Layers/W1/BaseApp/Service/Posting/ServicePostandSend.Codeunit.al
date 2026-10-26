@@ -30,6 +30,7 @@ codeunit 5979 "Service-Post and Send"
         ConfirmPostAndSendIsHandled: Boolean;
         PostIsHandled: Boolean;
         SkipPost: Boolean;
+        InvoiceCreated: Boolean;
     begin
         OnBeforeCode(ServiceHeader);
 
@@ -46,10 +47,12 @@ codeunit 5979 "Service-Post and Send"
 
         PostIsHandled := false;
         SkipPost := false;
-        OnCodeOnBeforePost(ServiceHeader, PostIsHandled, SkipPost);
+        InvoiceCreated := false;
+        OnCodeOnBeforePost(ServiceHeader, PostIsHandled, SkipPost, InvoiceCreated);
         if PostIsHandled then begin
             if SkipPost then
                 exit;
+            ServicePost.SetPostingOptions(false, false, InvoiceCreated);
         end else
             CODEUNIT.Run(CODEUNIT::"Service-Post", ServiceHeader);
 
@@ -125,7 +128,7 @@ codeunit 5979 "Service-Post and Send"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnBeforePost(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean; var SkipPost: Boolean)
+    local procedure OnCodeOnBeforePost(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean; var SkipPost: Boolean; var InvoiceCreated: Boolean)
     begin
     end;
 
