@@ -15,6 +15,9 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+#if not CLEAN30
+using System;
+#endif
 using System.Environment;
 using System.IO;
 using System.Telemetry;
@@ -471,6 +474,103 @@ report 2000006 "File Non Euro SEPA Payments"
         XMLNodeCurr := RootNode;
     end;
 
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Use the ExportTransactionInformation overload with a native XmlElement parameter instead.', '30.0')]
+    procedure ExportTransactionInformation(XMLNodeCurr: DotNet XmlNode; PmtJnlLine: Record "Payment Journal Line"; PaymentMessage: Text[140])
+    var
+        TargetXmlElement: XmlElement;
+        CurrentXmlElement: XmlElement;
+        SavedXMLNameSpace: Text;
+        ExistingChildCount: Integer;
+    begin
+        ConvertFromDotNetXmlNode(XMLNodeCurr, TargetXmlElement, SavedXMLNameSpace, ExistingChildCount);
+        CurrentXmlElement := TargetXmlElement;
+        ExportTransactionInformation(CurrentXmlElement, PmtJnlLine, PaymentMessage);
+        AppendNewChildrenToDotNetXmlNode(TargetXmlElement, ExistingChildCount, XMLNodeCurr);
+        MoveDotNetXmlNode(XMLNodeCurr, TargetXmlElement, CurrentXmlElement);
+        XMLNameSpace := SavedXMLNameSpace;
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Use the AddEnterpriseNo overload with a native XmlElement parameter instead.', '30.0')]
+    procedure AddEnterpriseNo(XMLNodeCurr: DotNet XmlNode; EnterpriseNo: Text[50])
+    var
+        TargetXmlElement: XmlElement;
+        CurrentXmlElement: XmlElement;
+        SavedXMLNameSpace: Text;
+        ExistingChildCount: Integer;
+    begin
+        ConvertFromDotNetXmlNode(XMLNodeCurr, TargetXmlElement, SavedXMLNameSpace, ExistingChildCount);
+        CurrentXmlElement := TargetXmlElement;
+        AddEnterpriseNo(CurrentXmlElement, EnterpriseNo);
+        AppendNewChildrenToDotNetXmlNode(TargetXmlElement, ExistingChildCount, XMLNodeCurr);
+        MoveDotNetXmlNode(XMLNodeCurr, TargetXmlElement, CurrentXmlElement);
+        XMLNameSpace := SavedXMLNameSpace;
+    end;
+
+    local procedure ConvertFromDotNetXmlNode(SourceXmlNode: DotNet XmlNode; var TargetXmlElement: XmlElement; var SavedXMLNameSpace: Text; var ExistingChildCount: Integer)
+    var
+        TargetXmlDocument: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(SourceXmlNode.OuterXml, TargetXmlDocument);
+        TargetXmlDocument.GetRoot(TargetXmlElement);
+        ExistingChildCount := TargetXmlElement.GetChildNodes().Count();
+        SavedXMLNameSpace := XMLNameSpace;
+        XMLNameSpace := TargetXmlElement.NamespaceUri();
+    end;
+
+    local procedure MoveDotNetXmlNode(var DotNetXmlNode: DotNet XmlNode; StartXmlElement: XmlElement; EndXmlElement: XmlElement)
+    var
+        Ancestors: XmlNodeList;
+        PrecedingSiblings: XmlNodeList;
+        AncestorXmlNode: XmlNode;
+        ChildIndexes: List of [Integer];
+        StartDepth: Integer;
+        Depth: Integer;
+        ChildIndex: Integer;
+    begin
+        // The DotNet parameter behaved by reference: the original procedures could leave the caller's node on a nested element.
+        // Move the caller's node the same way the native procedure moved its element.
+        StartXmlElement.SelectNodes('ancestor::node()', Ancestors);
+        StartDepth := Ancestors.Count();
+        EndXmlElement.SelectNodes('ancestor::node()', Ancestors);
+        if Ancestors.Count() <= StartDepth then
+            exit;
+        AncestorXmlNode := EndXmlElement.AsXmlNode();
+        for Depth := Ancestors.Count() downto StartDepth + 1 do begin
+            AncestorXmlNode.SelectNodes('preceding-sibling::node()', PrecedingSiblings);
+            ChildIndexes.Insert(1, PrecedingSiblings.Count());
+            AncestorXmlNode.SelectSingleNode('..', AncestorXmlNode);
+        end;
+        foreach ChildIndex in ChildIndexes do
+            DotNetXmlNode := DotNetXmlNode.ChildNodes.Item(ChildIndex);
+    end;
+
+    local procedure AppendNewChildrenToDotNetXmlNode(SourceXmlElement: XmlElement; ExistingChildCount: Integer; TargetXmlNode: DotNet XmlNode)
+    var
+        ChildDotNetXmlDocument: DotNet XmlDocument;
+        WriteOptions: XmlWriteOptions;
+        ChildXmlNodes: XmlNodeList;
+        ChildXmlNode: XmlNode;
+        ChildXmlText: Text;
+        i: Integer;
+    begin
+        // The DotNet node is changed in place, as the original procedures did, so references held by the caller stay valid.
+        WriteOptions.PreserveWhitespace(true);
+        ChildXmlNodes := SourceXmlElement.GetChildNodes();
+        for i := ExistingChildCount + 1 to ChildXmlNodes.Count() do begin
+            ChildXmlNodes.Get(i, ChildXmlNode);
+            if ChildXmlNode.IsXmlElement() then begin
+                ChildXmlNode.AsXmlElement().WriteTo(WriteOptions, ChildXmlText);
+                ChildDotNetXmlDocument := ChildDotNetXmlDocument.XmlDocument();
+                ChildDotNetXmlDocument.PreserveWhitespace := true;
+                ChildDotNetXmlDocument.LoadXml(ChildXmlText);
+                TargetXmlNode.AppendChild(TargetXmlNode.OwnerDocument.ImportNode(ChildDotNetXmlDocument.DocumentElement, true));
+            end;
+        end;
+    end;
+#endif
     [Scope('OnPrem')]
     procedure ExportTransactionInformation(var XMLNodeCurr: XmlElement; PmtJnlLine: Record "Payment Journal Line"; PaymentMessage: Text[140])
     var
