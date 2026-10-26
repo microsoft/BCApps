@@ -7,7 +7,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.EServices.EDocument;
 using System.Threading;
 
-codeunit 43012 "Report Filename Inbox Sub."
+codeunit 8137 "Report Filename Inbox Sub."
 {
     // The scheduled route: names Report Inbox rows as they are inserted, and downloads them under
     // that name until Base Application raises a file name event (see OnBeforeShowReport).

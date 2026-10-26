@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-enum 43006 "Report Filename Refusal"
+enum 8131 "Report Filename Refusal"
 {
     // Why a fully resolved name is still not used as a file name, so Test Pattern can say so
     // instead of blaming a placeholder. None means the name is used.

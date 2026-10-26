@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-table 43004 "Report Filename Record Buffer"
+table 8129 "Report Filename Record Buffer"
 {
     // Records to test a pattern against, for tables with no lookup page (Table Metadata's
     // LookupPageID is 0). Each record is held by its RecordId.

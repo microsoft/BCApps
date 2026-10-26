@@ -14,7 +14,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 
-codeunit 43000 "Report Filename Mgt."
+codeunit 8125 "Report Filename Mgt."
 {
     Access = Public;
 

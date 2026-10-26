@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-enum 43001 "Report Filename Date Format"
+enum 8126 "Report Filename Date Format"
 {
     // Fixed formats rather than the user's regional format, so a date in a file name is unambiguous
     // and has no characters that are illegal in a file name. The default, year first, sorts by date.

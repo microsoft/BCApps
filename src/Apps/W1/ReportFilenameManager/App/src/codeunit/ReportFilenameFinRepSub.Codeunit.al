@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.Finance.FinancialReports;
 
-codeunit 43013 "Report Filename Fin. Rep. Sub."
+codeunit 8138 "Report Filename Fin. Rep. Sub."
 {
     // Every financial report PDF renders through report 25 Account Schedule, and which one is running
     // is held in a report variable that the naming payload never carries. The print actions'

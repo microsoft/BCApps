@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using System.IO;
 
-codeunit 43017 "Report Filename Excel Sub."
+codeunit 8142 "Report Filename Excel Sub."
 {
     // Temporary stand-in until Base Application raises a file name event for the financial report
     // workbook that Export Acc. Sched. to Excel downloads (ask 4); then this codeunit is removed.

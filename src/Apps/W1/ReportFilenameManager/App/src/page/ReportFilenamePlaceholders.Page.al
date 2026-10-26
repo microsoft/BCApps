@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-page 43003 "Report Filename Placeholders"
+page 8128 "Report Filename Placeholders"
 {
     // Lists the placeholders a pattern can use; which ones are listed depends on metadata only.
     // FlowFilter fields and types with no file name form (Blob, Media, MediaSet, Time) are not offered.

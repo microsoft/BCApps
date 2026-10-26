@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-enum 43002 "Report Filename Plh. Source"
+enum 8127 "Report Filename Plh. Source"
 {
     // Where a placeholder gets its value.
 

@@ -14,7 +14,7 @@ using System.IO;
 using System.Privacy;
 using System.Utilities;
 
-codeunit 43001 "Report Filename Subscribers"
+codeunit 8126 "Report Filename Subscribers"
 {
     Access = Internal;
 

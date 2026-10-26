@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-page 43009 "Report Filename Setup"
+page 8134 "Report Filename Setup"
 {
     Caption = 'Report Filename Setup';
     PageType = Card;

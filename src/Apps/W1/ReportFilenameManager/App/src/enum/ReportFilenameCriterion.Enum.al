@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-enum 43005 "Report Filename Criterion"
+enum 8130 "Report Filename Criterion"
 {
     // The first pattern criterion a document fails, in the order naming checks them, so Test
     // Pattern can say why a pattern does not apply. None means the pattern applies.

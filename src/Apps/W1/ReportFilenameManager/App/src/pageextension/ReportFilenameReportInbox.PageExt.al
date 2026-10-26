@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 43000 "Report Filename Report Inbox" extends "Report Inbox"
+pageextension 8125 "Report Filename Report Inbox" extends "Report Inbox"
 {
     layout
     {

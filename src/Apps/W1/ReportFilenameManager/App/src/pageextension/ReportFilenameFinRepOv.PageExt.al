@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.Finance.FinancialReports;
 
-pageextension 43002 "Report Filename Fin. Rep. Ov." extends "Acc. Schedule Overview"
+pageextension 8127 "Report Filename Fin. Rep. Ov." extends "Acc. Schedule Overview"
 {
     // Records which financial report Open in Excel (using layout) exports, since Export Acc. Sched.
     // to Excel does not expose it. TempFinancialReport is protected, so this extension can read it.

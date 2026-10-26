@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-enum 43004 "Report Filename Run Scope"
+enum 8129 "Report Filename Run Scope"
 {
     // How much of the table a Test Pattern run covers.
 

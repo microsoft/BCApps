@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.Foundation.Company;
 
-codeunit 43006 "Report Filename Company Plh." implements "Report Filename Placeholder"
+codeunit 8131 "Report Filename Company Plh." implements "Report Filename Placeholder"
 {
     Access = Internal;
 

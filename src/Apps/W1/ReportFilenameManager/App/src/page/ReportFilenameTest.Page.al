@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using System.Reflection;
 
-page 43007 "Report Filename Test"
+page 8132 "Report Filename Test"
 {
     // Shows the file name a chosen run would get, and whether it comes from this pattern, another
     // pattern, or Business Central; the latter two say why.

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-table 43005 "Report Filename Setup"
+table 8130 "Report Filename Setup"
 {
     // No row means the defaults (disabled, 100 characters), so nothing is created at install.
 

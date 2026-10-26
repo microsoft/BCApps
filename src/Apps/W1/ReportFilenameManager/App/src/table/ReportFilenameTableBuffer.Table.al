@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-table 43002 "Report Filename Table Buffer"
+table 8127 "Report Filename Table Buffer"
 {
     // Tables that some non-processing report is about (Report Filename Mgt.SubjectTableNo), each
     // with its number of reports, which a filter on Table Metadata could not carry.

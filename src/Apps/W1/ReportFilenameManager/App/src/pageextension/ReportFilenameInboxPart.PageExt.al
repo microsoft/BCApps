@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 43001 "Report Filename Inbox Part" extends "Report Inbox Part"
+pageextension 8126 "Report Filename Inbox Part" extends "Report Inbox Part"
 {
     // Shows the stored file name on the Role Center part, as on the full Report Inbox page.
 

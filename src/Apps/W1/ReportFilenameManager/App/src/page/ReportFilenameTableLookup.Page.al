@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-page 43005 "Report Filename Table Lookup"
+page 8130 "Report Filename Table Lookup"
 {
     // Picks the table for a pattern that covers every report on that table. Lists only tables
     // that some non-processing report is about, not all of Table Metadata.

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-table 43006 "Report Filename Route Buffer"
+table 8131 "Report Filename Route Buffer"
 {
     // One row per route for choosing a pattern's Output Route Filter, like Dimension Selection Buffer.
 

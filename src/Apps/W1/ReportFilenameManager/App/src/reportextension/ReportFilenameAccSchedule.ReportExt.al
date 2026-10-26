@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using Microsoft.Finance.FinancialReports;
 
-reportextension 43000 "Report Filename Acc. Schedule" extends "Account Schedule"
+reportextension 8125 "Report Filename Acc. Schedule" extends "Account Schedule"
 {
     // Records the financial report and period from report 25's request page, which closes before
     // the file name is decided. Cancel clears what the print action recorded, so a cancelled print

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-page 43000 "Report Filename Patterns"
+page 8125 "Report Filename Patterns"
 {
     Caption = 'Report Filename Patterns';
     PageType = List;

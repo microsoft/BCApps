@@ -7,7 +7,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 using System.Globalization;
 using System.Reflection;
 
-table 43000 "Report Filename Pattern"
+table 8125 "Report Filename Pattern"
 {
     // Empty on install; with no rows every report keeps Business Central's own file name.
 

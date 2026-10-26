@@ -8,7 +8,7 @@ using Microsoft.EServices.EDocument;
 using System.Reflection;
 using System.Threading;
 
-codeunit 43011 "Report Filename Inbox Mgt."
+codeunit 8136 "Report Filename Inbox Mgt."
 {
     // The scheduled route. Job Queue Start Report renders with REPORT.SaveAs into the Report Inbox
     // row's stream, and Report Inbox names the download itself; the name is decided when the row

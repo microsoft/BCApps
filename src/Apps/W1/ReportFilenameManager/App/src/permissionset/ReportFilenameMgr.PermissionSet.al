@@ -14,7 +14,7 @@ using Microsoft.Sales.Reminder;
 using System.Reflection;
 using System.Threading;
 
-permissionset 43000 "Report Filename Mgr."
+permissionset 8125 "Report Filename Mgr."
 {
     // For administrators who manage patterns and setup. Other users do not need it: naming reads
     // patterns and setup under inherent permissions (Report Filename Mgt.TryResolve).

@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using System.Reflection;
 
-page 43006 "Report Filename Field Lookup"
+page 8131 "Report Filename Field Lookup"
 {
     // Picks the document's language field by caption. The pattern stores the field number, which
     // survives renames and translations. Only fields related to the Language table are listed.

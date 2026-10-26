@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-table 43003 "Report Filename Plh. Buffer"
+table 8128 "Report Filename Plh. Buffer"
 {
     // The placeholders available for one pattern. Which ones are listed depends on metadata only,
     // not on the records in the database.

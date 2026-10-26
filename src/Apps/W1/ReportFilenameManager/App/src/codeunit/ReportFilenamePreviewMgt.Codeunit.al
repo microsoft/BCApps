@@ -7,7 +7,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
-codeunit 43003 "Report Filename Preview Mgt."
+codeunit 8128 "Report Filename Preview Mgt."
 {
     Access = Internal;
 

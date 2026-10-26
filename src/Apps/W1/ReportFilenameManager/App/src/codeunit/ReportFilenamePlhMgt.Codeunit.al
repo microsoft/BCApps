@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using System.Reflection;
 
-codeunit 43004 "Report Filename Plh. Mgt."
+codeunit 8129 "Report Filename Plh. Mgt."
 {
     // Which placeholders and tables are offered is derived from compiled metadata (Report
     // Metadata, Report Data Items, Table Metadata, Field), not from the company's records.

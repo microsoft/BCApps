@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using System.Reflection;
 
-page 43002 "Report Filename Preview"
+page 8127 "Report Filename Preview"
 {
     Caption = 'Example File Name';
     PageType = CardPart;

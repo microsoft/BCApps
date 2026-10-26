@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting.FileNaming;
 
-page 43008 "Report Filename Record Lookup"
+page 8133 "Report Filename Record Lookup"
 {
     // Chooses the record a pattern is tested against. Used only for tables with no lookup page
     // (Table Metadata's LookupPageID is 0); otherwise the table's lookup page opens instead.

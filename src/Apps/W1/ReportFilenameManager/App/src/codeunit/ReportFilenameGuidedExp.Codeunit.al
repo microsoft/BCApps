@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 using System.Environment.Configuration;
 
-codeunit 43015 "Report Filename Guided Exp."
+codeunit 8140 "Report Filename Guided Exp."
 {
     // Lists Report Filename Setup under Manual Setup, in the System category, where Base
     // Application also lists Report Layout Selection.
