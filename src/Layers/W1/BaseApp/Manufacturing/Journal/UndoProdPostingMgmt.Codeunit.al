@@ -141,7 +141,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 ItemLedgerEntry."Item No.", ItemLedgerEntry."Variant Code", ItemLedgerEntry."Unit of Measure Code",
                 ItemLedgerEntry.Quantity, ItemLedgerEntry."Qty. per Unit of Measure"));
             if OutputQuantity = 0 then begin
-                // Split posting requires a nonzero quantity for amount allocation.
                 Item.Get(ItemLedgerEntry."Item No.");
                 ItemJnlLine.Validate("Unit of Measure Code", Item."Base Unit of Measure");
                 OutputQuantity := -Abs(ItemLedgerEntry.Quantity);
