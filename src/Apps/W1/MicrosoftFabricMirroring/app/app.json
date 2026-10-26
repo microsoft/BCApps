@@ -1,6 +1,6 @@
 {
     "id": "11c0c133-baf4-4e23-8e14-4ba647f86804",
-    "name": "Microsoft Fabric Mirroring",
+    "name": "Microsoft Fabric Mirroring (Preview)",
     "publisher": "Microsoft",
     "brief": "Mirror data from Business Central to Microsoft Fabric using Open Mirroring.",
     "description": "Mirror data from Business Central to Microsoft Fabric using Open Mirroring technology. Supports table selection, category-based mirroring ordering, multi-company sync.",
@@ -11,8 +11,7 @@
     "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
     "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=220403",
     "logo": "ExtensionLogo.png",
-    "dependencies": [
-    ],
+    "dependencies": [],
     "screenshots": [],
     "platform": "30.0.0.0",
     "application": "30.0.0.0",
@@ -31,13 +30,11 @@
         }
     ],
     "features": [
-    "TranslationFile"
-  ],
+        "TranslationFile"
+    ],
     "resourceExposurePolicy": {
         "allowDebugging": true,
         "allowDownloadingSource": true,
         "includeSourceInSymbolFile": true
     }
 }
-
-
