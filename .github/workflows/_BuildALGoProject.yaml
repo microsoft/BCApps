@@ -169,7 +169,7 @@ jobs:
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
-          shell: ${{ inputs.shell }}
+          shell: pwsh
           project: ${{ inputs.project }}
           buildMode: ${{ inputs.buildMode }}
           projectDependenciesJson: ${{ inputs.projectDependenciesJson }}
@@ -337,7 +337,7 @@ jobs:
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/CodeCoverage/coverage-status.json',inputs.project)) != '')
         uses: spetersenms/AL-Go/Actions/AnalyzeCodeCoverage@spetersen/separateTestActionCodeCoverage
         with:
-          shell: ${{ inputs.shell }}
+          shell: pwsh
           scope: project
           project: ${{ inputs.project }}
           coveragePath: '${{ inputs.project }}/.buildartifacts/CodeCoverage/'

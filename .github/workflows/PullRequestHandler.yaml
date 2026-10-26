@@ -162,7 +162,7 @@ jobs:
         if: success() || failure()
         uses: spetersenms/AL-Go/Actions/AnalyzeCodeCoverage@spetersen/separateTestActionCodeCoverage
         with:
-          shell: powershell
+          shell: pwsh
           scope: repository
           coveragePath: '${{ github.workspace }}/.buildartifacts/DownloadedCodeCoverage/'
           buildOrderJson: ${{ needs.Initialization.outputs.buildOrderJson }}
