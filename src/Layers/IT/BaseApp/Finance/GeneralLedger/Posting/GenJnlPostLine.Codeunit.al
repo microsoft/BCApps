@@ -8647,20 +8647,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure UpdateVATEntryTaxDetails(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; TaxDetail: Record "Tax Detail"; var TaxJurisdiction: Record "Tax Jurisdiction")
-    begin
-        if TaxDetail."Tax Jurisdiction Code" <> '' then
-            TaxJurisdiction.Get(TaxDetail."Tax Jurisdiction Code");
-        if GenJnlLine."Gen. Posting Type" <> GenJnlLine."Gen. Posting Type"::Settlement then begin
-            VATEntry."Tax Group Used" := TaxDetail."Tax Group Code";
-            VATEntry."Tax Type" := TaxDetail."Tax Type";
-            VATEntry."Tax on Tax" := TaxDetail."Calculate Tax on Tax";
-        end;
-        VATEntry."Tax Jurisdiction Code" := TaxDetail."Tax Jurisdiction Code";
-
-        OnAfterUpdateVATEntryTaxDetails(VATEntry, TaxDetail);
-    end;
-
     /// <summary>
     /// Parameter GLEntryNo is updated with value of parameter SavedEntryNo.
     /// Global variable NextEntryNo is decreased by 1 (one).
