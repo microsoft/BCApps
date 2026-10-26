@@ -3134,6 +3134,68 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         VerifyPaymentJnlExportErrorText(GenJournalLine, IBANTypeErr);
     end;
 
+    [Test]
+    procedure FillExportBufferAppendsVendorAddress2ForSwissExport()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentExportData: Record "Payment Export Data";
+        Vendor: Record Vendor;
+        Address: Text[100];
+        Address2: Text[50];
+        SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
+    begin
+        // [SCENARIO 656772] Vendor Address 2 is appended to the street name for Swiss SEPA exports.
+        Initialize();
+
+        // [GIVEN] Swiss SEPA payment for a vendor whose building number is stored in Address 2.
+        CreateGenJournalBatch(GenJournalBatch, CreateBankAccount(FindSwissSEPACTBankExpImpCode()));
+        CreateGenJournalLine(GenJournalLine, GenJournalBatch);
+        Vendor.Get(GenJournalLine."Account No.");
+        Address := LibraryRandom.RandText(StrLen(Address));
+        Address2 := LibraryRandom.RandText(StrLen(Address2));
+        Vendor.Validate(Address, Address);
+        Vendor.Validate("Address 2", Address2);
+        Vendor.Modify(true);
+
+        // [WHEN] The payment export buffer is filled.
+        GenJournalLine.SetRecFilter();
+        SEPACTFillExportBuffer.FillExportBuffer(GenJournalLine, PaymentExportData);
+
+        // [THEN] Recipient Address contains the street and building number.
+        Assert.AreEqual(Address + ' ' + Address2, PaymentExportData."Recipient Address", '');
+    end;
+
+    [Test]
+    procedure FillExportBufferKeepsVendorAddressWhenAddress2IsBlank()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentExportData: Record "Payment Export Data";
+        Vendor: Record Vendor;
+        Address: Text[100];
+        SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
+    begin
+        // [SCENARIO 656772] A blank Vendor Address 2 does not add whitespace to the street name.
+        Initialize();
+
+        // [GIVEN] Swiss SEPA payment for a vendor with a blank Address 2.
+        CreateGenJournalBatch(GenJournalBatch, CreateBankAccount(FindSwissSEPACTBankExpImpCode()));
+        CreateGenJournalLine(GenJournalLine, GenJournalBatch);
+        Vendor.Get(GenJournalLine."Account No.");
+        Address := LibraryRandom.RandText(StrLen(Address));
+        Vendor.Validate(Address, Address);
+        Vendor.Validate("Address 2", '');
+        Vendor.Modify(true);
+
+        // [WHEN] The payment export buffer is filled.
+        GenJournalLine.SetRecFilter();
+        SEPACTFillExportBuffer.FillExportBuffer(GenJournalLine, PaymentExportData);
+
+        // [THEN] Recipient Address remains unchanged.
+        Assert.AreEqual(Vendor.Address, PaymentExportData."Recipient Address", '');
+    end;
+
     local procedure Initialize()
     var
         GLSetup: Record "General Ledger Setup";
@@ -4245,4 +4307,3 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         Reply := true;
     end;
 }
-
