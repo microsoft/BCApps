@@ -4,29 +4,38 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
+using Microsoft.Purchases.History;
 using Microsoft.Sales.Receivables;
 
 codeunit 113 "Vend. Entry-Edit"
 {
     Permissions = TableData "Vendor Ledger Entry" = m,
-                  TableData "Detailed Vendor Ledg. Entry" = m;
+                  TableData "Detailed Vendor Ledg. Entry" = m,
+                  TableData "Purch. Inv. Header" = rm;
     TableNo = "Vendor Ledger Entry";
+
+    var
+        CalledFromPurchaseInvEdit: Boolean;
 
     trigger OnRun()
     var
+        PurchInvHeader: Record "Purch. Inv. Header";
         LedgEntryTrackChanges: Codeunit "Ledg. Entry-Track Changes";
         IsHandled: Boolean;
+        PurchInvHeaderFound: Boolean;
     begin
         IsHandled := false;
         OnBeforeOnRun(Rec, VendLedgEntry, DtldVendLedgEntry, IsHandled);
         if IsHandled then
             exit;
 
+        // Lock the posted purchase invoice before the vendor ledger entry to keep the same lock order as "Purch. Inv. Header - Edit"
+        PurchInvHeaderFound := GetPurchInvHeader(PurchInvHeader, Rec);
+
         VendLedgEntry := Rec;
         VendLedgEntry.LockTable();
         VendLedgEntry.Find();
         VendLedgEntry."On Hold" := Rec."On Hold";
-
         if LogFieldChanged(VendLedgEntry, Rec) then
             BindSubscription(LedgEntryTrackChanges);
 
@@ -67,7 +76,43 @@ codeunit 113 "Vend. Entry-Edit"
 #if not CLEAN29
         OnRunOnAfterVendLedgEntryMofidy(VendLedgEntry);
 #endif
+        if PurchInvHeaderFound then
+            UpdatePurchInvHeader(PurchInvHeader, VendLedgEntry);
         Rec := VendLedgEntry;
+    end;
+
+    procedure SetCalledFromPurchaseInvoice(CalledFromPurchaseInvEditSet: Boolean)
+    begin
+        CalledFromPurchaseInvEdit := CalledFromPurchaseInvEditSet;
+    end;
+
+    local procedure GetPurchInvHeader(var PurchInvHeader: Record "Purch. Inv. Header"; VendorLedgerEntry: Record "Vendor Ledger Entry"): Boolean
+    begin
+        if CalledFromPurchaseInvEdit then
+            exit(false);
+        if VendorLedgerEntry."Document Type" <> VendorLedgerEntry."Document Type"::Invoice then
+            exit(false);
+        PurchInvHeader.ReadIsolation(IsolationLevel::UpdLock);
+        if not PurchInvHeader.Get(VendorLedgerEntry."Document No.") then
+            exit(false);
+        exit(PurchInvHeader."Vendor Ledger Entry No." = VendorLedgerEntry."Entry No.");
+    end;
+
+    local procedure UpdatePurchInvHeader(var PurchInvHeader: Record "Purch. Inv. Header"; UpdatePurchaseInvoiceVendLedgEntry: Record "Vendor Ledger Entry")
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeUpdatePurchaseInvoiceHeader(UpdatePurchaseInvoiceVendLedgEntry, CalledFromPurchaseInvEdit, IsHandled);
+        if IsHandled then
+            exit;
+
+        PurchInvHeader."Payment Reference" := UpdatePurchaseInvoiceVendLedgEntry."Payment Reference";
+        PurchInvHeader."Payment Method Code" := UpdatePurchaseInvoiceVendLedgEntry."Payment Method Code";
+        PurchInvHeader."Creditor No." := UpdatePurchaseInvoiceVendLedgEntry."Creditor No.";
+        PurchInvHeader."Posting Description" := UpdatePurchaseInvoiceVendLedgEntry.Description;
+        PurchInvHeader."Dispute Status" := UpdatePurchaseInvoiceVendLedgEntry."Dispute Status";
+        PurchInvHeader.Modify(true);
     end;
 
     var
@@ -139,5 +184,9 @@ codeunit 113 "Vend. Entry-Edit"
     local procedure OnAfterLogFieldChanged(CurrVendorLedgerEntry: Record "Vendor Ledger Entry"; NewVendorLedgerEntry: Record "Vendor Ledger Entry"; var Changed: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdatePurchaseInvoiceHeader(var UpdatePurchaseInvoiceVendorLedgerEntry: Record "Vendor Ledger Entry"; CalledFromPurchaseInvoiceEdit: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+}
