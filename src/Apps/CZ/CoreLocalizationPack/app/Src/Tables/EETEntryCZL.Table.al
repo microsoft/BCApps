@@ -141,11 +141,13 @@ table 31128 "EET Entry CZL"
         {
             Caption = 'Taxpayer ID';
             ToolTip = 'Specifies the registered identification number of the taxpayer whose sales are reported.';
+            DataClassification = OrganizationIdentifiableInformation;
         }
         field(93; "Authorizing Taxpayer ID"; Code[20])
         {
             Caption = 'Authorizing Taxpayer ID';
             ToolTip = 'Specifies the registered identification number of the taxpayer who authorized you to report this sale. It is blank when you report your own sale.';
+            DataClassification = OrganizationIdentifiableInformation;
         }
         field(95; "Sales Regime"; Enum "EET Sales Regime CZL")
         {
