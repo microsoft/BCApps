@@ -8202,6 +8202,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
+    procedure IncrNextTransactionNo()
+    begin
+        NextTransactionNo := NextTransactionNo + 1;
+    end;
+
+   [Scope('OnPrem')]
     procedure InitPaymentTerms(GenJnlLine: Record "Gen. Journal Line")
     var
         IsHandled: Boolean;
