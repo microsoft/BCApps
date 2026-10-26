@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -132,7 +132,6 @@ codeunit 5600 "FA Insert Ledger Entry"
            (LastEntryNo > 0)
         then
             CheckFADocNo(FALedgEntry);
-        FALedgEntry."Exclude Derogatory" := CalcExcludeDerogatory(FALedgEntry);
 #if not CLEAN30
         // Both exclusion fields exist until CLEAN30, and the "Book Value" FlowField can only filter one of them,
         // so keep them aligned while the legacy field is still part of the schema.
