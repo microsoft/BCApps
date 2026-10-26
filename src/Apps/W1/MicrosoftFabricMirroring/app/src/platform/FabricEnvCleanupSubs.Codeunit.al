@@ -1,7 +1,6 @@
 namespace Microsoft.FabricExport;
 
 using System.DataAdministration;
-using System.Environment;
 
 codeunit 48500 "Fabric Env. Cleanup Subs."
 {

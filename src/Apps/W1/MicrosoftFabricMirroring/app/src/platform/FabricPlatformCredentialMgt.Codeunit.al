@@ -12,15 +12,12 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     var
         FabricMirroringAppIdAKVSecretNameLbl: Label 'FabricMirroringAppId', Locked = true;
         MissingClientIdTelemetryTxt: Label 'The Microsoft Fabric Mirroring client ID has not been initialized.', Locked = true;
-        AdminConsentUrlTok: Label 'https://login.microsoftonline.com/%1/adminconsent', Comment = '%1 = tenant ID', Locked = true;
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
-        AdminConsentFailedErr: Label 'Admin consent was not granted. %1', Comment = '%1 = error details returned by Microsoft Entra ID';
         FabricApiTokenErr: Label 'Failed to acquire a Microsoft Fabric API token. Sign in again and verify that admin consent was granted.';
-        GraphApiTokenErr: Label 'Failed to acquire a Microsoft Graph token. Sign in again and verify that admin consent was granted.';
         FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration in Microsoft Entra ID and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
-        OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
+        OpenDataEncryptionMgtLbl: Label 'Activate encryption';
         OAuthAuthorityUrlTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = tenant ID', Locked = true;
 
     internal procedure IsCustomAppEnabled(): Boolean
@@ -204,48 +201,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     end;
 
     /// <summary>
-    /// Provisions the first-party app's service principal in the customer's Entra tenant (one-time, secret-free).
-    /// </summary>
-    procedure RequestAdminConsent()
-    var
-        OAuth2: Codeunit OAuth2;
-        AuthorityTenantId: Text;
-        AdminConsentUrl: Text;
-        PermissionGrantError: Text;
-        HasConsentSucceeded: Boolean;
-    begin
-        if GetClientId() = '' then
-            Error(ClientIdRequiredErr);
-        AuthorityTenantId := GetTenantId();
-        if AuthorityTenantId = '' then
-            Error(TenantIdRequiredErr);
-
-        AdminConsentUrl := StrSubstNo(AdminConsentUrlTok, AuthorityTenantId);
-        OAuth2.RequestClientCredentialsAdminPermissions(GetClientId(), AdminConsentUrl, '', HasConsentSucceeded, PermissionGrantError);
-        if not HasConsentSucceeded then
-            Error(AdminConsentFailedErr, PermissionGrantError);
-    end;
-
-    /// <summary>
-    /// Acquires a delegated Microsoft Graph token via On-Behalf-Of for the first-party app.
-    /// </summary>
-    [NonDebuggable]
-    procedure AcquireGraphApiTokenDelegated(): SecretText
-    var
-        OAuth2: Codeunit OAuth2;
-        AccessToken: SecretText;
-        RedirectUrl: Text;
-        Scopes: List of [Text];
-    begin
-        Scopes.Add('https://graph.microsoft.com/User.Read');
-        OAuth2.GetDefaultRedirectUrl(RedirectUrl);
-        OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
-        if AccessToken.IsEmpty() then
-            Error(GraphApiTokenErr);
-        exit(AccessToken);
-    end;
-
-    /// <summary>
     /// Acquires a delegated Fabric API token via On-Behalf-Of for the first-party app.
     /// </summary>
     [NonDebuggable]
@@ -264,7 +219,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if IsCustomAppEnabled() then
             exit(AcquireFabricApiTokenWithCustomApp());
 
-        Scopes.Add('https://api.fabric.microsoft.com/Workspace.Read.All');
+        Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
         OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
         if AccessToken.IsEmpty() then

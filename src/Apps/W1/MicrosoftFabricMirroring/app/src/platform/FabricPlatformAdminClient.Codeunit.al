@@ -18,19 +18,19 @@ codeunit 48526 "Fabric Platform Admin Client"
         RetrieveMirroredDbsHttpStatusErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.', Comment = '%1 = HTTP status code';
         RetrieveMirroredDbsMalformedErr: Label 'Failed to retrieve Open Mirroring databases: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForSPErr: Label 'Select a workspace before adding the service principal.';
-        PrincipalIdRequiredErr: Label 'Principal ID must be filled in before adding to the workspace.';
+        PrincipalIdRequiredErr: Label 'Principal ID is missing. Ask your Microsoft Entra administrator for the object ID of the enterprise application, enter it on the Fabric setup page, and try again.';
+        ReadPrincipalIdSetupInstructionsLbl: Label 'Read setup instructions';
+        PrincipalIdSetupHelpUrlTok: Label 'https://go.microsoft.com/fwlink/?LinkId=2386618', Locked = true;
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
-        RetrieveSPTransportErr: Label 'Failed to look up the service principal: transport error.';
-        RetrieveSPForbiddenErr: Label 'Your Microsoft Entra tenant does not allow reading service principals, or admin consent has not been granted. Ask your administrator for the object ID of the Microsoft Business Central Fabric Export enterprise application and enter it in the Principal ID field.';
-        RetrieveSPNotFoundErr: Label 'The Microsoft Business Central Fabric Export enterprise application was not found in your Microsoft Entra tenant. Grant admin consent first, then try again.';
-        RetrieveSPHttpGenericErr: Label 'Failed to look up the service principal. Contact your administrator if the problem persists.';
-        RetrieveSPHttpStatusErr: Label 'Failed to look up the service principal. HTTP %1.', Comment = '%1 = HTTP status code';
-        RetrieveSPMalformedErr: Label 'Failed to look up the service principal: malformed response from Microsoft Graph.';
         AddSPHttpGenericErr: Label 'Failed to add service principal to workspace. Contact your administrator if the problem persists.';
         AddSPHttpStatusErr: Label 'Failed to add service principal to workspace. HTTP %1.', Comment = '%1 = HTTP status code';
+        VerifyWorkspaceRoleTransportErr: Label 'Failed to verify the existing workspace role: transport error.';
+        VerifyWorkspaceRoleHttpGenericErr: Label 'Failed to verify the existing workspace role. Contact your administrator if the problem persists.';
+        VerifyWorkspaceRoleHttpStatusErr: Label 'Failed to verify the existing workspace role. HTTP %1.', Comment = '%1 = HTTP status code';
+        VerifyWorkspaceRoleMalformedErr: Label 'Failed to verify the existing workspace role: malformed response from Microsoft Fabric.';
+        WorkspaceRoleRequiredErr: Label 'The service principal must have Contributor, Member, or Admin access on the Fabric workspace. Ask your workspace administrator to verify its role, then try again.';
         MirroredDatabasesUrlTok: Label 'https://api.fabric.microsoft.com/v1/workspaces/%1/mirroredDatabases', Comment = '%1 = workspace ID', Locked = true;
         RoleAssignmentsUrlTok: Label 'https://api.fabric.microsoft.com/v1/workspaces/%1/roleAssignments', Comment = '%1 = workspace ID', Locked = true;
-        ServicePrincipalUrlTok: Label 'https://graph.microsoft.com/v1.0/servicePrincipals(appId=''%1'')?$select=id,appId,displayName', Comment = '%1 = application client ID', Locked = true;
 
     /// <summary>Fills TempBuffer with Fabric workspaces accessible to the delegated token (Name = display name, Value = workspace GUID).</summary>
     procedure GetWorkspaces(var TempBuffer: Record "Name/Value Buffer" temporary)
@@ -159,8 +159,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         FabricPrivacyNotice.EnsureApproved();
         if WorkspaceId = '' then
             Error(WorkspaceRequiredForSPErr);
-        if PrincipalId = '' then
-            Error(PrincipalIdRequiredErr);
+        if PrincipalId.Trim() = '' then
+            Error(CreatePrincipalIdRequiredErrorInfo());
 
         WorkspaceIdForUrl := FormatGuidForFabricUrl(WorkspaceId);
         if WorkspaceIdForUrl = '' then
@@ -183,54 +183,123 @@ codeunit 48526 "Fabric Platform Admin Client"
             Error(AddSPTransportErr);
         if Resp.GetIsSuccessStatusCode() then
             exit;
-        if Resp.GetHttpStatusCode() = 409 then
-            exit; // Already a member - treat as success.
+        if Resp.GetHttpStatusCode() = 409 then begin
+            if not HasRequiredWorkspaceRole(WorkspaceIdForUrl, PrincipalId, AccessToken) then
+                Error(WorkspaceRoleRequiredErr);
+            exit;
+        end;
         Error(CreateAddSPHttpErrorInfo(Resp.GetHttpStatusCode()));
     end;
 
-    /// <summary>
-    /// Grants the active app's service principal Contributor on the workspace. For the first-party app the
-    /// object ID is resolved from Microsoft Graph unless one was entered manually (locked-down tenants).
-    /// </summary>
-    procedure AddConnectionToWorkspace(WorkspaceId: Text)
-    var
-        CredMgt: Codeunit "Fabric Platform Credential Mgt";
-        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
-        GraphAccessToken: SecretText;
-        PrincipalId: Text;
-    begin
-        FabricPrivacyNotice.EnsureApproved();
-
-        PrincipalId := CredMgt.GetPrincipalId();
-        if (PrincipalId = '') and not CredMgt.IsCustomAppEnabled() then begin
-            GraphAccessToken := CredMgt.AcquireGraphApiTokenDelegated();
-            PrincipalId := GetServicePrincipalId(CredMgt.GetClientId(), GraphAccessToken);
-            CredMgt.SetPrincipalId(PrincipalId);
-        end;
-        AddServicePrincipalToWorkspace(WorkspaceId, PrincipalId);
-    end;
-
-    /// <summary>Resolves the object ID of the service principal for the given application (client) ID from Microsoft Graph.</summary>
-    local procedure GetServicePrincipalId(ClientId: Text; AccessToken: SecretText): Text
+    local procedure HasRequiredWorkspaceRole(WorkspaceId: Text; PrincipalId: Text; AccessToken: SecretText): Boolean
     var
         HttpClient: Codeunit "Fabric Platform Http Client";
         RestClientResult: Codeunit "Rest Client";
         Req: Codeunit "Http Request Message";
         Resp: Codeunit "Http Response Message";
         RootObj: JsonObject;
+        ItemObj: JsonObject;
+        PrincipalObj: JsonObject;
+        ArrayToken: JsonToken;
+        ItemToken: JsonToken;
+        PrincipalToken: JsonToken;
         IdToken: JsonToken;
+        RoleToken: JsonToken;
+        ContinuationToken: JsonToken;
+        JsonArr: JsonArray;
+        VisitedUrls: List of [Text];
+        BaseUrl: Text;
+        RequestUrl: Text;
+        NextRequestUrl: Text;
+        i: Integer;
     begin
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
-        Req := HttpClient.BuildJsonRequest('GET', StrSubstNo(ServicePrincipalUrlTok, FormatGuidForFabricUrl(ClientId)), '');
-        if not HttpClient.TrySend(RestClientResult, Req, Resp) then
-            Error(RetrieveSPTransportErr);
-        if not Resp.GetIsSuccessStatusCode() then
-            Error(CreateRetrieveSPHttpErrorInfo(Resp.GetHttpStatusCode()));
-        if not RootObj.ReadFrom(Resp.GetContent().AsText()) then
-            Error(RetrieveSPMalformedErr);
-        if not RootObj.Get('id', IdToken) then
-            Error(RetrieveSPMalformedErr);
-        exit(IdToken.AsValue().AsText());
+        BaseUrl := StrSubstNo(RoleAssignmentsUrlTok, WorkspaceId);
+        RequestUrl := BaseUrl;
+        repeat
+            if VisitedUrls.Contains(RequestUrl) then
+                Error(VerifyWorkspaceRoleMalformedErr);
+            VisitedUrls.Add(RequestUrl);
+
+            Req := HttpClient.BuildJsonRequest('GET', RequestUrl, '');
+            if not HttpClient.TrySend(RestClientResult, Req, Resp) then
+                Error(VerifyWorkspaceRoleTransportErr);
+            if not Resp.GetIsSuccessStatusCode() then
+                Error(CreateVerifyWorkspaceRoleHttpErrorInfo(Resp.GetHttpStatusCode()));
+
+            Clear(RootObj);
+            if not RootObj.ReadFrom(Resp.GetContent().AsText()) then
+                Error(VerifyWorkspaceRoleMalformedErr);
+            if not RootObj.Get('value', ArrayToken) then
+                Error(VerifyWorkspaceRoleMalformedErr);
+            if not ArrayToken.IsArray() then
+                Error(VerifyWorkspaceRoleMalformedErr);
+            JsonArr := ArrayToken.AsArray();
+            for i := 0 to JsonArr.Count() - 1 do begin
+                JsonArr.Get(i, ItemToken);
+                if not ItemToken.IsObject() then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                ItemObj := ItemToken.AsObject();
+                if not ItemObj.Get('principal', PrincipalToken) then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                if not PrincipalToken.IsObject() then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                PrincipalObj := PrincipalToken.AsObject();
+                if not PrincipalObj.Get('id', IdToken) then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                if not IdToken.IsValue() then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                if IdToken.AsValue().IsNull() then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                if FormatGuidForFabricUrl(IdToken.AsValue().AsText()) = FormatGuidForFabricUrl(PrincipalId) then begin
+                    if not ItemObj.Get('role', RoleToken) then
+                        Error(VerifyWorkspaceRoleMalformedErr);
+                    if not RoleToken.IsValue() then
+                        Error(VerifyWorkspaceRoleMalformedErr);
+                    if RoleToken.AsValue().IsNull() then
+                        Error(VerifyWorkspaceRoleMalformedErr);
+                    exit(RoleToken.AsValue().AsText() in ['Contributor', 'Member', 'Admin']);
+                end;
+            end;
+
+            Clear(NextRequestUrl);
+            if RootObj.Get('continuationUri', ContinuationToken) then begin
+                if not ContinuationToken.IsValue() then
+                    Error(VerifyWorkspaceRoleMalformedErr);
+                if not ContinuationToken.AsValue().IsNull() then
+                    NextRequestUrl := ContinuationToken.AsValue().AsText();
+            end;
+            if (NextRequestUrl <> '') and not NextRequestUrl.StartsWith(BaseUrl + '?') then
+                Error(VerifyWorkspaceRoleMalformedErr);
+            RequestUrl := NextRequestUrl;
+        until RequestUrl = '';
+        exit(false);
+    end;
+
+    /// <summary>Grants the service principal configured in isolated storage Contributor access on the workspace.</summary>
+    procedure AddConnectionToWorkspace(WorkspaceId: Text)
+    var
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+    begin
+        AddServicePrincipalToWorkspace(WorkspaceId, CredMgt.GetPrincipalId());
+    end;
+
+    internal procedure GetPrincipalIdSetupHelpUrl(): Text
+    begin
+        exit(PrincipalIdSetupHelpUrlTok);
+    end;
+
+    local procedure CreatePrincipalIdRequiredErrorInfo() ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message(PrincipalIdRequiredErr);
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.PageNo(Page::"Fabric Platform Setup");
+        ErrInfo.AddAction(ReadPrincipalIdSetupInstructionsLbl, Codeunit::"Fabric Platform Admin Client", 'OpenPrincipalIdSetupHelp');
+    end;
+
+    internal procedure OpenPrincipalIdSetupHelp(ErrInfo: ErrorInfo)
+    begin
+        Hyperlink(PrincipalIdSetupHelpUrlTok);
     end;
 
     local procedure CreateRetrieveWorkspacesHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
@@ -249,25 +318,18 @@ codeunit 48526 "Fabric Platform Admin Client"
         ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
-    local procedure CreateRetrieveSPHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
-    begin
-        case StatusCode of
-            403:
-                ErrInfo.Message(RetrieveSPForbiddenErr);
-            404:
-                ErrInfo.Message(RetrieveSPNotFoundErr);
-            else
-                ErrInfo.Message(RetrieveSPHttpGenericErr);
-        end;
-        ErrInfo.DetailedMessage(StrSubstNo(RetrieveSPHttpStatusErr, StatusCode));
-        ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
-    end;
-
     local procedure CreateAddSPHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
     begin
         ErrInfo.Message(AddSPHttpGenericErr);
         ErrInfo.DetailedMessage(StrSubstNo(AddSPHttpStatusErr, StatusCode));
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.ErrorType(ErrorType::Internal);
+    end;
+
+    local procedure CreateVerifyWorkspaceRoleHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message(VerifyWorkspaceRoleHttpGenericErr);
+        ErrInfo.DetailedMessage(StrSubstNo(VerifyWorkspaceRoleHttpStatusErr, StatusCode));
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
         ErrInfo.ErrorType(ErrorType::Internal);
     end;

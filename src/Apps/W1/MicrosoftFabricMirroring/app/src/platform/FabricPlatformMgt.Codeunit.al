@@ -32,15 +32,14 @@ codeunit 48520 "Fabric Platform Mgt"
         TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
         TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
-        AdminConsentSuccessMsg: Label 'Admin consent was granted. The Microsoft Business Central Fabric Export application is now available in your Microsoft Entra tenant.';
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         NoCompanyEnabledErr: Label 'At least one company must be enabled for export before starting synchronization.';
         NoTableSelectedErr: Label 'At least one table must be selected for export before starting synchronization.';
-        OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
-        OpenFabricCompaniesLbl: Label 'Open Fabric Platform Companies';
-        OpenFabricTablesLbl: Label 'Open Fabric Platform Tables';
+        OpenFabricSetupLbl: Label 'Open Fabric platform setup';
+        OpenFabricCompaniesLbl: Label 'Open Fabric platform companies';
+        OpenFabricTablesLbl: Label 'Open Fabric platform tables';
         StopSynchronizationLbl: Label 'Stop synchronization';
         SetupRequiredTitleLbl: Label 'Setup required';
         SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable mirroring again.';
@@ -527,29 +526,6 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(TestConnectionSuccessMsg);
     end;
 
-    internal procedure RequestAdminConsent()
-    var
-        CredMgt: Codeunit "Fabric Platform Credential Mgt";
-        Telemetry: Codeunit "Fabric Platform Telemetry";
-        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
-        IsHandled: Boolean;
-        IsSuccess: Boolean;
-    begin
-        FabricPrivacyNotice.EnsureApproved();
-
-        OnBeforeAdminConsent(IsHandled, IsSuccess);
-        if not IsHandled then begin
-            CredMgt.RequestAdminConsent();
-            IsSuccess := true;
-        end;
-        // A subscriber must explicitly confirm success; skipping the consent flow no longer implies it.
-        if not IsSuccess then
-            exit;
-        Telemetry.LogEvent('0000VNN', 'Fabric admin consent succeeded.');
-        if GuiAllowed() then
-            Message(AdminConsentSuccessMsg);
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnableExport(var IsHandled: Boolean)
     begin
@@ -567,11 +543,6 @@ codeunit 48520 "Fabric Platform Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDisableExport(var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAdminConsent(var IsHandled: Boolean; var IsSuccess: Boolean)
     begin
     end;
 
