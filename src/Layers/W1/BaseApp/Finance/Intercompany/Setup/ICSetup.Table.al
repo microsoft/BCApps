@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Setup;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Intercompany.Partner;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany configuration settings for company-to-company transaction processing.
 /// Manages inbox setup, partner identification, and default journal templates for intercompany operations.
@@ -84,7 +83,6 @@ table 443 "IC Setup"
         field(8; "Partner Code for Acc. Syn."; Code[20])
         {
             Caption = 'Account Syncronization Partner Code';
-            TableRelation = "IC Partner".Code where("Inbox Type" = filter("IC Partner Inbox Type"::Database));
         }
         /// <summary>
         /// Enables notifications when new intercompany transactions are created.

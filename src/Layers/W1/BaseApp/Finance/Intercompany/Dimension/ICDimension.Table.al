@@ -2,11 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Dimension;
 
 using Microsoft.Finance.Dimension;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany dimension definitions for cross-company dimension mapping and synchronization.
 /// Enables consistent dimension structure across multiple intercompany partners.

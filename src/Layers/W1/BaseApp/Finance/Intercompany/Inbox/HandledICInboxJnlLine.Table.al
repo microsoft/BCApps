@@ -2,17 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
-using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Archives journal line details for processed intercompany inbox transactions.
 /// Stores G/L account postings, amounts, and transaction details for handled intercompany journal entries with full audit trail.
@@ -43,7 +37,6 @@ table 421 "Handled IC Inbox Jnl. Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Line number for sequencing journal lines within the handled transaction.
@@ -70,15 +63,6 @@ table 421 "Handled IC Inbox Jnl. Line"
         {
             Caption = 'Account No.';
             Editable = false;
-            TableRelation = if ("Account Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("Account Type" = const(Customer)) Customer
-            else
-            if ("Account Type" = const(Vendor)) Vendor
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
-            else
-            if ("Account Type" = const("Bank Account")) "Bank Account";
         }
         /// <summary>
         /// Transaction amount for this handled journal line in the specified currency.

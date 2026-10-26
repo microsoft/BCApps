@@ -2,13 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Dimension;
 
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.Partner;
 using System.Reflection;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores dimension data for intercompany documents to enable dimension tracking across company transactions.
 /// Links dimension values to specific intercompany transactions and document lines.
@@ -46,7 +44,6 @@ table 442 "IC Document Dimension"
         field(3; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Source of the transaction indicating whether rejected by current company or created by current company.
@@ -71,7 +68,6 @@ table 442 "IC Document Dimension"
         {
             Caption = 'Dimension Code';
             NotBlank = true;
-            TableRelation = "IC Dimension";
         }
         /// <summary>
         /// Intercompany dimension value code specifying the actual dimension value for this document dimension entry.
@@ -80,7 +76,6 @@ table 442 "IC Document Dimension"
         {
             Caption = 'Dimension Value Code';
             NotBlank = true;
-            TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
         }
     }
 

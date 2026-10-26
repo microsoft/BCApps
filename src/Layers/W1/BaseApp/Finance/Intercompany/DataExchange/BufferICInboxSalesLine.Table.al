@@ -2,12 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.DataExchange;
 
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Temporary buffer table for staging intercompany sales line data during API-based data exchange.
 /// Facilitates sales line validation and transformation before posting to target partner systems.

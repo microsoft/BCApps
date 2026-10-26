@@ -19,7 +19,6 @@ using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using System.Globalization;
-using Microsoft.Finance.Dimension;
 
 /// <summary>
 /// Table Dimension (ID 348).

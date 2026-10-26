@@ -2,17 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores purchase document headers for intercompany outbox transactions pending transmission to partner companies.
 /// Manages purchase-specific fields, vendor information, and shipping details for intercompany purchase processes.
@@ -223,7 +220,6 @@ table 428 "IC Outbox Purchase Header"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique identifier for the intercompany transaction.

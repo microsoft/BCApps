@@ -2,12 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Comment;
 
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
-
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores comment lines for intercompany transactions enabling detailed communication between partner companies.
 /// Supports annotations on inbox, outbox, and handled transactions for audit trail and collaboration purposes.
@@ -45,7 +42,6 @@ table 424 "IC Comment Line"
         field(3; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Sequential line number for organizing multiple comments within a transaction.

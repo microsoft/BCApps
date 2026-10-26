@@ -2,11 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.DataExchange;
 
-using System.Reflection;
-
-#if not CLEANSCHEMA30
 table 444 "IC API Log"
 {
     Access = Internal;

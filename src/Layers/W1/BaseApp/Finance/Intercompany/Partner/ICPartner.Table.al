@@ -2,29 +2,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Partner;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Comment;
-using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Period;
-using Microsoft.Intercompany.BankAccount;
 using Microsoft.Intercompany.DataExchange;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Environment;
-using System.Telemetry;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany partner information for managing transactions between related companies.
 /// Defines communication methods, account mappings, and authentication settings for intercompany operations.
@@ -82,7 +72,8 @@ table 413 "IC Partner"
         field(5; "Inbox Details"; Text[250])
         {
             Caption = 'Inbox Details';
-            TableRelation = if ("Inbox Type" = const(Database)) Company.Name;
+            TableRelation =
+            if ("Inbox Type" = const(Database)) Company.Name;
         }
         /// <summary>
         /// G/L account for posting intercompany receivables from this partner.

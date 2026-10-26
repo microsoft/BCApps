@@ -2,20 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
-using Microsoft.Utilities;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Archive table for processed intercompany inbox purchase document lines.
 /// Maintains complete transaction history for audit trail and compliance reporting.
@@ -249,13 +244,6 @@ table 441 "Handled IC Inbox Purch. Line"
         {
             Caption = 'IC Partner Reference';
             Editable = false;
-            TableRelation = if ("IC Partner Ref. Type" = const(" ")) "Standard Text"
-            else
-            if ("IC Partner Ref. Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("IC Partner Ref. Type" = const(Item)) Item
-            else
-            if ("IC Partner Ref. Type" = const("Charge (Item)")) "Item Charge";
         }
         /// <summary>
         /// Intercompany partner code that sent this archived purchase line transaction.
@@ -264,7 +252,6 @@ table 441 "Handled IC Inbox Purch. Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique transaction number identifying the archived intercompany transaction.

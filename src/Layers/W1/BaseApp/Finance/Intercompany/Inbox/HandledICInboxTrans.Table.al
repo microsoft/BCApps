@@ -2,14 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany;
-using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Archives processed intercompany inbox transactions for historical tracking and audit purposes.
 /// Stores completed transaction information including processing status and actions taken.
@@ -40,7 +38,6 @@ table 420 "Handled IC Inbox Trans."
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
 #if not CLEANSCHEMA29
         /// <summary>

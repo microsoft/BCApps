@@ -17,7 +17,6 @@ using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Analysis;
-using Microsoft.Finance.Dimension;
 
 /// <summary>
 /// Table Dimension Value (ID 349).

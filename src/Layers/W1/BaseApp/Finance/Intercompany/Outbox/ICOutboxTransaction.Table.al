@@ -2,15 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Intercompany;
-using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
-using System.Utilities;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany transactions pending transmission to partner companies.
 /// Manages outbound transaction staging, status tracking, and partner communication for intercompany operations.
@@ -46,7 +43,6 @@ table 414 "IC Outbox Transaction"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner".Code;
         }
 #if not CLEANSCHEMA29
         /// <summary>

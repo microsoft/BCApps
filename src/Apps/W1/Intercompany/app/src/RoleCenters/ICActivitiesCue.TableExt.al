@@ -17,14 +17,12 @@ tableextension 8497 "IC Activities Cue" extends "Activities Cue"
     {
         field(28; "IC Inbox Transactions"; Integer)
         {
-            MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
             CalcFormula = count("IC Inbox Transaction");
             Caption = 'IC Inbox Transactions';
             FieldClass = FlowField;
         }
         field(29; "IC Outbox Transactions"; Integer)
         {
-            MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
             CalcFormula = count("IC Outbox Transaction");
             Caption = 'IC Outbox Transactions';
             FieldClass = FlowField;

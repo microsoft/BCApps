@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.DataExchange;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores incoming notification records for intercompany transaction processing via API data exchange.
 /// Tracks notification status, error handling, and operation progress for cross-partner communication.

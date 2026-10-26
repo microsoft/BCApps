@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.GLAccount;
 
 using Microsoft.Finance.GeneralLedger.Account;
-using System.Telemetry;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores shared intercompany general ledger account structure for cross-company transaction mapping.
 /// Provides standardized chart of accounts that can be mapped to local G/L accounts for intercompany operations.

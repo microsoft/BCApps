@@ -422,7 +422,6 @@ table 14927 "VAT Document Entry Buffer"
         {
             Caption = 'IC Partner Code';
             DataClassification = SystemMetadata;
-            TableRelation = "IC Partner";
         }
         field(86; "Applying Entry"; Boolean)
         {

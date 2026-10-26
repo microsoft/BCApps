@@ -2,16 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores handled intercompany outbox purchase document headers that have been processed and archived.
 /// Contains purchase header information sent to intercompany partners through the outbox process.
@@ -224,7 +222,6 @@ table 432 "Handled IC Outbox Purch. Hdr"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique transaction number identifying this intercompany outbox transaction.

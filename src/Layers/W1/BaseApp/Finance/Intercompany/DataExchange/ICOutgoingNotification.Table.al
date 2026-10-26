@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.DataExchange;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores outgoing notification records for intercompany transaction delivery via API data exchange.
 /// Manages notification lifecycle, delivery status, and error tracking for partner communication.

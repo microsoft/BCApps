@@ -2,16 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Sales.Customer;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores processed sales document headers for intercompany outbox transactions.
 /// Maintains historical archive of transmitted sales documents sent to IC partners.
@@ -200,7 +198,6 @@ table 430 "Handled IC Outbox Sales Header"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique identifier for the intercompany transaction.

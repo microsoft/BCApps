@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.BankAccount;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Foundation.Company;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores bank account information for intercompany transactions between partner companies.
 /// Enables partner company bank account tracking and validation for cross-company payments.

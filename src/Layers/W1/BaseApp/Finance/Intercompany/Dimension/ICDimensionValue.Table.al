@@ -2,13 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Dimension;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using System.Telemetry;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores intercompany dimension values for cross-company dimension value mapping and synchronization.
 /// Enables consistent dimension value structure across multiple intercompany partners.
@@ -31,7 +29,6 @@ table 412 "IC Dimension Value"
         {
             Caption = 'Dimension Code';
             NotBlank = true;
-            TableRelation = "IC Dimension";
         }
         /// <summary>
         /// Unique code identifying the intercompany dimension value.

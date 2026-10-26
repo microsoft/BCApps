@@ -2,16 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores purchase document header information for intercompany inbox transactions awaiting processing.
 /// Contains vendor details, shipping addresses, payment terms, and IC partner references for purchase transactions received from partner companies.
@@ -224,7 +222,6 @@ table 436 "IC Inbox Purchase Header"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique transaction number identifying the intercompany transaction.

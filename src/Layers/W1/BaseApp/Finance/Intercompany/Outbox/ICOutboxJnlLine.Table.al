@@ -2,17 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores general journal line details for intercompany outbox transactions pending transmission to partner companies.
 /// Manages journal-specific data including accounts, amounts, payment terms, and transaction details for intercompany journal operations.
@@ -48,7 +42,6 @@ table 415 "IC Outbox Jnl. Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner".Code;
         }
         /// <summary>
         /// Line number providing unique identification within the journal transaction.
@@ -73,15 +66,6 @@ table 415 "IC Outbox Jnl. Line"
         field(5; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("Account Type" = const(Customer)) Customer
-            else
-            if ("Account Type" = const(Vendor)) Vendor
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
-            else
-            if ("Account Type" = const("Bank Account")) "IC Bank Account";
         }
         /// <summary>
         /// Transaction amount for the journal line.

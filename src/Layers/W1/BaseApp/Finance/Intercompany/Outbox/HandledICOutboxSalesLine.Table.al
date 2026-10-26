@@ -2,20 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
-using Microsoft.Utilities;
 
-#if not CLEANSCHEMA30
 /// <summary>
 /// Stores processed sales document lines for intercompany outbox transactions.
 /// Maintains historical archive of transmitted sales line details sent to IC partners.
@@ -235,13 +230,6 @@ table 431 "Handled IC Outbox Sales Line"
         {
             Caption = 'IC Partner Reference';
             Editable = false;
-            TableRelation = if ("IC Partner Ref. Type" = const(" ")) "Standard Text"
-            else
-            if ("IC Partner Ref. Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("IC Partner Ref. Type" = const(Item)) Item
-            else
-            if ("IC Partner Ref. Type" = const("Charge (Item)")) "Item Charge";
         }
         /// <summary>
         /// Intercompany partner code identifying the receiving company.
@@ -250,7 +238,6 @@ table 431 "Handled IC Outbox Sales Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique identifier for the intercompany transaction.
