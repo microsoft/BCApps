@@ -503,11 +503,41 @@ table 133 "Incoming Document Attachment"
         XmlDoc: XmlDocument;
         RootXmlElement: XmlElement;
         RootXmlNode: XmlNode;
+        NodePath: Text;
     begin
-        XmlDocument.ReadFrom(XMLRootNode.OwnerDocument.OuterXml(), XmlDoc);
-        XmlDoc.GetRoot(RootXmlElement);
-        RootXmlNode := RootXmlElement.AsXmlNode();
+        // Convert the supplied node itself, not only the document root, so that relative XPaths keep working.
+        if GetDotNetXmlNodePath(XMLRootNode, NodePath) then begin
+            XmlDocument.ReadFrom(XMLRootNode.OwnerDocument.OuterXml(), XmlDoc);
+            XmlDoc.SelectSingleNode(NodePath, RootXmlNode);
+        end else begin
+            XmlDocument.ReadFrom(XMLRootNode.OuterXml(), XmlDoc);
+            XmlDoc.GetRoot(RootXmlElement);
+            RootXmlNode := RootXmlElement.AsXmlNode();
+        end;
         ExtractHeaderFields(RootXmlNode, IncomingDocument);
+    end;
+
+    local procedure GetDotNetXmlNodePath(DotNetXmlNode: DotNet XmlNode; var NodePath: Text): Boolean
+    var
+        DotNetXmlNodeType: DotNet XmlNodeType;
+        CurrentDotNetXmlNode: DotNet XmlNode;
+    begin
+        // Positional path such as /*[1]/*[3]/@*[name()='id'], which identifies the node regardless of namespaces.
+        NodePath := '';
+        CurrentDotNetXmlNode := DotNetXmlNode;
+        if CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Attribute) then begin
+            NodePath := '/@*[name()=''' + CurrentDotNetXmlNode.Name + ''']';
+            CurrentDotNetXmlNode := CurrentDotNetXmlNode.SelectSingleNode('..');
+        end else
+            if not CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Element) then
+                CurrentDotNetXmlNode := CurrentDotNetXmlNode.ParentNode;
+        while not IsNull(CurrentDotNetXmlNode) do begin
+            if not CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Element) then
+                exit(CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Document) and (NodePath <> ''));
+            NodePath := '/*[' + Format(CurrentDotNetXmlNode.SelectNodes('preceding-sibling::*').Count + 1, 0, 9) + ']' + NodePath;
+            CurrentDotNetXmlNode := CurrentDotNetXmlNode.ParentNode;
+        end;
+        exit(false);
     end;
 #endif
 

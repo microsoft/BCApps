@@ -207,8 +207,8 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         BodyOutStream: OutStream;
     begin
         TraceLogStreamToTempFile(ResponseInStream, 'FullResponse', TempBlobDebugLog);
-        if not XmlDocument.ReadFrom(ResponseInStream, ResponseXmlDoc) then
-            Error(ExpectedResponseNotReceivedErr);
+        // Read without using the return value so that a parse error is raised, as before.
+        XmlDocument.ReadFrom(ResponseInStream, ResponseXmlDoc);
 
         XmlNamespaceManager.NameTable(ResponseXmlDoc.NameTable());
         XmlNamespaceManager.AddNamespace('soap', SoapNamespaceTxt);

@@ -299,6 +299,8 @@ page 1651 "Curr. Exch. Rate Service Card"
         ActivityLog: Record "Activity Log";
         WebRequestHelper: Codeunit "Web Request Helper";
         WebException: DotNet WebException;
+        ResponseXmlDocument: XmlDocument;
+        ResponseInputStream: InStream;
         ErrorText: Text;
     begin
         ErrorText := WebRequestHelper.GetWebResponseError(WebException, WebServiceURL);
@@ -307,6 +309,11 @@ page 1651 "Curr. Exch. Rate Service Card"
 
         if IsNull(WebException.Response) then
             Error(ErrorText);
+
+        ResponseInputStream := WebException.Response.GetResponseStream();
+
+        // Read without using the return value so that a response that is not XML raises a parse error, as before.
+        XmlDocument.ReadFrom(ResponseInputStream, ResponseXmlDocument);
 
         ErrorText := XmlStructureIsNotSupportedErr;
 
