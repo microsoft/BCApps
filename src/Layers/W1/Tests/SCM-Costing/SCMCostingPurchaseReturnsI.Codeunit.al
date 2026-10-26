@@ -41,6 +41,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         PurchaseReturnLine: Record "Purchase Line";
         OriginalPurchaseEntryNo: Integer;
         LotNo: Code[50];
+        PostedCreditMemoNo: Code[20];
         PostingDate: Date;
     begin
         // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
@@ -83,7 +84,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         PurchaseReturnLine.Modify(true);
         ReservationEntry.Validate("Appl.-to Item Entry", OriginalPurchaseEntryNo);
         ReservationEntry.Modify();
-        LibraryPurchase.PostPurchaseDocument(PurchaseReturnHeader, true, true);
+        PostedCreditMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseReturnHeader, true, true);
 
         // [THEN] The return shipment entry uses the current lot.
         ItemLedgerEntry.Reset();
@@ -95,9 +96,8 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ItemLedgerEntry.TestField("Applies-to Entry", OriginalPurchaseEntryNo);
 
         // [THEN] The posted purchase credit memo resolves its historical invoice without a tracking error.
-        PurchCrMemoLine.SetRange(Type, PurchCrMemoLine.Type::Item);
-        PurchCrMemoLine.SetRange("No.", Item."No.");
-        PurchCrMemoLine.FindLast();
+        PurchCrMemoLine.SetRange("Document No.", PostedCreditMemoNo);
+        PurchCrMemoLine.FindFirst();
         PurchCrMemoLine.GetPurchaseInvoiceLine(PurchInvLine);
         Assert.AreEqual(Item."No.", PurchInvLine."No.", 'The original purchase invoice line must be found.');
     end;

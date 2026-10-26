@@ -1,3 +1,14 @@
+namespace Microsoft.Inventory.Tracking;
+
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Purchases.Document;
+using Microsoft.Service.Item;
+using Microsoft.Warehouse.Ledger;
+using System.Utilities;
+
 codeunit 137933 "Item Tracking Code Changes"
 {
     Subtype = Test;
@@ -528,6 +539,7 @@ codeunit 137933 "Item Tracking Code Changes"
         TrapTrackingChangeErrors(Item, ItemTrackingCode.Code, ErrorMessages);
 
         // [THEN] Errors for both blocking record types are shown.
+        ErrorMessages.First();
         Assert.ExpectedMessage(ReservationEntry.TableCaption(), ErrorMessages.Description.Value);
         ErrorMessages.Next();
         Assert.ExpectedMessage(ItemJournalLine.TableCaption(), ErrorMessages.Description.Value);

@@ -355,7 +355,7 @@ table 27 Item
                           FieldCaption("Costing Method"), "Costing Method");
                 end;
 
-                TestNoEntriesExist(FieldCaption("Costing Method"));
+                TestNoEntriesExist(CopyStr(FieldCaption("Costing Method"), 1, 100));
 
                 ItemCostMgt.UpdateUnitCost(Rec, '', '', 0, 0, false, false, true, FieldNo("Costing Method"));
             end;
@@ -1859,8 +1859,8 @@ table 27 Item
 
             trigger OnValidate()
             var
-                EmptyDateFormula: DateFormula;
                 ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+                EmptyDateFormula: DateFormula;
             begin
                 if "Item Tracking Code" <> '' then
                     TestField(Type, Type::Inventory);
@@ -2964,17 +2964,17 @@ table 27 Item
         end;
     end;
 
-    local procedure ValidateItemTrackingCodeChangeBasic(ItemTrackingCode: Record "Item Tracking Code"; PreviousItemTrackingCode: Record "Item Tracking Code")
+    local procedure ValidateItemTrackingCodeChangeBasic(NewItemTrackingCode: Record "Item Tracking Code"; PreviousItemTrackingCode: Record "Item Tracking Code")
     var
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnValidateItemTrackingCodeOnBeforeTestNoEntriesExist(Rec, xRec, CurrFieldNo, IsHandled);
-        if ItemTrackingCode.IsSpecificTrackingChanged(PreviousItemTrackingCode) then
+        if NewItemTrackingCode.IsSpecificTrackingChanged(PreviousItemTrackingCode) then
             if not IsHandled then
-                TestNoEntriesExist(FieldCaption("Item Tracking Code"));
+                TestNoEntriesExist(CopyStr(FieldCaption("Item Tracking Code"), 1, 100));
 
-        if ItemTrackingCode.IsWarehouseTrackingChanged(PreviousItemTrackingCode) then
+        if NewItemTrackingCode.IsWarehouseTrackingChanged(PreviousItemTrackingCode) then
             TestNoWhseEntriesExist(FieldCaption("Item Tracking Code"));
     end;
 

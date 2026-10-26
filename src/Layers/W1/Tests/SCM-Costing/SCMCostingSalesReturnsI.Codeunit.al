@@ -175,7 +175,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
         ItemLedgerEntry.TestField("Lot No.", '');
         ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
         ItemApplicationEntry.SetRange("Outbound Item Entry No.", OriginalSalesEntryNo);
-        ItemApplicationEntry.FindFirst();
+        Assert.RecordIsNotEmpty(ItemApplicationEntry);
     end;
 
     [Test]

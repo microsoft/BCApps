@@ -1461,31 +1461,31 @@ codeunit 900 "Assembly-Post"
         until (PostedAsmLine.Next() = 0) and (AsmLine.Next() = 0);
     end;
 
-    local procedure TestItemTrackingCodeNotChangedForUndo(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; PostedAssemblyOrderNo: Code[20])
+    local procedure TestItemTrackingCodeNotChangedForUndo(var TempItemLedgEntryToCheck: Record "Item Ledger Entry" temporary; PostedAssemblyOrderNo: Code[20])
     var
         Item: Record Item;
         ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         HistoricalItemTrackingCode: Code[10];
     begin
-        TempItemLedgEntry.FindSet();
+        TempItemLedgEntryToCheck.FindSet();
         repeat
             Clear(HistoricalItemTrackingCode);
             if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
-                 TempItemLedgEntry."Item No.", TempItemLedgEntry."Entry No.", HistoricalItemTrackingCode)
+                 TempItemLedgEntryToCheck."Item No.", TempItemLedgEntryToCheck."Entry No.", HistoricalItemTrackingCode)
             then begin
-                Item.Get(TempItemLedgEntry."Item No.");
+                Item.Get(TempItemLedgEntryToCheck."Item No.");
                 Error(
                     ItemTrackingCodeChangedForUndoErr, PostedAssemblyOrderNo, Item."No.",
                     HistoricalItemTrackingCode, Item."Item Tracking Code");
             end;
 
-            if not ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(TempItemLedgEntry) then begin
-                Item.Get(TempItemLedgEntry."Item No.");
+            if not ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(TempItemLedgEntryToCheck) then begin
+                Item.Get(TempItemLedgEntryToCheck."Item No.");
                 Error(
                     ItemTrackingRequirementsChangedForUndoErr, PostedAssemblyOrderNo, Item."Item Tracking Code",
-                    Item."No.", TempItemLedgEntry."Entry No.");
+                    Item."No.", TempItemLedgEntryToCheck."Entry No.");
             end;
-        until TempItemLedgEntry.Next() = 0;
+        until TempItemLedgEntryToCheck.Next() = 0;
     end;
 
     local procedure RestoreItemTracking(var ItemLedgEntry: Record "Item Ledger Entry"; OrderNo: Code[20]; OrderLineNo: Integer; SourceType: Integer; DocType: Option; RcptDate: Date; ShptDate: Date)
