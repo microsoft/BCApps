@@ -63,6 +63,7 @@ codeunit 137097 "SCM Kitting - Undo"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryAssembly: Codeunit "Library - Assembly";
         LibraryCosting: Codeunit "Library - Costing";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -2147,10 +2148,11 @@ codeunit 137097 "SCM Kitting - Undo"
         CompItem.CalcFields(Inventory);
         CompItem.TestField(Inventory, 0);
         LibraryCosting.AdjustCostItemEntries(CompItem."No.", '');
-        PostItemCostToGL(CompItem."No.", PostingDate);
+        LibraryPostInventoryToGL.PostInvtCostToGL(CompItem."No.", PostingDate);
 
         // [GIVEN] Lot tracking is enabled for the component after it has zero inventory.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CompItem.Get(CompItem."No.");
         CompItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
         CompItem.Modify(true);
 
@@ -2160,6 +2162,7 @@ codeunit 137097 "SCM Kitting - Undo"
     end;
 
     [Test]
+    [HandlerFunctions('AssemblyDueDateMessageHandler')]
     procedure UndoAssemblyIsBlockedWhenProducedItemTrackingCodeChanged()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -2195,6 +2198,7 @@ codeunit 137097 "SCM Kitting - Undo"
 
         // [GIVEN] Lot tracking is enabled for the produced item without a historical change-log entry.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        AsmItem.Get(AsmItem."No.");
         AsmItem."Item Tracking Code" := ItemTrackingCode.Code;
         AsmItem.Modify(true);
 
@@ -2204,6 +2208,7 @@ codeunit 137097 "SCM Kitting - Undo"
     end;
 
     [Test]
+    [HandlerFunctions('AssemblyDueDateMessageHandler')]
     procedure UndoAssemblyIsAllowedWhenComponentTrackingChangedBeforePosting()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -2573,19 +2578,10 @@ codeunit 137097 "SCM Kitting - Undo"
         ItemTrackingCodeChangeLog.Insert(true);
     end;
 
-    local procedure PostItemCostToGL(ItemNo: Code[20]; PostingDate: Date)
-    var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
-        PostInventoryCostToGL: Report "Post Inventory Cost to G/L";
-        PostMethod: Option "per Posting Group","per Entry";
+    [MessageHandler]
+    procedure AssemblyDueDateMessageHandler(Message: Text[1024])
     begin
-        Commit();
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        PostValueEntryToGL.SetRange("Posting Date", PostingDate);
-        PostInventoryCostToGL.InitializeRequest(PostMethod::"per Entry", '', true);
-        PostInventoryCostToGL.SetTableView(PostValueEntryToGL);
-        PostInventoryCostToGL.UseRequestPage(false);
-        PostInventoryCostToGL.SaveAsPdf(TemporaryPath + DelChr(Format(CreateGuid()), '=', '{}') + '.pdf');
+        Assert.ExpectedMessage('is before work date', Message);
     end;
 
     [MessageHandler]

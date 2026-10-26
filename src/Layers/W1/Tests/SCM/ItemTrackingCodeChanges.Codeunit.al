@@ -27,6 +27,7 @@ codeunit 137933 "Item Tracking Code Changes"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
@@ -133,6 +134,7 @@ codeunit 137933 "Item Tracking Code Changes"
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
         LibraryLowerPermissions.SetExactPermissionSet('D365 ITEM, EDIT');
         LibraryLowerPermissions.AddO365Basic();
+        LibraryLowerPermissions.AddeRead();
 
         // [WHEN] The user enables lot tracking for item "I".
         asserterror ChangeItemTrackingCode(Item, ItemTrackingCode.Code);
@@ -158,6 +160,7 @@ codeunit 137933 "Item Tracking Code Changes"
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
         LibraryLowerPermissions.SetExactPermissionSet('D365 ITEM, EDIT');
         LibraryLowerPermissions.AddO365Basic();
+        LibraryLowerPermissions.AddeRead();
         LibraryLowerPermissions.AddPermissionSet('ITEM TRACKING CHANGE');
 
         // [WHEN] The user enables lot tracking for item "I".
@@ -579,7 +582,7 @@ codeunit 137933 "Item Tracking Code Changes"
         if AdjustCost then
             LibraryCosting.AdjustCostItemEntries(Item."No.", '');
         if PostCostToGL then
-            PostItemCostToGL(Item."No.", PostingDate);
+            LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
         Item.Get(Item."No.");
     end;
 
@@ -590,7 +593,7 @@ codeunit 137933 "Item Tracking Code Changes"
         Item.Modify(true);
         PostItemJournalLine(Item."No.", WorkDate() - 1, 1);
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        PostItemCostToGL(Item."No.", WorkDate() - 1);
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", WorkDate() - 1);
         Item.Get(Item."No.");
     end;
 
@@ -602,26 +605,6 @@ codeunit 137933 "Item Tracking Code Changes"
         ItemJournalLine.Validate("Posting Date", PostingDate);
         ItemJournalLine.Modify(true);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure PostItemCostToGL(ItemNo: Code[20]; PostingDate: Date)
-    var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
-        PostInventoryCostToGL: Report "Post Inventory Cost to G/L";
-        PostMethod: Option "per Posting Group","per Entry";
-    begin
-        Commit();
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        PostValueEntryToGL.SetRange("Posting Date", PostingDate);
-        PostInventoryCostToGL.InitializeRequest(PostMethod::"per Entry", '', true);
-        PostInventoryCostToGL.SetTableView(PostValueEntryToGL);
-        PostInventoryCostToGL.UseRequestPage(false);
-        PostInventoryCostToGL.SaveAsPdf(GetTemporaryPdfPath());
-    end;
-
-    local procedure GetTemporaryPdfPath(): Text
-    begin
-        exit(TemporaryPath + DelChr(Format(CreateGuid()), '=', '{}') + '.pdf');
     end;
 
     local procedure CreateChangeLog(ItemNo: Code[20]; ChangeDate: Date; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
@@ -689,7 +672,7 @@ codeunit 137933 "Item Tracking Code Changes"
     local procedure TrapTrackingChangeErrors(var Item: Record Item; ItemTrackingCode: Code[10]; var ErrorMessages: TestPage "Error Messages")
     begin
         LibraryErrorMessage.TrapErrorMessages();
-        Item.Validate("Item Tracking Code", ItemTrackingCode);
+        asserterror Item.Validate("Item Tracking Code", ItemTrackingCode);
         LibraryErrorMessage.GetTestPage(ErrorMessages);
     end;
 

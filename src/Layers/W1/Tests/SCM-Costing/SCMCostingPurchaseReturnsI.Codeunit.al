@@ -18,6 +18,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryUtility: Codeunit "Library - Utility";
         isInitialized: Boolean;
@@ -48,6 +49,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         // [SCENARIO 435436] A purchase return uses current lot tracking after lot tracking is enabled.
         Initialize();
         PostingDate := WorkDate() - 1;
+        WorkDate(PostingDate);
 
         // [GIVEN] An untracked purchase receipt is fully consumed.
         LibraryInventory.CreateItem(Item);
@@ -68,7 +70,9 @@ codeunit 137031 "SCM Costing Purchase Returns I"
 
         // [GIVEN] Costs are finalized and lot tracking is enabled on the following day.
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        PostItemCostToGL(Item."No.", PostingDate);
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
+        WorkDate(PostingDate + 1);
+        Item.Get(Item."No.");
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
@@ -122,6 +126,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         // [SCENARIO 435436] A purchase return uses current package tracking after package tracking is enabled.
         Initialize();
         PostingDate := WorkDate() - 1;
+        WorkDate(PostingDate);
 
         // [GIVEN] An untracked purchase receipt is fully consumed.
         LibraryInventory.CreateItem(Item);
@@ -142,7 +147,9 @@ codeunit 137031 "SCM Costing Purchase Returns I"
 
         // [GIVEN] Costs are finalized and package tracking is enabled on the following day.
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
-        PostItemCostToGL(Item."No.", PostingDate);
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
+        WorkDate(PostingDate + 1);
+        Item.Get(Item."No.");
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false, true);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
@@ -1001,21 +1008,6 @@ codeunit 137031 "SCM Costing Purchase Returns I"
 
             PurchaseHeader.Modify(true);
         end;
-    end;
-
-    local procedure PostItemCostToGL(ItemNo: Code[20]; PostingDate: Date)
-    var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
-        PostInventoryCostToGL: Report "Post Inventory Cost to G/L";
-        PostMethod: Option "per Posting Group","per Entry";
-    begin
-        Commit();
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        PostValueEntryToGL.SetRange("Posting Date", PostingDate);
-        PostInventoryCostToGL.InitializeRequest(PostMethod::"per Entry", '', true);
-        PostInventoryCostToGL.SetTableView(PostValueEntryToGL);
-        PostInventoryCostToGL.UseRequestPage(false);
-        PostInventoryCostToGL.SaveAsPdf(TemporaryPath + DelChr(Format(CreateGuid()), '=', '{}') + '.pdf');
     end;
 
     [MessageHandler]

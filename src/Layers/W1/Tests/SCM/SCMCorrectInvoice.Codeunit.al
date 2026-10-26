@@ -54,6 +54,7 @@ codeunit 137019 "SCM Correct Invoice"
 
         // [GIVEN] Item "I" is later changed to lot tracking.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Get(Item."No.");
         Item."Item Tracking Code" := ItemTrackingCode.Code;
         Item.Modify();
         CreateItemTrackingCodeChangeLog(Item."No.", WorkDate() + 1, '', ItemTrackingCode.Code);
