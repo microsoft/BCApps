@@ -102,6 +102,7 @@ table 31127 "EET Cash Register CZL"
         {
             Caption = 'Authorizing Taxpayer ID';
             ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is used as it is, it is never taken from the registrating unit or from the service setup.';
+            DataClassification = OrganizationIdentifiableInformation;
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {

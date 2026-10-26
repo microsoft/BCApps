@@ -153,6 +153,7 @@ codeunit 31083 "EET Management CZP"
         PostedCashDocumentLineCZP.SetRange("Cash Desk No.", PostedCashDocumentHdrCZP."Cash Desk No.");
         PostedCashDocumentLineCZP.SetRange("Cash Document No.", PostedCashDocumentHdrCZP."No.");
         PostedCashDocumentLineCZP.SetFilter("Amount Type", '<>%1', PostedCashDocumentLineCZP."Amount Type"::" ");
+        PostedCashDocumentLineCZP.SetLoadFields("Amount Type", "Amount Including VAT (LCY)");
         if PostedCashDocumentLineCZP.FindSet() then
             repeat
                 case PostedCashDocumentLineCZP."Amount Type" of

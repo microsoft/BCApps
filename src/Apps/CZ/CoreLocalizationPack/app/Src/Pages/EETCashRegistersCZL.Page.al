@@ -24,6 +24,7 @@ page 31144 "EET Cash Registers CZL"
                 }
                 field("Code"; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field("Register Type"; Rec."Cash Register Type")
                 {

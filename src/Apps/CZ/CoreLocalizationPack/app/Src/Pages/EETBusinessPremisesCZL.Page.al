@@ -19,6 +19,7 @@ page 31143 "EET Business Premises CZL"
             {
                 field("Code"; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field(Description; Rec."Extended Description")
                 {

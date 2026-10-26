@@ -107,16 +107,19 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Taxpayer Certificate Code';
             TableRelation = "Certificate Code CZL";
             ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
+            DataClassification = OrganizationIdentifiableInformation;
         }
         field(30; "Taxpayer ID"; Code[20])
         {
             Caption = 'Taxpayer ID';
             ToolTip = 'Specifies the registered identification number of your own company. It is used by every registrating unit that does not specify its own taxpayer.';
+            DataClassification = OrganizationIdentifiableInformation;
         }
         field(35; "Authorizing Taxpayer ID"; Code[20])
         {
             Caption = 'Authorizing Taxpayer ID';
             ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is only copied to new registrating units, it is not applied to existing ones.';
+            DataClassification = OrganizationIdentifiableInformation;
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {

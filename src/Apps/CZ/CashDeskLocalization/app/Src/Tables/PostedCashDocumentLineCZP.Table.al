@@ -371,7 +371,7 @@ table 11738 "Posted Cash Document Line CZP"
             Caption = 'Amount Type';
             Editable = false;
             DataClassification = CustomerContent;
-            Tooltip = 'Specifies how the amount including VAT on the line is used in the EET entry for the recorded sale. If you select Charging, the amount including VAT is used as the amount for subsequent drawing or settlement. If you select Drawing, the amount including VAT is used as the amount subsequently drawn or settled.';
+            Tooltip = 'Specifies how the amount including VAT on the line is used in the EET entry for the recorded sale. If you select Settlement, the amount including VAT is used as the amount for subsequent drawing or settlement. If you select Drawing, the amount including VAT is used as the amount subsequently drawn or settled.';
         }
         field(110; "Non-Deductible VAT %"; Decimal)
         {

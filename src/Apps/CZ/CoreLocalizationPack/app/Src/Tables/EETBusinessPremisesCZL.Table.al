@@ -78,19 +78,16 @@ table 31126 "EET Business Premises CZL"
         field(30; "Taxpayer ID"; Code[20])
         {
             Caption = 'Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of the taxpayer who owns this registrating unit. Leave it blank if the registrating unit is your own.';
         }
         field(35; "Authorizing Taxpayer ID"; Code[20])
         {
             Caption = 'Authorizing Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is only copied to new cash registers of this registrating unit, it is not applied to existing ones.';
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {
             Caption = 'Multiple Taxpayer Authorization';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is only copied to new cash registers of this registrating unit, it is not applied to existing ones.';
         }
     }
