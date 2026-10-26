@@ -2412,12 +2412,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         Customer: Record Customer;
         CustLedgerEntry2: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        UnapplyPostingDate: Date;
         PostingDate2: Date;
     begin
-        PostingDate2 := GenJournalLine."Posting Date";
+        UnapplyPostingDate := GenJournalLine."Posting Date";
         if TempCustLedgerEntry.FindSet() then
             repeat
                 CustLedgerEntry2.Get(TempCustLedgerEntry."Entry No.");
+                PostingDate2 := GetLastExchRateAdjmtDateCust(CustLedgerEntry2."Entry No.", UnapplyPostingDate);
+                GenJournalLine."Posting Date" := PostingDate2;
                 CustLedgerEntry2.SetRange("Date Filter", 0D, PostingDate2);
                 CustLedgerEntry2.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                 OnAdjustExchRateCustOnAfterCalcFields(CustLedgerEntry2);
@@ -2446,12 +2449,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         Vendor: Record Vendor;
         VendLedgerEntry2: Record "Vendor Ledger Entry";
         DetailedVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        UnapplyPostingDate: Date;
         PostingDate2: Date;
     begin
-        PostingDate2 := GenJournalLine."Posting Date";
+        UnapplyPostingDate := GenJournalLine."Posting Date";
         if TempVendLedgerEntry.FindSet() then
             repeat
                 VendLedgerEntry2.Get(TempVendLedgerEntry."Entry No.");
+                PostingDate2 := GetLastExchRateAdjmtDateVend(VendLedgerEntry2."Entry No.", UnapplyPostingDate);
+                GenJournalLine."Posting Date" := PostingDate2;
                 VendLedgerEntry2.SetRange("Date Filter", 0D, PostingDate2);
                 VendLedgerEntry2.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                 OnAdjustExchRateVendOnAfterCalcFields(VendLedgerEntry2);
@@ -2480,12 +2486,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         Employee: Record Employee;
         EmplLedgerEntry2: Record "Employee Ledger Entry";
         DetailedEmplLedgEntry: Record "Detailed Employee Ledger Entry";
+        UnapplyPostingDate: Date;
         PostingDate2: Date;
     begin
-        PostingDate2 := GenJournalLine."Posting Date";
+        UnapplyPostingDate := GenJournalLine."Posting Date";
         if TempEmplLedgerEntry.FindSet() then
             repeat
                 EmplLedgerEntry2.Get(TempEmplLedgerEntry."Entry No.");
+                PostingDate2 := GetLastExchRateAdjmtDateEmpl(EmplLedgerEntry2."Entry No.", UnapplyPostingDate);
+                GenJournalLine."Posting Date" := PostingDate2;
                 EmplLedgerEntry2.SetRange("Date Filter", 0D, PostingDate2);
                 EmplLedgerEntry2.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                 if ShouldAdjustEntry(
@@ -2506,6 +2515,48 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                     HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Employee);
                 end;
             until TempEmplLedgerEntry.Next() = 0;
+    end;
+
+    local procedure GetLastExchRateAdjmtDateCust(CustLedgerEntryNo: Integer; UnapplyPostingDate: Date): Date
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Posting Date");
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntryNo);
+        DetailedCustLedgEntry.SetFilter("Posting Date", '>%1', UnapplyPostingDate);
+        DetailedCustLedgEntry.SetFilter("Exch. Rate Adjmt. Reg. No.", '<>0');
+        DetailedCustLedgEntry.SetLoadFields("Posting Date");
+        if DetailedCustLedgEntry.FindLast() then
+            exit(DetailedCustLedgEntry."Posting Date");
+        exit(UnapplyPostingDate);
+    end;
+
+    local procedure GetLastExchRateAdjmtDateVend(VendLedgerEntryNo: Integer; UnapplyPostingDate: Date): Date
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Posting Date");
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendLedgerEntryNo);
+        DetailedVendorLedgEntry.SetFilter("Posting Date", '>%1', UnapplyPostingDate);
+        DetailedVendorLedgEntry.SetFilter("Exch. Rate Adjmt. Reg. No.", '<>0');
+        DetailedVendorLedgEntry.SetLoadFields("Posting Date");
+        if DetailedVendorLedgEntry.FindLast() then
+            exit(DetailedVendorLedgEntry."Posting Date");
+        exit(UnapplyPostingDate);
+    end;
+
+    local procedure GetLastExchRateAdjmtDateEmpl(EmplLedgerEntryNo: Integer; UnapplyPostingDate: Date): Date
+    var
+        DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
+    begin
+        DetailedEmployeeLedgerEntry.SetCurrentKey("Employee Ledger Entry No.", "Posting Date");
+        DetailedEmployeeLedgerEntry.SetRange("Employee Ledger Entry No.", EmplLedgerEntryNo);
+        DetailedEmployeeLedgerEntry.SetFilter("Posting Date", '>%1', UnapplyPostingDate);
+        DetailedEmployeeLedgerEntry.SetFilter("Exch. Rate Adjmt. Reg. No.", '<>0');
+        DetailedEmployeeLedgerEntry.SetLoadFields("Posting Date");
+        if DetailedEmployeeLedgerEntry.FindLast() then
+            exit(DetailedEmployeeLedgerEntry."Posting Date");
+        exit(UnapplyPostingDate);
     end;
 
     local procedure ResetTempAdjmtBuffer()
