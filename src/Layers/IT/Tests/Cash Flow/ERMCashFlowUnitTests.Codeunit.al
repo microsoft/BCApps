@@ -17,6 +17,7 @@ codeunit 134557 "ERM Cash Flow UnitTests"
         LibraryCFHelper: Codeunit "Library - Cash Flow Helper";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
         LibraryDimension: Codeunit "Library - Dimension";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -1725,17 +1726,18 @@ codeunit 134557 "ERM Cash Flow UnitTests"
     [Scope('OnPrem')]
     procedure TestConsiderCFPaymentTermsCheckboxOnCFCardIsNotVisibleAndNotEditable()
     var
+        CashFlowForecast: Record "Cash Flow Forecast";
         CashFlowForecastCard: TestPage "Cash Flow Forecast Card";
     begin
         // Setup
         Initialize();
 
         // Exercise
-        CashFlowForecastCard.OpenEdit();
+        CashFlowForecastCard.OpenView();
 
         // Verify
-        Assert.IsFalse(CashFlowForecastCard."Consider CF Payment Terms".Visible(), NotVisible);
-        Assert.IsFalse(CashFlowForecastCard."Consider CF Payment Terms".Editable(), NotEditable);
+        Assert.IsFalse(LibraryUtilityOnPrem.FindVisible(PAGE::"Cash Flow Forecast Card", CashFlowForecast.FieldNo("Consider CF Payment Terms")), NotVisible);
+        Assert.IsFalse(LibraryUtilityOnPrem.FindEditable(PAGE::"Cash Flow Forecast Card", CashFlowForecast.FieldNo("Consider CF Payment Terms")), NotEditable);
 
         CashFlowForecastCard.Close();
     end;
@@ -1744,17 +1746,18 @@ codeunit 134557 "ERM Cash Flow UnitTests"
     [Scope('OnPrem')]
     procedure TestConsiderCFPaymentTermsCheckboxOnCFListIsNotVisibleAndNotEditable()
     var
+        CashFlowForecast: Record "Cash Flow Forecast";
         CashFlowForecastList: TestPage "Cash Flow Forecast List";
     begin
         // Setup
         Initialize();
 
         // Exercise
-        CashFlowForecastList.OpenEdit();
+        CashFlowForecastList.OpenView();
 
         // Verify
-        Assert.IsFalse(CashFlowForecastList."Consider CF Payment Terms".Visible(), NotVisible);
-        Assert.IsFalse(CashFlowForecastList."Consider CF Payment Terms".Editable(), NotEditable);
+        Assert.IsFalse(LibraryUtilityOnPrem.FindVisible(PAGE::"Cash Flow Forecast List", CashFlowForecast.FieldNo("Consider CF Payment Terms")), NotVisible);
+        Assert.IsFalse(LibraryUtilityOnPrem.FindEditable(PAGE::"Cash Flow Forecast List", CashFlowForecast.FieldNo("Consider CF Payment Terms")), NotEditable);
 
         CashFlowForecastList.Close();
     end;
