@@ -28,7 +28,7 @@ table 10970 "FR E-Invoice Message"
         {
             Caption = 'E-Document Entry No.';
             DataClassification = SystemMetadata;
-            TableRelation = "E-Document"."Entry No";
+            TableRelation = "E-Document";
         }
         field(3; Type; Enum "FR E-Invoice Message Type")
         {
@@ -46,7 +46,7 @@ table 10970 "FR E-Invoice Message"
         {
             Caption = 'Original Entry No.';
             DataClassification = SystemMetadata;
-            TableRelation = "FR E-Invoice Message"."Entry No.";
+            TableRelation = "FR E-Invoice Message";
             ToolTip = 'Specifies the original collected message reversed by a negative collected message.';
         }
         field(6; Amount; Decimal)

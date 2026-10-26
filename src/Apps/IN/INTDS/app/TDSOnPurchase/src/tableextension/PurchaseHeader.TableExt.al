@@ -19,7 +19,12 @@ tableextension 18717 "Purchase Header" extends "Purchase Header"
             var
                 PurchLine: Record "Purchase Line";
                 CalculateTax: Codeunit "Calculate Tax";
+                IsHandled: Boolean;
             begin
+                OnBeforeRecalculateTaxOnIncludeGSTInTDSBase(Rec, IsHandled);
+                if IsHandled then
+                    exit;
+
                 PurchLine.Reset();
                 PurchLine.SetRange("Document Type", "Document Type");
                 PurchLine.SetRange("Document No.", "No.");
@@ -39,4 +44,9 @@ tableextension 18717 "Purchase Header" extends "Purchase Header"
             DataClassification = CustomerContent;
         }
     }
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRecalculateTaxOnIncludeGSTInTDSBase(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+    end;
 }
