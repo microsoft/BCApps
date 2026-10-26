@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13710,11 +13710,6 @@ codeunit 80 "Sales-Post"
     /// <param name="SuppressCommit">Indicates whether database commits are suppressed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostPayment(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; PreviewMode: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 }

@@ -6,6 +6,7 @@
     "../../../src/Apps/IT/ContosoCoffeeDemoDatasetIT/app",
     "../../../src/Apps/IT/EDocumentIT/demo data",
     "../../../src/Apps/IT/HybridBCLast_IT/app",
+    "../../../src/Apps/IT/Intercompany/app",
     "../../../src/Apps/IT/IntrastatIT/app",
     "../../../src/Apps/IT/ServiceDeclarationIT/app",
     "../../../src/Apps/IT/SubcontractingMigrationIT/App",

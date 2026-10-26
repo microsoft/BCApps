@@ -82,12 +82,6 @@ codeunit 8505 "IC Sales-Post"
             PostICGenJnl(GenJnlPostLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostPayment', '', false, false)]
-    local procedure InitializePaymentPartner(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header")
-    begin
-        GenJnlLine."IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
-    end;
-
     local procedure PostGLAccICLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
     var
         IsHandled: Boolean;
@@ -96,7 +90,6 @@ codeunit 8505 "IC Sales-Post"
         OnBeforePostGLAccICLine(SalesHeader, SalesLine, ICGenJnlLineNo, IsHandled);
         if IsHandled then
             exit;
-
         if (SalesLine."No." <> '') and not SalesLine."System-Created Entry" then begin
             CheckGLAccDirectPosting(SalesLine);
             OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(SalesHeader, SalesLine, xSalesLine, ICGenJnlLineNo);
@@ -284,7 +277,6 @@ codeunit 8505 "IC Sales-Post"
         OnBeforeCheckICDocumentDuplicatePosting(SalesHeader, IsHandled);
         if IsHandled then
             exit;
-
         if not SalesHeader.Invoice then
             exit;
 
@@ -371,7 +363,6 @@ codeunit 8505 "IC Sales-Post"
         OnBeforeCheckICPartnerBlocked(SalesHeader, IsHandled);
         if IsHandled then
             exit;
-
         if SalesHeader."Sell-to IC Partner Code" <> '' then
             if ICPartner.Get(SalesHeader."Sell-to IC Partner Code") then
                 ICPartner.TestField(Blocked, false);
@@ -393,7 +384,6 @@ codeunit 8505 "IC Sales-Post"
 #endif
         if IsHandled then
             exit;
-
         if SalesHeader."Send IC Document" and (SalesHeader."IC Status" = SalesHeader."IC Status"::New) and (SalesHeader."IC Direction" = SalesHeader."IC Direction"::Outgoing) and
             (SalesHeader."Document Type" in [SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Return Order"])
         then begin
@@ -424,7 +414,6 @@ codeunit 8505 "IC Sales-Post"
 #endif
         if IsHandled then
             exit;
-
         if SalesHeader."IC Direction" = SalesHeader."IC Direction"::Incoming then begin
             HandledICInboxTrans.SetRange("Document No.", SalesHeader."IC Reference Document No.");
             Customer.Get(SalesHeader."Sell-to Customer No.");

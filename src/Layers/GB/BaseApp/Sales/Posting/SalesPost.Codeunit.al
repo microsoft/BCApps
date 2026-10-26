@@ -13786,9 +13786,4 @@ codeunit 80 "Sales-Post"
     local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
     begin
     end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostPayment(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; PreviewMode: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
-    begin
-    end;
 }

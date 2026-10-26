@@ -162,6 +162,28 @@ table 1313 "Activities Cue"
             Caption = 'Uninvoiced Bookings';
             Editable = false;
         }
+#if not CLEANSCHEMA30
+        field(28; "IC Inbox Transactions"; Integer)
+        {
+            CalcFormula = count(Microsoft.Intercompany.Inbox."IC Inbox Transaction");
+            Caption = 'IC Inbox Transactions';
+            FieldClass = FlowField;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+        field(29; "IC Outbox Transactions"; Integer)
+        {
+            CalcFormula = count(Microsoft.Intercompany.Outbox."IC Outbox Transaction");
+            Caption = 'IC Outbox Transactions';
+            FieldClass = FlowField;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+        }
+#endif
         field(31; "Outstanding Vendor Invoices"; Integer)
         {
             CalcFormula = count("Vendor Ledger Entry" where("Document Type" = filter(Invoice),
@@ -211,4 +233,3 @@ table 1313 "Activities Cue"
         exit(TypeHelper.GetAmountFormatLCYWithUserLocale());
     end;
 }
-

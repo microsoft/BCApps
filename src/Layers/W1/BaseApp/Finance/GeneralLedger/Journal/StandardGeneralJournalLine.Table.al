@@ -19,11 +19,11 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Intercompany.Journal;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Utilities;
-using Microsoft.Intercompany.Journal;
 
 /// <summary>
 /// Table storing detailed line information for standard general journal templates enabling reusable journal entry patterns.
