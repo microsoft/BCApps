@@ -228,6 +228,9 @@ report 4408 "EXR Trial Bal by Period Excel"
         IsKnownDimension1Code: Boolean;
         IsKnownDimension2Code: Boolean;
     begin
+        // The last reporting period starts the day after it ends (see OnPreReport), so it has no net change.
+        if not IsBalance and (PeriodStartDate > PeriodEndDate) then
+            exit;
         // Mirror the filters of the G/L Account flowfields: Totaling replaces the account number for total accounts.
         if GLAccount.Totaling <> '' then
             EXRTrialBalByPeriod.SetFilter(GLAccountNo, GLAccount.Totaling)
@@ -240,7 +243,10 @@ report 4408 "EXR Trial Bal by Period Excel"
         if GLAccount.GetFilter("Business Unit Filter") <> '' then
             EXRTrialBalByPeriod.SetFilter(BusinessUnitCode, GLAccount.GetFilter("Business Unit Filter"));
         if GLAccount.GetFilter("VAT Reporting Date Filter") <> '' then
-            EXRTrialBalByPeriod.SetFilter(VATReportingDate, GLAccount.GetFilter("VAT Reporting Date Filter"));
+            if IsBalance then
+                SetVATReportingDateUpperLimitFilter(EXRTrialBalByPeriod, GLAccount)
+            else
+                EXRTrialBalByPeriod.SetFilter(VATReportingDate, GLAccount.GetFilter("VAT Reporting Date Filter"));
         if GLAccount.GetFilter("Dimension Set ID Filter") <> '' then
             EXRTrialBalByPeriod.SetFilter(DimensionSetID, GLAccount.GetFilter("Dimension Set ID Filter"));
         EXRTrialBalByPeriod.Open();
@@ -261,6 +267,32 @@ report 4408 "EXR Trial Bal by Period Excel"
                 AddToPeriodTotals(TempPeriodTotals, '', Dimension2Code, IsBalance, EXRTrialBalByPeriod.Amount, EXRTrialBalByPeriod.DebitAmount, EXRTrialBalByPeriod.CreditAmount);
         end;
         EXRTrialBalByPeriod.Close();
+    end;
+
+    local procedure SetVATReportingDateUpperLimitFilter(var EXRTrialBalByPeriod: Query "EXR Trial Bal by Period"; var GLAccount: Record "G/L Account")
+    var
+        VATReportingDateFilter: Text;
+        UpperLimit: Date;
+    begin
+        // "Balance at Date" applies only the upper limit of the VAT Reporting Date Filter.
+        VATReportingDateFilter := GLAccount.GetFilter("VAT Reporting Date Filter");
+        if not TryGetVATReportingDateUpperLimit(GLAccount, UpperLimit) then begin
+            // GetRangeMax fails for filters that are not a single range, so such filters are applied as entered.
+            EXRTrialBalByPeriod.SetFilter(VATReportingDate, VATReportingDateFilter);
+            exit;
+        end;
+        if UpperLimit <> 0D then
+            EXRTrialBalByPeriod.SetFilter(VATReportingDate, '..%1', UpperLimit)
+        else
+            // An open-ended range has no upper limit.
+            if not VATReportingDateFilter.EndsWith('..') then
+                EXRTrialBalByPeriod.SetFilter(VATReportingDate, VATReportingDateFilter);
+    end;
+
+    [TryFunction]
+    local procedure TryGetVATReportingDateUpperLimit(var GLAccount: Record "G/L Account"; var UpperLimit: Date)
+    begin
+        UpperLimit := GLAccount.GetRangeMax("VAT Reporting Date Filter");
     end;
 
     local procedure AddToPeriodTotals(var TempPeriodTotals: Record "EXR Trial Balance Buffer" temporary; Dimension1Code: Code[20]; Dimension2Code: Code[20]; IsBalance: Boolean; Amount: Decimal; DebitAmount: Decimal; CreditAmount: Decimal)
