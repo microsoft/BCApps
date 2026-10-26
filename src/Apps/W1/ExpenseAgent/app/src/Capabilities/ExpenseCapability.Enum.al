@@ -99,7 +99,7 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
-    /// Travel requests are available in the expense app.
+    /// Expense Setup API has Company ID.
     /// </summary>
     value(10; ExpenseSetupHasCompanyID)
     {
