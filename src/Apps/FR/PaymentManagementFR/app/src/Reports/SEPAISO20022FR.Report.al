@@ -11,10 +11,8 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using System;
 using System.IO;
 using System.Text;
-using System.Xml;
 
 report 10848 "SEPA ISO20022 FR"
 {
@@ -99,7 +97,6 @@ report 10848 "SEPA ISO20022 FR"
         PaymentLineFR: Record "Payment Line FR";
         CompanyInfo: Record "Company Information";
         SEPACountry: Record "Country/Region";
-        XMLDomDoc: DotNet XmlDocument;
         FileName: Text;
         Text000Lbl: Label 'Save As';
         Text001Lbl: Label 'XML Files (*.xml)|*.xml|All Files|*.*', Comment = 'Only translate ''XML Files'' and ''All Files'' {Split=r"[\|\(]\*\.[^ |)]*[|) ]?"}';
@@ -116,28 +113,29 @@ report 10848 "SEPA ISO20022 FR"
 
     local procedure ExportSEPAFile()
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLRootElement: DotNet XmlElement;
-        XMLNodeCurr: DotNet XmlNode;
-        XMLNewChild: DotNet XmlNode;
+        XmlDoc: XmlDocument;
+        XMLNodeCurr: XmlElement;
+        XMLNewChild: XmlElement;
+        OutputFile: File;
+        OutStr: OutStream;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromText('<?xml version="1.0" encoding="UTF-8"?><Document></Document>', XMLDomDoc);
-        XMLRootElement := XMLDomDoc.DocumentElement;
-        XMLRootElement.SetAttribute('xmlns', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.02');
-        XMLRootElement.SetAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchemainstance');
-        XMLNodeCurr := XMLDomDoc.SelectSingleNode('Document');
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="UTF-8"?><Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchemainstance"></Document>', XmlDoc);
+        XmlDoc.GetRoot(XMLNodeCurr);
         AddElement(XMLNodeCurr, 'pain.001.001.02', '', '', XMLNewChild);
 
         ExportGroupHeader(XMLNewChild);
         ExportPaymentInformation(XMLNewChild);
 
-        XMLDomDoc.Save(FileName);
-        Clear(XMLDomDoc);
+        OutputFile.WriteMode(true);
+        OutputFile.Create(FileName);
+        OutputFile.CreateOutStream(OutStr);
+        XmlDoc.WriteTo(OutStr);
+        OutputFile.Close();
     end;
 
-    local procedure ExportGroupHeader(XMLNodeCurr: DotNet XmlNode)
+    local procedure ExportGroupHeader(XMLNodeCurr: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        XMLNewChild: XmlElement;
         MessageId: Text;
     begin
         AddElement(XMLNodeCurr, 'GrpHdr', '', '', XMLNewChild);
@@ -168,15 +166,15 @@ report 10848 "SEPA ISO20022 FR"
 
         AddElement(XMLNodeCurr, 'TaxIdNb', Format(DelChr(CompanyInfo."VAT Registration No."), 0, 9), '', XMLNewChild);
 
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
     end;
 
-    local procedure ExportPaymentInformation(XMLNodeCurr: DotNet XmlNode)
+    local procedure ExportPaymentInformation(XMLNodeCurr: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        XMLNewChild: XmlElement;
         AddressLine1: Text[151];
         AddressLine2: Text[60];
         UstrdRemitInfo: Text;
@@ -193,8 +191,8 @@ report 10848 "SEPA ISO20022 FR"
         XMLNodeCurr := XMLNewChild;
 
         AddElement(XMLNodeCurr, 'Cd', 'SEPA', '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
         AddElement(XMLNodeCurr, 'ReqdExctnDt', Format("Payment Header"."Posting Date", 0, 9), '', XMLNewChild);
         AddElement(XMLNodeCurr, 'Dbtr', '', '', XMLNewChild);
@@ -214,8 +212,8 @@ report 10848 "SEPA ISO20022 FR"
             AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 70), '', XMLNewChild);
 
         AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
         AddElement(XMLNodeCurr, 'DbtrAcct', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
@@ -224,10 +222,10 @@ report 10848 "SEPA ISO20022 FR"
         XMLNodeCurr := XMLNewChild;
 
         AddElement(XMLNodeCurr, 'IBAN', CopyStr(DelChr("Payment Header".IBAN), 1, 34), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
         AddElement(XMLNodeCurr, 'Ccy', 'EUR', '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
         AddElement(XMLNodeCurr, 'DbtrAgt', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
@@ -236,8 +234,8 @@ report 10848 "SEPA ISO20022 FR"
         XMLNodeCurr := XMLNewChild;
 
         AddElement(XMLNodeCurr, 'BIC', CopyStr(DelChr("Payment Header"."SWIFT Code"), 1, 11), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
         AddElement(XMLNodeCurr, 'ChrgBr', 'SLEV', '', XMLNewChild);
 
@@ -250,15 +248,15 @@ report 10848 "SEPA ISO20022 FR"
                 XMLNodeCurr := XMLNewChild;
 
                 AddElement(XMLNodeCurr, 'EndToEndId', GetEndToEndId(PaymentLineFR), '', XMLNewChild);
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
+                XMLNodeCurr.GetParent(XMLNodeCurr);
 
                 AddElement(XMLNodeCurr, 'Amt', '', '', XMLNewChild);
                 XMLNodeCurr := XMLNewChild;
                 if PaymentLineFR.Amount < 0 then
                     Error(Text011Lbl, PaymentLineFR.TableCaption(), PaymentLineFR.FieldCaption("Line No."), PaymentLineFR."Line No.");
                 AddElement(XMLNodeCurr, 'InstdAmt', Format(PaymentLineFR.Amount, 0, '<Precision,2:2><Standard Format,9>'), '', XMLNewChild);
-                AddAttribute(XMLDomDoc, XMLNewChild, 'Ccy', 'EUR');
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
+                AddAttribute(XMLNewChild, 'Ccy', 'EUR');
+                XMLNodeCurr.GetParent(XMLNodeCurr);
 
                 AddElement(XMLNodeCurr, 'CdtrAgt', '', '', XMLNewChild);
                 XMLNodeCurr := XMLNewChild;
@@ -267,8 +265,8 @@ report 10848 "SEPA ISO20022 FR"
                 XMLNodeCurr := XMLNewChild;
 
                 AddElement(XMLNodeCurr, 'BIC', CopyStr(DelChr(PaymentLineFR."SWIFT Code"), 1, 11), '', XMLNewChild);
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
 
                 AddElement(XMLNodeCurr, 'Cdtr', '', '', XMLNewChild);
                 XMLNodeCurr := XMLNewChild;
@@ -282,62 +280,47 @@ report 10848 "SEPA ISO20022 FR"
                 XMLNodeCurr := XMLNewChild;
 
                 AddElement(XMLNodeCurr, 'IBAN', CopyStr(DelChr(PaymentLineFR.IBAN), 1, 34), '', XMLNewChild);
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
 
                 UstrdRemitInfo := CreateUstrdRemitInfo();
                 if DelChr(UstrdRemitInfo) <> '' then begin
                     AddElement(XMLNodeCurr, 'RmtInf', '', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
                     AddElement(XMLNodeCurr, 'Ustrd', UstrdRemitInfo, '', XMLNewChild);
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
                 end;
 
-                XMLNodeCurr := XMLNodeCurr.ParentNode;
+                XMLNodeCurr.GetParent(XMLNodeCurr);
             until PaymentLineFR.Next() = 0;
 
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
     end;
 
-    local procedure AddElement(var XMLNode: DotNet XmlNode; NodeName: Text;
-                                                NodeText: Text; NameSpace: Text[250]; var CreatedXMLNode: DotNet XmlNode): Boolean
+    local procedure AddElement(var XMLNode: XmlElement; NodeName: Text;
+                                                NodeText: Text; NameSpace: Text[250]; var CreatedXMLNode: XmlElement): Boolean
     var
         StringConversionMgt: Codeunit StringConversionManagement;
-        NewChildNode: DotNet XmlNode;
+        NewChildNode: XmlElement;
     begin
-        NewChildNode := XMLNode.OwnerDocument.CreateNode('element', NodeName, NameSpace);
-        if IsNull(NewChildNode) then
-            exit(false);
-
+        // Inherit the parent's default namespace so no xmlns="" is written on child elements.
+        if NameSpace = '' then
+            NameSpace := CopyStr(XMLNode.NamespaceUri(), 1, MaxStrLen(NameSpace));
+        NewChildNode := XmlElement.Create(NodeName, NameSpace);
         if NodeText <> '' then
-            NewChildNode.InnerText := StringConversionMgt.WindowsToASCII(NodeText);
-        XMLNode.AppendChild(NewChildNode);
+            NewChildNode.Add(XmlText.Create(StringConversionMgt.WindowsToASCII(NodeText)));
+        XMLNode.Add(NewChildNode);
         CreatedXMLNode := NewChildNode;
-        Clear(NewChildNode);
         exit(true);
     end;
 
-    local procedure AddAttribute(var XMLDomDocParam: DotNet XmlDocument;
-
-    var
-        XMLDomNode: DotNet XmlNode;
-        AttribName: Text[250];
-        AttribValue: Text[250]): Boolean
-    var
-        XMLDomAttribute: DotNet XmlAttribute;
+    local procedure AddAttribute(var XMLDomNode: XmlElement; AttribName: Text[250]; AttribValue: Text[250]): Boolean
     begin
-        XMLDomAttribute := XMLDomDocParam.CreateAttribute(AttribName);
-        if IsNull(XMLDomAttribute) then
-            exit(false);
-
-        if AttribValue <> '' then
-            XMLDomAttribute.Value := AttribValue;
-        XMLDomNode.Attributes.SetNamedItem(XMLDomAttribute);
-        Clear(XMLDomAttribute);
+        XMLDomNode.SetAttribute(AttribName, AttribValue);
         exit(true);
     end;
 
-    local procedure AddAccountInformation(var XMLNodeCurr: DotNet XmlNode)
+    local procedure AddAccountInformation(var XMLNodeCurr: XmlElement)
     var
         Cust: Record Customer;
         Vend: Record Vendor;
@@ -356,14 +339,14 @@ report 10848 "SEPA ISO20022 FR"
         end;
     end;
 
-    local procedure AddAccountTags(var XMLNodeCurr: DotNet XmlNode; AccountName: Text;
+    local procedure AddAccountTags(var XMLNodeCurr: XmlElement; AccountName: Text;
                                                         Address: Text;
                                                         Address2: Text[70];
                                                         PostCode: Text[70];
                                                         City: Text[70];
                                                         CountryCode: Text[10])
     var
-        XMLNewChild: DotNet XmlNode;
+        XMLNewChild: XmlElement;
         AddressLine1: Text[150];
         AddressLine2: Text[150];
     begin
@@ -378,8 +361,8 @@ report 10848 "SEPA ISO20022 FR"
         if DelChr(AddressLine2) <> '' then
             AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 70), '', XMLNewChild);
         AddElement(XMLNodeCurr, 'Ctry', CopyStr(CountryCode, 1, 2), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
     end;
 
     local procedure CheckBankCountrySEPAAllowed(CountryCode: Code[10]): Boolean
